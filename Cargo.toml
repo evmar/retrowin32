@@ -15,5 +15,6 @@ path = "win32"
 
 [workspace]
 members = [
+    "wasm",
     "win32",
 ]
