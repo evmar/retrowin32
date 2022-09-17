@@ -2,9 +2,13 @@
   "name": "web",
   "version": "1.0.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js web.tsx"
   },
   "devDependencies": {
     "typescript": "^4.8.3"
+  },
+  "dependencies": {
+    "esbuild": "^0.15.7",
+    "preact": "^10.11.0"
   }
 }
