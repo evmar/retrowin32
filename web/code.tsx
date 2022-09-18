@@ -2,10 +2,15 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
 
+export interface CodePart {
+  kind: string;
+  text: string;
+}
+
 export interface Instruction {
   addr: number;
   bytes: string;
-  code: string;
+  code: CodePart[];
 }
 
 namespace Code {
@@ -15,9 +20,18 @@ namespace Code {
 }
 export class Code extends preact.Component<Code.Props> {
   render() {
-    return <pre>
-        {this.props.instrs.map(instr => {
-            return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {instr.code}</div>
-    })}</pre>;
+    const instrs = this.props.instrs.map(instr => {
+      let code = instr.code.map(({ kind, text }) => {
+        switch (kind) {
+          case 'FunctionAddress':
+          case 'LabelAddress':
+            return <u>{text}</u>;
+          default:
+            return text;
+        }
+      });
+      return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {code}</div>;
+    });
+    return <pre>{instrs}</pre>;
   }
 }

@@ -1,10 +1,30 @@
 use std::fmt::Write;
 
+use iced_x86::{Formatter, IntelFormatter};
+
+#[derive(serde::Serialize)]
+pub struct CodePart {
+    pub kind: String,
+    pub text: String,
+}
+
 #[derive(serde::Serialize)]
 pub struct Instruction {
     pub addr: u32,
     pub bytes: String,
-    pub code: String,
+    pub code: Vec<CodePart>,
+}
+
+struct FormatterOutput {
+    code: Vec<CodePart>,
+}
+impl iced_x86::FormatterOutput for FormatterOutput {
+    fn write(&mut self, text: &str, kind: iced_x86::FormatterTextKind) {
+        self.code.push(CodePart {
+            kind: format!("{:?}", kind),
+            text: text.to_string(),
+        })
+    }
 }
 
 pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
@@ -14,6 +34,7 @@ pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
         addr as u64,
         iced_x86::DecoderOptions::NONE,
     );
+    let mut formatter = IntelFormatter::new();
 
     let mut instrs = Vec::new();
     let mut i = 0;
@@ -25,10 +46,14 @@ pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
         for &b in instr_bytes.iter() {
             write!(&mut bytes, "{:02x}", b).unwrap();
         }
+
+        let mut output = FormatterOutput { code: Vec::new() };
+        formatter.format(&instruction, &mut output);
+
         instrs.push(Instruction {
             addr: instruction.ip() as u32,
             bytes,
-            code: instruction.to_string(),
+            code: output.code,
         });
         i += 1;
         if i > 20 {
