@@ -19,6 +19,10 @@ impl X86 {
         let len = len as usize;
         self.x86.mem[addr..addr+len].into()
     }
+
+    pub fn regs_json(&self) -> String {
+        serde_json::to_string(&self.x86.regs).unwrap_throw()
+    }
 }
 
 #[wasm_bindgen]

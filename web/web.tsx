@@ -1,13 +1,11 @@
 import * as wasm from './wasm/wasm.js';
 import * as preact from 'preact';
 import {h} from 'preact';
+import { hex } from './util.js';
+import { RegistersView } from './registers.js';
 
 async function loadExe(): Promise<ArrayBuffer> {
     return await (await fetch('tiny.exe')).arrayBuffer();
-}
-
-function hex(i: number, digits = 2): string {
-    return i.toString(16).padStart(digits, '0');
 }
 
 namespace Memory {
@@ -30,6 +28,21 @@ class Memory extends preact.Component<Memory.Props> {
     }
 }
 
+namespace Page {
+    export interface Props {
+        x86: wasm.X86;
+    }
+}
+class Page extends preact.Component<Page.Props> {
+    render() {
+        const base = 0x0040_1000;
+        const buf = this.props.x86.mem(base, 0x1000);
+        return <main>
+            <Memory base={base} buf={buf}/>
+            <RegistersView regs={JSON.parse(this.props.x86.regs_json())}/>
+        </main>
+    }
+}
 
 async function main() {
     const exe = await loadExe();
@@ -37,11 +50,7 @@ async function main() {
     // ick copies
     const x86 = wasm.load_exe(new Uint8Array(exe));
 
-    const pre = document.createElement('pre');
-    const base = 0x0040_1000;
-    const buf = x86.mem(base, 0x1000);
-
-    preact.render(<Memory base={base} buf={buf}/>, document.body);
+    preact.render(<Page x86={x86}/>, document.body);
 }
 
 main();
