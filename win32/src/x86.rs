@@ -1,4 +1,3 @@
-
 #[derive(serde::Serialize)]
 pub struct Registers {
     pub eax: u32,

@@ -2,7 +2,7 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
 
-interface Registers {
+export interface Registers {
   eax: number;
   ebx: number;
   ecx: number;
@@ -60,6 +60,9 @@ export class RegistersView extends preact.Component<RegistersView.Props> {
         </div>
         <div>
           edi <Register value={regs.edi} />
+        </div>
+        <div>
+          eip <Register value={regs.eip} />
         </div>
         <div>
           cs <Register value={regs.cs} />

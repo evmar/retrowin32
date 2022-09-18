@@ -1,7 +1,9 @@
+mod debug;
 mod pe;
-mod x86;
 mod reader;
+mod x86;
 
+pub use debug::*;
 pub use x86::X86;
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {

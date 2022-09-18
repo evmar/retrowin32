@@ -1,8 +1,9 @@
 import * as preact from 'preact';
 import { h } from 'preact';
-import { RegistersView } from './registers.js';
-import { hex } from './util.js';
-import * as wasm from './wasm/wasm.js';
+import { Code, Instruction } from './code';
+import { Registers, RegistersView } from './registers';
+import { hex } from './util';
+import * as wasm from './wasm/wasm';
 
 async function loadExe(): Promise<ArrayBuffer> {
   return await (await fetch('tiny.exe')).arrayBuffer();
@@ -37,10 +38,13 @@ class Page extends preact.Component<Page.Props> {
   render() {
     const base = 0x0040_1000;
     const buf = this.props.x86.mem(base, 0x1000);
+    const regs = JSON.parse(this.props.x86.regs_json()) as Registers;
+    const instrs = JSON.parse(this.props.x86.disassemble(regs.eip)) as Instruction[];
     return (
       <main>
+        <Code instrs={instrs} />
         <Memory base={base} buf={buf} />
-        <RegistersView regs={JSON.parse(this.props.x86.regs_json())} />
+        <RegistersView regs={regs} />
       </main>
     );
   }
