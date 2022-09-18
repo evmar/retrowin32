@@ -1,17 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
-
-export interface CodePart {
-  kind: string;
-  text: string;
-}
-
-export interface Instruction {
-  addr: number;
-  bytes: string;
-  code: CodePart[];
-}
+import { Instruction } from './wasm/wasm';
 
 namespace Code {
   export interface Props {

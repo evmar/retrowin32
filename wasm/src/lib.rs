@@ -23,7 +23,7 @@ impl X86 {
         serde_json::to_string(&self.x86.regs).unwrap_throw()
     }
 
-    pub fn disassemble(&self, addr: u32) -> String {
+    pub fn disassemble_json(&self, addr: u32) -> String {
         serde_json::to_string(&win32::disassemble(&self.x86.mem, addr)).unwrap_throw()
     }
 }

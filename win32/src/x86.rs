@@ -1,4 +1,6 @@
-#[derive(serde::Serialize)]
+use tsify::Tsify;
+
+#[derive(Tsify, serde::Serialize)]
 pub struct Registers {
     pub eax: u32,
     pub ebx: u32,

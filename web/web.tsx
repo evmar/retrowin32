@@ -1,7 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
-import { Code, Instruction } from './code';
-import { Registers, RegistersView } from './registers';
+import { Code } from './code';
+import { Registers } from './registers';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
@@ -38,13 +38,13 @@ class Page extends preact.Component<Page.Props> {
   render() {
     const base = 0x0040_1000;
     const buf = this.props.x86.mem(base, 0x1000);
-    const regs = JSON.parse(this.props.x86.regs_json()) as Registers;
-    const instrs = JSON.parse(this.props.x86.disassemble(regs.eip)) as Instruction[];
+    const regs = JSON.parse(this.props.x86.regs_json()) as wasm.Registers;
+    const instrs = JSON.parse(this.props.x86.disassemble_json(regs.eip)) as wasm.Instruction[];
     return (
       <main>
         <Code instrs={instrs} />
         <Memory base={base} buf={buf} />
-        <RegistersView regs={regs} />
+        <Registers regs={regs} />
       </main>
     );
   }

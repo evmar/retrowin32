@@ -1,14 +1,15 @@
 use std::fmt::Write;
 
 use iced_x86::{Formatter, IntelFormatter};
+use tsify::Tsify;
 
-#[derive(serde::Serialize)]
+#[derive(Tsify, serde::Serialize)]
 pub struct CodePart {
     pub kind: String,
     pub text: String,
 }
 
-#[derive(serde::Serialize)]
+#[derive(Tsify, serde::Serialize)]
 pub struct Instruction {
     pub addr: u32,
     pub bytes: String,

@@ -1,24 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
-
-export interface Registers {
-  eax: number;
-  ebx: number;
-  ecx: number;
-  edx: number;
-  esp: number;
-  ebp: number;
-  esi: number;
-  edi: number;
-  eip: number;
-  cs: number;
-  ds: number;
-  es: number;
-  fs: number;
-  gs: number;
-  ss: number;
-}
+import * as wasm from './wasm/wasm';
 
 class Register extends preact.Component<{ value: number }> {
   render() {
@@ -26,12 +9,12 @@ class Register extends preact.Component<{ value: number }> {
   }
 }
 
-namespace RegistersView {
+namespace Registers {
   export interface Props {
-    regs: Registers;
+    regs: wasm.Registers;
   }
 }
-export class RegistersView extends preact.Component<RegistersView.Props> {
+export class Registers extends preact.Component<Registers.Props> {
   render() {
     const { regs } = this.props;
     return (
