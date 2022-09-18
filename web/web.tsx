@@ -48,6 +48,7 @@ class Page extends preact.Component<Page.Props> {
           <Registers regs={regs} />
         </div>
         <Memory base={base} buf={buf} />
+        <button onClick={() => { this.props.x86.step(); this.forceUpdate(); }}>step</button>
       </main>
     );
   }

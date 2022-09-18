@@ -26,6 +26,10 @@ impl X86 {
     pub fn disassemble_json(&self, addr: u32) -> String {
         serde_json::to_string(&win32::disassemble(&self.x86.mem, addr)).unwrap_throw()
     }
+
+    pub fn step(&mut self) -> Result<(), String> {
+        self.x86.step().map_err(|err| err.to_string())
+    }
 }
 
 #[wasm_bindgen]

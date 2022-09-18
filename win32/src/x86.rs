@@ -1,3 +1,4 @@
+use anyhow::bail;
 use tsify::Tsify;
 
 #[derive(Tsify, serde::Serialize)]
@@ -41,6 +42,26 @@ impl Registers {
             ss: 0,
         }
     }
+
+    fn get(&self, name: iced_x86::Register) -> u32 {
+        match name {
+            iced_x86::Register::EAX => self.eax,
+            iced_x86::Register::EBX => self.ebx,
+            iced_x86::Register::ECX => self.ecx,
+            iced_x86::Register::EDX => self.edx,
+            iced_x86::Register::ESP => self.esp,
+            iced_x86::Register::EBP => self.ebp,
+            iced_x86::Register::ESI => self.esi,
+            iced_x86::Register::EDI => self.edi,
+/*            iced_x86::Register::CS => self.cs,
+            iced_x86::Register::DS => self.ds,
+            iced_x86::Register::ES => self.es,
+            iced_x86::Register::FS => self.fs,
+            iced_x86::Register::SS => self.ss,
+            iced_x86::Register::GS => self.gs, */
+            _ => todo!(),
+        }
+    }
 }
 
 pub struct X86 {
@@ -53,5 +74,38 @@ impl X86 {
             mem: Vec::new(),
             regs: Registers::new(),
         }
+    }
+
+    fn push(&mut self, value: u32) {
+        self.regs.esp -= 4;
+        self.mem[self.regs.esp as usize] = (value >> 24) as u8;
+        self.mem[self.regs.esp as usize + 1] = (value >> 16) as u8;
+        self.mem[self.regs.esp as usize + 2] = (value >> 8) as u8;
+        self.mem[self.regs.esp as usize + 3] = (value >> 0) as u8;
+    }
+
+    fn run(&mut self, instruction: &iced_x86::Instruction) -> anyhow::Result<()> {
+        self.regs.eip = instruction.next_ip() as u32;
+        match instruction.code() {
+            iced_x86::Code::Call_rel32_32 => {
+                self.push(self.regs.eip);
+                self.regs.eip = instruction.near_branch32();
+            }
+            iced_x86::Code::Push_r32 => {
+                self.push(self.regs.get(instruction.op_register(0)))
+            }
+            code => bail!("code {:?}", code)
+        }
+        Ok(())
+    }
+
+    pub fn step(&mut self) -> anyhow::Result<()> {
+        let mut decoder = iced_x86::Decoder::with_ip(
+            32,
+            &self.mem[self.regs.eip as usize..],
+            self.regs.eip as u64,
+            iced_x86::DecoderOptions::NONE,
+        );
+        self.run(&decoder.decode())
     }
 }

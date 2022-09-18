@@ -34,5 +34,10 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     }
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
+
+    // in debugger, initial stack was from 0xce000 + 0x12000
+    // unclear where this comes from
+    x86.regs.esp = 0xe0000;
+
     Ok(())
 }
