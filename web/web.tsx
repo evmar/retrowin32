@@ -42,9 +42,12 @@ class Page extends preact.Component<Page.Props> {
     const instrs = JSON.parse(this.props.x86.disassemble_json(regs.eip)) as wasm.Instruction[];
     return (
       <main>
-        <Code instrs={instrs} />
+        <div style={{ display: 'flex' }}>
+          <Code instrs={instrs} />
+          <div style={{ width: '12ex' }} />
+          <Registers regs={regs} />
+        </div>
         <Memory base={base} buf={buf} />
-        <Registers regs={regs} />
       </main>
     );
   }

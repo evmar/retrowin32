@@ -21,49 +21,41 @@ export class Registers extends preact.Component<Registers.Props> {
       <code>
         <div>
           eax <Register value={regs.eax} />
-        </div>
-        <div>
+          <br />
           ebx <Register value={regs.ebx} />
-        </div>
-        <div>
+          <br />
           ecx <Register value={regs.ecx} />
-        </div>
-        <div>
+          <br />
           edx <Register value={regs.edx} />
+          <br />
         </div>
-        <div>&nbsp;</div>
-        <div>
-          esp <Register value={regs.esp} />
-        </div>
-        <div>
-          ebp <Register value={regs.ebp} />
-        </div>
-        <div>
-          esi <Register value={regs.esi} />
-        </div>
-        <div>
-          edi <Register value={regs.edi} />
-        </div>
+        <br />
         <div>
           eip <Register value={regs.eip} />
+          <br />
+          esp <Register value={regs.esp} />
+          <br />
+          ebp <Register value={regs.ebp} />
+          <br />
+          esi <Register value={regs.esi} />
+          <br />
+          edi <Register value={regs.edi} />
+          <br />
         </div>
+        <br />
         <div>
           cs <Register value={regs.cs} />
-        </div>
-        <div>
+          <br />
           ds <Register value={regs.ds} />
-        </div>
-        <div>
+          <br />
           es <Register value={regs.es} />
-        </div>
-        <div>
+          <br />
           fs <Register value={regs.fs} />
-        </div>
-        <div>
+          <br />
           gs <Register value={regs.gs} />
-        </div>
-        <div>
+          <br />
           ss <Register value={regs.ss} />
+          <br />
         </div>
       </code>
     );

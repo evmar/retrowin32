@@ -22,6 +22,6 @@ export class Code extends preact.Component<Code.Props> {
       });
       return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {code}</div>;
     });
-    return <pre>{instrs}</pre>;
+    return <code>{instrs}</code>;
   }
 }
