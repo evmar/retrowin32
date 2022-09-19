@@ -1,5 +1,4 @@
 use anyhow::bail;
-use log::warn;
 use tsify::Tsify;
 
 #[derive(Tsify)]

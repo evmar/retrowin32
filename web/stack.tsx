@@ -21,6 +21,10 @@ export class Stack extends preact.Component<Stack.Props> {
       }
       rows.push(row);
     }
-    return <code>{rows}</code>;
+    return (
+      <section>
+        <code>{rows}</code>
+      </section>
+    );
   }
 }

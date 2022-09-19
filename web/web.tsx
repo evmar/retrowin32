@@ -1,6 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import { Code } from './code';
+import { Memory } from './memory';
 import { Registers } from './registers';
 import { Stack } from './stack';
 import { hex } from './util';
@@ -10,35 +11,20 @@ async function loadExe(): Promise<ArrayBuffer> {
   return await (await fetch('unpacked.exe')).arrayBuffer();
 }
 
-namespace Memory {
-  export interface Props {
-    base: number;
-    mem: DataView;
-  }
-}
-class Memory extends preact.Component<Memory.Props> {
-  render() {
-    let text = '';
-    for (let row = 0; row < 0x100; row += 0x10) {
-      text += hex(this.props.base + row, 8) + ' ';
-      for (let col = 0; col < 0x10; col++) {
-        text += ' ' + hex(this.props.mem.getUint8(this.props.base + row + col));
-      }
-      text += '\n';
-    }
-    return <pre>{text}</pre>;
-  }
-}
-
 namespace Page {
   export interface Props {
     x86: wasm.X86;
   }
+  export interface State {
+    memBase: number;
+    memHighlight?: number;
+  }
 }
-class Page extends preact.Component<Page.Props> {
+class Page extends preact.Component<Page.Props, Page.State> {
+  state: Page.State = { memBase: 0x40_1000 };
+
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const base = 0x0040_1000;
     const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
     return (
       <main>
@@ -51,12 +37,16 @@ class Page extends preact.Component<Page.Props> {
           step
         </button>
         <div style={{ display: 'flex' }}>
-          <Code instrs={instrs} />
+          <Code
+            instrs={instrs}
+            highlightMemory={(addr) => this.setState({ memHighlight: addr })}
+            showMemory={(memBase) => this.setState({ memBase })}
+          />
           <div style={{ width: '12ex' }} />
           <Registers regs={this.props.x86} />
         </div>
         <div style={{ display: 'flex' }}>
-          <Memory base={base} mem={this.props.x86.memory()} />
+          <Memory mem={this.props.x86.memory()} base={this.state.memBase} highlight={this.state.memHighlight} />
           <div style={{ width: '12ex' }} />
           <Stack x86={this.props.x86} />
         </div>
