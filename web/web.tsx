@@ -2,6 +2,7 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Code } from './code';
 import { Registers } from './registers';
+import { Stack } from './stack';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
@@ -46,7 +47,11 @@ class Page extends preact.Component<Page.Props> {
           <div style={{ width: '12ex' }} />
           <Registers regs={this.props.x86} />
         </div>
-        <Memory base={base} mem={this.props.x86.memory()} />
+        <div style={{ display: 'flex' }}>
+          <Memory base={base} mem={this.props.x86.memory()} />
+          <div style={{ width: '12ex' }} />
+          <Stack x86={this.props.x86} />
+        </div>
         <button
           onClick={() => {
             this.props.x86.step();
