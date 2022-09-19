@@ -20,7 +20,7 @@ export class Code extends preact.Component<Code.Props> {
             return text;
         }
       });
-      return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {code}</div>;
+      return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {code} ({instr.ops.join(',')})</div>;
     });
     return <code>{instrs}</code>;
   }

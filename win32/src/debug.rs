@@ -14,6 +14,7 @@ pub struct Instruction {
     pub addr: u32,
     pub bytes: String,
     pub code: Vec<CodePart>,
+    pub ops: Vec<String>,
 }
 
 struct FormatterOutput {
@@ -55,6 +56,7 @@ pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
             addr: instruction.ip() as u32,
             bytes,
             code: output.code,
+            ops: instruction.op_kinds().map(|k| format!("{:?}", k)).collect(),
         });
         i += 1;
         if i > 20 {

@@ -7,7 +7,7 @@ import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
 async function loadExe(): Promise<ArrayBuffer> {
-  return await (await fetch('tiny.exe')).arrayBuffer();
+  return await (await fetch('unpacked.exe')).arrayBuffer();
 }
 
 namespace Memory {
