@@ -84,6 +84,14 @@ impl X86 {
         self.mem[offset + 3] = (value >> 24) as u8;
     }
 
+    fn read_u32(&self, offset: u32) -> u32 {
+        let offset = offset as usize;
+        ((self.mem[offset] as u32) << 0)
+            | ((self.mem[offset + 1] as u32) << 8)
+            | ((self.mem[offset + 2] as u32) << 16)
+            | ((self.mem[offset + 3] as u32) << 24)
+    }
+
     fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
         self.write_u32(self.regs.esp, value);
@@ -95,6 +103,11 @@ impl X86 {
             iced_x86::Code::Call_rel32_32 => {
                 self.push(self.regs.eip);
                 self.regs.eip = instruction.near_branch32();
+            }
+            iced_x86::Code::Call_rm32 => {
+                self.push(self.regs.eip);
+                let addr = self.read_u32(instruction.memory_displacement32());
+                self.regs.eip = addr;
             }
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instruction.near_branch32();
