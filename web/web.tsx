@@ -42,6 +42,14 @@ class Page extends preact.Component<Page.Props> {
     const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
     return (
       <main>
+        <button
+          onClick={() => {
+            this.props.x86.step();
+            this.forceUpdate();
+          }}
+        >
+          step
+        </button>
         <div style={{ display: 'flex' }}>
           <Code instrs={instrs} />
           <div style={{ width: '12ex' }} />
@@ -52,14 +60,6 @@ class Page extends preact.Component<Page.Props> {
           <div style={{ width: '12ex' }} />
           <Stack x86={this.props.x86} />
         </div>
-        <button
-          onClick={() => {
-            this.props.x86.step();
-            this.forceUpdate();
-          }}
-        >
-          step
-        </button>
       </main>
     );
   }

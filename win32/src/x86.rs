@@ -1,4 +1,5 @@
 use anyhow::bail;
+use log::warn;
 use tsify::Tsify;
 
 #[derive(Tsify)]
@@ -76,12 +77,17 @@ impl X86 {
         }
     }
 
+    fn write_u32(&mut self, offset: u32, value: u32) {
+        let offset = offset as usize;
+        self.mem[offset] = (value >> 0) as u8;
+        self.mem[offset + 1] = (value >> 8) as u8;
+        self.mem[offset + 2] = (value >> 16) as u8;
+        self.mem[offset + 3] = (value >> 24) as u8;
+    }
+
     fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
-        self.mem[self.regs.esp as usize] = (value >> 0) as u8;
-        self.mem[self.regs.esp as usize + 1] = (value >> 8) as u8;
-        self.mem[self.regs.esp as usize + 2] = (value >> 16) as u8;
-        self.mem[self.regs.esp as usize + 3] = (value >> 24) as u8;
+        self.write_u32(self.regs.esp, value);
     }
 
     fn run(&mut self, instruction: &iced_x86::Instruction) -> anyhow::Result<()> {
@@ -94,7 +100,14 @@ impl X86 {
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instruction.near_branch32();
             }
+            iced_x86::Code::Pushd_imm8 => self.push(instruction.immediate8to32() as u32),
             iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
+            iced_x86::Code::Mov_rm32_imm32 => {
+                self.write_u32(
+                    instruction.memory_displacement32(),
+                    instruction.immediate32(),
+                );
+            }
             code => bail!("code {:?}", code),
         }
         Ok(())
