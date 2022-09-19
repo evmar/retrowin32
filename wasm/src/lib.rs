@@ -6,6 +6,13 @@ extern "C" {
     fn log(s: &str);
 }
 
+#[wasm_bindgen(
+    inline_js = "export function mem(memory, offset) { return new DataView(memory.buffer, offset); }"
+)]
+extern "C" {
+    fn mem(mem: JsValue, offset: u32) -> JsValue;
+}
+
 #[wasm_bindgen]
 pub struct X86 {
     x86: win32::X86,
@@ -13,10 +20,8 @@ pub struct X86 {
 
 #[wasm_bindgen]
 impl X86 {
-    pub fn mem(&self, addr: u32, len: u32) -> Box<[u8]> {
-        let addr = addr as usize;
-        let len = len as usize;
-        self.x86.mem[addr..addr + len].into()
+    pub fn memory(&self) -> js_sys::DataView {
+        js_sys::DataView::from(mem(wasm_bindgen::memory(), self.x86.mem.as_ptr() as u32))
     }
 
     pub fn regs_json(&self) -> String {

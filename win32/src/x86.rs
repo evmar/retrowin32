@@ -53,7 +53,7 @@ impl Registers {
             iced_x86::Register::EBP => self.ebp,
             iced_x86::Register::ESI => self.esi,
             iced_x86::Register::EDI => self.edi,
-/*            iced_x86::Register::CS => self.cs,
+            /*            iced_x86::Register::CS => self.cs,
             iced_x86::Register::DS => self.ds,
             iced_x86::Register::ES => self.es,
             iced_x86::Register::FS => self.fs,
@@ -91,10 +91,8 @@ impl X86 {
                 self.push(self.regs.eip);
                 self.regs.eip = instruction.near_branch32();
             }
-            iced_x86::Code::Push_r32 => {
-                self.push(self.regs.get(instruction.op_register(0)))
-            }
-            code => bail!("code {:?}", code)
+            iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
+            code => bail!("code {:?}", code),
         }
         Ok(())
     }

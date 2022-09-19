@@ -264,6 +264,7 @@ checksum = "dcc811dc4066ac62f84f11307873c4850cb653bfa9b1719cee2bd2204a4bc5dd"
 name = "wasm"
 version = "0.1.0"
 dependencies = [
+ "js-sys",
  "serde_json",
  "wasm-bindgen",
  "win32",
