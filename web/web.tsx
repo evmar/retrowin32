@@ -38,14 +38,13 @@ class Page extends preact.Component<Page.Props> {
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const base = 0x0040_1000;
-    const regs = JSON.parse(this.props.x86.regs_json()) as wasm.Registers;
-    const instrs = JSON.parse(this.props.x86.disassemble_json(regs.eip)) as wasm.Instruction[];
+    const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
     return (
       <main>
         <div style={{ display: 'flex' }}>
           <Code instrs={instrs} />
           <div style={{ width: '12ex' }} />
-          <Registers regs={regs} />
+          <Registers regs={this.props.x86} />
         </div>
         <Memory base={base} mem={this.props.x86.memory()} />
         <button

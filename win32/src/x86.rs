@@ -1,7 +1,7 @@
 use anyhow::bail;
 use tsify::Tsify;
 
-#[derive(Tsify, serde::Serialize)]
+#[derive(Tsify)]
 pub struct Registers {
     pub eax: u32,
     pub ebx: u32,
