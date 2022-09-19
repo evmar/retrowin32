@@ -15,7 +15,7 @@ export class Stack extends preact.Component<Stack.Props> {
     const memory = x86.memory();
     const rows = [];
     for (let addr = esp - 0x10; addr < esp + 0x10; addr += 4) {
-      let row = <div>{hex(addr, 8)} {hex(memory.getUint16(addr, true), 8)}</div>;
+      let row = <div>{hex(addr, 8)} {hex(memory.getUint32(addr, true), 8)}</div>;
       if (addr === esp) {
         row = <b>{row}</b>;
       }

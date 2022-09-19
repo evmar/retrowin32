@@ -27,6 +27,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "console_log"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "501a375961cef1a0d44767200e66e4a559283097e91d0730b1d75dfb2f8a1494"
+dependencies = [
+ "log",
+ "web-sys",
+]
+
+[[package]]
 name = "darling"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -264,7 +274,9 @@ checksum = "dcc811dc4066ac62f84f11307873c4850cb653bfa9b1719cee2bd2204a4bc5dd"
 name = "wasm"
 version = "0.1.0"
 dependencies = [
+ "console_log",
  "js-sys",
+ "log",
  "serde_json",
  "wasm-bindgen",
  "win32",
@@ -341,6 +353,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "iced-x86",
+ "log",
  "serde",
  "tsify",
  "wasm-bindgen",

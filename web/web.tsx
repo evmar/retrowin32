@@ -68,6 +68,7 @@ class Page extends preact.Component<Page.Props> {
 async function main() {
   const exe = await loadExe();
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
+  wasm.init_logging();
   // ick copies
   const x86 = wasm.load_exe(new Uint8Array(exe));
 

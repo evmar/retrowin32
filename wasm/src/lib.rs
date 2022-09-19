@@ -1,11 +1,5 @@
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
-
 #[wasm_bindgen(
     inline_js = "export function mem(memory, offset) { return new DataView(memory.buffer, offset); }"
 )]
@@ -102,4 +96,9 @@ pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
     let mut x86 = win32::X86::new();
     win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
     Ok(X86 { x86 })
+}
+
+#[wasm_bindgen]
+pub fn init_logging() {
+    console_log::init().unwrap();
 }
