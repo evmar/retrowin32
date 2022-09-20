@@ -130,22 +130,22 @@ impl X86 {
         value
     }
 
-    fn run(&mut self, instruction: &iced_x86::Instruction) -> anyhow::Result<()> {
-        self.regs.eip = instruction.next_ip() as u32;
-        match instruction.code() {
+    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+        self.regs.eip = instr.next_ip() as u32;
+        match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
                 self.push(self.regs.ebp);
                 self.regs.ebp = self.regs.esp;
-                self.regs.esp -= instruction.immediate16() as u32;
+                self.regs.esp -= instr.immediate16() as u32;
             }
 
             iced_x86::Code::Call_rel32_32 => {
                 self.push(self.regs.eip);
-                self.regs.eip = instruction.near_branch32();
+                self.regs.eip = instr.near_branch32();
             }
             iced_x86::Code::Call_rm32 => {
                 // call dword ptr [addr]
-                let target = self.read_u32(instruction.memory_displacement32());
+                let target = self.read_u32(instr.memory_displacement32());
                 match self.imports.get(&target) {
                     Some(handler) => match handler {
                         Some(handler) => handler(self),
@@ -160,78 +160,68 @@ impl X86 {
             iced_x86::Code::Retnd => self.regs.eip = self.pop(),
 
             iced_x86::Code::Jmp_rel32_32 => {
-                self.regs.eip = instruction.near_branch32();
+                self.regs.eip = instr.near_branch32();
             }
 
-            iced_x86::Code::Pushd_imm8 => self.push(instruction.immediate8to32() as u32),
-            iced_x86::Code::Pushd_imm32 => self.push(instruction.immediate32()),
-            iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op0_register())),
+            iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
+            iced_x86::Code::Pushd_imm32 => self.push(instr.immediate32()),
+            iced_x86::Code::Push_r32 => self.push(self.regs.get(instr.op0_register())),
             iced_x86::Code::Push_rm32 => {
                 // push [eax+10h]
-                let value = self.read_u32(
-                    self.regs.get(instruction.memory_base()) + instruction.memory_displacement32(),
-                );
+                let value = self
+                    .read_u32(self.regs.get(instr.memory_base()) + instr.memory_displacement32());
                 self.push(value);
             }
 
             iced_x86::Code::Pop_r32 => {
                 let value = self.pop();
-                self.regs.set(instruction.op0_register(), value);
+                self.regs.set(instr.op0_register(), value);
             }
 
             iced_x86::Code::Mov_rm32_imm32 => {
                 // mov dword ptr [x], y
-                self.write_u32(
-                    instruction.memory_displacement32(),
-                    instruction.immediate32(),
-                );
+                self.write_u32(instr.memory_displacement32(), instr.immediate32());
             }
             iced_x86::Code::Mov_moffs32_EAX => {
                 // mov [x],eax
-                self.write_u32(instruction.memory_displacement32(), self.regs.eax);
+                self.write_u32(instr.memory_displacement32(), self.regs.eax);
             }
             iced_x86::Code::Mov_EAX_moffs32 => {
                 // mov eax,[x]
-                self.regs.eax = self.read_u32(instruction.memory_displacement32());
+                self.regs.eax = self.read_u32(instr.memory_displacement32());
             }
             iced_x86::Code::Mov_rm32_r32 => {
-                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
-                self.regs.set(
-                    instruction.op0_register(),
-                    self.regs.get(instruction.op1_register()),
-                );
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                self.regs
+                    .set(instr.op0_register(), self.regs.get(instr.op1_register()));
             }
             iced_x86::Code::Mov_r32_rm32 => {
-                assert!(instruction.op1_kind() == iced_x86::OpKind::Register);
-                self.regs.set(
-                    instruction.op0_register(),
-                    self.regs.get(instruction.op1_register()),
-                );
+                assert!(instr.op1_kind() == iced_x86::OpKind::Register);
+                self.regs
+                    .set(instr.op0_register(), self.regs.get(instr.op1_register()));
             }
 
             iced_x86::Code::And_rm32_imm8 => {
-                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
-                let reg = instruction.op0_register();
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instr.op0_register();
                 self.regs
-                    .set(reg, self.regs.get(reg) & instruction.immediate8() as u32);
+                    .set(reg, self.regs.get(reg) & instr.immediate8() as u32);
             }
 
             iced_x86::Code::Sub_rm32_imm32 => {
-                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
-                let reg = instruction.op0_register();
-                self.regs
-                    .set(reg, self.regs.get(reg) - instruction.immediate32());
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instr.op0_register();
+                self.regs.set(reg, self.regs.get(reg) - instr.immediate32());
             }
 
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
-                let addr =
-                    self.regs.get(instruction.memory_index()) + instruction.memory_displacement32();
-                self.regs.set(instruction.op0_register(), addr);
+                let addr = self.regs.get(instr.memory_index()) + instr.memory_displacement32();
+                self.regs.set(instr.op0_register(), addr);
             }
 
             code => {
-                self.regs.eip -= instruction.len() as u32;
+                self.regs.eip -= instr.len() as u32;
                 bail!("unhandled instruction {:?}", code);
             }
         }
