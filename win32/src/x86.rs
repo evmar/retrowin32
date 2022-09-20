@@ -193,6 +193,14 @@ impl X86 {
                 self.regs.eax = self.read_u32(instruction.memory_displacement32());
             }
             iced_x86::Code::Mov_rm32_r32 => {
+                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
+                self.regs.set(
+                    instruction.op_register(0),
+                    self.regs.get(instruction.op_register(1)),
+                );
+            }
+            iced_x86::Code::Mov_r32_rm32 => {
+                assert!(instruction.op_kind(1) == iced_x86::OpKind::Register);
                 self.regs.set(
                     instruction.op_register(0),
                     self.regs.get(instruction.op_register(1)),
