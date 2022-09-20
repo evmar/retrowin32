@@ -98,7 +98,12 @@ pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
     Ok(X86 { x86 })
 }
 
+fn panic_hook(info: &std::panic::PanicInfo) {
+    log::error!("{}", info);
+}
+
 #[wasm_bindgen]
 pub fn init_logging() {
     console_log::init().unwrap();
+    std::panic::set_hook(Box::new(panic_hook));
 }
