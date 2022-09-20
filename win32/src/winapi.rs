@@ -22,8 +22,23 @@ mod kernel32 {
 mod user32 {
     use super::*;
     pub fn RegisterClassA(x86: &mut X86) {
-        let _lpWndClass = x86.pop();
-        log::warn!("todo: RegisterClassA");
+        let lpWndClass = x86.pop();
+        log::warn!("todo: RegisterClassA({:x})", lpWndClass);
+    }
+    pub fn CreateWindowExA(x86: &mut X86) {
+        let dwExStyle = x86.pop();
+        let lpClassName = x86.pop();
+        let lpWindowName = x86.pop();
+        let dwStyle = x86.pop();
+        let X = x86.pop();
+        let Y = x86.pop();
+        let nWidth = x86.pop();
+        let nHeight = x86.pop();
+        let hWndParent = x86.pop();
+        let hMenu = x86.pop();
+        let hInstance = x86.pop();
+        let lpParam = x86.pop();
+        log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
     }
 }
 
@@ -31,6 +46,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "user32.dll!RegisterClassA" => user32::RegisterClassA,
+        "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
         _ => return None,
     })
 }
