@@ -130,6 +130,13 @@ impl X86 {
         value
     }
 
+    /// Compute the address found in instructions that reference memory, e.g.
+    ///   mov [eax+03h],...
+    fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
+        assert!(instr.memory_index_scale() == 1);
+        self.regs.get(instr.memory_index()) + instr.memory_displacement32()
+    }
+
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
@@ -145,7 +152,8 @@ impl X86 {
             }
             iced_x86::Code::Call_rm32 => {
                 // call dword ptr [addr]
-                let target = self.read_u32(instr.memory_displacement32());
+                assert!(instr.memory_index() == iced_x86::Register::None);
+                let target = self.read_u32(self.addr(instr));
                 match self.imports.get(&target) {
                     Some(handler) => match handler {
                         Some(handler) => handler(self),
@@ -169,7 +177,7 @@ impl X86 {
             iced_x86::Code::Push_rm32 => {
                 // push [eax+10h]
                 let value = self
-                    .read_u32(self.regs.get(instr.memory_base()) + instr.memory_displacement32());
+                    .read_u32(self.addr(instr));
                 self.push(value);
             }
 
@@ -180,15 +188,15 @@ impl X86 {
 
             iced_x86::Code::Mov_rm32_imm32 => {
                 // mov dword ptr [x], y
-                self.write_u32(instr.memory_displacement32(), instr.immediate32());
+                self.write_u32(self.addr(instr), instr.immediate32());
             }
             iced_x86::Code::Mov_moffs32_EAX => {
                 // mov [x],eax
-                self.write_u32(instr.memory_displacement32(), self.regs.eax);
+                self.write_u32(self.addr(instr), self.regs.eax);
             }
             iced_x86::Code::Mov_EAX_moffs32 => {
                 // mov eax,[x]
-                self.regs.eax = self.read_u32(instr.memory_displacement32());
+                self.regs.eax = self.read_u32(self.addr(instr));
             }
             iced_x86::Code::Mov_rm32_r32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
@@ -216,8 +224,7 @@ impl X86 {
 
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
-                let addr = self.regs.get(instr.memory_index()) + instr.memory_displacement32();
-                self.regs.set(instr.op0_register(), addr);
+                self.regs.set(instr.op0_register(), self.addr(instr));
             }
 
             code => {
