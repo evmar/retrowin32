@@ -64,6 +64,25 @@ impl Registers {
             _ => todo!(),
         }
     }
+    fn set(&mut self, name: iced_x86::Register, value: u32) {
+        match name {
+            iced_x86::Register::EAX => self.eax = value,
+            iced_x86::Register::EBX => self.ebx = value,
+            iced_x86::Register::ECX => self.ecx = value,
+            iced_x86::Register::EDX => self.edx = value,
+            iced_x86::Register::ESP => self.esp = value,
+            iced_x86::Register::EBP => self.ebp = value,
+            iced_x86::Register::ESI => self.esi = value,
+            iced_x86::Register::EDI => self.edi = value,
+            /*            iced_x86::Register::CS => self.cs,
+            iced_x86::Register::DS => self.ds,
+            iced_x86::Register::ES => self.es,
+            iced_x86::Register::FS => self.fs,
+            iced_x86::Register::SS => self.ss,
+            iced_x86::Register::GS => self.gs, */
+            _ => todo!(),
+        }
+    }
 }
 
 pub struct X86 {
@@ -113,6 +132,12 @@ impl X86 {
     fn run(&mut self, instruction: &iced_x86::Instruction) -> anyhow::Result<()> {
         self.regs.eip = instruction.next_ip() as u32;
         match instruction.code() {
+            iced_x86::Code::Enterd_imm16_imm8 => {
+                self.push(self.regs.ebp);
+                self.regs.ebp = self.regs.esp;
+                self.regs.esp -= instruction.immediate16() as u32;
+            }
+
             iced_x86::Code::Call_rel32_32 => {
                 self.push(self.regs.eip);
                 self.regs.eip = instruction.near_branch32();
@@ -131,12 +156,26 @@ impl X86 {
                     }
                 };
             }
+            iced_x86::Code::Retnd => self.regs.eip = self.pop(),
+
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instruction.near_branch32();
             }
+
             iced_x86::Code::Pushd_imm8 => self.push(instruction.immediate8to32() as u32),
             iced_x86::Code::Pushd_imm32 => self.push(instruction.immediate32()),
             iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
+            iced_x86::Code::Push_rm32 => {
+                let value = self.read_u32(
+                    self.regs.get(instruction.memory_base()) + instruction.memory_displacement32(),
+                );
+                self.push(value);
+            }
+
+            iced_x86::Code::Pop_r32 => {
+                let value = self.pop();
+                self.regs.set(instruction.op_register(0), value);
+            }
 
             iced_x86::Code::Mov_rm32_imm32 => {
                 // mov dword ptr [x], y
@@ -153,6 +192,13 @@ impl X86 {
                 // mov eax,[x]
                 self.regs.eax = self.read_u32(instruction.memory_displacement32());
             }
+            iced_x86::Code::Mov_rm32_r32 => {
+                self.regs.set(
+                    instruction.op_register(0),
+                    self.regs.get(instruction.op_register(1)),
+                );
+            }
+
             code => bail!("code {:?}", code),
         }
         Ok(())
