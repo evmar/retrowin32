@@ -47,6 +47,7 @@ impl Registers {
 
     fn get(&self, name: iced_x86::Register) -> u32 {
         match name {
+            iced_x86::Register::None => 0,
             iced_x86::Register::EAX => self.eax,
             iced_x86::Register::EBX => self.ebx,
             iced_x86::Register::ECX => self.ecx,
@@ -166,6 +167,7 @@ impl X86 {
             iced_x86::Code::Pushd_imm32 => self.push(instruction.immediate32()),
             iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
             iced_x86::Code::Push_rm32 => {
+                // push [eax+10h]
                 let value = self.read_u32(
                     self.regs.get(instruction.memory_base()) + instruction.memory_displacement32(),
                 );
@@ -207,9 +209,30 @@ impl X86 {
                 );
             }
 
+            iced_x86::Code::And_rm32_imm8 => {
+                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
+                let reg = instruction.op_register(0);
+                self.regs
+                    .set(reg, self.regs.get(reg) & instruction.immediate8() as u32);
+            }
+
+            iced_x86::Code::Sub_rm32_imm32 => {
+                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
+                let reg = instruction.op_register(0);
+                self.regs
+                    .set(reg, self.regs.get(reg) - instruction.immediate32());
+            }
+
+            iced_x86::Code::Lea_r32_m => {
+                // lea eax,[esp+10h]
+                let addr =
+                    self.regs.get(instruction.memory_index()) + instruction.memory_displacement32();
+                self.regs.set(instruction.op_register(0), addr);
+            }
+
             code => {
                 self.regs.eip -= instruction.len() as u32;
-                bail!("code {:?}", code);
+                bail!("unhandled instruction {:?}", code);
             }
         }
         Ok(())
