@@ -40,6 +40,10 @@ mod user32 {
         let lpParam = x86.pop();
         log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
     }
+    pub fn UpdateWindow(x86: &mut X86) {
+        let hWnd = x86.pop();
+        log::warn!("todo: UpdateWindow({hWnd:x})");
+    }
 }
 
 pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
@@ -47,6 +51,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "user32.dll!RegisterClassA" => user32::RegisterClassA,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
+        "user32.dll!UpdateWindow" => user32::UpdateWindow,
         _ => return None,
     })
 }
