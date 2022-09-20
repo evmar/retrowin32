@@ -6,15 +6,14 @@ use win32::X86;
 use anyhow::bail;
 
 fn dump_asm(x86: &X86) {
-    let decoder = iced_x86::Decoder::with_ip(
+    let mut decoder = iced_x86::Decoder::with_ip(
         32,
         &x86.mem[x86.regs.eip as usize..],
         x86.regs.eip as u64,
         iced_x86::DecoderOptions::NONE,
     );
 
-    let mut i = 0;
-    for instruction in decoder {
+    for instruction in decoder.iter().take(10) {
         print!("{:08X} ", instruction.ip());
         let start_index = instruction.ip() as usize;
         let instr_bytes = &x86.mem[start_index..start_index + instruction.len()];
@@ -27,10 +26,6 @@ fn dump_asm(x86: &X86) {
             }
         }
         println!(" {}", instruction);
-        i += 1;
-        if i > 10 {
-            break;
-        }
     }
 }
 
