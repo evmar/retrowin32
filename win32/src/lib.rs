@@ -1,6 +1,7 @@
 mod debug;
 mod pe;
 mod reader;
+mod winapi;
 mod x86;
 
 pub use debug::*;
@@ -8,12 +9,13 @@ pub use x86::X86;
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
-    println!("{file:#?}");
+    log::info!("{file:#?}");
 
     let base = file.opt_header.image_base;
+    x86.base = base;
     x86.mem
         .resize((base + file.opt_header.size_of_image) as usize, 0);
-    println!(
+    log::info!(
         "image base {base:#x}, image total size {:#x}",
         x86.mem.len()
     );
@@ -21,7 +23,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
         let src = sec.pointer_to_raw_data as usize;
         let dst = (base + sec.virtual_address) as usize;
         let size = sec.size_of_raw_data as usize;
-        println!(
+        log::info!(
             "sec {:?} at {dst:#x} size {size:#x} from {src:#x}",
             sec.name
         );
@@ -30,6 +32,14 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
             .contains(pe::ImageSectionFlags::UNINITIALIZED_DATA)
         {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
+        }
+        if sec.name == ".idata" {
+            let imports =
+                pe::parse_imports(&x86.mem[(base as usize)..], &x86.mem[dst..dst + size])?;
+            log::info!("imports {:x?}", imports);
+            for (&addr, sym) in imports.iter() {
+                x86.imports.insert(addr, winapi::resolve(sym));
+            }
         }
     }
     let entry_point = base + file.opt_header.address_of_entry_point;

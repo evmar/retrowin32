@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use crate::reader::Reader;
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
+// https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 
 fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
     r.expect("MZ")?;
@@ -208,4 +211,55 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
     }
 
     Ok(file)
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+struct ImageImportDescriptor {
+    original_first_thunk: u32,
+    time_date_stamp: u32,
+    forwarder_chain: u32,
+    name: u32,
+    first_thunk: u32,
+}
+
+fn read_strz(buf: &[u8]) -> String {
+    let nul = buf.iter().position(|&c| c == 0).unwrap();
+    String::from_utf8_lossy(&buf[0..nul]).to_string()
+}
+
+pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
+    // http://sandsprite.com/CodeStuff/Understanding_imports.html
+    let mut r = Reader::new(buf);
+    let mut imports = HashMap::new();
+    loop {
+        let descriptor = ImageImportDescriptor {
+            original_first_thunk: r.u32()?,
+            time_date_stamp: r.u32()?,
+            forwarder_chain: r.u32()?,
+            name: r.u32()?,
+            first_thunk: r.u32()?,
+        };
+        if descriptor.name == 0 {
+            break;
+        }
+        let dll_name = read_strz(&mem[descriptor.name as usize..]).to_ascii_lowercase();
+
+        let mut sym_reader = Reader::new(&mem[(descriptor.first_thunk) as usize..]);
+        loop {
+            let sym = sym_reader.u32()?;
+            if sym == 0 {
+                break;
+            }
+            if sym & (1 << 31) != 0 {
+                let ordinal = sym & 0xFFFF;
+                log::warn!("TODO ordinal {}:{}", dll_name, ordinal);
+            } else {
+                // TODO: first two bytes at offset are hint/name table index, I don't know it.
+                let sym_name = read_strz(&mem[(sym + 2) as usize..]);
+                imports.insert(sym, format!("{}!{}", dll_name, sym_name));
+            }
+        }
+    }
+    Ok(imports)
 }

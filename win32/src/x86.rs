@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::bail;
 use tsify::Tsify;
 
@@ -67,12 +69,17 @@ impl Registers {
 pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
+    // XXX PE base address, needed for winapi impls; we'll need some win32 system state bit.
+    pub base: u32,
+    pub imports: HashMap<u32, Option<fn(&mut X86)>>,
 }
 impl X86 {
     pub fn new() -> Self {
         X86 {
             mem: Vec::new(),
             regs: Registers::new(),
+            base: 0,
+            imports: HashMap::new(),
         }
     }
 
@@ -84,7 +91,7 @@ impl X86 {
         self.mem[offset + 3] = (value >> 24) as u8;
     }
 
-    fn read_u32(&self, offset: u32) -> u32 {
+    pub fn read_u32(&self, offset: u32) -> u32 {
         let offset = offset as usize;
         ((self.mem[offset] as u32) << 0)
             | ((self.mem[offset + 1] as u32) << 8)
@@ -92,9 +99,15 @@ impl X86 {
             | ((self.mem[offset + 3] as u32) << 24)
     }
 
-    fn push(&mut self, value: u32) {
+    pub fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
         self.write_u32(self.regs.esp, value);
+    }
+
+    pub fn pop(&mut self) -> u32 {
+        let value = self.read_u32(self.regs.esp);
+        self.regs.esp += 4;
+        value
     }
 
     fn run(&mut self, instruction: &iced_x86::Instruction) -> anyhow::Result<()> {
@@ -105,9 +118,18 @@ impl X86 {
                 self.regs.eip = instruction.near_branch32();
             }
             iced_x86::Code::Call_rm32 => {
-                self.push(self.regs.eip);
-                let addr = self.read_u32(instruction.memory_displacement32());
-                self.regs.eip = addr;
+                // call dword ptr [addr]
+                let target = self.read_u32(instruction.memory_displacement32());
+                match self.imports.get(&target) {
+                    Some(handler) => match handler {
+                        Some(handler) => handler(self),
+                        None => log::error!("unimplemented import: {:x}", target),
+                    },
+                    None => {
+                        self.push(self.regs.eip);
+                        self.regs.eip = target;
+                    }
+                };
             }
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instruction.near_branch32();
