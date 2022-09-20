@@ -135,12 +135,23 @@ impl X86 {
                 self.regs.eip = instruction.near_branch32();
             }
             iced_x86::Code::Pushd_imm8 => self.push(instruction.immediate8to32() as u32),
+            iced_x86::Code::Pushd_imm32 => self.push(instruction.immediate32()),
             iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
+
             iced_x86::Code::Mov_rm32_imm32 => {
+                // mov dword ptr [x], y
                 self.write_u32(
                     instruction.memory_displacement32(),
                     instruction.immediate32(),
                 );
+            }
+            iced_x86::Code::Mov_moffs32_EAX => {
+                // mov [x],eax
+                self.write_u32(instruction.memory_displacement32(), self.regs.eax);
+            }
+            iced_x86::Code::Mov_EAX_moffs32 => {
+                // mov eax,[x]
+                self.regs.eax = self.read_u32(instruction.memory_displacement32());
             }
             code => bail!("code {:?}", code),
         }
