@@ -9,7 +9,7 @@ pub use x86::X86;
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
-    log::info!("{file:#?}");
+    log::info!("{file:#x?}");
 
     let base = file.opt_header.image_base;
     x86.base = base;
