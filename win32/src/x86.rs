@@ -176,8 +176,7 @@ impl X86 {
             iced_x86::Code::Push_r32 => self.push(self.regs.get(instr.op0_register())),
             iced_x86::Code::Push_rm32 => {
                 // push [eax+10h]
-                let value = self
-                    .read_u32(self.addr(instr));
+                let value = self.read_u32(self.addr(instr));
                 self.push(value);
             }
 
@@ -199,9 +198,12 @@ impl X86 {
                 self.regs.eax = self.read_u32(self.addr(instr));
             }
             iced_x86::Code::Mov_rm32_r32 => {
-                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
-                self.regs
-                    .set(instr.op0_register(), self.regs.get(instr.op1_register()));
+                let value = self.regs.get(instr.op1_register());
+                match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.set(instr.op0_register(), value),
+                    iced_x86::OpKind::Memory => self.write_u32(self.addr(instr), value),
+                    _ => unreachable!(),
+                }
             }
             iced_x86::Code::Mov_r32_rm32 => {
                 assert!(instr.op1_kind() == iced_x86::OpKind::Register);
@@ -215,7 +217,21 @@ impl X86 {
                 self.regs
                     .set(reg, self.regs.get(reg) & instr.immediate8() as u32);
             }
+            iced_x86::Code::Xor_rm32_r32 => {
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instr.op0_register();
+                self.regs.set(
+                    reg,
+                    self.regs.get(reg) ^ self.regs.get(instr.op1_register()),
+                );
+            }
 
+            iced_x86::Code::Sub_rm32_imm8 => {
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instr.op0_register();
+                self.regs
+                    .set(reg, self.regs.get(reg) - instr.immediate8() as u32);
+            }
             iced_x86::Code::Sub_rm32_imm32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
                 let reg = instr.op0_register();

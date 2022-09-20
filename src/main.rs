@@ -1,4 +1,3 @@
-
 extern crate win32;
 
 use win32::X86;
