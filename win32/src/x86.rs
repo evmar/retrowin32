@@ -165,7 +165,7 @@ impl X86 {
 
             iced_x86::Code::Pushd_imm8 => self.push(instruction.immediate8to32() as u32),
             iced_x86::Code::Pushd_imm32 => self.push(instruction.immediate32()),
-            iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op_register(0))),
+            iced_x86::Code::Push_r32 => self.push(self.regs.get(instruction.op0_register())),
             iced_x86::Code::Push_rm32 => {
                 // push [eax+10h]
                 let value = self.read_u32(
@@ -176,7 +176,7 @@ impl X86 {
 
             iced_x86::Code::Pop_r32 => {
                 let value = self.pop();
-                self.regs.set(instruction.op_register(0), value);
+                self.regs.set(instruction.op0_register(), value);
             }
 
             iced_x86::Code::Mov_rm32_imm32 => {
@@ -195,30 +195,30 @@ impl X86 {
                 self.regs.eax = self.read_u32(instruction.memory_displacement32());
             }
             iced_x86::Code::Mov_rm32_r32 => {
-                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
+                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
                 self.regs.set(
-                    instruction.op_register(0),
-                    self.regs.get(instruction.op_register(1)),
+                    instruction.op0_register(),
+                    self.regs.get(instruction.op1_register()),
                 );
             }
             iced_x86::Code::Mov_r32_rm32 => {
-                assert!(instruction.op_kind(1) == iced_x86::OpKind::Register);
+                assert!(instruction.op1_kind() == iced_x86::OpKind::Register);
                 self.regs.set(
-                    instruction.op_register(0),
-                    self.regs.get(instruction.op_register(1)),
+                    instruction.op0_register(),
+                    self.regs.get(instruction.op1_register()),
                 );
             }
 
             iced_x86::Code::And_rm32_imm8 => {
-                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
-                let reg = instruction.op_register(0);
+                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instruction.op0_register();
                 self.regs
                     .set(reg, self.regs.get(reg) & instruction.immediate8() as u32);
             }
 
             iced_x86::Code::Sub_rm32_imm32 => {
-                assert!(instruction.op_kind(0) == iced_x86::OpKind::Register);
-                let reg = instruction.op_register(0);
+                assert!(instruction.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instruction.op0_register();
                 self.regs
                     .set(reg, self.regs.get(reg) - instruction.immediate32());
             }
@@ -227,7 +227,7 @@ impl X86 {
                 // lea eax,[esp+10h]
                 let addr =
                     self.regs.get(instruction.memory_index()) + instruction.memory_displacement32();
-                self.regs.set(instruction.op_register(0), addr);
+                self.regs.set(instruction.op0_register(), addr);
             }
 
             code => {
