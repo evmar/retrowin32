@@ -5,17 +5,7 @@ use win32::X86;
 
 use anyhow::bail;
 
-fn run() -> anyhow::Result<()> {
-    let args: Vec<String> = std::env::args().collect();
-    let exe = match args.as_slice() {
-        [_, exe] => exe,
-        _ => bail!("specify path"),
-    };
-
-    let mut x86 = X86::new();
-    let buf = std::fs::read(exe)?;
-    win32::load_exe(&mut x86, &buf)?;
-
+fn dump_asm(x86: &X86) {
     let decoder = iced_x86::Decoder::with_ip(
         32,
         &x86.mem[x86.regs.eip as usize..],
@@ -38,7 +28,27 @@ fn run() -> anyhow::Result<()> {
         }
         println!(" {}", instruction);
         i += 1;
-        if i > 20 {
+        if i > 10 {
+            break;
+        }
+    }
+}
+
+fn run() -> anyhow::Result<()> {
+    let args: Vec<String> = std::env::args().collect();
+    let exe = match args.as_slice() {
+        [_, exe] => exe,
+        _ => bail!("specify path"),
+    };
+
+    let mut x86 = X86::new();
+    let buf = std::fs::read(exe)?;
+    win32::load_exe(&mut x86, &buf)?;
+
+    loop {
+        if let Err(err) = x86.step() {
+            dump_asm(&x86);
+            println!("err: {:?}", err);
             break;
         }
     }

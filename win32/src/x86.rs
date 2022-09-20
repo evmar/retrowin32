@@ -207,7 +207,10 @@ impl X86 {
                 );
             }
 
-            code => bail!("code {:?}", code),
+            code => {
+                self.regs.eip -= instruction.len() as u32;
+                bail!("code {:?}", code);
+            }
         }
         Ok(())
     }
