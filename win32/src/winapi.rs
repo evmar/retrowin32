@@ -16,6 +16,15 @@ mod kernel32 {
         // HMODULE is base address of current module.
         x86.regs.eax = x86.base;
     }
+
+    pub fn VirtualAlloc(x86: &mut X86) {
+        let lpAddress = x86.pop();
+        let dwSize = x86.pop();
+        let flAllocationType = x86.pop();
+        let flProtec = x86.pop();
+        log::warn!("unimplemented: VirtualAlloc({lpAddress:x}, {dwSize:x}, {flAllocationType:x}, {flProtec:x})");
+        x86.regs.eax = 0;
+    }
 }
 
 #[allow(non_snake_case)]
@@ -49,6 +58,7 @@ mod user32 {
 pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
+        "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
         "user32.dll!RegisterClassA" => user32::RegisterClassA,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
         "user32.dll!UpdateWindow" => user32::UpdateWindow,
