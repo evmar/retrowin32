@@ -1,6 +1,7 @@
 use serde::Serialize;
 use tsify::Tsify;
 
+use crate::winapi::STDOUT_HFILE;
 use crate::x86;
 use crate::{pe, winapi, X86};
 
@@ -12,7 +13,10 @@ pub struct Mapping {
 }
 
 pub struct AppState {
+    // Address image was loaded at.
     pub image_base: u32,
+    // Address of TEB (FS register).
+    pub teb: u32,
     pub mappings: Vec<Mapping>,
 }
 impl AppState {
@@ -24,6 +28,7 @@ impl AppState {
         }];
         AppState {
             image_base: 0,
+            teb: 0,
             mappings,
         }
     }
@@ -66,6 +71,33 @@ impl AppState {
     }
 }
 
+/// Set up TEB, PEB, and other process info.
+/// The FS register points at the TEB (thread info), which points at the PEB (process info).
+fn init_teb_peb(x86: &mut X86) {
+    let mapping = x86.state.alloc(0x1000, "PEB/TEB".into());
+    // Fill region with garbage so it's clearer when we access something we don't intend to.
+    x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
+
+    let peb_addr = mapping.addr;
+    let params_addr = mapping.addr + 0x100;
+    let teb_addr = params_addr + 0x100;
+
+    // PEB
+    x86.write_u32(peb_addr + 0x10, params_addr);
+
+    // RTL_USER_PROCESS_PARAMETERS
+    // x86.write_u32(params_addr + 0x10, console_handle);
+    // x86.write_u32(params_addr + 0x14, console_flags);
+    // x86.write_u32(params_addr + 0x18, stdin);
+    x86.write_u32(params_addr + 0x1c, STDOUT_HFILE);
+
+    // TEB
+    x86.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
+    x86.write_u32(teb_addr + 0x30, peb_addr);
+
+    x86.state.teb = teb_addr;
+}
+
 pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
     let file = pe::parse(&buf)?;
     log::info!("{file:#x?}");
@@ -96,6 +128,8 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
             desc: format!("{} ({:?})", sec.name, sec.characteristics),
         });
     }
+
+    init_teb_peb(&mut x86);
 
     let mut stack_size = file.opt_header.size_of_stack_reserve;
     // Zig reserves 16mb stacks, just truncate for now.

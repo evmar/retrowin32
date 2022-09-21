@@ -4,6 +4,9 @@ use crate::X86;
 // The caller of winapi functions is responsible for pushing/popping the
 // return address, because some callers actually 'jmp' directly.
 
+// For now, a magic variable that makes it easier to spot.
+pub const STDOUT_HFILE: u32 = 0xF11E_0100;
+
 #[allow(non_snake_case)]
 mod kernel32 {
     use super::*;
@@ -18,12 +21,13 @@ mod kernel32 {
     }
 
     pub fn WriteFile(x86: &mut X86) {
-        let _hFile = x86.pop(); // TODO: assumes hFile is stdout.
+        let hFile = x86.pop();
         let lpBuffer = x86.pop();
         let nNumberOfBytesToWrite = x86.pop();
         let lpNumberOfBytesWritten = x86.pop();
         let lpOverlapped = x86.pop();
 
+        assert!(hFile == STDOUT_HFILE);
         assert!(lpOverlapped == 0);
         let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
         log::info!("WriteFile: {:?}", String::from_utf8_lossy(buf));

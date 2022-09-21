@@ -162,7 +162,13 @@ impl X86 {
     ///   mov [eax+03h],...
     fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
         assert!(instr.memory_index_scale() == 1); // TODO
-        self.regs
+        let base = if instr.segment_prefix() == iced_x86::Register::FS {
+            self.state.teb
+        } else {
+            0
+        };
+        base + self
+            .regs
             .get(instr.memory_base())
             .wrapping_add(self.regs.get(instr.memory_index()))
             .wrapping_add(instr.memory_displacement32())
