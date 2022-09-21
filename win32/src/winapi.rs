@@ -17,6 +17,16 @@ mod kernel32 {
         x86.regs.eax = x86.base;
     }
 
+    pub fn WriteFile(x86: &mut X86) {
+        let hFile = x86.pop();
+        let lpBuffer = x86.pop();
+        let nNumberOfBytesToWrite = x86.pop();
+        let lpNumberOfBytesWritten = x86.pop();
+        let lpOverlapped = x86.pop();
+        log::warn!("unimplemented: WriteFile({hFile:x}, {lpBuffer:x}, {nNumberOfBytesToWrite:x}, {lpNumberOfBytesWritten:x}, {lpOverlapped:x})");
+        x86.regs.eax = 1;
+    }
+
     pub fn VirtualAlloc(x86: &mut X86) {
         let lpAddress = x86.pop();
         let dwSize = x86.pop();
@@ -58,6 +68,7 @@ mod user32 {
 pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
+        "kernel32.dll!WriteFile" => kernel32::WriteFile,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
         "user32.dll!RegisterClassA" => user32::RegisterClassA,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,

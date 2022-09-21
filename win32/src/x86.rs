@@ -217,7 +217,10 @@ impl X86 {
                     iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                if !self.try_invoke_handler(target) {
+                if self.try_invoke_handler(target) {
+                    // Return from handler.
+                    self.regs.eip = self.pop();
+                } else {
                     self.regs.eip = target;
                 }
             }
