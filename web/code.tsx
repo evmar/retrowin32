@@ -7,6 +7,7 @@ namespace Code {
   export interface Props {
     showMemory: (addr: number) => void;
     highlightMemory: (addr: number) => void;
+    runTo: (addr: number) => void;
     instrs: Instruction[];
   }
 }
@@ -37,7 +38,21 @@ export class Code extends preact.Component<Code.Props> {
             return text;
         }
       });
-      return <div>{hex(instr.addr, 8)} {instr.bytes.padEnd(16, ' ')} {code} ({instr.ops.join(',')})</div>;
+      return (
+        <div>
+          <a
+            href='#'
+            class='stealth'
+            onClick={(event) => {
+              event.preventDefault();
+              this.props.runTo(instr.addr);
+            }}
+          >
+            {hex(instr.addr, 8)}
+          </a>{' '}
+          {instr.bytes.padEnd(16, ' ')} {code} ({instr.ops.join(',')})
+        </div>
+      );
     });
     return (
       <section>
