@@ -120,7 +120,7 @@ impl X86 {
         }
     }
 
-    fn write_u32(&mut self, offset: u32, value: u32) {
+    pub fn write_u32(&mut self, offset: u32, value: u32) {
         let offset = offset as usize;
         self.mem[offset] = (value >> 0) as u8;
         self.mem[offset + 1] = (value >> 8) as u8;

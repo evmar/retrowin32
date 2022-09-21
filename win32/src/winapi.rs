@@ -18,12 +18,17 @@ mod kernel32 {
     }
 
     pub fn WriteFile(x86: &mut X86) {
-        let hFile = x86.pop();
+        let _hFile = x86.pop(); // TODO: assumes hFile is stdout.
         let lpBuffer = x86.pop();
         let nNumberOfBytesToWrite = x86.pop();
         let lpNumberOfBytesWritten = x86.pop();
         let lpOverlapped = x86.pop();
-        log::warn!("unimplemented: WriteFile({hFile:x}, {lpBuffer:x}, {nNumberOfBytesToWrite:x}, {lpNumberOfBytesWritten:x}, {lpOverlapped:x})");
+
+        assert!(lpOverlapped == 0);
+        let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
+        log::info!("WriteFile: {:?}", String::from_utf8_lossy(buf));
+
+        x86.write_u32(lpNumberOfBytesWritten, nNumberOfBytesToWrite);
         x86.regs.eax = 1;
     }
 
