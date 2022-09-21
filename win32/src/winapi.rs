@@ -1,8 +1,8 @@
 use crate::X86;
 
 // winapi is stdcall, which means args are right to left and callee-cleaned.
-// However, we shim our implementations without the caller ever pushing EIP,
-// so pop() immediately gives the rightmost argument and cleans the stack.
+// The caller of winapi functions is responsible for pushing/popping the
+// return address, because some callers actually 'jmp' directly.
 
 #[allow(non_snake_case)]
 mod kernel32 {

@@ -166,14 +166,16 @@ impl X86 {
 
     fn try_invoke_handler(&mut self, addr: u32) -> bool {
         let handler = match self.imports.get(&addr) {
-            Some(handler) => handler,
+            Some(&handler) => handler,
             None => return false,
         };
 
+        let ret = self.pop();
         match handler {
             Some(handler) => handler(self),
             None => log::error!("unimplemented import: {:x}", addr),
         };
+        self.regs.eip = ret;
         true
     }
 
@@ -201,8 +203,8 @@ impl X86 {
                 // call dword ptr [addr]
                 assert!(instr.memory_index() == iced_x86::Register::None);
                 let target = self.read_u32(self.addr(instr));
+                self.push(self.regs.eip);
                 if !self.try_invoke_handler(target) {
-                    self.push(self.regs.eip);
                     self.regs.eip = target;
                 }
             }
@@ -217,10 +219,7 @@ impl X86 {
                     iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                if self.try_invoke_handler(target) {
-                    // Return from handler.
-                    self.regs.eip = self.pop();
-                } else {
+                if !self.try_invoke_handler(target) {
                     self.regs.eip = target;
                 }
             }
