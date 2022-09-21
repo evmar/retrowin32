@@ -1,7 +1,14 @@
 use std::collections::HashMap;
 
 use anyhow::bail;
+use bitflags::bitflags;
 use tsify::Tsify;
+
+bitflags! {
+    pub struct Flags: u32 {
+        const ZF = 0x40;
+    }
+}
 
 #[derive(Tsify)]
 pub struct Registers {
@@ -23,6 +30,8 @@ pub struct Registers {
     pub fs: u16,
     pub gs: u16,
     pub ss: u16,
+
+    pub flags: Flags,
 }
 impl Registers {
     fn new() -> Self {
@@ -42,6 +51,7 @@ impl Registers {
             fs: 0,
             gs: 0,
             ss: 0,
+            flags: Flags::empty(),
         }
     }
 
@@ -147,6 +157,13 @@ impl X86 {
             .wrapping_add(instr.memory_displacement32())
     }
 
+    fn sub(&mut self, x: u32, y: u32) -> u32 {
+        let result = x - y;
+        // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
+
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         assert!(
             !instr.has_rep_prefix()
@@ -186,6 +203,19 @@ impl X86 {
 
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instr.near_branch32();
+            }
+            iced_x86::Code::Jmp_rm32 => {
+                self.regs.eip = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+            }
+
+            iced_x86::Code::Je_rel8_32 => {
+                if self.regs.flags.contains(Flags::ZF) {
+                    self.regs.eip = instr.near_branch32();
+                }
             }
 
             iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
@@ -270,13 +300,36 @@ impl X86 {
             iced_x86::Code::Sub_rm32_imm32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
                 let reg = instr.op0_register();
-                self.regs.set(reg, self.regs.get(reg) - instr.immediate32());
+                let value = self.sub(self.regs.get(reg), instr.immediate32());
+                self.regs.set(reg, value);
+            }
+            iced_x86::Code::Sub_rm32_r32 => {
+                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                let reg = instr.op0_register();
+                let value = self.sub(self.regs.get(reg), self.regs.get(instr.op1_register()));
+                self.regs.set(reg, value);
             }
 
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
                 self.regs.set(instr.op0_register(), self.addr(instr));
             }
+
+            iced_x86::Code::Cmp_rm32_r32 => match instr.op0_kind() {
+                iced_x86::OpKind::Register => {
+                    self.sub(
+                        self.regs.get(instr.op0_register()),
+                        self.regs.get(instr.op1_register()),
+                    );
+                }
+                iced_x86::OpKind::Memory => {
+                    self.sub(
+                        self.read_u32(self.addr(instr)),
+                        self.regs.get(instr.op1_register()),
+                    );
+                }
+                _ => unreachable!(),
+            },
 
             code => {
                 self.regs.eip -= instr.len() as u32;

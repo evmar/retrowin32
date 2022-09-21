@@ -81,7 +81,10 @@ impl X86 {
     pub fn ss(&self) -> u16 {
         self.x86.regs.ss
     }
-
+    #[wasm_bindgen(getter)]
+    pub fn flags(&self) -> u32 {
+        self.x86.regs.flags.bits()
+    }
     pub fn disassemble_json(&self, addr: u32) -> String {
         serde_json::to_string(&win32::disassemble(&self.x86.mem, addr)).unwrap_throw()
     }
