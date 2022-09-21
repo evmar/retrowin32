@@ -164,6 +164,19 @@ impl X86 {
         result
     }
 
+    fn try_invoke_handler(&mut self, addr: u32) -> bool {
+        let handler = match self.imports.get(&addr) {
+            Some(handler) => handler,
+            None => return false,
+        };
+
+        match handler {
+            Some(handler) => handler(self),
+            None => log::error!("unimplemented import: {:x}", addr),
+        };
+        true
+    }
+
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         assert!(
             !instr.has_rep_prefix()
@@ -188,16 +201,10 @@ impl X86 {
                 // call dword ptr [addr]
                 assert!(instr.memory_index() == iced_x86::Register::None);
                 let target = self.read_u32(self.addr(instr));
-                match self.imports.get(&target) {
-                    Some(handler) => match handler {
-                        Some(handler) => handler(self),
-                        None => log::error!("unimplemented import: {:x}", target),
-                    },
-                    None => {
-                        self.push(self.regs.eip);
-                        self.regs.eip = target;
-                    }
-                };
+                if !self.try_invoke_handler(target) {
+                    self.push(self.regs.eip);
+                    self.regs.eip = target;
+                }
             }
             iced_x86::Code::Retnd => self.regs.eip = self.pop(),
 
@@ -205,11 +212,14 @@ impl X86 {
                 self.regs.eip = instr.near_branch32();
             }
             iced_x86::Code::Jmp_rm32 => {
-                self.regs.eip = match instr.op0_kind() {
+                let target = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get(instr.op0_register()),
                     iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
+                if !self.try_invoke_handler(target) {
+                    self.regs.eip = target;
+                }
             }
 
             iced_x86::Code::Je_rel8_32 => {

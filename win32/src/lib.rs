@@ -33,15 +33,19 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
         {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
-        if sec.name == ".idata" {
-            let imports =
-                pe::parse_imports(&x86.mem[(base as usize)..], &x86.mem[dst..dst + size])?;
-            log::info!("imports {:x?}", imports);
-            for (&addr, sym) in imports.iter() {
-                x86.imports.insert(addr, winapi::resolve(sym));
-            }
-        }
     }
+
+    let imports_data = &file.opt_header.data_directory[1];
+    let imports = pe::parse_imports(
+        &x86.mem[(base as usize)..],
+        &x86.mem[(base + imports_data.virtual_address) as usize
+            ..(base + imports_data.virtual_address + imports_data.size) as usize],
+    )?;
+    log::info!("imports {:x?}", imports);
+    for (&addr, sym) in imports.iter() {
+        x86.imports.insert(addr, winapi::resolve(sym));
+    }
+
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
 

@@ -247,6 +247,8 @@ fn read_strz(buf: &[u8]) -> String {
     String::from_utf8_lossy(&buf[0..nul]).to_string()
 }
 
+/// mem: memory starting at image base
+/// buf: memory of imports table
 pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     // http://sandsprite.com/CodeStuff/Understanding_imports.html
     let mut r = Reader::new(buf);
