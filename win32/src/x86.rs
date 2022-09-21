@@ -262,9 +262,10 @@ impl X86 {
 
             iced_x86::Code::Sub_rm32_imm8 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
+                assert!(instr.op1_kind() == iced_x86::OpKind::Immediate8to32);
                 let reg = instr.op0_register();
                 self.regs
-                    .set(reg, self.regs.get(reg) - instr.immediate8() as u32);
+                    .set(reg, self.regs.get(reg) - instr.immediate8to32() as u32);
             }
             iced_x86::Code::Sub_rm32_imm32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
