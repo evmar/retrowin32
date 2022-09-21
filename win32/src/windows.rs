@@ -1,6 +1,7 @@
 use serde::Serialize;
 use tsify::Tsify;
 
+use crate::x86;
 use crate::{pe, winapi, X86};
 
 #[derive(Debug, Tsify, Serialize)]
@@ -45,6 +46,12 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
     log::info!("{file:#x?}");
 
     let mut x86 = X86::new();
+    x86.state.add_mapping(Mapping {
+        addr: 0,
+        size: x86::NULL_POINTER_REGION_SIZE,
+        desc: "avoid null pointers".into(),
+    });
+
     let base = file.opt_header.image_base;
     x86.state.image_base = file.opt_header.image_base;
     x86.mem

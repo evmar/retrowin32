@@ -6,6 +6,10 @@ use tsify::Tsify;
 
 use crate::windows::AppState;
 
+// Addresses from 0 up to this point cause panics if we access them.
+// This helps catch implementation bugs earlier.
+pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
+
 bitflags! {
     pub struct Flags: u32 {
         const ZF = 0x40;
@@ -122,6 +126,9 @@ impl X86 {
     }
 
     pub fn write_u32(&mut self, offset: u32, value: u32) {
+        if offset < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer write at {offset:#x}");
+        }
         let offset = offset as usize;
         self.mem[offset] = (value >> 0) as u8;
         self.mem[offset + 1] = (value >> 8) as u8;
@@ -130,6 +137,9 @@ impl X86 {
     }
 
     pub fn read_u32(&self, offset: u32) -> u32 {
+        if offset < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer read at {offset:#x}");
+        }
         let offset = offset as usize;
         ((self.mem[offset] as u32) << 0)
             | ((self.mem[offset + 1] as u32) << 8)
