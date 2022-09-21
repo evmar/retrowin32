@@ -71,6 +71,9 @@ async function main() {
   // ick copies
   const x86 = wasm.load_exe(new Uint8Array(exe));
 
+  const mappings: wasm.Mapping[] = JSON.parse(x86.mappings_json()) as wasm.Mapping[];
+  console.log(mappings);
+
   preact.render(<Page x86={x86} />, document.body);
 }
 

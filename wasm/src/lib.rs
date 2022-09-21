@@ -92,6 +92,10 @@ impl X86 {
     pub fn step(&mut self) -> Result<(), String> {
         self.x86.step().map_err(|err| err.to_string())
     }
+
+    pub fn mappings_json(&self) -> String {
+        serde_json::to_string(&self.x86.state.mappings).unwrap_throw()
+    }
 }
 
 #[wasm_bindgen]

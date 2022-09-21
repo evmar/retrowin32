@@ -1,5 +1,9 @@
+use serde::Serialize;
+use tsify::Tsify;
+
 use crate::{pe, winapi, X86};
 
+#[derive(Debug, Tsify, Serialize)]
 pub struct Mapping {
     pub addr: u32,
     pub size: u32,
@@ -17,6 +21,23 @@ impl AppState {
             mappings: Vec::new(),
         }
     }
+
+    fn add_mapping(&mut self, mapping: Mapping) {
+        let pos = self
+            .mappings
+            .iter()
+            .position(|m| m.addr > mapping.addr)
+            .unwrap_or(self.mappings.len());
+        if pos > 0 {
+            let prev = &self.mappings[pos - 1];
+            assert!(prev.addr + prev.size <= mapping.addr);
+        }
+        if pos < self.mappings.len() {
+            let next = &self.mappings[pos];
+            assert!(mapping.addr + mapping.size <= next.addr);
+        }
+        self.mappings.insert(pos, mapping);
+    }
 }
 
 pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
@@ -32,21 +53,23 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
         "image base {base:#x}, image total size {:#x}",
         x86.mem.len()
     );
-    for sec in file.sections.iter() {
+    for sec in file.sections {
         let src = sec.pointer_to_raw_data as usize;
         let dst = (base + sec.virtual_address) as usize;
         let size = sec.size_of_raw_data as usize;
-        log::info!(
-            "sec {:?} at {dst:#x} size {size:#x} from {src:#x}",
-            sec.name
-        );
         if !sec
             .characteristics
             .contains(pe::ImageSectionFlags::UNINITIALIZED_DATA)
         {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
+        x86.state.add_mapping(Mapping {
+            addr: dst as u32,
+            size: size as u32,
+            desc: format!("{} ({:?})", sec.name, sec.characteristics),
+        });
     }
+    log::info!("mappings {:x?}", x86.state.mappings);
 
     let imports_data = &file.opt_header.data_directory[1];
     let imports = pe::parse_imports(
