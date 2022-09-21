@@ -138,6 +138,8 @@ impl X86 {
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+        assert!(!instr.has_rep_prefix() && !instr.has_lock_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
+
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
@@ -187,7 +189,12 @@ impl X86 {
 
             iced_x86::Code::Mov_rm32_imm32 => {
                 // mov dword ptr [x], y
+                // TODO: why is this 'rm32' when there is an r32 variant just below?
+                assert!(instr.op0_kind() == iced_x86::OpKind::Memory);
                 self.write_u32(self.addr(instr), instr.immediate32());
+            }
+            iced_x86::Code::Mov_r32_imm32 => {
+                self.regs.set(instr.op0_register(), instr.immediate32());
             }
             iced_x86::Code::Mov_moffs32_EAX => {
                 // mov [x],eax
@@ -206,9 +213,12 @@ impl X86 {
                 }
             }
             iced_x86::Code::Mov_r32_rm32 => {
-                assert!(instr.op1_kind() == iced_x86::OpKind::Register);
-                self.regs
-                    .set(instr.op0_register(), self.regs.get(instr.op1_register()));
+                let value = match instr.op1_kind() {
+                    iced_x86::OpKind::Register => self.regs.get(instr.op1_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                self.regs.set(instr.op0_register(), value);
             }
 
             iced_x86::Code::And_rm32_imm8 => {
