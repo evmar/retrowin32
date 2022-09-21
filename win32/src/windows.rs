@@ -17,9 +17,14 @@ pub struct AppState {
 }
 impl AppState {
     pub fn new() -> Self {
+        let mappings = vec![Mapping {
+            addr: 0,
+            size: x86::NULL_POINTER_REGION_SIZE,
+            desc: "avoid null pointers".into(),
+        }];
         AppState {
             image_base: 0,
-            mappings: Vec::new(),
+            mappings,
         }
     }
 
@@ -39,6 +44,26 @@ impl AppState {
         }
         self.mappings.insert(pos, mapping);
     }
+
+    fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
+        let mut end = 0;
+        for (pos, mapping) in self.mappings.iter().enumerate() {
+            let space = mapping.addr - end;
+            if space > size {
+                self.mappings.insert(
+                    pos,
+                    Mapping {
+                        addr: end,
+                        size,
+                        desc,
+                    },
+                );
+                return &self.mappings[pos];
+            }
+            end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+        }
+        panic!("alloc of {size:x} failed");
+    }
 }
 
 pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
@@ -46,11 +71,6 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
     log::info!("{file:#x?}");
 
     let mut x86 = X86::new();
-    x86.state.add_mapping(Mapping {
-        addr: 0,
-        size: x86::NULL_POINTER_REGION_SIZE,
-        desc: "avoid null pointers".into(),
-    });
 
     let base = file.opt_header.image_base;
     x86.state.image_base = file.opt_header.image_base;
@@ -76,6 +96,21 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
             desc: format!("{} ({:?})", sec.name, sec.characteristics),
         });
     }
+
+    let mut stack_size = file.opt_header.size_of_stack_reserve;
+    // Zig reserves 16mb stacks, just truncate for now.
+    if stack_size > 1 << 20 {
+        log::warn!(
+            "requested {}mb stack reserve, using 32kb instead",
+            stack_size / (1 << 20)
+        );
+        stack_size = 32 << 10;
+    }
+    let stack = x86.state.alloc(stack_size, "stack".into());
+    let stack_end = stack.addr + stack.size - 4;
+    x86.regs.esp = stack_end;
+    x86.regs.ebp = stack_end;
+
     log::info!("mappings {:x?}", x86.state.mappings);
 
     let imports_data = &file.opt_header.data_directory[1];
@@ -91,11 +126,6 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
 
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
-
-    // in debugger, initial stack was from 0xce000 + 0x12000
-    // unclear where this comes from
-    x86.regs.esp = 0xe0000;
-    x86.regs.ebp = 0xe0000;
 
     Ok(x86)
 }
