@@ -48,6 +48,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     // in debugger, initial stack was from 0xce000 + 0x12000
     // unclear where this comes from
     x86.regs.esp = 0xe0000;
+    x86.regs.ebp = 0xe0000;
 
     Ok(())
 }

@@ -95,9 +95,16 @@ pub struct X86 {
 }
 impl X86 {
     pub fn new() -> Self {
+        let mut regs = Registers::new();
+        regs.eax = 0xdeadbeea;
+        regs.ebx = 0xdeadbeeb;
+        regs.ecx = 0xdeadbeec;
+        regs.edx = 0xdeadbeed;
+        regs.esi = 0xdeadbe51;
+        regs.edi = 0xdeadbed1;
         X86 {
             mem: Vec::new(),
-            regs: Registers::new(),
+            regs,
             base: 0,
             imports: HashMap::new(),
         }
