@@ -24,6 +24,22 @@ pub struct PEHeader {
     pub characteristics: u16,
 }
 
+bitflags! {
+    pub struct DllCharacteristics: u16 {
+        const HIGH_ENTROPY_VA = 0x0020;
+        const DYNAMIC_BASE = 0x0040;
+        const FORCE_INTEGRITY = 0x0080;
+        const NX_COMPAT = 0x0100;
+        const NO_ISOLATION = 0x0200;
+        const NO_SEH = 0x0400;
+        const NO_BIND = 0x0800;
+        const APPCONTAINER = 0x1000;
+        const WDM_DRIVER = 0x2000;
+        const GUARD_CF = 0x4000;
+        const TERMINAL_SERVER_AWARE = 0x8000;
+    }
+}
+
 #[derive(Debug)]
 pub struct PEOptionalHeader {
     pub magic: u16,
@@ -49,7 +65,7 @@ pub struct PEOptionalHeader {
     pub size_of_headers: u32,
     pub check_sum: u32,
     pub subsystem: u16,
-    pub dll_characteristics: u16,
+    pub dll_characteristics: DllCharacteristics,
     pub size_of_stack_reserve: u32,
     pub size_of_stack_commit: u32,
     pub size_of_heap_reserve: u32,
@@ -114,7 +130,10 @@ fn pe_opt_header(r: &mut Reader) -> anyhow::Result<PEOptionalHeader> {
         size_of_headers: r.u32()?,
         check_sum: r.u32()?,
         subsystem: r.u16()?,
-        dll_characteristics: r.u16()?,
+        dll_characteristics: {
+            let raw = r.u16()?;
+            DllCharacteristics::from_bits(raw).ok_or_else(|| anyhow!("bad flags {raw:#x}"))?
+        },
         size_of_stack_reserve: r.u32()?,
         size_of_stack_commit: r.u32()?,
         size_of_heap_reserve: r.u32()?,
