@@ -14,7 +14,7 @@ mod kernel32 {
             log::error!("unimplemented: GetModuleHandle(non-null)")
         }
         // HMODULE is base address of current module.
-        x86.regs.eax = x86.base;
+        x86.regs.eax = x86.state.image_base;
     }
 
     pub fn WriteFile(x86: &mut X86) {

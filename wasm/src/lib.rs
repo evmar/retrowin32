@@ -96,8 +96,7 @@ impl X86 {
 
 #[wasm_bindgen]
 pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
-    let mut x86 = win32::X86::new();
-    win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
+    let x86 = win32::load_exe(buf).map_err(|err| err.to_string())?;
     Ok(X86 { x86 })
 }
 

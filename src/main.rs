@@ -35,9 +35,8 @@ fn run() -> anyhow::Result<()> {
         _ => bail!("specify path"),
     };
 
-    let mut x86 = X86::new();
     let buf = std::fs::read(exe)?;
-    win32::load_exe(&mut x86, &buf)?;
+    let mut x86 = win32::load_exe(&buf)?;
 
     loop {
         if let Err(err) = x86.step() {

@@ -4,6 +4,8 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
+use crate::windows::AppState;
+
 bitflags! {
     pub struct Flags: u32 {
         const ZF = 0x40;
@@ -99,9 +101,8 @@ impl Registers {
 pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
-    // XXX PE base address, needed for winapi impls; we'll need some win32 system state bit.
-    pub base: u32,
     pub imports: HashMap<u32, Option<fn(&mut X86)>>,
+    pub state: AppState,
 }
 impl X86 {
     pub fn new() -> Self {
@@ -115,8 +116,8 @@ impl X86 {
         X86 {
             mem: Vec::new(),
             regs,
-            base: 0,
             imports: HashMap::new(),
+            state: AppState::new(),
         }
     }
 
