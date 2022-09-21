@@ -133,12 +133,20 @@ impl X86 {
     /// Compute the address found in instructions that reference memory, e.g.
     ///   mov [eax+03h],...
     fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
-        assert!(instr.memory_index_scale() == 1);
-        self.regs.get(instr.memory_index()) + instr.memory_displacement32()
+        assert!(instr.memory_index_scale() == 1); // TODO
+        self.regs
+            .get(instr.memory_base())
+            .wrapping_add(self.regs.get(instr.memory_index()))
+            .wrapping_add(instr.memory_displacement32())
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
-        assert!(!instr.has_rep_prefix() && !instr.has_lock_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
+        assert!(
+            !instr.has_rep_prefix()
+                && !instr.has_lock_prefix()
+                && !instr.has_repe_prefix()
+                && !instr.has_repne_prefix()
+        );
 
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
@@ -222,10 +230,17 @@ impl X86 {
             }
 
             iced_x86::Code::And_rm32_imm8 => {
-                assert!(instr.op0_kind() == iced_x86::OpKind::Register);
-                let reg = instr.op0_register();
-                self.regs
-                    .set(reg, self.regs.get(reg) & instr.immediate8() as u32);
+                match instr.op0_kind() {
+                    iced_x86::OpKind::Register => {
+                        let reg = instr.op0_register();
+                        self.regs.set(reg,self.regs.get(reg) & instr.immediate8() as u32);
+                    }
+                    iced_x86::OpKind::Memory => {
+                        let addr = self.addr(instr);
+                        self.write_u32(addr, self.read_u32(addr) & instr.immediate8() as u32);
+                    }
+                    _ => unreachable!(),
+                };
             }
             iced_x86::Code::Xor_rm32_r32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
