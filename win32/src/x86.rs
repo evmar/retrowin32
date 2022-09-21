@@ -240,8 +240,9 @@ impl X86 {
                 match instr.op0_kind() {
                     iced_x86::OpKind::Register => {
                         let reg = instr.op0_register();
+                        assert!(instr.op1_kind() == iced_x86::OpKind::Immediate8to32);
                         self.regs
-                            .set(reg, self.regs.get(reg) & instr.immediate8() as u32);
+                            .set(reg, self.regs.get(reg) & instr.immediate8to32() as u32);
                     }
                     iced_x86::OpKind::Memory => {
                         let addr = self.addr(instr);
