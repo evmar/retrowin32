@@ -7,8 +7,8 @@ import { Stack } from './stack';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
-async function loadExe(): Promise<ArrayBuffer> {
-  return await (await fetch('unpacked.exe')).arrayBuffer();
+async function loadExe(path: string): Promise<ArrayBuffer> {
+  return await (await fetch(path)).arrayBuffer();
 }
 
 namespace Page {
@@ -56,7 +56,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
 }
 
 async function main() {
-  const exe = await loadExe();
+  const path = document.location.search.substring(1);
+  if (!path) throw new Error('expected ?path in URL');
+  const exe = await loadExe(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
   wasm.init_logging();
   // ick copies
