@@ -1,1 +1,1 @@
-wasm-pack build -t web
+wasm-pack build -t web --dev

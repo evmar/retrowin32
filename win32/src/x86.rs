@@ -182,8 +182,13 @@ impl X86 {
         }
     }
 
+    fn add(&mut self, x: u32, y: u32) -> u32 {
+        // TODO flags.
+        x.wrapping_add(y)
+    }
+
     fn sub(&mut self, x: u32, y: u32) -> u32 {
-        let result = x - y;
+        let result = x.wrapping_sub(y);
         // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
         self.regs.flags.set(Flags::ZF, result == 0);
         result
@@ -339,13 +344,13 @@ impl X86 {
 
             iced_x86::Code::Add_r32_rm32 => {
                 let reg = instr.op0_register();
-                self.regs
-                    .set(reg, self.regs.get(reg).wrapping_add(self.op1_rm32(&instr)));
+                let value = self.add(self.regs.get(reg), self.op1_rm32(&instr));
+                self.regs.set(reg, value);
             }
             iced_x86::Code::Add_rm32_imm8 => {
                 let reg = instr.op0_register();
-                self.regs
-                    .set(reg, self.regs.get(reg).wrapping_add(self.op1_rm32(&instr)));
+                let value = self.add(self.regs.get(reg), instr.immediate8to32() as u32);
+                self.regs.set(reg, value);
             }
 
             iced_x86::Code::Sub_rm32_imm8 => {
