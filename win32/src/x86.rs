@@ -174,6 +174,14 @@ impl X86 {
             .wrapping_add(instr.memory_displacement32())
     }
 
+    fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+        match instr.op1_kind() {
+            iced_x86::OpKind::Register => self.regs.get(instr.op1_register()),
+            iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
+
     fn sub(&mut self, x: u32, y: u32) -> u32 {
         let result = x - y;
         // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
@@ -234,6 +242,9 @@ impl X86 {
             }
             iced_x86::Code::Retnd => self.regs.eip = self.pop(),
 
+            iced_x86::Code::Jmp_rel8_32 => {
+                self.regs.eip = instr.near_branch32();
+            }
             iced_x86::Code::Jmp_rel32_32 => {
                 self.regs.eip = instr.near_branch32();
             }
@@ -294,12 +305,7 @@ impl X86 {
                 }
             }
             iced_x86::Code::Mov_r32_rm32 => {
-                let value = match instr.op1_kind() {
-                    iced_x86::OpKind::Register => self.regs.get(instr.op1_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                self.regs.set(instr.op0_register(), value);
+                self.regs.set(instr.op0_register(), self.op1_rm32(instr));
             }
 
             iced_x86::Code::And_rm32_imm8 => {
@@ -329,6 +335,17 @@ impl X86 {
                     reg,
                     self.regs.get(reg) ^ self.regs.get(instr.op1_register()),
                 );
+            }
+
+            iced_x86::Code::Add_r32_rm32 => {
+                let reg = instr.op0_register();
+                self.regs
+                    .set(reg, self.regs.get(reg).wrapping_add(self.op1_rm32(&instr)));
+            }
+            iced_x86::Code::Add_rm32_imm8 => {
+                let reg = instr.op0_register();
+                self.regs
+                    .set(reg, self.regs.get(reg).wrapping_add(self.op1_rm32(&instr)));
             }
 
             iced_x86::Code::Sub_rm32_imm8 => {
@@ -365,6 +382,22 @@ impl X86 {
                 }
                 iced_x86::OpKind::Memory => {
                     self.sub(
+                        self.read_u32(self.addr(instr)),
+                        self.regs.get(instr.op1_register()),
+                    );
+                }
+                _ => unreachable!(),
+            },
+
+            iced_x86::Code::Test_rm32_r32 => match instr.op0_kind() {
+                iced_x86::OpKind::Register => {
+                    self.and(
+                        self.regs.get(instr.op0_register()),
+                        self.regs.get(instr.op1_register()),
+                    );
+                }
+                iced_x86::OpKind::Memory => {
+                    self.and(
                         self.read_u32(self.addr(instr)),
                         self.regs.get(instr.op1_register()),
                     );
