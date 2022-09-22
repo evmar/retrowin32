@@ -53,7 +53,12 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Registers regs={this.props.x86} />
         </div>
         <div style={{ display: 'flex' }}>
-          <Memory mem={this.props.x86.memory()} base={this.state.memBase} highlight={this.state.memHighlight} />
+          <Memory
+            mem={this.props.x86.memory()}
+            base={this.state.memBase}
+            highlight={this.state.memHighlight}
+            jumpTo={(addr) => this.setState({ memBase: addr })}
+          />
           <div style={{ width: '12ex' }} />
           <Stack x86={this.props.x86} />
         </div>

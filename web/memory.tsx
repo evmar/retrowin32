@@ -7,6 +7,7 @@ namespace Memory {
     mem: DataView;
     base: number;
     highlight?: number;
+    jumpTo: (addr: number) => void;
   }
 }
 export class Memory extends preact.Component<Memory.Props> {
@@ -30,9 +31,9 @@ export class Memory extends preact.Component<Memory.Props> {
     return (
       <section>
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <button>&lt;</button>
+          <button onClick={() => this.props.jumpTo(this.props.base - 0x100)}>&lt;</button>
           <input size={8} value={hex(this.props.base, 8)} />
-          <button>&gt;</button>
+          <button onClick={() => this.props.jumpTo(this.props.base + 0x100)}>&gt;</button>
         </div>
         <code>{rows}</code>
       </section>
