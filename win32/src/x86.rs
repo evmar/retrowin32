@@ -181,6 +181,13 @@ impl X86 {
         result
     }
 
+    fn and(&mut self, x: u32, y: u32) -> u32 {
+        let result = x & y;
+        // XXX More flags.
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
+
     fn try_invoke_handler(&mut self, addr: u32) -> bool {
         let handler = match self.imports.get(&addr) {
             Some(&handler) => handler,
@@ -300,12 +307,17 @@ impl X86 {
                     iced_x86::OpKind::Register => {
                         let reg = instr.op0_register();
                         assert!(instr.op1_kind() == iced_x86::OpKind::Immediate8to32);
-                        self.regs
-                            .set(reg, self.regs.get(reg) & instr.immediate8to32() as u32);
+                        let x = self.regs.get(reg);
+                        let y = instr.immediate8to32() as u32;
+                        let value = self.and(x, y);
+                        self.regs.set(reg, value);
                     }
                     iced_x86::OpKind::Memory => {
                         let addr = self.addr(instr);
-                        self.write_u32(addr, self.read_u32(addr) & instr.immediate8() as u32);
+                        let x = self.read_u32(addr);
+                        let y = instr.immediate8to32() as u32;
+                        let value = self.and(x, y);
+                        self.write_u32(addr, value);
                     }
                     _ => unreachable!(),
                 };
