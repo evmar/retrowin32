@@ -71,7 +71,7 @@ impl Registers {
             iced_x86::Register::EBP => self.ebp,
             iced_x86::Register::ESI => self.esi,
             iced_x86::Register::EDI => self.edi,
-            _ => unreachable!("{:?}", name),
+            _ => unreachable!("{name:?}"),
         }
     }
     fn get16(&self, name: iced_x86::Register) -> u16 {
@@ -93,6 +93,20 @@ impl Registers {
             _ => unreachable!(),
         }
     }
+    fn get8(&self, name: iced_x86::Register) -> u8 {
+        match name {
+            iced_x86::Register::AL => self.eax as u8,
+            iced_x86::Register::CL => self.ecx as u8,
+            iced_x86::Register::DL => self.edx as u8,
+            iced_x86::Register::BL => self.ebx as u8,
+            iced_x86::Register::AH => (self.eax >> 8) as u8,
+            iced_x86::Register::CH => (self.ecx >> 8) as u8,
+            iced_x86::Register::DH => (self.edx >> 8) as u8,
+            iced_x86::Register::BH => (self.ebx >> 8) as u8,
+            _ => unreachable!("{name:?}"),
+        }
+    }
+
     fn set32(&mut self, name: iced_x86::Register, value: u32) {
         match name {
             iced_x86::Register::EAX => self.eax = value,
@@ -159,6 +173,12 @@ impl X86 {
         let offset = offset as usize;
         ((self.mem[offset] as u16) << 0) | ((self.mem[offset + 1] as u16) << 8)
     }
+    pub fn read_u8(&self, offset: u32) -> u8 {
+        if offset < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer read at {offset:#x}");
+        }
+        self.mem[offset as usize]
+    }
 
     pub fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
@@ -213,6 +233,12 @@ impl X86 {
         result
     }
     fn sub16(&mut self, x: u16, y: u16) -> u16 {
+        let result = x.wrapping_sub(y);
+        // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
+    fn sub8(&mut self, x: u8, y: u8) -> u8 {
         let result = x.wrapping_sub(y);
         // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
         self.regs.flags.set(Flags::ZF, result == 0);
@@ -408,30 +434,23 @@ impl X86 {
                 self.regs.set32(instr.op0_register(), self.addr(instr));
             }
 
-            iced_x86::Code::Cmp_rm32_r32 => match instr.op0_kind() {
-                iced_x86::OpKind::Register => {
-                    self.sub32(
-                        self.regs.get32(instr.op0_register()),
-                        self.regs.get32(instr.op1_register()),
-                    );
-                }
-                iced_x86::OpKind::Memory => {
-                    self.sub32(
-                        self.read_u32(self.addr(instr)),
-                        self.regs.get32(instr.op1_register()),
-                    );
-                }
-                _ => unreachable!(),
-            },
-
-            iced_x86::Code::Test_rm16_r16 => {
+            iced_x86::Code::Cmp_rm32_r32 => {
                 let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                let y = self.regs.get16(instr.op1_register());
-                self.sub16(x, y);
+                let y = self.regs.get32(instr.op1_register());
+                self.sub32(x, y);
+            }
+            iced_x86::Code::Cmp_rm8_imm8 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate8();
+                self.sub8(x, y);
             }
 
             iced_x86::Code::Test_rm32_r32 => match instr.op0_kind() {
@@ -449,6 +468,15 @@ impl X86 {
                 }
                 _ => unreachable!(),
             },
+            iced_x86::Code::Test_rm16_r16 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = self.regs.get16(instr.op1_register());
+                self.sub16(x, y);
+            }
 
             code => {
                 self.regs.eip -= instr.len() as u32;
