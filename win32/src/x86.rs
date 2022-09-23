@@ -127,6 +127,7 @@ pub struct X86 {
     pub regs: Registers,
     pub imports: HashMap<u32, Option<fn(&mut X86)>>,
     pub state: AppState,
+    pub exit: Option<u32>,
 }
 impl X86 {
     pub fn new() -> Self {
@@ -142,6 +143,7 @@ impl X86 {
             regs,
             imports: HashMap::new(),
             state: AppState::new(),
+            exit: None,
         }
     }
 

@@ -38,7 +38,7 @@ fn run() -> anyhow::Result<()> {
     let buf = std::fs::read(exe)?;
     let mut x86 = win32::load_exe(&buf)?;
 
-    loop {
+    while x86.exit.is_none() {
         if let Err(err) = x86.step() {
             dump_asm(&x86);
             println!("err: {:?}", err);

@@ -11,6 +11,11 @@ pub const STDOUT_HFILE: u32 = 0xF11E_0100;
 mod kernel32 {
     use super::*;
 
+    pub fn ExitProcess(x86: &mut X86) {
+        let uExitCode = x86.pop();
+        x86.exit = Some(uExitCode);
+    }
+
     pub fn GetModuleHandleA(x86: &mut X86) {
         let lpModuleName = x86.pop();
         if lpModuleName != 0 {
@@ -76,6 +81,7 @@ mod user32 {
 
 pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
+        "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "kernel32.dll!WriteFile" => kernel32::WriteFile,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
