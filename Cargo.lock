@@ -161,17 +161,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bitflags",
- "iced-x86",
- "log",
- "win32",
-]
-
-[[package]]
 name = "ryu"
 version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -358,4 +347,14 @@ dependencies = [
  "serde",
  "tsify",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "wwwin32"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "iced-x86",
+ "log",
+ "win32",
 ]
