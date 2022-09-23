@@ -7,9 +7,18 @@ extern "C" {
     fn mem(mem: JsValue, offset: u32) -> JsValue;
 }
 
+struct OS {}
+impl win32::OS for OS {
+    fn write(&mut self, buf: &[u8]) -> usize {
+        log::info!("WriteFile: {:?}", String::from_utf8_lossy(buf));
+        buf.len()
+    }
+}
+static mut OS: OS = OS {};
+
 #[wasm_bindgen]
 pub struct X86 {
-    x86: win32::X86,
+    x86: win32::X86<'static>,
 }
 
 #[wasm_bindgen]
@@ -100,7 +109,8 @@ impl X86 {
 
 #[wasm_bindgen]
 pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
-    let x86 = win32::load_exe(buf).map_err(|err| err.to_string())?;
+    let mut x86 = win32::X86::new(unsafe { &mut OS });
+    win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
     Ok(X86 { x86 })
 }
 

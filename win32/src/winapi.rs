@@ -35,9 +35,10 @@ mod kernel32 {
         assert!(hFile == STDOUT_HFILE);
         assert!(lpOverlapped == 0);
         let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
-        log::info!("WriteFile: {:?}", String::from_utf8_lossy(buf));
 
-        x86.write_u32(lpNumberOfBytesWritten, nNumberOfBytesToWrite);
+        let n = x86.os.write(buf);
+
+        x86.write_u32(lpNumberOfBytesWritten, n as u32);
         x86.regs.eax = 1;
     }
 

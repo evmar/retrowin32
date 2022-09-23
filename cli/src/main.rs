@@ -1,5 +1,7 @@
 extern crate win32;
 
+use std::io::Write;
+
 use win32::X86;
 
 use anyhow::bail;
@@ -28,6 +30,13 @@ fn dump_asm(x86: &X86) {
     }
 }
 
+struct OS {}
+impl win32::OS for OS {
+    fn write(&mut self, buf: &[u8]) -> usize {
+        std::io::stdout().lock().write(buf).unwrap()
+    }
+}
+
 fn run() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     let exe = match args.as_slice() {
@@ -36,7 +45,9 @@ fn run() -> anyhow::Result<()> {
     };
 
     let buf = std::fs::read(exe)?;
-    let mut x86 = win32::load_exe(&buf)?;
+    let mut os = OS {};
+    let mut x86 = X86::new(&mut os);
+    win32::load_exe(&mut x86, &buf)?;
 
     while x86.exit.is_none() {
         if let Err(err) = x86.step() {

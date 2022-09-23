@@ -98,11 +98,9 @@ fn init_teb_peb(x86: &mut X86) {
     x86.state.teb = teb_addr;
 }
 
-pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
+pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
     log::info!("{file:#x?}");
-
-    let mut x86 = X86::new();
 
     let base = file.opt_header.image_base;
     x86.state.image_base = file.opt_header.image_base;
@@ -129,7 +127,7 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
         });
     }
 
-    init_teb_peb(&mut x86);
+    init_teb_peb(x86);
 
     let mut stack_size = file.opt_header.size_of_stack_reserve;
     // Zig reserves 16mb stacks, just truncate for now.
@@ -161,5 +159,5 @@ pub fn load_exe(buf: &[u8]) -> anyhow::Result<X86> {
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
 
-    Ok(x86)
+    Ok(())
 }
