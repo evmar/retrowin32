@@ -19,4 +19,4 @@ This project, in contrast, aims to run a win32 executable directly, in a manner
 similar to how video game emulators work: by both emulating the executable and
 mapping its calls directly into local OS calls.
 
-<img src='wwwin32.png' width='248' alt='wwwin32 component stack'>
+<img src='retrowin32.png' width='248' alt='retrowin32 component stack'>

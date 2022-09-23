@@ -1,4 +1,4 @@
-# wwwin32
+# retrowin32
 
 A not-yet-working Windows emulator for the web.
 
