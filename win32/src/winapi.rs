@@ -46,9 +46,14 @@ mod kernel32 {
         let lpAddress = x86.pop();
         let dwSize = x86.pop();
         let flAllocationType = x86.pop();
-        let flProtec = x86.pop();
-        log::warn!("unimplemented: VirtualAlloc({lpAddress:x}, {dwSize:x}, {flAllocationType:x}, {flProtec:x})");
-        x86.regs.eax = 0;
+        let _flProtec = x86.pop();
+
+        assert!(lpAddress == 0);
+        // TODO round dwSize to page boundary
+        assert!(flAllocationType == 0x1000); // MEM_COMMIT
+
+        let mapping = x86.state.alloc(dwSize, "VirtualAlloc".into());
+        x86.regs.eax = mapping.addr;
     }
 }
 

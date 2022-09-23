@@ -50,7 +50,7 @@ impl AppState {
         self.mappings.insert(pos, mapping);
     }
 
-    fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
+    pub fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
         let mut end = 0;
         for (pos, mapping) in self.mappings.iter().enumerate() {
             let space = mapping.addr - end;
