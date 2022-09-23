@@ -320,6 +320,11 @@ impl X86 {
                     self.regs.eip = instr.near_branch32();
                 }
             }
+            iced_x86::Code::Je_rel32_32 => {
+                if self.regs.flags.contains(Flags::ZF) {
+                    self.regs.eip = instr.near_branch32();
+                }
+            }
             iced_x86::Code::Jne_rel8_32 => {
                 if !self.regs.flags.contains(Flags::ZF) {
                     self.regs.eip = instr.near_branch32();
