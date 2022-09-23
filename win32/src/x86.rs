@@ -123,19 +123,19 @@ impl Registers {
 }
 
 pub trait OS {
-    fn write(&mut self, buf: &[u8]) -> usize;
+    fn exit(&self, code: u32);
+    fn write(&self, buf: &[u8]) -> usize;
 }
 
 pub struct X86<'a> {
-    pub os: &'a mut dyn OS,
+    pub os: &'a dyn OS,
     pub mem: Vec<u8>,
     pub regs: Registers,
     pub imports: HashMap<u32, Option<fn(&mut X86)>>,
     pub state: AppState,
-    pub exit: Option<u32>,
 }
 impl<'a> X86<'a> {
-    pub fn new(os: &'a mut dyn OS) -> Self {
+    pub fn new(os: &'a dyn OS) -> Self {
         let mut regs = Registers::new();
         regs.eax = 0xdeadbeea;
         regs.ebx = 0xdeadbeeb;
@@ -149,7 +149,6 @@ impl<'a> X86<'a> {
             regs,
             imports: HashMap::new(),
             state: AppState::new(),
-            exit: None,
         }
     }
 

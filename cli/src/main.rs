@@ -30,9 +30,15 @@ fn dump_asm(x86: &X86) {
     }
 }
 
-struct OS {}
+struct OS {
+    exit_code: std::cell::Cell<Option<u32>>,
+}
 impl win32::OS for OS {
-    fn write(&mut self, buf: &[u8]) -> usize {
+    fn exit(&self, code: u32) {
+        self.exit_code.set(Some(code));
+    }
+
+    fn write(&self, buf: &[u8]) -> usize {
         std::io::stdout().lock().write(buf).unwrap()
     }
 }
@@ -45,11 +51,13 @@ fn run() -> anyhow::Result<()> {
     };
 
     let buf = std::fs::read(exe)?;
-    let mut os = OS {};
-    let mut x86 = X86::new(&mut os);
+    let os = OS {
+        exit_code: std::cell::Cell::new(None),
+    };
+    let mut x86 = X86::new(&os);
     win32::load_exe(&mut x86, &buf)?;
 
-    while x86.exit.is_none() {
+    while os.exit_code.get().is_none() {
         if let Err(err) = x86.step() {
             dump_asm(&x86);
             println!("err: {:?}", err);

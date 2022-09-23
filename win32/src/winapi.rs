@@ -13,7 +13,7 @@ mod kernel32 {
 
     pub fn ExitProcess(x86: &mut X86) {
         let uExitCode = x86.pop();
-        x86.exit = Some(uExitCode);
+        x86.os.exit(uExitCode);
     }
 
     pub fn GetModuleHandleA(x86: &mut X86) {
