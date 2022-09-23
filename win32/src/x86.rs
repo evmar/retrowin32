@@ -294,6 +294,11 @@ impl X86 {
                     self.regs.eip = instr.near_branch32();
                 }
             }
+            iced_x86::Code::Jne_rel8_32 => {
+                if !self.regs.flags.contains(Flags::ZF) {
+                    self.regs.eip = instr.near_branch32();
+                }
+            }
 
             iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
             iced_x86::Code::Pushd_imm32 => self.push(instr.immediate32()),
