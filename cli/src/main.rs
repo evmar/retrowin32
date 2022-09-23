@@ -62,7 +62,7 @@ impl log::Log for Logger {
             return;
         }
 
-        println!("{:?}", record);
+        println!("{} {}", record.level(), record.args());
     }
 
     fn flush(&self) {}
