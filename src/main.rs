@@ -49,6 +49,27 @@ fn run() -> anyhow::Result<()> {
     Ok(())
 }
 
+static LOGGER: Logger = Logger {};
+struct Logger {}
+
+impl log::Log for Logger {
+    fn enabled(&self, metadata: &log::Metadata) -> bool {
+        metadata.level() <= log::max_level()
+    }
+
+    fn log(&self, record: &log::Record) {
+        if !self.enabled(record.metadata()) {
+            return;
+        }
+
+        println!("{:?}", record);
+    }
+
+    fn flush(&self) {}
+}
+
 fn main() {
+    log::set_logger(&LOGGER).unwrap();
+    log::set_max_level(log::LevelFilter::Debug);
     run().unwrap();
 }

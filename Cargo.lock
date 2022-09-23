@@ -167,6 +167,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "iced-x86",
+ "log",
  "win32",
 ]
 
