@@ -42,9 +42,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
             highlightMemory={(addr) => this.setState({ memHighlight: addr })}
             showMemory={(memBase) => this.setState({ memBase })}
             runTo={(addr: number) => {
-              for (let i = 0; i < 0x20; i++) {
-                this.props.x86.step();
+              for (let i = 0; i < 0x100; i++) {
                 if (this.props.x86.eip === addr) break;
+                this.props.x86.step();
               }
               this.forceUpdate();
             }}
