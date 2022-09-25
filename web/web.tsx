@@ -1,10 +1,10 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import { Breakpoint } from './break';
 import { Code } from './code';
 import { Memory } from './memory';
 import { Registers } from './registers';
 import { Stack } from './stack';
-import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
 async function loadExe(path: string): Promise<ArrayBuffer> {
@@ -16,20 +16,31 @@ namespace Page {
     x86: wasm.X86;
   }
   export interface State {
+    breakpoints: Map<number, Breakpoint>;
     memBase: number;
     memHighlight?: number;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { memBase: 0x40_1000 };
+  state: Page.State = { memBase: 0x40_1000, breakpoints: new Map() };
 
-  runTo(addr: number) {
-    console.log('to', hex(addr));
-    for (let i = 0; i < 0x100; i++) {
-      if (this.props.x86.eip === addr) break;
+  run() {
+    for (;;) {
       this.props.x86.step();
+      const bp = this.state.breakpoints.get(this.props.x86.eip);
+      if (bp) {
+        if (bp.temporary) {
+          this.state.breakpoints.delete(bp.addr);
+        }
+        break;
+      }
     }
     this.forceUpdate();
+  }
+
+  runTo(addr: number) {
+    this.state.breakpoints.set(addr, { addr, temporary: true });
+    this.run();
   }
 
   render() {
@@ -37,6 +48,11 @@ class Page extends preact.Component<Page.Props, Page.State> {
     const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
     return (
       <main>
+        <button
+          onClick={() => this.run()}
+        >
+          run
+        </button>
         <button
           onClick={() => {
             this.props.x86.step();
@@ -46,10 +62,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           step
         </button>
         <button
-          onClick={() => {
-            this.runTo(instrs[1].addr);
-            this.forceUpdate();
-          }}
+          onClick={() => this.runTo(instrs[1].addr)}
         >
           step over
         </button>
