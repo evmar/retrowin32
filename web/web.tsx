@@ -23,6 +23,15 @@ namespace Page {
 class Page extends preact.Component<Page.Props, Page.State> {
   state: Page.State = { memBase: 0x40_1000 };
 
+  runTo(addr: number) {
+    console.log('to', hex(addr));
+    for (let i = 0; i < 0x100; i++) {
+      if (this.props.x86.eip === addr) break;
+      this.props.x86.step();
+    }
+    this.forceUpdate();
+  }
+
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
@@ -36,18 +45,20 @@ class Page extends preact.Component<Page.Props, Page.State> {
         >
           step
         </button>
+        <button
+          onClick={() => {
+            this.runTo(instrs[1].addr);
+            this.forceUpdate();
+          }}
+        >
+          step over
+        </button>
         <div style={{ display: 'flex' }}>
           <Code
             instrs={instrs}
             highlightMemory={(addr) => this.setState({ memHighlight: addr })}
             showMemory={(memBase) => this.setState({ memBase })}
-            runTo={(addr: number) => {
-              for (let i = 0; i < 0x100; i++) {
-                if (this.props.x86.eip === addr) break;
-                this.props.x86.step();
-              }
-              this.forceUpdate();
-            }}
+            runTo={(addr: number) => this.runTo(addr)}
           />
           <div style={{ width: '12ex' }} />
           <Registers regs={this.props.x86} />
