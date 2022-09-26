@@ -282,6 +282,10 @@ impl<'a> X86<'a> {
                 self.regs.ebp = self.regs.esp;
                 self.regs.esp -= instr.immediate16() as u32;
             }
+            iced_x86::Code::Leaved => {
+                self.regs.esp = self.regs.ebp;
+                self.regs.ebp = self.pop();
+            }
 
             iced_x86::Code::Call_rel32_32 => {
                 self.push(self.regs.eip);
