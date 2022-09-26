@@ -502,6 +502,11 @@ impl<'a> X86<'a> {
                 let y = self.regs.get32(instr.op1_register());
                 self.sub32(x, y);
             }
+            iced_x86::Code::Cmp_r32_rm32 => {
+                let x = self.regs.get32(instr.op0_register());
+                let y = self.op1_rm32(instr);
+                self.sub32(x, y);
+            }
             iced_x86::Code::Cmp_rm8_imm8 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
