@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap};
 
 use anyhow::bail;
 use bitflags::bitflags;
@@ -405,6 +405,24 @@ impl<'a> X86<'a> {
                     }
                     _ => unreachable!(),
                 };
+            }
+            iced_x86::Code::Shl_rm32_imm8 => {
+                let y = instr.immediate8to32();
+                match instr.op0_kind() {
+                    iced_x86::OpKind::Register => {
+                        let reg = instr.op0_register();
+                        let x = self.regs.get32(reg);
+                        let value = x << y;
+                        self.regs.set32(reg, value);
+                    }
+                    iced_x86::OpKind::Memory => {
+                        let addr = self.addr(instr);
+                        let x = self.read_u32(addr);
+                        let value = x << y;
+                        self.write_u32(self.addr(instr), value);
+                    }
+                    _ => unreachable!(),
+                }
             }
             iced_x86::Code::Xor_rm32_r32 => {
                 assert!(instr.op0_kind() == iced_x86::OpKind::Register);
