@@ -496,6 +496,11 @@ impl<'a> X86<'a> {
                 self.regs.set32(instr.op0_register(), value);
             }
 
+            iced_x86::Code::Inc_r32 => {
+                let reg = instr.op0_register();
+                self.regs.set32(reg, self.regs.get32(reg) + 1);
+            }
+
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
                 self.regs.set32(instr.op0_register(), self.addr(instr));
