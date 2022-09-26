@@ -275,14 +275,6 @@ impl<'a> X86<'a> {
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
-        if instr.has_rep_prefix()
-            || instr.has_lock_prefix()
-            || instr.has_repe_prefix()
-            || instr.has_repne_prefix()
-        {
-            bail!("prefix");
-        }
-
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
@@ -380,6 +372,18 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Mov_r32_rm32 => {
                 self.regs.set32(instr.op0_register(), self.op1_rm32(instr));
+            }
+            iced_x86::Code::Movsb_m8_m8 => {
+                if !instr.has_rep_prefix() {
+                    bail!("expected rep movsb");
+                }
+                let dst = self.regs.edi as usize;
+                let src = self.regs.esi as usize;
+                let count = self.regs.ecx as usize;
+                self.mem.copy_within(src..src+count, dst);
+                self.regs.edi += count as u32;
+                self.regs.esi += count as u32;
+                self.regs.ecx = 0;
             }
 
             iced_x86::Code::And_rm32_imm8 => {
