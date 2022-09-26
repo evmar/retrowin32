@@ -542,6 +542,15 @@ impl<'a> X86<'a> {
                 self.sub16(x, y);
             }
 
+            iced_x86::Code::Fcos
+            | iced_x86::Code::Fild_m32int
+            | iced_x86::Code::Fld_m32fp
+            | iced_x86::Code::Fmul_m32fp
+            | iced_x86::Code::Fsin
+            | iced_x86::Code::Fstp_m32fp => {
+                // TODO: floating point
+            }
+
             code => {
                 self.regs.eip -= instr.len() as u32;
                 bail!("unhandled instruction {:?}", code);
