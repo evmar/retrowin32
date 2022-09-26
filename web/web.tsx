@@ -2,6 +2,7 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Breakpoint } from './break';
 import { Code } from './code';
+import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { Registers } from './registers';
 import { Stack } from './stack';
@@ -59,6 +60,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
+    const mappings = JSON.parse(this.props.x86.mappings_json()) as wasm.Mapping[];
     return (
       <main>
         <button
@@ -90,12 +92,15 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Registers regs={this.props.x86} />
         </div>
         <div style={{ display: 'flex' }}>
-          <Memory
-            mem={this.props.x86.memory()}
-            base={this.state.memBase}
-            highlight={this.state.memHighlight}
-            jumpTo={(addr) => this.setState({ memBase: addr })}
-          />
+          <div>
+            <Memory
+              mem={this.props.x86.memory()}
+              base={this.state.memBase}
+              highlight={this.state.memHighlight}
+              jumpTo={(addr) => this.setState({ memBase: addr })}
+            />
+            <Mappings mappings={mappings} />
+          </div>
           <div style={{ width: '12ex' }} />
           <Stack x86={this.props.x86} />
         </div>
