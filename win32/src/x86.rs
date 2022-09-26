@@ -551,6 +551,7 @@ impl<'a> X86<'a> {
             }
 
             iced_x86::Code::Fcos
+            | iced_x86::Code::Fadd_m32fp
             | iced_x86::Code::Fild_m32int
             | iced_x86::Code::Fld_m32fp
             | iced_x86::Code::Fmul_m32fp
