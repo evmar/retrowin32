@@ -380,7 +380,7 @@ impl<'a> X86<'a> {
                 let dst = self.regs.edi as usize;
                 let src = self.regs.esi as usize;
                 let count = self.regs.ecx as usize;
-                self.mem.copy_within(src..src+count, dst);
+                self.mem.copy_within(src..src + count, dst);
                 self.regs.edi += count as u32;
                 self.regs.esi += count as u32;
                 self.regs.ecx = 0;
@@ -419,6 +419,24 @@ impl<'a> X86<'a> {
                 let reg = instr.op0_register();
                 let value = self.add(self.regs.get32(reg), self.op1_rm32(&instr));
                 self.regs.set32(reg, value);
+            }
+            iced_x86::Code::Add_rm32_imm32 => {
+                let y = instr.immediate32();
+                match instr.op0_kind() {
+                    iced_x86::OpKind::Register => {
+                        let reg = instr.op0_register();
+                        let x = self.regs.get32(reg);
+                        let value = self.add(x, y);
+                        self.regs.set32(reg, value);
+                    }
+                    iced_x86::OpKind::Memory => {
+                        let addr = self.addr(instr);
+                        let x = self.read_u32(addr);
+                        let value = self.add(x, y);
+                        self.write_u32(self.addr(instr), value);
+                    }
+                    _ => unreachable!(),
+                }
             }
             iced_x86::Code::Add_rm32_imm8 => {
                 let reg = instr.op0_register();
