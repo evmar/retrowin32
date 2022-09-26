@@ -24,18 +24,31 @@ namespace Page {
 class Page extends preact.Component<Page.Props, Page.State> {
   state: Page.State = { memBase: 0x40_1000, breakpoints: new Map() };
 
-  run() {
-    for (;;) {
-      this.props.x86.step();
-      const bp = this.state.breakpoints.get(this.props.x86.eip);
-      if (bp) {
-        if (bp.temporary) {
-          this.state.breakpoints.delete(bp.addr);
-        }
-        break;
-      }
+  updateAfter(f: () => void) {
+    try {
+      f();
+    } finally {
+      this.forceUpdate();
     }
-    this.forceUpdate();
+  }
+
+  step() {
+    this.updateAfter(() => this.step());
+  }
+
+  run() {
+    this.updateAfter(() => {
+      for (;;) {
+        this.props.x86.step();
+        const bp = this.state.breakpoints.get(this.props.x86.eip);
+        if (bp) {
+          if (bp.temporary) {
+            this.state.breakpoints.delete(bp.addr);
+          }
+          break;
+        }
+      }
+    });
   }
 
   runTo(addr: number) {

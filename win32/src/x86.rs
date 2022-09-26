@@ -275,12 +275,13 @@ impl<'a> X86<'a> {
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
-        assert!(
-            !instr.has_rep_prefix()
-                && !instr.has_lock_prefix()
-                && !instr.has_repe_prefix()
-                && !instr.has_repne_prefix()
-        );
+        if instr.has_rep_prefix()
+            || instr.has_lock_prefix()
+            || instr.has_repe_prefix()
+            || instr.has_repne_prefix()
+        {
+            bail!("prefix");
+        }
 
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
