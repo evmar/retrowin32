@@ -301,6 +301,10 @@ impl<'a> X86<'a> {
                 }
             }
             iced_x86::Code::Retnd => self.regs.eip = self.pop(),
+            iced_x86::Code::Retnd_imm16 => {
+                self.regs.eip = self.pop();
+                self.regs.esp += instr.immediate16() as u32;
+            }
 
             iced_x86::Code::Jmp_rel8_32 => {
                 self.regs.eip = instr.near_branch32();
