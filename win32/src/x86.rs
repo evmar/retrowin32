@@ -12,7 +12,10 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
 bitflags! {
     pub struct Flags: u32 {
+        /// zero
         const ZF = 0x40;
+        /// sign
+        const SF = 0x01;  // XXX
     }
 }
 
@@ -201,7 +204,6 @@ impl<'a> X86<'a> {
     /// Compute the address found in instructions that reference memory, e.g.
     ///   mov [eax+03h],...
     fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
-        assert!(instr.memory_index_scale() == 1); // TODO
         let seg = if instr.segment_prefix() == iced_x86::Register::FS {
             self.state.teb
         } else {
@@ -213,7 +215,7 @@ impl<'a> X86<'a> {
             0
         };
         let index = if instr.memory_index() != iced_x86::Register::None {
-            self.regs.get32(instr.memory_index())
+            self.regs.get32(instr.memory_index()) * instr.memory_index_scale()
         } else {
             0
         };
@@ -237,22 +239,30 @@ impl<'a> X86<'a> {
         let result = x.wrapping_sub(y);
         // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
         self.regs.flags.set(Flags::ZF, result == 0);
-        result
-    }
-    fn sub16(&mut self, x: u16, y: u16) -> u16 {
-        let result = x.wrapping_sub(y);
-        // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
         result
     }
     fn sub8(&mut self, x: u8, y: u8) -> u8 {
         let result = x.wrapping_sub(y);
         // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
         self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
         result
     }
 
-    fn and(&mut self, x: u32, y: u32) -> u32 {
+    fn and32(&mut self, x: u32, y: u32) -> u32 {
+        let result = x & y;
+        // XXX More flags.
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
+    fn and16(&mut self, x: u16, y: u16) -> u16 {
+        let result = x & y;
+        // XXX More flags.
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
+    fn and8(&mut self, x: u8, y: u8) -> u8 {
         let result = x & y;
         // XXX More flags.
         self.regs.flags.set(Flags::ZF, result == 0);
@@ -338,6 +348,18 @@ impl<'a> X86<'a> {
                     self.regs.eip = instr.near_branch32();
                 }
             }
+            iced_x86::Code::Jge_rel8_32 => {
+                // XXX incorrect
+                log::warn!("todo {:?}", instr.code());
+            }
+            iced_x86::Code::Jle_rel32_32 => {
+                // XXX incorrect
+                log::warn!("todo {:?}", instr.code());
+            }
+            iced_x86::Code::Jl_rel8_32 => {
+                // XXX incorrect
+                log::warn!("todo {:?}", instr.code());
+            }
 
             iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
             iced_x86::Code::Pushd_imm32 => self.push(instr.immediate32()),
@@ -381,6 +403,7 @@ impl<'a> X86<'a> {
             iced_x86::Code::Mov_r32_rm32 => {
                 self.regs.set32(instr.op0_register(), self.op1_rm32(instr));
             }
+
             iced_x86::Code::Movsb_m8_m8 => {
                 if !instr.has_rep_prefix() {
                     bail!("expected rep movsb");
@@ -393,6 +416,17 @@ impl<'a> X86<'a> {
                 self.regs.esi += count as u32;
                 self.regs.ecx = 0;
             }
+            iced_x86::Code::Stosb_m8_AL => {
+                if !instr.has_rep_prefix() {
+                    bail!("expected rep stosb");
+                }
+                let dst = self.regs.edi as usize;
+                let value = self.regs.eax as u8;
+                let count = self.regs.ecx as usize;
+                self.mem[dst..dst + count].fill(value);
+                self.regs.edi += count as u32;
+                self.regs.ecx = 0;
+            }
 
             iced_x86::Code::And_rm32_imm8 => {
                 match instr.op0_kind() {
@@ -401,14 +435,14 @@ impl<'a> X86<'a> {
                         assert!(instr.op1_kind() == iced_x86::OpKind::Immediate8to32);
                         let x = self.regs.get32(reg);
                         let y = instr.immediate8to32() as u32;
-                        let value = self.and(x, y);
+                        let value = self.and32(x, y);
                         self.regs.set32(reg, value);
                     }
                     iced_x86::OpKind::Memory => {
                         let addr = self.addr(instr);
                         let x = self.read_u32(addr);
                         let y = instr.immediate8to32() as u32;
-                        let value = self.and(x, y);
+                        let value = self.and32(x, y);
                         self.write_u32(addr, value);
                     }
                     _ => unreachable!(),
@@ -489,6 +523,12 @@ impl<'a> X86<'a> {
                 let value = self.sub32(self.regs.get32(reg), self.regs.get32(instr.op1_register()));
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::Sub_r32_rm32 => {
+                let reg = instr.op0_register();
+                let y = self.op1_rm32(instr);
+                let value = self.sub32(self.regs.get32(reg), y);
+                self.regs.set32(reg, value);
+            }
             iced_x86::Code::Imul_r32_rm32 => {
                 let x = self.regs.get32(instr.op0_register());
                 let y = self.op1_rm32(instr);
@@ -520,6 +560,15 @@ impl<'a> X86<'a> {
                 let y = self.op1_rm32(instr);
                 self.sub32(x, y);
             }
+            iced_x86::Code::Cmp_rm32_imm32 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate32();
+                self.sub32(x, y);
+            }
             iced_x86::Code::Cmp_rm32_imm8 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
@@ -539,21 +588,15 @@ impl<'a> X86<'a> {
                 self.sub8(x, y);
             }
 
-            iced_x86::Code::Test_rm32_r32 => match instr.op0_kind() {
-                iced_x86::OpKind::Register => {
-                    self.and(
-                        self.regs.get32(instr.op0_register()),
-                        self.regs.get32(instr.op1_register()),
-                    );
-                }
-                iced_x86::OpKind::Memory => {
-                    self.and(
-                        self.read_u32(self.addr(instr)),
-                        self.regs.get32(instr.op1_register()),
-                    );
-                }
-                _ => unreachable!(),
-            },
+            iced_x86::Code::Test_rm32_r32 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = self.regs.get32(instr.op1_register());
+                self.and32(x, y);
+            }
             iced_x86::Code::Test_rm16_r16 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
@@ -561,7 +604,16 @@ impl<'a> X86<'a> {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get16(instr.op1_register());
-                self.sub16(x, y);
+                self.and16(x, y);
+            }
+            iced_x86::Code::Test_rm8_imm8 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate8();
+                self.and8(x, y);
             }
 
             iced_x86::Code::Fcos
@@ -569,6 +621,7 @@ impl<'a> X86<'a> {
             | iced_x86::Code::Fild_m32int
             | iced_x86::Code::Fld_m32fp
             | iced_x86::Code::Fmul_m32fp
+            | iced_x86::Code::Fmul_m64fp
             | iced_x86::Code::Fsin
             | iced_x86::Code::Fstp_m32fp => {
                 // TODO: floating point
