@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use anyhow::bail;
 use bitflags::bitflags;
@@ -480,6 +480,12 @@ impl<'a> X86<'a> {
                 let reg = instr.op0_register();
                 let value = self.sub32(self.regs.get32(reg), self.regs.get32(instr.op1_register()));
                 self.regs.set32(reg, value);
+            }
+            iced_x86::Code::Imul_r32_rm32 => {
+                let x = self.regs.get32(instr.op0_register());
+                let y = self.op1_rm32(instr);
+                let value = x.wrapping_mul(y);
+                self.regs.set32(instr.op0_register(), value);
             }
 
             iced_x86::Code::Lea_r32_m => {
