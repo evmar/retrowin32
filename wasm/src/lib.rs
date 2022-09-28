@@ -7,8 +7,8 @@ extern "C" {
     fn mem(mem: JsValue, offset: u32) -> JsValue;
 }
 
-struct OS {}
-impl win32::OS for OS {
+struct Host {}
+impl win32::Host for Host {
     fn exit(&self, exit_code: u32) {
         log::error!("exit {}", exit_code);
     }
@@ -17,7 +17,7 @@ impl win32::OS for OS {
         buf.len()
     }
 }
-static OS: OS = OS {};
+static HOST: Host = Host {};
 
 #[wasm_bindgen]
 pub struct X86 {
@@ -112,7 +112,7 @@ impl X86 {
 
 #[wasm_bindgen]
 pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
-    let mut x86 = win32::X86::new(&OS);
+    let mut x86 = win32::X86::new(&HOST);
     win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
     Ok(X86 { x86 })
 }

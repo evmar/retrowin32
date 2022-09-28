@@ -13,7 +13,7 @@ mod kernel32 {
 
     pub fn ExitProcess(x86: &mut X86) {
         let uExitCode = x86.pop();
-        x86.os.exit(uExitCode);
+        x86.host.exit(uExitCode);
     }
 
     pub fn GetModuleHandleA(x86: &mut X86) {
@@ -36,7 +36,7 @@ mod kernel32 {
         assert!(lpOverlapped == 0);
         let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
 
-        let n = x86.os.write(buf);
+        let n = x86.host.write(buf);
 
         x86.write_u32(lpNumberOfBytesWritten, n as u32);
         x86.regs.eax = 1;

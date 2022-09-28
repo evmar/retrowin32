@@ -30,10 +30,10 @@ fn dump_asm(x86: &X86) {
     }
 }
 
-struct OS {
+struct Host {
     exit_code: std::cell::Cell<Option<u32>>,
 }
-impl win32::OS for OS {
+impl win32::Host for Host {
     fn exit(&self, code: u32) {
         self.exit_code.set(Some(code));
     }
@@ -51,13 +51,13 @@ fn run() -> anyhow::Result<()> {
     };
 
     let buf = std::fs::read(exe)?;
-    let os = OS {
+    let host = Host {
         exit_code: std::cell::Cell::new(None),
     };
-    let mut x86 = X86::new(&os);
+    let mut x86 = X86::new(&host);
     win32::load_exe(&mut x86, &buf)?;
 
-    while os.exit_code.get().is_none() {
+    while host.exit_code.get().is_none() {
         if let Err(err) = x86.step() {
             dump_asm(&x86);
             println!("err: {:?}", err);
