@@ -116,7 +116,7 @@ impl X86 {
     }
 
     pub fn mappings_json(&self) -> String {
-        serde_json::to_string(&self.x86.state.mappings).unwrap_throw()
+        serde_json::to_string(&self.x86.state.kernel32.mappings).unwrap_throw()
     }
 }
 

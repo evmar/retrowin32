@@ -4,7 +4,7 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::windows::AppState;
+use crate::winapi;
 
 // Addresses from 0 up to this point cause panics if we access them.
 // This helps catch implementation bugs earlier.
@@ -135,7 +135,7 @@ pub struct X86<'a> {
     pub mem: Vec<u8>,
     pub regs: Registers,
     pub imports: HashMap<u32, Option<fn(&mut X86)>>,
-    pub state: AppState,
+    pub state: winapi::State,
 }
 impl<'a> X86<'a> {
     pub fn new(host: &'a dyn Host) -> Self {
@@ -151,7 +151,7 @@ impl<'a> X86<'a> {
             mem: Vec::new(),
             regs,
             imports: HashMap::new(),
-            state: AppState::new(),
+            state: winapi::State::new(),
         }
     }
 
@@ -205,7 +205,7 @@ impl<'a> X86<'a> {
     ///   mov [eax+03h],...
     fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
         let seg = if instr.segment_prefix() == iced_x86::Register::FS {
-            self.state.teb
+            self.state.kernel32.teb
         } else {
             0
         };

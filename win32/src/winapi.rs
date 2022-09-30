@@ -1,3 +1,4 @@
+use crate::x86;
 use crate::X86;
 
 // winapi is stdcall, which means args are right to left and callee-cleaned.
@@ -8,8 +9,75 @@ use crate::X86;
 pub const STDOUT_HFILE: u32 = 0xF11E_0100;
 
 #[allow(non_snake_case)]
-mod kernel32 {
+pub mod kernel32 {
     use super::*;
+    use tsify::Tsify;
+
+    #[derive(Debug, tsify::Tsify, serde::Serialize)]
+    pub struct Mapping {
+        pub addr: u32,
+        pub size: u32,
+        pub desc: String,
+    }
+
+    pub struct State {
+        // Address image was loaded at.
+        pub image_base: u32,
+        // Address of TEB (FS register).
+        pub teb: u32,
+        pub mappings: Vec<Mapping>,
+    }
+    impl State {
+        pub fn new() -> Self {
+            let mappings = vec![Mapping {
+                addr: 0,
+                size: x86::NULL_POINTER_REGION_SIZE,
+                desc: "avoid null pointers".into(),
+            }];
+            State {
+                image_base: 0,
+                teb: 0,
+                mappings,
+            }
+        }
+
+        pub fn add_mapping(&mut self, mapping: Mapping) {
+            let pos = self
+                .mappings
+                .iter()
+                .position(|m| m.addr > mapping.addr)
+                .unwrap_or(self.mappings.len());
+            if pos > 0 {
+                let prev = &self.mappings[pos - 1];
+                assert!(prev.addr + prev.size <= mapping.addr);
+            }
+            if pos < self.mappings.len() {
+                let next = &self.mappings[pos];
+                assert!(mapping.addr + mapping.size <= next.addr);
+            }
+            self.mappings.insert(pos, mapping);
+        }
+
+        pub fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
+            let mut end = 0;
+            for (pos, mapping) in self.mappings.iter().enumerate() {
+                let space = mapping.addr - end;
+                if space > size {
+                    self.mappings.insert(
+                        pos,
+                        Mapping {
+                            addr: end,
+                            size,
+                            desc,
+                        },
+                    );
+                    return &self.mappings[pos];
+                }
+                end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+            }
+            panic!("alloc of {size:x} failed");
+        }
+    }
 
     pub fn ExitProcess(x86: &mut X86) {
         let uExitCode = x86.pop();
@@ -22,7 +90,7 @@ mod kernel32 {
             log::error!("unimplemented: GetModuleHandle(non-null)")
         }
         // HMODULE is base address of current module.
-        x86.regs.eax = x86.state.image_base;
+        x86.regs.eax = x86.state.kernel32.image_base;
     }
 
     pub fn WriteFile(x86: &mut X86) {
@@ -52,7 +120,7 @@ mod kernel32 {
         // TODO round dwSize to page boundary
         assert!(flAllocationType == 0x1000); // MEM_COMMIT
 
-        let mapping = x86.state.alloc(dwSize, "VirtualAlloc".into());
+        let mapping = x86.state.kernel32.alloc(dwSize, "VirtualAlloc".into());
         x86.regs.eax = mapping.addr;
     }
 }
@@ -96,4 +164,15 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "user32.dll!UpdateWindow" => user32::UpdateWindow,
         _ => return None,
     })
+}
+
+pub struct State {
+    pub kernel32: kernel32::State,
+}
+impl State {
+    pub fn new() -> Self {
+        State {
+            kernel32: kernel32::State::new(),
+        }
+    }
 }

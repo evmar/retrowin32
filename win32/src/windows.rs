@@ -1,80 +1,10 @@
-use serde::Serialize;
-use tsify::Tsify;
-
 use crate::winapi::STDOUT_HFILE;
-use crate::x86;
 use crate::{pe, winapi, X86};
-
-#[derive(Debug, Tsify, Serialize)]
-pub struct Mapping {
-    pub addr: u32,
-    pub size: u32,
-    pub desc: String,
-}
-
-pub struct AppState {
-    // Address image was loaded at.
-    pub image_base: u32,
-    // Address of TEB (FS register).
-    pub teb: u32,
-    pub mappings: Vec<Mapping>,
-}
-impl AppState {
-    pub fn new() -> Self {
-        let mappings = vec![Mapping {
-            addr: 0,
-            size: x86::NULL_POINTER_REGION_SIZE,
-            desc: "avoid null pointers".into(),
-        }];
-        AppState {
-            image_base: 0,
-            teb: 0,
-            mappings,
-        }
-    }
-
-    fn add_mapping(&mut self, mapping: Mapping) {
-        let pos = self
-            .mappings
-            .iter()
-            .position(|m| m.addr > mapping.addr)
-            .unwrap_or(self.mappings.len());
-        if pos > 0 {
-            let prev = &self.mappings[pos - 1];
-            assert!(prev.addr + prev.size <= mapping.addr);
-        }
-        if pos < self.mappings.len() {
-            let next = &self.mappings[pos];
-            assert!(mapping.addr + mapping.size <= next.addr);
-        }
-        self.mappings.insert(pos, mapping);
-    }
-
-    pub fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
-        let mut end = 0;
-        for (pos, mapping) in self.mappings.iter().enumerate() {
-            let space = mapping.addr - end;
-            if space > size {
-                self.mappings.insert(
-                    pos,
-                    Mapping {
-                        addr: end,
-                        size,
-                        desc,
-                    },
-                );
-                return &self.mappings[pos];
-            }
-            end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
-        }
-        panic!("alloc of {size:x} failed");
-    }
-}
 
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
 fn init_teb_peb(x86: &mut X86) {
-    let mapping = x86.state.alloc(0x1000, "PEB/TEB".into());
+    let mapping = x86.state.kernel32.alloc(0x1000, "PEB/TEB".into());
     // Fill region with garbage so it's clearer when we access something we don't intend to.
     x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
 
@@ -95,7 +25,7 @@ fn init_teb_peb(x86: &mut X86) {
     x86.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
     x86.write_u32(teb_addr + 0x30, peb_addr);
 
-    x86.state.teb = teb_addr;
+    x86.state.kernel32.teb = teb_addr;
 }
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
@@ -103,7 +33,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     log::info!("{file:#x?}");
 
     let base = file.opt_header.image_base;
-    x86.state.image_base = file.opt_header.image_base;
+    x86.state.kernel32.image_base = file.opt_header.image_base;
     x86.mem
         .resize((base + file.opt_header.size_of_image) as usize, 0);
     log::info!(
@@ -120,7 +50,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
         {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
-        x86.state.add_mapping(Mapping {
+        x86.state.kernel32.add_mapping(winapi::kernel32::Mapping {
             addr: dst as u32,
             size: size as u32,
             desc: format!("{} ({:?})", sec.name, sec.characteristics),
@@ -138,12 +68,12 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
         );
         stack_size = 32 << 10;
     }
-    let stack = x86.state.alloc(stack_size, "stack".into());
+    let stack = x86.state.kernel32.alloc(stack_size, "stack".into());
     let stack_end = stack.addr + stack.size - 4;
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;
 
-    log::info!("mappings {:x?}", x86.state.mappings);
+    log::info!("mappings {:x?}", x86.state.kernel32.mappings);
 
     let imports_data = &file.opt_header.data_directory[1];
     let imports = pe::parse_imports(
