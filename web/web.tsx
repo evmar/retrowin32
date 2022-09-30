@@ -109,6 +109,24 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 }
 
+// Matches 'pub type JsHost' in lib.rs.
+interface JsHost {
+  exit(code: number): void;
+  write(buf: Uint8Array): number;
+}
+
+class Host implements JsHost {
+  decoder = new TextDecoder();
+
+  exit(code: number) {
+    console.error('js host exit', code);
+  }
+  write(buf: Uint8Array): number {
+    console.log(this.decoder.decode(buf));
+    return buf.length;
+  }
+}
+
 async function main() {
   const path = document.location.search.substring(1);
   if (!path) throw new Error('expected ?path in URL');
@@ -116,7 +134,7 @@ async function main() {
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
   wasm.init_logging();
   // ick copies
-  const x86 = wasm.load_exe(new Uint8Array(exe));
+  const x86 = wasm.load_exe(new Host(), new Uint8Array(exe));
 
   const mappings: wasm.Mapping[] = JSON.parse(x86.mappings_json()) as wasm.Mapping[];
   console.log(mappings);

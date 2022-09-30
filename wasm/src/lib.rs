@@ -7,20 +7,30 @@ extern "C" {
     fn mem(mem: JsValue, offset: u32) -> JsValue;
 }
 
-struct Host {}
-impl win32::Host for Host {
+#[wasm_bindgen]
+extern "C" {
+    pub type JsHost;
+    #[wasm_bindgen(method)]
+    fn exit(this: &JsHost, exit_code: u32);
+    #[wasm_bindgen(method)]
+    fn write(this: &JsHost, buf: &[u8]) -> usize;
+}
+
+impl win32::Host for JsHost {
     fn exit(&self, exit_code: u32) {
-        log::error!("exit {}", exit_code);
+        JsHost::exit(self, exit_code)
     }
     fn write(&self, buf: &[u8]) -> usize {
-        log::info!("WriteFile: {:?}", String::from_utf8_lossy(buf));
-        buf.len()
+        JsHost::write(self, buf)
     }
 }
-static HOST: Host = Host {};
 
 #[wasm_bindgen]
 pub struct X86 {
+    // Hack: x86 expects a host to outlive it, but I cannot figure out the lifetimes.
+    // This member keeps host alive, and x86 holds a ref into it.
+    #[allow(dead_code)]
+    host: std::pin::Pin<Box<JsHost>>,
     x86: win32::X86<'static>,
 }
 
@@ -111,10 +121,13 @@ impl X86 {
 }
 
 #[wasm_bindgen]
-pub fn load_exe(buf: &[u8]) -> Result<X86, String> {
-    let mut x86 = win32::X86::new(&HOST);
+pub fn load_exe(host: JsHost, buf: &[u8]) -> Result<X86, String> {
+    let host = Box::pin(host);
+    let r = host.as_ref().get_ref();
+    let static_host: &'static JsHost = unsafe { std::mem::transmute(r) };
+    let mut x86 = win32::X86::new(static_host);
     win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
-    Ok(X86 { x86 })
+    Ok(X86 { host, x86 })
 }
 
 fn panic_hook(info: &std::panic::PanicInfo) {
