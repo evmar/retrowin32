@@ -132,7 +132,6 @@ async function main() {
   if (!path) throw new Error('expected ?path in URL');
   const exe = await loadExe(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
-  wasm.init_logging();
   // ick copies
   const x86 = wasm.load_exe(new Host(), new Uint8Array(exe));
 

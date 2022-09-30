@@ -134,8 +134,9 @@ fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
 }
 
-#[wasm_bindgen]
-pub fn init_logging() {
-    console_log::init().unwrap();
+#[wasm_bindgen(start)]
+pub fn init_logging() -> Result<(), JsValue> {
+    console_log::init().map_err(|err| err.to_string())?;
     std::panic::set_hook(Box::new(panic_hook));
+    Ok(())
 }
