@@ -132,7 +132,9 @@ async function main() {
   if (!path) throw new Error('expected ?path in URL');
   const exe = await loadExe(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
-  // ick copies
+
+  // new Uint8Array(exe: TyedArray) creates a uint8 view onto the buffer, no copies.
+  // But then passing the buffer to Rust must copy the array into the WASM heap...
   const x86 = wasm.load_exe(new Host(), new Uint8Array(exe));
 
   const mappings: wasm.Mapping[] = JSON.parse(x86.mappings_json()) as wasm.Mapping[];
