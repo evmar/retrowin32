@@ -123,6 +123,20 @@ impl Registers {
             _ => unreachable!(),
         }
     }
+    fn set8(&mut self, reg: iced_x86::Register, value: u8) {
+        match reg {
+            iced_x86::Register::AL => self.eax = (self.eax & 0xFFFF_FF00) | value as u32,
+            iced_x86::Register::CL => self.ecx = (self.ecx & 0xFFFF_FF00) | value as u32,
+            iced_x86::Register::DL => self.edx = (self.edx & 0xFFFF_FF00) | value as u32,
+            iced_x86::Register::BL => self.ebx = (self.ebx & 0xFFFF_FF00) | value as u32,
+
+            iced_x86::Register::AH => self.eax = (self.eax & 0xFFFF_00FF) | ((value as u32) << 8),
+            iced_x86::Register::CH => self.ecx = (self.ecx & 0xFFFF_00FF) | ((value as u32) << 8),
+            iced_x86::Register::DH => self.edx = (self.edx & 0xFFFF_00FF) | ((value as u32) << 8),
+            iced_x86::Register::BH => self.ebx = (self.ebx & 0xFFFF_00FF) | ((value as u32) << 8),
+            _ => unreachable!("{reg:?}"),
+        }
+    }
 }
 
 pub trait Host {
@@ -164,6 +178,12 @@ impl<'a> X86<'a> {
         self.mem[offset + 1] = (value >> 8) as u8;
         self.mem[offset + 2] = (value >> 16) as u8;
         self.mem[offset + 3] = (value >> 24) as u8;
+    }
+    pub fn write_u8(&mut self, addr: u32, value: u8) {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer write at {addr:#x}");
+        }
+        self.mem[addr as usize] = value;
     }
 
     pub fn read_u32(&self, addr: u32) -> u32 {
@@ -282,6 +302,24 @@ impl<'a> X86<'a> {
                 let x = self.read_u32(addr);
                 let value = op(self, x);
                 self.write_u32(addr, value);
+            }
+            _ => unimplemented!(),
+        }
+    }
+
+    fn rm8_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u8) -> u8) {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => {
+                let reg = instr.op0_register();
+                let x = self.regs.get8(reg);
+                let value = op(self, x);
+                self.regs.set8(reg, value);
+            }
+            iced_x86::OpKind::Memory => {
+                let addr = self.addr(instr);
+                let x = self.read_u8(addr);
+                let value = op(self, x);
+                self.write_u8(addr, value);
             }
             _ => unimplemented!(),
         }
@@ -452,6 +490,10 @@ impl<'a> X86<'a> {
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
                 self.rm32_x(instr, |_x86, x| x ^ y);
+            }
+            iced_x86::Code::Xor_rm8_imm8 => {
+                let y = instr.immediate8();
+                self.rm8_x(instr, |_x86, x| x ^ y);
             }
 
             iced_x86::Code::Add_r32_rm32 => {
