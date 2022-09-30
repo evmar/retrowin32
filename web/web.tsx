@@ -12,18 +12,66 @@ async function loadExe(path: string): Promise<ArrayBuffer> {
   return await (await fetch(path)).arrayBuffer();
 }
 
+// Matches 'pub type JsHost' in lib.rs.
+interface JsHost {
+  exit(code: number): void;
+  write(buf: Uint8Array): number;
+}
+
+class X86 implements JsHost {
+  x86: wasm.X86;
+  decoder = new TextDecoder();
+  breakpoints = new Map<number, Breakpoint>();
+  exitCode: number | undefined = undefined;
+
+  constructor(exe: ArrayBuffer) {
+    // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
+    // But then passing the buffer to Rust must copy the array into the WASM heap...
+    this.x86 = wasm.load_exe(this, new Uint8Array(exe));
+  }
+
+  step() {
+    this.x86.step();
+    if (this.exitCode !== undefined) return false;
+    const bp = this.breakpoints.get(this.x86.eip);
+    if (bp) {
+      if (bp.temporary) {
+        this.breakpoints.delete(bp.addr);
+      }
+      return false;
+    }
+    return true;
+  }
+
+  mappings(): wasm.Mapping[] {
+    return JSON.parse(this.x86.mappings_json()) as wasm.Mapping[];
+  }
+  disassemble(addr: number): wasm.Instruction[] {
+    // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
+    return JSON.parse(this.x86.disassemble_json(addr)) as wasm.Instruction[];
+  }
+
+  exit(code: number) {
+    console.warn('exited with code', code);
+    this.exitCode = code;
+  }
+  write(buf: Uint8Array): number {
+    console.log(this.decoder.decode(buf));
+    return buf.length;
+  }
+}
+
 namespace Page {
   export interface Props {
-    x86: wasm.X86;
+    x86: X86;
   }
   export interface State {
-    breakpoints: Map<number, Breakpoint>;
     memBase: number;
     memHighlight?: number;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { memBase: 0x40_1000, breakpoints: new Map() };
+  state: Page.State = { memBase: 0x40_1000 };
 
   updateAfter(f: () => void) {
     try {
@@ -34,33 +82,25 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   step() {
-    this.updateAfter(() => this.step());
+    this.updateAfter(() => this.props.x86.step());
   }
 
   run() {
     this.updateAfter(() => {
       for (;;) {
-        this.props.x86.step();
-        const bp = this.state.breakpoints.get(this.props.x86.eip);
-        if (bp) {
-          if (bp.temporary) {
-            this.state.breakpoints.delete(bp.addr);
-          }
-          break;
-        }
+        if (!this.props.x86.step()) break;
       }
     });
   }
 
   runTo(addr: number) {
-    this.state.breakpoints.set(addr, { addr, temporary: true });
+    this.props.x86.breakpoints.set(addr, { addr, temporary: true });
     this.run();
   }
 
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const instrs = JSON.parse(this.props.x86.disassemble_json(this.props.x86.eip)) as wasm.Instruction[];
-    const mappings = JSON.parse(this.props.x86.mappings_json()) as wasm.Mapping[];
+    const instrs = this.props.x86.disassemble(this.props.x86.x86.eip);
     return (
       <main>
         <button
@@ -89,41 +129,23 @@ class Page extends preact.Component<Page.Props, Page.State> {
             runTo={(addr: number) => this.runTo(addr)}
           />
           <div style={{ width: '12ex' }} />
-          <Registers regs={this.props.x86} />
+          <Registers regs={this.props.x86.x86} />
         </div>
         <div style={{ display: 'flex' }}>
           <div>
             <Memory
-              mem={this.props.x86.memory()}
+              mem={this.props.x86.x86.memory()}
               base={this.state.memBase}
               highlight={this.state.memHighlight}
               jumpTo={(addr) => this.setState({ memBase: addr })}
             />
-            <Mappings mappings={mappings} />
+            <Mappings mappings={this.props.x86.mappings()} />
           </div>
           <div style={{ width: '12ex' }} />
-          <Stack x86={this.props.x86} />
+          <Stack x86={this.props.x86.x86} />
         </div>
       </main>
     );
-  }
-}
-
-// Matches 'pub type JsHost' in lib.rs.
-interface JsHost {
-  exit(code: number): void;
-  write(buf: Uint8Array): number;
-}
-
-class Host implements JsHost {
-  decoder = new TextDecoder();
-
-  exit(code: number) {
-    console.error('js host exit', code);
-  }
-  write(buf: Uint8Array): number {
-    console.log(this.decoder.decode(buf));
-    return buf.length;
   }
 }
 
@@ -133,12 +155,8 @@ async function main() {
   const exe = await loadExe(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
 
-  // new Uint8Array(exe: TyedArray) creates a uint8 view onto the buffer, no copies.
-  // But then passing the buffer to Rust must copy the array into the WASM heap...
-  const x86 = wasm.load_exe(new Host(), new Uint8Array(exe));
-
-  const mappings: wasm.Mapping[] = JSON.parse(x86.mappings_json()) as wasm.Mapping[];
-  console.log(mappings);
+  const x86 = new X86(exe);
+  console.log(x86.mappings());
 
   preact.render(<Page x86={x86} />, document.body);
 }
