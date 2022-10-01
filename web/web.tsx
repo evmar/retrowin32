@@ -18,7 +18,7 @@ interface JsHost {
   write(buf: Uint8Array): number;
 }
 
-class X86 implements JsHost {
+class VM implements JsHost {
   x86: wasm.X86;
   decoder = new TextDecoder();
   breakpoints = new Map<number, Breakpoint>();
@@ -63,7 +63,7 @@ class X86 implements JsHost {
 
 namespace Page {
   export interface Props {
-    x86: X86;
+    vm: VM;
   }
   export interface State {
     memBase: number;
@@ -82,25 +82,25 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   step() {
-    this.updateAfter(() => this.props.x86.step());
+    this.updateAfter(() => this.props.vm.step());
   }
 
   run() {
     this.updateAfter(() => {
       for (;;) {
-        if (!this.props.x86.step()) break;
+        if (!this.props.vm.step()) break;
       }
     });
   }
 
   runTo(addr: number) {
-    this.props.x86.breakpoints.set(addr, { addr, temporary: true });
+    this.props.vm.breakpoints.set(addr, { addr, temporary: true });
     this.run();
   }
 
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const instrs = this.props.x86.disassemble(this.props.x86.x86.eip);
+    const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
     return (
       <main>
         <button
@@ -110,7 +110,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
         </button>
         <button
           onClick={() => {
-            this.props.x86.step();
+            this.props.vm.step();
             this.forceUpdate();
           }}
         >
@@ -129,20 +129,20 @@ class Page extends preact.Component<Page.Props, Page.State> {
             runTo={(addr: number) => this.runTo(addr)}
           />
           <div style={{ width: '12ex' }} />
-          <Registers regs={this.props.x86.x86} />
+          <Registers regs={this.props.vm.x86} />
         </div>
         <div style={{ display: 'flex' }}>
           <div>
             <Memory
-              mem={this.props.x86.x86.memory()}
+              mem={this.props.vm.x86.memory()}
               base={this.state.memBase}
               highlight={this.state.memHighlight}
               jumpTo={(addr) => this.setState({ memBase: addr })}
             />
-            <Mappings mappings={this.props.x86.mappings()} />
+            <Mappings mappings={this.props.vm.mappings()} />
           </div>
           <div style={{ width: '12ex' }} />
-          <Stack x86={this.props.x86.x86} />
+          <Stack x86={this.props.vm.x86} />
         </div>
       </main>
     );
@@ -155,10 +155,10 @@ async function main() {
   const exe = await loadExe(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
 
-  const x86 = new X86(exe);
-  console.log(x86.mappings());
+  const vm = new VM(exe);
+  console.log(vm.mappings());
 
-  preact.render(<Page x86={x86} />, document.body);
+  preact.render(<Page vm={vm} />, document.body);
 }
 
 main();
