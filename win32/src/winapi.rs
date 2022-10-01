@@ -7,6 +7,7 @@ use crate::X86;
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDOUT_HFILE: u32 = 0xF11E_0100;
+pub const STDERR_HFILE: u32 = 0xF11E_0101;
 
 #[allow(non_snake_case)]
 pub mod kernel32 {
@@ -121,6 +122,17 @@ pub mod kernel32 {
         x86.regs.eax = x86.state.kernel32.image_base;
     }
 
+    pub fn GetStdHandle(x86: &mut X86) {
+        let nStdHandle = x86.pop();
+        let ret = match nStdHandle as i32 {
+            -10 => unimplemented!("GetStdHandle(stdin)"),
+            -11 => STDOUT_HFILE,
+            -12 => STDERR_HFILE,
+            _ => (-1i32) as u32,
+        };
+        x86.regs.eax = ret;
+    }
+
     pub fn GetVersion(x86: &mut X86) {
         // Win95, version 4.0.
         x86.regs.eax = (1 << 31) | 0x4;
@@ -163,7 +175,7 @@ pub mod kernel32 {
         let lpNumberOfBytesWritten = x86.pop();
         let lpOverlapped = x86.pop();
 
-        assert!(hFile == STDOUT_HFILE);
+        assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
         assert!(lpOverlapped == 0);
         let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
 
@@ -236,6 +248,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "kernel32.dll!GetEnvironmentVariableA" => kernel32::GetEnvironmentVariableA,
         "kernel32.dll!GetModuleFileNameA" => kernel32::GetModuleFileNameA,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
+        "kernel32.dll!GetStdHandle" => kernel32::GetStdHandle,
         "kernel32.dll!GetVersion" => kernel32::GetVersion,
         "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
         "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
