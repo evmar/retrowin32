@@ -425,6 +425,11 @@ impl<'a> X86<'a> {
                 }
             }
 
+            iced_x86::Code::Ja_rel8_32 => {
+                if !self.regs.flags.contains(Flags::CF) && !self.regs.flags.contains(Flags::ZF) {
+                    self.regs.eip = instr.near_branch32();
+                }
+            }
             iced_x86::Code::Jae_rel8_32 => {
                 if !self.regs.flags.contains(Flags::CF) {
                     self.regs.eip = instr.near_branch32();
@@ -658,7 +663,13 @@ impl<'a> X86<'a> {
                 self.regs.set32(instr.op0_register(), value);
             }
 
+            iced_x86::Code::Dec_r32 => {
+                // TODO: flags.
+                let reg = instr.op0_register();
+                self.regs.set32(reg, self.regs.get32(reg) - 1);
+            }
             iced_x86::Code::Inc_r32 => {
+                // TODO: flags.
                 let reg = instr.op0_register();
                 self.regs.set32(reg, self.regs.get32(reg) + 1);
             }
@@ -722,6 +733,15 @@ impl<'a> X86<'a> {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get8(instr.op1_register());
+                self.sub8(x, y);
+            }
+            iced_x86::Code::Cmp_r8_rm8 => {
+                let x = self.regs.get8(instr.op0_register());
+                let y = match instr.op1_kind() {
+                    iced_x86::OpKind::Register => self.regs.get8(instr.op1_register()),
+                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+                    _ => unreachable!(),
+                };
                 self.sub8(x, y);
             }
 
