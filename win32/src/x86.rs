@@ -12,10 +12,14 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
 bitflags! {
     pub struct Flags: u32 {
+        /// carry
+        const CF = 1 << 0;
         /// zero
-        const ZF = 0x40;
+        const ZF = 1 << 6;
         /// sign
-        const SF = 0x01;  // XXX
+        const SF = 1 << 7;
+        /// overflow
+        const OF = 1 << 11;
     }
 }
 
@@ -250,23 +254,44 @@ impl<'a> X86<'a> {
         }
     }
 
-    fn add(&mut self, x: u32, y: u32) -> u32 {
-        // TODO flags.
-        x.wrapping_add(y)
+    fn add32(&mut self, x: u32, y: u32) -> u32 {
+        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        let (result, carry) = x.overflowing_add(y);
+        self.regs.flags.set(Flags::CF, carry);
+        self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+        // Overflow is true exactly when the high (sign) bits are like:
+        //   x  y  result
+        //   0  0  1
+        //   1  1  0
+        let of = ((x ^ !y) & (x ^ result)) >> 31 != 0;
+        self.regs.flags.set(Flags::OF, of);
+        result
     }
 
     fn sub32(&mut self, x: u32, y: u32) -> u32 {
-        let result = x.wrapping_sub(y);
-        // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        let (result, carry) = x.overflowing_sub(y);
+        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        self.regs.flags.set(Flags::CF, carry);
         self.regs.flags.set(Flags::ZF, result == 0);
         self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+        // Overflow is true exactly when the high (sign) bits are like:
+        //   x  y  result
+        //   0  1  1
+        //   1  0  0
+        let of = ((x ^ y) & (x ^ result)) >> 31 != 0;
+        self.regs.flags.set(Flags::OF, of);
         result
     }
     fn sub8(&mut self, x: u8, y: u8) -> u8 {
-        let result = x.wrapping_sub(y);
-        // XXX "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        let (result, carry) = x.overflowing_sub(y);
+        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        self.regs.flags.set(Flags::CF, carry);
         self.regs.flags.set(Flags::ZF, result == 0);
         self.regs.flags.set(Flags::SF, result & 0x80 != 0);
+        // See comment in sub32.
+        let of = ((x ^ y) & (x ^ result)) >> 7 != 0;
+        self.regs.flags.set(Flags::OF, of);
         result
     }
 
@@ -498,16 +523,16 @@ impl<'a> X86<'a> {
 
             iced_x86::Code::Add_r32_rm32 => {
                 let reg = instr.op0_register();
-                let value = self.add(self.regs.get32(reg), self.op1_rm32(&instr));
+                let value = self.add32(self.regs.get32(reg), self.op1_rm32(&instr));
                 self.regs.set32(reg, value);
             }
             iced_x86::Code::Add_rm32_imm32 => {
                 let y = instr.immediate32();
-                self.rm32_x(instr, |x86, x| x86.add(x, y));
+                self.rm32_x(instr, |x86, x| x86.add32(x, y));
             }
             iced_x86::Code::Add_rm32_imm8 => {
                 let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |x86, x| x86.add(x, y));
+                self.rm32_x(instr, |x86, x| x86.add32(x, y));
             }
 
             iced_x86::Code::Sub_rm32_imm8 => {
