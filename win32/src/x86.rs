@@ -253,6 +253,13 @@ impl<'a> X86<'a> {
             _ => unreachable!(),
         }
     }
+    fn op1_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
+        match instr.op1_kind() {
+            iced_x86::OpKind::Register => self.regs.get8(instr.op1_register()),
+            iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
 
     fn add32(&mut self, x: u32, y: u32) -> u32 {
         // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
@@ -490,6 +497,9 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Mov_r32_rm32 => {
                 self.regs.set32(instr.op0_register(), self.op1_rm32(instr));
+            }
+            iced_x86::Code::Mov_r8_rm8 => {
+                self.regs.set8(instr.op0_register(), self.op1_rm8(instr));
             }
 
             iced_x86::Code::Movsb_m8_m8 => {
