@@ -93,6 +93,11 @@ pub mod kernel32 {
         x86.regs.eax = x86.state.kernel32.image_base;
     }
 
+    pub fn GetVersion(x86: &mut X86) {
+        // Win95, version 4.0.
+        x86.regs.eax = (1 << 31) | 0x4;
+    }
+
     pub fn WriteFile(x86: &mut X86) {
         let hFile = x86.pop();
         let lpBuffer = x86.pop();
@@ -157,10 +162,11 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
-        "kernel32.dll!WriteFile" => kernel32::WriteFile,
+        "kernel32.dll!GetVersion" => kernel32::GetVersion,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
-        "user32.dll!RegisterClassA" => user32::RegisterClassA,
+        "kernel32.dll!WriteFile" => kernel32::WriteFile,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
+        "user32.dll!RegisterClassA" => user32::RegisterClassA,
         "user32.dll!UpdateWindow" => user32::UpdateWindow,
         _ => return None,
     })
