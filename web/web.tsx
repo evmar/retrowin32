@@ -19,15 +19,17 @@ interface JsHost {
 }
 
 class VM implements JsHost {
-  x86: wasm.X86;
+  x86: wasm.X86 = wasm.new_x86(this);
   decoder = new TextDecoder();
   breakpoints = new Map<number, Breakpoint>();
+  labels = new Map<number, string>();
   exitCode: number | undefined = undefined;
 
   constructor(exe: ArrayBuffer) {
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
-    this.x86 = wasm.load_exe(this, new Uint8Array(exe));
+    const imports = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
+    console.log(imports);
   }
 
   step() {
@@ -156,8 +158,6 @@ async function main() {
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
 
   const vm = new VM(exe);
-  console.log(vm.mappings());
-
   preact.render(<Page vm={vm} />, document.body);
 }
 

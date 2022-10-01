@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::winapi::STDOUT_HFILE;
 use crate::{pe, winapi, X86};
 
@@ -28,7 +30,7 @@ fn init_teb_peb(x86: &mut X86) {
     x86.state.kernel32.teb = teb_addr;
 }
 
-pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
+pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
     log::info!("{file:#x?}");
 
@@ -81,7 +83,6 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
         &x86.mem[(base + imports_data.virtual_address) as usize
             ..(base + imports_data.virtual_address + imports_data.size) as usize],
     )?;
-    log::info!("imports {:x?}", imports);
     for (&addr, sym) in imports.iter() {
         x86.imports.insert(addr, winapi::resolve(sym));
     }
@@ -89,5 +90,5 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<()> {
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
 
-    Ok(())
+    Ok(imports)
 }

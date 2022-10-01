@@ -36,6 +36,12 @@ pub struct X86 {
 
 #[wasm_bindgen]
 impl X86 {
+    #[wasm_bindgen]
+    pub fn load_exe(&mut self, buf: &[u8]) -> Result<String, String> {
+        let imports = win32::load_exe(&mut self.x86, buf).map_err(|err| err.to_string())?;
+        serde_json::to_string(&imports).map_err(|err| err.to_string())
+    }
+
     pub fn memory(&self) -> js_sys::DataView {
         js_sys::DataView::from(mem(wasm_bindgen::memory(), self.x86.mem.as_ptr() as u32))
     }
@@ -124,12 +130,11 @@ impl X86 {
 }
 
 #[wasm_bindgen]
-pub fn load_exe(host: JsHost, buf: &[u8]) -> Result<X86, String> {
+pub fn new_x86(host: JsHost) -> Result<X86, String> {
     let host = Box::pin(host);
     let r = host.as_ref().get_ref();
     let static_host: &'static JsHost = unsafe { std::mem::transmute(r) };
-    let mut x86 = win32::X86::new(static_host);
-    win32::load_exe(&mut x86, buf).map_err(|err| err.to_string())?;
+    let x86 = win32::X86::new(static_host);
     Ok(X86 { host, x86 })
 }
 
