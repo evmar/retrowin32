@@ -58,24 +58,36 @@ pub mod kernel32 {
             self.mappings.insert(pos, mapping);
         }
 
-        pub fn alloc(&mut self, size: u32, desc: String) -> &Mapping {
+        pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
             let mut end = 0;
-            for (pos, mapping) in self.mappings.iter().enumerate() {
-                let space = mapping.addr - end;
-                if space > size {
-                    self.mappings.insert(
-                        pos,
-                        Mapping {
-                            addr: end,
-                            size,
-                            desc,
-                        },
-                    );
-                    return &self.mappings[pos];
-                }
-                end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
-            }
-            panic!("alloc of {size:x} failed");
+            let pos = self
+                .mappings
+                .iter()
+                .position(|mapping| {
+                    let space = mapping.addr - end;
+                    if space > size {
+                        return true;
+                    }
+                    end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+                    false
+                })
+                .unwrap_or_else(|| {
+                    let space = mem.len() as u32 - end;
+                    if space < size {
+                        mem.resize((end + size) as usize, 0);
+                    }
+                    self.mappings.len()
+                });
+
+            self.mappings.insert(
+                pos,
+                Mapping {
+                    addr: end,
+                    size,
+                    desc,
+                },
+            );
+            return &self.mappings[pos];
         }
     }
 
@@ -117,7 +129,10 @@ pub mod kernel32 {
         let dwInitialSize = x86.pop();
         let dwMaximumSize = x86.pop();
         log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
-        let mapping = x86.state.kernel32.alloc(dwInitialSize, "HeapCreate".into());
+        let mapping = x86
+            .state
+            .kernel32
+            .alloc(dwInitialSize, "HeapCreate".into(), &mut x86.mem);
         x86.regs.eax = mapping.addr;
     }
 
@@ -141,14 +156,16 @@ pub mod kernel32 {
     pub fn VirtualAlloc(x86: &mut X86) {
         let lpAddress = x86.pop();
         let dwSize = x86.pop();
-        let flAllocationType = x86.pop();
+        let _flAllocationType = x86.pop();
         let _flProtec = x86.pop();
 
         assert!(lpAddress == 0);
         // TODO round dwSize to page boundary
-        assert!(flAllocationType == 0x1000); // MEM_COMMIT
 
-        let mapping = x86.state.kernel32.alloc(dwSize, "VirtualAlloc".into());
+        let mapping = x86
+            .state
+            .kernel32
+            .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
         x86.regs.eax = mapping.addr;
     }
 }

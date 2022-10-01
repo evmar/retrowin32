@@ -6,7 +6,10 @@ use crate::{pe, winapi, X86};
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
 fn init_teb_peb(x86: &mut X86) {
-    let mapping = x86.state.kernel32.alloc(0x1000, "PEB/TEB".into());
+    let mapping = x86
+        .state
+        .kernel32
+        .alloc(0x1000, "PEB/TEB".into(), &mut x86.mem);
     // Fill region with garbage so it's clearer when we access something we don't intend to.
     x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
 
@@ -70,7 +73,10 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         );
         stack_size = 32 << 10;
     }
-    let stack = x86.state.kernel32.alloc(stack_size, "stack".into());
+    let stack = x86
+        .state
+        .kernel32
+        .alloc(stack_size, "stack".into(), &mut x86.mem);
     let stack_end = stack.addr + stack.size - 4;
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;
