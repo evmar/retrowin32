@@ -23,16 +23,18 @@ class VM implements JsHost {
   x86: wasm.X86 = wasm.new_x86(this);
   decoder = new TextDecoder();
   breakpoints = new Map<number, Breakpoint>();
+  imports: string[] = [];
   labels = new Map<number, string>();
   exitCode: number | undefined = undefined;
 
   constructor(exe: ArrayBuffer) {
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
-    const imports = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
-    for (const [jsAddr, jsName] of Object.entries(imports)) {
+    const importsJSON = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
+    for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName as string;
+      this.imports.push(name);
       this.labels.set(addr, name);
     }
   }
@@ -151,6 +153,11 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </div>
           <div style={{ width: '12ex' }} />
           <Stack x86={this.props.vm.x86} />
+          <section>
+            <code>
+              {this.props.vm.imports.map(imp => <div>{imp}</div>)}
+            </code>
+          </section>
         </div>
       </main>
     );
