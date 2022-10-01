@@ -266,8 +266,15 @@ pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, Stri
         }
         let dll_name = read_strz(&mem[descriptor.name as usize..]).to_ascii_lowercase();
 
+        // Officially original_first_thunk should be an array that contains pointers to
+        // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
+        // Peering Inside the PE claims this is some difference between compilers, yikes.
         let mut sym_reader = Reader::new(&mem[(descriptor.first_thunk) as usize..]);
         loop {
+            // This is a table of u32s, terminated by 0.  On load they indirect to function names
+            // as parsed below, but the loader is supposed to overwrite them so they point directly
+            // to the targets in the DLL.
+            // We instead just save those addresses so we can remap them.
             let sym = sym_reader.u32()?;
             if sym == 0 {
                 break;
@@ -276,7 +283,8 @@ pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, Stri
                 let ordinal = sym & 0xFFFF;
                 log::warn!("TODO ordinal {}:{}", dll_name, ordinal);
             } else {
-                // TODO: first two bytes at offset are hint/name table index, I don't know it.
+                // First two bytes at offset are hint/name table index, used to look up
+                // the name faster in the DLL; we just skip them.
                 let sym_name = read_strz(&mem[(sym + 2) as usize..]);
                 imports.insert(sym, format!("{}!{}", dll_name, sym_name));
             }
