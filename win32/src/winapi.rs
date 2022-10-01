@@ -104,6 +104,14 @@ pub mod kernel32 {
         x86.regs.eax = 0;
     }
 
+    pub fn GetModuleFileNameA(x86: &mut X86) {
+        let hModule = x86.pop();
+        let lpFilename = x86.pop();
+        let nSize = x86.pop();
+        log::warn!("GetModuleFileNameA({hModule:x}, {lpFilename:x}, {nSize:x})");
+        x86.regs.eax = 0; // fail
+    }
+
     pub fn GetModuleHandleA(x86: &mut X86) {
         let lpModuleName = x86.pop();
         if lpModuleName != 0 {
@@ -220,6 +228,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
         "kernel32.dll!GetEnvironmentVariableA" => kernel32::GetEnvironmentVariableA,
+        "kernel32.dll!GetModuleFileNameA" => kernel32::GetModuleFileNameA,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "kernel32.dll!GetVersion" => kernel32::GetVersion,
         "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
