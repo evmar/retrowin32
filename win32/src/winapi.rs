@@ -136,6 +136,12 @@ pub mod kernel32 {
         x86.regs.eax = mapping.addr;
     }
 
+    pub fn HeapDestroy(x86: &mut X86) {
+        let hHeap = x86.pop();
+        log::warn!("HeapDestroy({hHeap:x})");
+        x86.regs.eax = 1; // success
+    }
+
     pub fn WriteFile(x86: &mut X86) {
         let hFile = x86.pop();
         let lpBuffer = x86.pop();
@@ -171,6 +177,14 @@ pub mod kernel32 {
             .kernel32
             .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
         x86.regs.eax = mapping.addr;
+    }
+
+    pub fn VirtualFree(x86: &mut X86) {
+        let lpAddress = x86.pop();
+        let dwSize = x86.pop();
+        let dwFreeType = x86.pop();
+        log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
+        x86.regs.eax = 1; // success
     }
 }
 
@@ -210,7 +224,9 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "kernel32.dll!GetVersion" => kernel32::GetVersion,
         "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
         "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
+        "kernel32.dll!HeapDestroy" => kernel32::HeapDestroy,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
+        "kernel32.dll!VirtualFree" => kernel32::VirtualFree,
         "kernel32.dll!WriteFile" => kernel32::WriteFile,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
         "user32.dll!RegisterClassA" => user32::RegisterClassA,
