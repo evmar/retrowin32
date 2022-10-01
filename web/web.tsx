@@ -34,7 +34,7 @@ class VM implements JsHost {
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName as string;
-      this.imports.push(name);
+      this.imports.push(`${hex(addr, 8)}: ${name}`);
       this.labels.set(addr, name);
     }
   }

@@ -90,7 +90,8 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
             // "fake IAT" => "FIAT" => "F1A7"
             let addr = 0xF1A7_0000 | x;
             x86.imports.insert(addr, winapi::resolve(&sym));
-            labels.insert(base + iat_addr, sym);
+            labels.insert(base + iat_addr, format!("{}@IAT", sym));
+            labels.insert(addr, sym);
             addr
         },
     )?;
