@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::winapi::STDOUT_HFILE;
+use crate::winapi::kernel32::STDOUT_HFILE;
 use crate::{pe, winapi, X86};
 
 /// Set up TEB, PEB, and other process info.
@@ -89,13 +89,13 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     pe::parse_imports(
         &mut x86.mem[base as usize..],
         imports_data.virtual_address as usize,
-        |sym, iat_addr| {
+        |dll, sym, iat_addr| {
             // "Resolving" a given import just means recording that when we jump to
             // some particular magic address we should run some faked function.
             x += 1;
             // "fake IAT" => "FIAT" => "F1A7"
             let addr = 0xF1A7_0000 | x;
-            x86.imports.insert(addr, winapi::resolve(&sym));
+            x86.imports.insert(addr, winapi::resolve(dll, &sym));
             labels.insert(base + iat_addr, format!("{}@IAT", sym));
             labels.insert(addr, sym);
             addr

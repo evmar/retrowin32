@@ -251,7 +251,7 @@ fn read_strz(buf: &[u8]) -> String {
 pub fn parse_imports(
     mem: &mut [u8],
     addr: usize,
-    mut resolve: impl FnMut(String, u32) -> u32,
+    mut resolve: impl FnMut(&str, String, u32) -> u32,
 ) -> anyhow::Result<()> {
     // http://sandsprite.com/CodeStuff/Understanding_imports.html
     let mut r = Reader::new(mem);
@@ -298,8 +298,7 @@ pub fn parse_imports(
                 // First two bytes at offset are hint/name table index, used to look up
                 // the name faster in the DLL; we just skip them.
                 let sym_name = read_strz(&mem[(entry + 2) as usize..]);
-                let full_name = format!("{}!{}", dll_name, sym_name);
-                let target = resolve(full_name, addr);
+                let target = resolve(&dll_name, sym_name, addr);
                 patches.push((addr, target));
             }
         }

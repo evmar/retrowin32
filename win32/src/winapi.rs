@@ -5,14 +5,40 @@ use crate::X86;
 // The caller of winapi functions is responsible for pushing/popping the
 // return address, because some callers actually 'jmp' directly.
 
-// For now, a magic variable that makes it easier to spot.
-pub const STDOUT_HFILE: u32 = 0xF11E_0100;
-pub const STDERR_HFILE: u32 = 0xF11E_0101;
+// This winapi macro generates shim wrappers of winapi functions, taking their
+// input args off the stack and forwarding their return values via eax.
+// It also generates a resolve() function that maps symbol names to shims.
+
+macro_rules! winapi {
+    ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
+        mod shims {
+            use super::X86;
+            $(
+                #[allow(non_snake_case)]
+                pub fn $name(x86: &mut X86) {
+                    $(let $param: $type = x86.pop();)*
+                    x86.regs.eax = super::$name(x86, $($param),*);
+                }
+            )*
+        }
+
+        pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
+            Some(match name {
+                $(stringify!($name) => shims::$name,)*
+                _ => return None,
+            })
+        }
+    }
+}
 
 #[allow(non_snake_case)]
 pub mod kernel32 {
     use super::*;
     use tsify::Tsify;
+
+    // For now, a magic variable that makes it easier to spot.
+    pub const STDOUT_HFILE: u32 = 0xF11E_0100;
+    pub const STDERR_HFILE: u32 = 0xF11E_0101;
 
     #[derive(Debug, tsify::Tsify, serde::Serialize)]
     pub struct Mapping {
@@ -92,89 +118,75 @@ pub mod kernel32 {
         }
     }
 
-    pub fn ExitProcess(x86: &mut X86) {
-        let uExitCode = x86.pop();
+    fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
         x86.host.exit(uExitCode);
+        0
     }
 
-    pub fn GetEnvironmentVariableA(x86: &mut X86) {
-        let _lpName = x86.pop();
-        let _lpBuffer = x86.pop();
-        let _nSize = x86.pop();
+    fn GetEnvironmentVariableA(_x86: &mut X86, _lpName: u32, _lpBuffer: u32, _nSize: u32) -> u32 {
         // Fail for now.
-        x86.regs.eax = 0;
+        0
     }
 
-    pub fn GetModuleFileNameA(x86: &mut X86) {
-        let hModule = x86.pop();
-        let lpFilename = x86.pop();
-        let nSize = x86.pop();
+    fn GetModuleFileNameA(_x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) -> u32 {
         log::warn!("GetModuleFileNameA({hModule:x}, {lpFilename:x}, {nSize:x})");
-        x86.regs.eax = 0; // fail
+        0 // fail
     }
 
-    pub fn GetModuleHandleA(x86: &mut X86) {
-        let lpModuleName = x86.pop();
+    fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
         if lpModuleName != 0 {
             log::error!("unimplemented: GetModuleHandle(non-null)")
         }
         // HMODULE is base address of current module.
-        x86.regs.eax = x86.state.kernel32.image_base;
+        x86.state.kernel32.image_base
     }
 
-    pub fn GetStdHandle(x86: &mut X86) {
-        let nStdHandle = x86.pop();
-        let ret = match nStdHandle as i32 {
+    fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
+        match nStdHandle as i32 {
             -10 => unimplemented!("GetStdHandle(stdin)"),
             -11 => STDOUT_HFILE,
             -12 => STDERR_HFILE,
             _ => (-1i32) as u32,
-        };
-        x86.regs.eax = ret;
+        }
     }
 
-    pub fn GetVersion(x86: &mut X86) {
+    fn GetVersion(_x86: &mut X86) -> u32 {
         // Win95, version 4.0.
-        x86.regs.eax = (1 << 31) | 0x4;
+        (1 << 31) | 0x4
     }
 
-    pub fn GetVersionExA(x86: &mut X86) {
-        let _lpVersionInformation = x86.pop();
+    fn GetVersionExA(_x86: &mut X86, _lpVersionInformation: u32) -> u32 {
         // Fail for now.
-        x86.regs.eax = 0;
+        0
     }
 
-    pub fn HeapCreate(x86: &mut X86) {
-        let flOptions = x86.pop();
-        let dwInitialSize = x86.pop();
-        let dwMaximumSize = x86.pop();
+    fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
         log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
         let mapping = x86
             .state
             .kernel32
             .alloc(dwInitialSize, "HeapCreate".into(), &mut x86.mem);
-        x86.regs.eax = mapping.addr;
+        mapping.addr
     }
 
-    pub fn HeapDestroy(x86: &mut X86) {
-        let hHeap = x86.pop();
+    fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
         log::warn!("HeapDestroy({hHeap:x})");
-        x86.regs.eax = 1; // success
+        1 // success
     }
 
-    pub fn LoadLibraryA(x86: &mut X86) {
-        let lpLibFileName = x86.pop();
+    fn LoadLibraryA(_x86: &mut X86, lpLibFileName: u32) -> u32 {
         log::warn!("LoadLibrary({lpLibFileName:x})");
-        x86.regs.eax = 0; // fail
+        0 // fail
     }
 
-    pub fn WriteFile(x86: &mut X86) {
-        let hFile = x86.pop();
-        let lpBuffer = x86.pop();
-        let nNumberOfBytesToWrite = x86.pop();
-        let lpNumberOfBytesWritten = x86.pop();
-        let lpOverlapped = x86.pop();
-
+    fn WriteFile(
+        x86: &mut X86,
+        hFile: u32,
+        lpBuffer: u32,
+        nNumberOfBytesToWrite: u32,
+        lpNumberOfBytesWritten: u32,
+        lpOverlapped: u32,
+    ) -> u32 {
         assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
         assert!(lpOverlapped == 0);
         let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
@@ -182,19 +194,19 @@ pub mod kernel32 {
         let n = x86.host.write(buf);
 
         x86.write_u32(lpNumberOfBytesWritten, n as u32);
-        x86.regs.eax = 1;
+        1
     }
 
-    pub fn VirtualAlloc(x86: &mut X86) {
-        let lpAddress = x86.pop();
-        let dwSize = x86.pop();
-        let _flAllocationType = x86.pop();
-        let _flProtec = x86.pop();
-
+    fn VirtualAlloc(
+        x86: &mut X86,
+        lpAddress: u32,
+        dwSize: u32,
+        _flAllocationType: u32,
+        _flProtec: u32,
+    ) -> u32 {
         if lpAddress != 0 {
             log::warn!("failing VirtualAlloc({lpAddress:x}, {dwSize:x}, ...)");
-            x86.regs.eax = 0;
-            return;
+            return 0;
         }
         // TODO round dwSize to page boundary
 
@@ -202,66 +214,93 @@ pub mod kernel32 {
             .state
             .kernel32
             .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
-        x86.regs.eax = mapping.addr;
+        mapping.addr
     }
 
-    pub fn VirtualFree(x86: &mut X86) {
-        let lpAddress = x86.pop();
-        let dwSize = x86.pop();
-        let dwFreeType = x86.pop();
+    fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
         log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
-        x86.regs.eax = 1; // success
+        1 // success
     }
+
+    winapi!(
+        fn ExitProcess(uExitCode: u32);
+        fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
+        fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
+        fn GetModuleHandleA(lpModuleName: u32);
+        fn GetStdHandle(nStdHandle: u32);
+        fn GetVersion();
+        fn GetVersionExA(lpVersionInformation: u32);
+        fn HeapCreate(flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32);
+        fn HeapDestroy(hHeap: u32);
+        fn LoadLibraryA(lpLibFileName: u32);
+        fn WriteFile(
+            hFile: u32,
+            lpBuffer: u32,
+            nNumberOfBytesToWrite: u32,
+            lpNumberOfBytesWritten: u32,
+            lpOverlapped: u32,
+        );
+        fn VirtualAlloc(lpAddress: u32, dwSize: u32, _flAllocationType: u32, _flProtec: u32);
+        fn VirtualFree(lpAddress: u32, dwSize: u32, dwFreeType: u32);
+    );
 }
 
 #[allow(non_snake_case)]
 mod user32 {
     use super::*;
-    pub fn RegisterClassA(x86: &mut X86) {
-        let lpWndClass = x86.pop();
+    pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
         log::warn!("todo: RegisterClassA({:x})", lpWndClass);
+        0
     }
-    pub fn CreateWindowExA(x86: &mut X86) {
-        let dwExStyle = x86.pop();
-        let lpClassName = x86.pop();
-        let lpWindowName = x86.pop();
-        let dwStyle = x86.pop();
-        let X = x86.pop();
-        let Y = x86.pop();
-        let nWidth = x86.pop();
-        let nHeight = x86.pop();
-        let hWndParent = x86.pop();
-        let hMenu = x86.pop();
-        let hInstance = x86.pop();
-        let lpParam = x86.pop();
+    pub fn CreateWindowExA(
+        _x86: &mut X86,
+        dwExStyle: u32,
+        lpClassName: u32,
+        lpWindowName: u32,
+        dwStyle: u32,
+        X: u32,
+        Y: u32,
+        nWidth: u32,
+        nHeight: u32,
+        hWndParent: u32,
+        hMenu: u32,
+        hInstance: u32,
+        lpParam: u32,
+    ) -> u32 {
         log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
+        0
     }
-    pub fn UpdateWindow(x86: &mut X86) {
-        let hWnd = x86.pop();
+    pub fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
         log::warn!("todo: UpdateWindow({hWnd:x})");
+        0
     }
+
+    winapi!(
+        fn RegisterClassA(lpWndClass: u32);
+        fn CreateWindowExA(
+            dwExStyle: u32,
+            lpClassName: u32,
+            lpWindowName: u32,
+            dwStyle: u32,
+            X: u32,
+            Y: u32,
+            nWidth: u32,
+            nHeight: u32,
+            hWndParent: u32,
+            hMenu: u32,
+            hInstance: u32,
+            lpParam: u32,
+        );
+        fn UpdateWindow(hWnd: u32);
+    );
 }
 
-pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
-    Some(match sym {
-        "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
-        "kernel32.dll!GetEnvironmentVariableA" => kernel32::GetEnvironmentVariableA,
-        "kernel32.dll!GetModuleFileNameA" => kernel32::GetModuleFileNameA,
-        "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
-        "kernel32.dll!GetStdHandle" => kernel32::GetStdHandle,
-        "kernel32.dll!GetVersion" => kernel32::GetVersion,
-        "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
-        "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
-        "kernel32.dll!HeapDestroy" => kernel32::HeapDestroy,
-        "kernel32.dll!LoadLibraryA" => kernel32::LoadLibraryA,
-        "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
-        "kernel32.dll!VirtualFree" => kernel32::VirtualFree,
-        "kernel32.dll!WriteFile" => kernel32::WriteFile,
-        "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
-        "user32.dll!RegisterClassA" => user32::RegisterClassA,
-        "user32.dll!UpdateWindow" => user32::UpdateWindow,
-        _ => return None,
-    })
+pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
+    match dll {
+        "kernel32.dll" => kernel32::resolve(sym),
+        "user32.dll" => user32::resolve(sym),
+        _ => None,
+    }
 }
 
 pub struct State {
