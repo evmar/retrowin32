@@ -84,6 +84,14 @@ pub mod kernel32 {
         x86.host.exit(uExitCode);
     }
 
+    pub fn GetEnvironmentVariableA(x86: &mut X86) {
+        let _lpName = x86.pop();
+        let _lpBuffer = x86.pop();
+        let _nSize = x86.pop();
+        // Fail for now.
+        x86.regs.eax = 0;
+    }
+
     pub fn GetModuleHandleA(x86: &mut X86) {
         let lpModuleName = x86.pop();
         if lpModuleName != 0 {
@@ -98,7 +106,13 @@ pub mod kernel32 {
         x86.regs.eax = (1 << 31) | 0x4;
     }
 
-    pub fn HeapCreate(x86:  &mut X86) {
+    pub fn GetVersionExA(x86: &mut X86) {
+        let _lpVersionInformation = x86.pop();
+        // Fail for now.
+        x86.regs.eax = 0;
+    }
+
+    pub fn HeapCreate(x86: &mut X86) {
         let flOptions = x86.pop();
         let dwInitialSize = x86.pop();
         let dwMaximumSize = x86.pop();
@@ -170,8 +184,10 @@ mod user32 {
 pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
     Some(match sym {
         "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
+        "kernel32.dll!GetEnvironmentVariableA" => kernel32::GetEnvironmentVariableA,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "kernel32.dll!GetVersion" => kernel32::GetVersion,
+        "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
         "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
         "kernel32.dll!WriteFile" => kernel32::WriteFile,
