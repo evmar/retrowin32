@@ -150,6 +150,12 @@ pub mod kernel32 {
         x86.regs.eax = 1; // success
     }
 
+    pub fn LoadLibraryA(x86: &mut X86) {
+        let lpLibFileName = x86.pop();
+        log::warn!("LoadLibrary({lpLibFileName:x})");
+        x86.regs.eax = 0; // fail
+    }
+
     pub fn WriteFile(x86: &mut X86) {
         let hFile = x86.pop();
         let lpBuffer = x86.pop();
@@ -234,6 +240,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "kernel32.dll!GetVersionExA" => kernel32::GetVersionExA,
         "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
         "kernel32.dll!HeapDestroy" => kernel32::HeapDestroy,
+        "kernel32.dll!LoadLibraryA" => kernel32::LoadLibraryA,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
         "kernel32.dll!VirtualFree" => kernel32::VirtualFree,
         "kernel32.dll!WriteFile" => kernel32::WriteFile,
