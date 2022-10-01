@@ -294,6 +294,17 @@ impl<'a> X86<'a> {
         self.regs.flags.set(Flags::OF, of);
         result
     }
+    fn sub16(&mut self, x: u16, y: u16) -> u16 {
+        let (result, carry) = x.overflowing_sub(y);
+        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        self.regs.flags.set(Flags::CF, carry);
+        self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
+        // See comment in sub32.
+        let of = ((x ^ y) & (x ^ result)) >> 7 != 0;
+        self.regs.flags.set(Flags::OF, of);
+        result
+    }
     fn sub8(&mut self, x: u8, y: u8) -> u8 {
         let (result, carry) = x.overflowing_sub(y);
         // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
@@ -395,8 +406,11 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Call_rm32 => {
                 // call dword ptr [addr]
-                assert!(instr.op0_kind() == iced_x86::OpKind::Memory);
-                let target = self.read_u32(self.addr(instr));
+                let target = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
                 self.push(self.regs.eip);
                 if !self.try_invoke_handler(target) {
                     self.regs.eip = target;
@@ -656,6 +670,13 @@ impl<'a> X86<'a> {
                 let value = self.sub32(self.regs.get32(reg), y);
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::Sbb_r32_rm32 => {
+                let reg = instr.op0_register();
+                let carry = self.regs.flags.contains(Flags::CF) as u32;
+                let y = self.op1_rm32(instr) + carry;
+                let value = self.sub32(self.regs.get32(reg), y);
+                self.regs.set32(reg, value);
+            }
             iced_x86::Code::Imul_r32_rm32 => {
                 let x = self.regs.get32(instr.op0_register());
                 let y = self.op1_rm32(instr);
@@ -716,6 +737,15 @@ impl<'a> X86<'a> {
                 };
                 let y = instr.immediate8to32() as u32;
                 self.sub32(x, y);
+            }
+            iced_x86::Code::Cmp_rm16_imm16 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate16();
+                self.sub16(x, y);
             }
             iced_x86::Code::Cmp_rm8_imm8 => {
                 let x = match instr.op0_kind() {
