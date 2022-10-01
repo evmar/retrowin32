@@ -674,7 +674,6 @@ impl<'a> X86<'a> {
             }
 
             code => {
-                self.regs.eip -= instr.len() as u32;
                 bail!("unhandled instruction {:?}", code);
             }
         }
@@ -688,6 +687,12 @@ impl<'a> X86<'a> {
             self.regs.eip as u64,
             iced_x86::DecoderOptions::NONE,
         );
-        self.run(&decoder.decode())
+        let instr = &decoder.decode();
+        let res = self.run(instr);
+        if res.is_err() {
+            // On errors, back up one instruction so the debugger points at the failed instruction.
+            self.regs.eip -= instr.len() as u32;
+        }
+        res
     }
 }
