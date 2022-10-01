@@ -127,6 +127,10 @@ impl X86 {
     pub fn mappings_json(&self) -> String {
         serde_json::to_string(&self.x86.state.kernel32.mappings).unwrap_throw()
     }
+
+    pub fn poke(&mut self, addr: u32, value: u8) {
+        self.x86.mem[addr as usize] = value;
+    }
 }
 
 #[wasm_bindgen]
