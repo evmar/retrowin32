@@ -372,10 +372,18 @@ impl<'a> X86<'a> {
         }
     }
 
-    fn try_invoke_handler(&mut self, addr: u32) -> bool {
+    fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
+        if addr < 0x1000 {
+            bail!("jmp to null page");
+        }
+        self.regs.eip = addr;
+        Ok(())
+    }
+
+    fn try_invoke_handler(&mut self, addr: u32) -> anyhow::Result<bool> {
         let handler = match self.imports.get(&addr) {
             Some(&handler) => handler,
-            None => return false,
+            None => return Ok(false),
         };
 
         let ret = self.pop();
@@ -383,12 +391,12 @@ impl<'a> X86<'a> {
             Some(handler) => handler(self),
             None => log::error!("unimplemented import: {:x}", addr),
         };
-        self.regs.eip = ret;
-        true
+        self.jmp(ret)?;
+        Ok(true)
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
-        self.regs.eip = instr.next_ip() as u32;
+        self.jmp(instr.next_ip() as u32)?;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
                 self.push(self.regs.ebp);
@@ -402,7 +410,7 @@ impl<'a> X86<'a> {
 
             iced_x86::Code::Call_rel32_32 => {
                 self.push(self.regs.eip);
-                self.regs.eip = instr.near_branch32();
+                self.jmp(instr.near_branch32())?;
             }
             iced_x86::Code::Call_rm32 => {
                 // call dword ptr [addr]
@@ -412,21 +420,25 @@ impl<'a> X86<'a> {
                     _ => unreachable!(),
                 };
                 self.push(self.regs.eip);
-                if !self.try_invoke_handler(target) {
-                    self.regs.eip = target;
+                if !self.try_invoke_handler(target)? {
+                    self.jmp(target)?;
                 }
             }
-            iced_x86::Code::Retnd => self.regs.eip = self.pop(),
+            iced_x86::Code::Retnd => {
+                let addr = self.pop();
+                self.jmp(addr)?;
+            }
             iced_x86::Code::Retnd_imm16 => {
-                self.regs.eip = self.pop();
+                let addr = self.pop();
+                self.jmp(addr)?;
                 self.regs.esp += instr.immediate16() as u32;
             }
 
             iced_x86::Code::Jmp_rel8_32 => {
-                self.regs.eip = instr.near_branch32();
+                self.jmp(instr.near_branch32())?;
             }
             iced_x86::Code::Jmp_rel32_32 => {
-                self.regs.eip = instr.near_branch32();
+                self.jmp(instr.near_branch32())?;
             }
             iced_x86::Code::Jmp_rm32 => {
                 let target = match instr.op0_kind() {
@@ -434,68 +446,68 @@ impl<'a> X86<'a> {
                     iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                if !self.try_invoke_handler(target) {
-                    self.regs.eip = target;
+                if !self.try_invoke_handler(target)? {
+                    self.jmp(target)?;
                 }
             }
 
             iced_x86::Code::Ja_rel8_32 => {
                 if !self.regs.flags.contains(Flags::CF) && !self.regs.flags.contains(Flags::ZF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jae_rel8_32 => {
                 if !self.regs.flags.contains(Flags::CF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jb_rel8_32 => {
                 if self.regs.flags.contains(Flags::CF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Je_rel8_32 => {
                 if self.regs.flags.contains(Flags::ZF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Je_rel32_32 => {
                 if self.regs.flags.contains(Flags::ZF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jecxz_rel8_32 => {
                 if self.regs.ecx == 0 {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jne_rel8_32 => {
                 if !self.regs.flags.contains(Flags::ZF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jg_rel8_32 => {
                 if !self.regs.flags.contains(Flags::ZF)
                     && (self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF))
                 {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jge_rel8_32 => {
                 if self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jle_rel32_32 => {
                 if self.regs.flags.contains(Flags::ZF)
                     || (self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF))
                 {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
             iced_x86::Code::Jl_rel8_32 => {
                 if self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF) {
-                    self.regs.eip = instr.near_branch32();
+                    self.jmp(instr.near_branch32())?;
                 }
             }
 
