@@ -1,6 +1,4 @@
-use std::collections::HashMap;
-
-use crate::reader::Reader;
+use crate::{reader::Reader, x86::write_u32};
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 
@@ -248,11 +246,17 @@ fn read_strz(buf: &[u8]) -> String {
 }
 
 /// mem: memory starting at image base
-/// buf: memory of imports table
-pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
+/// addr: address of imports table relative to mem start
+/// resolve: map an import name to the address we will jump to for it
+pub fn parse_imports(
+    mem: &mut [u8],
+    addr: usize,
+    mut resolve: impl FnMut(String, u32) -> u32,
+) -> anyhow::Result<()> {
     // http://sandsprite.com/CodeStuff/Understanding_imports.html
-    let mut r = Reader::new(buf);
-    let mut imports = HashMap::new();
+    let mut r = Reader::new(mem);
+    r.seek(addr)?;
+    let mut patches = Vec::new();
     loop {
         let descriptor = ImageImportDescriptor {
             original_first_thunk: r.u32()?,
@@ -269,26 +273,41 @@ pub fn parse_imports(mem: &[u8], buf: &[u8]) -> anyhow::Result<HashMap<u32, Stri
         // Officially original_first_thunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
         // Peering Inside the PE claims this is some difference between compilers, yikes.
-        let mut sym_reader = Reader::new(&mem[(descriptor.first_thunk) as usize..]);
+
+        // Code calling a DLL looks like:
+        //   call [XXX]
+        // where XXX is the address of an entry in the IAT:
+        //   IAT: [
+        //      AAA,
+        //      BBB,  <- XXX might point here
+        //   ]
+        // On load, each IAT entry points to the function name (as parsed below).
+        // The loader is supposed to overwrite the IAT with the addresses to the loaded DLL,
+        // but we instead just record the IAT addresses to remap them.
+        let mut iat_reader = Reader::new(&mem[descriptor.first_thunk as usize..]);
         loop {
-            // This is a table of u32s, terminated by 0.  On load they indirect to function names
-            // as parsed below, but the loader is supposed to overwrite them so they point directly
-            // to the targets in the DLL.
-            // We instead just save those addresses so we can remap them.
-            let sym = sym_reader.u32()?;
-            if sym == 0 {
+            let addr = descriptor.first_thunk + iat_reader.pos as u32;
+            let entry = iat_reader.u32()?;
+            if entry == 0 {
                 break;
             }
-            if sym & (1 << 31) != 0 {
-                let ordinal = sym & 0xFFFF;
+            if entry & (1 << 31) != 0 {
+                let ordinal = entry & 0xFFFF;
                 log::warn!("TODO ordinal {}:{}", dll_name, ordinal);
             } else {
                 // First two bytes at offset are hint/name table index, used to look up
                 // the name faster in the DLL; we just skip them.
-                let sym_name = read_strz(&mem[(sym + 2) as usize..]);
-                imports.insert(sym, format!("{}!{}", dll_name, sym_name));
+                let sym_name = read_strz(&mem[(entry + 2) as usize..]);
+                let full_name = format!("{}!{}", dll_name, sym_name);
+                let target = resolve(full_name, addr);
+                patches.push((addr, target));
             }
         }
     }
-    Ok(imports)
+
+    for (addr, target) in patches {
+        write_u32(mem, addr, target);
+    }
+
+    Ok(())
 }

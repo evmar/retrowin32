@@ -5,6 +5,7 @@ import { Instruction } from './wasm/wasm';
 
 namespace Code {
   export interface Props {
+    labels: Map<number, string>;
     showMemory: (addr: number) => void;
     highlightMemory: (addr: number) => void;
     runTo: (addr: number) => void;
@@ -18,22 +19,27 @@ export class Code extends preact.Component<Code.Props> {
         switch (kind) {
           case 'FunctionAddress':
           case 'LabelAddress':
-            return <u>{text}</u>;
-          case 'Number':
+          case 'Number': {
+            const addr = parseInt(text, 16);
+            const label = this.props.labels.get(addr);
+            if (label) {
+              text += ` ${label}`;
+            }
             return (
               <a
                 href='#'
                 onMouseOver={() => {
-                  this.props.highlightMemory(parseInt(text, 16));
+                  this.props.highlightMemory(addr);
                 }}
                 onClick={(event) => {
-                  this.props.showMemory(parseInt(text, 16) & ~0xF);
+                  this.props.showMemory(addr & ~0xF);
                   event.preventDefault();
                 }}
               >
                 {text}
               </a>
             );
+          }
           default:
             return text;
         }

@@ -78,17 +78,25 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     log::info!("mappings {:x?}", x86.state.kernel32.mappings);
 
     let imports_data = &file.opt_header.data_directory[1];
-    let imports = pe::parse_imports(
-        &x86.mem[(base as usize)..],
-        &x86.mem[(base + imports_data.virtual_address) as usize
-            ..(base + imports_data.virtual_address + imports_data.size) as usize],
+    let mut x = 0;
+    let mut labels: HashMap<u32, String> = HashMap::new();
+    pe::parse_imports(
+        &mut x86.mem[base as usize..],
+        imports_data.virtual_address as usize,
+        |sym, iat_addr| {
+            // "Resolving" a given import just means recording that when we jump to
+            // some particular magic address we should run some faked function.
+            x += 1;
+            // "fake IAT" => "FIAT" => "F1A7"
+            let addr = 0xF1A7_0000 | x;
+            x86.imports.insert(addr, winapi::resolve(&sym));
+            labels.insert(base + iat_addr, sym);
+            addr
+        },
     )?;
-    for (&addr, sym) in imports.iter() {
-        x86.imports.insert(addr, winapi::resolve(sym));
-    }
 
     let entry_point = base + file.opt_header.address_of_entry_point;
     x86.regs.eip = entry_point;
 
-    Ok(imports)
+    Ok(labels)
 }

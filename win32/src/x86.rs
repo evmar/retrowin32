@@ -10,6 +10,14 @@ use crate::winapi;
 // This helps catch implementation bugs earlier.
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
+pub fn write_u32(mem: &mut [u8], offset: u32, value: u32) {
+    let offset = offset as usize;
+    mem[offset] = (value >> 0) as u8;
+    mem[offset + 1] = (value >> 8) as u8;
+    mem[offset + 2] = (value >> 16) as u8;
+    mem[offset + 3] = (value >> 24) as u8;
+}
+
 bitflags! {
     pub struct Flags: u32 {
         /// carry
@@ -177,11 +185,7 @@ impl<'a> X86<'a> {
         if offset < NULL_POINTER_REGION_SIZE {
             panic!("null pointer write at {offset:#x}");
         }
-        let offset = offset as usize;
-        self.mem[offset] = (value >> 0) as u8;
-        self.mem[offset + 1] = (value >> 8) as u8;
-        self.mem[offset + 2] = (value >> 16) as u8;
-        self.mem[offset + 3] = (value >> 24) as u8;
+        write_u32(&mut self.mem, offset, value);
     }
     pub fn write_u8(&mut self, addr: u32, value: u8) {
         if addr < NULL_POINTER_REGION_SIZE {

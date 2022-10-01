@@ -6,6 +6,7 @@ import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { Registers } from './registers';
 import { Stack } from './stack';
+import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
 async function loadExe(path: string): Promise<ArrayBuffer> {
@@ -29,7 +30,11 @@ class VM implements JsHost {
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
     const imports = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
-    console.log(imports);
+    for (const [jsAddr, jsName] of Object.entries(imports)) {
+      const addr = parseInt(jsAddr);
+      const name = jsName as string;
+      this.labels.set(addr, name);
+    }
   }
 
   step() {
@@ -126,6 +131,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
         <div style={{ display: 'flex' }}>
           <Code
             instrs={instrs}
+            labels={this.props.vm.labels}
             highlightMemory={(addr) => this.setState({ memHighlight: addr })}
             showMemory={(memBase) => this.setState({ memBase })}
             runTo={(addr: number) => this.runTo(addr)}
