@@ -135,6 +135,23 @@ impl Registers {
             _ => unreachable!(),
         }
     }
+    fn set16(&mut self, reg: iced_x86::Register, value: u16) {
+        match reg {
+            iced_x86::Register::AX => self.eax = (self.eax & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::CX => self.eax = (self.ecx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::DX => self.eax = (self.edx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::BX => self.eax = (self.ebx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::SI => self.eax = (self.esi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::DI => self.eax = (self.edi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::ES => self.es = value,
+            iced_x86::Register::CS => self.cs = value,
+            iced_x86::Register::SS => self.ss = value,
+            iced_x86::Register::DS => self.ds = value,
+            iced_x86::Register::FS => self.fs = value,
+            iced_x86::Register::GS => self.gs = value,
+            _ => unreachable!("{reg:?}"),
+        }
+    }
     fn set8(&mut self, reg: iced_x86::Register, value: u8) {
         match reg {
             iced_x86::Register::AL => self.eax = (self.eax & 0xFFFF_FF00) | value as u32,
@@ -186,6 +203,13 @@ impl<'a> X86<'a> {
             panic!("null pointer write at {offset:#x}");
         }
         write_u32(&mut self.mem, offset, value);
+    }
+    pub fn write_u16(&mut self, addr: u32, value: u16) {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer write at {addr:#x}");
+        }
+        self.mem[addr as usize] = value as u8;
+        self.mem[(addr + 1) as usize] = (value >> 8) as u8;
     }
     pub fn write_u8(&mut self, addr: u32, value: u8) {
         if addr < NULL_POINTER_REGION_SIZE {
@@ -353,7 +377,23 @@ impl<'a> X86<'a> {
             _ => unimplemented!(),
         }
     }
-
+    fn rm16_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u16) -> u16) {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => {
+                let reg = instr.op0_register();
+                let x = self.regs.get16(reg);
+                let value = op(self, x);
+                self.regs.set16(reg, value);
+            }
+            iced_x86::OpKind::Memory => {
+                let addr = self.addr(instr);
+                let x = self.read_u16(addr);
+                let value = op(self, x);
+                self.write_u16(addr, value);
+            }
+            _ => unimplemented!(),
+        }
+    }
     fn rm8_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u8) -> u8) {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => {
@@ -466,6 +506,11 @@ impl<'a> X86<'a> {
                     self.jmp(instr.near_branch32())?;
                 }
             }
+            iced_x86::Code::Jbe_rel8_32 => {
+                if self.regs.flags.contains(Flags::CF) || self.regs.flags.contains(Flags::ZF) {
+                    self.jmp(instr.near_branch32())?;
+                }
+            }
             iced_x86::Code::Je_rel8_32 => {
                 if self.regs.flags.contains(Flags::ZF) {
                     self.jmp(instr.near_branch32())?;
@@ -548,8 +593,20 @@ impl<'a> X86<'a> {
             iced_x86::Code::Mov_r32_rm32 => {
                 self.regs.set32(instr.op0_register(), self.op1_rm32(instr));
             }
+            iced_x86::Code::Mov_rm16_r16 => {
+                let y = instr.immediate16();
+                self.rm16_x(instr, |_x86, _x| y);
+            }
             iced_x86::Code::Mov_r8_rm8 => {
                 self.regs.set8(instr.op0_register(), self.op1_rm8(instr));
+            }
+            iced_x86::Code::Mov_rm8_r8 => {
+                let y = self.regs.get8(instr.op1_register());
+                self.rm8_x(instr, |_x86, _x| y);
+            }
+            iced_x86::Code::Mov_rm8_imm8 => {
+                let y = instr.immediate8();
+                self.rm8_x(instr, |_x86, _x| y);
             }
 
             iced_x86::Code::Cmpsb_m8_m8 => {
@@ -637,6 +694,10 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
+                self.rm32_x(instr, |_x86, x| x ^ y);
+            }
+            iced_x86::Code::Xor_rm32_imm8 => {
+                let y = instr.immediate8to32() as u32;
                 self.rm32_x(instr, |_x86, x| x ^ y);
             }
             iced_x86::Code::Xor_r32_rm32 => {
@@ -796,6 +857,15 @@ impl<'a> X86<'a> {
                 let y = self.regs.get32(instr.op1_register());
                 self.and32(x, y);
             }
+            iced_x86::Code::Test_rm32_imm32 | iced_x86::Code::Test_EAX_imm32 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate32();
+                self.and32(x, y);
+            }
             iced_x86::Code::Test_rm16_r16 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
@@ -804,6 +874,15 @@ impl<'a> X86<'a> {
                 };
                 let y = self.regs.get16(instr.op1_register());
                 self.and16(x, y);
+            }
+            iced_x86::Code::Test_rm8_r8 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = self.regs.get8(instr.op1_register());
+                self.and8(x, y);
             }
             iced_x86::Code::Test_rm8_imm8 => {
                 let x = match instr.op0_kind() {
