@@ -521,6 +521,24 @@ impl<'a> X86<'a> {
                 self.regs.set8(instr.op0_register(), self.op1_rm8(instr));
             }
 
+            iced_x86::Code::Cmpsb_m8_m8 => {
+                let p1 = self.regs.esi as usize;
+                let p2 = self.regs.edi as usize;
+                let count = self.regs.ecx as usize;
+                if instr.has_repe_prefix() {
+                    let pos = self.mem[p1..p1 + count]
+                        .iter()
+                        .zip(self.mem[p2..p2 + count].iter())
+                        .position(|(&x, &y)| x == y)
+                        .unwrap_or(count);
+                    self.regs.esi += pos as u32;
+                    self.regs.edi += pos as u32;
+                    self.regs.ecx -= pos as u32;
+                    self.sub8(self.read_u8(self.regs.esi), self.read_u8(self.regs.edi));
+                } else {
+                    bail!("unimpl");
+                }
+            }
             iced_x86::Code::Movsb_m8_m8 => {
                 if !instr.has_rep_prefix() {
                     bail!("expected rep movsb");
@@ -532,6 +550,25 @@ impl<'a> X86<'a> {
                 self.regs.edi += count as u32;
                 self.regs.esi += count as u32;
                 self.regs.ecx = 0;
+            }
+            iced_x86::Code::Scasb_AL_m8 => {
+                let src = self.regs.edi as usize;
+                let value = self.regs.eax as u8;
+                let count = self.regs.ecx as usize;
+                if instr.has_repne_prefix() {
+                    let pos = self.mem[src..src + count]
+                        .iter()
+                        .position(|&c| c == value)
+                        .unwrap_or(count);
+                    self.regs.edi += pos as u32;
+                    self.regs.ecx -= pos as u32;
+                    self.sub8(
+                        self.regs.get8(iced_x86::Register::AL),
+                        self.regs.get8(iced_x86::Register::DL),
+                    );
+                } else {
+                    bail!("unimpl");
+                }
             }
             iced_x86::Code::Stosb_m8_AL => {
                 if !instr.has_rep_prefix() {
@@ -624,6 +661,12 @@ impl<'a> X86<'a> {
             iced_x86::Code::Inc_r32 => {
                 let reg = instr.op0_register();
                 self.regs.set32(reg, self.regs.get32(reg) + 1);
+            }
+            iced_x86::Code::Neg_rm32 => {
+                self.rm32_x(instr, |_x86, x| {
+                    // TODO: flags registers.
+                    -(x as i32) as u32
+                });
             }
 
             iced_x86::Code::Lea_r32_m => {
