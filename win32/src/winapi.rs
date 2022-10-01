@@ -98,6 +98,15 @@ pub mod kernel32 {
         x86.regs.eax = (1 << 31) | 0x4;
     }
 
+    pub fn HeapCreate(x86:  &mut X86) {
+        let flOptions = x86.pop();
+        let dwInitialSize = x86.pop();
+        let dwMaximumSize = x86.pop();
+        log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
+        let mapping = x86.state.kernel32.alloc(dwInitialSize, "HeapCreate".into());
+        x86.regs.eax = mapping.addr;
+    }
+
     pub fn WriteFile(x86: &mut X86) {
         let hFile = x86.pop();
         let lpBuffer = x86.pop();
@@ -163,6 +172,7 @@ pub fn resolve(sym: &str) -> Option<fn(&mut X86)> {
         "kernel32.dll!ExitProcess" => kernel32::ExitProcess,
         "kernel32.dll!GetModuleHandleA" => kernel32::GetModuleHandleA,
         "kernel32.dll!GetVersion" => kernel32::GetVersion,
+        "kernel32.dll!HeapCreate" => kernel32::HeapCreate,
         "kernel32.dll!VirtualAlloc" => kernel32::VirtualAlloc,
         "kernel32.dll!WriteFile" => kernel32::WriteFile,
         "user32.dll!CreateWindowExA" => user32::CreateWindowExA,
