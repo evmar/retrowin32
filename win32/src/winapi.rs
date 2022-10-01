@@ -159,7 +159,11 @@ pub mod kernel32 {
         let _flAllocationType = x86.pop();
         let _flProtec = x86.pop();
 
-        assert!(lpAddress == 0);
+        if lpAddress != 0 {
+            log::warn!("failing VirtualAlloc({lpAddress:x}, {dwSize:x}, ...)");
+            x86.regs.eax = 0;
+            return;
+        }
         // TODO round dwSize to page boundary
 
         let mapping = x86
