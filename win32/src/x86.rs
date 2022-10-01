@@ -530,9 +530,19 @@ impl<'a> X86<'a> {
                 self.regs.ecx = 0;
             }
 
+            iced_x86::Code::And_rm32_imm32 => {
+                let y = instr.immediate32();
+                self.rm32_x(instr, |x86, x| x86.and32(x, y));
+            }
             iced_x86::Code::And_rm32_imm8 => {
                 let y = instr.immediate8to32() as u32;
                 self.rm32_x(instr, |x86, x| x86.and32(x, y));
+            }
+            iced_x86::Code::And_r32_rm32 => {
+                let reg = instr.op0_register();
+                let y = self.op1_rm32(instr);
+                let value = self.regs.get32(reg) & y;
+                self.regs.set32(reg, value);
             }
             iced_x86::Code::Shl_rm32_imm8 => {
                 let y = instr.immediate8to32();
@@ -541,6 +551,12 @@ impl<'a> X86<'a> {
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
                 self.rm32_x(instr, |_x86, x| x ^ y);
+            }
+            iced_x86::Code::Xor_r32_rm32 => {
+                let reg = instr.op0_register();
+                let y = self.op1_rm32(instr);
+                let value = self.regs.get32(reg) ^ y;
+                self.regs.set32(reg, value);
             }
             iced_x86::Code::Xor_rm8_imm8 => {
                 let y = instr.immediate8();
