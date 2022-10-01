@@ -11,7 +11,7 @@ class Register extends preact.Component<{ value: number }> {
 
 namespace Registers {
   export interface Props {
-    regs: wasm.Registers;
+    regs: wasm.Registers & { flags_str(): string };
   }
 }
 export class Registers extends preact.Component<Registers.Props> {
@@ -60,7 +60,7 @@ export class Registers extends preact.Component<Registers.Props> {
           </div>
           <br />
           <div>
-            flags <Register value={regs.flags} />
+            flags <Register value={regs.flags} /> {regs.flags_str()}
           </div>
         </code>
       </section>

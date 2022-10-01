@@ -429,17 +429,29 @@ impl<'a> X86<'a> {
                     self.regs.eip = instr.near_branch32();
                 }
             }
+            iced_x86::Code::Jg_rel8_32 => {
+                if !self.regs.flags.contains(Flags::ZF)
+                    && (self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF))
+                {
+                    self.regs.eip = instr.near_branch32();
+                }
+            }
             iced_x86::Code::Jge_rel8_32 => {
-                // XXX incorrect
-                log::warn!("todo {:?}", instr.code());
+                if self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF) {
+                    self.regs.eip = instr.near_branch32();
+                }
             }
             iced_x86::Code::Jle_rel32_32 => {
-                // XXX incorrect
-                log::warn!("todo {:?}", instr.code());
+                if self.regs.flags.contains(Flags::ZF)
+                    || (self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF))
+                {
+                    self.regs.eip = instr.near_branch32();
+                }
             }
             iced_x86::Code::Jl_rel8_32 => {
-                // XXX incorrect
-                log::warn!("todo {:?}", instr.code());
+                if self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF) {
+                    self.regs.eip = instr.near_branch32();
+                }
             }
 
             iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),

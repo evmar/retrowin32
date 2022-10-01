@@ -107,6 +107,9 @@ impl X86 {
     pub fn flags(&self) -> u32 {
         self.x86.regs.flags.bits()
     }
+    pub fn flags_str(&self) -> String {
+        format!("{:?}", self.x86.regs.flags)
+    }
     pub fn disassemble_json(&self, addr: u32) -> String {
         serde_json::to_string(&win32::disassemble(&self.x86.mem, addr)).unwrap_throw()
     }
