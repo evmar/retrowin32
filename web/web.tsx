@@ -162,23 +162,28 @@ class Page extends preact.Component<Page.Props, Page.State> {
           />
         </div>
         <div style={{ display: 'flex' }}>
-          <Tabs style={{ width: '80ex' }}>
-            memory
-            <Memory
-              mem={this.props.vm.x86.memory()}
-              base={this.state.memBase}
-              highlight={this.state.memHighlight}
-              jumpTo={(addr) => this.setState({ memBase: addr })}
-            />
-            mappings
-            <Mappings mappings={this.props.vm.mappings()} highlight={this.state.memHighlight} />
-            imports
-            <section>
-              <code>
-                {this.props.vm.imports.map(imp => <div>{imp}</div>)}
-              </code>
-            </section>
-          </Tabs>
+          <Tabs
+            style={{ width: '80ex' }}
+            tabs={{
+              memory: (
+                <Memory
+                  mem={this.props.vm.x86.memory()}
+                  base={this.state.memBase}
+                  highlight={this.state.memHighlight}
+                  jumpTo={(addr) => this.setState({ memBase: addr })}
+                />
+              ),
+              mappings: <Mappings mappings={this.props.vm.mappings()} highlight={this.state.memHighlight} />,
+
+              imports: (
+                <section>
+                  <code>
+                    {this.props.vm.imports.map(imp => <div>{imp}</div>)}
+                  </code>
+                </section>
+              ),
+            }}
+          />
           <Stack x86={this.props.vm.x86} />
         </div>
       </>

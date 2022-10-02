@@ -4,31 +4,28 @@ import { Fragment, h } from 'preact';
 namespace Tabs {
   export interface Props {
     style: preact.JSX.CSSProperties;
+    tabs: { [name: string]: preact.ComponentChild };
   }
   export interface State {
-    cur: number;
+    cur: string;
   }
 }
 export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
-  state: Tabs.State = { cur: 0 };
+  state: Tabs.State = { cur: '' };
   render() {
-    const children = this.props.children as preact.ComponentChild[];
-    const tabs: Array<[string, preact.ComponentChild]> = [];
-    for (let i = 0; i < children.length; i += 2) {
-      tabs.push([children[i] as string, children[i + 1]]);
-    }
+    const tabs = this.props.tabs;
     return (
       <div style={this.props.style}>
         <div class='tabs-strip'>
-          {tabs.map(([name, _], i) => {
-            let button = <span class='clicky' onClick={() => this.setState({ cur: i })}>{name}</span>;
-            if (i === this.state.cur) {
+          {Object.keys(tabs).map((name) => {
+            let button = <span class='clicky' onClick={() => this.setState({ cur: name })}>{name}</span>;
+            if (name === this.state.cur) {
               button = <b>{button}</b>;
             }
             return <>{button}&nbsp;</>;
           })}
         </div>
-        {tabs[this.state.cur][1]}
+        {tabs[this.state.cur]}
       </div>
     );
   }
