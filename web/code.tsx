@@ -1,13 +1,12 @@
 import * as preact from 'preact';
-import { h } from 'preact';
+import { Fragment, h } from 'preact';
+import { Number } from './memory';
 import { hex } from './util';
 import { Instruction } from './wasm/wasm';
 
 namespace Code {
-  export interface Props {
+  export interface Props extends Number.Interactions {
     labels: Map<number, string>;
-    showMemory: (addr: number) => void;
-    highlightMemory: (addr: number) => void;
     runTo: (addr: number) => void;
     instrs: Instruction[];
   }
@@ -21,23 +20,15 @@ export class Code extends preact.Component<Code.Props> {
           case 'LabelAddress':
           case 'Number': {
             const addr = parseInt(text, 16);
-            const label = this.props.labels.get(addr);
+            let label = this.props.labels.get(addr);
             if (label) {
-              text += ` ${label}`;
+              label = ` ${label}`;
             }
             return (
-              <span
-                class='clicky'
-                title='show in memory dump'
-                onMouseOver={() => {
-                  this.props.highlightMemory(addr);
-                }}
-                onClick={(event) => {
-                  this.props.showMemory(addr & ~0xF);
-                }}
-              >
-                {text}
-              </span>
+              <>
+                <Number text={text} {...this.props}>{addr}</Number>
+                {label}
+              </>
             );
           }
           default:

@@ -2,6 +2,36 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
 
+export namespace Number {
+  export interface Interactions {
+    showMemory: (addr: number) => void;
+    highlightMemory: (addr: number) => void;
+  }
+  export interface Props extends Interactions {
+    digits?: number;
+    text?: string;
+    children: number;
+  }
+}
+export class Number extends preact.Component<Number.Props> {
+  render() {
+    return (
+      <span
+        class='clicky'
+        title='show in memory dump'
+        onMouseOver={() => {
+          this.props.highlightMemory(this.props.children);
+        }}
+        onClick={(event) => {
+          this.props.showMemory(this.props.children & ~0xF);
+        }}
+      >
+        {this.props.text ? this.props.text : hex(this.props.children, this.props.digits)}
+      </span>
+    );
+  }
+}
+
 namespace Memory {
   export interface Props {
     mem: DataView;
@@ -22,7 +52,7 @@ export class Memory extends preact.Component<Memory.Props> {
         const addr = this.props.base + rowAddr + offset;
         let value: preact.ComponentChild = hex(this.props.mem.getUint8(addr));
         if (addr === this.props.highlight) {
-          value = <b>{value}</b>;
+          value = <span class='highlight'>{value}</span>;
         }
         row.push(value);
       }

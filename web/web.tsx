@@ -116,6 +116,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
     this.run();
   }
 
+  highlightMemory = (addr: number) => this.setState({ memHighlight: addr });
+  showMemory = (memBase: number) => this.setState({ memBase });
+
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
@@ -147,12 +150,16 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Code
             instrs={instrs}
             labels={this.props.vm.labels}
-            highlightMemory={(addr) => this.setState({ memHighlight: addr })}
-            showMemory={(memBase) => this.setState({ memBase })}
+            highlightMemory={this.highlightMemory}
+            showMemory={this.showMemory}
             runTo={(addr: number) => this.runTo(addr)}
           />
           <div style={{ width: '12ex' }} />
-          <Registers regs={this.props.vm.x86} />
+          <Registers
+            highlightMemory={this.highlightMemory}
+            showMemory={this.showMemory}
+            regs={this.props.vm.x86}
+          />
         </div>
         <div style={{ display: 'flex' }}>
           <Tabs style={{ width: '80ex' }}>

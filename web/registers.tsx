@@ -1,16 +1,11 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import { Number } from './memory';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
-class Register extends preact.Component<{ value: number }> {
-  render() {
-    return <code>{hex(this.props.value, 8)}</code>;
-  }
-}
-
 namespace Registers {
-  export interface Props {
+  export interface Props extends Number.Interactions {
     regs: wasm.Registers & { flags_str(): string };
   }
 }
@@ -21,46 +16,46 @@ export class Registers extends preact.Component<Registers.Props> {
       <section>
         <code>
           <div>
-            eax <Register value={regs.eax} />
+            eax&nbsp;<Number digits={8} {...this.props}>{regs.eax}</Number>
             <br />
-            ebx <Register value={regs.ebx} />
+            ebx&nbsp;<Number digits={8} {...this.props}>{regs.ebx}</Number>
             <br />
-            ecx <Register value={regs.ecx} />
+            ecx&nbsp;<Number digits={8} {...this.props}>{regs.ecx}</Number>
             <br />
-            edx <Register value={regs.edx} />
-            <br />
-          </div>
-          <br />
-          <div>
-            eip <Register value={regs.eip} />
-            <br />
-            esp <Register value={regs.esp} />
-            <br />
-            ebp <Register value={regs.ebp} />
-            <br />
-            esi <Register value={regs.esi} />
-            <br />
-            edi <Register value={regs.edi} />
+            edx&nbsp;<Number digits={8} {...this.props}>{regs.edx}</Number>
             <br />
           </div>
           <br />
           <div>
-            cs <Register value={regs.cs} />
+            eip&nbsp;<Number digits={8} {...this.props}>{regs.eip}</Number>
             <br />
-            ds <Register value={regs.ds} />
+            esp&nbsp;<Number digits={8} {...this.props}>{regs.esp}</Number>
             <br />
-            es <Register value={regs.es} />
+            ebp&nbsp;<Number digits={8} {...this.props}>{regs.ebp}</Number>
             <br />
-            fs <Register value={regs.fs} />
+            esi&nbsp;<Number digits={8} {...this.props}>{regs.esi}</Number>
             <br />
-            gs <Register value={regs.gs} />
-            <br />
-            ss <Register value={regs.ss} />
+            edi&nbsp;<Number digits={8} {...this.props}>{regs.edi}</Number>
             <br />
           </div>
           <br />
           <div>
-            flags&nbsp;<Register value={regs.flags} />
+            cs&nbsp;<Number digits={4} {...this.props}>{regs.cs}</Number>
+            <br />
+            ds&nbsp;<Number digits={4} {...this.props}>{regs.ds}</Number>
+            <br />
+            es&nbsp;<Number digits={4} {...this.props}>{regs.es}</Number>
+            <br />
+            fs&nbsp;<Number digits={4} {...this.props}>{regs.fs}</Number>
+            <br />
+            gs&nbsp;<Number digits={4} {...this.props}>{regs.gs}</Number>
+            <br />
+            ss&nbsp;<Number digits={4} {...this.props}>{regs.ss}</Number>
+            <br />
+          </div>
+          <br />
+          <div>
+            flags&nbsp;{hex(regs.flags)}
             <br />
             {regs.flags_str()}
           </div>
