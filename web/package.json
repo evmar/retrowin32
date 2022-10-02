@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "fmt": "dprint fmt",
-    "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js web.tsx"
+    "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js web.tsx",
+    "build": "esbuild --bundle --target=es2020 --format=esm --sourcemap --outfile=bundle.js web.tsx"
   },
   "devDependencies": {
     "typescript": "^4.8.3"
