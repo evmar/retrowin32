@@ -27,6 +27,8 @@ class VM implements JsHost {
   imports: string[] = [];
   labels = new Map<number, string>();
   exitCode: number | undefined = undefined;
+  stdout = '';
+  page!: Page;
 
   constructor(exe: ArrayBuffer) {
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
@@ -74,7 +76,8 @@ class VM implements JsHost {
     this.exitCode = code;
   }
   write(buf: Uint8Array): number {
-    console.log(this.decoder.decode(buf));
+    this.stdout += this.decoder.decode(buf);
+    this.page.setState({ stdout: this.stdout });
     return buf.length;
   }
 }
@@ -84,12 +87,18 @@ namespace Page {
     vm: VM;
   }
   export interface State {
+    stdout: string;
     memBase: number;
     memHighlight?: number;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
   state: Page.State = { memBase: 0x40_1000 };
+
+  constructor(props: Page.Props) {
+    super(props);
+    this.props.vm.page = this;
+  }
 
   updateAfter(f: () => void) {
     try {
@@ -165,6 +174,12 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Tabs
             style={{ width: '80ex' }}
             tabs={{
+              output: (
+                <section>
+                  <code>{this.state.stdout}</code>
+                </section>
+              ),
+
               memory: (
                 <Memory
                   mem={this.props.vm.x86.memory()}

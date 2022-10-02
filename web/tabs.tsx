@@ -12,6 +12,12 @@ namespace Tabs {
 }
 export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
   state: Tabs.State = { cur: '' };
+
+  constructor(props: Tabs.Props) {
+    super(props);
+    this.state = { cur: Object.keys(props.tabs)[0] };
+  }
+
   render() {
     const tabs = this.props.tabs;
     return (
