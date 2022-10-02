@@ -26,18 +26,18 @@ export class Code extends preact.Component<Code.Props> {
               text += ` ${label}`;
             }
             return (
-              <a
-                href='#'
+              <span
+                class='clicky'
+                title='show in memory dump'
                 onMouseOver={() => {
                   this.props.highlightMemory(addr);
                 }}
                 onClick={(event) => {
                   this.props.showMemory(addr & ~0xF);
-                  event.preventDefault();
                 }}
               >
                 {text}
-              </a>
+              </span>
             );
           }
           default:
@@ -45,24 +45,32 @@ export class Code extends preact.Component<Code.Props> {
         }
       });
       return (
-        <div>
-          <a
-            href='#'
-            class='stealth'
-            onClick={(event) => {
-              event.preventDefault();
-              this.props.runTo(instr.addr);
-            }}
-          >
-            {hex(instr.addr, 8)}
-          </a>{' '}
-          {instr.bytes.padEnd(16, ' ')} {code} ({instr.ops.join(',')})
-        </div>
+        <tr>
+          <td>
+            <span
+              class='clicky'
+              title='run to this address'
+              onClick={(event) => {
+                this.props.runTo(instr.addr);
+              }}
+            >
+              {hex(instr.addr, 8)}
+            </span>
+          </td>
+          <td>&nbsp;&nbsp;</td>
+          <td>{instr.bytes}</td>
+          <td>&nbsp;&nbsp;</td>
+          <td title={instr.ops.join(',')}>{code}</td>
+        </tr>
       );
     });
     return (
       <section>
-        <code>{instrs}</code>
+        <code class='disassembly'>
+          <table>
+            {instrs}
+          </table>
+        </code>
       </section>
     );
   }
