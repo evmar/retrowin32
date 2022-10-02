@@ -184,7 +184,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
               ),
             }}
           />
-          <Stack x86={this.props.vm.x86} />
+          <Stack highlightMemory={this.highlightMemory} showMemory={this.showMemory} x86={this.props.vm.x86} />
         </div>
       </>
     );
