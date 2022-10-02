@@ -173,8 +173,23 @@ fn VirtualAlloc(
     _flProtec: u32,
 ) -> u32 {
     if lpAddress != 0 {
-        log::warn!("failing VirtualAlloc({lpAddress:x}, {dwSize:x}, ...)");
-        return 0;
+        // Changing flags on an existing address, hopefully.
+        match x86
+            .state
+            .kernel32
+            .mappings
+            .iter()
+            .find(|&mapping| mapping.addr == lpAddress)
+        {
+            None => {
+                log::error!("failing VirtualAlloc({lpAddress:x}, ...) refers to unknown mapping");
+                return 0;
+            }
+            Some(_) => {
+                // adjusting flags on existing mapping, ignore.
+                return lpAddress;
+            }
+        }
     }
     // TODO round dwSize to page boundary
 
