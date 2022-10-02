@@ -60,7 +60,9 @@ export class Registers extends preact.Component<Registers.Props> {
           </div>
           <br />
           <div>
-            flags <Register value={regs.flags} /> {regs.flags_str()}
+            flags&nbsp;<Register value={regs.flags} />
+            <br />
+            {regs.flags_str()}
           </div>
         </code>
       </section>
