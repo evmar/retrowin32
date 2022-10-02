@@ -760,7 +760,11 @@ impl<'a> X86<'a> {
             iced_x86::Code::Dec_r32 => {
                 // TODO: flags.
                 let reg = instr.op0_register();
-                self.regs.set32(reg, self.regs.get32(reg) - 1);
+                let (value, overflow) = self.regs.get32(reg).overflowing_sub(1);
+                if overflow {
+                    bail!("overflow");
+                }
+                self.regs.set32(reg, value);
             }
             iced_x86::Code::Inc_r32 => {
                 // TODO: flags.
@@ -896,11 +900,12 @@ impl<'a> X86<'a> {
 
             iced_x86::Code::Sete_rm8 => {
                 let value = self.regs.flags.contains(Flags::ZF) as u8;
-                match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.set8(instr.op0_register(), value),
-                    iced_x86::OpKind::Memory => self.write_u8(self.addr(instr), value),
-                    _ => unreachable!(),
-                };
+                self.rm8_x(instr, |_x86, _x| value);
+            }
+            iced_x86::Code::Setge_rm8 => {
+                let value = (self.regs.flags.contains(Flags::ZF)
+                    == self.regs.flags.contains(Flags::OF)) as u8;
+                self.rm8_x(instr, |_x86, _x| value);
             }
 
             iced_x86::Code::Fcos
