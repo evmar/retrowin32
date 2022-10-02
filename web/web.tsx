@@ -6,6 +6,7 @@ import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { Registers } from './registers';
 import { Stack } from './stack';
+import { Tabs } from './tabs';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
@@ -150,22 +151,24 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Registers regs={this.props.vm.x86} />
         </div>
         <div style={{ display: 'flex' }}>
-          <div>
+          <Tabs>
+            memory
             <Memory
               mem={this.props.vm.x86.memory()}
               base={this.state.memBase}
               highlight={this.state.memHighlight}
               jumpTo={(addr) => this.setState({ memBase: addr })}
             />
+            mappings
             <Mappings mappings={this.props.vm.mappings()} />
-          </div>
-          <div style={{ width: '12ex' }} />
+            imports
+            <section>
+              <code>
+                {this.props.vm.imports.map(imp => <div>{imp}</div>)}
+              </code>
+            </section>
+          </Tabs>
           <Stack x86={this.props.vm.x86} />
-          <section>
-            <code>
-              {this.props.vm.imports.map(imp => <div>{imp}</div>)}
-            </code>
-          </section>
         </div>
       </main>
     );
