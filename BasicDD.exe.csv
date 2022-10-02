@@ -1,0 +1,307 @@
+GetTickCount	External[0000662c]	External Function	KERNEL32.DLL	Imported	3	0
+OutputDebugStringA	External[0000663c]	External Function	KERNEL32.DLL	Imported	2	0
+DispatchMessageA	External[00006660]	External Function	USER32.DLL	Imported	2	0
+TranslateMessage	External[00006674]	External Function	USER32.DLL	Imported	2	0
+PeekMessageA	External[00006688]	External Function	USER32.DLL	Imported	2	0
+MessageBoxA	External[00006698]	External Function	USER32.DLL	Imported	2	0
+SetFocus	External[000066a6]	External Function	USER32.DLL	Imported	2	0
+UpdateWindow	External[000066b2]	External Function	USER32.DLL	Imported	2	0
+ShowWindow	External[000066c2]	External Function	USER32.DLL	Imported	2	0
+CreateWindowExA	External[000066d0]	External Function	USER32.DLL	Imported	2	0
+GetSystemMetrics	External[000066e2]	External Function	USER32.DLL	Imported	3	0
+RegisterClassA	External[000066f6]	External Function	USER32.DLL	Imported	2	0
+LoadCursorA	External[00006708]	External Function	USER32.DLL	Imported	2	0
+LoadIconA	External[00006716]	External Function	USER32.DLL	Imported	2	0
+PostQuitMessage	External[00006722]	External Function	USER32.DLL	Imported	2	0
+DefWindowProcA	External[00006734]	External Function	USER32.DLL	Imported	2	0
+LoadImageA	External[00006746]	External Function	USER32.DLL	Imported	2	0
+DirectDrawCreateEx	External[00006760]	External Function	DDRAW.DLL	Imported	2	0
+GetStockObject	External[00006780]	External Function	GDI32.DLL	Imported	2	0
+DeleteDC	External[00006792]	External Function	GDI32.DLL	Imported	2	0
+StretchBlt	External[0000679e]	External Function	GDI32.DLL	Imported	2	0
+GetObjectA	External[000067ac]	External Function	GDI32.DLL	Imported	2	0
+SelectObject	External[000067ba]	External Function	GDI32.DLL	Imported	2	0
+CreateCompatibleDC	External[000067ca]	External Function	GDI32.DLL	Imported	2	0
+GetModuleHandleA	External[000067ea]	External Function	KERNEL32.DLL	Imported	1	0
+GetStartupInfoA	External[000067fe]	External Function	KERNEL32.DLL	Imported	3	0
+GetCommandLineA	External[00006810]	External Function	KERNEL32.DLL	Imported	2	0
+GetVersion	External[00006822]	External Function	KERNEL32.DLL	Imported	1	0
+ExitProcess	External[00006830]	External Function	KERNEL32.DLL	Imported	3	0
+HeapReAlloc	External[0000683e]	External Function	KERNEL32.DLL	Imported	5	0
+HeapAlloc	External[0000684c]	External Function	KERNEL32.DLL	Imported	7	0
+TerminateProcess	External[00006858]	External Function	KERNEL32.DLL	Imported	2	0
+GetCurrentProcess	External[0000686c]	External Function	KERNEL32.DLL	Imported	2	0
+HeapSize	External[00006880]	External Function	KERNEL32.DLL	Imported	2	0
+HeapFree	External[0000688c]	External Function	KERNEL32.DLL	Imported	6	0
+UnhandledExceptionFilter	External[00006898]	External Function	KERNEL32.DLL	Imported	2	0
+GetModuleFileNameA	External[000068b4]	External Function	KERNEL32.DLL	Imported	4	0
+FreeEnvironmentStringsA	External[000068ca]	External Function	KERNEL32.DLL	Imported	2	0
+FreeEnvironmentStringsW	External[000068e4]	External Function	KERNEL32.DLL	Imported	2	0
+WideCharToMultiByte	External[000068fe]	External Function	KERNEL32.DLL	Imported	4	0
+GetEnvironmentStrings	External[00006914]	External Function	KERNEL32.DLL	Imported	3	0
+GetEnvironmentStringsW	External[0000692c]	External Function	KERNEL32.DLL	Imported	3	0
+SetHandleCount	External[00006946]	External Function	KERNEL32.DLL	Imported	2	0
+GetStdHandle	External[00006958]	External Function	KERNEL32.DLL	Imported	2	0
+GetFileType	External[00006968]	External Function	KERNEL32.DLL	Imported	3	0
+GetEnvironmentVariableA	External[00006976]	External Function	KERNEL32.DLL	Imported	2	0
+GetVersionExA	External[00006990]	External Function	KERNEL32.DLL	Imported	2	0
+HeapDestroy	External[000069a0]	External Function	KERNEL32.DLL	Imported	2	0
+HeapCreate	External[000069ae]	External Function	KERNEL32.DLL	Imported	2	0
+VirtualFree	External[000069bc]	External Function	KERNEL32.DLL	Imported	6	0
+RtlUnwind	External[000069ca]	External Function	KERNEL32.DLL	Imported	2	0
+WriteFile	External[000069d6]	External Function	KERNEL32.DLL	Imported	2	0
+VirtualAlloc	External[000069e2]	External Function	KERNEL32.DLL	Imported	6	0
+GetCPInfo	External[000069f2]	External Function	KERNEL32.DLL	Imported	3	0
+GetACP	External[000069fe]	External Function	KERNEL32.DLL	Imported	1	0
+GetOEMCP	External[00006a08]	External Function	KERNEL32.DLL	Imported	1	0
+GetProcAddress	External[00006a14]	External Function	KERNEL32.DLL	Imported	4	0
+LoadLibraryA	External[00006a26]	External Function	KERNEL32.DLL	Imported	2	0
+MultiByteToWideChar	External[00006a36]	External Function	KERNEL32.DLL	Imported	5	0
+LCMapStringA	External[00006a4c]	External Function	KERNEL32.DLL	Imported	3	0
+LCMapStringW	External[00006a5c]	External Function	KERNEL32.DLL	Imported	5	0
+GetStringTypeA	External[00006a6c]	External Function	KERNEL32.DLL	Imported	3	0
+GetStringTypeW	External[00006a7e]	External Function	KERNEL32.DLL	Imported	3	0
+FUN_00401000	00401000	Function	Global	Default	3	0
+FUN_00401010	00401010	Function	Global	Default	1	0
+FUN_00401020	00401020	Function	Global	Default	1	0
+WinMain	00401040	Function	Global	User Defined	1	0
+ProcessIdle	00401130	Function	Global	User Defined	1	0
+InitWindow	00401200	Function	Global	User Defined	1	0
+InitDirectDraw	00401310	Function	Global	User Defined	1	0
+CleanUp	00401420	Function	Global	User Defined	2	0
+FUN_00401460	00401460	Function	Global	Default	1	0
+FUN_00401480	00401480	Function	Global	Default	1	0
+FUN_004014a0	004014a0	Function	Global	Default	2	0
+LoadBitmap	004014d0	Function	Global	User Defined	1	0
+SurfCreate	00401640	Function	Global	User Defined	1	0
+FUN_00401730	00401730	Function	Global	Default	1	0
+FUN_004017d0	004017d0	Function	Global	Default	1	0
+FUN_004017f0	004017f0	Function	Global	Default	1	0
+DirectDrawCreateEx	00401800	Thunk Function	DDRAW.DLL	Default	1	0
+FUN_00401806	00401806	Function	Global	Default	1	0
+FUN_00401873	00401873	Function	Global	Default	1	0
+FUN_00401885	00401885	Function	Global	Default	1	0
+FUN_004018b4	004018b4	Function	Global	Default	1	0
+entry	004018bf	Function	Global	Imported	2	0
+fatal	004019b5	Function	Global	User Defined	5	0
+Fatal	004019da	Function	Global	User Defined	1	0
+FUN_004019fe	004019fe	Function	Global	Default	1	0
+run_initializers	00401c9e	Function	Global	User Defined	1	0
+FUN_00401ccb	00401ccb	Function	Global	Default	1	0
+__exit	00401cdc	Function	Global	Analysis	2	0
+shutdown	00401ced	Function	Global	User Defined	2	0
+run_function_list	00401d86	Function	Global	User Defined	4	0
+FUN_00401da0	00401da0	Function	Global	Default	2	0
+_malloc	00401e01	Function	Global	Analysis	9	0
+__nh_malloc	00401e13	Function	Global	Analysis	1	0
+FUN_00401e3f	00401e3f	Function	Global	Default	1	0
+FUN_00401eb3	00401eb3	Function	Global	Default	4	0
+FUN_00401f1c	00401f1c	Function	Global	Default	1	0
+FUN_0040205d	0040205d	Function	Global	Default	1	0
+ParseCommandLine	004020a0	Function	Global	User Defined	1	0
+parse_env	004020f8	Function	Global	User Defined	1	0
+parse_command_line	004021b1	Function	Global	User Defined	1	0
+FUN_0040224a	0040224a	Function	Global	Default	2	0
+init_env	004023fe	Function	Global	User Defined	1	0
+init_handles	00402530	Function	Global	User Defined	1	0
+FUN_004026db	004026db	Function	Global	Default	1	0
+CreateHeapHelper	00402708	Function	Global	User Defined	1	0
+CreateHeap	00402850	Function	Global	User Defined	1	0
+__global_unwind2	004028b0	Function	Global	Analysis	1	0
+__local_unwind2	004028f2	Function	Global	Analysis	3	0
+FUN_00402986	00402986	Function	Global	Default	2	0
+FUN_00402a65	00402a65	Function	Global	Default	0	0
+FUN_00402a80	00402a80	Function	Global	Default	2	0
+ShowError	00402ab9	Function	Global	User Defined	4	0
+FUN_00402c0c	00402c0c	Function	Global	Default	1	0
+FUN_00402c54	00402c54	Function	Global	Default	4	0
+FUN_00402c7f	00402c7f	Function	Global	Default	3	0
+FUN_00402fa8	00402fa8	Function	Global	Default	2	0
+FUN_004032b1	004032b1	Function	Global	Default	1	0
+FUN_00403362	00403362	Function	Global	Default	1	0
+FUN_0040345d	0040345d	Function	Global	Default	1	0
+Alloc	00403753	Function	Global	User Defined	2	0
+FUN_00403897	00403897	Function	Global	Default	1	0
+FUN_004038ed	004038ed	Function	Global	Default	1	0
+FUN_004039af	004039af	Function	Global	Default	3	0
+FUN_00403a06	00403a06	Function	Global	Default	3	0
+FUN_00403a4b	00403a4b	Function	Global	Default	2	0
+FUN_00403c53	00403c53	Function	Global	Default	2	0
+FUN_00403d77	00403d77	Function	Global	Default	1	0
+FUN_00403e20	00403e20	Function	Global	Default	4	0
+parse_env	00403e40	Function	Global	User Defined	5	0
+switchD	00403e75	Instruction Label	switchD_00403e75	Analysis	0	0
+caseD_4	00403e88	Instruction Label	switchD_00403e94	Analysis	1	0
+switchD	00403e8d	Instruction Label	switchD_00403e8d	Analysis	0	0
+switchD	00403e94	Instruction Label	switchD_00403e94	Analysis	1	0
+switchdataD_00403ea4	00403ea4	Data Label	switchD_00403e8d	Analysis	1	0
+caseD_1	00403eb0	Instruction Label	switchD_00403e8d	Analysis	2	0
+switchD	00403ed2	Instruction Label	switchD_00403ed2	Analysis	0	0
+caseD_2	00403edc	Instruction Label	switchD_00403e8d	Analysis	2	0
+switchD	00403ef8	Instruction Label	switchD_00403ef8	Analysis	0	0
+caseD_3	00403f00	Instruction Label	switchD_00403e8d	Analysis	2	0
+switchD	00403f12	Instruction Label	switchD_00403f12	Analysis	0	0
+switchdataD_00403f88	00403f88	Data Label	switchD_00403e94	Analysis	5	0
+caseD_0	00403f98	Instruction Label	switchD_00403f12	Analysis	0	0
+caseD_0	00403f98	Instruction Label	switchD_00403e75	Analysis	0	0
+caseD_0	00403f98	Instruction Label	switchD_00403e94	Analysis	7	0
+caseD_0	00403f98	Instruction Label	switchD_00403ef8	Analysis	0	0
+caseD_0	00403f98	Instruction Label	switchD_00403ed2	Analysis	0	0
+caseD_1	00403fa0	Instruction Label	switchD_00403ef8	Analysis	0	0
+caseD_1	00403fa0	Instruction Label	switchD_00403e94	Analysis	6	0
+caseD_1	00403fa0	Instruction Label	switchD_00403ed2	Analysis	0	0
+caseD_1	00403fa0	Instruction Label	switchD_00403f12	Analysis	0	0
+caseD_1	00403fa0	Instruction Label	switchD_00403e75	Analysis	0	0
+caseD_2	00403fac	Instruction Label	switchD_00403e94	Analysis	6	0
+caseD_2	00403fac	Instruction Label	switchD_00403ef8	Analysis	0	0
+caseD_2	00403fac	Instruction Label	switchD_00403ed2	Analysis	0	0
+caseD_2	00403fac	Instruction Label	switchD_00403f12	Analysis	0	0
+caseD_2	00403fac	Instruction Label	switchD_00403e75	Analysis	0	0
+caseD_3	00403fc0	Instruction Label	switchD_00403e94	Analysis	6	0
+caseD_3	00403fc0	Instruction Label	switchD_00403ef8	Analysis	0	0
+caseD_3	00403fc0	Instruction Label	switchD_00403f12	Analysis	0	0
+caseD_3	00403fc0	Instruction Label	switchD_00403ed2	Analysis	0	0
+caseD_3	00403fc0	Instruction Label	switchD_00403e75	Analysis	0	0
+switchD	00403ff7	Instruction Label	switchD_00403ff7	Analysis	0	0
+caseD_4	00404018	Instruction Label	switchD_00404024	Analysis	1	0
+switchD	0040401d	Instruction Label	switchD_0040401d	Analysis	0	0
+switchD	00404024	Instruction Label	switchD_00404024	Analysis	1	1
+switchdataD_0040402c	0040402c	Data Label	switchD_0040401d	Analysis	1	0
+caseD_1	00404038	Instruction Label	switchD_0040401d	Analysis	2	0
+switchD	0040404e	Instruction Label	switchD_0040404e	Analysis	0	0
+caseD_2	00404058	Instruction Label	switchD_0040401d	Analysis	2	0
+switchD	00404078	Instruction Label	switchD_00404078	Analysis	0	0
+caseD_3	00404080	Instruction Label	switchD_0040401d	Analysis	2	0
+switchD	004040aa	Instruction Label	switchD_004040aa	Analysis	0	0
+switchdataD_00404120	00404120	Data Label	switchD_00404024	Analysis	6	0
+caseD_0	00404130	Instruction Label	switchD_00404024	Analysis	6	0
+caseD_0	00404130	Instruction Label	switchD_00404078	Analysis	0	0
+caseD_0	00404130	Instruction Label	switchD_00403ff7	Analysis	0	0
+caseD_0	00404130	Instruction Label	switchD_004040aa	Analysis	0	0
+caseD_0	00404130	Instruction Label	switchD_0040404e	Analysis	0	0
+caseD_1	00404138	Instruction Label	switchD_00403ff7	Analysis	0	0
+caseD_1	00404138	Instruction Label	switchD_0040404e	Analysis	0	0
+caseD_1	00404138	Instruction Label	switchD_004040aa	Analysis	0	0
+caseD_1	00404138	Instruction Label	switchD_00404078	Analysis	0	0
+caseD_1	00404138	Instruction Label	switchD_00404024	Analysis	6	0
+caseD_2	00404148	Instruction Label	switchD_00404024	Analysis	6	0
+caseD_2	00404148	Instruction Label	switchD_0040404e	Analysis	0	0
+caseD_2	00404148	Instruction Label	switchD_00404078	Analysis	0	0
+caseD_2	00404148	Instruction Label	switchD_004040aa	Analysis	0	0
+caseD_2	00404148	Instruction Label	switchD_00403ff7	Analysis	0	0
+caseD_3	0040415c	Instruction Label	switchD_004040aa	Analysis	0	0
+caseD_3	0040415c	Instruction Label	switchD_00403ff7	Analysis	0	0
+caseD_3	0040415c	Instruction Label	switchD_00404078	Analysis	0	0
+caseD_3	0040415c	Instruction Label	switchD_00404024	Analysis	6	0
+caseD_3	0040415c	Instruction Label	switchD_0040404e	Analysis	0	0
+FUN_00404175	00404175	Function	Global	Default	1	0
+FUN_00404186	00404186	Function	Global	Default	1	0
+code_page_goop	004041b7	Function	Global	User Defined	1	0
+FUN_00404350	00404350	Function	Global	Default	1	0
+FUN_0040439a	0040439a	Function	Global	Default	2	0
+FUN_004043cd	004043cd	Function	Global	Default	1	0
+FUN_004043f6	004043f6	Function	Global	Default	1	0
+code_page_init	0040457b	Function	Global	User Defined	4	0
+FID_conflict:__mbscpy	004045a0	Function	Global	Analysis	3	0
+_strcpy	004045a0	Function	Global	Analysis	0	0
+__mbscpy	004045a0	Function	Global	Analysis	0	0
+__mbscat	004045b0	Function	Global	Analysis	0	0
+FID_conflict:_strcat	004045b0	Function	Global	Analysis	3	0
+_strcat	004045b0	Function	Global	Analysis	0	0
+_strlen	00404690	Function	Global	Analysis	5	0
+FUN_0040470b	0040470b	Function	Global	Default	1	0
+FUN_00404722	00404722	Function	Global	Default	1	0
+_strchr	00404940	Function	Global	Analysis	1	0
+_strstr	00404a00	Function	Global	Analysis	1	0
+_strncmp	00404a80	Function	Global	Analysis	1	0
+FUN_00404ac0	00404ac0	Function	Global	Default	4	0
+ShowMessage	00404aef	Function	Global	User Defined	1	0
+_strncpy	00404b80	Function	Global	Analysis	1	0
+FUN_00404c80	00404c80	Function	Global	Default	1	0
+switchD	00404cb5	Instruction Label	switchD_00404cb5	Analysis	0	0
+caseD_4	00404cc8	Instruction Label	switchD_00404cd4	Analysis	1	0
+switchD	00404ccd	Instruction Label	switchD_00404ccd	Analysis	0	0
+switchD	00404cd4	Instruction Label	switchD_00404cd4	Analysis	1	0
+switchdataD_00404ce4	00404ce4	Data Label	switchD_00404ccd	Analysis	1	0
+caseD_1	00404cf0	Instruction Label	switchD_00404ccd	Analysis	2	0
+switchD	00404d12	Instruction Label	switchD_00404d12	Analysis	0	0
+caseD_2	00404d1c	Instruction Label	switchD_00404ccd	Analysis	2	0
+switchD	00404d38	Instruction Label	switchD_00404d38	Analysis	0	0
+caseD_3	00404d40	Instruction Label	switchD_00404ccd	Analysis	2	0
+switchD	00404d52	Instruction Label	switchD_00404d52	Analysis	0	0
+switchdataD_00404dc8	00404dc8	Data Label	switchD_00404cd4	Analysis	5	0
+caseD_0	00404dd8	Instruction Label	switchD_00404d52	Analysis	0	0
+caseD_0	00404dd8	Instruction Label	switchD_00404d12	Analysis	0	0
+caseD_0	00404dd8	Instruction Label	switchD_00404cb5	Analysis	0	0
+caseD_0	00404dd8	Instruction Label	switchD_00404d38	Analysis	0	0
+caseD_0	00404dd8	Instruction Label	switchD_00404cd4	Analysis	7	0
+caseD_1	00404de0	Instruction Label	switchD_00404d38	Analysis	0	0
+caseD_1	00404de0	Instruction Label	switchD_00404d52	Analysis	0	0
+caseD_1	00404de0	Instruction Label	switchD_00404d12	Analysis	0	0
+caseD_1	00404de0	Instruction Label	switchD_00404cd4	Analysis	6	0
+caseD_1	00404de0	Instruction Label	switchD_00404cb5	Analysis	0	0
+caseD_2	00404dec	Instruction Label	switchD_00404cb5	Analysis	0	0
+caseD_2	00404dec	Instruction Label	switchD_00404cd4	Analysis	6	0
+caseD_2	00404dec	Instruction Label	switchD_00404d12	Analysis	0	0
+caseD_2	00404dec	Instruction Label	switchD_00404d52	Analysis	0	0
+caseD_2	00404dec	Instruction Label	switchD_00404d38	Analysis	0	0
+caseD_3	00404e00	Instruction Label	switchD_00404d52	Analysis	0	0
+caseD_3	00404e00	Instruction Label	switchD_00404d38	Analysis	0	0
+caseD_3	00404e00	Instruction Label	switchD_00404d12	Analysis	0	0
+caseD_3	00404e00	Instruction Label	switchD_00404cd4	Analysis	6	0
+caseD_3	00404e00	Instruction Label	switchD_00404cb5	Analysis	0	0
+switchD	00404e37	Instruction Label	switchD_00404e37	Analysis	0	0
+caseD_4	00404e58	Instruction Label	switchD_00404e64	Analysis	1	0
+switchD	00404e5d	Instruction Label	switchD_00404e5d	Analysis	0	0
+switchD	00404e64	Instruction Label	switchD_00404e64	Analysis	1	1
+switchdataD_00404e6c	00404e6c	Data Label	switchD_00404e5d	Analysis	1	0
+caseD_1	00404e78	Instruction Label	switchD_00404e5d	Analysis	2	0
+switchD	00404e8e	Instruction Label	switchD_00404e8e	Analysis	0	0
+caseD_2	00404e98	Instruction Label	switchD_00404e5d	Analysis	2	0
+switchD	00404eb8	Instruction Label	switchD_00404eb8	Analysis	0	0
+caseD_3	00404ec0	Instruction Label	switchD_00404e5d	Analysis	2	0
+switchD	00404eea	Instruction Label	switchD_00404eea	Analysis	0	0
+switchdataD_00404f60	00404f60	Data Label	switchD_00404e64	Analysis	6	0
+caseD_0	00404f70	Instruction Label	switchD_00404eea	Analysis	0	0
+caseD_0	00404f70	Instruction Label	switchD_00404e37	Analysis	0	0
+caseD_0	00404f70	Instruction Label	switchD_00404e8e	Analysis	0	0
+caseD_0	00404f70	Instruction Label	switchD_00404e64	Analysis	6	0
+caseD_0	00404f70	Instruction Label	switchD_00404eb8	Analysis	0	0
+caseD_1	00404f78	Instruction Label	switchD_00404eea	Analysis	0	0
+caseD_1	00404f78	Instruction Label	switchD_00404eb8	Analysis	0	0
+caseD_1	00404f78	Instruction Label	switchD_00404e37	Analysis	0	0
+caseD_1	00404f78	Instruction Label	switchD_00404e64	Analysis	6	0
+caseD_1	00404f78	Instruction Label	switchD_00404e8e	Analysis	0	0
+caseD_2	00404f88	Instruction Label	switchD_00404e64	Analysis	6	0
+caseD_2	00404f88	Instruction Label	switchD_00404e37	Analysis	0	0
+caseD_2	00404f88	Instruction Label	switchD_00404eea	Analysis	0	0
+caseD_2	00404f88	Instruction Label	switchD_00404e8e	Analysis	0	0
+caseD_2	00404f88	Instruction Label	switchD_00404eb8	Analysis	0	0
+caseD_3	00404f9c	Instruction Label	switchD_00404eb8	Analysis	0	0
+caseD_3	00404f9c	Instruction Label	switchD_00404eea	Analysis	0	0
+caseD_3	00404f9c	Instruction Label	switchD_00404e64	Analysis	6	0
+caseD_3	00404f9c	Instruction Label	switchD_00404e37	Analysis	0	0
+caseD_3	00404f9c	Instruction Label	switchD_00404e8e	Analysis	0	0
+_memset	00404fc0	Function	Global	Analysis	3	0
+FUN_00405018	00405018	Function	Global	Default	3	0
+FUN_0040523c	0040523c	Function	Global	Default	1	0
+FUN_00405267	00405267	Function	Global	Default	2	0
+FUN_004053b0	004053b0	Function	Global	Default	1	0
+FUN_0040547c	0040547c	Function	Global	Default	4	0
+RtlUnwind	004054f2	Thunk Function	KERNEL32.DLL	Default	1	0
+g_surfCar	00409550	Data Label	Global	User Defined	8	0
+g_hInst	0040957c	Data Label	Global	User Defined	4	0
+g_hMainWnd	00409580	Data Label	Global	User Defined	3	0
+lpDD	00409584	Data Label	Global	User Defined	6	0
+surface	00409588	Data Label	Global	User Defined	5	0
+g_env	0040959c	Data Label	Global	User Defined	5	0
+g_winVer2	004095b4	Data Label	Global	User Defined	1	0
+g_winVer	004095b8	Data Label	Global	User Defined	1	0
+g_winVerMajor	004095bc	Data Label	Global	User Defined	1	0
+g_winVerMinor	004095c0	Data Label	Global	User Defined	1	0
+env_char_size	004096fc	Data Label	Global	User Defined	3	0
+g_heap	00409984	Data Label	Global	User Defined	18	0
+handle_count	00409aa0	Data Label	Global	User Defined	6	0
+code_page_inited	00409aa8	Data Label	Global	User Defined	5	0
+g_cmdLine	00409ab8	Data Label	Global	User Defined	3	0
+Rsrc_Bitmap_65_409	0040a060	Data Label	Global	Imported	0	0
