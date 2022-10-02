@@ -23,7 +23,7 @@ export class Number extends preact.Component<Number.Props> {
           this.props.highlightMemory(this.props.children);
         }}
         onClick={(event) => {
-          this.props.showMemory(this.props.children & ~0xF);
+          this.props.showMemory(this.props.children);
         }}
       >
         {this.props.text ? this.props.text : hex(this.props.children, this.props.digits)}
@@ -43,20 +43,26 @@ namespace Memory {
 export class Memory extends preact.Component<Memory.Props> {
   render() {
     let rows = [];
-    for (let rowAddr = 0; rowAddr < 0x100; rowAddr += 0x10) {
-      const row = [];
-      row.push(hex(this.props.base + rowAddr, 8));
-      for (let offset = 0; offset < 0x10; offset++) {
-        if (offset % 4 === 0) row.push('  ');
-        else row.push(' ');
-        const addr = this.props.base + rowAddr + offset;
-        let value: preact.ComponentChild = hex(this.props.mem.getUint8(addr));
-        if (addr === this.props.highlight) {
-          value = <span class='highlight'>{value}</span>;
+    const base = this.props.base & ~0xf;
+    // Somehow the above can go negative on overflow(?).
+    if (base >= 0) {
+      for (let rowAddr = 0; rowAddr < 0x100; rowAddr += 0x10) {
+        if (base + rowAddr >= this.props.mem.byteLength) break;
+        const row = [];
+        row.push(hex(base + rowAddr, 8));
+        for (let offset = 0; offset < 0x10; offset++) {
+          const addr = base + rowAddr + offset;
+          if (addr >= this.props.mem.byteLength) break;
+          if (offset % 4 === 0) row.push('  ');
+          else row.push(' ');
+          let value: preact.ComponentChild = hex(this.props.mem.getUint8(addr));
+          if (addr === this.props.highlight) {
+            value = <span class='highlight'>{value}</span>;
+          }
+          row.push(value);
         }
-        row.push(value);
+        rows.push(<div>{row}</div>);
       }
-      rows.push(<div>{row}</div>);
     }
     return (
       <section>
