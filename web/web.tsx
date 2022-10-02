@@ -164,7 +164,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
               jumpTo={(addr) => this.setState({ memBase: addr })}
             />
             mappings
-            <Mappings mappings={this.props.vm.mappings()} />
+            <Mappings mappings={this.props.vm.mappings()} highlight={this.state.memHighlight} />
             imports
             <section>
               <code>
