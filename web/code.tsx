@@ -46,7 +46,7 @@ export class Code extends preact.Component<Code.Props> {
       });
       return (
         <tr>
-          <td>
+          <td style={{ width: '10ch' }}>
             <span
               class='clicky'
               title='run to this address'
@@ -57,15 +57,12 @@ export class Code extends preact.Component<Code.Props> {
               {hex(instr.addr, 8)}
             </span>
           </td>
-          <td>&nbsp;&nbsp;</td>
-          <td>{instr.bytes}</td>
-          <td>&nbsp;&nbsp;</td>
-          <td title={instr.ops.join(',')}>{code}</td>
+          <td title={`${instr.bytes} (${instr.ops.join(',')})`}>{code}</td>
         </tr>
       );
     });
     return (
-      <section>
+      <section class='code'>
         <code class='disassembly'>
           <table>
             {instrs}

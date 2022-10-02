@@ -1,5 +1,5 @@
 import * as preact from 'preact';
-import { h } from 'preact';
+import { Fragment, h } from 'preact';
 import { Breakpoint } from './break';
 import { Code } from './code';
 import { Mappings } from './mappings';
@@ -120,25 +120,29 @@ class Page extends preact.Component<Page.Props, Page.State> {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
     return (
-      <main>
-        <button
-          onClick={() => this.run()}
-        >
-          run
-        </button>
-        <button
-          onClick={() => {
-            this.props.vm.step();
-            this.forceUpdate();
-          }}
-        >
-          step
-        </button>
-        <button
-          onClick={() => this.runTo(instrs[1].addr)}
-        >
-          step over
-        </button>
+      <>
+        <div style={{ margin: '1ex' }}>
+          <button
+            onClick={() => this.run()}
+          >
+            run
+          </button>
+          &nbsp;
+          <button
+            onClick={() => {
+              this.props.vm.step();
+              this.forceUpdate();
+            }}
+          >
+            step
+          </button>
+          &nbsp;
+          <button
+            onClick={() => this.runTo(instrs[1].addr)}
+          >
+            step over
+          </button>
+        </div>
         <div style={{ display: 'flex' }}>
           <Code
             instrs={instrs}
@@ -151,7 +155,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Registers regs={this.props.vm.x86} />
         </div>
         <div style={{ display: 'flex' }}>
-          <Tabs>
+          <Tabs style={{ width: '80ex' }}>
             memory
             <Memory
               mem={this.props.vm.x86.memory()}
@@ -170,7 +174,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </Tabs>
           <Stack x86={this.props.vm.x86} />
         </div>
-      </main>
+      </>
     );
   }
 }

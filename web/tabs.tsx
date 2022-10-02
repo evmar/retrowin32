@@ -3,6 +3,7 @@ import { Fragment, h } from 'preact';
 
 namespace Tabs {
   export interface Props {
+    style: preact.JSX.CSSProperties;
   }
   export interface State {
     cur: number;
@@ -17,7 +18,7 @@ export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
       tabs.push([children[i] as string, children[i + 1]]);
     }
     return (
-      <div>
+      <div style={this.props.style}>
         <div class='tabs-strip'>
           {tabs.map(([name, _], i) => {
             let button = <span class='clicky' onClick={() => this.setState({ cur: i })}>{name}</span>;
