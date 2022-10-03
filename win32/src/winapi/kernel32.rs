@@ -10,6 +10,16 @@ use tsify::Tsify;
 pub const STDOUT_HFILE: u32 = 0xF11E_0100;
 pub const STDERR_HFILE: u32 = 0xF11E_0101;
 
+struct DWORD([u8; 4]);
+impl DWORD {
+    fn set(&mut self, val: u32) {
+        self.0[0] = val as u8;
+        self.0[1] = (val >> 8) as u8;
+        self.0[2] = (val >> 16) as u8;
+        self.0[3] = (val >> 24) as u8;
+    }
+}
+
 #[derive(Debug, tsify::Tsify, serde::Serialize)]
 pub struct Mapping {
     pub addr: u32,
@@ -138,6 +148,40 @@ fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
     x86.state.kernel32.image_base
 }
 
+#[repr(C)]
+struct STARTUPINFOA {
+    cb: DWORD,
+    lpReserved: DWORD,
+    lpDesktop: DWORD,
+    lpTitle: DWORD,
+    dwX: DWORD,
+    dwY: DWORD,
+    dwXSize: DWORD,
+    dwYSize: DWORD,
+    dwXCountChars: DWORD,
+    dwYCountChars: DWORD,
+    dwFillAttribute: DWORD,
+    dwFlags: DWORD,
+    wShowWindow: u16,
+    cbReserved2: u16,
+    lpReserved2: DWORD,
+    hStdInput: DWORD,
+    hStdOutput: DWORD,
+    hStdError: DWORD,
+}
+
+fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
+    let ofs = lpStartupInfo as usize;
+    let size = std::mem::size_of::<STARTUPINFOA>();
+    x86.mem[ofs..ofs + size].fill(0);
+
+    let buf = &mut x86.mem[ofs..ofs + std::mem::size_of::<STARTUPINFOA>()];
+    let info: &mut STARTUPINFOA =
+        unsafe { (buf.as_mut_ptr() as *mut STARTUPINFOA).as_mut().unwrap() };
+    info.cb.set(size as u32);
+    0
+}
+
 fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     match nStdHandle as i32 {
         -10 => unimplemented!("GetStdHandle(stdin)"),
@@ -152,15 +196,6 @@ fn GetVersion(_x86: &mut X86) -> u32 {
     (1 << 31) | 0x4
 }
 
-struct DWORD([u8; 4]);
-impl DWORD {
-    fn set(&mut self, val: u32) {
-        self.0[0] = val as u8;
-        self.0[1] = (val >> 8) as u8;
-        self.0[2] = (val >> 16) as u8;
-        self.0[3] = (val >> 24) as u8;
-    }
-}
 
 #[repr(C)]
 struct OSVERSIONINFO {
@@ -292,6 +327,7 @@ winapi!(
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
     fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
     fn GetModuleHandleA(lpModuleName: u32);
+    fn GetStartupInfoA(lpStartupInfo: u32);
     fn GetStdHandle(nStdHandle: u32);
     fn GetVersion();
     fn GetVersionExA(lpVersionInformation: u32);
