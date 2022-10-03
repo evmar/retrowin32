@@ -362,18 +362,24 @@ impl<'a> X86<'a> {
         let result = x & y;
         // XXX More flags.
         self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+        self.regs.flags.set(Flags::OF, false);
         result
     }
     fn and16(&mut self, x: u16, y: u16) -> u16 {
         let result = x & y;
         // XXX More flags.
         self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x8000 != 0);
+        self.regs.flags.set(Flags::OF, false);
         result
     }
     fn and8(&mut self, x: u8, y: u8) -> u8 {
         let result = x & y;
         // XXX More flags.
         self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
+        self.regs.flags.set(Flags::OF, false);
         result
     }
     fn or32(&mut self, x: u32, y: u32) -> u32 {
