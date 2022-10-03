@@ -1,4 +1,4 @@
-use crate::{reader::Reader, x86::write_u32};
+use crate::{reader::{Reader, read_strz}, x86::write_u32};
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 
@@ -238,11 +238,6 @@ struct ImageImportDescriptor {
     forwarder_chain: u32,
     name: u32,
     first_thunk: u32,
-}
-
-fn read_strz(buf: &[u8]) -> String {
-    let nul = buf.iter().position(|&c| c == 0).unwrap();
-    String::from_utf8_lossy(&buf[0..nul]).to_string()
 }
 
 /// mem: memory starting at image base

@@ -72,3 +72,8 @@ impl<'a> Reader<'a> {
         Ok(String::from_utf8_lossy(buf).to_string())
     }
 }
+
+pub fn read_strz(buf: &[u8]) -> String {
+    let nul = buf.iter().position(|&c| c == 0).unwrap();
+    String::from_utf8_lossy(&buf[0..nul]).to_string()
+}

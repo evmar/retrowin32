@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::{x86, x86::X86};
-use crate::winapi;
+use crate::{winapi, reader::read_strz};
 use tsify::Tsify;
 
 // For now, a magic variable that makes it easier to spot.
@@ -181,8 +181,9 @@ fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
     1 // success
 }
 
-fn LoadLibraryA(_x86: &mut X86, lpLibFileName: u32) -> u32 {
-    log::warn!("LoadLibrary({lpLibFileName:x})");
+fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
+    let filename = read_strz(&x86.mem[lpLibFileName as usize..]);
+    log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
 
