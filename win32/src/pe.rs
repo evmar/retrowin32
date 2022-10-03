@@ -1,4 +1,7 @@
-use crate::{reader::{Reader, read_strz}, x86::write_u32};
+use crate::{
+    reader::{read_strz, Reader},
+    x86::write_u32,
+};
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 

@@ -106,7 +106,7 @@ namespace Page {
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { memBase: 0x40_1000 };
+  state: Page.State = { stdout: '', memBase: 0x40_1000 };
 
   constructor(props: Page.Props) {
     super(props);

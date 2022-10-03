@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::{x86, x86::X86};
-use crate::{winapi, reader::read_strz};
+use crate::{reader::read_strz, winapi};
 use tsify::Tsify;
 
 // For now, a magic variable that makes it easier to spot.
