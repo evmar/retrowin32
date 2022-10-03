@@ -4,7 +4,6 @@ use crate::{pe, winapi, X86};
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
-    log::info!("{file:#x?}");
 
     let base = file.opt_header.image_base;
     x86.state.kernel32.image_base = file.opt_header.image_base;
@@ -49,8 +48,6 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     let stack_end = stack.addr + stack.size - 4;
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;
-
-    log::info!("mappings {:x?}", x86.state.kernel32.mappings);
 
     let imports_data = &file.opt_header.data_directory[1];
     let mut x = 0;
