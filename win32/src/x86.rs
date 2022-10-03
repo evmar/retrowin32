@@ -10,12 +10,19 @@ use crate::winapi;
 // This helps catch implementation bugs earlier.
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
-pub fn write_u32(mem: &mut [u8], offset: u32, value: u32) {
-    let offset = offset as usize;
-    mem[offset] = (value >> 0) as u8;
-    mem[offset + 1] = (value >> 8) as u8;
-    mem[offset + 2] = (value >> 16) as u8;
-    mem[offset + 3] = (value >> 24) as u8;
+pub fn read_u32(mem: &[u8], addr: u32) -> u32 {
+    let offset = addr as usize;
+    ((mem[offset] as u32) << 0)
+        | ((mem[offset + 1] as u32) << 8)
+        | ((mem[offset + 2] as u32) << 16)
+        | ((mem[offset + 3] as u32) << 24)
+}
+pub fn write_u32(mem: &mut [u8], addr: u32, value: u32) {
+    let addr = addr as usize;
+    mem[addr] = (value >> 0) as u8;
+    mem[addr + 1] = (value >> 8) as u8;
+    mem[addr + 2] = (value >> 16) as u8;
+    mem[addr + 3] = (value >> 24) as u8;
 }
 
 bitflags! {
@@ -198,11 +205,11 @@ impl<'a> X86<'a> {
         }
     }
 
-    pub fn write_u32(&mut self, offset: u32, value: u32) {
-        if offset < NULL_POINTER_REGION_SIZE {
-            panic!("null pointer write at {offset:#x}");
+    pub fn write_u32(&mut self, addr: u32, value: u32) {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer write at {addr:#x}");
         }
-        write_u32(&mut self.mem, offset, value);
+        write_u32(&mut self.mem, addr, value);
     }
     pub fn write_u16(&mut self, addr: u32, value: u16) {
         if addr < NULL_POINTER_REGION_SIZE {
@@ -222,11 +229,7 @@ impl<'a> X86<'a> {
         if addr < NULL_POINTER_REGION_SIZE {
             panic!("null pointer read at {addr:#x}");
         }
-        let offset = addr as usize;
-        ((self.mem[offset] as u32) << 0)
-            | ((self.mem[offset + 1] as u32) << 8)
-            | ((self.mem[offset + 2] as u32) << 16)
-            | ((self.mem[offset + 3] as u32) << 24)
+        read_u32(&self.mem, addr)
     }
     pub fn read_u16(&self, addr: u32) -> u16 {
         if addr < NULL_POINTER_REGION_SIZE {
@@ -820,7 +823,7 @@ impl<'a> X86<'a> {
             iced_x86::Code::Sbb_r32_rm32 => {
                 let reg = instr.op0_register();
                 let carry = self.regs.flags.contains(Flags::CF) as u32;
-                let y = self.op1_rm32(instr) + carry;
+                let y = self.op1_rm32(instr).wrapping_add(carry);
                 let value = self.sub32(self.regs.get32(reg), y);
                 self.regs.set32(reg, value);
             }
@@ -845,8 +848,9 @@ impl<'a> X86<'a> {
                 self.rm32_x(instr, |_x86, x| x + 1);
             }
             iced_x86::Code::Neg_rm32 => {
-                self.rm32_x(instr, |_x86, x| {
-                    // TODO: flags registers.
+                self.rm32_x(instr, |x86, x| {
+                    x86.regs.flags.set(Flags::CF, x != 0);
+                    // TODO: other flags registers.
                     -(x as i32) as u32
                 });
             }
