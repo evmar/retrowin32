@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use super::X86;
-use crate::winapi;
+use crate::{reader::read_strz, winapi};
 
 pub struct Window {}
 
@@ -20,12 +20,12 @@ impl State {
     }
 }
 
-pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
+fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
     log::warn!("todo: RegisterClassA({:x})", lpWndClass);
     0
 }
 
-pub fn CreateWindowExA(
+fn CreateWindowExA(
     x86: &mut X86,
     dwExStyle: u32,
     lpClassName: u32,
@@ -48,18 +48,26 @@ pub fn CreateWindowExA(
     hwnd
 }
 
-pub fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
+fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
     log::warn!("todo: UpdateWindow({hWnd:x})");
     0
 }
 
-pub fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
+fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
     0
 }
 
-pub fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
+fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
     // TODO: supposed to return previous focused hwnd.
     0
+}
+
+fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u32) -> u32 {
+    let caption = read_strz(&x86.mem[lpCaption as usize..]);
+    let text = read_strz(&x86.mem[lpText as usize..]);
+    x86.host
+        .write(format!("MessageBox: {}\n{}", caption, text).as_bytes());
+    1 // IDOK
 }
 
 fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
@@ -103,6 +111,7 @@ winapi!(
     fn UpdateWindow(hWnd: u32);
     fn ShowWindow(hWnd: u32, nCmdShow: u32);
     fn SetFocus(hWnd: u32);
+    fn MessageBoxA(hWnd: u32, lpText: u32, lpCaption: u32, uType: u32);
 
     fn LoadIconA(hInstance: u32, lpIconName: u32);
     fn LoadCursorA(hInstance: u32, lpCursorName: u32);
