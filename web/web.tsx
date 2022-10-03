@@ -14,6 +14,18 @@ async function loadExe(path: string): Promise<ArrayBuffer> {
   return await (await fetch(path)).arrayBuffer();
 }
 
+async function loadLabels(path: string): Promise<Map<number, string>> {
+  const labels = new Map<number, string>();
+  const resp = await fetch(path + '.csv');
+  if (!resp.ok) return labels;
+  const text = await resp.text();
+  for (const line of text.split('\n')) {
+    const [name, addr] = line.split('\t');
+    labels.set(parseInt(addr, 16), name);
+  }
+  return labels;
+}
+
 // Matches 'pub type JsHost' in lib.rs.
 interface JsHost {
   exit(code: number): void;
@@ -25,12 +37,13 @@ class VM implements JsHost {
   decoder = new TextDecoder();
   breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
-  labels = new Map<number, string>();
+  labels: Map<number, string>;
   exitCode: number | undefined = undefined;
   stdout = '';
   page!: Page;
 
-  constructor(exe: ArrayBuffer) {
+  constructor(exe: ArrayBuffer, labels: Map<number, string>) {
+    this.labels = labels;
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
     const importsJSON = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
@@ -210,9 +223,10 @@ async function main() {
   const path = document.location.search.substring(1);
   if (!path) throw new Error('expected ?path in URL');
   const exe = await loadExe(path);
+  const labels = await loadLabels(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
 
-  const vm = new VM(exe);
+  const vm = new VM(exe, labels);
   preact.render(<Page vm={vm} />, document.body);
 }
 
