@@ -196,7 +196,6 @@ fn GetVersion(_x86: &mut X86) -> u32 {
     (1 << 31) | 0x4
 }
 
-
 #[repr(C)]
 struct OSVERSIONINFO {
     dwOSVersionInfoSize: DWORD,
