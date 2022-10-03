@@ -910,7 +910,7 @@ impl<'a> X86<'a> {
                 let y = instr.immediate8to16() as u16;
                 self.sub16(x, y);
             }
-            iced_x86::Code::Cmp_rm8_imm8 => {
+            iced_x86::Code::Cmp_rm8_imm8 | iced_x86::Code::Cmp_AL_imm8 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
                     iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
