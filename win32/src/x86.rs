@@ -707,7 +707,7 @@ impl<'a> X86<'a> {
             iced_x86::Code::Or_rm8_imm8 => {
                 let y = instr.immediate8();
                 self.rm8_x(instr, |x86, x| x86.or8(x, y));
-            }            
+            }
             iced_x86::Code::Shl_rm32_imm8 => {
                 let y = instr.immediate8to32();
                 self.rm32_x(instr, |_x86, x| x << y);

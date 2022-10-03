@@ -276,6 +276,11 @@ fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
     0 // fail
 }
 
+fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
+    // "For Windows Win32 systems, this API has no effect."
+    uNumber
+}
+
 fn WriteFile(
     x86: &mut X86,
     hFile: u32,
@@ -355,6 +360,7 @@ winapi!(
         lpNumberOfBytesWritten: u32,
         lpOverlapped: u32,
     );
+    fn SetHandleCount(uNumber: u32);
     fn VirtualAlloc(lpAddress: u32, dwSize: u32, _flAllocationType: u32, _flProtec: u32);
     fn VirtualFree(lpAddress: u32, dwSize: u32, dwFreeType: u32);
 );
