@@ -163,6 +163,10 @@ fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
     1
 }
 
+fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
+    0
+}
+
 fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
     log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
     let mapping = x86
@@ -248,6 +252,7 @@ winapi!(
     fn GetStdHandle(nStdHandle: u32);
     fn GetVersion();
     fn GetVersionExA(lpVersionInformation: u32);
+    fn HeapAlloc(hHeap: u32, dwFlags: u32, dwBytes: u32);
     fn HeapCreate(flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32);
     fn HeapDestroy(hHeap: u32);
     fn LoadLibraryA(lpLibFileName: u32);
