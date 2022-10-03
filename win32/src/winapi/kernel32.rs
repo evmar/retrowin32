@@ -61,6 +61,7 @@ pub struct State {
     pub mappings: Vec<Mapping>,
     heaps: HashMap<u32, Heap>,
     cmdline: u32,
+    env: u32,
 }
 impl State {
     pub fn new() -> Self {
@@ -75,6 +76,7 @@ impl State {
             mappings,
             heaps: HashMap::new(),
             cmdline: 0,
+            env: 0,
         }
     }
 
@@ -143,10 +145,15 @@ pub fn init_teb_peb(x86: &mut X86) {
     let teb_addr = params_addr + 0x100;
 
     // XXX need a better place for this.
-    let cmdline_addr: u32 = teb_addr + 0x100;
+    let cmdline_addr = teb_addr + 0x100;
     let cmdline = "retrowin32.exe\0".as_bytes();
     x86.mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
     x86.state.kernel32.cmdline = cmdline_addr;
+
+    let env_addr = cmdline_addr + 0x20;
+    let env = "\0\0".as_bytes();
+    x86.mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
+    x86.state.kernel32.env = env_addr;
 
     // PEB
     x86.write_u32(peb_addr + 0x10, params_addr);
@@ -182,8 +189,8 @@ fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
     0 // fail
 }
 
-fn GetEnvironmentStrings(_x86: &mut X86) -> u32 {
-    0
+fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
+    x86.state.kernel32.env
 }
 fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
