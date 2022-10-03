@@ -123,9 +123,44 @@ fn GetVersion(_x86: &mut X86) -> u32 {
     (1 << 31) | 0x4
 }
 
-fn GetVersionExA(_x86: &mut X86, _lpVersionInformation: u32) -> u32 {
-    // Fail for now.
-    0
+struct DWORD([u8; 4]);
+impl DWORD {
+    fn set(&mut self, val: u32) {
+        self.0[0] = val as u8;
+        self.0[1] = (val >> 8) as u8;
+        self.0[2] = (val >> 16) as u8;
+        self.0[3] = (val >> 24) as u8;
+    }
+}
+
+#[repr(C)]
+struct OSVERSIONINFO {
+    dwOSVersionInfoSize: DWORD,
+    dwMajorVersion: DWORD,
+    dwMinorVersion: DWORD,
+    dwBuildNumber: DWORD,
+    dwPlatformId: DWORD,
+    //szCSDVersion: [u8; 128],
+}
+
+fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
+    let ofs = lpVersionInformation as usize;
+    let size = x86.read_u32(lpVersionInformation) as usize;
+    if size < std::mem::size_of::<OSVERSIONINFO>() {
+        log::error!("GetVersionExA undersized buffer");
+        return 0;
+    }
+    x86.mem[ofs..ofs + size].fill(0);
+
+    let buf = &mut x86.mem[ofs..ofs + std::mem::size_of::<OSVERSIONINFO>()];
+    let info: &mut OSVERSIONINFO =
+        unsafe { (buf.as_mut_ptr() as *mut OSVERSIONINFO).as_mut().unwrap() };
+
+    info.dwOSVersionInfoSize.set(size as u32);
+    info.dwMajorVersion.set(6); // ? pulled from debugger
+    info.dwPlatformId.set(2 /* VER_PLATFORM_WIN32_NT */);
+
+    1
 }
 
 fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
