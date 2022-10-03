@@ -359,6 +359,12 @@ impl<'a> X86<'a> {
         self.regs.flags.set(Flags::ZF, result == 0);
         result
     }
+    fn or32(&mut self, x: u32, y: u32) -> u32 {
+        let result = x | y;
+        // XXX More flags.
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
 
     fn rm32_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
         match instr.op0_kind() {
@@ -684,6 +690,14 @@ impl<'a> X86<'a> {
                 let value = self.regs.get32(reg) & y;
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::And_rm8_imm8 => {
+                let y = instr.immediate8();
+                self.rm8_x(instr, |x86, x| x86.and8(x, y));
+            }
+            iced_x86::Code::Or_rm32_imm8 => {
+                let y = instr.immediate8to32() as u32;
+                self.rm32_x(instr, |x86, x| x86.or32(x, y));
+            }
             iced_x86::Code::Shl_rm32_imm8 => {
                 let y = instr.immediate8to32();
                 self.rm32_x(instr, |_x86, x| x << y);
@@ -716,7 +730,7 @@ impl<'a> X86<'a> {
                 let value = self.add32(self.regs.get32(reg), self.op1_rm32(&instr));
                 self.regs.set32(reg, value);
             }
-            iced_x86::Code::Add_rm32_imm32 => {
+            iced_x86::Code::Add_rm32_imm32 | iced_x86::Code::Add_EAX_imm32 => {
                 let y = instr.immediate32();
                 self.rm32_x(instr, |x86, x| x86.add32(x, y));
             }
