@@ -670,16 +670,38 @@ impl<'a> X86<'a> {
                     bail!("unimpl");
                 }
             }
-            iced_x86::Code::Stosb_m8_AL => {
-                if !instr.has_rep_prefix() {
-                    bail!("expected rep stosb");
+            iced_x86::Code::Stosd_m32_EAX => {
+                let dst = self.regs.edi as usize;
+                let value = self.regs.eax;
+                if value != 0 {
+                    bail!("TODO: stosd impl");
                 }
+                if instr.has_rep_prefix() {
+                    let count = self.regs.ecx as usize;
+                    self.mem[dst..dst + count * 4].fill(0);
+                    self.regs.edi += count as u32 * 4;
+                    self.regs.ecx = 0;
+                } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
+                    bail!("unimpl");
+                } else {
+                    self.mem[dst..dst + 4].fill(0);
+                    self.regs.edi += 1;
+                }
+            }
+            iced_x86::Code::Stosb_m8_AL => {
                 let dst = self.regs.edi as usize;
                 let value = self.regs.eax as u8;
-                let count = self.regs.ecx as usize;
-                self.mem[dst..dst + count].fill(value);
-                self.regs.edi += count as u32;
-                self.regs.ecx = 0;
+                if instr.has_rep_prefix() {
+                    let count = self.regs.ecx as usize;
+                    self.mem[dst..dst + count].fill(value);
+                    self.regs.edi += count as u32;
+                    self.regs.ecx = 0;
+                } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
+                    bail!("unimpl");
+                } else {
+                    self.mem[dst] = value;
+                    self.regs.edi += 1;
+                }
             }
 
             iced_x86::Code::And_rm32_imm32 | iced_x86::Code::And_EAX_imm32 => {
