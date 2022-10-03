@@ -1,6 +1,7 @@
 use crate::x86;
 use crate::X86;
 
+pub mod gdi32;
 pub mod kernel32;
 pub mod user32;
 
@@ -37,10 +38,15 @@ macro_rules! winapi {
 
 pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
     match dll {
+        "gdi32.dll" => gdi32::resolve(sym),
         "kernel32.dll" => kernel32::resolve(sym),
         "user32.dll" => user32::resolve(sym),
         _ => None,
     }
+    // .or_else(|| {
+    //     log::warn!("unresolved symbol {}:{}", dll, sym);
+    //     None
+    // })
 }
 
 pub struct State {

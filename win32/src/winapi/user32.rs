@@ -32,6 +32,37 @@ pub fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
     0
 }
 
+pub fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
+    0
+}
+
+pub fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
+    // TODO: supposed to return previous focused hwnd.
+    0
+}
+
+fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
+    0
+}
+
+fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
+    0
+}
+
+fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
+    const SM_CXSCREEN: u32 = 0;
+    const SM_CYSCREEN: u32 = 1;
+
+    match nIndex {
+        SM_CXSCREEN => 640,
+        SM_CYSCREEN => 480,
+        _ => {
+            log::warn!("GetSystemMetrics({nIndex})");
+            0
+        }
+    }
+}
+
 winapi!(
     fn RegisterClassA(lpWndClass: u32);
     fn CreateWindowExA(
@@ -49,4 +80,10 @@ winapi!(
         lpParam: u32,
     );
     fn UpdateWindow(hWnd: u32);
+    fn ShowWindow(hWnd: u32, nCmdShow: u32);
+    fn SetFocus(hWnd: u32);
+
+    fn LoadIconA(hInstance: u32, lpIconName: u32);
+    fn LoadCursorA(hInstance: u32, lpCursorName: u32);
+    fn GetSystemMetrics(nIndex: u32);
 );
