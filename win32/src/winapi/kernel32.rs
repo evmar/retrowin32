@@ -174,6 +174,14 @@ fn GetCommandLineA(x86: &mut X86) -> u32 {
     x86.state.kernel32.cmdline
 }
 
+fn GetEnvironmentStrings(_x86: &mut X86) -> u32 {
+    0
+}
+fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
+    // CRT startup appears to fallback on non-W version of this if it returns null.
+    0
+}
+
 fn GetEnvironmentVariableA(_x86: &mut X86, _lpName: u32, _lpBuffer: u32, _nSize: u32) -> u32 {
     // Fail for now.
     0
@@ -386,6 +394,8 @@ winapi!(
     fn ExitProcess(uExitCode: u32);
     fn GetCommandLineA();
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
+    fn GetEnvironmentStrings();
+    fn GetEnvironmentStringsW();
     fn GetFileType(hFile: u32);
     fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
     fn GetModuleHandleA(lpModuleName: u32);
