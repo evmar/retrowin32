@@ -7,8 +7,9 @@ use crate::{reader::read_strz, winapi};
 use tsify::Tsify;
 
 // For now, a magic variable that makes it easier to spot.
-pub const STDOUT_HFILE: u32 = 0xF11E_0100;
-pub const STDERR_HFILE: u32 = 0xF11E_0101;
+pub const STDIN_HFILE: u32 = 0xF11E_0100;
+pub const STDOUT_HFILE: u32 = 0xF11E_0101;
+pub const STDERR_HFILE: u32 = 0xF11E_0102;
 
 struct DWORD([u8; 4]);
 impl DWORD {
@@ -135,6 +136,18 @@ fn GetEnvironmentVariableA(_x86: &mut X86, _lpName: u32, _lpBuffer: u32, _nSize:
     0
 }
 
+fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
+    let FILE_TYPE_CHAR = 0x2;
+    let FILE_TYPE_UNKNOWN = 0x8;
+    match hFile {
+        STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => FILE_TYPE_CHAR,
+        _ => {
+            log::error!("GetFileType({hFile:x}) unknown handle");
+            FILE_TYPE_UNKNOWN
+        }
+    }
+}
+
 fn GetModuleFileNameA(_x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) -> u32 {
     log::warn!("GetModuleFileNameA({hModule:x}, {lpFilename:x}, {nSize:x})");
     0 // fail
@@ -184,7 +197,7 @@ fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
 
 fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     match nStdHandle as i32 {
-        -10 => unimplemented!("GetStdHandle(stdin)"),
+        -10 => STDIN_HFILE,
         -11 => STDOUT_HFILE,
         -12 => STDERR_HFILE,
         _ => (-1i32) as u32,
@@ -324,6 +337,7 @@ fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> 
 winapi!(
     fn ExitProcess(uExitCode: u32);
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
+    fn GetFileType(hFile: u32);
     fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
     fn GetModuleHandleA(lpModuleName: u32);
     fn GetStartupInfoA(lpStartupInfo: u32);
