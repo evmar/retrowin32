@@ -3,7 +3,11 @@
 use std::collections::HashMap;
 
 use super::{x86, x86::X86};
-use crate::{reader::read_strz, winapi};
+use crate::{
+    reader::read_strz,
+    winapi,
+    x86::{read_u32, write_u32},
+};
 use tsify::Tsify;
 
 // For now, a magic variable that makes it easier to spot.
@@ -42,14 +46,21 @@ impl Heap {
         }
     }
 
-    fn alloc(&mut self, size: u32) -> u32 {
-        if self.next + size > self.size {
+    fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
+        let alloc_size = size + 4; // TODO: align?
+        if self.next + alloc_size > self.size {
             log::error!("Heap::alloc cannot allocate {:x}", size);
             return 0;
         }
-        let ptr = self.next;
-        self.next += size;
-        self.addr + ptr
+        let addr = self.addr + self.next;
+        write_u32(mem, addr, size);
+        self.next += alloc_size;
+        addr + 4
+    }
+
+    fn size(&self, mem: &[u8], addr: u32) -> u32 {
+        assert!(addr >= self.addr + 4 && addr < self.addr + self.size);
+        read_u32(mem, addr - 4)
     }
 }
 
@@ -321,7 +332,49 @@ fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
         }
         Some(heap) => heap,
     };
-    heap.alloc(dwBytes)
+    heap.alloc(&mut x86.mem, dwBytes)
+}
+
+fn HeapFree(_x86: &mut X86, _hHeap: u32, dwFlags: u32, _lpMem: u32) -> u32 {
+    if dwFlags != 0 {
+        log::warn!("HeapFree flags {dwFlags:x}");
+    }
+    1 // success
+}
+
+fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+    if dwFlags != 0 {
+        log::warn!("HeapSize flags {dwFlags:x}");
+    }
+    let heap = match x86.state.kernel32.heaps.get(&hHeap) {
+        None => {
+            log::error!("HeapSize({hHeap:x}): no such heap");
+            return 0;
+        }
+        Some(heap) => heap,
+    };
+    heap.size(&x86.mem, lpMem)
+}
+
+fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
+    if dwFlags != 0 {
+        log::warn!("HeapReAlloc flags: {:x}", dwFlags);
+    }
+    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+        None => {
+            log::error!("HeapSize({hHeap:x}): no such heap");
+            return 0;
+        }
+        Some(heap) => heap,
+    };
+    let old_size = heap.size(&x86.mem, lpMem);
+    let new_addr = heap.alloc(&mut x86.mem, dwBytes);
+    log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
+    x86.mem.copy_within(
+        lpMem as usize..(lpMem + old_size) as usize,
+        new_addr as usize,
+    );
+    new_addr
 }
 
 fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
@@ -429,6 +482,10 @@ winapi!(
     fn HeapAlloc(hHeap: u32, dwFlags: u32, dwBytes: u32);
     fn HeapCreate(flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32);
     fn HeapDestroy(hHeap: u32);
+    fn HeapFree(hHeap: u32, dwFlags: u32, lpMem: u32);
+    fn HeapSize(hHeap: u32, dwFlags: u32, lpMem: u32);
+    fn HeapReAlloc(hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32);
+
     fn LoadLibraryA(lpLibFileName: u32);
     fn WriteFile(
         hFile: u32,
