@@ -1,37 +1,6 @@
 use std::collections::HashMap;
 
-use crate::winapi::kernel32::STDOUT_HFILE;
 use crate::{pe, winapi, X86};
-
-/// Set up TEB, PEB, and other process info.
-/// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb_peb(x86: &mut X86) {
-    let mapping = x86
-        .state
-        .kernel32
-        .alloc(0x1000, "PEB/TEB".into(), &mut x86.mem);
-    // Fill region with garbage so it's clearer when we access something we don't intend to.
-    x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
-
-    let peb_addr = mapping.addr;
-    let params_addr = mapping.addr + 0x100;
-    let teb_addr = params_addr + 0x100;
-
-    // PEB
-    x86.write_u32(peb_addr + 0x10, params_addr);
-
-    // RTL_USER_PROCESS_PARAMETERS
-    // x86.write_u32(params_addr + 0x10, console_handle);
-    // x86.write_u32(params_addr + 0x14, console_flags);
-    // x86.write_u32(params_addr + 0x18, stdin);
-    x86.write_u32(params_addr + 0x1c, STDOUT_HFILE);
-
-    // TEB
-    x86.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
-    x86.write_u32(teb_addr + 0x30, peb_addr);
-
-    x86.state.kernel32.teb = teb_addr;
-}
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
@@ -62,7 +31,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         });
     }
 
-    init_teb_peb(x86);
+    winapi::kernel32::init_teb_peb(x86);
 
     let mut stack_size = file.opt_header.size_of_stack_reserve;
     // Zig reserves 16mb stacks, just truncate for now.

@@ -60,6 +60,7 @@ pub struct State {
     pub teb: u32,
     pub mappings: Vec<Mapping>,
     heaps: HashMap<u32, Heap>,
+    cmdline: u32,
 }
 impl State {
     pub fn new() -> Self {
@@ -73,6 +74,7 @@ impl State {
             teb: 0,
             mappings,
             heaps: HashMap::new(),
+            cmdline: 0,
         }
     }
 
@@ -126,9 +128,50 @@ impl State {
     }
 }
 
+/// Set up TEB, PEB, and other process info.
+/// The FS register points at the TEB (thread info), which points at the PEB (process info).
+pub fn init_teb_peb(x86: &mut X86) {
+    let mapping = x86
+        .state
+        .kernel32
+        .alloc(0x1000, "PEB/TEB".into(), &mut x86.mem);
+    // Fill region with garbage so it's clearer when we access something we don't intend to.
+    x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
+
+    let peb_addr = mapping.addr;
+    let params_addr = mapping.addr + 0x100;
+    let teb_addr = params_addr + 0x100;
+
+    // XXX need a better place for this.
+    let cmdline_addr: u32 = teb_addr + 0x100;
+    let cmdline = "retrowin32.exe\0".as_bytes();
+    x86.mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
+    x86.state.kernel32.cmdline = cmdline_addr;
+
+    // PEB
+    x86.write_u32(peb_addr + 0x10, params_addr);
+
+    // RTL_USER_PROCESS_PARAMETERS
+    // x86.write_u32(params_addr + 0x10, console_handle);
+    // x86.write_u32(params_addr + 0x14, console_flags);
+    // x86.write_u32(params_addr + 0x18, stdin);
+    x86.write_u32(params_addr + 0x1c, STDOUT_HFILE);
+
+    // TEB
+    x86.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
+    x86.write_u32(teb_addr + 0x30, peb_addr);
+
+    x86.state.kernel32.teb = teb_addr;
+}
+
 fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
     x86.host.exit(uExitCode);
     0
+}
+
+fn GetCommandLineA(x86: &mut X86) -> u32 {
+    // TODO: possibly this should come from PEB->ProcessParameters->CommandLine.
+    x86.state.kernel32.cmdline
 }
 
 fn GetEnvironmentVariableA(_x86: &mut X86, _lpName: u32, _lpBuffer: u32, _nSize: u32) -> u32 {
@@ -341,6 +384,7 @@ fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> 
 
 winapi!(
     fn ExitProcess(uExitCode: u32);
+    fn GetCommandLineA();
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
     fn GetFileType(hFile: u32);
     fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
