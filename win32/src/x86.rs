@@ -303,6 +303,20 @@ impl<'a> X86<'a> {
         self.regs.flags.set(Flags::OF, of);
         result
     }
+    fn add8(&mut self, x: u8, y: u8) -> u8 {
+        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+        let (result, carry) = x.overflowing_add(y);
+        self.regs.flags.set(Flags::CF, carry);
+        self.regs.flags.set(Flags::ZF, result == 0);
+        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
+        // Overflow is true exactly when the high (sign) bits are like:
+        //   x  y  result
+        //   0  0  1
+        //   1  1  0
+        let of = ((x ^ !y) & (x ^ result)) >> 7 != 0;
+        self.regs.flags.set(Flags::OF, of);
+        result
+    }
 
     fn sub32(&mut self, x: u32, y: u32) -> u32 {
         let (result, carry) = x.overflowing_sub(y);
@@ -770,6 +784,10 @@ impl<'a> X86<'a> {
                 let y = instr.immediate8to32() as u32;
                 self.rm32_x(instr, |x86, x| x86.add32(x, y));
             }
+            iced_x86::Code::Add_rm8_imm8 => {
+                let y = instr.immediate8();
+                self.rm8_x(instr, |x86, x| x86.add8(x, y));
+            }
 
             iced_x86::Code::Sub_rm32_imm8 => {
                 let y = instr.immediate8to32() as u32;
@@ -789,6 +807,11 @@ impl<'a> X86<'a> {
                 let value = self.sub32(self.regs.get32(reg), y);
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::Sub_rm8_imm8 => {
+                let y = instr.immediate8();
+                self.rm8_x(instr, |x86, x| x86.sub8(x, y));
+            }
+
             iced_x86::Code::Sbb_r32_rm32 => {
                 let reg = instr.op0_register();
                 let carry = self.regs.flags.contains(Flags::CF) as u32;
@@ -812,10 +835,9 @@ impl<'a> X86<'a> {
                 }
                 self.regs.set32(reg, value);
             }
-            iced_x86::Code::Inc_r32 => {
+            iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {
                 // TODO: flags.
-                let reg = instr.op0_register();
-                self.regs.set32(reg, self.regs.get32(reg) + 1);
+                self.rm32_x(instr, |_x86, x| x + 1);
             }
             iced_x86::Code::Neg_rm32 => {
                 self.rm32_x(instr, |_x86, x| {
