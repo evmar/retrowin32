@@ -527,7 +527,7 @@ impl<'a> X86<'a> {
                     self.jmp(instr.near_branch32())?;
                 }
             }
-            iced_x86::Code::Jb_rel8_32 => {
+            iced_x86::Code::Jb_rel8_32 | iced_x86::Code::Jb_rel32_32 => {
                 if self.regs.flags.contains(Flags::CF) {
                     self.jmp(instr.near_branch32())?;
                 }
