@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashMap;
+
 use super::{x86, x86::X86};
 use crate::{reader::read_strz, winapi};
 use tsify::Tsify;
@@ -15,12 +17,38 @@ pub struct Mapping {
     pub desc: String,
 }
 
+struct Heap {
+    addr: u32,
+    size: u32,
+    next: u32,
+}
+impl Heap {
+    fn new(addr: u32, size: u32) -> Self {
+        Heap {
+            addr,
+            size,
+            next: 0,
+        }
+    }
+
+    fn alloc(&mut self, size: u32) -> u32 {
+        if self.next + size > self.size {
+            log::error!("Heap::alloc cannot allocate {:x}", size);
+            return 0;
+        }
+        let ptr = self.next;
+        self.next += size;
+        self.addr + ptr
+    }
+}
+
 pub struct State {
     // Address image was loaded at.
     pub image_base: u32,
     // Address of TEB (FS register).
     pub teb: u32,
     pub mappings: Vec<Mapping>,
+    heaps: HashMap<u32, Heap>,
 }
 impl State {
     pub fn new() -> Self {
@@ -33,6 +61,7 @@ impl State {
             image_base: 0,
             teb: 0,
             mappings,
+            heaps: HashMap::new(),
         }
     }
 
@@ -164,7 +193,17 @@ fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
 }
 
 fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
-    0
+    if dwFlags != 0 {
+        log::warn!("HeapAlloc flags {dwFlags:x}");
+    }
+    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+        None => {
+            log::error!("HeapAlloc({hHeap:x}): no such heap");
+            return 0;
+        }
+        Some(heap) => heap,
+    };
+    heap.alloc(dwBytes)
 }
 
 fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
@@ -173,7 +212,10 @@ fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: 
         .state
         .kernel32
         .alloc(dwInitialSize, "HeapCreate".into(), &mut x86.mem);
-    mapping.addr
+    let addr = mapping.addr;
+    let size = mapping.size;
+    x86.state.kernel32.heaps.insert(addr, Heap::new(addr, size));
+    addr
 }
 
 fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
