@@ -192,6 +192,11 @@ fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
 fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
     x86.state.kernel32.env
 }
+
+fn FreeEnvironmentStringsA(_x86: &mut X86, _penv: u32) -> u32 {
+    1 // success
+}
+
 fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
     0
@@ -412,6 +417,7 @@ winapi!(
     fn GetCPInfo(CodePage: u32, lpCPInfo: u32);
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
     fn GetEnvironmentStrings();
+    fn FreeEnvironmentStringsA(penv: u32);
     fn GetEnvironmentStringsW();
     fn GetFileType(hFile: u32);
     fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
