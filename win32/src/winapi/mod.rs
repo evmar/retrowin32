@@ -51,11 +51,13 @@ pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
 
 pub struct State {
     pub kernel32: kernel32::State,
+    pub user32: user32::State,
 }
 impl State {
     pub fn new() -> Self {
         State {
             kernel32: kernel32::State::new(),
+            user32: user32::State::new(),
         }
     }
 }

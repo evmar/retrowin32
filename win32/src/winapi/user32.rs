@@ -1,7 +1,24 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashMap;
+
 use super::X86;
 use crate::winapi;
+
+pub struct Window {}
+
+pub struct State {
+    windows: HashMap<u32, Window>,
+    next_hwnd: u32,
+}
+impl State {
+    pub fn new() -> Self {
+        State {
+            windows: HashMap::new(),
+            next_hwnd: 1,
+        }
+    }
+}
 
 pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
     log::warn!("todo: RegisterClassA({:x})", lpWndClass);
@@ -9,7 +26,7 @@ pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
 }
 
 pub fn CreateWindowExA(
-    _x86: &mut X86,
+    x86: &mut X86,
     dwExStyle: u32,
     lpClassName: u32,
     lpWindowName: u32,
@@ -23,8 +40,12 @@ pub fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> u32 {
+    let hwnd = x86.state.user32.next_hwnd;
+    x86.state.user32.next_hwnd += 1;
+
     log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
-    0
+
+    hwnd
 }
 
 pub fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
