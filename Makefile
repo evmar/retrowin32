@@ -10,5 +10,7 @@ fmt-rust:
 	cargo fmt
 fmt-web:
 	cd web && npm run fmt
+fmt-md:
+	prettier -w --prose-wrap always *.md doc/*.md
 
-fmt: fmt-rust fmt-web
+fmt: fmt-rust fmt-web fmt-md

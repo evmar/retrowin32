@@ -34,3 +34,11 @@ hardware and an OS that doesn't exist?
 
 See a [comparison against similar ideas (WINE, qemu, v86)](doc/comparison.md)
 and why this is different.
+
+# Code layout
+
+- `win32/` -- the x86/win32 emulator
+- `cli/` -- a command-line emulator runner
+- `wasm/` -- a wrapper that exposes the `win32/` API
+- `web/` -- a webapp that uses the Wasm bundle to single-step/debug the emulator
+  in a browser

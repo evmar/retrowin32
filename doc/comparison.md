@@ -10,8 +10,8 @@ still requires an x86 processor:
 <img src='wine.png' width='247' alt='WINE component stack'>
 
 x86 emulators like [qemu](https://www.qemu.org/) and [v86](https://copy.sh/v86/)
-emulate an x86 processor, but at a level where it still requires you to run an OS
-within the emulator:
+emulate an x86 processor, but at a level where it still requires you to run an
+OS within the emulator:
 
 <img src='qemu.png' width='248' alt='qemu component stack'>
 
