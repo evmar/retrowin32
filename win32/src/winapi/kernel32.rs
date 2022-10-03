@@ -169,9 +169,17 @@ fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
     0
 }
 
+fn GetACP(_x86: &mut X86) -> u32 {
+    1252 // windows-1252
+}
+
 fn GetCommandLineA(x86: &mut X86) -> u32 {
     // TODO: possibly this should come from PEB->ProcessParameters->CommandLine.
     x86.state.kernel32.cmdline
+}
+
+fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
+    0 // fail
 }
 
 fn GetEnvironmentStrings(_x86: &mut X86) -> u32 {
@@ -392,7 +400,9 @@ fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> 
 
 winapi!(
     fn ExitProcess(uExitCode: u32);
+    fn GetACP();
     fn GetCommandLineA();
+    fn GetCPInfo(CodePage: u32, lpCPInfo: u32);
     fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
     fn GetEnvironmentStrings();
     fn GetEnvironmentStringsW();
