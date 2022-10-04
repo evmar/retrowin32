@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use super::{x86, x86::X86};
+use super::{x86, x86::X86, DWORD};
 use crate::{
     reader::read_strz,
     winapi,
@@ -15,16 +15,6 @@ pub const STDIN_HFILE: u32 = 0xF11E_0100;
 pub const STDOUT_HFILE: u32 = 0xF11E_0101;
 pub const STDERR_HFILE: u32 = 0xF11E_0102;
 
-struct DWORD([u8; 4]);
-impl DWORD {
-    fn set(&mut self, val: u32) {
-        self.0[0] = val as u8;
-        self.0[1] = (val >> 8) as u8;
-        self.0[2] = (val >> 16) as u8;
-        self.0[3] = (val >> 24) as u8;
-    }
-}
-
 #[derive(Debug, tsify::Tsify, serde::Serialize)]
 pub struct Mapping {
     pub addr: u32,
@@ -32,7 +22,7 @@ pub struct Mapping {
     pub desc: String,
 }
 
-struct Heap {
+pub struct Heap {
     addr: u32,
     size: u32,
     next: u32,
@@ -46,7 +36,7 @@ impl Heap {
         }
     }
 
-    fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
+    pub fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
         let alloc_size = size + 4; // TODO: align?
         if self.next + alloc_size > self.size {
             log::error!("Heap::alloc cannot allocate {:x}", size);
@@ -58,7 +48,7 @@ impl Heap {
         addr + 4
     }
 
-    fn size(&self, mem: &[u8], addr: u32) -> u32 {
+    pub fn size(&self, mem: &[u8], addr: u32) -> u32 {
         assert!(addr >= self.addr + 4 && addr < self.addr + self.size);
         read_u32(mem, addr - 4)
     }
@@ -70,7 +60,7 @@ pub struct State {
     // Address of TEB (FS register).
     pub teb: u32,
     pub mappings: Vec<Mapping>,
-    heaps: HashMap<u32, Heap>,
+    pub heaps: HashMap<u32, Heap>,
     cmdline: u32,
     env: u32,
 }
@@ -138,6 +128,14 @@ impl State {
             },
         );
         return &self.mappings[pos];
+    }
+
+    pub fn new_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> u32 {
+        let mapping = self.alloc(size as u32, desc, mem);
+        let addr = mapping.addr;
+        let size = mapping.size;
+        self.heaps.insert(addr, Heap::new(addr, size));
+        addr
     }
 }
 
@@ -379,14 +377,9 @@ fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32
 
 fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
     log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
-    let mapping = x86
-        .state
+    x86.state
         .kernel32
-        .alloc(dwInitialSize, "HeapCreate".into(), &mut x86.mem);
-    let addr = mapping.addr;
-    let size = mapping.size;
-    x86.state.kernel32.heaps.insert(addr, Heap::new(addr, size));
-    addr
+        .new_heap(&mut x86.mem, dwInitialSize as usize, "HeapCreate".into())
 }
 
 fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
