@@ -1,9 +1,11 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use std::collections::HashMap;
-
-use crate::{winapi, X86};
+use crate::{
+    winapi,
+    x86::{self, write_u32},
+    X86,
+};
 
 use super::{kernel32, DWORD};
 
@@ -21,7 +23,7 @@ impl State {
 
     fn init(
         &mut self,
-        imports: &mut HashMap<u32, Option<fn(&mut X86)>>,
+        shims: &mut Vec<Result<fn(&mut X86), String>>,
         kernel32: &mut kernel32::State,
         mem: &mut Vec<u8>,
     ) {
@@ -35,15 +37,23 @@ impl State {
             .alloc(mem, std::mem::size_of::<IDirectDraw7_Vtable>() as u32);
         let buf = &mut mem[self.vtable_IDirectDraw7 as usize
             ..self.vtable_IDirectDraw7 as usize + std::mem::size_of::<IDirectDraw7_Vtable>()];
+
+        // Fill vtable with "unimplemented" callback.
+        for i in 0..(buf.len() / 4) {
+            let id = x86::SHIM_BASE | shims.len() as u32;
+            shims.push(Err(format!("IDirectDraw method {:x} unimplemented", i)));
+            write_u32(buf, (i * 4) as u32, id);
+        }
+
         let vtable: &mut IDirectDraw7_Vtable = unsafe {
             (buf.as_mut_ptr() as *mut IDirectDraw7_Vtable)
                 .as_mut()
                 .unwrap()
         };
 
-        let id = 0xf1a7_dd00u32;
+        let id = x86::SHIM_BASE | shims.len() as u32;
         vtable.SetCooperativeLevel.set(id);
-        imports.insert(id, Some(IDirectDraw7::shims::SetCooperativeLevel));
+        shims.push(Ok(IDirectDraw7::shims::SetCooperativeLevel));
     }
 
     fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
@@ -109,7 +119,7 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
     assert!(pUnkOuter == 0);
 
     let ddraw = &mut x86.state.ddraw;
-    ddraw.init(&mut x86.imports, &mut x86.state.kernel32, &mut x86.mem);
+    ddraw.init(&mut x86.shims, &mut x86.state.kernel32, &mut x86.mem);
 
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
     if iid_slice == IID_IDirectDraw7 {

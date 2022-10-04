@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{pe, winapi, X86};
+use crate::{pe, winapi, x86, X86};
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
@@ -50,20 +50,22 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     x86.regs.ebp = stack_end;
 
     let imports_data = &file.opt_header.data_directory[1];
-    let mut x = 0;
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
         &mut x86.mem[base as usize..],
         imports_data.virtual_address as usize,
         |dll, sym, iat_addr| {
-            // "Resolving" a given import just means recording that when we jump to
-            // some particular magic address we should run some faked function.
-            x += 1;
-            // "fake IAT" => "FIAT" => "F1A7"
-            let addr = 0xF1A7_0000 | x;
-            x86.imports.insert(addr, winapi::resolve(dll, &sym));
             labels.insert(base + iat_addr, format!("{}@IAT", sym));
-            labels.insert(addr, sym);
+
+            let addr = x86::SHIM_BASE | x86.shims.len() as u32;
+            labels.insert(addr, sym.clone());
+
+            let func = match winapi::resolve(dll, &sym) {
+                Some(f) => Ok(f),
+                None => Err(format!("unimplemented: {dll}!{sym}")),
+            };
+            x86.shims.push(func);
+
             addr
         },
     )?;

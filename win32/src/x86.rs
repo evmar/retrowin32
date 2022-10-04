@@ -1,14 +1,17 @@
-use std::collections::HashMap;
-
 use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
 use crate::winapi;
 
-// Addresses from 0 up to this point cause panics if we access them.
-// This helps catch implementation bugs earlier.
+/// Addresses from 0 up to this point cause panics if we access them.
+/// This helps catch implementation bugs earlier.
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
+
+/// Code that calls from x86 to the host will jump to addresses in this
+/// magic range.
+/// "fake IAT" => "FIAT" => "F1A7"
+pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 pub fn read_u32(mem: &[u8], addr: u32) -> u32 {
     let offset = addr as usize;
@@ -17,6 +20,7 @@ pub fn read_u32(mem: &[u8], addr: u32) -> u32 {
         | ((mem[offset + 2] as u32) << 16)
         | ((mem[offset + 3] as u32) << 24)
 }
+
 pub fn write_u32(mem: &mut [u8], addr: u32, value: u32) {
     let addr = addr as usize;
     mem[addr] = (value >> 0) as u8;
@@ -184,7 +188,9 @@ pub struct X86<'a> {
     pub host: &'a dyn Host,
     pub mem: Vec<u8>,
     pub regs: Registers,
-    pub imports: HashMap<u32, Option<fn(&mut X86)>>,
+    /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
+    /// This is how emulated code calls out to hosting code for e.g. DLL imports.
+    pub shims: Vec<Result<fn(&mut X86), String>>,
     pub state: winapi::State,
 }
 impl<'a> X86<'a> {
@@ -200,7 +206,7 @@ impl<'a> X86<'a> {
             host,
             mem: Vec::new(),
             regs,
-            imports: HashMap::new(),
+            shims: Vec::new(),
             state: winapi::State::new(),
         }
     }
@@ -451,23 +457,23 @@ impl<'a> X86<'a> {
         if addr < 0x1000 {
             bail!("jmp to null page");
         }
-        self.regs.eip = addr;
-        Ok(())
-    }
-
-    fn try_invoke_handler(&mut self, addr: u32) -> anyhow::Result<bool> {
-        let handler = match self.imports.get(&addr) {
-            Some(&handler) => handler,
-            None => return Ok(false),
-        };
+        if addr & 0xFFFF_0000 != SHIM_BASE {
+            self.regs.eip = addr;
+            return Ok(());
+        }
 
         let ret = self.pop();
+
+        let index = (addr & 0x0000_FFFF) as usize;
+        let handler = self.shims.get(index);
         match handler {
-            Some(handler) => handler(self),
-            None => log::error!("unimplemented import: {:x}", addr),
+            Some(handler) => match handler {
+                Ok(handler) => handler(self),
+                Err(msg) => log::error!("{}", msg),
+            },
+            None => log::error!("unknown import reference at {:x}", addr),
         };
-        self.jmp(ret)?;
-        Ok(true)
+        self.jmp(ret)
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
@@ -495,9 +501,7 @@ impl<'a> X86<'a> {
                     _ => unreachable!(),
                 };
                 self.push(self.regs.eip);
-                if !self.try_invoke_handler(target)? {
-                    self.jmp(target)?;
-                }
+                self.jmp(target)?;
             }
             iced_x86::Code::Retnd => {
                 let addr = self.pop();
@@ -521,9 +525,7 @@ impl<'a> X86<'a> {
                     iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                if !self.try_invoke_handler(target)? {
-                    self.jmp(target)?;
-                }
+                self.jmp(target)?;
             }
 
             iced_x86::Code::Ja_rel8_32 => {
