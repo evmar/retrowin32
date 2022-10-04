@@ -28,7 +28,7 @@ export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
             if (name === this.state.cur) {
               button = <b>{button}</b>;
             }
-            return <>{button}&nbsp;</>;
+            return <>&nbsp;|&nbsp;{button}</>;
           })}
         </div>
         {tabs[this.state.cur]}
