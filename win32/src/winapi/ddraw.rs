@@ -29,9 +29,9 @@ impl State {
 
         self.vtable_IDirectDraw7 = self
             .heap(kernel32)
-            .alloc(mem, std::mem::size_of::<IDirectDraw7_Vtable>() as u32);
+            .alloc(mem, std::mem::size_of::<IDirectDraw7::Vtable>() as u32);
         let buf = &mut mem[self.vtable_IDirectDraw7 as usize
-            ..self.vtable_IDirectDraw7 as usize + std::mem::size_of::<IDirectDraw7_Vtable>()];
+            ..self.vtable_IDirectDraw7 as usize + std::mem::size_of::<IDirectDraw7::Vtable>()];
 
         // Fill vtable with "unimplemented" callback.
         for i in 0..(buf.len() / 4) {
@@ -39,8 +39,8 @@ impl State {
             write_u32(buf, (i * 4) as u32, id);
         }
 
-        let vtable: &mut IDirectDraw7_Vtable = unsafe {
-            (buf.as_mut_ptr() as *mut IDirectDraw7_Vtable)
+        let vtable: &mut IDirectDraw7::Vtable = unsafe {
+            (buf.as_mut_ptr() as *mut IDirectDraw7::Vtable)
                 .as_mut()
                 .unwrap()
         };
@@ -72,42 +72,42 @@ const IID_IDirectDraw7: [u8; 16] = [
     0xc0, 0x5e, 0xe6, 0x15, 0x9c, 0x3b, 0xd2, 0x11, 0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b,
 ];
 
-#[repr(C)]
-struct IDirectDraw7_Vtable {
-    QueryInterface: DWORD,
-    AddRef: DWORD,
-    Release: DWORD,
-    Compact: DWORD,
-    CreateClipper: DWORD,
-    CreatePalette: DWORD,
-    CreateSurface: DWORD,
-    DuplicateSurface: DWORD,
-    EnumDisplayModes: DWORD,
-    EnumSurfaces: DWORD,
-    FlipToGDISurface: DWORD,
-    GetCaps: DWORD,
-    GetDisplayMode: DWORD,
-    GetFourCCCodes: DWORD,
-    GetGDISurface: DWORD,
-    GetMonitorFrequency: DWORD,
-    GetScanLine: DWORD,
-    GetVerticalBlankStatus: DWORD,
-    Initialize: DWORD,
-    RestoreDisplayMode: DWORD,
-    SetCooperativeLevel: DWORD,
-    SetDisplayMode: DWORD,
-    WaitForVerticalBlank: DWORD,
-    GetAvailableVidMem: DWORD,
-    GetSurfaceFromDC: DWORD,
-    RestoreAllSurfaces: DWORD,
-    TestCooperativeLevel: DWORD,
-    GetDeviceIdentifier: DWORD,
-    StartModeTest: DWORD,
-    EvaluateMode: DWORD,
-}
-
 mod IDirectDraw7 {
     use super::*;
+
+    #[repr(C)]
+    pub(super) struct Vtable {
+        pub QueryInterface: DWORD,
+        pub AddRef: DWORD,
+        pub Release: DWORD,
+        pub Compact: DWORD,
+        pub CreateClipper: DWORD,
+        pub CreatePalette: DWORD,
+        pub CreateSurface: DWORD,
+        pub DuplicateSurface: DWORD,
+        pub EnumDisplayModes: DWORD,
+        pub EnumSurfaces: DWORD,
+        pub FlipToGDISurface: DWORD,
+        pub GetCaps: DWORD,
+        pub GetDisplayMode: DWORD,
+        pub GetFourCCCodes: DWORD,
+        pub GetGDISurface: DWORD,
+        pub GetMonitorFrequency: DWORD,
+        pub GetScanLine: DWORD,
+        pub GetVerticalBlankStatus: DWORD,
+        pub Initialize: DWORD,
+        pub RestoreDisplayMode: DWORD,
+        pub SetCooperativeLevel: DWORD,
+        pub SetDisplayMode: DWORD,
+        pub WaitForVerticalBlank: DWORD,
+        pub GetAvailableVidMem: DWORD,
+        pub GetSurfaceFromDC: DWORD,
+        pub RestoreAllSurfaces: DWORD,
+        pub TestCooperativeLevel: DWORD,
+        pub GetDeviceIdentifier: DWORD,
+        pub StartModeTest: DWORD,
+        pub EvaluateMode: DWORD,
+    }
 
     fn Release(_x86: &mut X86, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
