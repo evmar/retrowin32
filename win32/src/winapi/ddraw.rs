@@ -12,13 +12,19 @@ use super::{kernel32, DWORD};
 pub struct State {
     hheap: u32,
     vtable_IDirectDraw7: u32,
+    vtable_IDirectDrawSurface7: u32,
 }
 impl State {
     pub fn new() -> Self {
         State {
             hheap: 0,
             vtable_IDirectDraw7: 0,
+            vtable_IDirectDrawSurface7: 0,
         }
+    }
+
+    fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
+        kernel32.heaps.get_mut(&self.hheap).unwrap()
     }
 
     fn init(&mut self, shims: &mut Shims, kernel32: &mut kernel32::State, mem: &mut Vec<u8>) {
@@ -27,6 +33,16 @@ impl State {
         }
         self.hheap = kernel32.new_heap(mem, 0x1000, "ddraw.dll heap".into());
 
+        self.init_IDirectDraw7(shims, kernel32, mem);
+        self.init_IDirectDrawSurface7(shims, kernel32, mem);
+    }
+
+    fn init_IDirectDraw7(
+        &mut self,
+        shims: &mut Shims,
+        kernel32: &mut kernel32::State,
+        mem: &mut Vec<u8>,
+    ) {
         self.vtable_IDirectDraw7 = self
             .heap(kernel32)
             .alloc(mem, std::mem::size_of::<IDirectDraw7::Vtable>() as u32);
@@ -59,8 +75,41 @@ impl State {
             .set(shims.add(Ok(IDirectDraw7::shims::SetDisplayMode)));
     }
 
-    fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
-        kernel32.heaps.get_mut(&self.hheap).unwrap()
+    fn init_IDirectDrawSurface7(
+        &mut self,
+        shims: &mut Shims,
+        kernel32: &mut kernel32::State,
+        mem: &mut Vec<u8>,
+    ) {
+        self.vtable_IDirectDrawSurface7 = self.heap(kernel32).alloc(
+            mem,
+            std::mem::size_of::<IDirectDrawSurface7::Vtable>() as u32,
+        );
+        let buf = &mut mem[self.vtable_IDirectDrawSurface7 as usize
+            ..self.vtable_IDirectDrawSurface7 as usize
+                + std::mem::size_of::<IDirectDrawSurface7::Vtable>()];
+
+        // Fill vtable with "unimplemented" callback.
+        for i in 0..(buf.len() / 4) {
+            let id = shims.add(Err(format!(
+                "IDirectDrawSurface method {:x} unimplemented",
+                i
+            )));
+            write_u32(buf, (i * 4) as u32, id);
+        }
+
+        let vtable: &mut IDirectDrawSurface7::Vtable = unsafe {
+            (buf.as_mut_ptr() as *mut IDirectDrawSurface7::Vtable)
+                .as_mut()
+                .unwrap()
+        };
+
+        vtable
+            .Release
+            .set(shims.add(Ok(IDirectDrawSurface7::shims::Release)));
+        vtable
+            .GetAttachedSurface
+            .set(shims.add(Ok(IDirectDrawSurface7::shims::GetAttachedSurface)));
     }
 }
 
@@ -115,14 +164,16 @@ mod IDirectDraw7 {
     }
 
     fn CreateSurface(
-        _x86: &mut X86,
+        x86: &mut X86,
         this: u32,
         lpSurfaceDesc: u32,
         lpDirectDrawSurface7: u32,
         _unused: u32,
     ) -> u32 {
         log::warn!("{this:x}->CreateSurface({lpSurfaceDesc:x}, {lpDirectDrawSurface7:x})");
-        DDERR_GENERIC
+        let surface = IDirectDrawSurface7::new(x86);
+        write_u32(&mut x86.mem, lpDirectDrawSurface7, surface);
+        DD_OK
     }
 
     fn SetCooperativeLevel(_x86: &mut X86, this: u32, hwnd: u32, flags: u32) -> u32 {
@@ -150,6 +201,91 @@ mod IDirectDraw7 {
         fn CreateSurface(this: u32, lpSurfaceDesc: u32, lpDirectDrawSurface7: u32, unused: u32);
         fn SetCooperativeLevel(this: u32, hwnd: u32, flags: u32);
         fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32, refresh: u32, flags: u32);
+    );
+}
+
+mod IDirectDrawSurface7 {
+    use super::*;
+
+    #[repr(C)]
+    pub(super) struct Vtable {
+        pub QueryInterface: DWORD,
+        pub AddRef: DWORD,
+        pub Release: DWORD,
+        pub AddAttachedSurface: DWORD,
+        pub AddOverlayDirtyRect: DWORD,
+        pub Blt: DWORD,
+        pub BltBatch: DWORD,
+        pub BltFast: DWORD,
+        pub DeleteAttachedSurface: DWORD,
+        pub EnumAttachedSurfaces: DWORD,
+        pub EnumOverlayZOrders: DWORD,
+        pub Flip: DWORD,
+        pub GetAttachedSurface: DWORD,
+        pub GetBltStatus: DWORD,
+        pub GetCaps: DWORD,
+        pub GetClipper: DWORD,
+        pub GetColorKey: DWORD,
+        pub GetDC: DWORD,
+        pub GetFlipStatus: DWORD,
+        pub GetOverlayPosition: DWORD,
+        pub GetPalette: DWORD,
+        pub GetPixelFormat: DWORD,
+        pub GetSurfaceDesc: DWORD,
+        pub Initialize: DWORD,
+        pub IsLost: DWORD,
+        pub Lock: DWORD,
+        pub ReleaseDC: DWORD,
+        pub Restore: DWORD,
+        pub SetClipper: DWORD,
+        pub SetColorKey: DWORD,
+        pub SetOverlayPosition: DWORD,
+        pub SetPalette: DWORD,
+        pub Unlock: DWORD,
+        pub UpdateOverlay: DWORD,
+        pub UpdateOverlayDisplay: DWORD,
+        pub UpdateOverlayZOrder: DWORD,
+        pub GetDDInterface: DWORD,
+        pub PageLock: DWORD,
+        pub PageUnlock: DWORD,
+        pub SetSurfaceDesc: DWORD,
+        pub SetPrivateData: DWORD,
+        pub GetPrivateData: DWORD,
+        pub FreePrivateData: DWORD,
+        pub GetUniquenessValue: DWORD,
+        pub ChangeUniquenessValue: DWORD,
+        pub SetPriority: DWORD,
+        pub GetPriority: DWORD,
+        pub SetLOD: DWORD,
+        pub GetLOD: DWORD,
+    }
+
+    pub fn new(x86: &mut X86) -> u32 {
+        let ddraw = &mut x86.state.ddraw;
+        let lpDirectDrawSurface7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let vtable = ddraw.vtable_IDirectDrawSurface7;
+        x86.write_u32(lpDirectDrawSurface7, vtable);
+        lpDirectDrawSurface7
+    }
+
+    fn Release(_x86: &mut X86, this: u32) -> u32 {
+        log::warn!("{this:x}->Release()");
+        0 // TODO: return refcount?
+    }
+
+    fn GetAttachedSurface(
+        _x86: &mut X86,
+        this: u32,
+        lpDDSCaps2: u32,
+        lpDirectDrawSurface7: u32,
+    ) -> u32 {
+        log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
+        DDERR_GENERIC
+    }
+
+    winapi_shims!(
+        fn Release(this: u32);
+        fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
     );
 }
 
