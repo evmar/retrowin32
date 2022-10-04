@@ -3,7 +3,7 @@
 
 use crate::{
     winapi,
-    x86::{self, write_u32},
+    x86::{write_u32, Shims},
     X86,
 };
 
@@ -21,12 +21,7 @@ impl State {
         }
     }
 
-    fn init(
-        &mut self,
-        shims: &mut Vec<Result<fn(&mut X86), String>>,
-        kernel32: &mut kernel32::State,
-        mem: &mut Vec<u8>,
-    ) {
+    fn init(&mut self, shims: &mut Shims, kernel32: &mut kernel32::State, mem: &mut Vec<u8>) {
         if self.hheap != 0 {
             return;
         }
@@ -40,8 +35,7 @@ impl State {
 
         // Fill vtable with "unimplemented" callback.
         for i in 0..(buf.len() / 4) {
-            let id = x86::SHIM_BASE | shims.len() as u32;
-            shims.push(Err(format!("IDirectDraw method {:x} unimplemented", i)));
+            let id = shims.add(Err(format!("IDirectDraw method {:x} unimplemented", i)));
             write_u32(buf, (i * 4) as u32, id);
         }
 
@@ -51,9 +45,9 @@ impl State {
                 .unwrap()
         };
 
-        let id = x86::SHIM_BASE | shims.len() as u32;
-        vtable.SetCooperativeLevel.set(id);
-        shims.push(Ok(IDirectDraw7::shims::SetCooperativeLevel));
+        vtable
+            .SetCooperativeLevel
+            .set(shims.add(Ok(IDirectDraw7::shims::SetCooperativeLevel)));
     }
 
     fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {

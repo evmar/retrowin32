@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{pe, winapi, x86, X86};
+use crate::{pe, winapi, X86};
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
@@ -57,14 +57,13 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         |dll, sym, iat_addr| {
             labels.insert(base + iat_addr, format!("{}@IAT", sym));
 
-            let addr = x86::SHIM_BASE | x86.shims.len() as u32;
-            labels.insert(addr, sym.clone());
-
-            let func = match winapi::resolve(dll, &sym) {
+            let entry = match winapi::resolve(dll, &sym) {
                 Some(f) => Ok(f),
                 None => Err(format!("unimplemented: {dll}!{sym}")),
             };
-            x86.shims.push(func);
+            let addr = x86.shims.add(entry);
+
+            labels.insert(addr, sym);
 
             addr
         },

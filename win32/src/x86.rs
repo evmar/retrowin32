@@ -184,13 +184,40 @@ pub trait Host {
     fn write(&self, buf: &[u8]) -> usize;
 }
 
+/// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
+/// This is how emulated code calls out to hosting code for e.g. DLL imports.
+pub struct Shims(Vec<Result<fn(&mut X86), String>>);
+impl Shims {
+    fn new() -> Self {
+        Shims(Vec::new())
+    }
+
+    /// Returns the (fake) address of the registered function.
+    pub fn add(&mut self, entry: Result<fn(&mut X86), String>) -> u32 {
+        let id = SHIM_BASE | self.0.len() as u32;
+        self.0.push(entry);
+        id
+    }
+
+    pub fn get(&self, addr: u32) -> Option<&fn(&mut X86)> {
+        let index = (addr & 0x0000_FFFF) as usize;
+        let handler = self.0.get(index);
+        match handler {
+            Some(handler) => match handler {
+                Ok(handler) => return Some(handler),
+                Err(msg) => log::error!("{}", msg),
+            },
+            None => log::error!("unknown import reference at {:x}", addr),
+        };
+        None
+    }
+}
+
 pub struct X86<'a> {
     pub host: &'a dyn Host,
     pub mem: Vec<u8>,
     pub regs: Registers,
-    /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
-    /// This is how emulated code calls out to hosting code for e.g. DLL imports.
-    pub shims: Vec<Result<fn(&mut X86), String>>,
+    pub shims: Shims,
     pub state: winapi::State,
 }
 impl<'a> X86<'a> {
@@ -206,7 +233,7 @@ impl<'a> X86<'a> {
             host,
             mem: Vec::new(),
             regs,
-            shims: Vec::new(),
+            shims: Shims::new(),
             state: winapi::State::new(),
         }
     }
@@ -463,16 +490,9 @@ impl<'a> X86<'a> {
         }
 
         let ret = self.pop();
-
-        let index = (addr & 0x0000_FFFF) as usize;
-        let handler = self.shims.get(index);
-        match handler {
-            Some(handler) => match handler {
-                Ok(handler) => handler(self),
-                Err(msg) => log::error!("{}", msg),
-            },
-            None => log::error!("unknown import reference at {:x}", addr),
-        };
+        if let Some(handler) = self.shims.get(addr) {
+            handler(self);
+        }
         self.jmp(ret)
     }
 
