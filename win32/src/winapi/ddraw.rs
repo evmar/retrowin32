@@ -99,12 +99,9 @@ mod IDirectDraw7 {
         DD_OK
     }
 
-    pub mod shims {
-        use super::X86;
-        use crate::winapi_shim;
-
-        winapi_shim!(fn SetCooperativeLevel(hwnd: u32, flags: u32));
-    }
+    winapi_shims!(
+        fn SetCooperativeLevel(hwnd: u32, flags: u32);
+    );
 }
 
 fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOuter: u32) -> u32 {

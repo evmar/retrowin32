@@ -20,29 +20,30 @@ impl DWORD {
 // The caller of winapi functions is responsible for pushing/popping the
 // return address, because some callers actually 'jmp' directly.
 //
-// This macro generates a shim wrapper of a function, taking its
-// input args off the stack and forwarding its return values via eax.
+// This macro generates shim wrappers of functions, taking their
+// input args off the stack and forwarding their return values via eax.
 #[macro_export]
-macro_rules! winapi_shim {
-    (fn $name:ident($($param:ident: $type:ident),* $(,)?)) => {
-        #[allow(non_snake_case)]
-        pub fn $name(x86: &mut X86) {
-            $(let $param: $type = x86.pop();)*
-            x86.regs.eax = super::$name(x86, $($param),*);
+macro_rules! winapi_shims {
+    ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
+        pub mod shims {
+            use super::X86;
+
+            $(#[allow(non_snake_case)]
+            pub fn $name(x86: &mut X86) {
+                $(let $param: $type = x86.pop();)*
+                x86.regs.eax = super::$name(x86, $($param),*);
+            })*
         }
     }
 }
 
-// This macro runs a block of the above and also generates a resolve()
+// This macro runs the above and also generates a resolve()
 // function that maps symbol names to shims.
 #[macro_export]
 macro_rules! winapi {
     ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
-        mod shims {
-            use super::X86;
-            use crate::winapi_shim;
-            $(winapi_shim!(fn $name($($param: $type),*));)*
-        }
+        use crate::winapi_shims;
+        winapi_shims!($(fn $name($($param: $type),*);)*);
 
         pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
             Some(match name {
