@@ -46,8 +46,17 @@ impl State {
         };
 
         vtable
+            .Release
+            .set(shims.add(Ok(IDirectDraw7::shims::Release)));
+        vtable
+            .CreateSurface
+            .set(shims.add(Ok(IDirectDraw7::shims::CreateSurface)));
+        vtable
             .SetCooperativeLevel
             .set(shims.add(Ok(IDirectDraw7::shims::SetCooperativeLevel)));
+        vtable
+            .SetDisplayMode
+            .set(shims.add(Ok(IDirectDraw7::shims::SetDisplayMode)));
     }
 
     fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
@@ -56,6 +65,8 @@ impl State {
 }
 
 const DD_OK: u32 = 0;
+// DD error codes are generated with this MAKE_HRESULT macro, maybe it doesn't matter too much.
+const DDERR_GENERIC: u32 = 0x80004005;
 
 const IID_IDirectDraw7: [u8; 16] = [
     0xc0, 0x5e, 0xe6, 0x15, 0x9c, 0x3b, 0xd2, 0x11, 0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b,
@@ -98,13 +109,47 @@ struct IDirectDraw7_Vtable {
 mod IDirectDraw7 {
     use super::*;
 
-    fn SetCooperativeLevel(_x86: &mut X86, hwnd: u32, flags: u32) -> u32 {
-        log::warn!("SetCooperativeLevel({hwnd:x}, {flags:x})");
+    fn Release(_x86: &mut X86, this: u32) -> u32 {
+        log::warn!("{this:x}->Release()");
+        0 // TODO: return refcount?
+    }
+
+    fn CreateSurface(
+        _x86: &mut X86,
+        this: u32,
+        lpSurfaceDesc: u32,
+        lpDirectDrawSurface7: u32,
+        _unused: u32,
+    ) -> u32 {
+        log::warn!("{this:x}->CreateSurface({lpSurfaceDesc:x}, {lpDirectDrawSurface7:x})");
+        DDERR_GENERIC
+    }
+
+    fn SetCooperativeLevel(_x86: &mut X86, this: u32, hwnd: u32, flags: u32) -> u32 {
+        log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:x})");
+        DD_OK
+    }
+
+    fn SetDisplayMode(
+        _x86: &mut X86,
+        this: u32,
+        width: u32,
+        height: u32,
+        bpp: u32,
+        refresh: u32,
+        flags: u32,
+    ) -> u32 {
+        log::warn!(
+            "{this:x}->SetDisplayMode({width:x}, {height:x}, {bpp:x}, {refresh:x}, {flags:x})"
+        );
         DD_OK
     }
 
     winapi_shims!(
-        fn SetCooperativeLevel(hwnd: u32, flags: u32);
+        fn Release(this: u32);
+        fn CreateSurface(this: u32, lpSurfaceDesc: u32, lpDirectDrawSurface7: u32, unused: u32);
+        fn SetCooperativeLevel(this: u32, hwnd: u32, flags: u32);
+        fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32, refresh: u32, flags: u32);
     );
 }
 
@@ -128,7 +173,7 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
         DD_OK
     } else {
         log::error!("DirectDrawCreateEx: unknown IID {iid_slice:x?}");
-        1 // fail
+        DDERR_GENERIC
     }
 }
 
