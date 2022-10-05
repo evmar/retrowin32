@@ -274,13 +274,15 @@ mod IDirectDrawSurface7 {
     }
 
     fn GetAttachedSurface(
-        _x86: &mut X86,
+        x86: &mut X86,
         this: u32,
         lpDDSCaps2: u32,
         lpDirectDrawSurface7: u32,
     ) -> u32 {
         log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        DDERR_GENERIC
+        let surf = new(x86);
+        write_u32(&mut x86.mem, lpDirectDrawSurface7, surf);
+        DD_OK
     }
 
     winapi_shims!(
