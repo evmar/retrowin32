@@ -85,31 +85,124 @@ mod IDirectDraw7 {
             &mut x86.mem,
             std::mem::size_of::<IDirectDraw7::Vtable>() as u32,
         );
-
-        let buf = &mut x86.mem
-            [addr as usize..addr as usize + std::mem::size_of::<IDirectDraw7::Vtable>()];
-        // Fill vtable with "unimplemented" callback.
-        for i in 0..(buf.len() / 4) {
-            let id = x86
+        let vtable = x86.mem.view_mut::<Vtable>(addr);
+        *vtable = Vtable {
+            QueryInterface: x86
                 .shims
-                .add(Err(format!("IDirectDraw method {:x} unimplemented", i)));
-            write_u32(buf, (i * 4) as u32, id);
-        }
+                .add(Err("IDirectDraw7::QueryInterface unimplemented".into()))
+                .into(),
+            AddRef: x86
+                .shims
+                .add(Err("IDirectDraw7::AddRef unimplemented".into()))
+                .into(),
+            Release: x86.shims.add(Ok(shims::Release)).into(),
+            Compact: x86
+                .shims
+                .add(Err("IDirectDraw7::Compact unimplemented".into()))
+                .into(),
+            CreateClipper: x86
+                .shims
+                .add(Err("IDirectDraw7::CreateClipper unimplemented".into()))
+                .into(),
+            CreatePalette: x86
+                .shims
+                .add(Err("IDirectDraw7::CreatePalette unimplemented".into()))
+                .into(),
+            CreateSurface: x86.shims.add(Ok(shims::CreateSurface)).into(),
+            DuplicateSurface: x86
+                .shims
+                .add(Err("IDirectDraw7::DuplicateSurface unimplemented".into()))
+                .into(),
+            EnumDisplayModes: x86
+                .shims
+                .add(Err("IDirectDraw7::EnumDisplayModes unimplemented".into()))
+                .into(),
+            EnumSurfaces: x86
+                .shims
+                .add(Err("IDirectDraw7::EnumSurfaces unimplemented".into()))
+                .into(),
+            FlipToGDISurface: x86
+                .shims
+                .add(Err("IDirectDraw7::FlipToGDISurface unimplemented".into()))
+                .into(),
+            GetCaps: x86
+                .shims
+                .add(Err("IDirectDraw7::GetCaps unimplemented".into()))
+                .into(),
+            GetDisplayMode: x86
+                .shims
+                .add(Err("IDirectDraw7::GetDisplayMode unimplemented".into()))
+                .into(),
+            GetFourCCCodes: x86
+                .shims
+                .add(Err("IDirectDraw7::GetFourCCCodes unimplemented".into()))
+                .into(),
+            GetGDISurface: x86
+                .shims
+                .add(Err("IDirectDraw7::GetGDISurface unimplemented".into()))
+                .into(),
+            GetMonitorFrequency: x86
+                .shims
+                .add(Err("IDirectDraw7::GetMonitorFrequency unimplemented".into()))
+                .into(),
+            GetScanLine: x86
+                .shims
+                .add(Err("IDirectDraw7::GetScanLine unimplemented".into()))
+                .into(),
+            GetVerticalBlankStatus: x86
+                .shims
+                .add(Err(
+                    "IDirectDraw7::GetVerticalBlankStatus unimplemented".into()
+                ))
+                .into(),
+            Initialize: x86
+                .shims
+                .add(Err("IDirectDraw7::Initialize unimplemented".into()))
+                .into(),
+            RestoreDisplayMode: x86
+                .shims
+                .add(Err("IDirectDraw7::RestoreDisplayMode unimplemented".into()))
+                .into(),
+            SetCooperativeLevel: x86.shims.add(Ok(shims::SetCooperativeLevel)).into(),
+            SetDisplayMode: x86.shims.add(Ok(shims::SetDisplayMode)).into(),
+            WaitForVerticalBlank: x86
+                .shims
+                .add(Err(
+                    "IDirectDraw7::WaitForVerticalBlank unimplemented".into()
+                ))
+                .into(),
+            GetAvailableVidMem: x86
+                .shims
+                .add(Err("IDirectDraw7::GetAvailableVidMem unimplemented".into()))
+                .into(),
+            GetSurfaceFromDC: x86
+                .shims
+                .add(Err("IDirectDraw7::GetSurfaceFromDC unimplemented".into()))
+                .into(),
+            RestoreAllSurfaces: x86
+                .shims
+                .add(Err("IDirectDraw7::RestoreAllSurfaces unimplemented".into()))
+                .into(),
+            TestCooperativeLevel: x86
+                .shims
+                .add(Err(
+                    "IDirectDraw7::TestCooperativeLevel unimplemented".into()
+                ))
+                .into(),
+            GetDeviceIdentifier: x86
+                .shims
+                .add(Err("IDirectDraw7::GetDeviceIdentifier unimplemented".into()))
+                .into(),
+            StartModeTest: x86
+                .shims
+                .add(Err("IDirectDraw7::StartModeTest unimplemented".into()))
+                .into(),
+            EvaluateMode: x86
+                .shims
+                .add(Err("IDirectDraw7::EvaluateMode unimplemented".into()))
+                .into(),
+        };
 
-        let vtable = x86.mem.view_mut::<IDirectDraw7::Vtable>(addr);
-
-        vtable
-            .Release
-            .set(x86.shims.add(Ok(IDirectDraw7::shims::Release)));
-        vtable
-            .CreateSurface
-            .set(x86.shims.add(Ok(IDirectDraw7::shims::CreateSurface)));
-        vtable
-            .SetCooperativeLevel
-            .set(x86.shims.add(Ok(IDirectDraw7::shims::SetCooperativeLevel)));
-        vtable
-            .SetDisplayMode
-            .set(x86.shims.add(Ok(IDirectDraw7::shims::SetDisplayMode)));
         addr
     }
 
@@ -234,10 +327,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::AddRef unimplemented".into()))
                 .into(),
-            Release: x86
-                .shims
-                .add(Ok(IDirectDrawSurface7::shims::Release))
-                .into(),
+            Release: x86.shims.add(Ok(shims::Release)).into(),
             AddAttachedSurface: x86
                 .shims
                 .add(Err(
@@ -284,10 +374,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::Flip unimplemented".into()))
                 .into(),
-            GetAttachedSurface: x86
-                .shims
-                .add(Ok(IDirectDrawSurface7::shims::GetAttachedSurface))
-                .into(),
+            GetAttachedSurface: x86.shims.add(Ok(shims::GetAttachedSurface)).into(),
             GetBltStatus: x86
                 .shims
                 .add(Err("IDirectDrawSurface::GetBltStatus unimplemented".into()))
@@ -350,10 +437,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::ReleaseDC unimplemented".into()))
                 .into(),
-            Restore: x86
-                .shims
-                .add(Ok(IDirectDrawSurface7::shims::Restore))
-                .into(),
+            Restore: x86.shims.add(Ok(shims::Restore)).into(),
             SetClipper: x86
                 .shims
                 .add(Err("IDirectDrawSurface::SetClipper unimplemented".into()))
