@@ -44,24 +44,9 @@ impl<'a> Reader<'a> {
         Ok(())
     }
 
-    pub fn u32(&mut self) -> anyhow::Result<u32> {
-        let buf = self.peek(4).ok_or(anyhow!("EOF"))?;
-        let val = (buf[0] as u32)
-            | ((buf[1] as u32) << 8)
-            | ((buf[2] as u32) << 16)
-            | ((buf[3] as u32) << 24);
-        self.pos += 4;
-        Ok(val)
-    }
-
     pub fn view<T: Pod>(&mut self) -> &'a T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>();
         t
     }
-}
-
-pub fn read_strz(buf: &[u8]) -> String {
-    let nul = buf.iter().position(|&c| c == 0).unwrap();
-    String::from_utf8_lossy(&buf[0..nul]).to_string()
 }

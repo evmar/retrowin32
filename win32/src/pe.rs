@@ -2,7 +2,7 @@
 
 use crate::{
     memory::{self, Memory, DWORD, WORD},
-    reader::{read_strz, Reader},
+    reader::Reader,
     x86::write_u32,
 };
 use anyhow::{anyhow, bail};
@@ -14,7 +14,7 @@ use bitflags::bitflags;
 fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
-    Ok(r.u32()?)
+    Ok(r.view::<DWORD>().get())
 }
 
 #[derive(Debug)]
@@ -95,7 +95,6 @@ fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
     let header: &'a IMAGE_FILE_HEADER = r.view::<IMAGE_FILE_HEADER>();
-    log::info!("header {:?}", header);
     if header.Machine.get() != 0x14c {
         bail!("bad machine {:?}", header.Machine);
     }
@@ -218,7 +217,7 @@ pub fn parse_imports(
         let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk.get() as usize..]);
         loop {
             let addr = descriptor.FirstThunk.get() + iat_reader.pos as u32;
-            let entry = iat_reader.u32()?;
+            let entry = iat_reader.view::<DWORD>().get();
             if entry == 0 {
                 break;
             }
@@ -228,7 +227,7 @@ pub fn parse_imports(
             } else {
                 // First two bytes at offset are hint/name table index, used to look up
                 // the name faster in the DLL; we just skip them.
-                let sym_name = read_strz(&mem[(entry + 2) as usize..]);
+                let sym_name = mem[(entry + 2) as usize..].read_strz();
                 let target = resolve(&dll_name, sym_name, addr);
                 patches.push((addr, target));
             }

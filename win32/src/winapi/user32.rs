@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use super::X86;
-use crate::{reader::read_strz, winapi};
+use crate::{memory::Memory, winapi};
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
@@ -67,8 +67,8 @@ fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
 }
 
 fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u32) -> u32 {
-    let caption = read_strz(&x86.mem[lpCaption as usize..]);
-    let text = read_strz(&x86.mem[lpText as usize..]);
+    let caption = &x86.mem[lpCaption as usize..].read_strz();
+    let text = &x86.mem[lpText as usize..].read_strz();
     x86.host
         .write(format!("MessageBox: {}\n{}", caption, text).as_bytes());
     1 // IDOK

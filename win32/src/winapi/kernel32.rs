@@ -4,8 +4,7 @@ use std::collections::HashMap;
 
 use super::{x86, x86::X86};
 use crate::{
-    memory::DWORD,
-    reader::read_strz,
+    memory::{Memory, DWORD},
     winapi,
     x86::{read_u32, write_u32},
 };
@@ -389,7 +388,7 @@ fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
 }
 
 fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
-    let filename = read_strz(&x86.mem[lpLibFileName as usize..]);
+    let filename = &x86.mem[lpLibFileName as usize..].read_strz();
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
