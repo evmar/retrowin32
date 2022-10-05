@@ -1,12 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use crate::{
-    memory::Memory,
-    winapi,
-    x86::{write_u32, Shims},
-    X86,
-};
+use crate::{memory::Memory, winapi, x86::write_u32, X86};
 
 use super::kernel32;
 
@@ -16,96 +11,24 @@ pub struct State {
     vtable_IDirectDrawSurface7: u32,
 }
 impl State {
-    pub fn new() -> Self {
-        State {
+    pub fn new(x86: &mut X86) -> Self {
+        let mut ddraw = State {
             hheap: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
-        }
+        };
+        ddraw.hheap = x86
+            .state
+            .kernel32
+            .new_heap(&mut x86.mem, 0x1000, "ddraw.dll heap".into());
+
+        ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, x86);
+        ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, x86);
+        ddraw
     }
 
     fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
         kernel32.heaps.get_mut(&self.hheap).unwrap()
-    }
-
-    fn init(&mut self, shims: &mut Shims, kernel32: &mut kernel32::State, mem: &mut Vec<u8>) {
-        if self.hheap != 0 {
-            return;
-        }
-        self.hheap = kernel32.new_heap(mem, 0x1000, "ddraw.dll heap".into());
-
-        self.init_IDirectDraw7(shims, kernel32, mem);
-        self.init_IDirectDrawSurface7(shims, kernel32, mem);
-    }
-
-    fn init_IDirectDraw7(
-        &mut self,
-        shims: &mut Shims,
-        kernel32: &mut kernel32::State,
-        mem: &mut Vec<u8>,
-    ) {
-        self.vtable_IDirectDraw7 = self
-            .heap(kernel32)
-            .alloc(mem, std::mem::size_of::<IDirectDraw7::Vtable>() as u32);
-
-        let buf = &mut mem[self.vtable_IDirectDraw7 as usize
-            ..self.vtable_IDirectDraw7 as usize + std::mem::size_of::<IDirectDraw7::Vtable>()];
-        // Fill vtable with "unimplemented" callback.
-        for i in 0..(buf.len() / 4) {
-            let id = shims.add(Err(format!("IDirectDraw method {:x} unimplemented", i)));
-            write_u32(buf, (i * 4) as u32, id);
-        }
-
-        let vtable = mem.view_mut::<IDirectDraw7::Vtable>(self.vtable_IDirectDraw7);
-
-        vtable
-            .Release
-            .set(shims.add(Ok(IDirectDraw7::shims::Release)));
-        vtable
-            .CreateSurface
-            .set(shims.add(Ok(IDirectDraw7::shims::CreateSurface)));
-        vtable
-            .SetCooperativeLevel
-            .set(shims.add(Ok(IDirectDraw7::shims::SetCooperativeLevel)));
-        vtable
-            .SetDisplayMode
-            .set(shims.add(Ok(IDirectDraw7::shims::SetDisplayMode)));
-    }
-
-    fn init_IDirectDrawSurface7(
-        &mut self,
-        shims: &mut Shims,
-        kernel32: &mut kernel32::State,
-        mem: &mut Vec<u8>,
-    ) {
-        self.vtable_IDirectDrawSurface7 = self.heap(kernel32).alloc(
-            mem,
-            std::mem::size_of::<IDirectDrawSurface7::Vtable>() as u32,
-        );
-        let buf = &mut mem[self.vtable_IDirectDrawSurface7 as usize
-            ..self.vtable_IDirectDrawSurface7 as usize
-                + std::mem::size_of::<IDirectDrawSurface7::Vtable>()];
-
-        // Fill vtable with "unimplemented" callback.
-        for i in 0..(buf.len() / 4) {
-            let id = shims.add(Err(format!(
-                "IDirectDrawSurface method {:x} unimplemented",
-                i
-            )));
-            write_u32(buf, (i * 4) as u32, id);
-        }
-
-        let vtable = mem.view_mut::<IDirectDrawSurface7::Vtable>(self.vtable_IDirectDrawSurface7);
-
-        vtable
-            .Release
-            .set(shims.add(Ok(IDirectDrawSurface7::shims::Release)));
-        vtable
-            .GetAttachedSurface
-            .set(shims.add(Ok(IDirectDrawSurface7::shims::GetAttachedSurface)));
-        vtable
-            .Restore
-            .set(shims.add(Ok(IDirectDrawSurface7::shims::Restore)));
     }
 }
 
@@ -156,6 +79,39 @@ mod IDirectDraw7 {
         pub EvaluateMode: DWORD,
     }
     unsafe impl crate::memory::Pod for Vtable {}
+
+    pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
+        let addr = ddraw.heap(&mut x86.state.kernel32).alloc(
+            &mut x86.mem,
+            std::mem::size_of::<IDirectDraw7::Vtable>() as u32,
+        );
+
+        let buf = &mut x86.mem
+            [addr as usize..addr as usize + std::mem::size_of::<IDirectDraw7::Vtable>()];
+        // Fill vtable with "unimplemented" callback.
+        for i in 0..(buf.len() / 4) {
+            let id = x86
+                .shims
+                .add(Err(format!("IDirectDraw method {:x} unimplemented", i)));
+            write_u32(buf, (i * 4) as u32, id);
+        }
+
+        let vtable = x86.mem.view_mut::<IDirectDraw7::Vtable>(addr);
+
+        vtable
+            .Release
+            .set(x86.shims.add(Ok(IDirectDraw7::shims::Release)));
+        vtable
+            .CreateSurface
+            .set(x86.shims.add(Ok(IDirectDraw7::shims::CreateSurface)));
+        vtable
+            .SetCooperativeLevel
+            .set(x86.shims.add(Ok(IDirectDraw7::shims::SetCooperativeLevel)));
+        vtable
+            .SetDisplayMode
+            .set(x86.shims.add(Ok(IDirectDraw7::shims::SetDisplayMode)));
+        addr
+    }
 
     fn Release(_x86: &mut X86, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
@@ -262,8 +218,252 @@ mod IDirectDrawSurface7 {
     }
     unsafe impl crate::memory::Pod for Vtable {}
 
+    pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
+        let addr = ddraw
+            .heap(&mut x86.state.kernel32)
+            .alloc(&mut x86.mem, std::mem::size_of::<Vtable>() as u32);
+        let vtable = x86.mem.view_mut::<Vtable>(addr);
+        *vtable = Vtable {
+            QueryInterface: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::QueryInterface unimplemented".into()
+                ))
+                .into(),
+            AddRef: x86
+                .shims
+                .add(Err("IDirectDrawSurface::AddRef unimplemented".into()))
+                .into(),
+            Release: x86
+                .shims
+                .add(Ok(IDirectDrawSurface7::shims::Release))
+                .into(),
+            AddAttachedSurface: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::AddAttachedSurface unimplemented".into()
+                ))
+                .into(),
+            AddOverlayDirtyRect: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::AddOverlayDirtyRect unimplemented".into()
+                ))
+                .into(),
+            Blt: x86
+                .shims
+                .add(Err("IDirectDrawSurface::Blt unimplemented".into()))
+                .into(),
+            BltBatch: x86
+                .shims
+                .add(Err("IDirectDrawSurface::BltBatch unimplemented".into()))
+                .into(),
+            BltFast: x86
+                .shims
+                .add(Err("IDirectDrawSurface::BltFast unimplemented".into()))
+                .into(),
+            DeleteAttachedSurface: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::DeleteAttachedSurface unimplemented".into(),
+                ))
+                .into(),
+            EnumAttachedSurfaces: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::EnumAttachedSurfaces unimplemented".into(),
+                ))
+                .into(),
+            EnumOverlayZOrders: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::EnumOverlayZOrders unimplemented".into()
+                ))
+                .into(),
+            Flip: x86
+                .shims
+                .add(Err("IDirectDrawSurface::Flip unimplemented".into()))
+                .into(),
+            GetAttachedSurface: x86
+                .shims
+                .add(Ok(IDirectDrawSurface7::shims::GetAttachedSurface))
+                .into(),
+            GetBltStatus: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetBltStatus unimplemented".into()))
+                .into(),
+            GetCaps: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetCaps unimplemented".into()))
+                .into(),
+            GetClipper: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetClipper unimplemented".into()))
+                .into(),
+            GetColorKey: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetColorKey unimplemented".into()))
+                .into(),
+            GetDC: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetDC unimplemented".into()))
+                .into(),
+            GetFlipStatus: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetFlipStatus unimplemented".into()))
+                .into(),
+            GetOverlayPosition: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetOverlayPosition unimplemented".into()
+                ))
+                .into(),
+            GetPalette: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetPalette unimplemented".into()))
+                .into(),
+            GetPixelFormat: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetPixelFormat unimplemented".into()
+                ))
+                .into(),
+            GetSurfaceDesc: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetSurfaceDesc unimplemented".into()
+                ))
+                .into(),
+            Initialize: x86
+                .shims
+                .add(Err("IDirectDrawSurface::Initialize unimplemented".into()))
+                .into(),
+            IsLost: x86
+                .shims
+                .add(Err("IDirectDrawSurface::IsLost unimplemented".into()))
+                .into(),
+            Lock: x86
+                .shims
+                .add(Err("IDirectDrawSurface::Lock unimplemented".into()))
+                .into(),
+            ReleaseDC: x86
+                .shims
+                .add(Err("IDirectDrawSurface::ReleaseDC unimplemented".into()))
+                .into(),
+            Restore: x86
+                .shims
+                .add(Ok(IDirectDrawSurface7::shims::Restore))
+                .into(),
+            SetClipper: x86
+                .shims
+                .add(Err("IDirectDrawSurface::SetClipper unimplemented".into()))
+                .into(),
+            SetColorKey: x86
+                .shims
+                .add(Err("IDirectDrawSurface::SetColorKey unimplemented".into()))
+                .into(),
+            SetOverlayPosition: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::SetOverlayPosition unimplemented".into()
+                ))
+                .into(),
+            SetPalette: x86
+                .shims
+                .add(Err("IDirectDrawSurface::SetPalette unimplemented".into()))
+                .into(),
+            Unlock: x86
+                .shims
+                .add(Err("IDirectDrawSurface::Unlock unimplemented".into()))
+                .into(),
+            UpdateOverlay: x86
+                .shims
+                .add(Err("IDirectDrawSurface::UpdateOverlay unimplemented".into()))
+                .into(),
+            UpdateOverlayDisplay: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::UpdateOverlayDisplay unimplemented".into(),
+                ))
+                .into(),
+            UpdateOverlayZOrder: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::UpdateOverlayZOrder unimplemented".into()
+                ))
+                .into(),
+            GetDDInterface: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetDDInterface unimplemented".into()
+                ))
+                .into(),
+            PageLock: x86
+                .shims
+                .add(Err("IDirectDrawSurface::PageLock unimplemented".into()))
+                .into(),
+            PageUnlock: x86
+                .shims
+                .add(Err("IDirectDrawSurface::PageUnlock unimplemented".into()))
+                .into(),
+            SetSurfaceDesc: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::SetSurfaceDesc unimplemented".into()
+                ))
+                .into(),
+            SetPrivateData: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::SetPrivateData unimplemented".into()
+                ))
+                .into(),
+            GetPrivateData: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetPrivateData unimplemented".into()
+                ))
+                .into(),
+            FreePrivateData: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::FreePrivateData unimplemented".into()
+                ))
+                .into(),
+            GetUniquenessValue: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::GetUniquenessValue unimplemented".into()
+                ))
+                .into(),
+            ChangeUniquenessValue: x86
+                .shims
+                .add(Err(
+                    "IDirectDrawSurface::ChangeUniquenessValue unimplemented".into(),
+                ))
+                .into(),
+            SetPriority: x86
+                .shims
+                .add(Err("IDirectDrawSurface::SetPriority unimplemented".into()))
+                .into(),
+            GetPriority: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetPriority unimplemented".into()))
+                .into(),
+            SetLOD: x86
+                .shims
+                .add(Err("IDirectDrawSurface::SetLOD unimplemented".into()))
+                .into(),
+            GetLOD: x86
+                .shims
+                .add(Err("IDirectDrawSurface::GetLOD unimplemented".into()))
+                .into(),
+        };
+        addr
+    }
+
     pub fn new(x86: &mut X86) -> u32 {
-        let ddraw = &mut x86.state.ddraw;
+        let ddraw = x86.state.ddraw.as_mut().unwrap();
         let lpDirectDrawSurface7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
         x86.write_u32(lpDirectDrawSurface7, vtable);
@@ -302,8 +502,14 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
     assert!(lpGuid == 0);
     assert!(pUnkOuter == 0);
 
-    let ddraw = &mut x86.state.ddraw;
-    ddraw.init(&mut x86.shims, &mut x86.state.kernel32, &mut x86.mem);
+    let ddraw = match &mut x86.state.ddraw {
+        Some(ddraw) => ddraw,
+        None => {
+            let ddraw = State::new(x86);
+            x86.state.ddraw = Some(ddraw);
+            x86.state.ddraw.as_mut().unwrap()
+        }
+    };
 
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
     if iid_slice == IID_IDirectDraw7 {
