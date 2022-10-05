@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 
 use crate::{
+    memory::Memory,
     winapi,
     x86::{write_u32, Shims},
     X86,
@@ -46,20 +47,16 @@ impl State {
         self.vtable_IDirectDraw7 = self
             .heap(kernel32)
             .alloc(mem, std::mem::size_of::<IDirectDraw7::Vtable>() as u32);
+
         let buf = &mut mem[self.vtable_IDirectDraw7 as usize
             ..self.vtable_IDirectDraw7 as usize + std::mem::size_of::<IDirectDraw7::Vtable>()];
-
         // Fill vtable with "unimplemented" callback.
         for i in 0..(buf.len() / 4) {
             let id = shims.add(Err(format!("IDirectDraw method {:x} unimplemented", i)));
             write_u32(buf, (i * 4) as u32, id);
         }
 
-        let vtable: &mut IDirectDraw7::Vtable = unsafe {
-            (buf.as_mut_ptr() as *mut IDirectDraw7::Vtable)
-                .as_mut()
-                .unwrap()
-        };
+        let vtable = mem.view_mut::<IDirectDraw7::Vtable>(self.vtable_IDirectDraw7);
 
         vtable
             .Release
@@ -98,11 +95,7 @@ impl State {
             write_u32(buf, (i * 4) as u32, id);
         }
 
-        let vtable: &mut IDirectDrawSurface7::Vtable = unsafe {
-            (buf.as_mut_ptr() as *mut IDirectDrawSurface7::Vtable)
-                .as_mut()
-                .unwrap()
-        };
+        let vtable = mem.view_mut::<IDirectDrawSurface7::Vtable>(self.vtable_IDirectDrawSurface7);
 
         vtable
             .Release
@@ -162,6 +155,7 @@ mod IDirectDraw7 {
         pub StartModeTest: DWORD,
         pub EvaluateMode: DWORD,
     }
+    unsafe impl crate::memory::Pod for Vtable {}
 
     fn Release(_x86: &mut X86, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
@@ -266,6 +260,7 @@ mod IDirectDrawSurface7 {
         pub SetLOD: DWORD,
         pub GetLOD: DWORD,
     }
+    unsafe impl crate::memory::Pod for Vtable {}
 
     pub fn new(x86: &mut X86) -> u32 {
         let ddraw = &mut x86.state.ddraw;
