@@ -6,7 +6,6 @@ use super::{x86, x86::X86};
 use crate::{
     memory::{Memory, DWORD},
     winapi,
-    x86::{read_u32, write_u32},
 };
 use tsify::Tsify;
 
@@ -43,14 +42,14 @@ impl Heap {
             return 0;
         }
         let addr = self.addr + self.next;
-        write_u32(mem, addr, size);
+        mem.write_u32(addr, size);
         self.next += alloc_size;
         addr + 4
     }
 
     pub fn size(&self, mem: &[u8], addr: u32) -> u32 {
         assert!(addr >= self.addr + 4 && addr < self.addr + self.size);
-        read_u32(mem, addr - 4)
+        mem.read_u32(addr - 4)
     }
 }
 

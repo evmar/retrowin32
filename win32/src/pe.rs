@@ -3,7 +3,6 @@
 use crate::{
     memory::{self, Memory, DWORD, WORD},
     reader::Reader,
-    x86::write_u32,
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
@@ -235,7 +234,7 @@ pub fn parse_imports(
     }
 
     for (addr, target) in patches {
-        write_u32(mem, addr, target);
+        mem.write_u32(addr, target);
     }
 
     Ok(())

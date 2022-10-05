@@ -12,7 +12,7 @@ fn IS_INTRESOURCE(x: u32) -> bool {
 pub struct Window {}
 
 pub struct State {
-    #[allow(dead_code)]  // TODO
+    #[allow(dead_code)] // TODO
     windows: HashMap<u32, Window>,
     next_hwnd: u32,
 }

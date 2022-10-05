@@ -15,24 +15,24 @@ pub trait Memory {
 }
 
 impl Memory for [u8] {
-    fn view<T: Pod>(&self, ofs: u32) -> &T {
-        let ofs = ofs as usize;
+    fn view<T: Pod>(&self, addr: u32) -> &T {
+        let ofs = addr as usize;
         let buf = &self[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &*(buf.as_ptr() as *const T) }
     }
-    fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T {
-        let ofs = ofs as usize;
+    fn view_mut<T: Pod>(&mut self, addr: u32) -> &mut T {
+        let ofs = addr as usize;
         let buf = &mut self[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
     }
 
-    fn read_u32(&self, ofs: u32) -> u32 {
-        self.view::<DWORD>(ofs).get()
+    fn read_u32(&self, addr: u32) -> u32 {
+        self.view::<DWORD>(addr).get()
     }
-    fn write_u32(&mut self, ofs: u32, value: u32) {
-        self.view_mut::<DWORD>(ofs).set(value)
+    fn write_u32(&mut self, addr: u32, value: u32) {
+        self.view_mut::<DWORD>(addr).set(value)
     }
 
     fn read_strz(&self) -> String {

@@ -2,7 +2,7 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::winapi;
+use crate::{memory::Memory, winapi};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -12,22 +12,6 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 /// magic range.
 /// "fake IAT" => "FIAT" => "F1A7"
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
-
-pub fn read_u32(mem: &[u8], addr: u32) -> u32 {
-    let offset = addr as usize;
-    ((mem[offset] as u32) << 0)
-        | ((mem[offset + 1] as u32) << 8)
-        | ((mem[offset + 2] as u32) << 16)
-        | ((mem[offset + 3] as u32) << 24)
-}
-
-pub fn write_u32(mem: &mut [u8], addr: u32, value: u32) {
-    let addr = addr as usize;
-    mem[addr] = (value >> 0) as u8;
-    mem[addr + 1] = (value >> 8) as u8;
-    mem[addr + 2] = (value >> 16) as u8;
-    mem[addr + 3] = (value >> 24) as u8;
-}
 
 bitflags! {
     pub struct Flags: u32 {
@@ -242,7 +226,7 @@ impl<'a> X86<'a> {
         if addr < NULL_POINTER_REGION_SIZE {
             panic!("null pointer write at {addr:#x}");
         }
-        write_u32(&mut self.mem, addr, value);
+        self.mem.write_u32(addr, value);
     }
     pub fn write_u16(&mut self, addr: u32, value: u16) {
         if addr < NULL_POINTER_REGION_SIZE {
@@ -262,7 +246,7 @@ impl<'a> X86<'a> {
         if addr < NULL_POINTER_REGION_SIZE {
             panic!("null pointer read at {addr:#x}");
         }
-        read_u32(&self.mem, addr)
+        self.mem.read_u32(addr)
     }
     pub fn read_u16(&self, addr: u32) -> u16 {
         if addr < NULL_POINTER_REGION_SIZE {
