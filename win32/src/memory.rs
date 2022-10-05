@@ -14,6 +14,7 @@ pub trait Memory {
     fn read_strz(&self) -> String;
 }
 
+// TODO: wrap the x86 memory with a newtype and use that here instead.
 impl Memory for [u8] {
     fn view<T: Pod>(&self, addr: u32) -> &T {
         let ofs = addr as usize;
