@@ -10,6 +10,7 @@ pub trait Memory {
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn read_u32(&self, ofs: u32) -> u32;
+    fn write_u32(&mut self, ofs: u32, value: u32);
     fn read_strz(&self) -> String;
 }
 
@@ -29,6 +30,9 @@ impl Memory for [u8] {
 
     fn read_u32(&self, ofs: u32) -> u32 {
         self.view::<DWORD>(ofs).get()
+    }
+    fn write_u32(&mut self, ofs: u32, value: u32) {
+        self.view_mut::<DWORD>(ofs).set(value)
     }
 
     fn read_strz(&self) -> String {

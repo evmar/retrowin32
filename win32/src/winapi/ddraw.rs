@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use crate::{memory::Memory, winapi, x86::write_u32, X86};
+use crate::{memory::Memory, winapi, X86};
 
 use super::kernel32;
 
@@ -220,7 +220,7 @@ mod IDirectDraw7 {
     ) -> u32 {
         log::warn!("{this:x}->CreateSurface({lpSurfaceDesc:x}, {lpDirectDrawSurface7:x})");
         let surface = IDirectDrawSurface7::new(x86);
-        write_u32(&mut x86.mem, lpDirectDrawSurface7, surface);
+        x86.mem.write_u32(lpDirectDrawSurface7, surface);
         DD_OK
     }
 
@@ -550,7 +550,7 @@ mod IDirectDrawSurface7 {
         let ddraw = x86.state.ddraw.as_mut().unwrap();
         let lpDirectDrawSurface7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
-        x86.write_u32(lpDirectDrawSurface7, vtable);
+        x86.mem.write_u32(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }
 
@@ -567,7 +567,7 @@ mod IDirectDrawSurface7 {
     ) -> u32 {
         log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
         let surf = new(x86);
-        write_u32(&mut x86.mem, lpDirectDrawSurface7, surf);
+        x86.mem.write_u32(lpDirectDrawSurface7, surf);
         DD_OK
     }
 
