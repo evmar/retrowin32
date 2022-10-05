@@ -5,6 +5,10 @@ use std::collections::HashMap;
 use super::X86;
 use crate::{reader::read_strz, winapi};
 
+fn IS_INTRESOURCE(x: u32) -> bool {
+    x >> 16 == 0
+}
+
 pub struct Window {}
 
 pub struct State {
@@ -78,6 +82,40 @@ fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
+fn LoadImageA(
+    _x86: &mut X86,
+    hInstance: u32,
+    name: u32,
+    typ: u32,
+    cx: u32,
+    cy: u32,
+    fuLoad: u32,
+) -> u32 {
+    // 400000, 65, 0, 5dc, 118, 0
+    log::warn!("LoadImageA({hInstance:x}, {name:x}, {typ:x}, {cx:x}, {cy:x}, {fuLoad:x})");
+
+    if !IS_INTRESOURCE(name) {
+        log::error!("unimplemented image name {name:x}");
+        return 0;
+    }
+
+    const IMAGE_BITMAP: u32 = 0;
+    match typ {
+        IMAGE_BITMAP => {}
+        _ => {
+            log::error!("unimplemented image type {:x}", typ);
+            return 0;
+        }
+    };
+
+    if fuLoad != 0 {
+        log::error!("unimplemented fuLoad {:x}", fuLoad);
+        return 0;
+    }
+
+    0
+}
+
 fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
     const SM_CXSCREEN: u32 = 0;
     const SM_CYSCREEN: u32 = 1;
@@ -115,5 +153,6 @@ winapi!(
 
     fn LoadIconA(hInstance: u32, lpIconName: u32);
     fn LoadCursorA(hInstance: u32, lpCursorName: u32);
+    fn LoadImageA(hInstance: u32, name: u32, typ: u32, cx: u32, cy: u32, fuLoad: u32);
     fn GetSystemMetrics(nIndex: u32);
 );

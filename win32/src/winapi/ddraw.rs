@@ -110,6 +110,9 @@ impl State {
         vtable
             .GetAttachedSurface
             .set(shims.add(Ok(IDirectDrawSurface7::shims::GetAttachedSurface)));
+        vtable
+            .Restore
+            .set(shims.add(Ok(IDirectDrawSurface7::shims::Restore)));
     }
 }
 
@@ -285,9 +288,14 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    fn Restore(_x86: &mut X86, _this: u32) -> u32 {
+        DD_OK
+    }
+
     winapi_shims!(
         fn Release(this: u32);
         fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
+        fn Restore(this: u32);
     );
 }
 
