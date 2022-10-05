@@ -1,4 +1,5 @@
 mod debug;
+mod memory;
 mod pe;
 mod reader;
 mod winapi;

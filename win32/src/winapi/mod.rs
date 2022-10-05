@@ -6,16 +6,6 @@ pub mod gdi32;
 pub mod kernel32;
 pub mod user32;
 
-struct DWORD([u8; 4]);
-impl DWORD {
-    fn set(&mut self, val: u32) {
-        self.0[0] = val as u8;
-        self.0[1] = (val >> 8) as u8;
-        self.0[2] = (val >> 16) as u8;
-        self.0[3] = (val >> 24) as u8;
-    }
-}
-
 // winapi is stdcall, which means args are right to left and callee-cleaned.
 // The caller of winapi functions is responsible for pushing/popping the
 // return address, because some callers actually 'jmp' directly.

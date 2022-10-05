@@ -1,4 +1,7 @@
+#![allow(non_snake_case)]
+
 use crate::{
+    memory::{self, Memory, DWORD, WORD},
     reader::{read_strz, Reader},
     x86::write_u32,
 };
@@ -15,15 +18,17 @@ fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
 }
 
 #[derive(Debug)]
-pub struct PEHeader {
-    pub machine: u16,
-    pub number_of_sections: u16,
-    pub time_date_stamp: u32,
-    pub pointer_to_symbol_table: u32,
-    pub number_of_symbols: u32,
-    pub size_of_optional_header: u16,
-    pub characteristics: u16,
+#[repr(C)]
+pub struct IMAGE_FILE_HEADER {
+    pub Machine: WORD,
+    pub NumberOfSections: WORD,
+    pub TimeDateStamp: DWORD,
+    pub PointerToSymbolTable: DWORD,
+    pub NumberOfSymbols: DWORD,
+    pub SizeOfOptionalHeader: WORD,
+    pub Characteristics: WORD,
 }
+unsafe impl memory::Pod for IMAGE_FILE_HEADER {}
 
 bitflags! {
     pub struct DllCharacteristics: u16 {
@@ -41,140 +46,85 @@ bitflags! {
     }
 }
 
+#[repr(C)]
 #[derive(Debug)]
-pub struct PEOptionalHeader {
-    pub magic: u16,
-    pub major_linker_version: u8,
-    pub minor_linker_version: u8,
-    pub size_of_code: u32,
-    pub size_of_initialized_data: u32,
-    pub size_of_uninitialized_data: u32,
-    pub address_of_entry_point: u32,
-    pub base_of_code: u32,
-    pub base_of_data: u32,
-    pub image_base: u32,
-    pub section_alignment: u32,
-    pub file_alignment: u32,
-    pub major_operating_system_version: u16,
-    pub minor_operating_system_version: u16,
-    pub major_image_version: u16,
-    pub minor_image_version: u16,
-    pub major_subsystem_version: u16,
-    pub minor_subsystem_version: u16,
-    pub win32_version_value: u32,
-    pub size_of_image: u32,
-    pub size_of_headers: u32,
-    pub check_sum: u32,
-    pub subsystem: u16,
-    pub dll_characteristics: DllCharacteristics,
-    pub size_of_stack_reserve: u32,
-    pub size_of_stack_commit: u32,
-    pub size_of_heap_reserve: u32,
-    pub size_of_heap_commit: u32,
-    pub loader_flags: u32,
-    pub number_of_rva_and_sizes: u32,
-    pub data_directory: [ImageDataDirectory; 16],
+pub struct IMAGE_OPTIONAL_HEADER32 {
+    pub Magic: WORD,
+    pub MajorLinkerVersion: u8,
+    pub MinorLinkerVersion: u8,
+    pub SizeOfCode: DWORD,
+    pub SizeOfInitializedData: DWORD,
+    pub SizeOfUninitializedData: DWORD,
+    pub AddressOfEntryPoint: DWORD,
+    pub BaseOfCode: DWORD,
+    pub BaseOfData: DWORD,
+    pub ImageBase: DWORD,
+    pub SectionAlignment: DWORD,
+    pub FileAlignment: DWORD,
+    pub MajorOperatingSystemVersion: WORD,
+    pub MinorOperatingSystemVersion: WORD,
+    pub MajorImageVersion: WORD,
+    pub MinorImageVersion: WORD,
+    pub MajorSubsystemVersion: WORD,
+    pub MinorSubsystemVersion: WORD,
+    pub Win32VersionValue: DWORD,
+    pub SizeOfImage: DWORD,
+    pub SizeOfHeaders: DWORD,
+    pub CheckSum: DWORD,
+    pub Subsystem: WORD,
+    pub DllCharacteristics: WORD,
+    pub SizeOfStackReserve: DWORD,
+    pub SizeOfStackCommit: DWORD,
+    pub SizeOfHeapReserve: DWORD,
+    pub SizeOfHeapCommit: DWORD,
+    pub LoaderFlags: DWORD,
+    pub NumberOfRvaAndSizes: DWORD,
+    pub DataDirectory: [IMAGE_DATA_DIRECTORY; 16],
 }
+unsafe impl memory::Pod for IMAGE_OPTIONAL_HEADER32 {}
 
+#[repr(C)]
 #[derive(Debug)]
-pub struct ImageDataDirectory {
-    pub virtual_address: u32,
-    pub size: u32,
+pub struct IMAGE_DATA_DIRECTORY {
+    pub VirtualAddress: DWORD,
+    pub Size: DWORD,
 }
+unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 
-fn pe_header(r: &mut Reader) -> anyhow::Result<PEHeader> {
+fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
-    let header = PEHeader {
-        machine: r.u16()?,
-        number_of_sections: r.u16()?,
-        time_date_stamp: r.u32()?,
-        pointer_to_symbol_table: r.u32()?,
-        number_of_symbols: r.u32()?,
-        size_of_optional_header: r.u16()?,
-        characteristics: r.u16()?,
-    };
-    if header.machine != 0x14c {
-        bail!("bad machine {:#x}", header.machine);
+
+    let header: &'a IMAGE_FILE_HEADER = r.view::<IMAGE_FILE_HEADER>();
+    log::info!("header {:?}", header);
+    if header.Machine.get() != 0x14c {
+        bail!("bad machine {:?}", header.Machine);
     }
     Ok(header)
 }
 
-fn data_directory(r: &mut Reader) -> anyhow::Result<ImageDataDirectory> {
-    Ok(ImageDataDirectory {
-        virtual_address: r.u32()?,
-        size: r.u32()?,
-    })
-}
-
-fn pe_opt_header(r: &mut Reader) -> anyhow::Result<PEOptionalHeader> {
-    let opt_header: PEOptionalHeader = PEOptionalHeader {
-        magic: r.u16()?,
-        major_linker_version: r.u8()?,
-        minor_linker_version: r.u8()?,
-        size_of_code: r.u32()?,
-        size_of_initialized_data: r.u32()?,
-        size_of_uninitialized_data: r.u32()?,
-        address_of_entry_point: r.u32()?,
-        base_of_code: r.u32()?,
-        base_of_data: r.u32()?,
-        image_base: r.u32()?,
-        section_alignment: r.u32()?,
-        file_alignment: r.u32()?,
-        major_operating_system_version: r.u16()?,
-        minor_operating_system_version: r.u16()?,
-        major_image_version: r.u16()?,
-        minor_image_version: r.u16()?,
-        major_subsystem_version: r.u16()?,
-        minor_subsystem_version: r.u16()?,
-        win32_version_value: r.u32()?,
-        size_of_image: r.u32()?,
-        size_of_headers: r.u32()?,
-        check_sum: r.u32()?,
-        subsystem: r.u16()?,
-        dll_characteristics: {
-            let raw = r.u16()?;
-            DllCharacteristics::from_bits(raw).ok_or_else(|| anyhow!("bad flags {raw:#x}"))?
-        },
-        size_of_stack_reserve: r.u32()?,
-        size_of_stack_commit: r.u32()?,
-        size_of_heap_reserve: r.u32()?,
-        size_of_heap_commit: r.u32()?,
-        loader_flags: r.u32()?,
-        number_of_rva_and_sizes: r.u32()?,
-        data_directory: [
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-            data_directory(r)?,
-        ],
-    };
-    Ok(opt_header)
-}
-
+#[repr(C)]
 #[derive(Debug)]
-pub struct ImageSectionHeader {
-    pub name: String,
-    pub virtual_size: u32,
-    pub virtual_address: u32,
-    pub size_of_raw_data: u32,
-    pub pointer_to_raw_data: u32,
-    pub pointer_to_relocations: u32,
-    pub pointer_to_linenumbers: u32,
-    pub number_of_relocations: u16,
-    pub number_of_linenumbers: u16,
-    pub characteristics: ImageSectionFlags,
+pub struct IMAGE_SECTION_HEADER {
+    pub Name: [u8; 8],
+    pub VirtualSize: u32,
+    pub VirtualAddress: u32,
+    pub SizeOfRawData: u32,
+    pub PointerToRawData: u32,
+    pub PointerToRelocations: u32,
+    pub PointerToLinenumbers: u32,
+    pub NumberOfRelocations: u16,
+    pub NumberOfLinenumbers: u16,
+    pub Characteristics: u32,
+}
+unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
+impl IMAGE_SECTION_HEADER {
+    pub fn name(&self) -> String {
+        self.Name.read_strz()
+    }
+    pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
+        ImageSectionFlags::from_bits(self.Characteristics)
+            .ok_or_else(|| anyhow!("bad flags {:#x}", self.Characteristics))
+    }
 }
 
 bitflags! {
@@ -189,29 +139,15 @@ bitflags! {
     }
 }
 
-fn read_section(r: &mut Reader) -> anyhow::Result<ImageSectionHeader> {
-    Ok(ImageSectionHeader {
-        name: r.str(8)?,
-        virtual_size: r.u32()?,
-        virtual_address: r.u32()?,
-        size_of_raw_data: r.u32()?,
-        pointer_to_raw_data: r.u32()?,
-        pointer_to_relocations: r.u32()?,
-        pointer_to_linenumbers: r.u32()?,
-        number_of_relocations: r.u16()?,
-        number_of_linenumbers: r.u16()?,
-        characteristics: {
-            let raw = r.u32()?;
-            ImageSectionFlags::from_bits(raw).ok_or_else(|| anyhow!("bad flags {raw:#x}"))?
-        },
-    })
+fn read_section<'a>(r: &mut Reader<'a>) -> &'a IMAGE_SECTION_HEADER {
+    r.view::<IMAGE_SECTION_HEADER>()
 }
 
 #[derive(Debug)]
-pub struct File {
-    pub header: PEHeader,
-    pub opt_header: PEOptionalHeader,
-    pub sections: Vec<ImageSectionHeader>,
+pub struct File<'a> {
+    pub header: &'a IMAGE_FILE_HEADER,
+    pub opt_header: &'a IMAGE_OPTIONAL_HEADER32,
+    pub sections: Vec<&'a IMAGE_SECTION_HEADER>,
 }
 
 pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
@@ -222,26 +158,27 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
 
     let mut file = File {
         header: pe_header(&mut r)?,
-        opt_header: pe_opt_header(&mut r)?,
+        opt_header: r.view::<IMAGE_OPTIONAL_HEADER32>(),
         sections: Vec::new(),
     };
 
-    for _ in 0..file.header.number_of_sections {
-        file.sections.push(read_section(&mut r)?);
+    for _ in 0..file.header.NumberOfSections.get() {
+        file.sections.push(read_section(&mut r));
     }
 
     Ok(file)
 }
 
 #[derive(Debug)]
-#[allow(dead_code)]
-struct ImageImportDescriptor {
-    original_first_thunk: u32,
-    time_date_stamp: u32,
-    forwarder_chain: u32,
-    name: u32,
-    first_thunk: u32,
+#[repr(C)]
+struct IMAGE_IMPORT_DESCRIPTOR {
+    OriginalFirstThunk: DWORD,
+    TimeDateStamp: DWORD,
+    ForwarderChain: DWORD,
+    Name: DWORD,
+    FirstThunk: DWORD,
 }
+unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 /// mem: memory starting at image base
 /// addr: address of imports table relative to mem start
@@ -256,17 +193,13 @@ pub fn parse_imports(
     r.seek(addr)?;
     let mut patches = Vec::new();
     loop {
-        let descriptor = ImageImportDescriptor {
-            original_first_thunk: r.u32()?,
-            time_date_stamp: r.u32()?,
-            forwarder_chain: r.u32()?,
-            name: r.u32()?,
-            first_thunk: r.u32()?,
-        };
-        if descriptor.name == 0 {
+        let descriptor = r.view::<IMAGE_IMPORT_DESCRIPTOR>();
+        if descriptor.Name.get() == 0 {
             break;
         }
-        let dll_name = read_strz(&mem[descriptor.name as usize..]).to_ascii_lowercase();
+        let dll_name = mem[descriptor.Name.get() as usize..]
+            .read_strz()
+            .to_ascii_lowercase();
 
         // Officially original_first_thunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
@@ -282,9 +215,9 @@ pub fn parse_imports(
         // On load, each IAT entry points to the function name (as parsed below).
         // The loader is supposed to overwrite the IAT with the addresses to the loaded DLL,
         // but we instead just record the IAT addresses to remap them.
-        let mut iat_reader = Reader::new(&mem[descriptor.first_thunk as usize..]);
+        let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk.get() as usize..]);
         loop {
-            let addr = descriptor.first_thunk + iat_reader.pos as u32;
+            let addr = descriptor.FirstThunk.get() + iat_reader.pos as u32;
             let entry = iat_reader.u32()?;
             if entry == 0 {
                 break;

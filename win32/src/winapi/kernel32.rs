@@ -2,8 +2,9 @@
 
 use std::collections::HashMap;
 
-use super::{x86, x86::X86, DWORD};
+use super::{x86, x86::X86};
 use crate::{
+    memory::DWORD,
     reader::read_strz,
     winapi,
     x86::{read_u32, write_u32},

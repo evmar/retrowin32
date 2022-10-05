@@ -7,7 +7,7 @@ use crate::{
     X86,
 };
 
-use super::{kernel32, DWORD};
+use super::kernel32;
 
 pub struct State {
     hheap: u32,
@@ -125,6 +125,8 @@ const IID_IDirectDraw7: [u8; 16] = [
 ];
 
 mod IDirectDraw7 {
+    use crate::memory::DWORD;
+
     use super::*;
 
     #[repr(C)]
@@ -208,6 +210,8 @@ mod IDirectDraw7 {
 }
 
 mod IDirectDrawSurface7 {
+    use crate::memory::DWORD;
+
     use super::*;
 
     #[repr(C)]

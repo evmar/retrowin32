@@ -1,7 +1,11 @@
+use std::mem::size_of;
+
 use anyhow::{anyhow, bail};
 
+use crate::memory::{Memory, Pod};
+
 pub struct Reader<'a> {
-    buf: &'a [u8],
+    pub buf: &'a [u8],
     pub pos: usize,
 }
 
@@ -40,19 +44,6 @@ impl<'a> Reader<'a> {
         Ok(())
     }
 
-    pub fn u8(&mut self) -> anyhow::Result<u8> {
-        let val = self.buf[self.pos];
-        self.pos += 1;
-        Ok(val)
-    }
-
-    pub fn u16(&mut self) -> anyhow::Result<u16> {
-        let buf = self.peek(4).ok_or(anyhow!("EOF"))?;
-        let val = (buf[0] as u16) | ((buf[1] as u16) << 8);
-        self.pos += 2;
-        Ok(val)
-    }
-
     pub fn u32(&mut self) -> anyhow::Result<u32> {
         let buf = self.peek(4).ok_or(anyhow!("EOF"))?;
         let val = (buf[0] as u32)
@@ -63,13 +54,10 @@ impl<'a> Reader<'a> {
         Ok(val)
     }
 
-    pub fn str(&mut self, n: usize) -> anyhow::Result<String> {
-        let mut buf = self.peek(n).ok_or(anyhow!("EOF"))?;
-        self.pos += n;
-        if let Some(nul) = buf.iter().position(|&c| c == 0) {
-            buf = &buf[0..nul];
-        }
-        Ok(String::from_utf8_lossy(buf).to_string())
+    pub fn view<T: Pod>(&mut self) -> &'a T {
+        let t = self.buf.view::<T>(self.pos as u32);
+        self.pos += size_of::<T>();
+        t
     }
 }
 
