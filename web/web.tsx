@@ -128,7 +128,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
   run() {
     this.updateAfter(() => {
-      for (;;) {
+      for (let i = 0; i < 10000; i++) {
         if (!this.props.vm.step()) break;
       }
     });
