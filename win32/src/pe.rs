@@ -1,4 +1,7 @@
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
+
+use std::mem::size_of;
 
 use crate::{
     memory::{self, Memory, DWORD, WORD},
@@ -238,4 +241,94 @@ pub fn parse_imports(
     }
 
     Ok(())
+}
+
+#[repr(C)]
+#[derive(Debug)]
+struct IMAGE_RESOURCE_DIRECTORY {
+    Characteristics: DWORD,
+    TimeDateStamp: DWORD,
+    MajorVersion: WORD,
+    MinorVersion: WORD,
+    NumberOfNamedEntries: WORD,
+    NumberOfIdEntries: WORD,
+}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
+impl IMAGE_RESOURCE_DIRECTORY {
+    fn entries(&self, mem: &[u8]) -> &[IMAGE_RESOURCE_DIRECTORY_ENTRY] {
+        let count = (self.NumberOfIdEntries.get() + self.NumberOfNamedEntries.get()) as usize;
+        // Entries are in memory immediately after the directory.
+        let mem = &mem[size_of::<IMAGE_RESOURCE_DIRECTORY>()..];
+        let mem = &mem[0..(count * size_of::<IMAGE_RESOURCE_DIRECTORY_ENTRY>()) as usize];
+        unsafe {
+            std::slice::from_raw_parts(mem.as_ptr() as *const IMAGE_RESOURCE_DIRECTORY_ENTRY, count)
+        }
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
+    Name: DWORD,
+    OffsetToData: DWORD,
+}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
+
+#[derive(Debug)]
+enum ResourceName {
+    Name(String),
+    Id(u32),
+}
+impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
+    fn name(&self) -> ResourceName {
+        let val = self.Name.get();
+        if val >> 31 == 0 {
+            ResourceName::Id(val)
+        } else {
+            ResourceName::Name(format!("unhandled name {val:x} in res dir"))
+        }
+    }
+    fn is_directory(&self) -> bool {
+        self.OffsetToData.get() >> 31 == 1
+    }
+    fn offset(&self) -> u32 {
+        self.OffsetToData.get() & 0x7FFF_FFFF
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+struct IMAGE_RESOURCE_DATA_ENTRY {
+    OffsetToData: DWORD,
+    Size: DWORD,
+    CodePage: DWORD,
+    Reserved: DWORD,
+}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
+
+pub fn parse_resources(mem: &[u8], section_base: u32) {
+    let section = &mem[section_base as usize..];
+
+    // Resources are structured as generic nested directories, but in practice there
+    // are always exactly three levels with known semantics.
+    let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(0);
+    for type_entry in dir.entries(section) {
+        assert!(type_entry.is_directory());
+        let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(type_entry.offset());
+        for id_entry in dir.entries(&section[type_entry.offset() as usize..]) {
+            assert!(id_entry.is_directory());
+            let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(id_entry.offset());
+            for lang_entry in dir.entries(&section[id_entry.offset() as usize..]) {
+                assert!(!lang_entry.is_directory());
+                log::info!(
+                    "{:?} {:?} {:?}",
+                    type_entry.name(),
+                    id_entry.name(),
+                    lang_entry.name()
+                );
+                let data = section.view::<IMAGE_RESOURCE_DATA_ENTRY>(lang_entry.offset());
+                log::info!("{:?}", data);
+            }
+        }
+    }
 }

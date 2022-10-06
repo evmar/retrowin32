@@ -47,7 +47,8 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;
 
-    let imports_data = &file.opt_header.DataDirectory[1];
+    const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
+    let imports_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
         &mut x86.mem[base as usize..],
@@ -66,6 +67,10 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
             addr
         },
     )?;
+
+    const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
+    let res_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+    pe::parse_resources(&x86.mem[base as usize..], res_data.VirtualAddress.get());
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint.get();
     x86.regs.eip = entry_point;
