@@ -75,6 +75,17 @@ fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u
     1 // IDOK
 }
 
+fn PeekMessageA(
+    x86: &mut X86,
+    lpMsg: u32,
+    hWnd: u32,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
+    wRemoveMs: u32,
+) -> u32 {
+    0 // no messages
+}
+
 fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
     0
 }
@@ -150,7 +161,10 @@ winapi!(
     fn UpdateWindow(hWnd: u32);
     fn ShowWindow(hWnd: u32, nCmdShow: u32);
     fn SetFocus(hWnd: u32);
+
     fn MessageBoxA(hWnd: u32, lpText: u32, lpCaption: u32, uType: u32);
+
+    fn PeekMessageA(lpMsg: u32, hWnd: u32, wMsgFilterMin: u32, wMsgFilterMax: u32, wRemoveMs: u32);
 
     fn LoadIconA(hInstance: u32, lpIconName: u32);
     fn LoadCursorA(hInstance: u32, lpCursorName: u32);

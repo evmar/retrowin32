@@ -283,6 +283,11 @@ fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     }
 }
 
+fn GetTickCount(_x86: &mut X86) -> u32 {
+    // TODO
+    0
+}
+
 fn GetVersion(_x86: &mut X86) -> u32 {
     // Win95, version 4.0.
     (1 << 31) | 0x4
@@ -469,6 +474,7 @@ winapi!(
     fn GetModuleHandleA(lpModuleName: u32);
     fn GetStartupInfoA(lpStartupInfo: u32);
     fn GetStdHandle(nStdHandle: u32);
+    fn GetTickCount();
     fn GetVersion();
     fn GetVersionExA(lpVersionInformation: u32);
     fn HeapAlloc(hHeap: u32, dwFlags: u32, dwBytes: u32);
