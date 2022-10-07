@@ -38,6 +38,7 @@ fn CreateWindowExA(
     let mut win = x86.host.create_window();
     let name = x86.mem[lpWindowName as usize..].read_strz();
     win.set_title(&name);
+    win.set_size(nWidth, nHeight);
     win.id()
 }
 

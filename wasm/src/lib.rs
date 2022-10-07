@@ -14,6 +14,8 @@ extern "C" {
     fn id(this: &JsWindow) -> u32;
     #[wasm_bindgen(method, setter)]
     fn set_title(this: &JsWindow, title: &str);
+    #[wasm_bindgen(method)]
+    fn set_size(this: &JsWindow, width: u32, height: u32);
 }
 
 impl win32::Window for JsWindow {
@@ -22,6 +24,9 @@ impl win32::Window for JsWindow {
     }
     fn set_title(&mut self, title: &str) {
         JsWindow::set_title(self, title);
+    }
+    fn set_size(&mut self, width: u32, height: u32) {
+        JsWindow::set_size(self, width, height);
     }
 }
 

@@ -30,6 +30,7 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
 interface JsWindow {
   id: number;
   title: string;
+  set_size(width: number, height: number): void;
 }
 
 // Matches 'pub type JsHost' in lib.rs.
@@ -46,6 +47,10 @@ class Window implements JsWindow {
   title: string = '';
   width: number = 0;
   height: number = 0;
+  set_size(w: number, h: number) {
+    this.width = w;
+    this.height = h;
+  }
 }
 
 class VM implements JsHost {
@@ -128,6 +133,7 @@ class VM implements JsHost {
 namespace WindowComponent {
   export interface Props {
     title: string;
+    size: [number, number];
   }
   export interface State {
     drag?: [number, number];
@@ -136,12 +142,11 @@ namespace WindowComponent {
 }
 class WindowComponent extends preact.Component<WindowComponent.Props, WindowComponent.State> {
   state: WindowComponent.State = {
-    pos: [400, 400],
+    pos: [200, 200],
   };
   ref = preact.createRef();
 
   beginDrag = (e: PointerEvent) => {
-    console.log('begin');
     const node = e.currentTarget as HTMLElement;
     this.setState({ drag: [e.offsetX, e.offsetY] });
     node.setPointerCapture(e.pointerId);
@@ -149,12 +154,10 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
   };
   onDrag = (e: PointerEvent) => {
     if (!this.state.drag) return;
-    console.log('drag', e);
     this.setState({ pos: [e.clientX - this.state.drag[0], e.clientY - this.state.drag[1]] });
     e.preventDefault();
   };
   endDrag = (e: PointerEvent) => {
-    console.log('end');
     const node = e.currentTarget as HTMLElement;
     this.setState({ drag: undefined });
     node.releasePointerCapture(e.pointerId);
@@ -167,7 +170,7 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
         <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
           {this.props.title}
         </div>
-        <div ref={this.ref}>content</div>
+        <div ref={this.ref} style={{ width: `${this.props.size[0]}px`, height: `${this.props.size[1]}px` }}></div>
       </div>
     );
   }
@@ -221,7 +224,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
   render() {
     let windows = this.props.vm.windows.map((window) => {
-      return <WindowComponent key={window.id} title={window.title} />;
+      return <WindowComponent key={window.id} title={window.title} size={[window.width, window.height]} />;
     });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
