@@ -14,10 +14,14 @@ fn IS_INTRESOURCE(x: u32) -> bool {
 
 pub struct State {
     pub resources_base: u32,
+    bitmaps: Vec<Bitmap>,
 }
 impl State {
     pub fn new() -> Self {
-        State { resources_base: 0 }
+        State {
+            resources_base: 0,
+            bitmaps: Vec::new(),
+        }
     }
 }
 
@@ -172,6 +176,11 @@ fn LoadImageA(
         return 0;
     }
 
+    if fuLoad != 0 {
+        log::error!("unimplemented fuLoad {:x}", fuLoad);
+        return 0;
+    }
+
     const IMAGE_BITMAP: u32 = 0;
     match typ {
         IMAGE_BITMAP => {
@@ -183,19 +192,14 @@ fn LoadImageA(
             )
             .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
-            log::info!("got bmp {}x{}", bmp.width, bmp.height);
+            x86.state.user32.bitmaps.push(bmp);
+            return x86.state.user32.bitmaps.len() as u32;
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
             return 0;
         }
     };
-
-    if fuLoad != 0 {
-        log::error!("unimplemented fuLoad {:x}", fuLoad);
-        return 0;
-    }
-
     0
 }
 
