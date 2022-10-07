@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
-
 use super::X86;
 use crate::{memory::Memory, winapi};
 
@@ -9,19 +7,10 @@ fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
-pub struct Window {}
-
-pub struct State {
-    #[allow(dead_code)] // TODO
-    windows: HashMap<u32, Window>,
-    next_hwnd: u32,
-}
+pub struct State {}
 impl State {
     pub fn new() -> Self {
-        State {
-            windows: HashMap::new(),
-            next_hwnd: 1,
-        }
+        State {}
     }
 }
 
@@ -45,12 +34,11 @@ fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> u32 {
-    let hwnd = x86.state.user32.next_hwnd;
-    x86.state.user32.next_hwnd += 1;
-
     log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
-
-    hwnd
+    let mut win = x86.host.create_window();
+    let name = x86.mem[lpWindowName as usize..].read_strz();
+    win.set_title(&name);
+    win.id()
 }
 
 fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {

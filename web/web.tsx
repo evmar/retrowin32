@@ -26,11 +26,26 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
   return labels;
 }
 
+// Matches 'pub type JsWindow' in lib.rs.
+interface JsWindow {
+  id: number;
+  title: string;
+}
+
 // Matches 'pub type JsHost' in lib.rs.
 interface JsHost {
   exit(code: number): void;
   write(buf: Uint8Array): number;
   time(): number;
+  create_window(): JsWindow;
+  get_window(id: number): JsWindow;
+}
+
+class Window implements JsWindow {
+  constructor(readonly id: number) {}
+  title: string = '';
+  width: number = 0;
+  height: number = 0;
 }
 
 class VM implements JsHost {
@@ -98,6 +113,64 @@ class VM implements JsHost {
   time() {
     return Math.floor(performance.now() * 1000);
   }
+
+  windows: Window[] = [];
+  create_window(): JsWindow {
+    let id = this.windows.length + 1;
+    this.windows.push(new Window(id));
+    return this.windows[id - 1];
+  }
+  get_window(id: number): JsWindow {
+    return this.windows[id - 1];
+  }
+}
+
+namespace WindowComponent {
+  export interface Props {
+    title: string;
+  }
+  export interface State {
+    drag?: [number, number];
+    pos: [number, number];
+  }
+}
+class WindowComponent extends preact.Component<WindowComponent.Props, WindowComponent.State> {
+  state: WindowComponent.State = {
+    pos: [400, 400],
+  };
+  ref = preact.createRef();
+
+  beginDrag = (e: PointerEvent) => {
+    console.log('begin');
+    const node = e.currentTarget as HTMLElement;
+    this.setState({ drag: [e.offsetX, e.offsetY] });
+    node.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+  onDrag = (e: PointerEvent) => {
+    if (!this.state.drag) return;
+    console.log('drag', e);
+    this.setState({ pos: [e.clientX - this.state.drag[0], e.clientY - this.state.drag[1]] });
+    e.preventDefault();
+  };
+  endDrag = (e: PointerEvent) => {
+    console.log('end');
+    const node = e.currentTarget as HTMLElement;
+    this.setState({ drag: undefined });
+    node.releasePointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+
+  render() {
+    return (
+      <div class='window' style={{ left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }}>
+        <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
+          {this.props.title}
+        </div>
+        <div ref={this.ref}>content</div>
+      </div>
+    );
+  }
 }
 
 namespace Page {
@@ -147,10 +220,14 @@ class Page extends preact.Component<Page.Props, Page.State> {
   showMemory = (memBase: number) => this.setState({ memBase });
 
   render() {
+    let windows = this.props.vm.windows.map((window) => {
+      return <WindowComponent key={window.id} title={window.title} />;
+    });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
     return (
       <>
+        {windows}
         <div style={{ margin: '1ex' }}>
           <button
             onClick={() => this.run()}

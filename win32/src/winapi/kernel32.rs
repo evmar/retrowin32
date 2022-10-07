@@ -7,6 +7,7 @@ use crate::{
     memory::{Memory, DWORD},
     winapi,
 };
+use std::io::Write;
 use tsify::Tsify;
 
 // For now, a magic variable that makes it easier to spot.
@@ -227,9 +228,20 @@ fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
     }
 }
 
-fn GetModuleFileNameA(_x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) -> u32 {
-    log::warn!("GetModuleFileNameA({hModule:x}, {lpFilename:x}, {nSize:x})");
-    0 // fail
+fn GetModuleFileNameA(x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) -> u32 {
+    if hModule != 0 {
+        log::warn!("GetModuleFileNameA({hModule:x})");
+        return 0;
+    }
+    match (x86.mem[lpFilename as usize..(lpFilename + nSize) as usize].as_mut())
+        .write(b"TODO.exe\0")
+    {
+        Ok(n) => n as u32,
+        Err(err) => {
+            log::warn!("GetModuleFileNameA(): {}", err);
+            0
+        }
+    }
 }
 
 fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {

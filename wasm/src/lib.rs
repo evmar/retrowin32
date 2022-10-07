@@ -9,6 +9,24 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    pub type JsWindow;
+    #[wasm_bindgen(method, getter)]
+    fn id(this: &JsWindow) -> u32;
+    #[wasm_bindgen(method, setter)]
+    fn set_title(this: &JsWindow, title: &str);
+}
+
+impl win32::Window for JsWindow {
+    fn id(&self) -> u32 {
+        self.id()
+    }
+    fn set_title(&mut self, title: &str) {
+        JsWindow::set_title(self, title);
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
     pub type JsHost;
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
@@ -16,6 +34,10 @@ extern "C" {
     fn write(this: &JsHost, buf: &[u8]) -> usize;
     #[wasm_bindgen(method)]
     fn time(this: &JsHost) -> u32;
+    #[wasm_bindgen(method)]
+    fn create_window(this: &JsHost) -> JsWindow;
+    #[wasm_bindgen(method)]
+    fn get_window(this: &JsHost, id: u32) -> JsWindow;
 }
 
 impl win32::Host for JsHost {
@@ -27,6 +49,11 @@ impl win32::Host for JsHost {
     }
     fn time(&self) -> u32 {
         JsHost::time(self)
+    }
+    fn create_window(&self) -> Box<dyn win32::Window> {
+        let window = JsHost::create_window(self);
+        window.set_title("test");
+        Box::new(window)
     }
 }
 

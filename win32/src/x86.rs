@@ -163,10 +163,17 @@ impl Registers {
     }
 }
 
+pub trait Window {
+    fn id(&self) -> u32;
+    fn set_title(&mut self, title: &str);
+}
+
 pub trait Host {
     fn exit(&self, code: u32);
     fn write(&self, buf: &[u8]) -> usize;
     fn time(&self) -> u32;
+
+    fn create_window(&self) -> Box<dyn Window>;
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
