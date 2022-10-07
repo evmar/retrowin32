@@ -34,7 +34,13 @@ fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> u32 {
-    log::warn!("todo: CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
+    // Possible value of x/y:
+    //   let CW_USEDEFAULT: u32 = 0x8000_0000;
+
+    // TODO: we ignore most fields here.
+    // hInstance is only relevant when multiple DLLs register classes:
+    //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
+    log::warn!("CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
     let mut win = x86.host.create_window();
     let name = x86.mem[lpWindowName as usize..].read_strz();
     win.set_title(&name);
@@ -42,8 +48,8 @@ fn CreateWindowExA(
     win.id()
 }
 
-fn UpdateWindow(_x86: &mut X86, hWnd: u32) -> u32 {
-    log::warn!("todo: UpdateWindow({hWnd:x})");
+fn UpdateWindow(_x86: &mut X86, _hWnd: u32) -> u32 {
+    // TODO: this should cause a synchronous WM_PAINT.
     0
 }
 
