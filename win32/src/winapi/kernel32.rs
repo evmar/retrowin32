@@ -283,9 +283,8 @@ fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     }
 }
 
-fn GetTickCount(_x86: &mut X86) -> u32 {
-    // TODO
-    0
+fn GetTickCount(x86: &mut X86) -> u32 {
+    x86.host.time()
 }
 
 fn GetVersion(_x86: &mut X86) -> u32 {

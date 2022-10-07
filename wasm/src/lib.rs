@@ -14,6 +14,8 @@ extern "C" {
     fn exit(this: &JsHost, exit_code: u32);
     #[wasm_bindgen(method)]
     fn write(this: &JsHost, buf: &[u8]) -> usize;
+    #[wasm_bindgen(method)]
+    fn time(this: &JsHost) -> u32;
 }
 
 impl win32::Host for JsHost {
@@ -22,6 +24,9 @@ impl win32::Host for JsHost {
     }
     fn write(&self, buf: &[u8]) -> usize {
         JsHost::write(self, buf)
+    }
+    fn time(&self) -> u32 {
+        JsHost::time(self)
     }
 }
 

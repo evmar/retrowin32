@@ -30,6 +30,7 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
 interface JsHost {
   exit(code: number): void;
   write(buf: Uint8Array): number;
+  time(): number;
 }
 
 class VM implements JsHost {
@@ -61,7 +62,7 @@ class VM implements JsHost {
 
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
-    this.breakpoints.set(0x40106b, { addr: 0x40106b, temporary: true });
+    this.breakpoints.set(0x4010d5, { addr: 0x4010d5, temporary: true });
   }
 
   step() {
@@ -93,6 +94,9 @@ class VM implements JsHost {
     this.stdout += this.decoder.decode(buf);
     this.page.setState({ stdout: this.stdout });
     return buf.length;
+  }
+  time() {
+    return Math.floor(performance.now() * 1000);
   }
 }
 

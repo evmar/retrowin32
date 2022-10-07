@@ -166,6 +166,7 @@ impl Registers {
 pub trait Host {
     fn exit(&self, code: u32);
     fn write(&self, buf: &[u8]) -> usize;
+    fn time(&self) -> u32;
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
