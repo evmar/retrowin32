@@ -70,7 +70,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
 
     const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
     let res_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
-    pe::parse_resources(&x86.mem[base as usize..], res_data.VirtualAddress.get());
+    x86.state.user32.resources_base = res_data.VirtualAddress.get();
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint.get();
     x86.regs.eip = entry_point;

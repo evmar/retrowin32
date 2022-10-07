@@ -1,16 +1,23 @@
 #![allow(non_snake_case)]
 
+use anyhow::bail;
+
 use super::X86;
-use crate::{memory::Memory, winapi};
+use crate::{
+    memory::{Memory, Pod, DWORD, WORD},
+    pe, winapi,
+};
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
-pub struct State {}
+pub struct State {
+    pub resources_base: u32,
+}
 impl State {
     pub fn new() -> Self {
-        State {}
+        State { resources_base: 0 }
     }
 }
 
@@ -92,8 +99,64 @@ fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
+#[repr(C)]
+#[derive(Debug)]
+struct BITMAPINFOHEADER {
+    biSize: DWORD,
+    biWidth: DWORD,
+    biHeight: DWORD,
+    biPlanes: WORD,
+    biBitCount: WORD,
+    biCompression: DWORD,
+    biSizeImage: DWORD,
+    biXPelsPerMeter: DWORD,
+    biYPelsPerMeter: DWORD,
+    biClrUsed: DWORD,
+    biClrImportant: DWORD,
+}
+unsafe impl Pod for BITMAPINFOHEADER {}
+
+struct Bitmap {
+    width: usize,
+    height: usize,
+    pixels: Box<[[u8; 4]]>,
+}
+
+fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
+    let header = buf.view::<BITMAPINFOHEADER>(0);
+    let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
+    if header.biSize.get() as usize != header_size {
+        bail!("bad bitmap header");
+    }
+
+    let palette_count = match header.biBitCount.get() {
+        8 => match header.biClrUsed.get() {
+            0 => 256,
+            _ => unimplemented!(),
+        },
+        _ => unimplemented!(),
+    };
+    let palette_buf = &buf[header_size..(header_size + palette_count * 4)];
+    let palette = unsafe {
+        std::slice::from_raw_parts(palette_buf.as_ptr() as *const [u8; 4], palette_count)
+    };
+    let pixels = &buf[header_size + (palette_count * 4)..];
+
+    let width = header.biWidth.get() as usize;
+    let height = header.biHeight.get() as usize;
+    assert!(pixels.len() == width * height);
+
+    let pixels: Vec<_> = pixels.iter().map(|&p| palette[p as usize]).collect();
+
+    Ok(Bitmap {
+        width,
+        height,
+        pixels: pixels.into_boxed_slice(),
+    })
+}
+
 fn LoadImageA(
-    _x86: &mut X86,
+    x86: &mut X86,
     hInstance: u32,
     name: u32,
     typ: u32,
@@ -111,7 +174,17 @@ fn LoadImageA(
 
     const IMAGE_BITMAP: u32 = 0;
     match typ {
-        IMAGE_BITMAP => {}
+        IMAGE_BITMAP => {
+            let buf = pe::get_resource(
+                &x86.mem[x86.state.kernel32.image_base as usize..],
+                x86.state.user32.resources_base,
+                pe::RT_BITMAP,
+                name,
+            )
+            .unwrap();
+            let bmp = parse_bitmap(buf).unwrap();
+            log::info!("got bmp {}x{}", bmp.width, bmp.height);
+        }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
             return 0;

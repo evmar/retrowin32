@@ -274,6 +274,9 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
+/// Top-level dir entry.
+pub const RT_BITMAP: u32 = 2;
+
 #[derive(Debug)]
 enum ResourceName {
     Name(String),
@@ -306,7 +309,12 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
-pub fn parse_resources(mem: &[u8], section_base: u32) {
+pub fn get_resource(
+    mem: &[u8],
+    section_base: u32,
+    query_type: u32,
+    query_id: u32,
+) -> Option<&[u8]> {
     let section = &mem[section_base as usize..];
 
     // Resources are structured as generic nested directories, but in practice there
@@ -314,21 +322,31 @@ pub fn parse_resources(mem: &[u8], section_base: u32) {
     let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(0);
     for type_entry in dir.entries(section) {
         assert!(type_entry.is_directory());
+        match type_entry.name() {
+            ResourceName::Id(id) if id == query_type => {}
+            _ => continue,
+        };
         let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(type_entry.offset());
         for id_entry in dir.entries(&section[type_entry.offset() as usize..]) {
             assert!(id_entry.is_directory());
+            match id_entry.name() {
+                ResourceName::Id(id) if id == query_id => {}
+                _ => continue,
+            };
             let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(id_entry.offset());
-            for lang_entry in dir.entries(&section[id_entry.offset() as usize..]) {
+            let entries = dir.entries(&section[id_entry.offset() as usize..]);
+            if entries.len() > 1 {
+                log::warn!("multiple res entries, picking first");
+            }
+            for lang_entry in entries {
                 assert!(!lang_entry.is_directory());
-                log::info!(
-                    "{:?} {:?} {:?}",
-                    type_entry.name(),
-                    id_entry.name(),
-                    lang_entry.name()
-                );
                 let data = section.view::<IMAGE_RESOURCE_DATA_ENTRY>(lang_entry.offset());
-                log::info!("{:?}", data);
+                let ofs = data.OffsetToData.get() as usize;
+                let len = data.Size.get() as usize;
+                let buf = &mem[ofs..ofs + len];
+                return Some(buf);
             }
         }
     }
+    None
 }
