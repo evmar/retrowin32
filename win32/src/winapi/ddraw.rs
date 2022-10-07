@@ -7,6 +7,7 @@ use crate::{
 };
 
 use super::kernel32;
+use bitflags::bitflags;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -237,8 +238,27 @@ mod IDirectDraw7 {
         DD_OK
     }
 
-    fn SetCooperativeLevel(_x86: &mut X86, this: u32, hwnd: u32, flags: u32) -> u32 {
-        log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:x})");
+    bitflags! {
+        pub struct DDSCL: u32 {
+            const DDSCL_FULLSCREEN = 0x0001;
+            const DDSCL_ALLOWREBOOT = 0x0002;
+            const DDSCL_NOWINDOWCHANGES = 0x0004;
+            const DDSCL_NORMAL = 0x0008;
+            const DDSCL_EXCLUSIVE = 0x0010;
+            const DDSCL_ALLOWMODEX = 0x0040;
+            const DDSCL_SETFOCUSWINDOW = 0x0080;
+            const DDSCL_SETDEVICEWINDOW = 0x0100;
+            const DDSCL_CREATEDEVICEWINDOW = 0x0200;
+            const DDSCL_MULTITHREADED = 0x0400;
+            const DDSCL_FPUSETUP = 0x0800;
+            const DDSCL_FPUPRESERVE =  0x1000;
+        }
+    }
+
+    fn SetCooperativeLevel(_x86: &mut X86, _this: u32, _hwnd: u32, _flags: u32) -> u32 {
+        // TODO: this triggers behaviors like fullscreen.
+        // let flags = DDSCL::from_bits(flags).unwrap();
+        // log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:?})");
         DD_OK
     }
 
