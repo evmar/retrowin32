@@ -62,6 +62,7 @@ impl std::fmt::Debug for WORD {
     }
 }
 
+#[derive(Clone, Copy)]
 pub struct DWORD([u8; 4]);
 impl DWORD {
     pub fn new() -> Self {

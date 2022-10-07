@@ -225,6 +225,130 @@ mod IDirectDraw7 {
         0 // TODO: return refcount?
     }
 
+    #[repr(C)]
+    #[derive(Debug)]
+    struct DDSCAPS2 {
+        dwCaps: DWORD,
+        dwCaps2: DWORD,
+        dwCaps3: DWORD,
+        dwCaps4: DWORD,
+    }
+    unsafe impl Pod for DDSCAPS2 {}
+    impl DDSCAPS2 {
+        fn caps(&self) -> DDSCAPS {
+            unsafe { DDSCAPS::from_bits_unchecked(self.dwCaps.get()) }
+        }
+    }
+
+    bitflags! {
+        pub struct DDSCAPS: u32 {
+            const ALPHA = 0x00000002;
+            const BACKBUFFER = 0x00000004;
+            const COMPLEX = 0x00000008;
+            const FLIP = 0x00000010;
+            const FRONTBUFFER = 0x00000020;
+            const OFFSCREENPLAIN = 0x00000040;
+            const OVERLAY = 0x00000080;
+            const PALETTE = 0x00000100;
+            const PRIMARYSURFACE = 0x00000200;
+            const PRIMARYSURFACELEF = 0x00000400;
+            const SYSTEMMEMORY = 0x00000800;
+            const TEXTURE = 0x00001000;
+            const _3DDEVICE = 0x00002000;
+            const VIDEOMEMORY = 0x00004000;
+            const VISIBLE = 0x00008000;
+            const WRITEONLY = 0x00010000;
+            const ZBUFFER = 0x00020000;
+            const OWNDC = 0x00040000;
+            const LIVEVIDEO = 0x00080000;
+            const HWCODEC = 0x00100000;
+            const MODEX = 0x00200000;
+            const MIPMAP = 0x00400000;
+            const ALLOCONLOAD = 0x04000000;
+            const VIDEOPORT = 0x08000000;
+            const LOCALVIDMEM = 0x10000000;
+            const NONLOCALVIDMEM = 0x20000000;
+            const STANDARDVGAMODE = 0x40000000;
+        }
+    }
+
+    bitflags! {
+        pub struct DDSD: u32 {
+            const CAPS = 0x00000001;
+            const HEIGHT = 0x00000002;
+            const WIDTH = 0x00000004;
+            const PITCH = 0x00000008;
+            const BACKBUFFERCOUNT = 0x00000020;
+            const ZBUFFERBITDEPTH = 0x00000040;
+            const ALPHABITDEPTH = 0x00000080;
+            const LPSURFACE = 0x00000800;
+            const PIXELFORMAT = 0x00001000;
+            const CKDESTOVERLAY = 0x00002000;
+            const CKDESTBLT = 0x00004000;
+            const CKSRCOVERLAY= 0x00008000;
+            const CKSRCBLT = 0x00010000;
+            const MIPMAPCOUNT = 0x00020000;
+            const REFRESHRATE = 0x00040000;
+            const LINEARSIZE = 0x00080000;
+            const TEXTURESTAGE = 0x00100000;
+            const FVF = 0x00200000;
+            const SRCVBHANDLE = 0x00400000;
+            const DEPTH = 0x00800000;
+        }
+    }
+
+    #[repr(C)]
+    #[derive(Debug)]
+    struct DDCOLORKEY {
+        dwColorSpaceLowValue: DWORD,
+        dwColorSpaceHighValue: DWORD,
+    }
+    unsafe impl Pod for DDCOLORKEY {}
+
+    #[repr(C)]
+    #[derive(Debug)]
+    struct DDSURFACEDESC2 {
+        dwSize: DWORD,
+        dwFlags: DWORD,
+        dwHeight: DWORD,
+        dwWidth: DWORD,
+
+        lPitch_dwLinearSize: DWORD,
+        dwBackBufferCount_dwDepth: DWORD,
+        dwMipMapCount_dwRefreshRate_dwSrcVBHandle: DWORD,
+
+        dwAlphaBitDepth: DWORD,
+        dwReserved: DWORD,
+        lpSurface: DWORD,
+        ddckCKDestOverlay_dwEmptyFaceColor: DDCOLORKEY,
+        ddckCKDestBlt: DDCOLORKEY,
+        ddckCKSrcOverlay: DDCOLORKEY,
+        ddckCKSrcBlt: DDCOLORKEY,
+
+        ddpfPixelFormat: [DWORD; 8],
+        // TODO: dwFVF
+        ddsCaps: DDSCAPS2,
+        dwTextureStage: DWORD,
+    }
+    unsafe impl Pod for DDSURFACEDESC2 {}
+    impl DDSURFACEDESC2 {
+        fn flags(&self) -> DDSD {
+            unsafe { DDSD::from_bits_unchecked(self.dwFlags.get()) }
+        }
+        fn back_buffer_count(&self) -> Option<u32> {
+            if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
+                return None;
+            }
+            Some(self.dwBackBufferCount_dwDepth.get())
+        }
+        fn caps(&self) -> Option<&DDSCAPS2> {
+            if !self.flags().contains(DDSD::CAPS) {
+                return None;
+            }
+            Some(&self.ddsCaps)
+        }
+    }
+
     fn CreateSurface(
         x86: &mut X86,
         this: u32,
@@ -232,7 +356,20 @@ mod IDirectDraw7 {
         lpDirectDrawSurface7: u32,
         _unused: u32,
     ) -> u32 {
-        log::warn!("{this:x}->CreateSurface({lpSurfaceDesc:x}, {lpDirectDrawSurface7:x})");
+        let desc = x86.mem.view::<DDSURFACEDESC2>(lpSurfaceDesc);
+        assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize.get() as usize);
+
+        log::warn!(
+            "{this:x}->CreateSurface({:?}, {desc:?}, {lpDirectDrawSurface7:x})",
+            desc.flags()
+        );
+        if let Some(count) = desc.back_buffer_count() {
+            log::warn!("  back_buffer: {count:x}");
+        }
+        if let Some(caps) = desc.caps() {
+            log::warn!("  caps: {:?}", caps);
+            log::warn!("  capscaps: {:?}", caps.caps());
+        }
         let surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, surface);
         DD_OK
@@ -271,9 +408,7 @@ mod IDirectDraw7 {
         refresh: u32,
         flags: u32,
     ) -> u32 {
-        log::warn!(
-            "{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})"
-        );
+        log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})");
         DD_OK
     }
 
