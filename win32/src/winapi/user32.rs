@@ -193,14 +193,13 @@ fn LoadImageA(
             .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
             x86.state.user32.bitmaps.push(bmp);
-            return x86.state.user32.bitmaps.len() as u32;
+            x86.state.user32.bitmaps.len() as u32
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
             return 0;
         }
-    };
-    0
+    }
 }
 
 fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
