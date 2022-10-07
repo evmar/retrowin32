@@ -272,7 +272,7 @@ mod IDirectDraw7 {
         flags: u32,
     ) -> u32 {
         log::warn!(
-            "{this:x}->SetDisplayMode({width:x}, {height:x}, {bpp:x}, {refresh:x}, {flags:x})"
+            "{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})"
         );
         DD_OK
     }
