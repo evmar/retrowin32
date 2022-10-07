@@ -1,9 +1,22 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use crate::{memory::Memory, winapi, X86};
+use crate::{
+    memory::{Memory, Pod, DWORD},
+    winapi, X86,
+};
 
 use super::kernel32;
+
+#[repr(C)]
+#[derive(Debug)]
+struct RECT {
+    left: DWORD,
+    top: DWORD,
+    right: DWORD,
+    bottom: DWORD,
+}
+unsafe impl Pod for RECT {}
 
 pub struct State {
     hheap: u32,
@@ -348,10 +361,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::BltBatch unimplemented".into()))
                 .into(),
-            BltFast: x86
-                .shims
-                .add(Err("IDirectDrawSurface::BltFast unimplemented".into()))
-                .into(),
+            BltFast: x86.shims.add(Ok(shims::BltFast)).into(),
             DeleteAttachedSurface: x86
                 .shims
                 .add(Err(
@@ -370,10 +380,7 @@ mod IDirectDrawSurface7 {
                     "IDirectDrawSurface::EnumOverlayZOrders unimplemented".into()
                 ))
                 .into(),
-            Flip: x86
-                .shims
-                .add(Err("IDirectDrawSurface::Flip unimplemented".into()))
-                .into(),
+            Flip: x86.shims.add(Ok(shims::Flip)).into(),
             GetAttachedSurface: x86.shims.add(Ok(shims::GetAttachedSurface)).into(),
             GetBltStatus: x86
                 .shims
@@ -559,6 +566,25 @@ mod IDirectDrawSurface7 {
         0 // TODO: return refcount?
     }
 
+    fn BltFast(
+        x86: &mut X86,
+        this: u32,
+        x: u32,
+        y: u32,
+        lpSurf: u32,
+        lpRect: u32,
+        flags: u32,
+    ) -> u32 {
+        let rect = x86.mem.view::<RECT>(lpRect);
+        log::warn!("{this:x}->BltFast({x:x}, {y:x}, {lpSurf:x}, {rect:?}, {flags:x})");
+        DDERR_GENERIC
+    }
+
+    fn Flip(_x86: &mut X86, this: u32, lpSurf: u32, flags: u32) -> u32 {
+        log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
+        DDERR_GENERIC
+    }
+
     fn GetAttachedSurface(
         x86: &mut X86,
         this: u32,
@@ -577,6 +603,8 @@ mod IDirectDrawSurface7 {
 
     winapi_shims!(
         fn Release(this: u32);
+        fn BltFast(this: u32, x: u32, y: u32, lpSurf: u32, lpRect: u32, flags: u32);
+        fn Flip(this: u32, lpSurf: u32, flags: u32);
         fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
         fn Restore(this: u32);
     );

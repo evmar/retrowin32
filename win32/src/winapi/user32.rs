@@ -76,13 +76,16 @@ fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u
 }
 
 fn PeekMessageA(
-    x86: &mut X86,
+    _x86: &mut X86,
     lpMsg: u32,
     hWnd: u32,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
     wRemoveMs: u32,
 ) -> u32 {
+    log::warn!(
+        "PeekMessageA({lpMsg:x}, {hWnd:x}, {wMsgFilterMin:x}, {wMsgFilterMax:x}, {wRemoveMs:x})"
+    );
     0 // no messages
 }
 
