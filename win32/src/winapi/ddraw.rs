@@ -367,8 +367,7 @@ mod IDirectDraw7 {
             log::warn!("  back_buffer: {count:x}");
         }
         if let Some(caps) = desc.caps() {
-            log::warn!("  caps: {:?}", caps);
-            log::warn!("  capscaps: {:?}", caps.caps());
+            log::warn!("  caps: {:?}", caps.caps());
         }
         let surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, surface);
@@ -744,11 +743,13 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    fn GetDC(x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
+    fn GetDC(_x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
+        log::warn!("unimp: {this:x}->GetDC({lpHDC:x})");
         DDERR_GENERIC
     }
 
-    fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDecs: u32) -> u32 {
+    fn GetSurfaceDesc(_x86: &mut X86, this: u32, lpDesc: u32) -> u32 {
+        log::warn!("unimp: {this:x}->GetSurfaceDesc({lpDesc:x})");
         DDERR_GENERIC
     }
 
@@ -762,7 +763,7 @@ mod IDirectDrawSurface7 {
         fn Flip(this: u32, lpSurf: u32, flags: u32);
         fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
         fn GetDC(this: u32, lpHDC: u32);
-        fn GetSurfaceDesc(this: u32, lpDecs: u32);
+        fn GetSurfaceDesc(this: u32, lpDesc: u32);
         fn Restore(this: u32);
     );
 }

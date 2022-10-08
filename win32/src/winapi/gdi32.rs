@@ -17,12 +17,14 @@ fn GetStockObject(_x86: &mut X86, _i: u32) -> u32 {
     0
 }
 
-fn SelectObject(_x86: &mut X86, _hdc: u32, _hGdiObj: u32) -> u32 {
+fn SelectObject(_x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
+    log::warn!("SelectObject({hdc:x}, {hGdiObj})");
     // TODO: return previous obj
     0
 }
 
-fn GetObjectA(_x86: &mut X86, _handle: u32, _bytes: u32, out: u32) -> u32 {
+fn GetObjectA(_x86: &mut X86, handle: u32, bytes: u32, out: u32) -> u32 {
+    log::warn!("GetObjectA({handle:x}, {bytes:x}, {out:x})");
     0 // fail
 }
 
@@ -33,6 +35,7 @@ fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
 }
 
 fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
+    log::warn!("DeleteDC({hdc:x})");
     0 // fail
 }
 
