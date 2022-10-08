@@ -630,10 +630,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::Lock unimplemented".into()))
                 .into(),
-            ReleaseDC: x86
-                .shims
-                .add(Err("IDirectDrawSurface::ReleaseDC unimplemented".into()))
-                .into(),
+            ReleaseDC: x86.shims.add(Ok(shims::ReleaseDC)).into(),
             Restore: x86.shims.add(Ok(shims::Restore)).into(),
             SetClipper: x86
                 .shims
@@ -816,6 +813,11 @@ mod IDirectDrawSurface7 {
         DDERR_GENERIC
     }
 
+    fn ReleaseDC(_x86: &mut X86, _this: u32, _hDC: u32) -> u32 {
+        // leak
+        DD_OK
+    }
+
     fn Restore(_x86: &mut X86, _this: u32) -> u32 {
         DD_OK
     }
@@ -827,6 +829,7 @@ mod IDirectDrawSurface7 {
         fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
         fn GetDC(this: u32, lpHDC: u32);
         fn GetSurfaceDesc(this: u32, lpDesc: u32);
+        fn ReleaseDC(this: u32, hDC: u32);
         fn Restore(this: u32);
     );
 }
