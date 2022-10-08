@@ -106,6 +106,24 @@ fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
     0 // fail
 }
 
+fn StretchBlt(
+    _x86: &mut X86,
+    hdcDest: u32,
+    xDest: u32,
+    yDest: u32,
+    wDest: u32,
+    hDest: u32,
+    hdcSrc: u32,
+    xSrc: u32,
+    ySrc: u32,
+    wSrc: u32,
+    hSrc: u32,
+    rop: u32,
+) -> u32 {
+    log::warn!("StretchBlt({hdcDest:x}, {xDest:x}, {yDest:x}, {wDest:x}, {hDest:x}, {hdcSrc:x}, {xSrc:x}, {ySrc:x}, {wSrc:x}, {hSrc:x}, {rop:x})");
+    1 // fail
+}
+
 winapi!(
     fn GetStockObject(i: u32);
     fn SelectObject(hdc: u32, hGdiObj: u32);
@@ -113,4 +131,18 @@ winapi!(
 
     fn CreateCompatibleDC(hdc: u32);
     fn DeleteDC(hdc: u32);
+
+    fn StretchBlt(
+        hdcDest: u32,
+        xDest: u32,
+        yDest: u32,
+        wDest: u32,
+        hDest: u32,
+        hdcSrc: u32,
+        xSrc: u32,
+        ySrc: u32,
+        wSrc: u32,
+        hSrc: u32,
+        rop: u32,
+    );
 );
