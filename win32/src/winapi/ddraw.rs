@@ -378,9 +378,16 @@ mod IDirectDraw7 {
             desc.flags()
         );
 
-        let mut width = desc.dwWidth.get();
-        let mut height = desc.dwHeight.get();
+        let mut width = 0;
+        let mut height = 0;
+        if desc.flags().contains(DDSD::WIDTH) {
+            width = desc.dwWidth.get();
+        }
+        if desc.flags().contains(DDSD::HEIGHT) {
+            height = desc.dwHeight.get();
+        }
         if let Some(caps) = desc.caps() {
+            log::warn!("  caps: {:?}", caps.caps1());
             if caps.caps1().contains(DDSCAPS::PRIMARYSURFACE) {
                 width = x86.state.ddraw.as_ref().unwrap().width;
                 height = x86.state.ddraw.as_ref().unwrap().height;
@@ -390,9 +397,7 @@ mod IDirectDraw7 {
         if let Some(count) = desc.back_buffer_count() {
             log::warn!("  back_buffer: {count:x}");
         }
-        if let Some(caps) = desc.caps() {
-            log::warn!("  caps: {:?}", caps.caps1());
-        }
+
         let x86_surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
         x86.state
