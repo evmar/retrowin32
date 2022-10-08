@@ -106,8 +106,32 @@ fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
     0 // fail
 }
 
-fn StretchBlt(
+const SRCCOPY: u32 = 0xcc0020;
+
+fn BitBlt(
     _x86: &mut X86,
+    hdc: u32,
+    x: u32,
+    y: u32,
+    cx: u32,
+    cy: u32,
+    hdcSrc: u32,
+    x1: u32,
+    y1: u32,
+    rop: u32,
+) -> u32 {
+    if rop != SRCCOPY {
+        log::error!("unimp: raster op {rop:x}");
+        return 0;
+    }
+    log::warn!(
+        "BitBlt({hdc:x}, {x:x}, {y:x}, {cx:x}, {cy:x}, {hdcSrc:x}, {x1:x}, {y1:x}, {rop:x})"
+    );
+    1
+}
+
+fn StretchBlt(
+    x86: &mut X86,
     hdcDest: u32,
     xDest: u32,
     yDest: u32,
@@ -120,8 +144,13 @@ fn StretchBlt(
     hSrc: u32,
     rop: u32,
 ) -> u32 {
-    log::warn!("StretchBlt({hdcDest:x}, {xDest:x}, {yDest:x}, {wDest:x}, {hDest:x}, {hdcSrc:x}, {xSrc:x}, {ySrc:x}, {wSrc:x}, {hSrc:x}, {rop:x})");
-    1 // fail
+    if wDest != wSrc || hDest != hSrc {
+        log::error!("unimp: StretchBlt with actual stretching");
+        return 0;
+    }
+    BitBlt(
+        x86, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
+    )
 }
 
 winapi!(
@@ -132,6 +161,7 @@ winapi!(
     fn CreateCompatibleDC(hdc: u32);
     fn DeleteDC(hdc: u32);
 
+    fn BitBlt(hdc: u32, x: u32, y: u32, cx: u32, cy: u32, hdcSrc: u32, x1: u32, y1: u32, rop: u32);
     fn StretchBlt(
         hdcDest: u32,
         xDest: u32,
