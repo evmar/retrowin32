@@ -1,30 +1,70 @@
 #![allow(non_snake_case)]
 
-use crate::{winapi, X86};
+use crate::{winapi, winapi::user32, X86};
+
+/// GDI Object, as identified by HANDLEs.
+#[derive(Debug)]
+pub enum Object {
+    Bitmap(user32::Bitmap),
+}
+
+#[derive(Debug)]
+struct DC {}
 
 pub struct State {
     dcs: Vec<DC>,
+    pub objects: Vec<Object>,
 }
 impl State {
     pub fn new() -> Self {
-        State { dcs: Vec::new() }
+        State {
+            dcs: Vec::new(),
+            objects: Vec::new(),
+        }
+    }
+
+    fn get_dc(&self, handle: u32) -> Option<&DC> {
+        if handle > 0 {
+            self.dcs.get((handle - 1) as usize)
+        } else {
+            None
+        }
+    }
+
+    fn get_object(&self, handle: u32) -> Option<&Object> {
+        if handle > 0 {
+            self.objects.get((handle - 1) as usize)
+        } else {
+            None
+        }
     }
 }
-
-struct DC {}
 
 fn GetStockObject(_x86: &mut X86, _i: u32) -> u32 {
     0
 }
 
-fn SelectObject(_x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
-    log::warn!("SelectObject({hdc:x}, {hGdiObj})");
+fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
+    let dc = match x86.state.gdi32.get_dc(hdc) {
+        None => return 0, // TODO: HGDI_ERROR
+        Some(dc) => dc,
+    };
+    let obj = match x86.state.gdi32.get_object(hGdiObj) {
+        None => return 0, // TODO: HGDI_ERROR
+        Some(obj) => obj,
+    };
+    log::warn!("SelectObject({:?}, {:?})", dc, obj);
     // TODO: return previous obj
     0
 }
 
-fn GetObjectA(_x86: &mut X86, handle: u32, bytes: u32, out: u32) -> u32 {
-    log::warn!("GetObjectA({handle:x}, {bytes:x}, {out:x})");
+fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
+    let obj = match x86.state.gdi32.get_object(handle) {
+        None => return 0, // fail
+        Some(obj) => obj,
+    };
+    log::warn!("unimp GetObjectA: got {:?}, unimplemented return", obj);
+    // TODO: it turns out BasicDD.exe doesn't depend on this working anyway.
     0 // fail
 }
 

@@ -6,6 +6,7 @@ use super::X86;
 use crate::{
     memory::{Memory, Pod, DWORD, WORD},
     pe, winapi,
+    winapi::gdi32,
 };
 
 fn IS_INTRESOURCE(x: u32) -> bool {
@@ -14,14 +15,10 @@ fn IS_INTRESOURCE(x: u32) -> bool {
 
 pub struct State {
     pub resources_base: u32,
-    bitmaps: Vec<Bitmap>,
 }
 impl State {
     pub fn new() -> Self {
-        State {
-            resources_base: 0,
-            bitmaps: Vec::new(),
-        }
+        State { resources_base: 0 }
     }
 }
 
@@ -120,10 +117,19 @@ struct BITMAPINFOHEADER {
 }
 unsafe impl Pod for BITMAPINFOHEADER {}
 
-struct Bitmap {
+pub struct Bitmap {
     width: usize,
     height: usize,
     pixels: Box<[[u8; 4]]>,
+}
+impl std::fmt::Debug for Bitmap {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bitmap")
+            .field("width", &self.width)
+            .field("height", &self.height)
+            .field("pixels", &&self.pixels[0..16])
+            .finish()
+    }
 }
 
 fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
@@ -164,13 +170,11 @@ fn LoadImageA(
     hInstance: u32,
     name: u32,
     typ: u32,
-    cx: u32,
-    cy: u32,
+    _cx: u32,
+    _cy: u32,
     fuLoad: u32,
 ) -> u32 {
-    // 400000, 65, 0, 5dc, 118, 0
-    log::warn!("LoadImageA({hInstance:x}, {name:x}, {typ:x}, {cx:x}, {cy:x}, {fuLoad:x})");
-
+    assert!(hInstance == x86.state.kernel32.image_base);
     if !IS_INTRESOURCE(name) {
         log::error!("unimplemented image name {name:x}");
         return 0;
@@ -180,6 +184,8 @@ fn LoadImageA(
         log::error!("unimplemented fuLoad {:x}", fuLoad);
         return 0;
     }
+
+    // TODO: it's unclear whether the width/height is obeyed when loading an image.
 
     const IMAGE_BITMAP: u32 = 0;
     match typ {
@@ -192,8 +198,8 @@ fn LoadImageA(
             )
             .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
-            x86.state.user32.bitmaps.push(bmp);
-            x86.state.user32.bitmaps.len() as u32
+            x86.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
+            x86.state.gdi32.objects.len() as u32
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
