@@ -787,9 +787,11 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    fn GetDC(_x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
-        log::warn!("unimp: {this:x}->GetDC({lpHDC:x})");
-        DDERR_GENERIC
+    fn GetDC(x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
+        let (handle, dc) = x86.state.gdi32.new_dc();
+        dc.ddraw_surface = this;
+        x86.mem.write_u32(lpHDC, handle);
+        DD_OK
     }
 
     fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDesc: u32) -> u32 {

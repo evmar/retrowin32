@@ -9,12 +9,22 @@ pub enum Object {
 }
 
 #[derive(Debug)]
-struct DC {
+pub struct DC {
+    // TODO: it's unclear to me what the representation of a DC ought to be.
+    // The SelectObject() API returns the previously selected object of a given
+    // type, which implies that we need a storage field per object type.
+    // But then DirectDraw can also create a DC, and DirectDraw (as a DLL that came
+    // later can't retrofit the DC type with a DirectDraw field.
+    // Wine appears to use a vtable (for generic behavior) *and* per-object-type fields.
     bitmap: u32, // HANDLE
+    pub ddraw_surface: u32,
 }
 impl DC {
     fn new() -> Self {
-        DC { bitmap: 0 }
+        DC {
+            bitmap: 0,
+            ddraw_surface: 0,
+        }
     }
 }
 
@@ -28,6 +38,12 @@ impl State {
             dcs: Vec::new(),
             objects: Vec::new(),
         }
+    }
+
+    pub fn new_dc(&mut self) -> (u32, &mut DC) {
+        self.dcs.push(DC::new());
+        let handle = self.dcs.len() as u32;
+        (handle, &mut self.dcs[handle as usize - 1])
     }
 
     fn get_dc(&mut self, handle: u32) -> Option<&mut DC> {
@@ -81,8 +97,8 @@ fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
 
 fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
     assert!(hdc == 0); // null means "compatible with current screen"
-    x86.state.gdi32.dcs.push(DC::new());
-    x86.state.gdi32.dcs.len() as u32
+    let (handle, _) = x86.state.gdi32.new_dc();
+    handle
 }
 
 fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
