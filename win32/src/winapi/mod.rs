@@ -59,7 +59,7 @@ pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
 }
 
 pub struct State {
-    pub ddraw: Option<ddraw::State>,
+    pub ddraw: ddraw::State,
     pub gdi32: gdi32::State,
     pub kernel32: kernel32::State,
     pub user32: user32::State,
@@ -67,7 +67,7 @@ pub struct State {
 impl State {
     pub fn new() -> Self {
         State {
-            ddraw: None,
+            ddraw: ddraw::State::new_empty(),
             gdi32: gdi32::State::new(),
             kernel32: kernel32::State::new(),
             user32: user32::State::new(),

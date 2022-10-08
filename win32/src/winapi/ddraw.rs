@@ -36,7 +36,18 @@ pub struct State {
     surfaces: HashMap<u32, Surface>,
 }
 impl State {
-    pub fn new(x86: &mut X86) -> Self {
+    pub fn new_empty() -> Self {
+        State {
+            hheap: 0,
+            vtable_IDirectDraw7: 0,
+            vtable_IDirectDrawSurface7: 0,
+            width: 0,
+            height: 0,
+            surfaces: HashMap::new(),
+        }
+    }
+
+    pub fn new_init(x86: &mut X86) -> Self {
         let mut ddraw = State {
             hheap: 0,
             vtable_IDirectDraw7: 0,
@@ -389,8 +400,8 @@ mod IDirectDraw7 {
         if let Some(caps) = desc.caps() {
             log::warn!("  caps: {:?}", caps.caps1());
             if caps.caps1().contains(DDSCAPS::PRIMARYSURFACE) {
-                width = x86.state.ddraw.as_ref().unwrap().width;
-                height = x86.state.ddraw.as_ref().unwrap().height;
+                width = x86.state.ddraw.width;
+                height = x86.state.ddraw.height;
             }
         }
 
@@ -402,8 +413,6 @@ mod IDirectDraw7 {
         x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
         x86.state
             .ddraw
-            .as_mut()
-            .unwrap()
             .surfaces
             .insert(x86_surface, Surface { width, height });
         DD_OK
@@ -735,7 +744,7 @@ mod IDirectDrawSurface7 {
     }
 
     pub fn new(x86: &mut X86) -> u32 {
-        let ddraw = x86.state.ddraw.as_mut().unwrap();
+        let ddraw = &mut x86.state.ddraw;
         let lpDirectDrawSurface7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
         x86.mem.write_u32(lpDirectDrawSurface7, vtable);
@@ -784,14 +793,7 @@ mod IDirectDrawSurface7 {
     }
 
     fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDesc: u32) -> u32 {
-        let surf = x86
-            .state
-            .ddraw
-            .as_ref()
-            .unwrap()
-            .surfaces
-            .get(&this)
-            .unwrap();
+        let surf = x86.state.ddraw.surfaces.get(&this).unwrap();
         let desc = x86.mem.view_mut::<DDSURFACEDESC2>(lpDesc);
         assert!(desc.dwSize.get() as usize == std::mem::size_of::<DDSURFACEDESC2>());
         let mut flags = desc.flags();
@@ -831,14 +833,10 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
     assert!(lpGuid == 0);
     assert!(pUnkOuter == 0);
 
-    let ddraw = match &mut x86.state.ddraw {
-        Some(ddraw) => ddraw,
-        None => {
-            let ddraw = State::new(x86);
-            x86.state.ddraw = Some(ddraw);
-            x86.state.ddraw.as_mut().unwrap()
-        }
-    };
+    if x86.state.ddraw.hheap == 0 {
+        x86.state.ddraw = State::new_init(x86);
+    }
+    let ddraw = &mut x86.state.ddraw;
 
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
     if iid_slice == IID_IDirectDraw7 {
