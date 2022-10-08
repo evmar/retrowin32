@@ -553,10 +553,7 @@ mod IDirectDrawSurface7 {
                 .shims
                 .add(Err("IDirectDrawSurface::GetColorKey unimplemented".into()))
                 .into(),
-            GetDC: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetDC unimplemented".into()))
-                .into(),
+            GetDC: x86.shims.add(Ok(shims::GetDC)).into(),
             GetFlipStatus: x86
                 .shims
                 .add(Err("IDirectDrawSurface::GetFlipStatus unimplemented".into()))
@@ -577,12 +574,7 @@ mod IDirectDrawSurface7 {
                     "IDirectDrawSurface::GetPixelFormat unimplemented".into()
                 ))
                 .into(),
-            GetSurfaceDesc: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetSurfaceDesc unimplemented".into()
-                ))
-                .into(),
+            GetSurfaceDesc: x86.shims.add(Ok(shims::GetSurfaceDesc)).into(),
             Initialize: x86
                 .shims
                 .add(Err("IDirectDrawSurface::Initialize unimplemented".into()))
@@ -752,6 +744,14 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    fn GetDC(x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
+        DDERR_GENERIC
+    }
+
+    fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDecs: u32) -> u32 {
+        DDERR_GENERIC
+    }
+
     fn Restore(_x86: &mut X86, _this: u32) -> u32 {
         DD_OK
     }
@@ -761,6 +761,8 @@ mod IDirectDrawSurface7 {
         fn BltFast(this: u32, x: u32, y: u32, lpSurf: u32, lpRect: u32, flags: u32);
         fn Flip(this: u32, lpSurf: u32, flags: u32);
         fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
+        fn GetDC(this: u32, lpHDC: u32);
+        fn GetSurfaceDesc(this: u32, lpDecs: u32);
         fn Restore(this: u32);
     );
 }

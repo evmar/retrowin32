@@ -32,10 +32,15 @@ fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
     x86.state.gdi32.dcs.len() as u32
 }
 
+fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
+    0 // fail
+}
+
 winapi!(
     fn GetStockObject(i: u32);
     fn SelectObject(hdc: u32, hGdiObj: u32);
     fn GetObjectA(handle: u32, bytes: u32, out: u32);
 
     fn CreateCompatibleDC(hdc: u32);
+    fn DeleteDC(hdc: u32);
 );
