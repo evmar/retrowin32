@@ -118,9 +118,9 @@ struct BITMAPINFOHEADER {
 unsafe impl Pod for BITMAPINFOHEADER {}
 
 pub struct Bitmap {
-    width: usize,
-    height: usize,
-    pixels: Box<[[u8; 4]]>,
+    pub width: u32,
+    pub height: u32,
+    pub pixels: Box<[[u8; 4]]>,
 }
 impl std::fmt::Debug for Bitmap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -152,9 +152,9 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     };
     let pixels = &buf[header_size + (palette_count * 4)..];
 
-    let width = header.biWidth.get() as usize;
-    let height = header.biHeight.get() as usize;
-    assert!(pixels.len() == width * height);
+    let width = header.biWidth.get();
+    let height = header.biHeight.get();
+    assert!(pixels.len() as u32 == width * height);
 
     let pixels: Vec<_> = pixels.iter().map(|&p| palette[p as usize]).collect();
 
