@@ -41,6 +41,14 @@ impl win32::Host for Host {
     fn write(&self, buf: &[u8]) -> usize {
         std::io::stdout().lock().write(buf).unwrap()
     }
+
+    fn time(&self) -> u32 {
+        todo!()
+    }
+
+    fn create_window(&self) -> Box<dyn win32::Window> {
+        todo!()
+    }
 }
 
 fn run() -> anyhow::Result<()> {
