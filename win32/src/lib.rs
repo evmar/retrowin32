@@ -1,4 +1,5 @@
 mod debug;
+mod host;
 mod memory;
 mod pe;
 mod reader;
@@ -7,5 +8,6 @@ mod windows;
 mod x86;
 
 pub use debug::*;
+pub use host::{Host, Surface, Window};
 pub use windows::load_exe;
-pub use x86::{Host, Surface, Window, X86};
+pub use x86::X86;

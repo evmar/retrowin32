@@ -2,7 +2,7 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::{memory::Memory, winapi};
+use crate::{host, memory::Memory, winapi};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -163,25 +163,6 @@ impl Registers {
     }
 }
 
-pub trait Surface {
-    fn flip(&self);
-}
-
-pub trait Window {
-    fn set_title(&mut self, title: &str);
-    fn set_size(&mut self, width: u32, height: u32);
-
-    fn new_surface(&mut self) -> Box<dyn Surface>;
-}
-
-pub trait Host {
-    fn exit(&self, code: u32);
-    fn write(&self, buf: &[u8]) -> usize;
-    fn time(&self) -> u32;
-
-    fn create_window(&self) -> Box<dyn Window>;
-}
-
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims(Vec<Result<fn(&mut X86), String>>);
@@ -212,14 +193,14 @@ impl Shims {
 }
 
 pub struct X86<'a> {
-    pub host: &'a dyn Host,
+    pub host: &'a dyn host::Host,
     pub mem: Vec<u8>,
     pub regs: Registers,
     pub shims: Shims,
     pub state: winapi::State,
 }
 impl<'a> X86<'a> {
-    pub fn new(host: &'a dyn Host) -> Self {
+    pub fn new(host: &'a dyn host::Host) -> Self {
         let mut regs = Registers::new();
         regs.eax = 0xdeadbeea;
         regs.ebx = 0xdeadbeeb;

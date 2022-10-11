@@ -4,6 +4,7 @@ use anyhow::bail;
 
 use super::X86;
 use crate::{
+    host,
     memory::{Memory, Pod, DWORD, WORD},
     pe, winapi,
     winapi::gdi32,
@@ -14,7 +15,7 @@ fn IS_INTRESOURCE(x: u32) -> bool {
 }
 
 struct Window {
-    host: Box<dyn crate::Window>,
+    host: Box<dyn host::Window>,
 }
 
 pub struct State {
