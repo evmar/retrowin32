@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use super::{x86, x86::X86};
 use crate::{
-    memory::{Memory, DWORD},
+    memory::{Memory, Pod, DWORD},
     winapi,
 };
 use std::io::Write;
@@ -273,15 +273,14 @@ struct STARTUPINFOA {
     hStdOutput: DWORD,
     hStdError: DWORD,
 }
+unsafe impl Pod for STARTUPINFOA {}
 
 fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     let size = std::mem::size_of::<STARTUPINFOA>();
     x86.mem[ofs..ofs + size].fill(0);
 
-    let buf = &mut x86.mem[ofs..ofs + std::mem::size_of::<STARTUPINFOA>()];
-    let info: &mut STARTUPINFOA =
-        unsafe { (buf.as_mut_ptr() as *mut STARTUPINFOA).as_mut().unwrap() };
+    let info = x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
     info.cb.set(size as u32);
     0
 }
