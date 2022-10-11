@@ -31,6 +31,8 @@ pub struct State {
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
 
+    // TODO: this is per-IDirectDraw state.
+    hwnd: u32,
     width: u32,
     height: u32,
     surfaces: HashMap<u32, Surface>,
@@ -41,6 +43,7 @@ impl State {
             hheap: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
+            hwnd: 0,
             width: 0,
             height: 0,
             surfaces: HashMap::new(),
@@ -48,14 +51,7 @@ impl State {
     }
 
     pub fn new_init(x86: &mut X86) -> Self {
-        let mut ddraw = State {
-            hheap: 0,
-            vtable_IDirectDraw7: 0,
-            vtable_IDirectDrawSurface7: 0,
-            width: 0,
-            height: 0,
-            surfaces: HashMap::new(),
-        };
+        let mut ddraw = State::new_empty();
         ddraw.hheap = x86
             .state
             .kernel32
@@ -435,10 +431,11 @@ mod IDirectDraw7 {
         }
     }
 
-    fn SetCooperativeLevel(_x86: &mut X86, _this: u32, _hwnd: u32, _flags: u32) -> u32 {
+    fn SetCooperativeLevel(x86: &mut X86, _this: u32, hwnd: u32, _flags: u32) -> u32 {
         // TODO: this triggers behaviors like fullscreen.
         // let flags = DDSCL::from_bits(flags).unwrap();
         // log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:?})");
+        x86.state.ddraw.hwnd = hwnd;
         DD_OK
     }
 

@@ -26,11 +26,17 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
   return labels;
 }
 
+// Matches 'pub type JsSurface' in lib.rs.
+interface JsSurface {
+  flip(): void;
+}
+
 // Matches 'pub type JsWindow' in lib.rs.
 interface JsWindow {
   id: number;
   title: string;
   set_size(width: number, height: number): void;
+  new_surface(): JsSurface;
 }
 
 // Matches 'pub type JsHost' in lib.rs.
@@ -42,6 +48,12 @@ interface JsHost {
   get_window(id: number): JsWindow;
 }
 
+class Surface implements JsSurface {
+  flip() {
+    console.log('flip');
+  }
+}
+
 class Window implements JsWindow {
   constructor(readonly id: number) {}
   title: string = '';
@@ -50,6 +62,9 @@ class Window implements JsWindow {
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
+  }
+  new_surface(): JsSurface {
+    return new Surface();
   }
 }
 

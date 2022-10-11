@@ -9,6 +9,19 @@ extern "C" {
 
 #[wasm_bindgen]
 extern "C" {
+    pub type JsSurface;
+    #[wasm_bindgen(method)]
+    fn flip(this: &JsSurface);
+}
+
+impl win32::Surface for JsSurface {
+    fn flip(&self) {
+        JsSurface::flip(self);
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
     pub type JsWindow;
     #[wasm_bindgen(method, getter)]
     fn id(this: &JsWindow) -> u32;
@@ -16,6 +29,8 @@ extern "C" {
     fn set_title(this: &JsWindow, title: &str);
     #[wasm_bindgen(method)]
     fn set_size(this: &JsWindow, width: u32, height: u32);
+    #[wasm_bindgen(method)]
+    fn new_surface(this: &JsWindow) -> JsSurface;
 }
 
 impl win32::Window for JsWindow {
@@ -27,6 +42,9 @@ impl win32::Window for JsWindow {
     }
     fn set_size(&mut self, width: u32, height: u32) {
         JsWindow::set_size(self, width, height);
+    }
+    fn new_surface(&mut self) -> Box<dyn win32::Surface> {
+        Box::new(JsWindow::new_surface(self))
     }
 }
 
