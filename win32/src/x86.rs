@@ -168,7 +168,6 @@ pub trait Surface {
 }
 
 pub trait Window {
-    fn id(&self) -> u32;
     fn set_title(&mut self, title: &str);
     fn set_size(&mut self, width: u32, height: u32);
 

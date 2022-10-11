@@ -13,12 +13,20 @@ fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
+struct Window {
+    host: Box<dyn crate::Window>,
+}
+
 pub struct State {
     pub resources_base: u32,
+    windows: Vec<Window>,
 }
 impl State {
     pub fn new() -> Self {
-        State { resources_base: 0 }
+        State {
+            resources_base: 0,
+            windows: Vec::new(),
+        }
     }
 }
 
@@ -49,11 +57,15 @@ fn CreateWindowExA(
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
     log::warn!("CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
-    let mut win = x86.host.create_window();
+
+    let mut x86_win = x86.host.create_window();
     let name = x86.mem[lpWindowName as usize..].read_strz();
-    win.set_title(&name);
-    win.set_size(nWidth, nHeight);
-    win.id()
+    x86_win.set_title(&name);
+    x86_win.set_size(nWidth, nHeight);
+
+    let window = Window { host: x86_win };
+    x86.state.user32.windows.push(window);
+    x86.state.user32.windows.len() as u32
 }
 
 fn UpdateWindow(_x86: &mut X86, _hWnd: u32) -> u32 {

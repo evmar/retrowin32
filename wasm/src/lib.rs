@@ -23,8 +23,6 @@ impl win32::Surface for JsSurface {
 #[wasm_bindgen]
 extern "C" {
     pub type JsWindow;
-    #[wasm_bindgen(method, getter)]
-    fn id(this: &JsWindow) -> u32;
     #[wasm_bindgen(method, setter)]
     fn set_title(this: &JsWindow, title: &str);
     #[wasm_bindgen(method)]
@@ -34,9 +32,6 @@ extern "C" {
 }
 
 impl win32::Window for JsWindow {
-    fn id(&self) -> u32 {
-        self.id()
-    }
     fn set_title(&mut self, title: &str) {
         JsWindow::set_title(self, title);
     }
@@ -59,8 +54,6 @@ extern "C" {
     fn time(this: &JsHost) -> u32;
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost) -> JsWindow;
-    #[wasm_bindgen(method)]
-    fn get_window(this: &JsHost, id: u32) -> JsWindow;
 }
 
 impl win32::Host for JsHost {

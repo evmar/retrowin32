@@ -33,7 +33,6 @@ interface JsSurface {
 
 // Matches 'pub type JsWindow' in lib.rs.
 interface JsWindow {
-  id: number;
   title: string;
   set_size(width: number, height: number): void;
   new_surface(): JsSurface;
@@ -45,7 +44,6 @@ interface JsHost {
   write(buf: Uint8Array): number;
   time(): number;
   create_window(): JsWindow;
-  get_window(id: number): JsWindow;
 }
 
 class Surface implements JsSurface {
@@ -55,7 +53,10 @@ class Surface implements JsSurface {
 }
 
 class Window implements JsWindow {
-  constructor(readonly id: number) {}
+  constructor(
+    /** Unique ID for React purposes. */
+    readonly key: number,
+  ) {}
   title: string = '';
   width: number = 0;
   height: number = 0;
@@ -239,7 +240,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
   render() {
     let windows = this.props.vm.windows.map((window) => {
-      return <WindowComponent key={window.id} title={window.title} size={[window.width, window.height]} />;
+      return <WindowComponent key={window.key} title={window.title} size={[window.width, window.height]} />;
     });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
