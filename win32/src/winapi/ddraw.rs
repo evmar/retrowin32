@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 
 use crate::{
+    host,
     memory::{Memory, Pod, DWORD},
     winapi, X86,
 };
@@ -22,6 +23,7 @@ struct RECT {
 unsafe impl Pod for RECT {}
 
 struct Surface {
+    host: Box<dyn host::Surface>,
     width: u32,
     height: u32,
 }
@@ -405,12 +407,20 @@ mod IDirectDraw7 {
             log::warn!("  back_buffer: {count:x}");
         }
 
+        let window = x86.state.user32.get_window(x86.state.ddraw.hwnd);
+        let surface = window.host.new_surface();
+
         let x86_surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
-        x86.state
-            .ddraw
-            .surfaces
-            .insert(x86_surface, Surface { width, height });
+        x86.state.ddraw.surfaces.insert(
+            x86_surface,
+            Surface {
+                host: surface,
+                width,
+                height,
+            },
+        );
+
         DD_OK
     }
 
@@ -764,9 +774,13 @@ mod IDirectDrawSurface7 {
         DDERR_GENERIC
     }
 
-    fn Flip(_x86: &mut X86, this: u32, lpSurf: u32, flags: u32) -> u32 {
-        log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
-        DDERR_GENERIC
+    fn Flip(x86: &mut X86, this: u32, lpSurf: u32, flags: u32) -> u32 {
+        if lpSurf != 0 || flags != 0 {
+            log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
+        }
+        let surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        surface.host.flip();
+        DD_OK
     }
 
     fn GetAttachedSurface(

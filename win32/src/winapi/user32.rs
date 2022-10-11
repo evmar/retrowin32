@@ -14,8 +14,8 @@ fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
-struct Window {
-    host: Box<dyn host::Window>,
+pub struct Window {
+    pub host: Box<dyn host::Window>,
 }
 
 pub struct State {
@@ -28,6 +28,10 @@ impl State {
             resources_base: 0,
             windows: Vec::new(),
         }
+    }
+
+    pub fn get_window(&mut self, hwnd: u32) -> &mut Window {
+        &mut self.windows[hwnd as usize - 1]
     }
 }
 
