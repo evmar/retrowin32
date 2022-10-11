@@ -407,8 +407,8 @@ mod IDirectDraw7 {
             log::warn!("  back_buffer: {count:x}");
         }
 
-        let window = x86.state.user32.get_window(x86.state.ddraw.hwnd);
-        let surface = window.host.new_surface();
+        //let window = x86.state.user32.get_window(x86.state.ddraw.hwnd);
+        let surface = x86.host.create_surface();
 
         let x86_surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);

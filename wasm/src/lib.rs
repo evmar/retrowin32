@@ -27,8 +27,6 @@ extern "C" {
     fn set_title(this: &JsWindow, title: &str);
     #[wasm_bindgen(method)]
     fn set_size(this: &JsWindow, width: u32, height: u32);
-    #[wasm_bindgen(method)]
-    fn new_surface(this: &JsWindow) -> JsSurface;
 }
 
 impl win32::Window for JsWindow {
@@ -37,9 +35,6 @@ impl win32::Window for JsWindow {
     }
     fn set_size(&mut self, width: u32, height: u32) {
         JsWindow::set_size(self, width, height);
-    }
-    fn new_surface(&mut self) -> Box<dyn win32::Surface> {
-        Box::new(JsWindow::new_surface(self))
     }
 }
 
@@ -54,6 +49,8 @@ extern "C" {
     fn time(this: &JsHost) -> u32;
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost) -> JsWindow;
+    #[wasm_bindgen(method)]
+    fn create_surface(this: &JsHost) -> JsSurface;
 }
 
 impl win32::Host for JsHost {
@@ -70,6 +67,9 @@ impl win32::Host for JsHost {
         let window = JsHost::create_window(self);
         window.set_title("test");
         Box::new(window)
+    }
+    fn create_surface(&self) -> Box<dyn win32::Surface> {
+        Box::new(JsHost::create_surface(self))
     }
 }
 

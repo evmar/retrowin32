@@ -9,8 +9,6 @@ pub trait Surface {
 pub trait Window {
     fn set_title(&mut self, title: &str);
     fn set_size(&mut self, width: u32, height: u32);
-
-    fn new_surface(&mut self) -> Box<dyn Surface>;
 }
 
 pub trait Host {
@@ -19,4 +17,5 @@ pub trait Host {
     fn time(&self) -> u32;
 
     fn create_window(&self) -> Box<dyn Window>;
+    fn create_surface(&self) -> Box<dyn Surface>;
 }

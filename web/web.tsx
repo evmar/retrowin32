@@ -35,7 +35,6 @@ interface JsSurface {
 interface JsWindow {
   title: string;
   set_size(width: number, height: number): void;
-  new_surface(): JsSurface;
 }
 
 // Matches 'pub type JsHost' in lib.rs.
@@ -44,6 +43,7 @@ interface JsHost {
   write(buf: Uint8Array): number;
   time(): number;
   create_window(): JsWindow;
+  create_surface(): JsSurface;
 }
 
 class Surface implements JsSurface {
@@ -63,9 +63,6 @@ class Window implements JsWindow {
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
-  }
-  new_surface(): JsSurface {
-    return new Surface();
   }
 }
 
@@ -141,8 +138,9 @@ class VM implements JsHost {
     this.windows.push(new Window(id));
     return this.windows[id - 1];
   }
-  get_window(id: number): JsWindow {
-    return this.windows[id - 1];
+
+  create_surface(): JsSurface {
+    return new Surface();
   }
 }
 
