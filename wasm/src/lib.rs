@@ -12,11 +12,17 @@ extern "C" {
     pub type JsSurface;
     #[wasm_bindgen(method)]
     fn flip(this: &JsSurface);
+    #[wasm_bindgen(method)]
+    fn bit_blt(this: &JsSurface, dx: u32, dy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32);
 }
 
 impl win32::Surface for JsSurface {
     fn flip(&self) {
         JsSurface::flip(self);
+    }
+
+    fn bit_blt(&self, dx: u32, dy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32) {
+        JsSurface::bit_blt(self, dx, dy, other, sx, sy, w, h);
     }
 }
 

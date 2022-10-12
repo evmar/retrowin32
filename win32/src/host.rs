@@ -5,6 +5,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 /// DirectDraw surface.
 pub trait Surface {
     fn flip(&self);
+    fn bit_blt(&self, dx: u32, xy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32);
 }
 
 #[wasm_bindgen]

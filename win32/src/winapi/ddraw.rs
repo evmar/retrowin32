@@ -771,9 +771,19 @@ mod IDirectDrawSurface7 {
         lpRect: u32,
         flags: u32,
     ) -> u32 {
+        if flags != 0 {
+            log::warn!("BltFlat flags: {:x}", flags);
+        }
+        let dst = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let _src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap();
         let rect = x86.mem.view::<RECT>(lpRect);
-        log::warn!("{this:x}->BltFast({x:x}, {y:x}, {lpSurf:x}, {rect:?}, {flags:x})");
-        DDERR_GENERIC
+        let sx = rect.left.get();
+        let w = rect.right.get() - sx;
+        let sy = rect.top.get();
+        let h = rect.bottom.get() - sy;
+        // TODO: need to pass a self type here.
+        dst.host.bit_blt(x, y, 0, sx, sy, w, h);
+        DD_OK
     }
 
     fn Flip(x86: &mut X86, this: u32, lpSurf: u32, flags: u32) -> u32 {
