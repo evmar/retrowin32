@@ -50,7 +50,7 @@ extern "C" {
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost) -> JsWindow;
     #[wasm_bindgen(method)]
-    fn create_surface(this: &JsHost) -> JsSurface;
+    fn create_surface(this: &JsHost, opts: win32::SurfaceOptions) -> JsSurface;
 }
 
 impl win32::Host for JsHost {
@@ -68,8 +68,8 @@ impl win32::Host for JsHost {
         window.set_title("test");
         Box::new(window)
     }
-    fn create_surface(&self) -> Box<dyn win32::Surface> {
-        Box::new(JsHost::create_surface(self))
+    fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+        Box::new(JsHost::create_surface(self, opts.clone()))
     }
 }
 

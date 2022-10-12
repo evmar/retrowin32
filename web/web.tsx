@@ -43,10 +43,24 @@ interface JsHost {
   write(buf: Uint8Array): number;
   time(): number;
   create_window(): JsWindow;
-  create_surface(): JsSurface;
+  create_surface(opts: wasm.SurfaceOptions): JsSurface;
 }
 
 class Surface implements JsSurface {
+  canvas: HTMLCanvasElement;
+  back?: HTMLCanvasElement;
+
+  constructor(width: number, height: number, primary: boolean) {
+    if (primary) {
+      this.canvas = document.createElement('canvas');
+      this.canvas.width = width;
+      this.canvas.height = height;
+      this.back = new (window as any).OffscreenCanvas(width, height);
+    } else {
+      this.canvas = new (window as any).OffscreenCanvas(width, height);
+    }
+  }
+
   flip() {
     console.log('flip');
   }
@@ -60,6 +74,7 @@ class Window implements JsWindow {
   title: string = '';
   width: number = 0;
   height: number = 0;
+  surface?: Surface;
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
@@ -139,8 +154,15 @@ class VM implements JsHost {
     return this.windows[id - 1];
   }
 
-  create_surface(): JsSurface {
-    return new Surface();
+  create_surface(opts: wasm.SurfaceOptions): JsSurface {
+    const { width, height, primary } = opts;
+    opts.free();
+    const surface = new Surface(width, height, primary);
+    // XXX how to tie surface and window together?
+    // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
+    // but how to plumb that info across JS boundary?
+    if (primary) this.windows[this.windows.length - 1].surface = surface;
+    return surface;
   }
 }
 
@@ -148,6 +170,7 @@ namespace WindowComponent {
   export interface Props {
     title: string;
     size: [number, number];
+    canvas?: HTMLCanvasElement;
   }
   export interface State {
     drag?: [number, number];
@@ -179,6 +202,10 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
   };
 
   render() {
+    // Hack: how to properly add canvas to node?
+    if (this.props.canvas && this.ref.current && !this.ref.current.firstChild) {
+      this.ref.current.appendChild(this.props.canvas);
+    }
     return (
       <div class='window' style={{ left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }}>
         <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
@@ -238,7 +265,14 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
   render() {
     let windows = this.props.vm.windows.map((window) => {
-      return <WindowComponent key={window.key} title={window.title} size={[window.width, window.height]} />;
+      return (
+        <WindowComponent
+          key={window.key}
+          title={window.title}
+          size={[window.width, window.height]}
+          canvas={window.surface?.canvas}
+        />
+      );
     });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);

@@ -387,19 +387,19 @@ mod IDirectDraw7 {
             desc.flags()
         );
 
-        let mut width = 0;
-        let mut height = 0;
+        let mut opts = host::SurfaceOptions::default();
         if desc.flags().contains(DDSD::WIDTH) {
-            width = desc.dwWidth.get();
+            opts.width = desc.dwWidth.get();
         }
         if desc.flags().contains(DDSD::HEIGHT) {
-            height = desc.dwHeight.get();
+            opts.height = desc.dwHeight.get();
         }
         if let Some(caps) = desc.caps() {
             log::warn!("  caps: {:?}", caps.caps1());
             if caps.caps1().contains(DDSCAPS::PRIMARYSURFACE) {
-                width = x86.state.ddraw.width;
-                height = x86.state.ddraw.height;
+                opts.width = x86.state.ddraw.width;
+                opts.height = x86.state.ddraw.height;
+                opts.primary = true;
             }
         }
 
@@ -408,7 +408,7 @@ mod IDirectDraw7 {
         }
 
         //let window = x86.state.user32.get_window(x86.state.ddraw.hwnd);
-        let surface = x86.host.create_surface();
+        let surface = x86.host.create_surface(&opts);
 
         let x86_surface = IDirectDrawSurface7::new(x86);
         x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
@@ -416,8 +416,8 @@ mod IDirectDraw7 {
             x86_surface,
             Surface {
                 host: surface,
-                width,
-                height,
+                width: opts.width,
+                height: opts.height,
             },
         );
 
@@ -450,7 +450,7 @@ mod IDirectDraw7 {
     }
 
     fn SetDisplayMode(
-        _x86: &mut X86,
+        x86: &mut X86,
         this: u32,
         width: u32,
         height: u32,
@@ -459,6 +459,8 @@ mod IDirectDraw7 {
         flags: u32,
     ) -> u32 {
         log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})");
+        x86.state.ddraw.width = width;
+        x86.state.ddraw.height = height;
         DD_OK
     }
 
