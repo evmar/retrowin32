@@ -775,14 +775,13 @@ mod IDirectDrawSurface7 {
             log::warn!("BltFlat flags: {:x}", flags);
         }
         let dst = x86.state.ddraw.surfaces.get(&this).unwrap();
-        let _src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap();
+        let src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap();
         let rect = x86.mem.view::<RECT>(lpRect);
         let sx = rect.left.get();
         let w = rect.right.get() - sx;
         let sy = rect.top.get();
         let h = rect.bottom.get() - sy;
-        // TODO: need to pass a self type here.
-        dst.host.bit_blt(x, y, 0, sx, sy, w, h);
+        dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
         DD_OK
     }
 
@@ -802,8 +801,18 @@ mod IDirectDrawSurface7 {
         lpDirectDrawSurface7: u32,
     ) -> u32 {
         log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        let surf = new(x86);
-        x86.mem.write_u32(lpDirectDrawSurface7, surf);
+        let this_surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let host = this_surface.host.get_attached();
+
+        let surface = Surface {
+            host,
+            width: this_surface.width,
+            height: this_surface.height,
+        };
+        let x86_surface = new(x86);
+
+        x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
+        x86.state.ddraw.surfaces.insert(x86_surface, surface);
         DD_OK
     }
 

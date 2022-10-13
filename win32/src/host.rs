@@ -4,8 +4,11 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 /// DirectDraw surface.
 pub trait Surface {
+    fn get_attached(&self) -> Box<dyn Surface>;
     fn flip(&self);
-    fn bit_blt(&self, dx: u32, xy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32);
+    // TODO: the trait object here means we end up needing to cast, but the alternative
+    // isn't object safe, bleh.
+    fn bit_blt(&self, dx: u32, xy: u32, other: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
 }
 
 #[wasm_bindgen]

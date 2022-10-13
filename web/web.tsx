@@ -28,7 +28,9 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
 
 // Matches 'pub type JsSurface' in lib.rs.
 interface JsSurface {
+  get_attached(): JsSurface;
   flip(): void;
+  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
 }
 
 // Matches 'pub type JsWindow' in lib.rs.
@@ -48,21 +50,40 @@ interface JsHost {
 
 class Surface implements JsSurface {
   canvas: HTMLCanvasElement;
-  back?: HTMLCanvasElement;
+  ctx: CanvasRenderingContext2D;
+  back?: Surface;
 
   constructor(width: number, height: number, primary: boolean) {
     if (primary) {
       this.canvas = document.createElement('canvas');
-      this.canvas.width = width;
-      this.canvas.height = height;
-      this.back = new (window as any).OffscreenCanvas(width, height);
+      this.back = new Surface(width, height, false);
+      this.back.ctx.fillStyle = 'blue';
+      this.back.ctx.fillRect(0, 0, 640, 480);
+      this.back.ctx.fill();
     } else {
       this.canvas = new (window as any).OffscreenCanvas(width, height);
     }
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.ctx = this.canvas.getContext('2d')!;
+    this.ctx.fillStyle = primary ? 'red' : 'green';
+    this.ctx.fillRect(0, 0, 640, 480);
+    this.ctx.fill();
+  }
+
+  get_attached(): JsSurface {
+    if (!this.back) throw new Error('no back for attached');
+    return this.back!;
   }
 
   flip() {
-    console.log('flip');
+    if (!this.back) throw new Error('no back for flip');
+    this.ctx.drawImage(this.back.canvas, 0, 0);
+    // TODO: do we need to swap canvases or something?
+  }
+
+  bit_blt(dx: number, dy: number, other: Surface, sx: number, sy: number, w: number, h: number): void {
+    this.ctx.drawImage(other.canvas, sx, sy, w, h, dx, dy, w, h);
   }
 }
 
@@ -143,8 +164,8 @@ class VM implements JsHost {
     this.page.setState({ stdout: this.stdout });
     return buf.length;
   }
-  time() {
-    return Math.floor(performance.now() * 1000);
+  time(): number {
+    return Math.floor(performance.now());
   }
 
   windows: Window[] = [];

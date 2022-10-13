@@ -11,17 +11,45 @@ extern "C" {
 extern "C" {
     pub type JsSurface;
     #[wasm_bindgen(method)]
+    fn get_attached(this: &JsSurface) -> JsSurface;
+    #[wasm_bindgen(method)]
     fn flip(this: &JsSurface);
     #[wasm_bindgen(method)]
-    fn bit_blt(this: &JsSurface, dx: u32, dy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32);
+    fn bit_blt(
+        this: &JsSurface,
+        dx: u32,
+        dy: u32,
+        other: &JsSurface,
+        sx: u32,
+        sy: u32,
+        w: u32,
+        h: u32,
+    );
 }
 
 impl win32::Surface for JsSurface {
+    fn get_attached(&self) -> Box<dyn win32::Surface> {
+        Box::new(JsSurface::get_attached(self))
+    }
+
     fn flip(&self) {
         JsSurface::flip(self);
     }
 
-    fn bit_blt(&self, dx: u32, dy: u32, other: u32, sx: u32, sy: u32, w: u32, h: u32) {
+    fn bit_blt(
+        &self,
+        dx: u32,
+        dy: u32,
+        other: &dyn win32::Surface,
+        sx: u32,
+        sy: u32,
+        w: u32,
+        h: u32,
+    ) {
+        // Hack: we know all surfaces are JsSurface.
+        // I think to fix this properly I might need to make every X86 generic across all the
+        // host types, eek.
+        let other = unsafe { &*(other as *const dyn win32::Surface as *const JsSurface) };
         JsSurface::bit_blt(self, dx, dy, other, sx, sy, w, h);
     }
 }
