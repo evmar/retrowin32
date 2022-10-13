@@ -49,6 +49,10 @@ impl win32::Host for Host {
     fn create_window(&self) -> Box<dyn win32::Window> {
         todo!()
     }
+
+    fn create_surface(&self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+        todo!()
+    }
 }
 
 fn run() -> anyhow::Result<()> {
