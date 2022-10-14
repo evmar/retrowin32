@@ -109,7 +109,7 @@ fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
 }
 
 fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
-    log::warn!("DeleteDC({hdc:x})");
+    log::warn!("todo: DeleteDC({hdc:x})");
     0 // fail
 }
 
@@ -142,9 +142,8 @@ fn BitBlt(
         Object::Bitmap(bmp) => bmp,
     };
     assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
+    assert!(cx == surface.width && cy == surface.height);
     assert!(surface.width == bitmap.width && surface.height == bitmap.height);
-
-    log::info!("gdi32::BitBlt {cx}x{cy} from ({x1},{y1}) to ({x},{y})");
 
     surface.host.write_pixels(&bitmap.pixels);
     1 // success

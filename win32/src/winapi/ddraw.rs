@@ -797,10 +797,11 @@ mod IDirectDrawSurface7 {
     fn GetAttachedSurface(
         x86: &mut X86,
         this: u32,
-        lpDDSCaps2: u32,
+        _lpDDSCaps2: u32,
         lpDirectDrawSurface7: u32,
     ) -> u32 {
-        log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
+        // TODO: consider caps.
+        // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
         let this_surface = x86.state.ddraw.surfaces.get(&this).unwrap();
         let host = this_surface.host.get_attached();
 

@@ -137,7 +137,9 @@ class VM implements JsHost {
 
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
-    this.breakpoints.set(0x4010d5, { addr: 0x4010d5, temporary: true });
+
+    // Breakpoint on LoadBitmap.
+    // this.breakpoints.set(0x4010d5, { addr: 0x4010d5, temporary: true });
   }
 
   step() {
@@ -178,6 +180,7 @@ class VM implements JsHost {
   create_window(): JsWindow {
     let id = this.windows.length + 1;
     this.windows.push(new Window(id));
+    this.page.forceUpdate();
     return this.windows[id - 1];
   }
 
@@ -188,7 +191,11 @@ class VM implements JsHost {
     // XXX how to tie surface and window together?
     // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
     // but how to plumb that info across JS boundary?
-    if (primary) this.windows[this.windows.length - 1].surface = surface;
+    if (primary) {
+      this.windows[this.windows.length - 1].surface = surface;
+      console.warn('hack: attached surface to window');
+      this.page.forceUpdate();
+    }
     return surface;
   }
 }
@@ -228,11 +235,19 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
     e.preventDefault();
   };
 
-  render() {
-    // Hack: how to properly add canvas to node?
+  ensureCanvas() {
+    // XXX: how to ensure the canvas appears as a child of this widget?
     if (this.props.canvas && this.ref.current && !this.ref.current.firstChild) {
       this.ref.current.appendChild(this.props.canvas);
     }
+  }
+
+  componentDidMount(): void {
+    this.ensureCanvas();
+  }
+
+  render() {
+    this.ensureCanvas();
     return (
       <div class='window' style={{ left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }}>
         <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
@@ -252,10 +267,11 @@ namespace Page {
     stdout: string;
     memBase: number;
     memHighlight?: number;
+    running: boolean;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { stdout: '', memBase: 0x40_1000 };
+  state: Page.State = { stdout: '', memBase: 0x40_1000, running: false };
 
   constructor(props: Page.Props) {
     super(props);
@@ -266,7 +282,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
     try {
       f();
     } finally {
-      this.forceUpdate();
+      this.setState({ running: false });
     }
   }
 
@@ -274,17 +290,32 @@ class Page extends preact.Component<Page.Props, Page.State> {
     this.updateAfter(() => this.props.vm.step());
   }
 
-  run() {
-    this.updateAfter(() => {
-      for (let i = 0; i < 10000; i++) {
-        if (!this.props.vm.step()) break;
+  startStop() {
+    if (this.state.running) {
+      this.setState({ running: false });
+    } else {
+      this.setState({ running: true }, () => this.runFrame());
+    }
+  }
+  stepSize = 1000;
+  runFrame() {
+    if (!this.state.running) return;
+    const start = performance.now();
+    for (let i = 0; i < this.stepSize; i++) {
+      if (!this.props.vm.step()) {
+        this.setState({ running: false });
+        return;
       }
-    });
+    }
+    const end = performance.now();
+    // TODO: fps counter.
+    // console.log(`${this.stepSize} instructions in ${end-start}ms`);
+    requestAnimationFrame(() => this.runFrame());
   }
 
   runTo(addr: number) {
     this.props.vm.breakpoints.set(addr, { addr, temporary: true });
-    this.run();
+    this.startStop();
   }
 
   highlightMemory = (addr: number) => this.setState({ memHighlight: addr });
@@ -308,9 +339,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
         {windows}
         <div style={{ margin: '1ex' }}>
           <button
-            onClick={() => this.run()}
+            onClick={() => this.startStop()}
           >
-            run
+            {this.state.running ? 'stop' : 'run'}
           </button>
           &nbsp;
           <button
