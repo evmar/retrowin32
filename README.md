@@ -4,9 +4,16 @@ A not-yet-working Windows emulator for the web (and maybe non-web?).
 
 ## Status
 
-Doesn't work at all yet, but I'm still tinkering!
+Doesn't really work for much yet, but I'm still tinkering!
 
-Come back later for actual notes on how to run it etc.
+Some sample programs:
+
+- [Zig "hello world"](https://evmar.github.io/retrowin32/?zig.exe).
+- [A basic DirectDraw demo](https://evmar.github.io/retrowin32/?BasicDD.exe),
+  which came from
+  [this intro site](https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting)
+
+Click the "run" button in the corner to run these.
 
 ## The idea
 
