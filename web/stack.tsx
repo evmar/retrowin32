@@ -18,7 +18,7 @@ export class Stack extends preact.Component<Stack.Props> {
     const rows = [];
     for (let addr = esp - 0x10; addr < esp + 0x20; addr += 4) {
       const value = memory.getUint32(addr, true);
-      let label = this.props.labels.get(addr);
+      let label = this.props.labels.get(value);
       if (label) {
         label = ` ${label}`;
       }
