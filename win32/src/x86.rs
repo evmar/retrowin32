@@ -465,20 +465,20 @@ impl<'a> X86<'a> {
         if addr < 0x1000 {
             bail!("jmp to null page");
         }
-        if addr & 0xFFFF_0000 != SHIM_BASE {
-            self.regs.eip = addr;
-            return Ok(());
+
+        if addr & 0xFFFF_0000 == SHIM_BASE {
+            let ret = self.pop();
+            let handler = self.shims.get(addr).unwrap();
+            handler(self);
+            return self.jmp(ret);
         }
 
-        let ret = self.pop();
-        if let Some(handler) = self.shims.get(addr) {
-            handler(self);
-        }
-        self.jmp(ret)
+        self.regs.eip = addr;
+        Ok(())
     }
 
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
-        self.jmp(instr.next_ip() as u32)?;
+        self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
                 self.push(self.regs.ebp);
