@@ -335,7 +335,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
     return (
       <>
         {windows}
-        <div style={{ margin: '1ex' }}>
+        <div style={{ margin: '1ex', display: 'flex', alignItems: 'baseline' }}>
           <button
             onClick={() => this.startStop()}
           >
@@ -356,6 +356,10 @@ class Page extends preact.Component<Page.Props, Page.State> {
           >
             step over
           </button>
+          &nbsp;
+          <div>
+            {this.props.vm.x86.instr_count} instrs executed
+          </div>
         </div>
         <div style={{ display: 'flex' }}>
           <Code

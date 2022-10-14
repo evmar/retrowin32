@@ -198,6 +198,7 @@ pub struct X86<'a> {
     pub regs: Registers,
     pub shims: Shims,
     pub state: winapi::State,
+    pub instr_count: usize,
 }
 impl<'a> X86<'a> {
     pub fn new(host: &'a dyn host::Host) -> Self {
@@ -214,6 +215,7 @@ impl<'a> X86<'a> {
             regs,
             shims: Shims::new(),
             state: winapi::State::new(),
+            instr_count: 0,
         }
     }
 
@@ -1027,6 +1029,7 @@ impl<'a> X86<'a> {
                 bail!("unhandled instruction {:?}", code);
             }
         }
+        self.instr_count += 1;
         Ok(())
     }
 
