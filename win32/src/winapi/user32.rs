@@ -173,7 +173,17 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     let height = header.biHeight.get();
     assert!(pixels.len() as u32 == width * height);
 
-    let pixels: Vec<_> = pixels.iter().map(|&p| palette[p as usize]).collect();
+    // XXX Palette will have 0s for the 4th component, while canvas interprets those 0s
+    // as an alpha channel.  We swap there here for 255 for now.  It's plausible some
+    // software expects the pixel data within a bitmap to be exactly as in the underlying
+    // file and we ought to not monkey with it here.
+    let pixels: Vec<_> = pixels
+        .iter()
+        .map(|&p| {
+            let [r, g, b, _] = palette[p as usize];
+            [r, g, b, 255]
+        })
+        .collect();
 
     Ok(Bitmap {
         width,

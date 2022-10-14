@@ -11,6 +11,8 @@ extern "C" {
 extern "C" {
     pub type JsSurface;
     #[wasm_bindgen(method)]
+    fn write_pixels(this: &JsSurface, pixels: &[u8]) -> JsSurface;
+    #[wasm_bindgen(method)]
     fn get_attached(this: &JsSurface) -> JsSurface;
     #[wasm_bindgen(method)]
     fn flip(this: &JsSurface);
@@ -28,6 +30,14 @@ extern "C" {
 }
 
 impl win32::Surface for JsSurface {
+    fn write_pixels(&self, pixels: &[[u8; 4]]) {
+        let slice = unsafe {
+            let p = pixels.as_ptr() as *const u8;
+            std::slice::from_raw_parts(p, pixels.len() * 4)
+        };
+        JsSurface::write_pixels(self, slice);
+    }
+
     fn get_attached(&self) -> Box<dyn win32::Surface> {
         Box::new(JsSurface::get_attached(self))
     }

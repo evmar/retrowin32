@@ -46,7 +46,14 @@ impl State {
         (handle, &mut self.dcs[handle as usize - 1])
     }
 
-    fn get_dc(&mut self, handle: u32) -> Option<&mut DC> {
+    fn get_dc(&self, handle: u32) -> Option<&DC> {
+        if handle > 0 {
+            self.dcs.get((handle - 1) as usize)
+        } else {
+            None
+        }
+    }
+    fn get_dc_mut(&mut self, handle: u32) -> Option<&mut DC> {
         if handle > 0 {
             self.dcs.get_mut((handle - 1) as usize)
         } else {
@@ -77,7 +84,7 @@ fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
         Object::Bitmap(_) => |dc: &mut DC| std::mem::replace(&mut dc.bitmap, hGdiObj),
     };
 
-    let dc = match x86.state.gdi32.get_dc(hdc) {
+    let dc = match x86.state.gdi32.get_dc_mut(hdc) {
         None => return 0, // TODO: HGDI_ERROR
         Some(dc) => dc,
     };
@@ -109,7 +116,7 @@ fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
 const SRCCOPY: u32 = 0xcc0020;
 
 fn BitBlt(
-    _x86: &mut X86,
+    x86: &mut X86,
     hdc: u32,
     x: u32,
     y: u32,
@@ -124,10 +131,21 @@ fn BitBlt(
         log::error!("unimp: raster op {rop:x}");
         return 0;
     }
-    log::warn!(
-        "BitBlt({hdc:x}, {x:x}, {y:x}, {cx:x}, {cy:x}, {hdcSrc:x}, {x1:x}, {y1:x}, {rop:x})"
-    );
-    1
+
+    // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
+    // where the surface sizes match as well.
+    let hdc = x86.state.gdi32.get_dc(hdc).unwrap();
+    let surface = x86.state.ddraw.surfaces.get(&hdc.ddraw_surface).unwrap();
+    let hdcSrc = x86.state.gdi32.get_dc(hdcSrc).unwrap();
+    let obj = x86.state.gdi32.get_object(hdcSrc.bitmap).unwrap();
+    let bitmap = match obj {
+        Object::Bitmap(bmp) => bmp,
+    };
+    log::info!("gdi32::BitBlt {cx}x{cy} from ({x1},{y1}) to ({x},{y})");
+
+    assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
+    surface.host.write_pixels(&bitmap.pixels);
+    1 // success
 }
 
 fn StretchBlt(

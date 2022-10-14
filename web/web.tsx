@@ -28,6 +28,7 @@ async function loadLabels(path: string): Promise<Map<number, string>> {
 
 // Matches 'pub type JsSurface' in lib.rs.
 interface JsSurface {
+  write_pixels(pixels: Uint8Array): void;
   get_attached(): JsSurface;
   flip(): void;
   bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
@@ -71,6 +72,14 @@ class Surface implements JsSurface {
     this.ctx.fill();
   }
 
+  write_pixels(pixels: Uint8Array): void {
+    const data = new ImageData(this.canvas.width, this.canvas.height);
+    // XXX Ew copy.  Docs suggest the ImageData ctor accepts pixel data as a param
+    // but I couldn't see it working.
+    data.data.set(pixels);
+    this.ctx.putImageData(data, 0, 0);
+  }
+
   get_attached(): JsSurface {
     if (!this.back) throw new Error('no back for attached');
     return this.back!;
@@ -82,8 +91,8 @@ class Surface implements JsSurface {
     // TODO: do we need to swap canvases or something?
   }
 
-  bit_blt(dx: number, dy: number, other: Surface, sx: number, sy: number, w: number, h: number): void {
-    this.ctx.drawImage(other.canvas, sx, sy, w, h, dx, dy, w, h);
+  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void {
+    this.ctx.drawImage((other as unknown as Surface).canvas, sx, sy, w, h, dx, dy, w, h);
   }
 }
 

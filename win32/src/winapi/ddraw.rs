@@ -22,8 +22,8 @@ struct RECT {
 }
 unsafe impl Pod for RECT {}
 
-struct Surface {
-    host: Box<dyn host::Surface>,
+pub struct Surface {
+    pub host: Box<dyn host::Surface>,
     width: u32,
     height: u32,
 }
@@ -37,7 +37,7 @@ pub struct State {
     hwnd: u32,
     width: u32,
     height: u32,
-    surfaces: HashMap<u32, Surface>,
+    pub surfaces: HashMap<u32, Surface>,
 }
 impl State {
     pub fn new_empty() -> Self {
