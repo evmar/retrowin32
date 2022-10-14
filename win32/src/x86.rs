@@ -574,12 +574,12 @@ impl<'a> X86<'a> {
                     self.jmp(instr.near_branch32())?;
                 }
             }
-            iced_x86::Code::Jge_rel8_32 => {
+            iced_x86::Code::Jge_rel32_32 | iced_x86::Code::Jge_rel8_32 => {
                 if self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF) {
                     self.jmp(instr.near_branch32())?;
                 }
             }
-            iced_x86::Code::Jle_rel32_32 => {
+            iced_x86::Code::Jle_rel32_32 | iced_x86::Code::Jle_rel8_32 => {
                 if self.regs.flags.contains(Flags::ZF)
                     || (self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF))
                 {
@@ -763,6 +763,10 @@ impl<'a> X86<'a> {
                 let y = instr.immediate8to32();
                 self.rm32_x(instr, |_x86, x| x << y);
             }
+            iced_x86::Code::Shl_rm32_CL => {
+                let y = self.regs.ecx as u8;
+                self.rm32_x(instr, |_x86, x| x << y);
+            }
             iced_x86::Code::Shr_rm32_imm8 => {
                 let y = instr.immediate8to32();
                 self.rm32_x(instr, |_x86, x| x >> y);
@@ -790,6 +794,10 @@ impl<'a> X86<'a> {
                 let reg = instr.op0_register();
                 let value = self.add32(self.regs.get32(reg), self.op1_rm32(&instr));
                 self.regs.set32(reg, value);
+            }
+            iced_x86::Code::Add_rm32_r32 => {
+                let y = self.regs.get32(instr.op1_register());
+                self.rm32_x(instr, |x86, x| x86.add32(x, y));
             }
             iced_x86::Code::Add_rm32_imm32 | iced_x86::Code::Add_EAX_imm32 => {
                 let y = instr.immediate32();
@@ -1005,8 +1013,11 @@ impl<'a> X86<'a> {
             | iced_x86::Code::Fadd_m32fp
             | iced_x86::Code::Fild_m32int
             | iced_x86::Code::Fld_m32fp
+            | iced_x86::Code::Fld1
             | iced_x86::Code::Fmul_m32fp
             | iced_x86::Code::Fmul_m64fp
+            | iced_x86::Code::Fmulp_sti_st0
+            | iced_x86::Code::Fistp_m32int
             | iced_x86::Code::Fsin
             | iced_x86::Code::Fstp_m32fp => {
                 // TODO: floating point
