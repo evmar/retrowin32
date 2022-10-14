@@ -58,16 +58,13 @@ class Surface implements JsSurface {
     if (primary) {
       this.canvas = document.createElement('canvas');
       this.back = new Surface(width, height, false);
-      this.back.ctx.fillStyle = 'blue';
-      this.back.ctx.fillRect(0, 0, 640, 480);
-      this.back.ctx.fill();
     } else {
       this.canvas = new (window as any).OffscreenCanvas(width, height);
     }
     this.canvas.width = width;
     this.canvas.height = height;
     this.ctx = this.canvas.getContext('2d')!;
-    this.ctx.fillStyle = primary ? 'red' : 'green';
+    this.ctx.fillStyle = 'black';
     this.ctx.fillRect(0, 0, 640, 480);
     this.ctx.fill();
   }

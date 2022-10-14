@@ -133,6 +133,18 @@ struct BITMAPINFOHEADER {
     biClrImportant: DWORD,
 }
 unsafe impl Pod for BITMAPINFOHEADER {}
+impl BITMAPINFOHEADER {
+    fn width(&self) -> u32 {
+        self.biWidth.get()
+    }
+    fn height(&self) -> u32 {
+        // Height is negative if top-down DIB.
+        (self.biHeight.get() as i32).abs() as u32
+    }
+    fn is_top_down(&self) -> bool {
+        (self.biHeight.get() as i32) < 0
+    }
+}
 
 pub struct Bitmap {
     pub width: u32,
@@ -169,21 +181,34 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     };
     let pixels = &buf[header_size + (palette_count * 4)..];
 
-    let width = header.biWidth.get();
-    let height = header.biHeight.get();
+    let width = header.width();
+    let height = header.height();
     assert!(pixels.len() as u32 == width * height);
 
-    // XXX Palette will have 0s for the 4th component, while canvas interprets those 0s
-    // as an alpha channel.  We swap there here for 255 for now.  It's plausible some
-    // software expects the pixel data within a bitmap to be exactly as in the underlying
-    // file and we ought to not monkey with it here.
-    let pixels: Vec<_> = pixels
-        .iter()
-        .map(|&p| {
-            let [r, g, b, _] = palette[p as usize];
-            [r, g, b, 255]
-        })
-        .collect();
+    // Bitmap pixel data is tricky.
+    // - Likely bottom-up (first row of data is bottom row of pixels)
+    // - Palette will have 0s for the 4th component, while canvas interprets those 0s
+    //   as an alpha channel.  We swap there here for 255 for now.
+    // It's plausible some software expects the pixel data within a bitmap to be
+    // exactly as in the underlying file and we ought to not monkey with it here,
+    // but for now let's just transform it into the form the canvas expects.
+
+    fn get_pixel(palette: &[[u8; 4]], val: u8) -> [u8; 4] {
+        let [r, g, b, _] = palette[val as usize];
+        [r, g, b, 255]
+    }
+
+    let pixels = if header.is_top_down() {
+        pixels.iter().map(|&p| get_pixel(palette, p)).collect()
+    } else {
+        let mut v = Vec::with_capacity(pixels.len());
+        for y in (0..height as usize).rev() {
+            for &p in pixels[y * width as usize..(y + 1) * width as usize].iter() {
+                v.push(get_pixel(palette, p));
+            }
+        }
+        v
+    };
 
     Ok(Bitmap {
         width,

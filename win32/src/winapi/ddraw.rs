@@ -24,8 +24,8 @@ unsafe impl Pod for RECT {}
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,
-    width: u32,
-    height: u32,
+    pub width: u32,
+    pub height: u32,
 }
 
 pub struct State {
