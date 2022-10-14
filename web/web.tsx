@@ -55,11 +55,9 @@ class Surface implements JsSurface {
   back?: Surface;
 
   constructor(width: number, height: number, primary: boolean) {
+    this.canvas = document.createElement('canvas');
     if (primary) {
-      this.canvas = document.createElement('canvas');
       this.back = new Surface(width, height, false);
-    } else {
-      this.canvas = new (window as any).OffscreenCanvas(width, height);
     }
     this.canvas.width = width;
     this.canvas.height = height;
