@@ -50,6 +50,9 @@ pub struct Registers {
     pub ss: u16,
 
     pub flags: Flags,
+
+    pub st: [f64; 8],
+    pub st_len: usize,
 }
 impl Registers {
     fn new() -> Self {
@@ -70,6 +73,9 @@ impl Registers {
             gs: 0,
             ss: 0,
             flags: Flags::empty(),
+
+            st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+            st_len: 0,
         }
     }
 

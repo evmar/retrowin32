@@ -212,6 +212,11 @@ impl Emulator {
         format!("{:?}", self.runner.x86.regs.flags)
     }
 
+    pub fn st(&self) -> Box<[f64]> {
+        let s = &self.runner.x86.regs.st[0..self.runner.x86.regs.st_len];
+        s.into()
+    }
+
     #[wasm_bindgen(getter)]
     pub fn instr_count(&self) -> usize {
         self.runner.instr_count

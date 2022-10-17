@@ -4,14 +4,37 @@ import { Number } from './memory';
 import { hex } from './util';
 import * as wasm from './wasm/wasm';
 
-namespace Registers {
+interface Registers {
+  eax: number;
+  ebx: number;
+  ecx: number;
+  edx: number;
+  esp: number;
+  ebp: number;
+  esi: number;
+  edi: number;
+  eip: number;
+  cs: number;
+  ds: number;
+  es: number;
+  fs: number;
+  gs: number;
+  ss: number;
+  flags: number;
+
+  flags_str(): string;
+  st(): Float64Array;
+}
+
+namespace RegistersComponent {
   export interface Props extends Number.Interactions {
-    regs: wasm.Registers & { flags_str(): string };
+    regs: Registers;
   }
 }
-export class Registers extends preact.Component<Registers.Props> {
+export class RegistersComponent extends preact.Component<RegistersComponent.Props> {
   render() {
     const { regs } = this.props;
+    const st = Array.from(regs.st());
     return (
       <section>
         <code>
@@ -40,25 +63,34 @@ export class Registers extends preact.Component<Registers.Props> {
           </div>
           <br />
           <div>
-            cs&nbsp;<Number digits={4} {...this.props}>{regs.cs}</Number>
-            <br />
-            ds&nbsp;<Number digits={4} {...this.props}>{regs.ds}</Number>
-            <br />
-            es&nbsp;<Number digits={4} {...this.props}>{regs.es}</Number>
-            <br />
+            cs&nbsp;<Number digits={4} {...this.props}>{regs.cs}</Number>{' '}
             fs&nbsp;<Number digits={4} {...this.props}>{regs.fs}</Number>
             <br />
+            ds&nbsp;<Number digits={4} {...this.props}>{regs.ds}</Number>{' '}
             gs&nbsp;<Number digits={4} {...this.props}>{regs.gs}</Number>
             <br />
+            es&nbsp;<Number digits={4} {...this.props}>{regs.es}</Number>{' '}
             ss&nbsp;<Number digits={4} {...this.props}>{regs.ss}</Number>
             <br />
           </div>
           <br />
           <div>
-            flags&nbsp;{hex(regs.flags)}
-            <br />
-            {regs.flags_str()}
+            flags&nbsp;{hex(regs.flags)} {regs.flags_str()}
           </div>
+          <br />
+          {st.length > 0
+            ? (
+              <div>
+                fpu<br />
+                {Array.from(regs.st()).map(n => (
+                  <span>
+                    {n}
+                    <br />
+                  </span>
+                ))}
+              </div>
+            )
+            : null}
         </code>
       </section>
     );
