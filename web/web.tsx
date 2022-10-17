@@ -136,7 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    this.breakpoints.set(0x408d1e, { temporary: false });
+    // this.breakpoints.set(0x408d1e, { temporary: false });
   }
 
   step() {
