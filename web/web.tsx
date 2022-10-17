@@ -154,6 +154,30 @@ class VM implements JsHost {
     return true;
   }
 
+  stepSize = 5000;
+  stepRate = 0;
+  stepMany(): boolean {
+    const start = performance.now();
+    for (let i = 0; i < this.stepSize; i++) {
+      if (!this.step()) {
+        return false;
+      }
+    }
+    const end = performance.now();
+    const delta = end-start;
+
+    if (delta < 10) {
+      this.stepSize *= 2;
+      console.log('adjusted step rate', this.stepSize);
+    }
+
+    const instrPerMs = this.stepSize / delta;
+    const alpha = 0.2;
+    this.stepRate = alpha*(instrPerMs) + (alpha-1)*this.stepRate;
+
+    return true;
+  }
+
   mappings(): wasm.Mapping[] {
     return JSON.parse(this.x86.mappings_json()) as wasm.Mapping[];
   }
@@ -304,19 +328,12 @@ class Page extends preact.Component<Page.Props, Page.State> {
     }
   }
 
-  stepSize = 5000;
   runFrame() {
     if (!this.state.running) return;
-    const start = performance.now();
-    for (let i = 0; i < this.stepSize; i++) {
-      if (!this.props.vm.step()) {
-        this.startStop(false);
-        return;
-      }
+    if (!this.props.vm.stepMany()) {
+      this.startStop(false);
+      return;
     }
-    const end = performance.now();
-    // TODO: fps counter.
-    // console.log(`${this.stepSize} instructions in ${end - start}ms`);
     requestAnimationFrame(() => this.runFrame());
   }
 
@@ -369,7 +386,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </button>
           &nbsp;
           <div>
-            {this.props.vm.x86.instr_count} instrs executed
+            {this.props.vm.x86.instr_count} instrs executed | {Math.floor(this.props.vm.stepRate)}/ms
           </div>
         </div>
         <div style={{ display: 'flex' }}>
