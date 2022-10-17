@@ -136,7 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    this.breakpoints.set(0x408d1e, { addr: 0x408d1e, temporary: true });
+    this.breakpoints.set(0x408d1e, { addr: 0x408d1e, temporary: false });
   }
 
   step() {
@@ -146,6 +146,8 @@ class VM implements JsHost {
     if (bp) {
       if (bp.temporary) {
         this.breakpoints.delete(bp.addr);
+      } else {
+        this.page.setState({ selectedTab: 'breakpoints' });
       }
       return false;
     }
@@ -416,6 +418,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
               breakpoints: (
                 <BreakpointsComponent
                   breakpoints={this.props.vm.breakpoints}
+                  highlight={this.props.vm.x86.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                 />
