@@ -852,13 +852,7 @@ impl<'a> X86<'a> {
             }
 
             iced_x86::Code::Dec_r32 => {
-                // TODO: flags.
-                let reg = instr.op0_register();
-                let (value, overflow) = self.regs.get32(reg).overflowing_sub(1);
-                if overflow {
-                    bail!("overflow");
-                }
-                self.regs.set32(reg, value);
+                self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
             }
             iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {
                 // TODO: flags.
