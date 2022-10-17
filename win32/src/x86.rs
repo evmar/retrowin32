@@ -415,6 +415,19 @@ impl<'a> X86<'a> {
         result
     }
 
+    fn shl32(&mut self, x: u32, y: u8) -> u32 {
+        // Note: overflowing_shl is not what we want.
+        let val = (x as u64).wrapping_shl(y as u32);
+        self.regs.flags.set(Flags::CF, val > 0xFFFF_FFFF);
+        val as u32
+    }
+    fn shl8(&mut self, x: u8, y: u8) -> u8 {
+        // Note: overflowing_shl is not what we want.
+        let val = (x as u16).wrapping_shl(y as u32);
+        self.regs.flags.set(Flags::CF, val > 0xFF);
+        val as u8
+    }
+
     fn rm32_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => {
@@ -780,15 +793,19 @@ impl<'a> X86<'a> {
                 self.rm8_x(instr, |x86, x| x86.or8(x, y));
             }
             iced_x86::Code::Shl_rm32_imm8 => {
-                let y = instr.immediate8to32();
-                self.rm32_x(instr, |_x86, x| x << y);
+                let y = instr.immediate8();
+                self.rm32_x(instr, |x86, x| x86.shl32(x, y));
             }
             iced_x86::Code::Shl_rm32_CL => {
                 let y = self.regs.ecx as u8;
-                self.rm32_x(instr, |_x86, x| x << y);
+                self.rm32_x(instr, |x86, x| x86.shl32(x, y));
+            }
+            iced_x86::Code::Shl_rm8_CL => {
+                let y = self.regs.ecx as u8;
+                self.rm8_x(instr, |x86, x| x86.shl8(x, y));
             }
             iced_x86::Code::Shr_rm32_imm8 => {
-                let y = instr.immediate8to32();
+                let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| x >> y);
             }
             iced_x86::Code::Xor_rm32_r32 => {
