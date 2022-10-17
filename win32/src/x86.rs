@@ -402,6 +402,12 @@ impl<'a> X86<'a> {
         self.regs.flags.set(Flags::ZF, result == 0);
         result
     }
+    fn or16(&mut self, x: u16, y: u16) -> u16 {
+        let result = x | y;
+        // XXX More flags.
+        self.regs.flags.set(Flags::ZF, result == 0);
+        result
+    }
     fn or8(&mut self, x: u8, y: u8) -> u8 {
         let result = x | y;
         // XXX More flags.
@@ -753,6 +759,10 @@ impl<'a> X86<'a> {
                 let value = self.regs.get32(reg) & y;
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::And_rm16_imm16 => {
+                let y = instr.immediate16();
+                self.rm16_x(instr, |x86, x| x86.and16(x, y));
+            }
             iced_x86::Code::And_rm8_imm8 => {
                 let y = instr.immediate8();
                 self.rm8_x(instr, |x86, x| x86.and8(x, y));
@@ -760,6 +770,10 @@ impl<'a> X86<'a> {
             iced_x86::Code::Or_rm32_imm8 => {
                 let y = instr.immediate8to32() as u32;
                 self.rm32_x(instr, |x86, x| x86.or32(x, y));
+            }
+            iced_x86::Code::Or_rm16_imm16 => {
+                let y = instr.immediate16();
+                self.rm16_x(instr, |x86, x| x86.or16(x, y));
             }
             iced_x86::Code::Or_rm8_imm8 => {
                 let y = instr.immediate8();
