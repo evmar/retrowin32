@@ -16,3 +16,8 @@ console_log = "0.2.0"
 [dependencies.win32]
 path = "../win32"
 version = "0.1.0"
+
+# wasm-pack --profiling mode doesn't work without this
+# https://github.com/rustwasm/wasm-pack/issues/797
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['-O4', '-g']
