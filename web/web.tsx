@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Breakpoint, Breakpoints, BreakpointsComponent } from './break';
+import { Breakpoint, BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
@@ -109,7 +109,7 @@ class Window implements JsWindow {
 class VM implements JsHost {
   emu: wasm.Emulator = wasm.new_emulator(this);
   decoder = new TextDecoder();
-  breakpoints: Breakpoints = new Map<number, Breakpoint>();
+  breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Map<number, string>;
   exitCode: number | undefined = undefined;
@@ -136,42 +136,69 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // this.breakpoints.set(0x408d1e, { temporary: false });
+    this.addBreak({ addr: 0x408d1e });
+  }
+
+  addBreak(bp: Breakpoint) {
+    this.breakpoints.set(bp.addr, bp);
+    this.emu.breakpoint_add(bp.addr);
+  }
+
+  delBreak(addr: number) {
+    this.breakpoints.delete(addr);
+    this.emu.breakpoint_clear(addr);
+  }
+
+  toggleBreak(addr: number) {
+    const bp = this.breakpoints.get(addr)!;
+    bp.disabled = !bp.disabled;
+    if (bp.disabled) {
+      this.emu.breakpoint_clear(addr);
+    } else {
+      this.emu.breakpoint_add(addr);
+    }
+  }
+
+  /// Check if the current address is a break/exit point, returning true if so.
+  checkBreak(): boolean {
+    if (this.exitCode !== undefined) return true;
+    const ip = this.emu.eip;
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
+      if (bp.oneShot) {
+        this.delBreak(bp.addr);
+      } else {
+        this.page.setState({ selectedTab: 'breakpoints' });
+      }
+      return true;
+    }
+    return false;
   }
 
   step() {
     this.emu.step();
-    if (this.exitCode !== undefined) return false;
-    const bp = this.breakpoints.get(this.emu.eip);
-    if (bp && !bp.disabled) {
-      if (bp.temporary) {
-        this.breakpoints.delete(this.emu.eip);
-      } else {
-        this.page.setState({ selectedTab: 'breakpoints' });
-      }
-      return false;
-    }
-    return true;
+    return !this.checkBreak();
   }
 
   stepSize = 5000;
   stepRate = 0;
   stepMany(): boolean {
     const start = performance.now();
-    for (let i = 0; i < this.stepSize; i++) {
-      if (!this.step()) {
-        return false;
-      }
-    }
+    let steps = this.emu.step_many(this.stepSize);
     const end = performance.now();
     const delta = end - start;
 
-    if (delta < 10) {
-      this.stepSize *= 2;
-      console.log('adjusted step rate', this.stepSize);
+    if (steps !== 0) { // Hit breakpoint.
+      return !this.checkBreak();
+    } else {
+      steps = this.stepSize;
+      if (delta < 10) {
+        this.stepSize *= 2;
+        console.log('adjusted step rate', this.stepSize);
+      }
     }
 
-    const instrPerMs = this.stepSize / delta;
+    const instrPerMs = steps / delta;
     const alpha = 0.2;
     this.stepRate = alpha * (instrPerMs) + (alpha - 1) * this.stepRate;
 
@@ -338,7 +365,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   runTo(addr: number) {
-    this.props.vm.breakpoints.set(addr, { temporary: true });
+    this.props.vm.addBreak({ addr, oneShot: true });
     this.startStop(true);
   }
 
@@ -434,13 +461,12 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
               breakpoints: (
                 <BreakpointsComponent
-                  breakpoints={this.props.vm.breakpoints}
+                  breakpoints={Array.from(this.props.vm.breakpoints.values())}
                   highlight={this.props.vm.emu.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                   toggle={(addr) => {
-                    const bp = this.props.vm.breakpoints.get(addr)!;
-                    bp.disabled = !bp.disabled;
+                    this.props.vm.toggleBreak(addr);
                     this.forceUpdate();
                   }}
                 />

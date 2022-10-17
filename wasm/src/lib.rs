@@ -224,6 +224,22 @@ impl Emulator {
     pub fn step(&mut self) -> Result<(), String> {
         self.runner.step().map_err(|err| err.to_string())
     }
+    pub fn step_many(&mut self, count: usize) -> Result<usize, String> {
+        self.runner.step_many(count).map_err(|err| err.to_string())
+    }
+
+    pub fn breakpoint_add(&mut self, addr: u32) {
+        self.runner.breakpoints.push(addr);
+    }
+    pub fn breakpoint_clear(&mut self, addr: u32) {
+        let pos = self
+            .runner
+            .breakpoints
+            .iter()
+            .position(|&bp| bp == addr)
+            .unwrap();
+        self.runner.breakpoints.swap_remove(pos);
+    }
 
     pub fn mappings_json(&self) -> String {
         serde_json::to_string(&self.runner.x86.state.kernel32.mappings).unwrap_throw()

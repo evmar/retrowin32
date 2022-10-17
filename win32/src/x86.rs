@@ -4,7 +4,7 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::{host, memory::Memory, winapi, windows::load_exe};
+use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi, windows::load_exe};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -1065,19 +1065,35 @@ impl<'a> X86<'a> {
 pub struct Runner<'a> {
     pub x86: X86<'a>,
     pub instr_count: usize,
-    instr: iced_x86::Instruction,
+    code: Vec<u8>,
+    code_base: u32,
+    pub breakpoints: Vec<u32>,
 }
 impl<'a> Runner<'a> {
     pub fn new(host: &'a dyn host::Host) -> Self {
         Runner {
             x86: X86::new(host),
             instr_count: 0,
-            instr: iced_x86::Instruction::default(),
+            code: Vec::new(),
+            code_base: 0,
+            breakpoints: Vec::new(),
         }
     }
 
     pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
-        load_exe(&mut self.x86, buf)
+        let labels = load_exe(&mut self.x86, buf)?;
+        let mapping = self
+            .x86
+            .state
+            .kernel32
+            .mappings
+            .iter()
+            .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
+            .ok_or_else(|| anyhow::anyhow!("no code section"))?;
+        let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
+        section.clone_into(&mut self.code);
+        self.code_base = mapping.addr;
+        Ok(labels)
     }
 
     pub fn step(&mut self) -> anyhow::Result<()> {
@@ -1088,12 +1104,38 @@ impl<'a> Runner<'a> {
             ip as u64,
             iced_x86::DecoderOptions::NONE,
         );
-        decoder.decode_out(&mut self.instr);
-        let res = self.x86.run(&self.instr);
+        let instr = decoder.decode();
+        let res = self.x86.run(&instr);
         if res.is_err() {
             // On errors, back up one instruction so the debugger points at the failed instruction.
-            self.x86.regs.eip -= self.instr.len() as u32;
+            self.x86.regs.eip -= instr.len() as u32;
         }
         res
+    }
+
+    pub fn step_many(&mut self, count: usize) -> anyhow::Result<usize> {
+        let mut decoder = iced_x86::Decoder::new(32, &self.code, iced_x86::DecoderOptions::NONE);
+        let ip = self.x86.regs.eip;
+        decoder.set_ip(ip as u64);
+        decoder.set_position((ip - self.code_base) as usize)?;
+
+        let mut instr = iced_x86::Instruction::default();
+        let mut i = 0;
+        for _ in 0..count {
+            decoder.decode_out(&mut instr);
+            if let Err(res) = self.x86.run(&instr) {
+                // On errors, back up one instruction so the debugger points at the failed instruction.
+                self.x86.regs.eip -= instr.len() as u32;
+                return Err(res);
+            }
+            let ip = self.x86.regs.eip;
+            if self.breakpoints.iter().any(|&bp| bp == ip) {
+                return Ok(i);
+            }
+            decoder.set_ip(ip as u64);
+            decoder.set_position((ip - self.code_base) as usize)?;
+            i += 1;
+        }
+        Ok(0)
     }
 }
