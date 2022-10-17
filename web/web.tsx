@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Breakpoint } from './break';
+import { Breakpoint, Breakpoints, BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
@@ -109,7 +109,7 @@ class Window implements JsWindow {
 class VM implements JsHost {
   x86: wasm.X86 = wasm.new_x86(this);
   decoder = new TextDecoder();
-  breakpoints = new Map<number, Breakpoint>();
+  breakpoints: Breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Map<number, string>;
   exitCode: number | undefined = undefined;
@@ -136,8 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // Breakpoint on LoadBitmap.
-    // this.breakpoints.set(0x4010d5, { addr: 0x4010d5, temporary: true });
+    this.breakpoints.set(0x408d1e, { addr: 0x408d1e, temporary: true });
   }
 
   step() {
@@ -265,11 +264,11 @@ namespace Page {
     stdout: string;
     memBase: number;
     memHighlight?: number;
-    running: boolean;
+    running: number;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { stdout: '', memBase: 0x40_1000, running: false };
+  state: Page.State = { stdout: '', memBase: 0x40_1000, running: 0 };
 
   constructor(props: Page.Props) {
     super(props);
@@ -280,7 +279,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
     try {
       f();
     } finally {
-      this.setState({ running: false });
+      this.startStop(false);
     }
   }
 
@@ -288,32 +287,39 @@ class Page extends preact.Component<Page.Props, Page.State> {
     this.updateAfter(() => this.props.vm.step());
   }
 
-  startStop() {
-    if (this.state.running) {
-      this.setState({ running: false });
+  startStop(start: boolean) {
+    if (start === (this.state.running !== 0)) return;
+
+    if (start) {
+      const interval = setInterval(() => {
+        this.forceUpdate();
+      }, 500);
+      this.setState({ running: interval }, () => this.runFrame());
     } else {
-      this.setState({ running: true }, () => this.runFrame());
+      clearInterval(this.state.running);
+      this.setState({ running: 0 });
     }
   }
-  stepSize = 1000;
+
+  stepSize = 5000;
   runFrame() {
     if (!this.state.running) return;
     const start = performance.now();
     for (let i = 0; i < this.stepSize; i++) {
       if (!this.props.vm.step()) {
-        this.setState({ running: false });
+        this.startStop(false);
         return;
       }
     }
     const end = performance.now();
     // TODO: fps counter.
-    // console.log(`${this.stepSize} instructions in ${end-start}ms`);
+    // console.log(`${this.stepSize} instructions in ${end - start}ms`);
     requestAnimationFrame(() => this.runFrame());
   }
 
   runTo(addr: number) {
     this.props.vm.breakpoints.set(addr, { addr, temporary: true });
-    this.startStop();
+    this.startStop(true);
   }
 
   highlightMemory = (addr: number) => this.setState({ memHighlight: addr });
@@ -337,7 +343,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
         {windows}
         <div style={{ margin: '1ex', display: 'flex', alignItems: 'baseline' }}>
           <button
-            onClick={() => this.startStop()}
+            onClick={() => this.startStop(!this.state.running)}
           >
             {this.state.running ? 'stop' : 'run'}
           </button>
@@ -402,6 +408,14 @@ class Page extends preact.Component<Page.Props, Page.State> {
                     {this.props.vm.imports.map(imp => <div>{imp}</div>)}
                   </code>
                 </section>
+              ),
+
+              breakpoints: (
+                <BreakpointsComponent
+                  breakpoints={this.props.vm.breakpoints}
+                  highlightMemory={this.highlightMemory}
+                  showMemory={this.showMemory}
+                />
               ),
             }}
           />
