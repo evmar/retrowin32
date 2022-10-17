@@ -1062,12 +1062,22 @@ impl<'a> X86<'a> {
     }
 }
 
+/// Manages decoding and running instructions in an owned X86.
 pub struct Runner<'a> {
     pub x86: X86<'a>,
+    /// Total number of instructions executed.
     pub instr_count: usize,
+
+    /// Places to stop execution in a step_many() call.
+    /// We unconditionally stop on these; the web frontend manages things like
+    /// enabling/disabling breakpoints.
+    pub breakpoints: Vec<u32>,
+
+    /// Code section of executable we're decoding.
+    /// TODO: consider caching decoded instructions?
+    /// Costs 40 bytes per instruction though.
     code: Vec<u8>,
     code_base: u32,
-    pub breakpoints: Vec<u32>,
 }
 impl<'a> Runner<'a> {
     pub fn new(host: &'a dyn host::Host) -> Self {
@@ -1082,6 +1092,10 @@ impl<'a> Runner<'a> {
 
     pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
         let labels = load_exe(&mut self.x86, buf)?;
+
+        // Copy the 'code' section into this.code.
+        // This lets the decoder iterate over the code without worrying that the running
+        // code will modify it.
         let mapping = self
             .x86
             .state
@@ -1093,9 +1107,11 @@ impl<'a> Runner<'a> {
         let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
         section.clone_into(&mut self.code);
         self.code_base = mapping.addr;
+
         Ok(labels)
     }
 
+    // Single-step execution.
     pub fn step(&mut self) -> anyhow::Result<()> {
         let ip = self.x86.regs.eip;
         let mut decoder = iced_x86::Decoder::with_ip(
@@ -1113,14 +1129,14 @@ impl<'a> Runner<'a> {
         res
     }
 
-    pub fn step_many(&mut self, count: usize) -> anyhow::Result<usize> {
+    // Multi-step execution.  Returns true if we didn't hit a breakpoint.
+    pub fn step_many(&mut self, count: usize) -> anyhow::Result<bool> {
         let mut decoder = iced_x86::Decoder::new(32, &self.code, iced_x86::DecoderOptions::NONE);
         let ip = self.x86.regs.eip;
         decoder.set_ip(ip as u64);
         decoder.set_position((ip - self.code_base) as usize)?;
 
         let mut instr = iced_x86::Instruction::default();
-        let mut i = 0;
         for _ in 0..count {
             decoder.decode_out(&mut instr);
             if let Err(res) = self.x86.run(&instr) {
@@ -1130,12 +1146,11 @@ impl<'a> Runner<'a> {
             }
             let ip = self.x86.regs.eip;
             if self.breakpoints.iter().any(|&bp| bp == ip) {
-                return Ok(i);
+                return Ok(false);
             }
             decoder.set_ip(ip as u64);
             decoder.set_position((ip - self.code_base) as usize)?;
-            i += 1;
         }
-        Ok(0)
+        Ok(true)
     }
 }

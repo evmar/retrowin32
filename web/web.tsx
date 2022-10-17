@@ -136,7 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    this.addBreak({ addr: 0x408d1e });
+    // this.addBreak({ addr: 0x408d1e });
   }
 
   addBreak(bp: Breakpoint) {
@@ -180,27 +180,28 @@ class VM implements JsHost {
     return !this.checkBreak();
   }
 
+  /** Number of instructions to execute per stepMany, adjusted dynamically. */
   stepSize = 5000;
-  stepRate = 0;
+  /** Moving average of instructions executed per millisecond. */
+  instrPerMs = 0;
   stepMany(): boolean {
     const start = performance.now();
-    let steps = this.emu.step_many(this.stepSize);
+    const ranAll = this.emu.step_many(this.stepSize);
     const end = performance.now();
-    const delta = end - start;
 
-    if (steps !== 0) { // Hit breakpoint.
+    if (!ranAll) { // Hit breakpoint.
       return !this.checkBreak();
-    } else {
-      steps = this.stepSize;
-      if (delta < 10) {
-        this.stepSize *= 2;
-        console.log('adjusted step rate', this.stepSize);
-      }
     }
 
-    const instrPerMs = steps / delta;
-    const alpha = 0.2;
-    this.stepRate = alpha * (instrPerMs) + (alpha - 1) * this.stepRate;
+    const delta = end - start;
+    const instrPerMs = this.stepSize / delta;
+    const alpha = 0.5; // smoothing factor
+    this.instrPerMs = alpha * (instrPerMs) + (alpha - 1) * this.instrPerMs;
+
+    if (delta < 10) {
+      this.stepSize *= 2;
+      console.log('adjusted step rate', this.stepSize);
+    }
 
     return true;
   }
@@ -413,7 +414,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </button>
           &nbsp;
           <div>
-            {this.props.vm.emu.instr_count} instrs executed | {Math.floor(this.props.vm.stepRate)}/ms
+            {this.props.vm.emu.instr_count} instrs executed | {Math.floor(this.props.vm.instrPerMs)}/ms
           </div>
         </div>
         <div style={{ display: 'flex' }}>
