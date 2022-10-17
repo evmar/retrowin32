@@ -1,5 +1,4 @@
-use crate::x86;
-use crate::X86;
+use crate::x86::{self, X86};
 
 pub mod ddraw;
 pub mod gdi32;

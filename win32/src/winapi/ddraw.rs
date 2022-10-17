@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use crate::{
     host,
     memory::{Memory, Pod, DWORD},
-    winapi, X86,
+    winapi,
+    x86::X86,
 };
 
 use super::kernel32;

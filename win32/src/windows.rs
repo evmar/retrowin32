@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{pe, winapi, X86};
+use crate::{pe, winapi, x86::X86};
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;

@@ -2,31 +2,25 @@ extern crate win32;
 
 use std::io::Write;
 
-use win32::X86;
-
 use anyhow::bail;
 
-fn dump_asm(x86: &X86) {
-    let mut decoder = iced_x86::Decoder::with_ip(
-        32,
-        &x86.mem[x86.regs.eip as usize..],
-        x86.regs.eip as u64,
-        iced_x86::DecoderOptions::NONE,
-    );
+fn dump_asm(runner: &win32::Runner) {
+    let instrs = win32::disassemble(&runner.x86.mem, runner.x86.regs.eip);
 
-    for instruction in decoder.iter().take(10) {
-        print!("{:08X} ", instruction.ip());
-        let start_index = instruction.ip() as usize;
-        let instr_bytes = &x86.mem[start_index..start_index + instruction.len()];
-        for b in instr_bytes.iter() {
+    for instr in instrs {
+        print!("{:08X} ", instr.addr);
+        for b in instr.bytes.bytes() {
             print!("{:02x}", b);
         }
-        if instr_bytes.len() < 10 {
-            for _ in 0..10 - instr_bytes.len() {
+        if instr.bytes.len() < 10 {
+            for _ in 0..10 - instr.bytes.len() {
                 print!("  ");
             }
         }
-        println!(" {}", instruction);
+        for part in instr.code {
+            print!("{}", part.text);
+        }
+        println!();
     }
 }
 
@@ -66,12 +60,12 @@ fn run() -> anyhow::Result<()> {
     let host = Host {
         exit_code: std::cell::Cell::new(None),
     };
-    let mut x86 = X86::new(&host);
-    win32::load_exe(&mut x86, &buf)?;
+    let mut runner = win32::Runner::new(&host);
+    win32::load_exe(&mut runner.x86, &buf)?;
 
     while host.exit_code.get().is_none() {
-        if let Err(err) = x86.step() {
-            dump_asm(&x86);
+        if let Err(err) = runner.step() {
+            dump_asm(&runner);
             println!("err: {:?}", err);
             break;
         }
