@@ -164,7 +164,7 @@ class VM implements JsHost {
       }
     }
     const end = performance.now();
-    const delta = end-start;
+    const delta = end - start;
 
     if (delta < 10) {
       this.stepSize *= 2;
@@ -173,7 +173,7 @@ class VM implements JsHost {
 
     const instrPerMs = this.stepSize / delta;
     const alpha = 0.2;
-    this.stepRate = alpha*(instrPerMs) + (alpha-1)*this.stepRate;
+    this.stepRate = alpha * (instrPerMs) + (alpha - 1) * this.stepRate;
 
     return true;
   }
