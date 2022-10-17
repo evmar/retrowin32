@@ -17,14 +17,15 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         let src = sec.PointerToRawData as usize;
         let dst = (base + sec.VirtualAddress) as usize;
         let size = sec.SizeOfRawData as usize;
-        let characteristics = sec.characteristics()?;
-        if !characteristics.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA) {
+        let flags = sec.characteristics()?;
+        if !flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA) {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
         x86.state.kernel32.add_mapping(winapi::kernel32::Mapping {
             addr: dst as u32,
             size: size as u32,
-            desc: format!("{:?} ({:?})", sec.name(), characteristics),
+            desc: format!("{:?} ({:?})", sec.name(), flags),
+            flags,
         });
     }
 

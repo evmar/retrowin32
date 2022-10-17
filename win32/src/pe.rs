@@ -129,6 +129,7 @@ impl IMAGE_SECTION_HEADER {
 }
 
 bitflags! {
+    #[derive(serde::Serialize)]
     pub struct ImageSectionFlags: u32 {
         const CODE = 0x20;
         const INITIALIZED_DATA = 0x40;

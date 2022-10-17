@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use super::{x86, x86::X86};
 use crate::{
     memory::{Memory, Pod, DWORD},
+    pe::{self, ImageSectionFlags},
     winapi,
 };
 use std::io::Write;
@@ -20,6 +21,7 @@ pub struct Mapping {
     pub addr: u32,
     pub size: u32,
     pub desc: String,
+    pub flags: pe::ImageSectionFlags,
 }
 
 pub struct Heap {
@@ -70,6 +72,7 @@ impl State {
             addr: 0,
             size: x86::NULL_POINTER_REGION_SIZE,
             desc: "avoid null pointers".into(),
+            flags: ImageSectionFlags::empty(),
         }];
         State {
             image_base: 0,
@@ -125,6 +128,7 @@ impl State {
                 addr: end,
                 size,
                 desc,
+                flags: ImageSectionFlags::empty(),
             },
         );
         return &self.mappings[pos];
