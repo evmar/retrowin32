@@ -647,6 +647,10 @@ impl<'a> X86<'a> {
                 self.rm8_x(instr, |_x86, _x| y);
             }
 
+            iced_x86::Code::Movsx_r32_rm8 => {
+                let y = instr.immediate8() as i8 as u32;
+                self.rm32_x(instr, |_x86, _x| y);
+            }
             iced_x86::Code::Movzx_r32_rm8 => {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, _x| y);
