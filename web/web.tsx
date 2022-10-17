@@ -107,7 +107,7 @@ class Window implements JsWindow {
 }
 
 class VM implements JsHost {
-  x86: wasm.X86 = wasm.new_x86(this);
+  emu: wasm.Emulator = wasm.new_emulator(this);
   decoder = new TextDecoder();
   breakpoints: Breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
@@ -120,7 +120,7 @@ class VM implements JsHost {
     this.labels = labels;
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
-    const importsJSON = JSON.parse(this.x86.load_exe(new Uint8Array(exe)));
+    const importsJSON = JSON.parse(this.emu.load_exe(new Uint8Array(exe)));
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName as string;
@@ -140,12 +140,12 @@ class VM implements JsHost {
   }
 
   step() {
-    this.x86.step();
+    this.emu.step();
     if (this.exitCode !== undefined) return false;
-    const bp = this.breakpoints.get(this.x86.eip);
+    const bp = this.breakpoints.get(this.emu.eip);
     if (bp && !bp.disabled) {
       if (bp.temporary) {
-        this.breakpoints.delete(this.x86.eip);
+        this.breakpoints.delete(this.emu.eip);
       } else {
         this.page.setState({ selectedTab: 'breakpoints' });
       }
@@ -179,11 +179,11 @@ class VM implements JsHost {
   }
 
   mappings(): wasm.Mapping[] {
-    return JSON.parse(this.x86.mappings_json()) as wasm.Mapping[];
+    return JSON.parse(this.emu.mappings_json()) as wasm.Mapping[];
   }
   disassemble(addr: number): wasm.Instruction[] {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    return JSON.parse(this.x86.disassemble_json(addr)) as wasm.Instruction[];
+    return JSON.parse(this.emu.disassemble_json(addr)) as wasm.Instruction[];
   }
 
   exit(code: number) {
@@ -359,7 +359,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
       );
     });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const instrs = this.props.vm.disassemble(this.props.vm.x86.eip);
+    const instrs = this.props.vm.disassemble(this.props.vm.emu.eip);
     return (
       <>
         {windows}
@@ -386,7 +386,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </button>
           &nbsp;
           <div>
-            {this.props.vm.x86.instr_count} instrs executed | {Math.floor(this.props.vm.stepRate)}/ms
+            {this.props.vm.emu.instr_count} instrs executed | {Math.floor(this.props.vm.stepRate)}/ms
           </div>
         </div>
         <div style={{ display: 'flex' }}>
@@ -401,7 +401,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Registers
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            regs={this.props.vm.x86}
+            regs={this.props.vm.emu}
           />
         </div>
         <div style={{ display: 'flex' }}>
@@ -416,7 +416,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
               memory: (
                 <Memory
-                  mem={this.props.vm.x86.memory()}
+                  mem={this.props.vm.emu.memory()}
                   base={this.state.memBase}
                   highlight={this.state.memHighlight}
                   jumpTo={(addr) => this.setState({ memBase: addr })}
@@ -435,7 +435,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
               breakpoints: (
                 <BreakpointsComponent
                   breakpoints={this.props.vm.breakpoints}
-                  highlight={this.props.vm.x86.eip}
+                  highlight={this.props.vm.emu.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                   toggle={(addr) => {
@@ -453,7 +453,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
             labels={this.props.vm.labels}
-            x86={this.props.vm.x86}
+            emu={this.props.vm.emu}
           />
         </div>
       </>

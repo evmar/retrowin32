@@ -198,7 +198,6 @@ pub struct X86<'a> {
     pub regs: Registers,
     pub shims: Shims,
     pub state: winapi::State,
-    pub instr_count: usize,
 }
 impl<'a> X86<'a> {
     pub fn new(host: &'a dyn host::Host) -> Self {
@@ -215,7 +214,6 @@ impl<'a> X86<'a> {
             regs,
             shims: Shims::new(),
             state: winapi::State::new(),
-            instr_count: 0,
         }
     }
 
@@ -1058,22 +1056,36 @@ impl<'a> X86<'a> {
                 bail!("unhandled instruction {:?}", code);
             }
         }
-        self.instr_count += 1;
         Ok(())
     }
+}
 
+pub struct Runner<'a> {
+    pub x86: X86<'a>,
+    pub instr_count: usize,
+    instr: iced_x86::Instruction,
+}
+impl<'a> Runner<'a> {
+    pub fn new(host: &'a dyn host::Host) -> Self {
+        Runner {
+            x86: X86::new(host),
+            instr_count: 0,
+            instr: iced_x86::Instruction::default(),
+        }
+    }
     pub fn step(&mut self) -> anyhow::Result<()> {
+        let ip = self.x86.regs.eip;
         let mut decoder = iced_x86::Decoder::with_ip(
             32,
-            &self.mem[self.regs.eip as usize..],
-            self.regs.eip as u64,
+            &self.x86.mem[ip as usize..],
+            ip as u64,
             iced_x86::DecoderOptions::NONE,
         );
-        let instr = &decoder.decode();
-        let res = self.run(instr);
+        decoder.decode_out(&mut self.instr);
+        let res = self.x86.run(&self.instr);
         if res.is_err() {
             // On errors, back up one instruction so the debugger points at the failed instruction.
-            self.regs.eip -= instr.len() as u32;
+            self.x86.regs.eip -= self.instr.len() as u32;
         }
         res
     }
