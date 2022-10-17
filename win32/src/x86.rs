@@ -51,7 +51,9 @@ pub struct Registers {
 
     pub flags: Flags,
 
+    /// FPU registers.
     pub st: [f64; 8],
+    /// Top of FPU stack is at len-1.
     pub st_len: usize,
 }
 impl Registers {
@@ -169,6 +171,11 @@ impl Registers {
             _ => unreachable!("{reg:?}"),
         }
     }
+
+    /// Get st(0), the current top of the FPU stack.
+    fn st_top(&mut self) -> &mut f64 {
+        &mut self.st[self.st_len - 1]
+    }
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -263,6 +270,15 @@ impl<'a> X86<'a> {
             panic!("null pointer read at {addr:#x}");
         }
         self.mem[addr as usize]
+    }
+
+    pub fn read_f64(&self, addr: u32) -> f64 {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer read at {addr:#x}");
+        }
+        let addr = addr as usize;
+        let n = u64::from_le_bytes(self.mem[addr..addr + 8].try_into().unwrap());
+        f64::from_bits(n)
     }
 
     pub fn push(&mut self, value: u32) {
@@ -1046,17 +1062,46 @@ impl<'a> X86<'a> {
                 self.rm8_x(instr, |_x86, _x| value);
             }
 
-            iced_x86::Code::Fcos
-            | iced_x86::Code::Fadd_m32fp
-            | iced_x86::Code::Fild_m32int
-            | iced_x86::Code::Fld_m32fp
-            | iced_x86::Code::Fld1
-            | iced_x86::Code::Fmul_m32fp
-            | iced_x86::Code::Fmul_m64fp
-            | iced_x86::Code::Fmulp_sti_st0
-            | iced_x86::Code::Fistp_m32int
-            | iced_x86::Code::Fsin
-            | iced_x86::Code::Fstp_m32fp => {
+            iced_x86::Code::Fld_m32fp => {
+                self.regs.st_len += 1;
+                *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+            }
+            iced_x86::Code::Fild_m32int => {
+                self.regs.st_len += 1;
+                *self.regs.st_top() = self.read_u32(self.addr(instr)) as f64;
+            }
+            iced_x86::Code::Fstp_m32fp => {
+                let f = *self.regs.st_top();
+                self.write_u32(self.addr(instr), (f as f32).to_bits());
+                self.regs.st_len -= 1;
+            }
+
+            iced_x86::Code::Fcos => {
+                let reg = self.regs.st_top();
+                *reg = reg.cos();
+            }
+
+            iced_x86::Code::Fsin => {
+                let reg = self.regs.st_top();
+                *reg = reg.sin();
+            }
+
+            iced_x86::Code::Fadd_m32fp => {
+                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                *self.regs.st_top() += y;
+            }
+
+            iced_x86::Code::Fmul_m64fp => {
+                let y = self.read_f64(self.addr(instr));
+                *self.regs.st_top() *= y;
+            }
+            iced_x86::Code::Fmul_m32fp => {
+                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                *self.regs.st_top() *= y;
+            }
+
+            iced_x86::Code::Fld1 | iced_x86::Code::Fmulp_sti_st0 | iced_x86::Code::Fistp_m32int => {
+                log::info!("TODO {:?}", instr.code());
                 // TODO: floating point
             }
 

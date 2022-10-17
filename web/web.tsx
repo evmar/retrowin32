@@ -136,7 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // this.addBreak({ addr: 0x408d1e });
+    this.addBreak({ addr: 0x4089ee });
   }
 
   addBreak(bp: Breakpoint) {
@@ -358,7 +358,14 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
   runFrame() {
     if (!this.state.running) return;
-    if (!this.props.vm.stepMany()) {
+    let stop;
+    try {
+      stop = !this.props.vm.stepMany();
+    } catch (e) {
+      console.error(e);
+      stop = true;
+    }
+    if (stop) {
       this.startStop(false);
       return;
     }
