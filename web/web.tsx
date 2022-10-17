@@ -265,10 +265,11 @@ namespace Page {
     memBase: number;
     memHighlight?: number;
     running: number;
+    selectedTab: string;
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { stdout: '', memBase: 0x40_1000, running: 0 };
+  state: Page.State = { stdout: '', memBase: 0x40_1000, running: 0, selectedTab: 'output' };
 
   constructor(props: Page.Props) {
     super(props);
@@ -323,7 +324,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   highlightMemory = (addr: number) => this.setState({ memHighlight: addr });
-  showMemory = (memBase: number) => this.setState({ memBase });
+  showMemory = (memBase: number) => {
+    this.setState({ selectedTab: 'memory', memBase });
+  };
 
   render() {
     let windows = this.props.vm.windows.map((window) => {
@@ -418,6 +421,8 @@ class Page extends preact.Component<Page.Props, Page.State> {
                 />
               ),
             }}
+            selected={this.state.selectedTab}
+            switchTab={(selectedTab) => this.setState({ selectedTab })}
           />
           <Stack
             highlightMemory={this.highlightMemory}

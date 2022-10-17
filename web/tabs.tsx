@@ -5,14 +5,11 @@ namespace Tabs {
   export interface Props {
     style: preact.JSX.CSSProperties;
     tabs: { [name: string]: preact.ComponentChild };
-  }
-  export interface State {
-    cur: string;
+    selected: string;
+    switchTab: (name: string) => void;
   }
 }
-export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
-  state: Tabs.State = { cur: '' };
-
+export class Tabs extends preact.Component<Tabs.Props> {
   constructor(props: Tabs.Props) {
     super(props);
     this.state = { cur: Object.keys(props.tabs)[0] };
@@ -24,14 +21,14 @@ export class Tabs extends preact.Component<Tabs.Props, Tabs.State> {
       <div style={this.props.style}>
         <div class='tabs-strip'>
           {Object.keys(tabs).map((name) => {
-            let button = <span class='clicky' onClick={() => this.setState({ cur: name })}>{name}</span>;
-            if (name === this.state.cur) {
+            let button = <span class='clicky' onClick={() => this.props.switchTab(name)}>{name}</span>;
+            if (name === this.props.selected) {
               button = <b>{button}</b>;
             }
             return <>&nbsp;|&nbsp;{button}</>;
           })}
         </div>
-        {tabs[this.state.cur]}
+        {tabs[this.props.selected]}
       </div>
     );
   }
