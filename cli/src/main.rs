@@ -61,7 +61,7 @@ fn run() -> anyhow::Result<()> {
         exit_code: std::cell::Cell::new(None),
     };
     let mut runner = win32::Runner::new(&host);
-    win32::load_exe(&mut runner.x86, &buf)?;
+    runner.load_exe(&buf)?;
 
     while host.exit_code.get().is_none() {
         if let Err(err) = runner.step() {

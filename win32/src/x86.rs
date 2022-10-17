@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::{host, memory::Memory, winapi};
+use crate::{host, memory::Memory, winapi, windows::load_exe};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -1073,6 +1075,11 @@ impl<'a> Runner<'a> {
             instr: iced_x86::Instruction::default(),
         }
     }
+
+    pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
+        load_exe(&mut self.x86, buf)
+    }
+
     pub fn step(&mut self) -> anyhow::Result<()> {
         let ip = self.x86.regs.eip;
         let mut decoder = iced_x86::Decoder::with_ip(
