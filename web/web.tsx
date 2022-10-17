@@ -136,16 +136,16 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    this.breakpoints.set(0x408d1e, { addr: 0x408d1e, temporary: false });
+    this.breakpoints.set(0x408d1e, { temporary: false });
   }
 
   step() {
     this.x86.step();
     if (this.exitCode !== undefined) return false;
     const bp = this.breakpoints.get(this.x86.eip);
-    if (bp) {
+    if (bp && !bp.disabled) {
       if (bp.temporary) {
-        this.breakpoints.delete(bp.addr);
+        this.breakpoints.delete(this.x86.eip);
       } else {
         this.page.setState({ selectedTab: 'breakpoints' });
       }
@@ -321,7 +321,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   runTo(addr: number) {
-    this.props.vm.breakpoints.set(addr, { addr, temporary: true });
+    this.props.vm.breakpoints.set(addr, { temporary: true });
     this.startStop(true);
   }
 
@@ -421,6 +421,11 @@ class Page extends preact.Component<Page.Props, Page.State> {
                   highlight={this.props.vm.x86.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
+                  toggle={(addr) => {
+                    const bp = this.props.vm.breakpoints.get(addr)!;
+                    bp.disabled = !bp.disabled;
+                    this.forceUpdate();
+                  }}
                 />
               ),
             }}
