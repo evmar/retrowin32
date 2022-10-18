@@ -176,6 +176,14 @@ impl Registers {
     fn st_top(&mut self) -> &mut f64 {
         &mut self.st[self.st_len - 1]
     }
+    fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
+        let ofs = match reg {
+            iced_x86::Register::ST0 => 0,
+            iced_x86::Register::ST1 => 1,
+            _ => unreachable!("{reg:?}"),
+        };
+        &mut self.st[self.st_len - ofs - 1]
+    }
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -1062,6 +1070,10 @@ impl<'a> X86<'a> {
                 self.rm8_x(instr, |_x86, _x| value);
             }
 
+            iced_x86::Code::Fld1 => {
+                self.regs.st_len += 1;
+                *self.regs.st_top() = 1.0;
+            }
             iced_x86::Code::Fld_m32fp => {
                 self.regs.st_len += 1;
                 *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
@@ -1073,6 +1085,11 @@ impl<'a> X86<'a> {
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
+                self.regs.st_len -= 1;
+            }
+            iced_x86::Code::Fistp_m32int => {
+                let f = *self.regs.st_top();
+                self.write_u32(self.addr(instr), f as u32);
                 self.regs.st_len -= 1;
             }
 
@@ -1099,10 +1116,11 @@ impl<'a> X86<'a> {
                 let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
                 *self.regs.st_top() *= y;
             }
-
-            iced_x86::Code::Fld1 | iced_x86::Code::Fmulp_sti_st0 | iced_x86::Code::Fistp_m32int => {
-                log::info!("TODO {:?}", instr.code());
-                // TODO: floating point
+            iced_x86::Code::Fmulp_sti_st0 => {
+                let y = *self.regs.st_top();
+                let x = self.regs.getst(instr.op0_register());
+                *x *= y;
+                self.regs.st_len -= 1;
             }
 
             code => {
