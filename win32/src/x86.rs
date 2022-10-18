@@ -1177,6 +1177,7 @@ impl<'a> Runner<'a> {
             // On errors, back up one instruction so the debugger points at the failed instruction.
             self.x86.regs.eip -= instr.len() as u32;
         }
+        self.instr_count += 1;
         res
     }
 
@@ -1195,6 +1196,8 @@ impl<'a> Runner<'a> {
                 self.x86.regs.eip -= instr.len() as u32;
                 return Err(res);
             }
+            self.instr_count += 1;
+
             let ip = self.x86.regs.eip;
             if self.breakpoints.iter().any(|&bp| bp == ip) {
                 return Ok(false);
