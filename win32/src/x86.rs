@@ -448,13 +448,13 @@ impl<'a> X86<'a> {
     fn shl32(&mut self, x: u32, y: u8) -> u32 {
         // Note: overflowing_shl is not what we want.
         let val = (x as u64).wrapping_shl(y as u32);
-        self.regs.flags.set(Flags::CF, val > 0xFFFF_FFFF);
+        self.regs.flags.set(Flags::CF, val & (1 << 32) != 0);
         val as u32
     }
     fn shl8(&mut self, x: u8, y: u8) -> u8 {
         // Note: overflowing_shl is not what we want.
         let val = (x as u16).wrapping_shl(y as u32);
-        self.regs.flags.set(Flags::CF, val > 0xFF);
+        self.regs.flags.set(Flags::CF, val & (1 << 8) != 0);
         val as u8
     }
 
@@ -1080,7 +1080,7 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Fild_m32int => {
                 self.regs.st_len += 1;
-                *self.regs.st_top() = self.read_u32(self.addr(instr)) as f64;
+                *self.regs.st_top() = self.read_u32(self.addr(instr)) as i32 as f64;
             }
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
@@ -1089,7 +1089,7 @@ impl<'a> X86<'a> {
             }
             iced_x86::Code::Fistp_m32int => {
                 let f = *self.regs.st_top();
-                self.write_u32(self.addr(instr), f as u32);
+                self.write_u32(self.addr(instr), f as i32 as u32);
                 self.regs.st_len -= 1;
             }
 
