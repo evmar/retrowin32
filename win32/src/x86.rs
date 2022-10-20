@@ -1123,6 +1123,19 @@ impl<'a> X86<'a> {
                 self.regs.st_len -= 1;
             }
 
+            iced_x86::Code::Pushad => {
+                let esp = self.regs.esp;
+                self.push(self.regs.eax);
+                self.push(self.regs.ecx);
+                self.push(self.regs.edx);
+                self.push(self.regs.ebx);
+                self.push(self.regs.ebp);
+                self.push(esp);
+                self.push(self.regs.ebp);
+                self.push(self.regs.esi);
+                self.push(self.regs.edi);
+            }
+
             code => {
                 bail!("unhandled instruction {:?}", code);
             }
