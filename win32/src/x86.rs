@@ -635,6 +635,11 @@ impl<'a> X86<'a> {
                     self.jmp(instr.near_branch32())?;
                 }
             }
+            iced_x86::Code::Jl_rel32_32 => {
+                if self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF) {
+                    self.jmp(instr.near_branch32())?;
+                }
+            }
             iced_x86::Code::Jle_rel32_32 | iced_x86::Code::Jle_rel8_32 => {
                 if self.regs.flags.contains(Flags::ZF)
                     || (self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF))
