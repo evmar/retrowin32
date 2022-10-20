@@ -31,6 +31,7 @@ pub struct Surface {
 
 pub struct State {
     hheap: u32,
+    vtable_IDirectDraw: u32,
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
 
@@ -44,6 +45,7 @@ impl State {
     pub fn new_empty() -> Self {
         State {
             hheap: 0,
+            vtable_IDirectDraw: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
             hwnd: 0,
@@ -868,6 +870,10 @@ mod IDirectDrawSurface7 {
     );
 }
 
+fn DirectDrawCreate(x86: &mut X86, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
+    DirectDrawCreateEx(x86, lpGuid, lplpDD, 0, pUnkOuter)
+}
+
 fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOuter: u32) -> u32 {
     assert!(lpGuid == 0);
     assert!(pUnkOuter == 0);
@@ -877,13 +883,22 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
     }
     let ddraw = &mut x86.state.ddraw;
 
+    if iid == 0 {
+        // DirectDrawCreate
+        let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let vtable = ddraw.vtable_IDirectDraw;
+        x86.write_u32(lpDirectDraw, vtable);
+        x86.write_u32(lplpDD, lpDirectDraw);
+        return DD_OK;
+    }
+
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
     if iid_slice == IID_IDirectDraw7 {
         // Caller gives us:
         //   pointer (lplpDD) that they want us to fill in to point to ->
         //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
         //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-        let lpDirectDraw7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 8);
+        let lpDirectDraw7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
         let vtable = ddraw.vtable_IDirectDraw7;
         x86.write_u32(lpDirectDraw7, vtable);
         x86.write_u32(lplpDD, lpDirectDraw7);
@@ -895,5 +910,6 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
 }
 
 winapi!(
+    fn DirectDrawCreate(lpGuid: u32, lplpDD: u32, pUnkOuter: u32);
     fn DirectDrawCreateEx(lpGuid: u32, lplpDD: u32, iid: u32, pUnkOuter: u32);
 );
