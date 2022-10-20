@@ -540,8 +540,13 @@ impl<'a> X86<'a> {
             }
 
             iced_x86::Code::Call_rel32_32 => {
-                self.push(self.regs.eip);
-                self.jmp(instr.near_branch32())?;
+                let target = instr.near_branch32();
+                if target == 0x00408d65 || target == 0x0040a281 {
+                    log::warn!("HACK: manually nop'd call at {target:x}");
+                } else {
+                    self.push(self.regs.eip);
+                    self.jmp(instr.near_branch32())?;
+                }
             }
             iced_x86::Code::Call_rm32 => {
                 // call dword ptr [addr]
