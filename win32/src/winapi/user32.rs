@@ -95,6 +95,18 @@ fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u
     1 // IDOK
 }
 
+fn DialogBoxParamA(
+    _x86: &mut X86,
+    hInstance: u32,
+    lpTemplateName: u32,
+    hWndParent: u32,
+    lpDialogFunc: u32,
+    dwInitParam: u32,
+) -> u32 {
+    log::warn!("TODO: DialogBoxParamA({hInstance:x}, {lpTemplateName:x}, {hWndParent:x}, {lpDialogFunc:x}, {dwInitParam:x})");
+    1 // success
+}
+
 fn PeekMessageA(
     _x86: &mut X86,
     _lpMsg: u32,
@@ -295,6 +307,14 @@ winapi!(
     fn SetFocus(hWnd: u32);
 
     fn MessageBoxA(hWnd: u32, lpText: u32, lpCaption: u32, uType: u32);
+
+    fn DialogBoxParamA(
+        hInstance: u32,
+        lpTemplateName: u32,
+        hWndParent: u32,
+        lpDialogFunc: u32,
+        dwInitParam: u32,
+    );
 
     fn PeekMessageA(lpMsg: u32, hWnd: u32, wMsgFilterMin: u32, wMsgFilterMax: u32, wRemoveMs: u32);
 
