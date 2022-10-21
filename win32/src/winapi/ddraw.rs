@@ -885,11 +885,11 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
 
     if iid == 0 {
         // DirectDrawCreate
-        let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
-        let vtable = ddraw.vtable_IDirectDraw;
-        x86.write_u32(lpDirectDraw, vtable);
-        x86.write_u32(lplpDD, lpDirectDraw);
-        return DD_OK;
+        // let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        // let vtable = ddraw.vtable_IDirectDraw;
+        // x86.write_u32(lpDirectDraw, vtable);
+        // x86.write_u32(lplpDD, lpDirectDraw);
+        return DDERR_GENERIC;
     }
 
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
