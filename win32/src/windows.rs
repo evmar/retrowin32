@@ -29,7 +29,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         });
     }
 
-    winapi::kernel32::init_teb_peb(x86);
+    x86.state.kernel32.init(&mut x86.mem);
 
     let mut stack_size = file.opt_header.SizeOfStackReserve.get();
     // Zig reserves 16mb stacks, just truncate for now.
@@ -43,7 +43,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     let stack = x86
         .state
         .kernel32
-        .alloc(stack_size, "stack".into(), &mut x86.mem);
+        .new_mapping(stack_size, "stack".into(), &mut x86.mem);
     let stack_end = stack.addr + stack.size - 4;
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;

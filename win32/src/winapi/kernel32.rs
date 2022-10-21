@@ -57,11 +57,14 @@ impl Heap {
 }
 
 pub struct State {
-    // Address image was loaded at.
+    /// Memory for kernel32 data structures.
+    heap: Heap,
+    /// Address image was loaded at.
     pub image_base: u32,
-    // Address of TEB (FS register).
+    /// Address of TEB (FS register).
     pub teb: u32,
     pub mappings: Vec<Mapping>,
+    /// Heaps created by HeapAlloc().
     pub heaps: HashMap<u32, Heap>,
     cmdline: u32,
     env: u32,
@@ -75,6 +78,7 @@ impl State {
             flags: ImageSectionFlags::empty(),
         }];
         State {
+            heap: Heap::new(0, 0),
             image_base: 0,
             teb: 0,
             mappings,
@@ -82,6 +86,47 @@ impl State {
             cmdline: 0,
             env: 0,
         }
+    }
+
+    pub fn init(&mut self, mem: &mut Vec<u8>) {
+        self.heap = self.new_private_heap(mem, 0x1000, "kernel32 data".into());
+        // Fill region with garbage so it's clearer when we access something we don't intend to.
+        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0xde);
+
+        self.init_teb_peb(mem);
+
+        let cmdline = "retrowin32.exe\0".as_bytes();
+        let cmdline_addr = self.heap.alloc(mem, cmdline.len() as u32);
+        mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
+        self.cmdline = cmdline_addr;
+
+        let env = "\0\0".as_bytes();
+        let env_addr = self.heap.alloc(mem, env.len() as u32);
+        mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
+        self.env = env_addr;
+    }
+
+    /// Set up TEB, PEB, and other process info.
+    /// The FS register points at the TEB (thread info), which points at the PEB (process info).
+    fn init_teb_peb(&mut self, mem: &mut [u8]) {
+        let params_addr = self.heap.alloc(mem, 0x100);
+        let peb_addr = self.heap.alloc(mem, 0x100);
+        let teb_addr = self.heap.alloc(mem, 0x100);
+
+        // PEB
+        mem.write_u32(peb_addr + 0x10, params_addr);
+
+        // RTL_USER_PROCESS_PARAMETERS
+        // x86.write_u32(params_addr + 0x10, console_handle);
+        // x86.write_u32(params_addr + 0x14, console_flags);
+        // x86.write_u32(params_addr + 0x18, stdin);
+        mem.write_u32(params_addr + 0x1c, STDOUT_HFILE);
+
+        // TEB
+        mem.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
+        mem.write_u32(teb_addr + 0x30, peb_addr);
+
+        self.teb = teb_addr;
     }
 
     pub fn add_mapping(&mut self, mapping: Mapping) {
@@ -101,7 +146,7 @@ impl State {
         self.mappings.insert(pos, mapping);
     }
 
-    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
+    pub fn new_mapping(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
         let mut end = 0;
         let pos = self
             .mappings
@@ -134,54 +179,17 @@ impl State {
         return &self.mappings[pos];
     }
 
+    pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> Heap {
+        let mapping = self.new_mapping(size as u32, desc, mem);
+        Heap::new(mapping.addr, mapping.size)
+    }
+
     pub fn new_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> u32 {
-        let mapping = self.alloc(size as u32, desc, mem);
-        let addr = mapping.addr;
-        let size = mapping.size;
-        self.heaps.insert(addr, Heap::new(addr, size));
+        let heap = self.new_private_heap(mem, size, desc);
+        let addr = heap.addr;
+        self.heaps.insert(addr, heap);
         addr
     }
-}
-
-/// Set up TEB, PEB, and other process info.
-/// The FS register points at the TEB (thread info), which points at the PEB (process info).
-pub fn init_teb_peb(x86: &mut X86) {
-    let mapping = x86
-        .state
-        .kernel32
-        .alloc(0x1000, "PEB/TEB".into(), &mut x86.mem);
-    // Fill region with garbage so it's clearer when we access something we don't intend to.
-    x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize].fill(0xde);
-
-    let peb_addr = mapping.addr;
-    let params_addr = mapping.addr + 0x100;
-    let teb_addr = params_addr + 0x100;
-
-    // XXX need a better place for this.
-    let cmdline_addr = teb_addr + 0x100;
-    let cmdline = "retrowin32.exe\0".as_bytes();
-    x86.mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
-    x86.state.kernel32.cmdline = cmdline_addr;
-
-    let env_addr = cmdline_addr + 0x20;
-    let env = "\0\0".as_bytes();
-    x86.mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
-    x86.state.kernel32.env = env_addr;
-
-    // PEB
-    x86.write_u32(peb_addr + 0x10, params_addr);
-
-    // RTL_USER_PROCESS_PARAMETERS
-    // x86.write_u32(params_addr + 0x10, console_handle);
-    // x86.write_u32(params_addr + 0x14, console_flags);
-    // x86.write_u32(params_addr + 0x18, stdin);
-    x86.write_u32(params_addr + 0x1c, STDOUT_HFILE);
-
-    // TEB
-    x86.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
-    x86.write_u32(teb_addr + 0x30, peb_addr);
-
-    x86.state.kernel32.teb = teb_addr;
 }
 
 fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
@@ -465,7 +473,7 @@ fn VirtualAlloc(
     let mapping = x86
         .state
         .kernel32
-        .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
+        .new_mapping(dwSize, "VirtualAlloc".into(), &mut x86.mem);
     mapping.addr
 }
 
