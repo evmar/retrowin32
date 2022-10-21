@@ -192,8 +192,14 @@ impl State {
     }
 }
 
+/// A magic address that we jump to to end the process.
+// TODO: this is pretty unsatisfying, we register this as a break point?
+// Maybe better is to generate a hlt instruction somewhere and jump to it?
+pub const MAGIC_EXIT_ADDRESS: u32 = 0xFFFF_FFFF;
+
 fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
     x86.host.exit(uExitCode);
+    x86.regs.eip = MAGIC_EXIT_ADDRESS;
     0
 }
 
