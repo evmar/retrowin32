@@ -701,7 +701,7 @@ impl<'a> X86<'a> {
                 let y = self.regs.get8(instr.op1_register());
                 self.rm8_x(instr, |_x86, _x| y);
             }
-            iced_x86::Code::Mov_rm8_imm8 => {
+            iced_x86::Code::Mov_r8_imm8 | iced_x86::Code::Mov_rm8_imm8 => {
                 let y = instr.immediate8();
                 self.rm8_x(instr, |_x86, _x| y);
             }
@@ -713,6 +713,15 @@ impl<'a> X86<'a> {
             iced_x86::Code::Movzx_r32_rm8 => {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, _x| y);
+            }
+
+            iced_x86::Code::Xchg_rm32_r32 => {
+                let r1 = instr.op1_register();
+                self.rm32_x(instr, |x86, x| {
+                    let tmp = x86.regs.get32(r1);
+                    x86.regs.set32(r1, x);
+                    tmp
+                });
             }
 
             iced_x86::Code::Cmpsb_m8_m8 => {
@@ -779,7 +788,7 @@ impl<'a> X86<'a> {
                     bail!("unimpl");
                 } else {
                     self.mem[dst..dst + 4].fill(0);
-                    self.regs.edi += 1;
+                    self.regs.edi += 4;
                 }
             }
             iced_x86::Code::Stosb_m8_AL => {
@@ -796,6 +805,16 @@ impl<'a> X86<'a> {
                     self.mem[dst] = value;
                     self.regs.edi += 1;
                 }
+            }
+
+            iced_x86::Code::Lodsd_EAX_m32 => {
+                assert!(
+                    !instr.has_rep_prefix()
+                        && !instr.has_repe_prefix()
+                        && !instr.has_repne_prefix()
+                );
+                self.regs.eax = self.read_u32(self.regs.esi);
+                self.regs.esi += 4;
             }
 
             iced_x86::Code::And_rm32_imm32 | iced_x86::Code::And_EAX_imm32 => {
@@ -819,6 +838,10 @@ impl<'a> X86<'a> {
             iced_x86::Code::And_rm8_imm8 => {
                 let y = instr.immediate8();
                 self.rm8_x(instr, |x86, x| x86.and8(x, y));
+            }
+            iced_x86::Code::Or_rm32_r32 => {
+                let y = self.op1_rm32(instr);
+                self.rm32_x(instr, |x86, x| x86.or32(x, y));
             }
             iced_x86::Code::Or_rm32_imm8 => {
                 let y = instr.immediate8to32() as u32;
@@ -1139,11 +1162,20 @@ impl<'a> X86<'a> {
                 self.push(self.regs.ecx);
                 self.push(self.regs.edx);
                 self.push(self.regs.ebx);
-                self.push(self.regs.ebp);
                 self.push(esp);
                 self.push(self.regs.ebp);
                 self.push(self.regs.esi);
                 self.push(self.regs.edi);
+            }
+            iced_x86::Code::Popad => {
+                self.regs.edi = self.pop();
+                self.regs.esi = self.pop();
+                self.regs.ebp = self.pop();
+                self.pop(); // ignore esp
+                self.regs.ebx = self.pop();
+                self.regs.edx = self.pop();
+                self.regs.ecx = self.pop();
+                self.regs.eax = self.pop();
             }
 
             code => {
