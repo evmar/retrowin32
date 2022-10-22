@@ -1,4 +1,4 @@
-use crate::x86::{self, X86};
+use crate::x86::X86;
 
 pub mod ddraw;
 pub mod gdi32;
@@ -15,7 +15,7 @@ pub mod user32;
 macro_rules! winapi_shims {
     ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
         pub mod shims {
-            use super::X86;
+            use crate::x86::X86;
 
             $(#[allow(non_snake_case)]
             pub fn $name(x86: &mut X86) {

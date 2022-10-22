@@ -2,11 +2,11 @@
 
 use std::collections::HashMap;
 
-use super::{x86, x86::X86};
 use crate::{
     memory::{Memory, Pod, DWORD},
     pe::{self, ImageSectionFlags},
     winapi,
+    x86::{self, X86},
 };
 use std::io::Write;
 use tsify::Tsify;
