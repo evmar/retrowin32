@@ -889,6 +889,7 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
         // let vtable = ddraw.vtable_IDirectDraw;
         // x86.write_u32(lpDirectDraw, vtable);
         // x86.write_u32(lplpDD, lpDirectDraw);
+        log::error!("TODO: IDirectDraw interface");
         return DDERR_GENERIC;
     }
 
