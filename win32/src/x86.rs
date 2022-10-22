@@ -4,7 +4,13 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi::{self, kernel32}, windows::load_exe};
+use crate::{
+    host,
+    memory::Memory,
+    pe::ImageSectionFlags,
+    winapi::{self, kernel32},
+    windows::load_exe,
+};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -521,7 +527,7 @@ impl<'a> X86<'a> {
             let handler = self.shims.get(addr).unwrap();
             handler(self);
             if self.regs.eip != eip {
-                return Ok(());  // handler set eip.
+                return Ok(()); // handler set eip.
             }
             return self.jmp(ret);
         }
