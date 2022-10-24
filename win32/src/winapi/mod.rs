@@ -1,6 +1,7 @@
 use crate::x86::X86;
 
 pub mod ddraw;
+mod dll;
 pub mod gdi32;
 pub mod kernel32;
 pub mod user32;
@@ -47,7 +48,7 @@ pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
     match dll {
         "ddraw.dll" => ddraw::resolve(sym),
         "gdi32.dll" => gdi32::resolve(sym),
-        "kernel32.dll" => kernel32::resolve(sym),
+        "kernel32.dll" => dll::kernel32::resolve(sym),
         "user32.dll" => user32::resolve(sym),
         _ => None,
     }

@@ -5,7 +5,6 @@ use std::collections::HashMap;
 use crate::{
     memory::{Memory, Pod, DWORD},
     pe::{self, ImageSectionFlags},
-    winapi,
     x86::{self, X86},
 };
 use std::io::Write;
@@ -197,44 +196,44 @@ impl State {
 // Maybe better is to generate a hlt instruction somewhere and jump to it?
 pub const MAGIC_EXIT_ADDRESS: u32 = 0xFFFF_FFFF;
 
-fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
+pub fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
     x86.host.exit(uExitCode);
     x86.regs.eip = MAGIC_EXIT_ADDRESS;
     0
 }
 
-fn GetACP(_x86: &mut X86) -> u32 {
+pub fn GetACP(_x86: &mut X86) -> u32 {
     1252 // windows-1252
 }
 
-fn GetCommandLineA(x86: &mut X86) -> u32 {
+pub fn GetCommandLineA(x86: &mut X86) -> u32 {
     // TODO: possibly this should come from PEB->ProcessParameters->CommandLine.
     x86.state.kernel32.cmdline
 }
 
-fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
+pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
     0 // fail
 }
 
-fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
+pub fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
     x86.state.kernel32.env
 }
 
-fn FreeEnvironmentStringsA(_x86: &mut X86, _penv: u32) -> u32 {
+pub fn FreeEnvironmentStringsA(_x86: &mut X86, _penv: u32) -> u32 {
     1 // success
 }
 
-fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
+pub fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
     0
 }
 
-fn GetEnvironmentVariableA(_x86: &mut X86, _lpName: u32, _lpBuffer: u32, _nSize: u32) -> u32 {
-    // Fail for now.
+pub fn GetEnvironmentVariableA(_x86: &mut X86, name: &str, buf: &mut [u8]) -> usize {
+    println!("name {:?} buf {:?}", name, buf);
     0
 }
 
-fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
+pub fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
     let FILE_TYPE_CHAR = 0x2;
     let FILE_TYPE_UNKNOWN = 0x8;
     match hFile {
@@ -246,15 +245,14 @@ fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
     }
 }
 
-fn GetModuleFileNameA(x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) -> u32 {
-    if hModule != 0 {
-        log::warn!("GetModuleFileNameA({hModule:x})");
-        return 0;
-    }
-    match (x86.mem[lpFilename as usize..(lpFilename + nSize) as usize].as_mut())
-        .write(b"TODO.exe\0")
-    {
-        Ok(n) => n as u32,
+pub fn GetModuleFileNameA(
+    _x86: &mut X86,
+    hModule: Option<HMODULE>,
+    mut filename: &mut [u8],
+) -> usize {
+    assert!(hModule.is_none());
+    match filename.write(b"TODO.exe\0") {
+        Ok(n) => n,
         Err(err) => {
             log::warn!("GetModuleFileNameA(): {}", err);
             0
@@ -262,7 +260,7 @@ fn GetModuleFileNameA(x86: &mut X86, hModule: u32, lpFilename: u32, nSize: u32) 
     }
 }
 
-fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
+pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
     if lpModuleName != 0 {
         log::error!("unimplemented: GetModuleHandle(non-null)")
     }
@@ -293,7 +291,7 @@ struct STARTUPINFOA {
 }
 unsafe impl Pod for STARTUPINFOA {}
 
-fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
+pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     let size = std::mem::size_of::<STARTUPINFOA>();
     x86.mem[ofs..ofs + size].fill(0);
@@ -303,7 +301,7 @@ fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     0
 }
 
-fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
+pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     match nStdHandle as i32 {
         -10 => STDIN_HFILE,
         -11 => STDOUT_HFILE,
@@ -312,11 +310,11 @@ fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     }
 }
 
-fn GetTickCount(x86: &mut X86) -> u32 {
+pub fn GetTickCount(x86: &mut X86) -> u32 {
     x86.host.time()
 }
 
-fn GetVersion(_x86: &mut X86) -> u32 {
+pub fn GetVersion(_x86: &mut X86) -> u32 {
     // Win95, version 4.0.
     (1 << 31) | 0x4
 }
@@ -331,7 +329,7 @@ struct OSVERSIONINFO {
     //szCSDVersion: [u8; 128],
 }
 
-fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
+pub fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
     let ofs = lpVersionInformation as usize;
     let size = x86.read_u32(lpVersionInformation) as usize;
     if size < std::mem::size_of::<OSVERSIONINFO>() {
@@ -351,7 +349,7 @@ fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
     1
 }
 
-fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
+pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapAlloc flags {dwFlags:x}");
     }
@@ -365,14 +363,14 @@ fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     heap.alloc(&mut x86.mem, dwBytes)
 }
 
-fn HeapFree(_x86: &mut X86, _hHeap: u32, dwFlags: u32, _lpMem: u32) -> u32 {
+pub fn HeapFree(_x86: &mut X86, _hHeap: u32, dwFlags: u32, _lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
     1 // success
 }
 
-fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+pub fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
@@ -386,7 +384,7 @@ fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     heap.size(&x86.mem, lpMem)
 }
 
-fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
+pub fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
@@ -407,30 +405,30 @@ fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32
     new_addr
 }
 
-fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
+pub fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
     log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
     x86.state
         .kernel32
         .new_heap(&mut x86.mem, dwInitialSize as usize, "HeapCreate".into())
 }
 
-fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
+pub fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
     log::warn!("HeapDestroy({hHeap:x})");
     1 // success
 }
 
-fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
+pub fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
     let filename = &x86.mem[lpLibFileName as usize..].read_strz();
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
 
-fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
+pub fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
 }
 
-fn WriteFile(
+pub fn WriteFile(
     x86: &mut X86,
     hFile: u32,
     lpBuffer: u32,
@@ -448,7 +446,7 @@ fn WriteFile(
     1
 }
 
-fn VirtualAlloc(
+pub fn VirtualAlloc(
     x86: &mut X86,
     lpAddress: u32,
     dwSize: u32,
@@ -483,44 +481,15 @@ fn VirtualAlloc(
     mapping.addr
 }
 
-fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
+pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
     1 // success
 }
 
-winapi!(
-    fn ExitProcess(uExitCode: u32);
-    fn GetACP();
-    fn GetCommandLineA();
-    fn GetCPInfo(CodePage: u32, lpCPInfo: u32);
-    fn GetEnvironmentVariableA(lpName: u32, lpBuffer: u32, nSize: u32);
-    fn GetEnvironmentStrings();
-    fn FreeEnvironmentStringsA(penv: u32);
-    fn GetEnvironmentStringsW();
-    fn GetFileType(hFile: u32);
-    fn GetModuleFileNameA(hModule: u32, lpFilename: u32, nSize: u32);
-    fn GetModuleHandleA(lpModuleName: u32);
-    fn GetStartupInfoA(lpStartupInfo: u32);
-    fn GetStdHandle(nStdHandle: u32);
-    fn GetTickCount();
-    fn GetVersion();
-    fn GetVersionExA(lpVersionInformation: u32);
-    fn HeapAlloc(hHeap: u32, dwFlags: u32, dwBytes: u32);
-    fn HeapCreate(flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32);
-    fn HeapDestroy(hHeap: u32);
-    fn HeapFree(hHeap: u32, dwFlags: u32, lpMem: u32);
-    fn HeapSize(hHeap: u32, dwFlags: u32, lpMem: u32);
-    fn HeapReAlloc(hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32);
-
-    fn LoadLibraryA(lpLibFileName: u32);
-    fn WriteFile(
-        hFile: u32,
-        lpBuffer: u32,
-        nNumberOfBytesToWrite: u32,
-        lpNumberOfBytesWritten: u32,
-        lpOverlapped: u32,
-    );
-    fn SetHandleCount(uNumber: u32);
-    fn VirtualAlloc(lpAddress: u32, dwSize: u32, _flAllocationType: u32, _flProtec: u32);
-    fn VirtualFree(lpAddress: u32, dwSize: u32, dwFreeType: u32);
-);
+#[repr(transparent)]
+pub struct HMODULE(u32);
+impl From<u32> for HMODULE {
+    fn from(x: u32) -> Self {
+        Self(x)
+    }
+}

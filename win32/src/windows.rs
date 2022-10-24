@@ -63,7 +63,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
             };
             let addr = x86.shims.add(entry);
 
-            labels.insert(addr, sym);
+            labels.insert(addr, sym.to_string());
 
             addr
         },

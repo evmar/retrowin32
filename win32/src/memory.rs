@@ -11,7 +11,7 @@ pub trait Memory {
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
-    fn read_strz(&self) -> String;
+    fn read_strz(&self) -> &str;
 }
 
 // TODO: wrap the x86 memory with a newtype and use that here instead.
@@ -36,12 +36,12 @@ impl Memory for [u8] {
         self.view_mut::<DWORD>(addr).set(value)
     }
 
-    fn read_strz(&self) -> String {
+    fn read_strz(&self) -> &str {
         let mut span = self;
         if let Some(nul) = self.iter().position(|&c| c == 0) {
             span = &self[0..nul];
         }
-        String::from_utf8_lossy(span).to_string()
+        std::str::from_utf8(span).unwrap()
     }
 }
 

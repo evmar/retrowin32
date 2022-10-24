@@ -119,7 +119,7 @@ pub struct IMAGE_SECTION_HEADER {
 }
 unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         self.Name.read_strz()
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
@@ -188,7 +188,7 @@ unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 pub fn parse_imports(
     mem: &mut [u8],
     addr: usize,
-    mut resolve: impl FnMut(&str, String, u32) -> u32,
+    mut resolve: impl FnMut(&str, &str, u32) -> u32,
 ) -> anyhow::Result<()> {
     // http://sandsprite.com/CodeStuff/Understanding_imports.html
     let mut r = Reader::new(mem);
