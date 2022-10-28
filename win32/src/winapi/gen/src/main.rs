@@ -4,7 +4,7 @@
 use std::io::Write;
 
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 
 /// Process one function, generating the wrapper function that calls it.
 fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
@@ -27,7 +27,7 @@ fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
         } else {
             args.push(quote!(#name));
             let ty = &arg.ty;
-            body.push(quote!(let #name: #ty = from_x86(x86);));
+            body.push(quote!(let #name: #ty = unsafe { from_x86(x86) };));
         }
     }
     quote!(fn #name(x86: &mut X86) {
@@ -100,51 +100,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{memory::Memory, winapi, x86::X86};
-
-        unsafe fn smuggle<T: ?Sized>(x: &T) -> &'static T {
-            std::mem::transmute(x)
-        }
-        unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
-            std::mem::transmute(x)
-        }
-
-        unsafe trait FromX86 {
-            fn from_x86(x86: &mut X86) -> Self;
-        }
-        unsafe impl FromX86 for u32 {
-            fn from_x86(x86: &mut X86) -> Self {
-                x86.pop()
-            }
-        }
-        unsafe impl<T: From<u32>> FromX86 for Option<T> {
-            fn from_x86(x86: &mut X86) -> Self {
-                let val = x86.pop();
-                if val == 0 {
-                    None
-                } else {
-                    Some(T::from(val))
-                }
-            }
-        }
-        unsafe impl FromX86 for &mut [u8] {
-            fn from_x86(x86: &mut X86) -> Self {
-                let ofs = x86.pop() as usize;
-                let len = x86.pop() as usize;
-                unsafe { smuggle_mut(&mut x86.mem[ofs..ofs + len]) }
-            }
-        }
-        unsafe impl FromX86 for &str {
-            fn from_x86(x86: &mut X86) -> Self {
-                let ofs = x86.pop() as usize;
-                let strz = x86.mem[ofs..].read_strz();
-                unsafe { smuggle(strz) }
-            }
-        }
-
-        fn from_x86<T: FromX86>(x86: &mut X86) -> T {
-            T::from_x86(x86)
-        }
+        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::from_x86};
 
         #(#mods)*
     })
@@ -174,7 +130,7 @@ fn print(tokens: TokenStream) -> anyhow::Result<()> {
     let file = syn::parse2::<syn::File>(tokens)?;
     println!("#![allow(non_snake_case)]"); // parse2 seems to fail if it sees this.
     println!("#![allow(unused_imports)]");
-    let mut text = prettyplease::unparse(&file);
+    let mut text = file.to_token_stream().to_string();
     rustfmt(&mut text)?;
     println!("{}", text);
     Ok(())

@@ -4,6 +4,7 @@ pub mod ddraw;
 mod dll;
 pub mod gdi32;
 pub mod kernel32;
+mod shims;
 pub mod user32;
 
 // winapi is stdcall, which means args are right to left and callee-cleaned.
