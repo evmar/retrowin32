@@ -8,4 +8,3 @@ anyhow = "1.0"
 syn = { version = "1.0", default-features = false, features = ["full", "parsing", "printing"] }
 quote = "1.0"
 proc-macro2 = "1.0"
-prettyplease = "0.1.21"
