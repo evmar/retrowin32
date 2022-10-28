@@ -63,6 +63,7 @@ impl State {
             .kernel32
             .new_heap(&mut x86.mem, 0x1000, "ddraw.dll heap".into());
 
+        ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, x86);
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, x86);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, x86);
         ddraw
@@ -201,6 +202,50 @@ impl DDSURFACEDESC2 {
     }
 }
 
+mod IDirectDraw {
+    use super::*;
+
+    vtable![shims
+        QueryInterface todo,
+        AddRef todo,
+        Release todo,
+        Compact todo,
+        CreateClipper todo,
+        CreatePalette todo,
+        CreateSurface ok,
+        DuplicateSurface todo,
+        EnumDisplayModes todo,
+        EnumSurfaces todo,
+        FlipToGDISurface todo,
+        GetCaps todo,
+        GetDisplayMode todo,
+        GetFourCCCodes todo,
+        GetGDISurface todo,
+        GetMonitorFrequency todo,
+        GetScanLine todo,
+        GetVerticalBlankStatus todo,
+        Initialize todo,
+        RestoreDisplayMode todo,
+        SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
+        SetDisplayMode (IDirectDraw7::shims::SetDisplayMode),
+        WaitForVerticalBlank todo,
+    ];
+
+    fn CreateSurface(
+        _x86: &mut X86,
+        _this: u32,
+        _lpSurfaceDesc: u32,
+        _lpDirectDrawSurface7: u32,
+        _unused: u32,
+    ) -> u32 {
+        todo!();
+    }
+
+    winapi_shims!(
+        fn CreateSurface(this: u32, lpSurfaceDesc: u32, lpDirectDrawSurface7: u32, unused: u32);
+    );
+}
+
 const IID_IDirectDraw7: [u8; 16] = [
     0xc0, 0x5e, 0xe6, 0x15, 0x9c, 0x3b, 0xd2, 0x11, 0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b,
 ];
@@ -242,16 +287,6 @@ mod IDirectDraw7 {
         StartModeTest todo,
         EvaluateMode todo,
     ];
-
-    pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
-        let addr = ddraw.heap(&mut x86.state.kernel32).alloc(
-            &mut x86.mem,
-            std::mem::size_of::<IDirectDraw7::Vtable>() as u32,
-        );
-        let vtable = x86.mem.view_mut::<Vtable>(addr);
-        *vtable = Vtable::new(&mut x86.shims);
-        addr
-    }
 
     fn Release(_x86: &mut X86, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
@@ -327,7 +362,7 @@ mod IDirectDraw7 {
         }
     }
 
-    fn SetCooperativeLevel(x86: &mut X86, _this: u32, hwnd: u32, _flags: u32) -> u32 {
+    pub fn SetCooperativeLevel(x86: &mut X86, _this: u32, hwnd: u32, _flags: u32) -> u32 {
         // TODO: this triggers behaviors like fullscreen.
         // let flags = DDSCL::from_bits(flags).unwrap();
         // log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:?})");
@@ -414,15 +449,6 @@ mod IDirectDrawSurface7 {
         SetLOD todo,
         GetLOD todo,
     ];
-
-    pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
-        let addr = ddraw
-            .heap(&mut x86.state.kernel32)
-            .alloc(&mut x86.mem, std::mem::size_of::<Vtable>() as u32);
-        let vtable = x86.mem.view_mut::<Vtable>(addr);
-        *vtable = Vtable::new(&mut x86.shims);
-        addr
-    }
 
     pub fn new(x86: &mut X86) -> u32 {
         let ddraw = &mut x86.state.ddraw;
@@ -563,12 +589,11 @@ pub fn DirectDrawCreateEx(
 
     if iid == 0 {
         // DirectDrawCreate
-        // let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
-        // let vtable = ddraw.vtable_IDirectDraw;
-        // x86.write_u32(lpDirectDraw, vtable);
-        // x86.write_u32(lplpDD, lpDirectDraw);
-        log::error!("TODO: IDirectDraw interface");
-        return DDERR_GENERIC;
+        let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let vtable = ddraw.vtable_IDirectDraw;
+        x86.write_u32(lpDirectDraw, vtable);
+        x86.write_u32(lplpDD, lpDirectDraw);
+        return DD_OK;
     }
 
     let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];

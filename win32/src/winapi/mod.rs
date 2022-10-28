@@ -32,13 +32,16 @@ macro_rules! vtable_entry {
         Ok($shims::$fn)
     };
     ($shims:ident $fn:ident todo) => {
-        Err(stringify!($fn).into())
+        Err(format!("unimplemented in vtable: {}", stringify!($fn)))
+    };
+    ($shims:ident $fn:ident $impl:tt) => {
+        Ok($impl)
     };
 }
 pub(crate) use vtable_entry;
 
 macro_rules! vtable {
-    ($shims:ident $($fn:ident $status:ident,)*) => {
+    ($shims:ident $($fn:ident $status:tt,)*) => {
         #[repr(C)]
         struct Vtable {
             $($fn: DWORD),*
@@ -50,6 +53,16 @@ macro_rules! vtable {
                     $($fn: shims.add($crate::winapi::vtable_entry!($shims $fn $status)).into()),*
                 }
             }
+        }
+
+        pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
+            let addr = ddraw.heap(&mut x86.state.kernel32).alloc(
+                &mut x86.mem,
+                std::mem::size_of::<Vtable>() as u32,
+            );
+            let vtable = x86.mem.view_mut::<Vtable>(addr);
+            *vtable = Vtable::new(&mut x86.shims);
+            addr
         }
     };
 }
