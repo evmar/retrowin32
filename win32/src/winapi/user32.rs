@@ -43,8 +43,8 @@ pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
 pub fn CreateWindowExA(
     x86: &mut X86,
     dwExStyle: u32,
-    lpClassName: u32,
-    lpWindowName: u32,
+    className: &str,
+    windowName: &str,
     dwStyle: u32,
     X: u32,
     Y: u32,
@@ -61,11 +61,10 @@ pub fn CreateWindowExA(
     // TODO: we ignore most fields here.
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
-    log::warn!("CreateWindowExA({dwExStyle:x}, {lpClassName:x}, {lpWindowName:x}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
+    log::warn!("CreateWindowExA({dwExStyle:x}, {className}, {windowName}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
 
     let mut x86_win = x86.host.create_window();
-    let name = x86.mem[lpWindowName as usize..].read_strz();
-    x86_win.set_title(&name);
+    x86_win.set_title(windowName);
     x86_win.set_size(nWidth, nHeight);
 
     let window = Window { host: x86_win };

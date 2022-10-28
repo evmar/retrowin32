@@ -315,8 +315,8 @@ pub mod user32 {
     }
     fn CreateWindowExA(x86: &mut X86) {
         let dwExStyle: u32 = from_x86(x86);
-        let lpClassName: u32 = from_x86(x86);
-        let lpWindowName: u32 = from_x86(x86);
+        let className: &str = from_x86(x86);
+        let windowName: &str = from_x86(x86);
         let dwStyle: u32 = from_x86(x86);
         let X: u32 = from_x86(x86);
         let Y: u32 = from_x86(x86);
@@ -327,19 +327,8 @@ pub mod user32 {
         let hInstance: u32 = from_x86(x86);
         let lpParam: u32 = from_x86(x86);
         x86.regs.eax = winapi::user32::CreateWindowExA(
-            x86,
-            dwExStyle,
-            lpClassName,
-            lpWindowName,
-            dwStyle,
-            X,
-            Y,
-            nWidth,
-            nHeight,
-            hWndParent,
-            hMenu,
-            hInstance,
-            lpParam,
+            x86, dwExStyle, className, windowName, dwStyle, X, Y, nWidth, nHeight, hWndParent,
+            hMenu, hInstance, lpParam,
         ) as u32;
     }
     fn UpdateWindow(x86: &mut X86) {
