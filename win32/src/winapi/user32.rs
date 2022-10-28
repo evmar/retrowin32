@@ -5,7 +5,7 @@ use anyhow::bail;
 use crate::{
     host,
     memory::{Memory, Pod, DWORD, WORD},
-    pe, winapi,
+    pe,
     winapi::gdi32,
     x86::X86,
 };
@@ -35,12 +35,12 @@ impl State {
     }
 }
 
-fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
+pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
     log::warn!("todo: RegisterClassA({:x})", lpWndClass);
     0
 }
 
-fn CreateWindowExA(
+pub fn CreateWindowExA(
     x86: &mut X86,
     dwExStyle: u32,
     lpClassName: u32,
@@ -73,21 +73,21 @@ fn CreateWindowExA(
     x86.state.user32.windows.len() as u32
 }
 
-fn UpdateWindow(_x86: &mut X86, _hWnd: u32) -> u32 {
+pub fn UpdateWindow(_x86: &mut X86, _hWnd: u32) -> u32 {
     // TODO: this should cause a synchronous WM_PAINT.
     0
 }
 
-fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
+pub fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
     0
 }
 
-fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
+pub fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
     // TODO: supposed to return previous focused hwnd.
     0
 }
 
-fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u32) -> u32 {
+pub fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u32) -> u32 {
     let caption = &x86.mem[lpCaption as usize..].read_strz();
     let text = &x86.mem[lpText as usize..].read_strz();
     x86.host
@@ -95,7 +95,7 @@ fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u
     1 // IDOK
 }
 
-fn DialogBoxParamA(
+pub fn DialogBoxParamA(
     _x86: &mut X86,
     hInstance: u32,
     lpTemplateName: u32,
@@ -107,7 +107,7 @@ fn DialogBoxParamA(
     1 // success
 }
 
-fn PeekMessageA(
+pub fn PeekMessageA(
     _x86: &mut X86,
     _lpMsg: u32,
     _hWnd: u32,
@@ -121,11 +121,11 @@ fn PeekMessageA(
     0 // no messages
 }
 
-fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
+pub fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
     0
 }
 
-fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
+pub fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
@@ -229,7 +229,7 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     })
 }
 
-fn LoadImageA(
+pub fn LoadImageA(
     x86: &mut X86,
     hInstance: u32,
     name: u32,
@@ -272,7 +272,7 @@ fn LoadImageA(
     }
 }
 
-fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
+pub fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
     const SM_CXSCREEN: u32 = 0;
     const SM_CYSCREEN: u32 = 1;
 
@@ -285,41 +285,3 @@ fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
         }
     }
 }
-
-winapi!(
-    fn RegisterClassA(lpWndClass: u32);
-    fn CreateWindowExA(
-        dwExStyle: u32,
-        lpClassName: u32,
-        lpWindowName: u32,
-        dwStyle: u32,
-        X: u32,
-        Y: u32,
-        nWidth: u32,
-        nHeight: u32,
-        hWndParent: u32,
-        hMenu: u32,
-        hInstance: u32,
-        lpParam: u32,
-    );
-    fn UpdateWindow(hWnd: u32);
-    fn ShowWindow(hWnd: u32, nCmdShow: u32);
-    fn SetFocus(hWnd: u32);
-
-    fn MessageBoxA(hWnd: u32, lpText: u32, lpCaption: u32, uType: u32);
-
-    fn DialogBoxParamA(
-        hInstance: u32,
-        lpTemplateName: u32,
-        hWndParent: u32,
-        lpDialogFunc: u32,
-        dwInitParam: u32,
-    );
-
-    fn PeekMessageA(lpMsg: u32, hWnd: u32, wMsgFilterMin: u32, wMsgFilterMax: u32, wRemoveMs: u32);
-
-    fn LoadIconA(hInstance: u32, lpIconName: u32);
-    fn LoadCursorA(hInstance: u32, lpCursorName: u32);
-    fn LoadImageA(hInstance: u32, name: u32, typ: u32, cx: u32, cy: u32, fuLoad: u32);
-    fn GetSystemMetrics(nIndex: u32);
-);

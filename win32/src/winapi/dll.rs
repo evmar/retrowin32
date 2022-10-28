@@ -281,3 +281,131 @@ pub mod kernel32 {
         })
     }
 }
+pub mod user32 {
+    use super::*;
+    use winapi::user32::*;
+    fn RegisterClassA(x86: &mut X86) {
+        let lpWndClass: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::RegisterClassA(x86, lpWndClass) as u32;
+    }
+    fn CreateWindowExA(x86: &mut X86) {
+        let dwExStyle: u32 = from_x86(x86);
+        let lpClassName: u32 = from_x86(x86);
+        let lpWindowName: u32 = from_x86(x86);
+        let dwStyle: u32 = from_x86(x86);
+        let X: u32 = from_x86(x86);
+        let Y: u32 = from_x86(x86);
+        let nWidth: u32 = from_x86(x86);
+        let nHeight: u32 = from_x86(x86);
+        let hWndParent: u32 = from_x86(x86);
+        let hMenu: u32 = from_x86(x86);
+        let hInstance: u32 = from_x86(x86);
+        let lpParam: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::CreateWindowExA(
+            x86,
+            dwExStyle,
+            lpClassName,
+            lpWindowName,
+            dwStyle,
+            X,
+            Y,
+            nWidth,
+            nHeight,
+            hWndParent,
+            hMenu,
+            hInstance,
+            lpParam,
+        ) as u32;
+    }
+    fn UpdateWindow(x86: &mut X86) {
+        let _hWnd: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::UpdateWindow(x86, _hWnd) as u32;
+    }
+    fn ShowWindow(x86: &mut X86) {
+        let _hWnd: u32 = from_x86(x86);
+        let _nCmdShow: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::ShowWindow(x86, _hWnd, _nCmdShow) as u32;
+    }
+    fn SetFocus(x86: &mut X86) {
+        let _hWnd: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::SetFocus(x86, _hWnd) as u32;
+    }
+    fn MessageBoxA(x86: &mut X86) {
+        let _hWnd: u32 = from_x86(x86);
+        let lpText: u32 = from_x86(x86);
+        let lpCaption: u32 = from_x86(x86);
+        let _uType: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::MessageBoxA(x86, _hWnd, lpText, lpCaption, _uType) as u32;
+    }
+    fn DialogBoxParamA(x86: &mut X86) {
+        let hInstance: u32 = from_x86(x86);
+        let lpTemplateName: u32 = from_x86(x86);
+        let hWndParent: u32 = from_x86(x86);
+        let lpDialogFunc: u32 = from_x86(x86);
+        let dwInitParam: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::DialogBoxParamA(
+            x86,
+            hInstance,
+            lpTemplateName,
+            hWndParent,
+            lpDialogFunc,
+            dwInitParam,
+        ) as u32;
+    }
+    fn PeekMessageA(x86: &mut X86) {
+        let _lpMsg: u32 = from_x86(x86);
+        let _hWnd: u32 = from_x86(x86);
+        let _wMsgFilterMin: u32 = from_x86(x86);
+        let _wMsgFilterMax: u32 = from_x86(x86);
+        let _wRemoveMs: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::PeekMessageA(
+            x86,
+            _lpMsg,
+            _hWnd,
+            _wMsgFilterMin,
+            _wMsgFilterMax,
+            _wRemoveMs,
+        ) as u32;
+    }
+    fn LoadIconA(x86: &mut X86) {
+        let _hInstance: u32 = from_x86(x86);
+        let _lpIconName: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::LoadIconA(x86, _hInstance, _lpIconName) as u32;
+    }
+    fn LoadCursorA(x86: &mut X86) {
+        let _hInstance: u32 = from_x86(x86);
+        let _lpCursorName: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::LoadCursorA(x86, _hInstance, _lpCursorName) as u32;
+    }
+    fn LoadImageA(x86: &mut X86) {
+        let hInstance: u32 = from_x86(x86);
+        let name: u32 = from_x86(x86);
+        let typ: u32 = from_x86(x86);
+        let _cx: u32 = from_x86(x86);
+        let _cy: u32 = from_x86(x86);
+        let fuLoad: u32 = from_x86(x86);
+        x86.regs.eax =
+            winapi::user32::LoadImageA(x86, hInstance, name, typ, _cx, _cy, fuLoad) as u32;
+    }
+    fn GetSystemMetrics(x86: &mut X86) {
+        let nIndex: u32 = from_x86(x86);
+        x86.regs.eax = winapi::user32::GetSystemMetrics(x86, nIndex) as u32;
+    }
+    pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
+        Some(match name {
+            "RegisterClassA" => RegisterClassA,
+            "CreateWindowExA" => CreateWindowExA,
+            "UpdateWindow" => UpdateWindow,
+            "ShowWindow" => ShowWindow,
+            "SetFocus" => SetFocus,
+            "MessageBoxA" => MessageBoxA,
+            "DialogBoxParamA" => DialogBoxParamA,
+            "PeekMessageA" => PeekMessageA,
+            "LoadIconA" => LoadIconA,
+            "LoadCursorA" => LoadCursorA,
+            "LoadImageA" => LoadImageA,
+            "GetSystemMetrics" => GetSystemMetrics,
+            _ => return None,
+        })
+    }
+}
