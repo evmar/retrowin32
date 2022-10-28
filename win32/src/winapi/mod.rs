@@ -12,7 +12,6 @@ pub mod user32;
 //
 // This macro generates shim wrappers of functions, taking their
 // input args off the stack and forwarding their return values via eax.
-#[macro_export]
 macro_rules! winapi_shims {
     ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
         pub mod shims {
@@ -26,6 +25,35 @@ macro_rules! winapi_shims {
         }
     }
 }
+pub(crate) use winapi_shims;
+
+macro_rules! vtable_entry {
+    ($shims:ident $fn:ident ok) => {
+        Ok($shims::$fn)
+    };
+    ($shims:ident $fn:ident todo) => {
+        Err(stringify!($fn).into())
+    };
+}
+pub(crate) use vtable_entry;
+
+macro_rules! vtable {
+    ($shims:ident $($fn:ident $status:ident,)*) => {
+        #[repr(C)]
+        struct Vtable {
+            $($fn: DWORD),*
+        }
+        unsafe impl crate::memory::Pod for Vtable {}
+        impl Vtable {
+            fn new(shims: &mut crate::x86::Shims) -> Self {
+                Vtable {
+                    $($fn: shims.add($crate::winapi::vtable_entry!($shims $fn $status)).into()),*
+                }
+            }
+        }
+    };
+}
+pub(crate) use vtable;
 
 pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
     match dll {

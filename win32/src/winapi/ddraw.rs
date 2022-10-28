@@ -6,7 +6,8 @@ use std::collections::HashMap;
 use crate::{
     host,
     memory::{Memory, Pod, DWORD},
-    winapi_shims,
+    winapi::vtable,
+    winapi::winapi_shims,
     x86::X86,
 };
 
@@ -209,40 +210,38 @@ mod IDirectDraw7 {
 
     use super::*;
 
-    #[repr(C)]
-    pub(super) struct Vtable {
-        pub QueryInterface: DWORD,
-        pub AddRef: DWORD,
-        pub Release: DWORD,
-        pub Compact: DWORD,
-        pub CreateClipper: DWORD,
-        pub CreatePalette: DWORD,
-        pub CreateSurface: DWORD,
-        pub DuplicateSurface: DWORD,
-        pub EnumDisplayModes: DWORD,
-        pub EnumSurfaces: DWORD,
-        pub FlipToGDISurface: DWORD,
-        pub GetCaps: DWORD,
-        pub GetDisplayMode: DWORD,
-        pub GetFourCCCodes: DWORD,
-        pub GetGDISurface: DWORD,
-        pub GetMonitorFrequency: DWORD,
-        pub GetScanLine: DWORD,
-        pub GetVerticalBlankStatus: DWORD,
-        pub Initialize: DWORD,
-        pub RestoreDisplayMode: DWORD,
-        pub SetCooperativeLevel: DWORD,
-        pub SetDisplayMode: DWORD,
-        pub WaitForVerticalBlank: DWORD,
-        pub GetAvailableVidMem: DWORD,
-        pub GetSurfaceFromDC: DWORD,
-        pub RestoreAllSurfaces: DWORD,
-        pub TestCooperativeLevel: DWORD,
-        pub GetDeviceIdentifier: DWORD,
-        pub StartModeTest: DWORD,
-        pub EvaluateMode: DWORD,
-    }
-    unsafe impl crate::memory::Pod for Vtable {}
+    vtable![shims
+        QueryInterface todo,
+        AddRef todo,
+        Release ok,
+        Compact todo,
+        CreateClipper todo,
+        CreatePalette todo,
+        CreateSurface ok,
+        DuplicateSurface todo,
+        EnumDisplayModes todo,
+        EnumSurfaces todo,
+        FlipToGDISurface todo,
+        GetCaps todo,
+        GetDisplayMode todo,
+        GetFourCCCodes todo,
+        GetGDISurface todo,
+        GetMonitorFrequency todo,
+        GetScanLine todo,
+        GetVerticalBlankStatus todo,
+        Initialize todo,
+        RestoreDisplayMode todo,
+        SetCooperativeLevel ok,
+        SetDisplayMode ok,
+        WaitForVerticalBlank todo,
+        GetAvailableVidMem todo,
+        GetSurfaceFromDC todo,
+        RestoreAllSurfaces todo,
+        TestCooperativeLevel todo,
+        GetDeviceIdentifier todo,
+        StartModeTest todo,
+        EvaluateMode todo,
+    ];
 
     pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
         let addr = ddraw.heap(&mut x86.state.kernel32).alloc(
@@ -250,123 +249,7 @@ mod IDirectDraw7 {
             std::mem::size_of::<IDirectDraw7::Vtable>() as u32,
         );
         let vtable = x86.mem.view_mut::<Vtable>(addr);
-        *vtable = Vtable {
-            QueryInterface: x86
-                .shims
-                .add(Err("IDirectDraw7::QueryInterface unimplemented".into()))
-                .into(),
-            AddRef: x86
-                .shims
-                .add(Err("IDirectDraw7::AddRef unimplemented".into()))
-                .into(),
-            Release: x86.shims.add(Ok(shims::Release)).into(),
-            Compact: x86
-                .shims
-                .add(Err("IDirectDraw7::Compact unimplemented".into()))
-                .into(),
-            CreateClipper: x86
-                .shims
-                .add(Err("IDirectDraw7::CreateClipper unimplemented".into()))
-                .into(),
-            CreatePalette: x86
-                .shims
-                .add(Err("IDirectDraw7::CreatePalette unimplemented".into()))
-                .into(),
-            CreateSurface: x86.shims.add(Ok(shims::CreateSurface)).into(),
-            DuplicateSurface: x86
-                .shims
-                .add(Err("IDirectDraw7::DuplicateSurface unimplemented".into()))
-                .into(),
-            EnumDisplayModes: x86
-                .shims
-                .add(Err("IDirectDraw7::EnumDisplayModes unimplemented".into()))
-                .into(),
-            EnumSurfaces: x86
-                .shims
-                .add(Err("IDirectDraw7::EnumSurfaces unimplemented".into()))
-                .into(),
-            FlipToGDISurface: x86
-                .shims
-                .add(Err("IDirectDraw7::FlipToGDISurface unimplemented".into()))
-                .into(),
-            GetCaps: x86
-                .shims
-                .add(Err("IDirectDraw7::GetCaps unimplemented".into()))
-                .into(),
-            GetDisplayMode: x86
-                .shims
-                .add(Err("IDirectDraw7::GetDisplayMode unimplemented".into()))
-                .into(),
-            GetFourCCCodes: x86
-                .shims
-                .add(Err("IDirectDraw7::GetFourCCCodes unimplemented".into()))
-                .into(),
-            GetGDISurface: x86
-                .shims
-                .add(Err("IDirectDraw7::GetGDISurface unimplemented".into()))
-                .into(),
-            GetMonitorFrequency: x86
-                .shims
-                .add(Err("IDirectDraw7::GetMonitorFrequency unimplemented".into()))
-                .into(),
-            GetScanLine: x86
-                .shims
-                .add(Err("IDirectDraw7::GetScanLine unimplemented".into()))
-                .into(),
-            GetVerticalBlankStatus: x86
-                .shims
-                .add(Err(
-                    "IDirectDraw7::GetVerticalBlankStatus unimplemented".into()
-                ))
-                .into(),
-            Initialize: x86
-                .shims
-                .add(Err("IDirectDraw7::Initialize unimplemented".into()))
-                .into(),
-            RestoreDisplayMode: x86
-                .shims
-                .add(Err("IDirectDraw7::RestoreDisplayMode unimplemented".into()))
-                .into(),
-            SetCooperativeLevel: x86.shims.add(Ok(shims::SetCooperativeLevel)).into(),
-            SetDisplayMode: x86.shims.add(Ok(shims::SetDisplayMode)).into(),
-            WaitForVerticalBlank: x86
-                .shims
-                .add(Err(
-                    "IDirectDraw7::WaitForVerticalBlank unimplemented".into()
-                ))
-                .into(),
-            GetAvailableVidMem: x86
-                .shims
-                .add(Err("IDirectDraw7::GetAvailableVidMem unimplemented".into()))
-                .into(),
-            GetSurfaceFromDC: x86
-                .shims
-                .add(Err("IDirectDraw7::GetSurfaceFromDC unimplemented".into()))
-                .into(),
-            RestoreAllSurfaces: x86
-                .shims
-                .add(Err("IDirectDraw7::RestoreAllSurfaces unimplemented".into()))
-                .into(),
-            TestCooperativeLevel: x86
-                .shims
-                .add(Err(
-                    "IDirectDraw7::TestCooperativeLevel unimplemented".into()
-                ))
-                .into(),
-            GetDeviceIdentifier: x86
-                .shims
-                .add(Err("IDirectDraw7::GetDeviceIdentifier unimplemented".into()))
-                .into(),
-            StartModeTest: x86
-                .shims
-                .add(Err("IDirectDraw7::StartModeTest unimplemented".into()))
-                .into(),
-            EvaluateMode: x86
-                .shims
-                .add(Err("IDirectDraw7::EvaluateMode unimplemented".into()))
-                .into(),
-        };
-
+        *vtable = Vtable::new(&mut x86.shims);
         addr
     }
 
@@ -480,275 +363,64 @@ mod IDirectDrawSurface7 {
 
     use super::*;
 
-    #[repr(C)]
-    pub(super) struct Vtable {
-        pub QueryInterface: DWORD,
-        pub AddRef: DWORD,
-        pub Release: DWORD,
-        pub AddAttachedSurface: DWORD,
-        pub AddOverlayDirtyRect: DWORD,
-        pub Blt: DWORD,
-        pub BltBatch: DWORD,
-        pub BltFast: DWORD,
-        pub DeleteAttachedSurface: DWORD,
-        pub EnumAttachedSurfaces: DWORD,
-        pub EnumOverlayZOrders: DWORD,
-        pub Flip: DWORD,
-        pub GetAttachedSurface: DWORD,
-        pub GetBltStatus: DWORD,
-        pub GetCaps: DWORD,
-        pub GetClipper: DWORD,
-        pub GetColorKey: DWORD,
-        pub GetDC: DWORD,
-        pub GetFlipStatus: DWORD,
-        pub GetOverlayPosition: DWORD,
-        pub GetPalette: DWORD,
-        pub GetPixelFormat: DWORD,
-        pub GetSurfaceDesc: DWORD,
-        pub Initialize: DWORD,
-        pub IsLost: DWORD,
-        pub Lock: DWORD,
-        pub ReleaseDC: DWORD,
-        pub Restore: DWORD,
-        pub SetClipper: DWORD,
-        pub SetColorKey: DWORD,
-        pub SetOverlayPosition: DWORD,
-        pub SetPalette: DWORD,
-        pub Unlock: DWORD,
-        pub UpdateOverlay: DWORD,
-        pub UpdateOverlayDisplay: DWORD,
-        pub UpdateOverlayZOrder: DWORD,
-        pub GetDDInterface: DWORD,
-        pub PageLock: DWORD,
-        pub PageUnlock: DWORD,
-        pub SetSurfaceDesc: DWORD,
-        pub SetPrivateData: DWORD,
-        pub GetPrivateData: DWORD,
-        pub FreePrivateData: DWORD,
-        pub GetUniquenessValue: DWORD,
-        pub ChangeUniquenessValue: DWORD,
-        pub SetPriority: DWORD,
-        pub GetPriority: DWORD,
-        pub SetLOD: DWORD,
-        pub GetLOD: DWORD,
-    }
-    unsafe impl crate::memory::Pod for Vtable {}
+    vtable![shims
+        QueryInterface todo,
+        AddRef todo,
+        Release ok,
+        AddAttachedSurface todo,
+        AddOverlayDirtyRect todo,
+        Blt todo,
+        BltBatch todo,
+        BltFast ok,
+        DeleteAttachedSurface todo,
+        EnumAttachedSurfaces todo,
+        EnumOverlayZOrders todo,
+        Flip ok,
+        GetAttachedSurface ok,
+        GetBltStatus todo,
+        GetCaps todo,
+        GetClipper todo,
+        GetColorKey todo,
+        GetDC ok,
+        GetFlipStatus todo,
+        GetOverlayPosition todo,
+        GetPalette todo,
+        GetPixelFormat todo,
+        GetSurfaceDesc ok,
+        Initialize todo,
+        IsLost todo,
+        Lock todo,
+        ReleaseDC ok,
+        Restore ok,
+        SetClipper todo,
+        SetColorKey todo,
+        SetOverlayPosition todo,
+        SetPalette todo,
+        Unlock todo,
+        UpdateOverlay todo,
+        UpdateOverlayDisplay todo,
+        UpdateOverlayZOrder todo,
+        GetDDInterface todo,
+        PageLock todo,
+        PageUnlock todo,
+        SetSurfaceDesc todo,
+        SetPrivateData todo,
+        GetPrivateData todo,
+        FreePrivateData todo,
+        GetUniquenessValue todo,
+        ChangeUniquenessValue todo,
+        SetPriority todo,
+        GetPriority todo,
+        SetLOD todo,
+        GetLOD todo,
+    ];
 
     pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
         let addr = ddraw
             .heap(&mut x86.state.kernel32)
             .alloc(&mut x86.mem, std::mem::size_of::<Vtable>() as u32);
         let vtable = x86.mem.view_mut::<Vtable>(addr);
-        *vtable = Vtable {
-            QueryInterface: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::QueryInterface unimplemented".into()
-                ))
-                .into(),
-            AddRef: x86
-                .shims
-                .add(Err("IDirectDrawSurface::AddRef unimplemented".into()))
-                .into(),
-            Release: x86.shims.add(Ok(shims::Release)).into(),
-            AddAttachedSurface: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::AddAttachedSurface unimplemented".into()
-                ))
-                .into(),
-            AddOverlayDirtyRect: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::AddOverlayDirtyRect unimplemented".into()
-                ))
-                .into(),
-            Blt: x86
-                .shims
-                .add(Err("IDirectDrawSurface::Blt unimplemented".into()))
-                .into(),
-            BltBatch: x86
-                .shims
-                .add(Err("IDirectDrawSurface::BltBatch unimplemented".into()))
-                .into(),
-            BltFast: x86.shims.add(Ok(shims::BltFast)).into(),
-            DeleteAttachedSurface: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::DeleteAttachedSurface unimplemented".into(),
-                ))
-                .into(),
-            EnumAttachedSurfaces: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::EnumAttachedSurfaces unimplemented".into(),
-                ))
-                .into(),
-            EnumOverlayZOrders: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::EnumOverlayZOrders unimplemented".into()
-                ))
-                .into(),
-            Flip: x86.shims.add(Ok(shims::Flip)).into(),
-            GetAttachedSurface: x86.shims.add(Ok(shims::GetAttachedSurface)).into(),
-            GetBltStatus: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetBltStatus unimplemented".into()))
-                .into(),
-            GetCaps: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetCaps unimplemented".into()))
-                .into(),
-            GetClipper: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetClipper unimplemented".into()))
-                .into(),
-            GetColorKey: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetColorKey unimplemented".into()))
-                .into(),
-            GetDC: x86.shims.add(Ok(shims::GetDC)).into(),
-            GetFlipStatus: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetFlipStatus unimplemented".into()))
-                .into(),
-            GetOverlayPosition: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetOverlayPosition unimplemented".into()
-                ))
-                .into(),
-            GetPalette: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetPalette unimplemented".into()))
-                .into(),
-            GetPixelFormat: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetPixelFormat unimplemented".into()
-                ))
-                .into(),
-            GetSurfaceDesc: x86.shims.add(Ok(shims::GetSurfaceDesc)).into(),
-            Initialize: x86
-                .shims
-                .add(Err("IDirectDrawSurface::Initialize unimplemented".into()))
-                .into(),
-            IsLost: x86
-                .shims
-                .add(Err("IDirectDrawSurface::IsLost unimplemented".into()))
-                .into(),
-            Lock: x86
-                .shims
-                .add(Err("IDirectDrawSurface::Lock unimplemented".into()))
-                .into(),
-            ReleaseDC: x86.shims.add(Ok(shims::ReleaseDC)).into(),
-            Restore: x86.shims.add(Ok(shims::Restore)).into(),
-            SetClipper: x86
-                .shims
-                .add(Err("IDirectDrawSurface::SetClipper unimplemented".into()))
-                .into(),
-            SetColorKey: x86
-                .shims
-                .add(Err("IDirectDrawSurface::SetColorKey unimplemented".into()))
-                .into(),
-            SetOverlayPosition: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::SetOverlayPosition unimplemented".into()
-                ))
-                .into(),
-            SetPalette: x86
-                .shims
-                .add(Err("IDirectDrawSurface::SetPalette unimplemented".into()))
-                .into(),
-            Unlock: x86
-                .shims
-                .add(Err("IDirectDrawSurface::Unlock unimplemented".into()))
-                .into(),
-            UpdateOverlay: x86
-                .shims
-                .add(Err("IDirectDrawSurface::UpdateOverlay unimplemented".into()))
-                .into(),
-            UpdateOverlayDisplay: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::UpdateOverlayDisplay unimplemented".into(),
-                ))
-                .into(),
-            UpdateOverlayZOrder: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::UpdateOverlayZOrder unimplemented".into()
-                ))
-                .into(),
-            GetDDInterface: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetDDInterface unimplemented".into()
-                ))
-                .into(),
-            PageLock: x86
-                .shims
-                .add(Err("IDirectDrawSurface::PageLock unimplemented".into()))
-                .into(),
-            PageUnlock: x86
-                .shims
-                .add(Err("IDirectDrawSurface::PageUnlock unimplemented".into()))
-                .into(),
-            SetSurfaceDesc: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::SetSurfaceDesc unimplemented".into()
-                ))
-                .into(),
-            SetPrivateData: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::SetPrivateData unimplemented".into()
-                ))
-                .into(),
-            GetPrivateData: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetPrivateData unimplemented".into()
-                ))
-                .into(),
-            FreePrivateData: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::FreePrivateData unimplemented".into()
-                ))
-                .into(),
-            GetUniquenessValue: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::GetUniquenessValue unimplemented".into()
-                ))
-                .into(),
-            ChangeUniquenessValue: x86
-                .shims
-                .add(Err(
-                    "IDirectDrawSurface::ChangeUniquenessValue unimplemented".into(),
-                ))
-                .into(),
-            SetPriority: x86
-                .shims
-                .add(Err("IDirectDrawSurface::SetPriority unimplemented".into()))
-                .into(),
-            GetPriority: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetPriority unimplemented".into()))
-                .into(),
-            SetLOD: x86
-                .shims
-                .add(Err("IDirectDrawSurface::SetLOD unimplemented".into()))
-                .into(),
-            GetLOD: x86
-                .shims
-                .add(Err("IDirectDrawSurface::GetLOD unimplemented".into()))
-                .into(),
-        };
+        *vtable = Vtable::new(&mut x86.shims);
         addr
     }
 
