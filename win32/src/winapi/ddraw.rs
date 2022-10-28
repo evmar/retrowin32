@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use crate::{
     host,
     memory::{Memory, Pod, DWORD},
-    winapi,
+    winapi_shims,
     x86::X86,
 };
 
@@ -870,11 +870,17 @@ mod IDirectDrawSurface7 {
     );
 }
 
-fn DirectDrawCreate(x86: &mut X86, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
+pub fn DirectDrawCreate(x86: &mut X86, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
     DirectDrawCreateEx(x86, lpGuid, lplpDD, 0, pUnkOuter)
 }
 
-fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOuter: u32) -> u32 {
+pub fn DirectDrawCreateEx(
+    x86: &mut X86,
+    lpGuid: u32,
+    lplpDD: u32,
+    iid: u32,
+    pUnkOuter: u32,
+) -> u32 {
     assert!(lpGuid == 0);
     assert!(pUnkOuter == 0);
 
@@ -909,8 +915,3 @@ fn DirectDrawCreateEx(x86: &mut X86, lpGuid: u32, lplpDD: u32, iid: u32, pUnkOut
         DDERR_GENERIC
     }
 }
-
-winapi!(
-    fn DirectDrawCreate(lpGuid: u32, lplpDD: u32, pUnkOuter: u32);
-    fn DirectDrawCreateEx(lpGuid: u32, lplpDD: u32, iid: u32, pUnkOuter: u32);
-);

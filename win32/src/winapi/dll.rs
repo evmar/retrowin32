@@ -43,6 +43,31 @@ unsafe impl FromX86 for &str {
 fn from_x86<T: FromX86>(x86: &mut X86) -> T {
     T::from_x86(x86)
 }
+pub mod ddraw {
+    use super::*;
+    use winapi::ddraw::*;
+    fn DirectDrawCreate(x86: &mut X86) {
+        let lpGuid: u32 = from_x86(x86);
+        let lplpDD: u32 = from_x86(x86);
+        let pUnkOuter: u32 = from_x86(x86);
+        x86.regs.eax = winapi::ddraw::DirectDrawCreate(x86, lpGuid, lplpDD, pUnkOuter) as u32;
+    }
+    fn DirectDrawCreateEx(x86: &mut X86) {
+        let lpGuid: u32 = from_x86(x86);
+        let lplpDD: u32 = from_x86(x86);
+        let iid: u32 = from_x86(x86);
+        let pUnkOuter: u32 = from_x86(x86);
+        x86.regs.eax =
+            winapi::ddraw::DirectDrawCreateEx(x86, lpGuid, lplpDD, iid, pUnkOuter) as u32;
+    }
+    pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
+        Some(match name {
+            "DirectDrawCreate" => DirectDrawCreate,
+            "DirectDrawCreateEx" => DirectDrawCreateEx,
+            _ => return None,
+        })
+    }
+}
 pub mod gdi32 {
     use super::*;
     use winapi::gdi32::*;

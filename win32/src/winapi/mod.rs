@@ -27,26 +27,9 @@ macro_rules! winapi_shims {
     }
 }
 
-// This macro runs the above and also generates a resolve()
-// function that maps symbol names to shims.
-#[macro_export]
-macro_rules! winapi {
-    ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
-        use crate::winapi_shims;
-        winapi_shims!($(fn $name($($param: $type),*);)*);
-
-        pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
-            Some(match name {
-                $(stringify!($name) => shims::$name,)*
-                _ => return None,
-            })
-        }
-    }
-}
-
 pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
     match dll {
-        "ddraw.dll" => ddraw::resolve(sym),
+        "ddraw.dll" => dll::ddraw::resolve(sym),
         "gdi32.dll" => dll::gdi32::resolve(sym),
         "kernel32.dll" => dll::kernel32::resolve(sym),
         "user32.dll" => dll::user32::resolve(sym),
