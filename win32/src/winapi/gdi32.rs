@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{winapi, winapi::user32, x86::X86};
+use crate::{winapi::user32, x86::X86};
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
@@ -70,11 +70,11 @@ impl State {
     }
 }
 
-fn GetStockObject(_x86: &mut X86, _i: u32) -> u32 {
+pub fn GetStockObject(_x86: &mut X86, _i: u32) -> u32 {
     0
 }
 
-fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
+pub fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
     let obj = match x86.state.gdi32.get_object(hGdiObj) {
         None => return 0, // TODO: HGDI_ERROR
         Some(obj) => obj,
@@ -92,7 +92,7 @@ fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
     op(dc) // returns previous value
 }
 
-fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
+pub fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
     let obj = match x86.state.gdi32.get_object(handle) {
         None => return 0, // fail
         Some(obj) => obj,
@@ -102,20 +102,20 @@ fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
     0 // fail
 }
 
-fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
+pub fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
     assert!(hdc == 0); // null means "compatible with current screen"
     let (handle, _) = x86.state.gdi32.new_dc();
     handle
 }
 
-fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
+pub fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
     log::warn!("todo: DeleteDC({hdc:x})");
     0 // fail
 }
 
 const SRCCOPY: u32 = 0xcc0020;
 
-fn BitBlt(
+pub fn BitBlt(
     x86: &mut X86,
     hdc: u32,
     x: u32,
@@ -149,7 +149,7 @@ fn BitBlt(
     1 // success
 }
 
-fn StretchBlt(
+pub fn StretchBlt(
     x86: &mut X86,
     hdcDest: u32,
     xDest: u32,
@@ -171,27 +171,3 @@ fn StretchBlt(
         x86, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
     )
 }
-
-winapi!(
-    fn GetStockObject(i: u32);
-    fn SelectObject(hdc: u32, hGdiObj: u32);
-    fn GetObjectA(handle: u32, bytes: u32, out: u32);
-
-    fn CreateCompatibleDC(hdc: u32);
-    fn DeleteDC(hdc: u32);
-
-    fn BitBlt(hdc: u32, x: u32, y: u32, cx: u32, cy: u32, hdcSrc: u32, x1: u32, y1: u32, rop: u32);
-    fn StretchBlt(
-        hdcDest: u32,
-        xDest: u32,
-        yDest: u32,
-        wDest: u32,
-        hDest: u32,
-        hdcSrc: u32,
-        xSrc: u32,
-        ySrc: u32,
-        wSrc: u32,
-        hSrc: u32,
-        rop: u32,
-    );
-);

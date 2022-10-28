@@ -2,13 +2,13 @@
 #![allow(unused_imports)]
 /// Generated code, do not edit.
 use crate::{memory::Memory, winapi, x86::X86};
-pub unsafe fn smuggle<T: ?Sized>(x: &T) -> &'static T {
+unsafe fn smuggle<T: ?Sized>(x: &T) -> &'static T {
     std::mem::transmute(x)
 }
-pub unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
+unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
     std::mem::transmute(x)
 }
-pub unsafe trait FromX86 {
+unsafe trait FromX86 {
     fn from_x86(x86: &mut X86) -> Self;
 }
 unsafe impl FromX86 for u32 {
@@ -40,9 +40,75 @@ unsafe impl FromX86 for &str {
         unsafe { smuggle(strz) }
     }
 }
-#[allow(dead_code)]
-pub fn from_x86<T: FromX86>(x86: &mut X86) -> T {
+fn from_x86<T: FromX86>(x86: &mut X86) -> T {
     T::from_x86(x86)
+}
+pub mod gdi32 {
+    use super::*;
+    use winapi::gdi32::*;
+    fn GetStockObject(x86: &mut X86) {
+        let _i: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::GetStockObject(x86, _i) as u32;
+    }
+    fn SelectObject(x86: &mut X86) {
+        let hdc: u32 = from_x86(x86);
+        let hGdiObj: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::SelectObject(x86, hdc, hGdiObj) as u32;
+    }
+    fn GetObjectA(x86: &mut X86) {
+        let handle: u32 = from_x86(x86);
+        let _bytes: u32 = from_x86(x86);
+        let _out: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::GetObjectA(x86, handle, _bytes, _out) as u32;
+    }
+    fn CreateCompatibleDC(x86: &mut X86) {
+        let hdc: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::CreateCompatibleDC(x86, hdc) as u32;
+    }
+    fn DeleteDC(x86: &mut X86) {
+        let hdc: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::DeleteDC(x86, hdc) as u32;
+    }
+    fn BitBlt(x86: &mut X86) {
+        let hdc: u32 = from_x86(x86);
+        let x: u32 = from_x86(x86);
+        let y: u32 = from_x86(x86);
+        let cx: u32 = from_x86(x86);
+        let cy: u32 = from_x86(x86);
+        let hdcSrc: u32 = from_x86(x86);
+        let x1: u32 = from_x86(x86);
+        let y1: u32 = from_x86(x86);
+        let rop: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::BitBlt(x86, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop) as u32;
+    }
+    fn StretchBlt(x86: &mut X86) {
+        let hdcDest: u32 = from_x86(x86);
+        let xDest: u32 = from_x86(x86);
+        let yDest: u32 = from_x86(x86);
+        let wDest: u32 = from_x86(x86);
+        let hDest: u32 = from_x86(x86);
+        let hdcSrc: u32 = from_x86(x86);
+        let xSrc: u32 = from_x86(x86);
+        let ySrc: u32 = from_x86(x86);
+        let wSrc: u32 = from_x86(x86);
+        let hSrc: u32 = from_x86(x86);
+        let rop: u32 = from_x86(x86);
+        x86.regs.eax = winapi::gdi32::StretchBlt(
+            x86, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
+        ) as u32;
+    }
+    pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
+        Some(match name {
+            "GetStockObject" => GetStockObject,
+            "SelectObject" => SelectObject,
+            "GetObjectA" => GetObjectA,
+            "CreateCompatibleDC" => CreateCompatibleDC,
+            "DeleteDC" => DeleteDC,
+            "BitBlt" => BitBlt,
+            "StretchBlt" => StretchBlt,
+            _ => return None,
+        })
+    }
 }
 pub mod kernel32 {
     use super::*;

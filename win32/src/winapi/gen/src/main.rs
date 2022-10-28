@@ -142,9 +142,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
             }
         }
 
-        // This is used by the macro but rust-analyzer gets confused and thinks it's dead.
-        #[allow(dead_code)]
-        pub fn from_x86<T: FromX86>(x86: &mut X86) -> T {
+        fn from_x86<T: FromX86>(x86: &mut X86) -> T {
             T::from_x86(x86)
         }
 

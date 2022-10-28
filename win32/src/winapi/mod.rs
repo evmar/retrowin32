@@ -47,7 +47,7 @@ macro_rules! winapi {
 pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
     match dll {
         "ddraw.dll" => ddraw::resolve(sym),
-        "gdi32.dll" => gdi32::resolve(sym),
+        "gdi32.dll" => dll::gdi32::resolve(sym),
         "kernel32.dll" => dll::kernel32::resolve(sym),
         "user32.dll" => user32::resolve(sym),
         _ => None,
