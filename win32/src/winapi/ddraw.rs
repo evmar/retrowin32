@@ -33,6 +33,7 @@ pub struct Surface {
 pub struct State {
     hheap: u32,
     vtable_IDirectDraw: u32,
+    vtable_IDirectDrawSurface: u32,
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
 
@@ -47,6 +48,7 @@ impl State {
         State {
             hheap: 0,
             vtable_IDirectDraw: 0,
+            vtable_IDirectDrawSurface: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
             hwnd: 0,
@@ -64,6 +66,7 @@ impl State {
             .new_heap(&mut x86.mem, 0x1000, "ddraw.dll heap".into());
 
         ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, x86);
+        ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, x86);
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, x86);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, x86);
         ddraw
@@ -160,6 +163,45 @@ unsafe impl Pod for DDCOLORKEY {}
 
 #[repr(C)]
 #[derive(Debug)]
+struct DDSURFACEDESC {
+    dwSize: DWORD,
+    dwFlags: DWORD,
+    dwHeight: DWORD,
+    dwWidth: DWORD,
+    lPitch_dwLinearSize: DWORD,
+    dwBackBufferCount: DWORD,
+    dwMipMapCount_dwZBufferBitDepth_dwRefreshRate: DWORD,
+    dwAlphaBitDepth: DWORD,
+    dwReserved: DWORD,
+    lpSurface: DWORD,
+    ddckCKDestOverlay: DDCOLORKEY,
+    ddckCKDestBlt: DDCOLORKEY,
+    ddckCKSrcOverlay: DDCOLORKEY,
+    ddckCKSrcBlt: DDCOLORKEY,
+    ddpfPixelFormat: [DWORD; 8],
+    ddsCaps: DDSCAPS,
+}
+unsafe impl Pod for DDSURFACEDESC {}
+impl DDSURFACEDESC {
+    fn flags(&self) -> DDSD {
+        unsafe { DDSD::from_bits_unchecked(self.dwFlags.get()) }
+    }
+    fn caps(&self) -> Option<&DDSCAPS> {
+        if !self.flags().contains(DDSD::CAPS) {
+            return None;
+        }
+        Some(&self.ddsCaps)
+    }
+    fn back_buffer_count(&self) -> Option<u32> {
+        if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
+            return None;
+        }
+        Some(self.dwBackBufferCount.get())
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
 struct DDSURFACEDESC2 {
     dwSize: DWORD,
     dwFlags: DWORD,
@@ -202,6 +244,15 @@ impl DDSURFACEDESC2 {
     }
 }
 
+#[repr(C)]
+#[derive(Debug)]
+struct DDPIXELFORMAT {
+    dwSize: DWORD,
+    dwFlags: DWORD,
+    dwFourCC: DWORD,
+}
+unsafe impl Pod for DDPIXELFORMAT {}
+
 mod IDirectDraw {
     use super::*;
 
@@ -232,17 +283,132 @@ mod IDirectDraw {
     ];
 
     fn CreateSurface(
-        _x86: &mut X86,
+        x86: &mut X86,
         _this: u32,
-        _lpSurfaceDesc: u32,
-        _lpDirectDrawSurface7: u32,
-        _unused: u32,
+        desc: &DDSURFACEDESC,
+        lplpDDSurface: u32,
+        _pUnkOuter: u32,
     ) -> u32 {
-        todo!();
+        assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize.get() as usize);
+
+        let mut opts = host::SurfaceOptions::default();
+        let mut flags = desc.flags();
+        if let Some(caps) = desc.caps() {
+            flags.remove(DDSD::CAPS);
+            if caps.contains(DDSCAPS::PRIMARYSURFACE) {
+                opts.width = x86.state.ddraw.width;
+                opts.height = x86.state.ddraw.height;
+                opts.primary = true;
+            }
+        }
+        if let Some(count) = desc.back_buffer_count() {
+            flags.remove(DDSD::BACKBUFFERCOUNT);
+            assert!(count == 1);
+        }
+        assert!(flags.is_empty());
+
+        let surface = x86.host.create_surface(&opts);
+
+        let x86_surface = IDirectDrawSurface::new(x86);
+        x86.mem.write_u32(lplpDDSurface, x86_surface);
+        x86.state.ddraw.surfaces.insert(
+            x86_surface,
+            Surface {
+                host: surface,
+                width: opts.width,
+                height: opts.height,
+            },
+        );
+
+        DD_OK
     }
 
     winapi_shims!(
-        fn CreateSurface(this: u32, lpSurfaceDesc: u32, lpDirectDrawSurface7: u32, unused: u32);
+        fn CreateSurface(this: u32, desc: &DDSURFACEDESC, lplpDDSurface: u32, pUnkOuter: u32);
+    );
+}
+
+mod IDirectDrawSurface {
+    use super::*;
+
+    vtable![shims
+        QueryInterface todo,
+        AddRef todo,
+        Release todo,
+        AddAttachedSurface todo,
+        AddOverlayDirtyRect todo,
+        Blt todo,
+        BltBatch todo,
+        BltFast todo,
+        DeleteAttachedSurface todo,
+        EnumAttachedSurfaces todo,
+        EnumOverlayZOrders todo,
+        Flip todo,
+        GetAttachedSurface ok,
+        GetBltStatus todo,
+        GetCaps todo,
+        GetClipper todo,
+        GetColorKey todo,
+        GetDC todo,
+        GetFlipStatus todo,
+        GetOverlayPosition todo,
+        GetPalette todo,
+        GetPixelFormat ok,
+        GetSurfaceDesc todo,
+        Initialize todo,
+        IsLost todo,
+        Lock todo,
+        ReleaseDC todo,
+        Restore todo,
+        SetClipper todo,
+        SetColorKey todo,
+        SetOverlayPosition todo,
+        SetPalette todo,
+        Unlock todo,
+        UpdateOverlay todo,
+        UpdateOverlayDisplay todo,
+        UpdateOverlayZOrder todo,
+    ];
+
+    pub fn new(x86: &mut X86) -> u32 {
+        let ddraw = &mut x86.state.ddraw;
+        let lpDirectDrawSurface = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let vtable = ddraw.vtable_IDirectDrawSurface;
+        x86.mem.write_u32(lpDirectDrawSurface, vtable);
+        lpDirectDrawSurface
+    }
+
+    fn GetAttachedSurface(
+        x86: &mut X86,
+        this: u32,
+        _lpDDSCaps: u32,
+        lpDirectDrawSurface: u32,
+    ) -> u32 {
+        // TODO: consider caps.
+        // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
+        let this_surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let host = this_surface.host.get_attached();
+
+        let surface = Surface {
+            host,
+            width: this_surface.width,
+            height: this_surface.height,
+        };
+        let x86_surface = new(x86);
+
+        x86.mem.write_u32(lpDirectDrawSurface, x86_surface);
+        x86.state.ddraw.surfaces.insert(x86_surface, surface);
+        DD_OK
+    }
+
+    fn GetPixelFormat(_x86: &mut X86, fmt: &mut DDPIXELFORMAT) -> u32 {
+        fmt.dwSize.set(std::mem::size_of::<DDPIXELFORMAT>() as u32);
+        DDERR_GENERIC
+    }
+
+    winapi_shims!(
+        fn GetAttachedSurface(this: u32, lpDDSCaps: u32, lpDirectDrawSurface: u32);
+        fn GetPixelFormat(fmt: &mut DDPIXELFORMAT);
     );
 }
 
@@ -296,11 +462,10 @@ mod IDirectDraw7 {
     fn CreateSurface(
         x86: &mut X86,
         this: u32,
-        lpSurfaceDesc: u32,
+        desc: &DDSURFACEDESC2,
         lpDirectDrawSurface7: u32,
         _unused: u32,
     ) -> u32 {
-        let desc = x86.mem.view::<DDSURFACEDESC2>(lpSurfaceDesc);
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize.get() as usize);
 
         log::warn!(
@@ -387,7 +552,7 @@ mod IDirectDraw7 {
 
     winapi_shims!(
         fn Release(this: u32);
-        fn CreateSurface(this: u32, lpSurfaceDesc: u32, lpDirectDrawSurface7: u32, unused: u32);
+        fn CreateSurface(this: u32, desc: &DDSURFACEDESC2, lpDirectDrawSurface7: u32, unused: u32);
         fn SetCooperativeLevel(this: u32, hwnd: u32, flags: u32);
         fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32, refresh: u32, flags: u32);
     );

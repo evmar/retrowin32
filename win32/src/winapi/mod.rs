@@ -14,13 +14,15 @@ pub mod user32;
 // This macro generates shim wrappers of functions, taking their
 // input args off the stack and forwarding their return values via eax.
 macro_rules! winapi_shims {
-    ($(fn $name:ident($($param:ident: $type:ident),* $(,)?);)*) => {
+    ($(fn $name:ident($($param:ident: $type:ty),* $(,)?);)*) => {
+        #[allow(unused_imports)]
         pub mod shims {
             use crate::x86::X86;
+            use super::*;
 
             $(#[allow(non_snake_case)]
             pub fn $name(x86: &mut X86) {
-                $(let $param: $type = x86.pop();)*
+                $(let $param: $type = unsafe { crate::winapi::shims::from_x86(x86) };)*
                 x86.regs.eax = super::$name(x86, $($param),*);
             })*
         }
