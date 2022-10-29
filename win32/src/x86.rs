@@ -256,8 +256,9 @@ impl<'a> X86<'a> {
         if addr < NULL_POINTER_REGION_SIZE {
             panic!("null pointer write at {addr:#x}");
         }
-        self.mem[addr as usize] = value as u8;
-        self.mem[(addr + 1) as usize] = (value >> 8) as u8;
+        let addr = addr as usize;
+        self.mem[addr] = value as u8;
+        self.mem[addr + 1] = (value >> 8) as u8;
     }
     pub fn write_u8(&mut self, addr: u32, value: u8) {
         if addr < NULL_POINTER_REGION_SIZE {
