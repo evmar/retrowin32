@@ -232,6 +232,10 @@ pub mod kernel32 {
         let dwFreeType: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::VirtualFree(x86, lpAddress, dwSize, dwFreeType) as u32;
     }
+    fn OutputDebugStringA(x86: &mut X86) {
+        let msg: &str = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::OutputDebugStringA(x86, msg) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "ExitProcess" => ExitProcess,
@@ -261,6 +265,7 @@ pub mod kernel32 {
             "WriteFile" => WriteFile,
             "VirtualAlloc" => VirtualAlloc,
             "VirtualFree" => VirtualFree,
+            "OutputDebugStringA" => OutputDebugStringA,
             _ => return None,
         })
     }

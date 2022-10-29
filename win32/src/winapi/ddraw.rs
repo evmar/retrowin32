@@ -403,7 +403,7 @@ mod IDirectDrawSurface {
 
     fn GetPixelFormat(_x86: &mut X86, fmt: &mut DDPIXELFORMAT) -> u32 {
         fmt.dwSize.set(std::mem::size_of::<DDPIXELFORMAT>() as u32);
-        DDERR_GENERIC
+        DD_OK
     }
 
     winapi_shims!(

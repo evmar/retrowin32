@@ -493,3 +493,8 @@ impl From<u32> for HMODULE {
         Self(x)
     }
 }
+
+pub fn OutputDebugStringA(_x86: &mut X86, msg: &str) -> u32 {
+    log::warn!("OutputDebugStringA: {:?}", msg);
+    0
+}
