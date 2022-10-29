@@ -234,16 +234,10 @@ impl Emulator {
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
-        self.runner.breakpoints.push(addr);
+        self.runner.add_breakpoint(addr)
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
-        let pos = self
-            .runner
-            .breakpoints
-            .iter()
-            .position(|&bp| bp == addr)
-            .unwrap();
-        self.runner.breakpoints.swap_remove(pos);
+        self.runner.clear_breakpoint(addr)
     }
 
     pub fn mappings_json(&self) -> String {

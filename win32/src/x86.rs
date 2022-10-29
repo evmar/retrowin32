@@ -4,13 +4,7 @@ use anyhow::bail;
 use bitflags::bitflags;
 use tsify::Tsify;
 
-use crate::{
-    host,
-    memory::Memory,
-    pe::ImageSectionFlags,
-    winapi::{self, kernel32},
-    windows::load_exe,
-};
+use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi, windows::load_exe};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -544,7 +538,7 @@ impl<'a> X86<'a> {
         Ok(())
     }
 
-    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<bool> {
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
@@ -1203,11 +1197,16 @@ impl<'a> X86<'a> {
                 self.regs.eax = self.pop();
             }
 
+            iced_x86::Code::Int3 => {
+                log::info!("break1");
+                return Ok(false);
+            }
+
             code => {
                 bail!("unhandled instruction {:?}", code);
             }
         }
-        Ok(())
+        Ok(true)
     }
 }
 
@@ -1220,7 +1219,7 @@ pub struct Runner<'a> {
     /// Places to stop execution in a step_many() call.
     /// We unconditionally stop on these; the web frontend manages things like
     /// enabling/disabling breakpoints.
-    pub breakpoints: Vec<u32>,
+    breakpoints: HashMap<u32, u8>,
 
     /// Code section of executable we're decoding.
     /// TODO: consider caching decoded instructions?
@@ -1235,7 +1234,7 @@ impl<'a> Runner<'a> {
             instr_count: 0,
             code: Vec::new(),
             code_base: 0,
-            breakpoints: vec![kernel32::MAGIC_EXIT_ADDRESS],
+            breakpoints: HashMap::new(),
         }
     }
 
@@ -1260,6 +1259,16 @@ impl<'a> Runner<'a> {
         Ok(labels)
     }
 
+    pub fn add_breakpoint(&mut self, addr: u32) {
+        let prev = self.x86.mem[addr as usize];
+        self.breakpoints.insert(addr, prev);
+        self.code[(addr - self.code_base) as usize] = 0xcc; // int 3
+    }
+    pub fn clear_breakpoint(&mut self, addr: u32) {
+        let prev = self.breakpoints.remove(&addr).unwrap();
+        self.code[(addr - self.code_base) as usize] = prev;
+    }
+
     // Single-step execution.
     pub fn step(&mut self) -> anyhow::Result<()> {
         let ip = self.x86.regs.eip;
@@ -1276,30 +1285,36 @@ impl<'a> Runner<'a> {
             self.x86.regs.eip -= instr.len() as u32;
         }
         self.instr_count += 1;
-        res
+        res.map(|_| ())
     }
 
     // Multi-step execution.  Returns true if we didn't hit a breakpoint.
     pub fn step_many(&mut self, count: usize) -> anyhow::Result<bool> {
         let mut decoder = iced_x86::Decoder::new(32, &self.code, iced_x86::DecoderOptions::NONE);
         let ip = self.x86.regs.eip;
+        log::info!("ip {:x}", ip);
         decoder.set_ip(ip as u64);
         decoder.set_position((ip - self.code_base) as usize)?;
 
         let mut instr = iced_x86::Instruction::default();
         for _ in 0..count {
             decoder.decode_out(&mut instr);
-            if let Err(res) = self.x86.run(&instr) {
-                // On errors, back up one instruction so the debugger points at the failed instruction.
-                self.x86.regs.eip -= instr.len() as u32;
-                return Err(res);
-            }
+            let res = self.x86.run(&instr);
             self.instr_count += 1;
+            match res {
+                Err(_) => {
+                    // On errors, back up one instruction so the debugger points at the failed instruction.
+                    self.x86.regs.eip -= instr.len() as u32;
+                    return res;
+                }
+                Ok(false) => {
+                    self.x86.regs.eip -= instr.len() as u32;
+                    return Ok(false);
+                }
+                Ok(true) => (),
+            };
 
             let ip = self.x86.regs.eip;
-            if self.breakpoints.iter().any(|&bp| bp == ip) {
-                return Ok(false);
-            }
             decoder.set_ip(ip as u64);
             decoder.set_position((ip - self.code_base) as usize)?;
         }
