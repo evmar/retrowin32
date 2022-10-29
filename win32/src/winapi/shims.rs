@@ -17,6 +17,11 @@ impl FromX86 for u32 {
         x86.pop()
     }
 }
+impl FromX86 for bool {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        x86.pop() != 0
+    }
+}
 impl<T: From<u32>> FromX86 for Option<T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let val = x86.pop();

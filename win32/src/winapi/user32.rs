@@ -128,6 +128,11 @@ pub fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
+pub fn ShowCursor(_x86: &mut X86, _bShow: bool) -> u32 {
+    // TODO: increment/decrement refcount
+    1 // ref=1
+}
+
 #[repr(C)]
 #[derive(Debug)]
 struct BITMAPINFOHEADER {

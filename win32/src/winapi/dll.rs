@@ -355,6 +355,10 @@ pub mod user32 {
         let _lpCursorName: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::user32::LoadCursorA(x86, _hInstance, _lpCursorName) as u32;
     }
+    fn ShowCursor(x86: &mut X86) {
+        let bShow: bool = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::user32::ShowCursor(x86, bShow) as u32;
+    }
     fn LoadImageA(x86: &mut X86) {
         let hInstance: u32 = unsafe { from_x86(x86) };
         let name: u32 = unsafe { from_x86(x86) };
@@ -381,6 +385,7 @@ pub mod user32 {
             "PeekMessageA" => PeekMessageA,
             "LoadIconA" => LoadIconA,
             "LoadCursorA" => LoadCursorA,
+            "ShowCursor" => ShowCursor,
             "LoadImageA" => LoadImageA,
             "GetSystemMetrics" => GetSystemMetrics,
             _ => return None,
