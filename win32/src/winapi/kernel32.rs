@@ -146,6 +146,10 @@ impl State {
     }
 
     pub fn new_mapping(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
+        if size > 1 << 20 {
+            log::error!("new mapping {:?} {size:x} bytes", desc);
+            assert!(size <= 1 << 20);
+        }
         let mut end = 0;
         let pos = self
             .mappings
@@ -175,7 +179,7 @@ impl State {
                 flags: ImageSectionFlags::empty(),
             },
         );
-        return &self.mappings[pos];
+        &self.mappings[pos]
     }
 
     pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> Heap {

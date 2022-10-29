@@ -250,6 +250,11 @@ struct DDPIXELFORMAT {
     dwSize: DWORD,
     dwFlags: DWORD,
     dwFourCC: DWORD,
+    u1: DWORD,
+    u2: DWORD,
+    u3: DWORD,
+    u4: DWORD,
+    u5: DWORD,
 }
 unsafe impl Pod for DDPIXELFORMAT {}
 
@@ -278,7 +283,7 @@ mod IDirectDraw {
         Initialize todo,
         RestoreDisplayMode todo,
         SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
-        SetDisplayMode (IDirectDraw7::shims::SetDisplayMode),
+        SetDisplayMode ok,
         WaitForVerticalBlank todo,
     ];
 
@@ -323,8 +328,16 @@ mod IDirectDraw {
         DD_OK
     }
 
+    fn SetDisplayMode(x86: &mut X86, this: u32, width: u32, height: u32, bpp: u32) -> u32 {
+        log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp})");
+        x86.state.ddraw.width = width;
+        x86.state.ddraw.height = height;
+        DD_OK
+    }
+
     winapi_shims!(
         fn CreateSurface(this: u32, desc: &DDSURFACEDESC, lplpDDSurface: u32, pUnkOuter: u32);
+        fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32);
     );
 }
 
@@ -402,6 +415,7 @@ mod IDirectDrawSurface {
     }
 
     fn GetPixelFormat(_x86: &mut X86, fmt: &mut DDPIXELFORMAT) -> u32 {
+        *fmt = unsafe { std::mem::zeroed() };
         fmt.dwSize.set(std::mem::size_of::<DDPIXELFORMAT>() as u32);
         DD_OK
     }
