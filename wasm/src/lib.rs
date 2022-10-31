@@ -236,11 +236,15 @@ impl Emulator {
         self.runner.step_many(count).map_err(|err| err.to_string())
     }
 
-    pub fn breakpoint_add(&mut self, addr: u32) {
-        self.runner.add_breakpoint(addr)
+    pub fn breakpoint_add(&mut self, addr: u32) -> Result<(), String> {
+        self.runner
+            .add_breakpoint(addr)
+            .map_err(|err| err.to_string())
     }
-    pub fn breakpoint_clear(&mut self, addr: u32) {
-        self.runner.clear_breakpoint(addr)
+    pub fn breakpoint_clear(&mut self, addr: u32) -> Result<(), String> {
+        self.runner
+            .clear_breakpoint(addr)
+            .map_err(|err| err.to_string())
     }
 
     pub fn mappings_json(&self) -> String {

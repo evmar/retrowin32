@@ -1248,13 +1248,13 @@ impl<'a> Runner<'a> {
         code
     }
 
-    fn ip_to_instr_index(&self, target_ip: u32) -> usize {
+    fn ip_to_instr_index(&self, target_ip: u32) -> Result<usize, &'static str> {
         match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
-            Ok(pos) => pos,
+            Ok(pos) => Ok(pos),
             Err(_) => {
                 // I think we may hit this case if the disassembler gets desynchronized from the instruction
                 // stream.  We might need to re-disassemble or something in that case.
-                panic!("jmp to addr {target_ip:x} not found in code segment");
+                Err("invalid ip, possible desync?")
             }
         }
     }
@@ -1264,7 +1264,7 @@ impl<'a> Runner<'a> {
         if cur_ip == target_ip {
             return;
         }
-        self.instr_index = self.ip_to_instr_index(target_ip);
+        self.instr_index = self.ip_to_instr_index(target_ip).unwrap();
     }
 
     pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
@@ -1287,20 +1287,26 @@ impl<'a> Runner<'a> {
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, addr: u32) {
-        let index = self.ip_to_instr_index(addr);
+    pub fn add_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
+        let index = self
+            .ip_to_instr_index(addr)
+            .map_err(|err| anyhow::anyhow!(err))?;
         let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
         int3.set_next_ip(addr as u64 + 1);
         let prev = std::mem::replace(&mut self.instrs[index].1, int3);
         self.breakpoints.insert(addr, prev);
+        Ok(())
     }
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, addr: u32) {
-        let index = self.ip_to_instr_index(addr);
+    pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
+        let index = self
+            .ip_to_instr_index(addr)
+            .map_err(|err| anyhow::anyhow!(err))?;
         let prev = self.breakpoints.remove(&addr).unwrap();
         self.instrs[index].1 = prev;
+        Ok(())
     }
 
     // Single-step execution.  Returns Ok(false) on breakpoint.
