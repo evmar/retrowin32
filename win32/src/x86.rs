@@ -538,6 +538,7 @@ impl<'a> X86<'a> {
         Ok(())
     }
 
+    /// Returns Ok(false) if we hit a breakpoint.
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<bool> {
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
@@ -1198,7 +1199,6 @@ impl<'a> X86<'a> {
             }
 
             iced_x86::Code::Int3 => {
-                log::info!("break1");
                 return Ok(false);
             }
 
@@ -1218,32 +1218,59 @@ pub struct Runner<'a> {
 
     /// Places to stop execution in a step_many() call.
     /// We unconditionally stop on these; the web frontend manages things like
-    /// enabling/disabling breakpoints.
-    breakpoints: HashMap<u32, u8>,
+    /// enabling/disabling breakpoints.  The map values are the instruction
+    /// from before the breakpoint.
+    breakpoints: HashMap<u32, iced_x86::Instruction>,
 
     /// Code section of executable we're decoding.
-    /// TODO: consider caching decoded instructions?
-    /// Costs 40 bytes per instruction though.
-    code: Vec<u8>,
-    code_base: u32,
+    instrs: Vec<(u32, iced_x86::Instruction)>,
+    /// Current position within code.  Updated from eip.
+    instr_index: usize,
 }
 impl<'a> Runner<'a> {
     pub fn new(host: &'a dyn host::Host) -> Self {
         Runner {
             x86: X86::new(host),
             instr_count: 0,
-            code: Vec::new(),
-            code_base: 0,
             breakpoints: HashMap::new(),
+            instrs: Vec::new(),
+            instr_index: 0,
         }
+    }
+
+    fn disassemble(buf: &[u8], ip: u32) -> Vec<(u32, iced_x86::Instruction)> {
+        let mut code = Vec::new();
+        let mut decoder =
+            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
+        while decoder.can_decode() {
+            code.push((decoder.ip() as u32, decoder.decode()));
+        }
+        code
+    }
+
+    fn ip_to_instr_index(&self, target_ip: u32) -> usize {
+        match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
+            Ok(pos) => pos,
+            Err(_) => {
+                // I think we may hit this case if the disassembler gets desynchronized from the instruction
+                // stream.  We might need to re-disassemble or something in that case.
+                panic!("jmp to addr {target_ip:x} not found in code segment");
+            }
+        }
+    }
+
+    fn jmp(&mut self, target_ip: u32) {
+        let (cur_ip, _) = self.instrs[self.instr_index];
+        if cur_ip == target_ip {
+            return;
+        }
+        self.instr_index = self.ip_to_instr_index(target_ip);
     }
 
     pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
         let labels = load_exe(&mut self.x86, buf)?;
 
-        // Copy the 'code' section into this.code.
-        // This lets the decoder iterate over the code without worrying that the running
-        // code will modify it.
+        // Disassemble the 'code' section.
         let mapping = self
             .x86
             .state
@@ -1253,70 +1280,58 @@ impl<'a> Runner<'a> {
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;
         let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
-        section.clone_into(&mut self.code);
-        self.code_base = mapping.addr;
+        self.instrs = Runner::disassemble(section, mapping.addr);
+        self.jmp(self.x86.regs.eip);
 
         Ok(labels)
     }
 
+    /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) {
-        let prev = self.x86.mem[addr as usize];
+        let index = self.ip_to_instr_index(addr);
+        let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
+        // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
+        int3.set_len(1);
+        int3.set_next_ip(addr as u64 + 1);
+        let prev = std::mem::replace(&mut self.instrs[index].1, int3);
         self.breakpoints.insert(addr, prev);
-        self.code[(addr - self.code_base) as usize] = 0xcc; // int 3
     }
+    /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) {
+        let index = self.ip_to_instr_index(addr);
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.code[(addr - self.code_base) as usize] = prev;
+        self.instrs[index].1 = prev;
     }
 
-    // Single-step execution.
-    pub fn step(&mut self) -> anyhow::Result<()> {
-        let ip = self.x86.regs.eip;
-        let mut decoder = iced_x86::Decoder::with_ip(
-            32,
-            &self.x86.mem[ip as usize..],
-            ip as u64,
-            iced_x86::DecoderOptions::NONE,
-        );
-        let instr = decoder.decode();
-        let res = self.x86.run(&instr);
-        if res.is_err() {
-            // On errors, back up one instruction so the debugger points at the failed instruction.
-            self.x86.regs.eip -= instr.len() as u32;
+    // Single-step execution.  Returns Ok(false) on breakpoint.
+    pub fn step(&mut self) -> anyhow::Result<bool> {
+        let instr = &self.instrs[self.instr_index].1;
+        match self.x86.run(instr) {
+            Err(err) => {
+                // On errors, back up one instruction so the debugger points at the failed instruction.
+                self.x86.regs.eip -= instr.len() as u32;
+                Err(err)
+            }
+            Ok(false) => {
+                // Hit breakpoint
+                self.x86.regs.eip -= instr.len() as u32;
+                Ok(false)
+            }
+            Ok(true) => {
+                self.instr_count += 1;
+                self.instr_index += 1;
+                self.jmp(self.x86.regs.eip);
+                Ok(true)
+            }
         }
-        self.instr_count += 1;
-        res.map(|_| ())
     }
 
-    // Multi-step execution.  Returns true if we didn't hit a breakpoint.
+    // Multi-step execution.  Returns Ok(false) on breakpoint.
     pub fn step_many(&mut self, count: usize) -> anyhow::Result<bool> {
-        let mut decoder = iced_x86::Decoder::new(32, &self.code, iced_x86::DecoderOptions::NONE);
-        let ip = self.x86.regs.eip;
-        log::info!("ip {:x}", ip);
-        decoder.set_ip(ip as u64);
-        decoder.set_position((ip - self.code_base) as usize)?;
-
-        let mut instr = iced_x86::Instruction::default();
         for _ in 0..count {
-            decoder.decode_out(&mut instr);
-            let res = self.x86.run(&instr);
-            self.instr_count += 1;
-            match res {
-                Err(_) => {
-                    // On errors, back up one instruction so the debugger points at the failed instruction.
-                    self.x86.regs.eip -= instr.len() as u32;
-                    return res;
-                }
-                Ok(false) => {
-                    self.x86.regs.eip -= instr.len() as u32;
-                    return Ok(false);
-                }
-                Ok(true) => (),
-            };
-
-            let ip = self.x86.regs.eip;
-            decoder.set_ip(ip as u64);
-            decoder.set_position((ip - self.code_base) as usize)?;
+            if !self.step()? {
+                return Ok(false);
+            }
         }
         Ok(true)
     }

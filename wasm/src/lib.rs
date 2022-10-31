@@ -227,7 +227,10 @@ impl Emulator {
     }
 
     pub fn step(&mut self) -> Result<(), String> {
-        self.runner.step().map_err(|err| err.to_string())
+        match self.runner.step() {
+            Err(err) => Err(err.to_string()),
+            Ok(_) => Ok(()),
+        }
     }
     pub fn step_many(&mut self, count: usize) -> Result<bool, String> {
         self.runner.step_many(count).map_err(|err| err.to_string())
