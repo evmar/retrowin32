@@ -136,7 +136,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // this.addBreak({ addr: 0x401156 });
+    this.addBreak({ addr: 0x405a00 });
   }
 
   addBreak(bp: Breakpoint) {
@@ -173,6 +173,18 @@ class VM implements JsHost {
       return true;
     }
     return false;
+  }
+
+  stepPastBreak() {
+    const ip = this.emu.eip;
+    console.log('past', ip, this.breakpoints);
+    if (this.breakpoints.has(ip)) {
+      this.emu.breakpoint_clear(ip);
+      this.step();
+      this.emu.breakpoint_add(ip);
+    } else {
+      this.step();
+    }
   }
 
   step() {
@@ -339,13 +351,18 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   step() {
-    this.updateAfter(() => this.props.vm.step());
+    try {
+      this.props.vm.stepPastBreak();
+    } finally {
+      this.forceUpdate();
+    }
   }
 
   startStop(start: boolean) {
     if (start === (this.state.running !== 0)) return;
 
     if (start) {
+      this.props.vm.stepPastBreak();
       const interval = setInterval(() => {
         this.forceUpdate();
       }, 500);
@@ -406,10 +423,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </button>
           &nbsp;
           <button
-            onClick={() => {
-              this.props.vm.step();
-              this.forceUpdate();
-            }}
+            onClick={() => this.step()}
           >
             step
           </button>
