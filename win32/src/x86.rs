@@ -768,6 +768,10 @@ impl<'a> X86<'a> {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, _x| y);
             }
+            iced_x86::Code::Movzx_r16_rm8 => {
+                let y = instr.immediate8() as u16;
+                self.rm16_x(instr, |_x86, _x| y);
+            }
 
             iced_x86::Code::Xchg_rm32_r32 => {
                 let r1 = instr.op1_register();
@@ -1230,6 +1234,10 @@ impl<'a> X86<'a> {
                 self.regs.edx = self.pop();
                 self.regs.ecx = self.pop();
                 self.regs.eax = self.pop();
+            }
+
+            iced_x86::Code::Cwde => {
+                self.regs.eax = self.regs.eax as i16 as i32 as u32;
             }
 
             iced_x86::Code::Int3 => {
