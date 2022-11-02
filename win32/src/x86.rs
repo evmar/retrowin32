@@ -167,12 +167,12 @@ impl Registers {
     }
     fn set16(&mut self, reg: iced_x86::Register, value: u16) {
         match reg {
-            iced_x86::Register::AX => self.eax = (self.eax & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::CX => self.ecx = (self.ecx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DX => self.edx = (self.edx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::BX => self.ebx = (self.ebx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::SI => self.esi = (self.esi & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DI => self.edi = (self.edi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::AX => self.eax = (self.eax as u16 | value) as u32,
+            iced_x86::Register::CX => self.ecx = (self.ecx as u16 | value) as u32,
+            iced_x86::Register::DX => self.edx = (self.edx as u16 | value) as u32,
+            iced_x86::Register::BX => self.ebx = (self.ebx as u16 | value) as u32,
+            iced_x86::Register::SI => self.esi = (self.esi as u16 | value) as u32,
+            iced_x86::Register::DI => self.edi = (self.edi as u16 | value) as u32,
             iced_x86::Register::ES => self.es = value,
             iced_x86::Register::CS => self.cs = value,
             iced_x86::Register::SS => self.ss = value,
@@ -184,10 +184,10 @@ impl Registers {
     }
     fn set8(&mut self, reg: iced_x86::Register, value: u8) {
         match reg {
-            iced_x86::Register::AL => self.eax = (self.eax & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::CL => self.ecx = (self.ecx & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::DL => self.edx = (self.edx & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::BL => self.ebx = (self.ebx & 0xFFFF_FF00) | value as u32,
+            iced_x86::Register::AL => self.eax = (self.eax as u8 | value) as u32,
+            iced_x86::Register::CL => self.ecx = (self.ecx as u8 | value) as u32,
+            iced_x86::Register::DL => self.edx = (self.edx as u8 | value) as u32,
+            iced_x86::Register::BL => self.ebx = (self.ebx as u8 | value) as u32,
 
             iced_x86::Register::AH => self.eax = (self.eax & 0xFFFF_00FF) | ((value as u32) << 8),
             iced_x86::Register::CH => self.ecx = (self.ecx & 0xFFFF_00FF) | ((value as u32) << 8),
