@@ -168,11 +168,11 @@ impl Registers {
     fn set16(&mut self, reg: iced_x86::Register, value: u16) {
         match reg {
             iced_x86::Register::AX => self.eax = (self.eax & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::CX => self.eax = (self.ecx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DX => self.eax = (self.edx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::BX => self.eax = (self.ebx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::SI => self.eax = (self.esi & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DI => self.eax = (self.edi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::CX => self.ecx = (self.ecx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::DX => self.edx = (self.edx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::BX => self.ebx = (self.ebx & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::SI => self.esi = (self.esi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::DI => self.edi = (self.edi & 0xFFFF_0000) | value as u32,
             iced_x86::Register::ES => self.es = value,
             iced_x86::Register::CS => self.cs = value,
             iced_x86::Register::SS => self.ss = value,
