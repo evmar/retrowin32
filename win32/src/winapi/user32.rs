@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use anyhow::bail;
+use bitflags::bitflags;
 
 use crate::{
     host,
@@ -40,6 +41,27 @@ pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
     0
 }
 
+bitflags! {
+    pub struct WindowStyle: u32 {
+        const WS_POPUP           = 0x80000000;
+        const WS_CHILD           = 0x40000000;
+        const WS_MINIMIZE        = 0x20000000;
+        const WS_VISIBLE         = 0x10000000;
+        const WS_DISABLED        = 0x08000000;
+        const WS_CLIPSIBLINGS    = 0x04000000;
+        const WS_CLIPCHILDREN    = 0x02000000;
+        const WS_MAXIMIZE        = 0x01000000;
+        const WS_BORDER          = 0x00800000;
+        const WS_DLGFRAME        = 0x00400000;
+        const WS_VSCROLL         = 0x00200000;
+        const WS_HSCROLL         = 0x00100000;
+        const WS_SYSMENU         = 0x00080000;
+        const WS_THICKFRAME      = 0x00040000;
+        const WS_GROUP           = 0x00020000;
+        const WS_TABSTOP         = 0x00010000;
+    }
+}
+
 pub fn CreateWindowExA(
     x86: &mut X86,
     dwExStyle: u32,
@@ -55,17 +77,21 @@ pub fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> u32 {
+    let style = WindowStyle::from_bits(dwStyle).unwrap();
+    // TODO: there are also CreateWindow flags like CW_USEDEFAULT.
     // Possible value of x/y:
     //   let CW_USEDEFAULT: u32 = 0x8000_0000;
 
     // TODO: we ignore most fields here.
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
-    log::warn!("CreateWindowExA({dwExStyle:x}, {className}, {windowName}, {dwStyle:x}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
+    log::warn!("CreateWindowExA({dwExStyle:x}, {className}, {windowName}, {style:?}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
 
     let mut x86_win = x86.host.create_window();
     x86_win.set_title(windowName);
-    x86_win.set_size(nWidth, nHeight);
+    if nWidth > 0 && nHeight > 0 {
+        x86_win.set_size(nWidth, nHeight);
+    }
 
     let window = Window { host: x86_win };
     x86.state.user32.windows.push(window);

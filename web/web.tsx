@@ -97,8 +97,8 @@ class Window implements JsWindow {
     readonly key: number,
   ) {}
   title: string = '';
-  width: number = 0;
-  height: number = 0;
+  width: number | undefined;
+  height: number | undefined;
   surface?: Surface;
   set_size(w: number, h: number) {
     this.width = w;
@@ -266,7 +266,7 @@ class VM implements JsHost {
 namespace WindowComponent {
   export interface Props {
     title: string;
-    size: [number, number];
+    size: [number | undefined, number | undefined];
     canvas?: HTMLCanvasElement;
   }
   export interface State {
@@ -311,12 +311,20 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
 
   render() {
     this.ensureCanvas();
+    function pxOrUndefined(x: number | undefined): string | undefined {
+      if (x !== undefined) return `${x}px`;
+      return undefined;
+    }
     return (
       <div class='window' style={{ left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }}>
         <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
           {this.props.title}
         </div>
-        <div ref={this.ref} style={{ width: `${this.props.size[0]}px`, height: `${this.props.size[1]}px` }}></div>
+        <div
+          ref={this.ref}
+          style={{ width: pxOrUndefined(this.props.size[0]), height: pxOrUndefined(this.props.size[1]) }}
+        >
+        </div>
       </div>
     );
   }
