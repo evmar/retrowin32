@@ -74,26 +74,61 @@ impl win32::Host for Host {
         Box::new(Window::new(&self.video))
     }
 
-    fn create_surface(&self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        todo!()
+    fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+        log::warn!("create_surface {opts:?}");
+        Box::new(Surface::new())
     }
 }
 
 struct Window {
-    sdl_win: sdl2::video::Window,
+    canvas: sdl2::render::WindowCanvas,
 }
 impl Window {
     fn new(video: &sdl2::VideoSubsystem) -> Self {
-        let sdl_win = video.window("retrowin32", 640, 480).build().unwrap();
-        Window { sdl_win }
+        let win = video.window("retrowin32", 640, 480).build().unwrap();
+        let canvas = win.into_canvas().build().unwrap();
+        Window { canvas }
     }
 }
 impl win32::Window for Window {
-    fn set_title(&mut self, _title: &str) {
+    fn set_title(&mut self, title: &str) {
+        self.canvas.window_mut().set_title(title).unwrap()
+    }
+
+    fn set_size(&mut self, width: u32, height: u32) {
+        self.canvas.window_mut().set_size(width, height).unwrap()
+    }
+}
+
+struct Surface {}
+impl Surface {
+    fn new() -> Self {
+        Surface {}
+    }
+}
+impl win32::Surface for Surface {
+    fn write_pixels(&self, _pixels: &[[u8; 4]]) {
         todo!()
     }
 
-    fn set_size(&mut self, _width: u32, _height: u32) {
+    fn get_attached(&self) -> Box<dyn win32::Surface> {
+        todo!()
+    }
+
+    fn flip(&self) {
+        todo!()
+    }
+
+    fn bit_blt(
+        &self,
+        _dx: u32,
+        _xy: u32,
+        _other: &dyn win32::Surface,
+        _sx: u32,
+        _sy: u32,
+        _w: u32,
+        _h: u32,
+    ) {
         todo!()
     }
 }

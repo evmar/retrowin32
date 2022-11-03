@@ -19,7 +19,7 @@ pub trait Surface {
 }
 
 #[wasm_bindgen]
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SurfaceOptions {
     pub width: u32,
     pub height: u32,
