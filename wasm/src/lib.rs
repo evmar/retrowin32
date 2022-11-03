@@ -112,7 +112,7 @@ impl win32::Host for JsHost {
         window.set_title("test");
         Box::new(window)
     }
-    fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+    fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         Box::new(JsHost::create_surface(self, opts.clone()))
     }
 }

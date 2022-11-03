@@ -47,5 +47,5 @@ pub trait Host {
     fn time(&self) -> u32;
 
     fn create_window(&mut self) -> Box<dyn Window>;
-    fn create_surface(&self, opts: &SurfaceOptions) -> Box<dyn Surface>;
+    fn create_surface(&mut self, opts: &SurfaceOptions) -> Box<dyn Surface>;
 }

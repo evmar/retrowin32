@@ -81,7 +81,7 @@ impl win32::Host for EnvRef {
         Box::new(win_ref)
     }
 
-    fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+    fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         Box::new(Surface::new(opts))
     }
 }
