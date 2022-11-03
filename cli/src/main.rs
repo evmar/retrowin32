@@ -30,6 +30,7 @@ struct Env {
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
     exit_code: Option<u32>,
+    win: Option<WindowRef>,
 }
 impl Env {
     fn new() -> anyhow::Result<Self> {
@@ -41,6 +42,7 @@ impl Env {
             video,
             pump: pump,
             exit_code: None,
+            win: None,
         })
     }
     fn pump_messages(&mut self) -> bool {
@@ -55,6 +57,7 @@ impl Env {
     }
 }
 
+#[derive(Clone)]
 struct EnvRef(Rc<RefCell<Env>>);
 
 impl win32::Host for EnvRef {
@@ -71,12 +74,15 @@ impl win32::Host for EnvRef {
     }
 
     fn create_window(&mut self) -> Box<dyn win32::Window> {
-        Box::new(Window::new(&self.0.borrow().video))
+        let mut env = self.0.borrow_mut();
+        let win = Window::new(&env.video);
+        let win_ref = WindowRef(Rc::new(RefCell::new(win)));
+        env.win = Some(win_ref.clone());
+        Box::new(win_ref)
     }
 
     fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        log::warn!("create_surface {opts:?}");
-        Box::new(Surface::new())
+        Box::new(Surface::new(opts))
     }
 }
 
@@ -90,19 +96,32 @@ impl Window {
         Window { canvas }
     }
 }
-impl win32::Window for Window {
+
+#[derive(Clone)]
+struct WindowRef(Rc<RefCell<Window>>);
+impl win32::Window for WindowRef {
     fn set_title(&mut self, title: &str) {
-        self.canvas.window_mut().set_title(title).unwrap()
+        self.0
+            .borrow_mut()
+            .canvas
+            .window_mut()
+            .set_title(title)
+            .unwrap();
     }
 
     fn set_size(&mut self, width: u32, height: u32) {
-        self.canvas.window_mut().set_size(width, height).unwrap()
+        self.0
+            .borrow_mut()
+            .canvas
+            .window_mut()
+            .set_size(width, height)
+            .unwrap();
     }
 }
 
 struct Surface {}
 impl Surface {
-    fn new() -> Self {
+    fn new(_opts: &win32::SurfaceOptions) -> Self {
         Surface {}
     }
 }
@@ -143,7 +162,7 @@ fn main() -> anyhow::Result<()> {
 
     let buf = std::fs::read(exe)?;
     let host = EnvRef(Rc::new(RefCell::new(Env::new()?)));
-    let mut runner = win32::Runner::new(Box::new(EnvRef(host.0.clone())));
+    let mut runner = win32::Runner::new(Box::new(host.clone()));
     runner.load_exe(&buf)?;
 
     loop {
