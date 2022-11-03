@@ -82,7 +82,12 @@ impl win32::Host for EnvRef {
     }
 
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        Box::new(Surface::new(opts))
+        if opts.primary {
+            let wr = self.0.borrow().win.as_ref().unwrap().clone();
+            Box::new(wr)
+        } else {
+            Box::new(OffscreenSurface::new(opts))
+        }
     }
 }
 
@@ -118,16 +123,51 @@ impl win32::Window for WindowRef {
             .unwrap();
     }
 }
-
-struct Surface {}
-impl Surface {
-    fn new(_opts: &win32::SurfaceOptions) -> Self {
-        Surface {}
-    }
-}
-impl win32::Surface for Surface {
+impl win32::Surface for WindowRef {
     fn write_pixels(&self, _pixels: &[[u8; 4]]) {
         todo!()
+    }
+
+    fn get_attached(&self) -> Box<dyn win32::Surface> {
+        Box::new(self.clone())
+    }
+
+    fn flip(&self) {
+        todo!()
+    }
+
+    fn bit_blt(
+        &self,
+        _dx: u32,
+        _xy: u32,
+        _other: &dyn win32::Surface,
+        _sx: u32,
+        _sy: u32,
+        _w: u32,
+        _h: u32,
+    ) {
+        todo!()
+    }
+}
+
+struct OffscreenSurface {
+    canvas: sdl2::render::Canvas<sdl2::surface::Surface<'static>>,
+}
+impl OffscreenSurface {
+    fn new(opts: &win32::SurfaceOptions) -> Self {
+        let surface = sdl2::surface::Surface::new(
+            opts.width,
+            opts.height,
+            sdl2::pixels::PixelFormatEnum::RGBA8888,
+        )
+        .unwrap();
+        let canvas = surface.into_canvas().unwrap();
+        OffscreenSurface { canvas }
+    }
+}
+impl win32::Surface for OffscreenSurface {
+    fn write_pixels(&self, _pixels: &[[u8; 4]]) {
+        //self.canvas.surface().with_lock_mut(|buf| {});
     }
 
     fn get_attached(&self) -> Box<dyn win32::Surface> {
