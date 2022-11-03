@@ -757,19 +757,19 @@ impl<'a> X86<'a> {
             }
 
             iced_x86::Code::Movsx_r32_rm16 => {
-                let y = instr.immediate16() as i16 as u32;
+                let y = self.op1_rm16(instr) as i16 as u32;
                 self.rm32_x(instr, |_x86, _x| y);
             }
             iced_x86::Code::Movsx_r32_rm8 => {
-                let y = instr.immediate8() as i8 as u32;
+                let y = self.op1_rm8(instr) as i8 as u32;
                 self.rm32_x(instr, |_x86, _x| y);
             }
             iced_x86::Code::Movzx_r32_rm8 => {
-                let y = instr.immediate8() as u32;
+                let y = self.op1_rm8(instr) as u32;
                 self.rm32_x(instr, |_x86, _x| y);
             }
             iced_x86::Code::Movzx_r16_rm8 => {
-                let y = instr.immediate8() as u16;
+                let y = self.op1_rm8(instr) as u16;
                 self.rm16_x(instr, |_x86, _x| y);
             }
 
