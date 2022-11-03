@@ -150,22 +150,27 @@ impl State {
             log::error!("new mapping {:?} {size:x} bytes", desc);
             assert!(size <= 1 << 20);
         }
-        let mut end = 0;
+        let mut prev_end = 0;
         let pos = self
             .mappings
             .iter()
             .position(|mapping| {
-                let space = mapping.addr - end;
+                let space = mapping.addr - prev_end;
                 if space > size {
                     return true;
                 }
-                end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+                prev_end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
                 false
             })
             .unwrap_or_else(|| {
-                let space = mem.len() as u32 - end;
+                let space = if mem.len() as u32 > prev_end {
+                    mem.len() as u32 - prev_end
+                } else {
+                    0
+                };
                 if space < size {
-                    mem.resize((end + size) as usize, 0);
+                    let new_size = (prev_end + size) as usize;
+                    mem.resize(new_size, 0);
                 }
                 self.mappings.len()
             });
@@ -173,7 +178,7 @@ impl State {
         self.mappings.insert(
             pos,
             Mapping {
-                addr: end,
+                addr: prev_end,
                 size,
                 desc,
                 flags: ImageSectionFlags::empty(),
