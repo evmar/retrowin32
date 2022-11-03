@@ -21,7 +21,7 @@ extern "C" {
         this: &JsSurface,
         dx: u32,
         dy: u32,
-        other: &JsSurface,
+        src: &JsSurface,
         sx: u32,
         sy: u32,
         w: u32,
@@ -50,7 +50,7 @@ impl win32::Surface for JsSurface {
         &mut self,
         dx: u32,
         dy: u32,
-        other: &dyn win32::Surface,
+        src: &dyn win32::Surface,
         sx: u32,
         sy: u32,
         w: u32,
@@ -59,8 +59,8 @@ impl win32::Surface for JsSurface {
         // Hack: we know all surfaces are JsSurface.
         // I think to fix this properly I might need to make every X86 generic across all the
         // host types, eek.
-        let other = unsafe { &*(other as *const dyn win32::Surface as *const JsSurface) };
-        JsSurface::bit_blt(self, dx, dy, other, sx, sy, w, h);
+        let src = unsafe { &*(src as *const dyn win32::Surface as *const JsSurface) };
+        JsSurface::bit_blt(self, dx, dy, src, sx, sy, w, h);
     }
 }
 

@@ -70,7 +70,10 @@ impl win32::Host for EnvRef {
     }
 
     fn time(&self) -> u32 {
-        todo!()
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis() as u32
     }
 
     fn create_window(&mut self) -> Box<dyn win32::Window> {
@@ -138,15 +141,16 @@ impl win32::Surface for WindowRef {
 
     fn bit_blt(
         &mut self,
-        _dx: u32,
-        _xy: u32,
-        _other: &dyn win32::Surface,
-        _sx: u32,
-        _sy: u32,
-        _w: u32,
-        _h: u32,
+        dx: u32,
+        xy: u32,
+        src: &dyn win32::Surface,
+        sx: u32,
+        sy: u32,
+        w: u32,
+        h: u32,
     ) {
-        todo!()
+        //let src = unsafe { &*(src as *const dyn win32::Surface as *const WindowRef) };
+        todo!();
     }
 }
 
@@ -166,8 +170,12 @@ impl OffscreenSurface {
     }
 }
 impl win32::Surface for OffscreenSurface {
-    fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {
-        //self.canvas.surface().with_lock_mut(|buf| {});
+    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
+        let pixels_u8 =
+            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
+        self.canvas.surface_mut().with_lock_mut(|buf| {
+            buf.copy_from_slice(pixels_u8);
+        });
     }
 
     fn get_attached(&self) -> Box<dyn win32::Surface> {

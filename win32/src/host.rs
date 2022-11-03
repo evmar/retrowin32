@@ -15,7 +15,7 @@ pub trait Surface {
 
     // TODO: the trait object here means we end up needing to cast, but the alternative
     // isn't object safe, bleh.
-    fn bit_blt(&mut self, dx: u32, xy: u32, other: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
+    fn bit_blt(&mut self, dx: u32, xy: u32, src: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
 }
 
 #[wasm_bindgen]
