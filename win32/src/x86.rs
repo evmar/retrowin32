@@ -1006,7 +1006,22 @@ impl<'a> X86<'a> {
                 let value = x.wrapping_mul(y);
                 self.regs.set32(instr.op0_register(), value);
             }
-
+            iced_x86::Code::Imul_r32_rm32_imm8 => {
+                let x = match instr.op1_kind() {
+                    iced_x86::OpKind::Register => {
+                        let reg = instr.op1_register();
+                        self.regs.get32(reg) as i32
+                    }
+                    iced_x86::OpKind::Memory => {
+                        let addr = self.addr(instr);
+                        self.read_u32(addr) as i32
+                    }
+                    _ => unimplemented!(),
+                };
+                let y = instr.immediate8to32();
+                let value = x.wrapping_mul(y);
+                self.regs.set32(instr.op0_register(), value as u32);
+            }
             iced_x86::Code::Dec_r32 => {
                 self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
             }
@@ -1173,6 +1188,10 @@ impl<'a> X86<'a> {
                 self.regs.st_len += 1;
                 *self.regs.st_top() = self.read_u32(self.addr(instr)) as i32 as f64;
             }
+            iced_x86::Code::Fild_m16int => {
+                self.regs.st_len += 1;
+                *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
+            }
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
@@ -1194,9 +1213,19 @@ impl<'a> X86<'a> {
                 *reg = reg.sin();
             }
 
+            iced_x86::Code::Fsqrt => {
+                let reg = self.regs.st_top();
+                *reg = reg.sqrt();
+            }
+
             iced_x86::Code::Fadd_m32fp => {
                 let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
                 *self.regs.st_top() += y;
+            }
+            iced_x86::Code::Fsubr_m64fp => {
+                let x = self.read_f64(self.addr(instr));
+                let y = self.regs.st_top();
+                *y = x - *y;
             }
 
             iced_x86::Code::Fmul_m64fp => {
@@ -1238,6 +1267,13 @@ impl<'a> X86<'a> {
 
             iced_x86::Code::Cwde => {
                 self.regs.eax = self.regs.eax as i16 as i32 as u32;
+            }
+            iced_x86::Code::Cdq => {
+                self.regs.edx = if self.regs.eax >> 31 == 0 {
+                    0
+                } else {
+                    0xFFFF_FFFF
+                };
             }
 
             iced_x86::Code::Int3 => {
