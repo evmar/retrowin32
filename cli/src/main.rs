@@ -176,9 +176,9 @@ fn main() -> anyhow::Result<()> {
                 break;
             }
             Ok(false) => {
-                // if host.exit_code.get().is_some() {
-                //     break;
-                // }
+                if host.0.borrow().exit_code.is_some() {
+                    break;
+                }
             }
             Ok(true) => {}
         }
