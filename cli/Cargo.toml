@@ -7,6 +7,7 @@ edition = "2021"
 anyhow = "1.0"
 iced-x86 = "1.17.0"
 log = "0.4.17"
+sdl2 = "0.35.2"
 
 [dependencies.win32]
 path = "../win32"

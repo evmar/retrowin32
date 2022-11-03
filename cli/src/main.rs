@@ -1,7 +1,11 @@
+extern crate sdl2;
 extern crate win32;
 
 mod logging;
-use std::io::Write;
+use std::{
+    cell::{Cell, RefCell},
+    io::Write,
+};
 
 use anyhow::bail;
 
@@ -26,7 +30,32 @@ fn dump_asm(runner: &win32::Runner) {
 }
 
 struct Host {
-    exit_code: std::cell::Cell<Option<u32>>,
+    video: sdl2::VideoSubsystem,
+    pump: RefCell<sdl2::EventPump>,
+    exit_code: Cell<Option<u32>>,
+}
+impl Host {
+    fn new() -> anyhow::Result<Self> {
+        let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
+        let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
+        let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
+
+        Ok(Host {
+            video,
+            pump: RefCell::new(pump),
+            exit_code: std::cell::Cell::new(None),
+        })
+    }
+    fn pump_messages(&self) -> bool {
+        for event in self.pump.borrow_mut().poll_iter() {
+            match event {
+                sdl2::event::Event::Quit { .. } => return false,
+                _ => {}
+            }
+            println!("ev {:?}", event);
+        }
+        true
+    }
 }
 impl win32::Host for Host {
     fn exit(&self, code: u32) {
@@ -42,10 +71,29 @@ impl win32::Host for Host {
     }
 
     fn create_window(&self) -> Box<dyn win32::Window> {
-        todo!()
+        Box::new(Window::new(&self.video))
     }
 
     fn create_surface(&self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+        todo!()
+    }
+}
+
+struct Window {
+    sdl_win: sdl2::video::Window,
+}
+impl Window {
+    fn new(video: &sdl2::VideoSubsystem) -> Self {
+        let sdl_win = video.window("retrowin32", 640, 480).build().unwrap();
+        Window { sdl_win }
+    }
+}
+impl win32::Window for Window {
+    fn set_title(&mut self, _title: &str) {
+        todo!()
+    }
+
+    fn set_size(&mut self, _width: u32, _height: u32) {
         todo!()
     }
 }
@@ -59,17 +107,26 @@ fn main() -> anyhow::Result<()> {
     };
 
     let buf = std::fs::read(exe)?;
-    let host = Host {
-        exit_code: std::cell::Cell::new(None),
-    };
+    let host = Host::new()?;
     let mut runner = win32::Runner::new(&host);
     runner.load_exe(&buf)?;
 
     while host.exit_code.get().is_none() {
-        if let Err(err) = runner.step() {
-            dump_asm(&runner);
-            log::error!("{:?}", err);
+        if !host.pump_messages() {
             break;
+        }
+        match runner.step_many(10000) {
+            Err(err) => {
+                dump_asm(&runner);
+                log::error!("{:?}", err);
+                break;
+            }
+            Ok(false) => {
+                if host.exit_code.get().is_some() {
+                    break;
+                }
+            }
+            Ok(true) => {}
         }
     }
 
