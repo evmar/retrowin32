@@ -1,5 +1,6 @@
 extern crate win32;
 
+mod logging;
 use std::io::Write;
 
 use anyhow::bail;
@@ -49,7 +50,8 @@ impl win32::Host for Host {
     }
 }
 
-fn run() -> anyhow::Result<()> {
+fn main() -> anyhow::Result<()> {
+    logging::init()?;
     let args: Vec<String> = std::env::args().collect();
     let exe = match args.as_slice() {
         [_, exe] => exe,
@@ -66,35 +68,10 @@ fn run() -> anyhow::Result<()> {
     while host.exit_code.get().is_none() {
         if let Err(err) = runner.step() {
             dump_asm(&runner);
-            println!("err: {:?}", err);
+            log::error!("{:?}", err);
             break;
         }
     }
 
     Ok(())
-}
-
-static LOGGER: Logger = Logger {};
-struct Logger {}
-
-impl log::Log for Logger {
-    fn enabled(&self, metadata: &log::Metadata) -> bool {
-        metadata.level() <= log::max_level()
-    }
-
-    fn log(&self, record: &log::Record) {
-        if !self.enabled(record.metadata()) {
-            return;
-        }
-
-        println!("{} {}", record.level(), record.args());
-    }
-
-    fn flush(&self) {}
-}
-
-fn main() {
-    log::set_logger(&LOGGER).unwrap();
-    log::set_max_level(log::LevelFilter::Debug);
-    run().unwrap();
 }
