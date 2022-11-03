@@ -42,7 +42,7 @@ pub trait Window {
 }
 
 pub trait Host {
-    fn exit(&self, code: u32);
+    fn exit(&mut self, code: u32);
     fn write(&self, buf: &[u8]) -> usize;
     fn time(&self) -> u32;
 

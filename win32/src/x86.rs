@@ -240,15 +240,15 @@ impl Shims {
     }
 }
 
-pub struct X86<'a> {
-    pub host: &'a dyn host::Host,
+pub struct X86 {
+    pub host: Box<dyn host::Host>,
     pub mem: Vec<u8>,
     pub regs: Registers,
     pub shims: Shims,
     pub state: winapi::State,
 }
-impl<'a> X86<'a> {
-    pub fn new(host: &'a dyn host::Host) -> Self {
+impl X86 {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut regs = Registers::new();
         regs.eax = 0xdeadbeea;
         regs.ebx = 0xdeadbeeb;
@@ -1289,8 +1289,8 @@ impl<'a> X86<'a> {
 }
 
 /// Manages decoding and running instructions in an owned X86.
-pub struct Runner<'a> {
-    pub x86: X86<'a>,
+pub struct Runner {
+    pub x86: X86,
     /// Total number of instructions executed.
     pub instr_count: usize,
 
@@ -1305,8 +1305,8 @@ pub struct Runner<'a> {
     /// Current position within code.  Updated from eip.
     instr_index: usize,
 }
-impl<'a> Runner<'a> {
-    pub fn new(host: &'a dyn host::Host) -> Self {
+impl Runner {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
         Runner {
             x86: X86::new(host),
             instr_count: 0,

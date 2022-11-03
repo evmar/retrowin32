@@ -98,7 +98,7 @@ extern "C" {
 }
 
 impl win32::Host for JsHost {
-    fn exit(&self, exit_code: u32) {
+    fn exit(&mut self, exit_code: u32) {
         JsHost::exit(self, exit_code)
     }
     fn write(&self, buf: &[u8]) -> usize {
@@ -119,11 +119,7 @@ impl win32::Host for JsHost {
 
 #[wasm_bindgen]
 pub struct Emulator {
-    // Hack: x86 expects a host to outlive it, but I cannot figure out the lifetimes.
-    // This member keeps host alive, and x86 holds a ref into it.
-    #[allow(dead_code)]
-    host: std::pin::Pin<Box<JsHost>>,
-    runner: win32::Runner<'static>,
+    runner: win32::Runner,
 }
 
 #[wasm_bindgen]
@@ -258,11 +254,8 @@ impl Emulator {
 
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost) -> Result<Emulator, String> {
-    let host = Box::pin(host);
-    let r = host.as_ref().get_ref();
-    let static_host: &'static JsHost = unsafe { std::mem::transmute(r) };
-    let runner = win32::Runner::new(static_host);
-    Ok(Emulator { host, runner })
+    let runner = win32::Runner::new(Box::new(host));
+    Ok(Emulator { runner })
 }
 
 fn panic_hook(info: &std::panic::PanicInfo) {

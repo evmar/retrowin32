@@ -2,10 +2,7 @@ extern crate sdl2;
 extern crate win32;
 
 mod logging;
-use std::{
-    cell::{Cell, RefCell},
-    io::Write,
-};
+use std::{cell::RefCell, io::Write, rc::Rc};
 
 use anyhow::bail;
 
@@ -29,21 +26,21 @@ fn dump_asm(runner: &win32::Runner) {
     }
 }
 
-struct Host {
+struct Env {
     video: sdl2::VideoSubsystem,
     pump: RefCell<sdl2::EventPump>,
-    exit_code: Cell<Option<u32>>,
+    exit_code: Option<u32>,
 }
-impl Host {
+impl Env {
     fn new() -> anyhow::Result<Self> {
         let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
         let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
         let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
 
-        Ok(Host {
+        Ok(Env {
             video,
             pump: RefCell::new(pump),
-            exit_code: std::cell::Cell::new(None),
+            exit_code: None,
         })
     }
     fn pump_messages(&self) -> bool {
@@ -57,9 +54,12 @@ impl Host {
         true
     }
 }
-impl win32::Host for Host {
-    fn exit(&self, code: u32) {
-        self.exit_code.set(Some(code));
+
+struct EnvRef(Rc<RefCell<Env>>);
+
+impl win32::Host for EnvRef {
+    fn exit(&mut self, code: u32) {
+        self.0.borrow_mut().exit_code = Some(code);
     }
 
     fn write(&self, buf: &[u8]) -> usize {
@@ -71,7 +71,7 @@ impl win32::Host for Host {
     }
 
     fn create_window(&self) -> Box<dyn win32::Window> {
-        Box::new(Window::new(&self.video))
+        Box::new(Window::new(&self.0.borrow().video))
     }
 
     fn create_surface(&self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
@@ -142,12 +142,12 @@ fn main() -> anyhow::Result<()> {
     };
 
     let buf = std::fs::read(exe)?;
-    let host = Host::new()?;
-    let mut runner = win32::Runner::new(&host);
+    let host = EnvRef(Rc::new(RefCell::new(Env::new()?)));
+    let mut runner = win32::Runner::new(Box::new(EnvRef(host.0.clone())));
     runner.load_exe(&buf)?;
 
-    while host.exit_code.get().is_none() {
-        if !host.pump_messages() {
+    loop {
+        if !host.0.borrow_mut().pump_messages() {
             break;
         }
         match runner.step_many(10000) {
@@ -157,9 +157,9 @@ fn main() -> anyhow::Result<()> {
                 break;
             }
             Ok(false) => {
-                if host.exit_code.get().is_some() {
-                    break;
-                }
+                // if host.exit_code.get().is_some() {
+                //     break;
+                // }
             }
             Ok(true) => {}
         }
