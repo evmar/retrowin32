@@ -107,7 +107,7 @@ impl win32::Host for JsHost {
     fn time(&self) -> u32 {
         JsHost::time(self)
     }
-    fn create_window(&self) -> Box<dyn win32::Window> {
+    fn create_window(&mut self) -> Box<dyn win32::Window> {
         let window = JsHost::create_window(self);
         window.set_title("test");
         Box::new(window)

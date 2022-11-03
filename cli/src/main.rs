@@ -28,7 +28,7 @@ fn dump_asm(runner: &win32::Runner) {
 
 struct Env {
     video: sdl2::VideoSubsystem,
-    pump: RefCell<sdl2::EventPump>,
+    pump: sdl2::EventPump,
     exit_code: Option<u32>,
 }
 impl Env {
@@ -39,12 +39,12 @@ impl Env {
 
         Ok(Env {
             video,
-            pump: RefCell::new(pump),
+            pump: pump,
             exit_code: None,
         })
     }
-    fn pump_messages(&self) -> bool {
-        for event in self.pump.borrow_mut().poll_iter() {
+    fn pump_messages(&mut self) -> bool {
+        for event in self.pump.poll_iter() {
             match event {
                 sdl2::event::Event::Quit { .. } => return false,
                 _ => {}
@@ -70,7 +70,7 @@ impl win32::Host for EnvRef {
         todo!()
     }
 
-    fn create_window(&self) -> Box<dyn win32::Window> {
+    fn create_window(&mut self) -> Box<dyn win32::Window> {
         Box::new(Window::new(&self.0.borrow().video))
     }
 
