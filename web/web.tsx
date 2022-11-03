@@ -177,8 +177,8 @@ class VM implements JsHost {
 
   stepPastBreak() {
     const ip = this.emu.eip;
-    console.log('past', ip, this.breakpoints);
-    if (this.breakpoints.has(ip)) {
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
       this.emu.breakpoint_clear(ip);
       this.step();
       this.emu.breakpoint_add(ip);
