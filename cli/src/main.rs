@@ -86,10 +86,14 @@ impl win32::Host for EnvRef {
 
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         if opts.primary {
-            let wr = self.0.borrow().win.as_ref().unwrap().clone();
-            Box::new(wr)
+            Box::new(Surface::Window(
+                self.0.borrow().win.as_ref().unwrap().clone(),
+            ))
         } else {
-            Box::new(OffscreenSurface::new(opts))
+            Box::new(Surface::Texture(Texture::new(
+                self.0.borrow().win.as_ref().unwrap(),
+                opts,
+            )))
         }
     }
 }
@@ -126,77 +130,94 @@ impl win32::Window for WindowRef {
             .unwrap();
     }
 }
-impl win32::Surface for WindowRef {
-    fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {
-        todo!()
+
+enum Surface {
+    Window(WindowRef),
+    Texture(Texture),
+}
+impl win32::Surface for Surface {
+    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
+        match self {
+            Surface::Window(_) => unimplemented!(),
+            Surface::Texture(t) => t.write_pixels(pixels),
+        }
     }
 
     fn get_attached(&self) -> Box<dyn win32::Surface> {
-        Box::new(self.clone())
+        match self {
+            Surface::Window(w) => Box::new(Surface::Window(w.clone())),
+            Surface::Texture(_) => unimplemented!(),
+        }
     }
 
     fn flip(&mut self) {
-        todo!()
+        match self {
+            Surface::Window(w) => w.0.borrow_mut().canvas.present(),
+            Surface::Texture(_) => unimplemented!(),
+        }
     }
 
     fn bit_blt(
         &mut self,
         dx: u32,
-        xy: u32,
+        dy: u32,
         src: &dyn win32::Surface,
         sx: u32,
         sy: u32,
         w: u32,
         h: u32,
     ) {
-        //let src = unsafe { &*(src as *const dyn win32::Surface as *const WindowRef) };
-        todo!();
+        let src_rect = sdl2::rect::Rect::new(sx as i32, sy as i32, w, h);
+        let src = unsafe { &*(src as *const dyn win32::Surface as *const Surface) };
+        let tex = match src {
+            Surface::Window(_) => unimplemented!(),
+            Surface::Texture(t) => &t.texture,
+        };
+        let dst_rect = sdl2::rect::Rect::new(dx as i32, dy as i32, w, h);
+        match self {
+            Surface::Window(wr) => {
+                wr.0.borrow_mut()
+                    .canvas
+                    .copy(tex, src_rect, dst_rect)
+                    .unwrap()
+            }
+            Surface::Texture(_) => unimplemented!(),
+        };
     }
 }
 
-struct OffscreenSurface {
-    canvas: sdl2::render::Canvas<sdl2::surface::Surface<'static>>,
+struct Texture {
+    texture: sdl2::render::Texture,
+    width: u32,
+    height: u32,
 }
-impl OffscreenSurface {
-    fn new(opts: &win32::SurfaceOptions) -> Self {
-        let surface = sdl2::surface::Surface::new(
-            opts.width,
-            opts.height,
-            sdl2::pixels::PixelFormatEnum::RGBA8888,
-        )
-        .unwrap();
-        let canvas = surface.into_canvas().unwrap();
-        OffscreenSurface { canvas }
+impl Texture {
+    fn new(win: &WindowRef, opts: &win32::SurfaceOptions) -> Self {
+        let texture = win
+            .0
+            .borrow()
+            .canvas
+            .texture_creator()
+            .create_texture_static(
+                sdl2::pixels::PixelFormatEnum::ABGR8888,
+                opts.width,
+                opts.height,
+            )
+            .unwrap();
+        Texture {
+            texture,
+            width: opts.width,
+            height: opts.height,
+        }
     }
-}
-impl win32::Surface for OffscreenSurface {
+
     fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
         let pixels_u8 =
             unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
-        self.canvas.surface_mut().with_lock_mut(|buf| {
-            buf.copy_from_slice(pixels_u8);
-        });
-    }
-
-    fn get_attached(&self) -> Box<dyn win32::Surface> {
-        todo!()
-    }
-
-    fn flip(&mut self) {
-        todo!()
-    }
-
-    fn bit_blt(
-        &mut self,
-        _dx: u32,
-        _xy: u32,
-        _other: &dyn win32::Surface,
-        _sx: u32,
-        _sy: u32,
-        _w: u32,
-        _h: u32,
-    ) {
-        todo!()
+        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
+        self.texture
+            .update(rect, pixels_u8, self.width as usize * 4)
+            .unwrap();
     }
 }
 
