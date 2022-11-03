@@ -124,7 +124,7 @@ impl win32::Window for WindowRef {
     }
 }
 impl win32::Surface for WindowRef {
-    fn write_pixels(&self, _pixels: &[[u8; 4]]) {
+    fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {
         todo!()
     }
 
@@ -132,12 +132,12 @@ impl win32::Surface for WindowRef {
         Box::new(self.clone())
     }
 
-    fn flip(&self) {
+    fn flip(&mut self) {
         todo!()
     }
 
     fn bit_blt(
-        &self,
+        &mut self,
         _dx: u32,
         _xy: u32,
         _other: &dyn win32::Surface,
@@ -166,7 +166,7 @@ impl OffscreenSurface {
     }
 }
 impl win32::Surface for OffscreenSurface {
-    fn write_pixels(&self, _pixels: &[[u8; 4]]) {
+    fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {
         //self.canvas.surface().with_lock_mut(|buf| {});
     }
 
@@ -174,12 +174,12 @@ impl win32::Surface for OffscreenSurface {
         todo!()
     }
 
-    fn flip(&self) {
+    fn flip(&mut self) {
         todo!()
     }
 
     fn bit_blt(
-        &self,
+        &mut self,
         _dx: u32,
         _xy: u32,
         _other: &dyn win32::Surface,

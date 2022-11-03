@@ -654,8 +654,12 @@ mod IDirectDrawSurface7 {
         if flags != 0 {
             log::warn!("BltFlat flags: {:x}", flags);
         }
-        let dst = x86.state.ddraw.surfaces.get(&this).unwrap();
-        let src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap();
+        let (dst, src) = unsafe {
+            let dst = x86.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut Surface;
+            let src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap() as *const Surface;
+            assert_ne!(dst as *const Surface, src);
+            (&mut *dst, &*src)
+        };
         let rect = x86.mem.view::<RECT>(lpRect);
         let sx = rect.left.get();
         let w = rect.right.get() - sx;
@@ -669,7 +673,7 @@ mod IDirectDrawSurface7 {
         if lpSurf != 0 || flags != 0 {
             log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
         }
-        let surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let surface = x86.state.ddraw.surfaces.get_mut(&this).unwrap();
         surface.host.flip();
         DD_OK
     }

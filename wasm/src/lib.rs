@@ -30,7 +30,7 @@ extern "C" {
 }
 
 impl win32::Surface for JsSurface {
-    fn write_pixels(&self, pixels: &[[u8; 4]]) {
+    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
         let slice = unsafe {
             let p = pixels.as_ptr() as *const u8;
             std::slice::from_raw_parts(p, pixels.len() * 4)
@@ -42,12 +42,12 @@ impl win32::Surface for JsSurface {
         Box::new(JsSurface::get_attached(self))
     }
 
-    fn flip(&self) {
+    fn flip(&mut self) {
         JsSurface::flip(self);
     }
 
     fn bit_blt(
-        &self,
+        &mut self,
         dx: u32,
         dy: u32,
         other: &dyn win32::Surface,

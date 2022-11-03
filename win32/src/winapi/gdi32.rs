@@ -135,7 +135,12 @@ pub fn BitBlt(
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
     let hdc = x86.state.gdi32.get_dc(hdc).unwrap();
-    let surface = x86.state.ddraw.surfaces.get(&hdc.ddraw_surface).unwrap();
+    let surface = x86
+        .state
+        .ddraw
+        .surfaces
+        .get_mut(&hdc.ddraw_surface)
+        .unwrap();
     let hdcSrc = x86.state.gdi32.get_dc(hdcSrc).unwrap();
     let obj = x86.state.gdi32.get_object(hdcSrc.bitmap).unwrap();
     let bitmap = match obj {
