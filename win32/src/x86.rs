@@ -635,7 +635,7 @@ impl X86 {
                     self.jmp(instr.near_branch32())?;
                 }
             }
-            iced_x86::Code::Jae_rel8_32 => {
+            iced_x86::Code::Jae_rel32_32 | iced_x86::Code::Jae_rel8_32 => {
                 if !self.regs.flags.contains(Flags::CF) {
                     self.jmp(instr.near_branch32())?;
                 }
@@ -645,7 +645,7 @@ impl X86 {
                     self.jmp(instr.near_branch32())?;
                 }
             }
-            iced_x86::Code::Jbe_rel8_32 => {
+            iced_x86::Code::Jbe_rel32_32 | iced_x86::Code::Jbe_rel8_32 => {
                 if self.regs.flags.contains(Flags::CF) || self.regs.flags.contains(Flags::ZF) {
                     self.jmp(instr.near_branch32())?;
                 }
@@ -1026,18 +1026,14 @@ impl X86 {
                 let value = x.wrapping_mul(y);
                 self.regs.set32(instr.op0_register(), value);
             }
+            iced_x86::Code::Imul_r32_rm32_imm32 => {
+                let x = self.op1_rm32(instr) as i32;
+                let y = instr.immediate32() as i32;
+                let value = x.wrapping_mul(y);
+                self.regs.set32(instr.op0_register(), value as u32);
+            }
             iced_x86::Code::Imul_r32_rm32_imm8 => {
-                let x = match instr.op1_kind() {
-                    iced_x86::OpKind::Register => {
-                        let reg = instr.op1_register();
-                        self.regs.get32(reg) as i32
-                    }
-                    iced_x86::OpKind::Memory => {
-                        let addr = self.addr(instr);
-                        self.read_u32(addr) as i32
-                    }
-                    _ => unimplemented!(),
-                };
+                let x = self.op1_rm32(instr) as i32;
                 let y = instr.immediate8to32();
                 let value = x.wrapping_mul(y);
                 self.regs.set32(instr.op0_register(), value as u32);
@@ -1188,6 +1184,16 @@ impl X86 {
                 };
                 let y = instr.immediate8();
                 self.and8(x, y);
+            }
+
+            iced_x86::Code::Bt_rm32_imm8 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = instr.immediate8() % 32;
+                self.regs.flags.set(Flags::CF, ((x >> y) & 1) != 0);
             }
 
             iced_x86::Code::Sete_rm8 => {
