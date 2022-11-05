@@ -281,6 +281,13 @@ pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
     x86.state.kernel32.image_base
 }
 
+pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: u32) -> u32 {
+    if lpModuleName != 0 {
+        log::error!("unimplemented: GetModuleHandleW(non-null)")
+    }
+    GetModuleHandleA(x86, 0)
+}
+
 #[repr(C)]
 struct STARTUPINFOA {
     cb: DWORD,
@@ -319,7 +326,7 @@ pub fn IsProcessorFeaturePresent(_x86: &mut X86, _feature: u32) -> bool {
 }
 
 pub fn IsDebuggerPresent(_x86: &mut X86) -> bool {
-    false
+    true // Might cause a binary to log info via the debug API? Not sure.
 }
 
 pub fn GetCurrentThreadId(_x86: &mut X86) -> u32 {
@@ -554,4 +561,17 @@ pub fn InitializeCriticalSectionAndSpinCount(
 ) -> bool {
     // On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero).
     false
+}
+
+pub fn EnterCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+    0
+}
+
+pub fn SetUnhandledExceptionFilter(_x86: &mut X86, _lpTopLevelExceptionFilter: u32) -> u32 {
+    0 // No current handler.
+}
+
+pub fn UnhandledExceptionFilter(_x86: &mut X86, _exceptionInfo: u32) -> u32 {
+    // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
+    0 // EXCEPTION_CONTINUE_SEARCH
 }

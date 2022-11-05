@@ -1049,12 +1049,12 @@ impl X86 {
                 self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
             }
             iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {
-                // TODO: flags.
+                // TODO: flags.  Note that it's not add32(1) because CF should be preserved.
                 self.rm32_x(instr, |_x86, x| x + 1);
             }
             iced_x86::Code::Inc_rm8 => {
-                // TODO: flags.
-                self.rm8_x(instr, |_x86, x| x + 1);
+                // TODO: flags.  Note that it's not add8(1) because CF should be preserved.
+                self.rm8_x(instr, |_x86, x| x.wrapping_add(1));
             }
             iced_x86::Code::Neg_rm32 => {
                 self.rm32_x(instr, |x86, x| {
@@ -1104,6 +1104,15 @@ impl X86 {
                 };
                 let y = instr.immediate8to32() as u32;
                 self.sub32(x, y);
+            }
+            iced_x86::Code::Cmp_rm16_r16 => {
+                let x = match instr.op0_kind() {
+                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
+                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
+                    _ => unreachable!(),
+                };
+                let y = self.op1_rm16(instr);
+                self.sub16(x, y);
             }
             iced_x86::Code::Cmp_rm16_imm16 => {
                 let x = match instr.op0_kind() {

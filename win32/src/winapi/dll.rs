@@ -143,6 +143,10 @@ pub mod kernel32 {
         let lpModuleName: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleA(x86, lpModuleName) as u32;
     }
+    fn GetModuleHandleW(x86: &mut X86) {
+        let lpModuleName: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::GetModuleHandleW(x86, lpModuleName) as u32;
+    }
     fn GetStartupInfoA(x86: &mut X86) {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
@@ -275,6 +279,19 @@ pub mod kernel32 {
             _dwSpinCount,
         ) as u32;
     }
+    fn EnterCriticalSection(x86: &mut X86) {
+        let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::EnterCriticalSection(x86, _lpCriticalSection) as u32;
+    }
+    fn SetUnhandledExceptionFilter(x86: &mut X86) {
+        let _lpTopLevelExceptionFilter: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax =
+            winapi::kernel32::SetUnhandledExceptionFilter(x86, _lpTopLevelExceptionFilter) as u32;
+    }
+    fn UnhandledExceptionFilter(x86: &mut X86) {
+        let _exceptionInfo: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::UnhandledExceptionFilter(x86, _exceptionInfo) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "GetLastError" => GetLastError,
@@ -289,6 +306,7 @@ pub mod kernel32 {
             "GetFileType" => GetFileType,
             "GetModuleFileNameA" => GetModuleFileNameA,
             "GetModuleHandleA" => GetModuleHandleA,
+            "GetModuleHandleW" => GetModuleHandleW,
             "GetStartupInfoA" => GetStartupInfoA,
             "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
             "IsDebuggerPresent" => IsDebuggerPresent,
@@ -314,6 +332,9 @@ pub mod kernel32 {
             "VirtualFree" => VirtualFree,
             "OutputDebugStringA" => OutputDebugStringA,
             "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
+            "EnterCriticalSection" => EnterCriticalSection,
+            "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
+            "UnhandledExceptionFilter" => UnhandledExceptionFilter,
             _ => return None,
         })
     }
