@@ -709,9 +709,9 @@ impl X86 {
                 self.push(value);
             }
 
-            iced_x86::Code::Pop_r32 => {
+            iced_x86::Code::Pop_r32 | iced_x86::Code::Pop_rm32 => {
                 let value = self.pop();
-                self.regs.set32(instr.op0_register(), value);
+                self.rm32_x(instr, |_x86, _x| value);
             }
 
             iced_x86::Code::Mov_rm32_imm32 => {
@@ -740,7 +740,7 @@ impl X86 {
             iced_x86::Code::Mov_r16_rm16 => {
                 self.regs.set16(instr.op0_register(), self.op1_rm16(instr));
             }
-            iced_x86::Code::Mov_rm16_r16 => {
+            iced_x86::Code::Mov_rm16_r16 | iced_x86::Code::Mov_rm16_Sreg => {
                 let y = instr.immediate16();
                 self.rm16_x(instr, |_x86, _x| y);
             }
@@ -1020,6 +1020,13 @@ impl X86 {
                 let value = self.sub32(self.regs.get32(reg), y);
                 self.regs.set32(reg, value);
             }
+            iced_x86::Code::Sbb_r8_rm8 => {
+                let reg = instr.op0_register();
+                let carry = self.regs.flags.contains(Flags::CF) as u8;
+                let y = self.op1_rm8(instr).wrapping_add(carry);
+                let value = self.sub8(self.regs.get8(reg), y);
+                self.regs.set8(reg, value);
+            }
             iced_x86::Code::Imul_r32_rm32 => {
                 let x = self.regs.get32(instr.op0_register());
                 let y = self.op1_rm32(instr);
@@ -1044,6 +1051,10 @@ impl X86 {
             iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {
                 // TODO: flags.
                 self.rm32_x(instr, |_x86, x| x + 1);
+            }
+            iced_x86::Code::Inc_rm8 => {
+                // TODO: flags.
+                self.rm8_x(instr, |_x86, x| x + 1);
             }
             iced_x86::Code::Neg_rm32 => {
                 self.rm32_x(instr, |x86, x| {
@@ -1297,6 +1308,12 @@ impl X86 {
                 self.regs.edx = self.pop();
                 self.regs.ecx = self.pop();
                 self.regs.eax = self.pop();
+            }
+            iced_x86::Code::Pushfd => {
+                self.push(self.regs.flags.bits());
+            }
+            iced_x86::Code::Popfd => {
+                self.regs.flags = Flags::from_bits(self.pop()).unwrap();
             }
 
             iced_x86::Code::Cwde => {
