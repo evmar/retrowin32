@@ -781,6 +781,22 @@ impl X86 {
                     tmp
                 });
             }
+            iced_x86::Code::Cmpxchg_rm32_r32 => {
+                let y = self.regs.get32(instr.op1_register());
+                match instr.op0_kind() {
+                    iced_x86::OpKind::Register => todo!(),
+                    iced_x86::OpKind::Memory => {
+                        let addr = self.addr(instr);
+                        let x = self.mem.read_u32(addr);
+                        if self.regs.eax == x {
+                            self.mem.write_u32(addr, y);
+                        } else {
+                            self.regs.eax = y;
+                        }
+                    }
+                    _ => unreachable!(),
+                };
+            }
 
             iced_x86::Code::Cmpsb_m8_m8 => {
                 let p1 = self.regs.esi as usize;
@@ -945,6 +961,10 @@ impl X86 {
             }
             iced_x86::Code::Xor_rm8_imm8 => {
                 let y = instr.immediate8();
+                self.rm8_x(instr, |_x86, x| x ^ y);
+            }
+            iced_x86::Code::Xor_r8_rm8 => {
+                let y = self.op1_rm8(instr);
                 self.rm8_x(instr, |_x86, x| x ^ y);
             }
 
@@ -1174,6 +1194,10 @@ impl X86 {
                 let value = self.regs.flags.contains(Flags::ZF) as u8;
                 self.rm8_x(instr, |_x86, _x| value);
             }
+            iced_x86::Code::Setne_rm8 => {
+                let value = !self.regs.flags.contains(Flags::ZF) as u8;
+                self.rm8_x(instr, |_x86, _x| value);
+            }
             iced_x86::Code::Setge_rm8 => {
                 let value = (self.regs.flags.contains(Flags::ZF)
                     == self.regs.flags.contains(Flags::OF)) as u8;
@@ -1279,6 +1303,8 @@ impl X86 {
                     0xFFFF_FFFF
                 };
             }
+
+            iced_x86::Code::Nopd => {}
 
             iced_x86::Code::Int3 => {
                 return Ok(false);
