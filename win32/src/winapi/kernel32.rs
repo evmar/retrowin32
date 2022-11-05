@@ -545,8 +545,8 @@ pub fn OutputDebugStringA(_x86: &mut X86, msg: &str) -> u32 {
 
 pub fn InitializeCriticalSectionAndSpinCount(
     _x86: &mut X86,
-    lpCriticalSection: u32,
-    dwSpinCount: u32,
+    _lpCriticalSection: u32,
+    _dwSpinCount: u32,
 ) -> bool {
     // On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero).
     false

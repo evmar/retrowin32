@@ -264,12 +264,12 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::OutputDebugStringA(x86, msg) as u32;
     }
     fn InitializeCriticalSectionAndSpinCount(x86: &mut X86) {
-        let lpCriticalSection: u32 = unsafe { from_x86(x86) };
-        let dwSpinCount: u32 = unsafe { from_x86(x86) };
+        let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
+        let _dwSpinCount: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::InitializeCriticalSectionAndSpinCount(
             x86,
-            lpCriticalSection,
-            dwSpinCount,
+            _lpCriticalSection,
+            _dwSpinCount,
         ) as u32;
     }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
