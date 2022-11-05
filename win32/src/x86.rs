@@ -1038,7 +1038,7 @@ impl X86 {
             }
 
             iced_x86::Code::Not_rm32 => {
-                self.rm32_x(instr, |x86, x| !x);
+                self.rm32_x(instr, |_x86, x| !x);
             }
 
             iced_x86::Code::Lea_r32_m => {

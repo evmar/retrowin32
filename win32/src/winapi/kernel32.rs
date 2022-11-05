@@ -310,6 +310,10 @@ pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     0
 }
 
+pub fn IsProcessorFeaturePresent(_x86: &mut X86, _feature: u32) -> bool {
+    false
+}
+
 pub fn GetCurrentThreadId(_x86: &mut X86) -> u32 {
     1
 }
@@ -331,7 +335,7 @@ pub fn GetTickCount(x86: &mut X86) -> u32 {
     x86.host.time()
 }
 
-pub fn QueryPerformanceCounter(x86: &mut X86, _ptr: u32) -> bool {
+pub fn QueryPerformanceCounter(_x86: &mut X86, _ptr: u32) -> bool {
     true // success
 }
 

@@ -144,6 +144,10 @@ pub mod kernel32 {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
     }
+    fn IsProcessorFeaturePresent(x86: &mut X86) {
+        let feature: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, feature) as u32;
+    }
     fn GetCurrentThreadId(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetCurrentThreadId(x86) as u32;
     }
@@ -158,8 +162,8 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetTickCount(x86) as u32;
     }
     fn QueryPerformanceCounter(x86: &mut X86) {
-        let ptr: u32 = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::kernel32::QueryPerformanceCounter(x86, ptr) as u32;
+        let _ptr: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::QueryPerformanceCounter(x86, _ptr) as u32;
     }
     fn GetSystemTimeAsFileTime(x86: &mut X86) {
         let _time: &mut FILETIME = unsafe { from_x86(x86) };
@@ -264,6 +268,7 @@ pub mod kernel32 {
             "GetModuleFileNameA" => GetModuleFileNameA,
             "GetModuleHandleA" => GetModuleHandleA,
             "GetStartupInfoA" => GetStartupInfoA,
+            "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
             "GetCurrentThreadId" => GetCurrentThreadId,
             "GetCurrentProcessId" => GetCurrentProcessId,
             "GetStdHandle" => GetStdHandle,
