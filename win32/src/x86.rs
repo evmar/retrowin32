@@ -1037,6 +1037,10 @@ impl X86 {
                 });
             }
 
+            iced_x86::Code::Not_rm32 => {
+                self.rm32_x(instr, |x86, x| !x);
+            }
+
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
                 self.regs.set32(instr.op0_register(), self.addr(instr));
