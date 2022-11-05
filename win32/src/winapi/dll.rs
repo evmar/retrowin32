@@ -97,6 +97,9 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
+    fn GetLastError(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetLastError(x86) as u32;
+    }
     fn ExitProcess(x86: &mut X86) {
         let uExitCode: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::ExitProcess(x86, uExitCode) as u32;
@@ -145,8 +148,8 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
     }
     fn IsProcessorFeaturePresent(x86: &mut X86) {
-        let feature: u32 = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, feature) as u32;
+        let _feature: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, _feature) as u32;
     }
     fn GetCurrentThreadId(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetCurrentThreadId(x86) as u32;
@@ -216,6 +219,12 @@ pub mod kernel32 {
         let lpLibFileName: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, lpLibFileName) as u32;
     }
+    fn LoadLibraryExW(x86: &mut X86) {
+        let lpLibFileName: u32 = unsafe { from_x86(x86) };
+        let hFile: u32 = unsafe { from_x86(x86) };
+        let dwFlags: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::LoadLibraryExW(x86, lpLibFileName, hFile, dwFlags) as u32;
+    }
     fn SetHandleCount(x86: &mut X86) {
         let uNumber: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::SetHandleCount(x86, uNumber) as u32;
@@ -254,8 +263,18 @@ pub mod kernel32 {
         let msg: &str = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::OutputDebugStringA(x86, msg) as u32;
     }
+    fn InitializeCriticalSectionAndSpinCount(x86: &mut X86) {
+        let lpCriticalSection: u32 = unsafe { from_x86(x86) };
+        let dwSpinCount: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::InitializeCriticalSectionAndSpinCount(
+            x86,
+            lpCriticalSection,
+            dwSpinCount,
+        ) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
+            "GetLastError" => GetLastError,
             "ExitProcess" => ExitProcess,
             "GetACP" => GetACP,
             "GetCommandLineA" => GetCommandLineA,
@@ -284,11 +303,13 @@ pub mod kernel32 {
             "HeapCreate" => HeapCreate,
             "HeapDestroy" => HeapDestroy,
             "LoadLibraryA" => LoadLibraryA,
+            "LoadLibraryExW" => LoadLibraryExW,
             "SetHandleCount" => SetHandleCount,
             "WriteFile" => WriteFile,
             "VirtualAlloc" => VirtualAlloc,
             "VirtualFree" => VirtualFree,
             "OutputDebugStringA" => OutputDebugStringA,
+            "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
             _ => return None,
         })
     }

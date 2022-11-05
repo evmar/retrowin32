@@ -200,6 +200,10 @@ impl State {
     }
 }
 
+pub fn GetLastError(_x86: &mut X86) -> u32 {
+    0x1c // printer out of paper
+}
+
 /// A magic address that we jump to to end the process.
 // TODO: this is pretty unsatisfying, we register this as a break point?
 // Maybe better is to generate a hlt instruction somewhere and jump to it?
@@ -458,6 +462,11 @@ pub fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
     0 // fail
 }
 
+pub fn LoadLibraryExW(_x86: &mut X86, lpLibFileName: u32, hFile: u32, dwFlags: u32) -> u32 {
+    log::error!("LoadLibraryExW({lpLibFileName:x}, {hFile:x}, {dwFlags:x})");
+    0 // fail
+}
+
 pub fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
@@ -532,4 +541,13 @@ impl From<u32> for HMODULE {
 pub fn OutputDebugStringA(_x86: &mut X86, msg: &str) -> u32 {
     log::warn!("OutputDebugStringA: {:?}", msg);
     0
+}
+
+pub fn InitializeCriticalSectionAndSpinCount(
+    _x86: &mut X86,
+    lpCriticalSection: u32,
+    dwSpinCount: u32,
+) -> bool {
+    // On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero).
+    false
 }
