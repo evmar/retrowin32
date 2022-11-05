@@ -318,6 +318,10 @@ pub fn IsProcessorFeaturePresent(_x86: &mut X86, _feature: u32) -> bool {
     false
 }
 
+pub fn IsDebuggerPresent(_x86: &mut X86) -> bool {
+    false
+}
+
 pub fn GetCurrentThreadId(_x86: &mut X86) -> u32 {
     1
 }

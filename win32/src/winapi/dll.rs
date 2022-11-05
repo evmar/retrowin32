@@ -151,6 +151,9 @@ pub mod kernel32 {
         let _feature: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, _feature) as u32;
     }
+    fn IsDebuggerPresent(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::IsDebuggerPresent(x86) as u32;
+    }
     fn GetCurrentThreadId(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetCurrentThreadId(x86) as u32;
     }
@@ -288,6 +291,7 @@ pub mod kernel32 {
             "GetModuleHandleA" => GetModuleHandleA,
             "GetStartupInfoA" => GetStartupInfoA,
             "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
+            "IsDebuggerPresent" => IsDebuggerPresent,
             "GetCurrentThreadId" => GetCurrentThreadId,
             "GetCurrentProcessId" => GetCurrentProcessId,
             "GetStdHandle" => GetStdHandle,
