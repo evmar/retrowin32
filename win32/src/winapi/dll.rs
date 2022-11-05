@@ -144,12 +144,26 @@ pub mod kernel32 {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
     }
+    fn GetCurrentThreadId(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetCurrentThreadId(x86) as u32;
+    }
+    fn GetCurrentProcessId(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetCurrentProcessId(x86) as u32;
+    }
     fn GetStdHandle(x86: &mut X86) {
         let nStdHandle: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStdHandle(x86, nStdHandle) as u32;
     }
     fn GetTickCount(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetTickCount(x86) as u32;
+    }
+    fn QueryPerformanceCounter(x86: &mut X86) {
+        let ptr: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::QueryPerformanceCounter(x86, ptr) as u32;
+    }
+    fn GetSystemTimeAsFileTime(x86: &mut X86) {
+        let _time: &mut FILETIME = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::GetSystemTimeAsFileTime(x86, _time) as u32;
     }
     fn GetVersion(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetVersion(x86) as u32;
@@ -250,8 +264,12 @@ pub mod kernel32 {
             "GetModuleFileNameA" => GetModuleFileNameA,
             "GetModuleHandleA" => GetModuleHandleA,
             "GetStartupInfoA" => GetStartupInfoA,
+            "GetCurrentThreadId" => GetCurrentThreadId,
+            "GetCurrentProcessId" => GetCurrentProcessId,
             "GetStdHandle" => GetStdHandle,
             "GetTickCount" => GetTickCount,
+            "QueryPerformanceCounter" => QueryPerformanceCounter,
+            "GetSystemTimeAsFileTime" => GetSystemTimeAsFileTime,
             "GetVersion" => GetVersion,
             "GetVersionExA" => GetVersionExA,
             "HeapAlloc" => HeapAlloc,
@@ -356,8 +374,8 @@ pub mod user32 {
         x86.regs.eax = winapi::user32::LoadCursorA(x86, _hInstance, _lpCursorName) as u32;
     }
     fn ShowCursor(x86: &mut X86) {
-        let bShow: bool = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::user32::ShowCursor(x86, bShow) as u32;
+        let _bShow: bool = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::user32::ShowCursor(x86, _bShow) as u32;
     }
     fn LoadImageA(x86: &mut X86) {
         let hInstance: u32 = unsafe { from_x86(x86) };

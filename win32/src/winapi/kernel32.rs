@@ -310,6 +310,14 @@ pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     0
 }
 
+pub fn GetCurrentThreadId(_x86: &mut X86) -> u32 {
+    1
+}
+
+pub fn GetCurrentProcessId(_x86: &mut X86) -> u32 {
+    1
+}
+
 pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     match nStdHandle as i32 {
         -10 => STDIN_HFILE,
@@ -321,6 +329,20 @@ pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
 
 pub fn GetTickCount(x86: &mut X86) -> u32 {
     x86.host.time()
+}
+
+pub fn QueryPerformanceCounter(x86: &mut X86, _ptr: u32) -> bool {
+    true // success
+}
+
+#[repr(C)]
+pub struct FILETIME {
+    dwLowDateTime: DWORD,
+    dwHighDateTime: DWORD,
+}
+unsafe impl Pod for FILETIME {}
+pub fn GetSystemTimeAsFileTime(_x86: &mut X86, _time: &mut FILETIME) -> u32 {
+    0
 }
 
 pub fn GetVersion(_x86: &mut X86) -> u32 {
