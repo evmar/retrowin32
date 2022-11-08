@@ -53,6 +53,15 @@ bitflags! {
     }
 }
 
+/// Offset from top of FP stack for a given ST0, ST1 etc reg.
+fn st_offset(reg: iced_x86::Register) -> usize {
+    match reg {
+        iced_x86::Register::ST0 => 0,
+        iced_x86::Register::ST1 => 1,
+        _ => unreachable!("{reg:?}"),
+    }
+}
+
 #[derive(Tsify)]
 pub struct Registers {
     pub eax: u32,
@@ -201,13 +210,11 @@ impl Registers {
     fn st_top(&mut self) -> &mut f64 {
         &mut self.st[self.st_top]
     }
+    fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
+        self.st.swap(st_offset(r1), st_offset(r2));
+    }
     fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
-        let ofs = match reg {
-            iced_x86::Register::ST0 => 0,
-            iced_x86::Register::ST1 => 1,
-            _ => unreachable!("{reg:?}"),
-        };
-        &mut self.st[self.st_top + ofs]
+        &mut self.st[self.st_top + st_offset(reg)]
     }
 }
 
@@ -1311,12 +1318,8 @@ impl X86 {
             }
 
             iced_x86::Code::Fxch_st0_sti => {
-                // Unsatisfying: cannot get two mut references to regs.
-                let x = *self.regs.getst(instr.op0_register());
-                let y = self.regs.getst(instr.op1_register());
-                let t = *y;
-                *y = x;
-                *self.regs.getst(instr.op0_register()) = t;
+                self.regs
+                    .st_swap(instr.op0_register(), instr.op1_register());
             }
 
             iced_x86::Code::Pushad => {
