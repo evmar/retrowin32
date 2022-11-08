@@ -53,6 +53,15 @@ bitflags! {
     }
 }
 
+bitflags! {
+    pub struct FPUStatus: u16 {
+        const C3 = 1 << 14;
+        const C2 = 1 << 10;
+        const C1 = 1 << 9;
+        const C0 = 1 << 8;
+    }
+}
+
 /// Offset from top of FP stack for a given ST0, ST1 etc reg.
 fn st_offset(reg: iced_x86::Register) -> usize {
     match reg {
@@ -89,6 +98,8 @@ pub struct Registers {
     pub st: [f64; 8],
     /// Top of FPU stack; 8 when stack empty.
     pub st_top: usize,
+    /// FPU status word (TODO fold st_top in here?)
+    pub fpu_status: FPUStatus,
 }
 impl Registers {
     fn new() -> Self {
@@ -112,6 +123,7 @@ impl Registers {
 
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             st_top: 8,
+            fpu_status: FPUStatus::empty(),
         }
     }
 
@@ -1358,6 +1370,28 @@ impl X86 {
             iced_x86::Code::Fxch_st0_sti => {
                 self.regs
                     .st_swap(instr.op0_register(), instr.op1_register());
+            }
+
+            iced_x86::Code::Fcomp_m64fp => {
+                let x = *self.regs.st_top();
+                let y = self.read_f64(self.addr(instr));
+                if x > y {
+                    self.regs.fpu_status.set(FPUStatus::C3, false);
+                    self.regs.fpu_status.set(FPUStatus::C2, false);
+                    self.regs.fpu_status.set(FPUStatus::C0, false);
+                } else if x < y {
+                    self.regs.fpu_status.set(FPUStatus::C3, false);
+                    self.regs.fpu_status.set(FPUStatus::C2, false);
+                    self.regs.fpu_status.set(FPUStatus::C0, true);
+                } else if x == y {
+                    self.regs.fpu_status.set(FPUStatus::C3, true);
+                    self.regs.fpu_status.set(FPUStatus::C2, false);
+                    self.regs.fpu_status.set(FPUStatus::C0, false);
+                } else {
+                    self.regs.fpu_status.set(FPUStatus::C3, true);
+                    self.regs.fpu_status.set(FPUStatus::C2, true);
+                    self.regs.fpu_status.set(FPUStatus::C0, true);
+                }
             }
 
             iced_x86::Code::Pushad => {
