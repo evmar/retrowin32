@@ -156,7 +156,7 @@ impl Registers {
             iced_x86::Register::DS => self.ds,
             iced_x86::Register::FS => self.fs,
             iced_x86::Register::GS => self.gs,
-            _ => unreachable!(),
+            _ => unreachable!("{reg:?}"),
         }
     }
     fn get8(&self, reg: iced_x86::Register) -> u8 {
@@ -1315,10 +1315,15 @@ impl X86 {
                 let reg = self.regs.st_top();
                 *reg = reg.cos();
             }
-
             iced_x86::Code::Fsin => {
                 let reg = self.regs.st_top();
                 *reg = reg.sin();
+            }
+            iced_x86::Code::Fpatan => {
+                let x = *self.regs.st_top();
+                self.regs.st_top += 1;
+                let reg = self.regs.st_top();
+                *reg = reg.atan2(x);
             }
 
             iced_x86::Code::Fsqrt => {
@@ -1367,6 +1372,11 @@ impl X86 {
                 self.regs.st_top += 1;
             }
 
+            iced_x86::Code::Fdiv_m64fp => {
+                let y = self.read_f64(self.addr(instr));
+                *self.regs.st_top() /= y;
+            }
+
             iced_x86::Code::Fxch_st0_sti => {
                 self.regs
                     .st_swap(instr.op0_register(), instr.op1_register());
@@ -1392,6 +1402,10 @@ impl X86 {
                     self.regs.fpu_status.set(FPUStatus::C2, true);
                     self.regs.fpu_status.set(FPUStatus::C0, true);
                 }
+            }
+            iced_x86::Code::Fnstsw_AX => {
+                // TODO: does this need stack top in it?
+                self.regs.eax = self.regs.fpu_status.bits() as u32;
             }
 
             iced_x86::Code::Pushad => {
@@ -1420,6 +1434,11 @@ impl X86 {
             }
             iced_x86::Code::Popfd => {
                 self.regs.flags = Flags::from_bits(self.pop()).unwrap();
+            }
+            iced_x86::Code::Sahf => {
+                let ah = (self.regs.eax >> 8) as u8;
+                self.regs.flags =
+                    Flags::from_bits((self.regs.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
             }
 
             iced_x86::Code::Cwde => {
