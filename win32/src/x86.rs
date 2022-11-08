@@ -945,6 +945,10 @@ impl X86 {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| x >> y);
             }
+            iced_x86::Code::Sar_rm32_imm8 => {
+                let y = instr.immediate8() as u32;
+                self.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+            }
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
                 self.rm32_x(instr, |_x86, x| x ^ y);
@@ -1234,6 +1238,10 @@ impl X86 {
                 self.regs.st_len += 1;
                 *self.regs.st_top() = 1.0;
             }
+            iced_x86::Code::Fld_m64fp => {
+                self.regs.st_len += 1;
+                *self.regs.st_top() = self.read_f64(self.addr(instr));
+            }
             iced_x86::Code::Fld_m32fp => {
                 self.regs.st_len += 1;
                 *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
@@ -1246,6 +1254,7 @@ impl X86 {
                 self.regs.st_len += 1;
                 *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
             }
+
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
@@ -1255,6 +1264,10 @@ impl X86 {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), f as i32 as u32);
                 self.regs.st_len -= 1;
+            }
+
+            iced_x86::Code::Fchs => {
+                *self.regs.st_top() = -*self.regs.st_top();
             }
 
             iced_x86::Code::Fcos => {
@@ -1295,6 +1308,15 @@ impl X86 {
                 let x = self.regs.getst(instr.op0_register());
                 *x *= y;
                 self.regs.st_len -= 1;
+            }
+
+            iced_x86::Code::Fxch_st0_sti => {
+                // Unsatisfying: cannot get two mut references to regs.
+                let x = *self.regs.getst(instr.op0_register());
+                let y = self.regs.getst(instr.op1_register());
+                let t = *y;
+                *y = x;
+                *self.regs.getst(instr.op0_register()) = t;
             }
 
             iced_x86::Code::Pushad => {
