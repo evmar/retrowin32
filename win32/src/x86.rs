@@ -385,6 +385,13 @@ impl X86 {
         (seg + base + index).wrapping_add(instr.memory_displacement32())
     }
 
+    fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+            iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
     fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op1_register()),
@@ -696,6 +703,11 @@ impl X86 {
             }
             iced_x86::Code::Jne_rel32_32 | iced_x86::Code::Jne_rel8_32 => {
                 if !self.regs.flags.contains(Flags::ZF) {
+                    self.jmp(instr.near_branch32())?;
+                }
+            }
+            iced_x86::Code::Jns_rel32_32 | iced_x86::Code::Jns_rel8_32 => {
+                if !self.regs.flags.contains(Flags::SF) {
                     self.jmp(instr.near_branch32())?;
                 }
             }
@@ -1077,6 +1089,13 @@ impl X86 {
                 let y = instr.immediate8to32();
                 let value = x.wrapping_mul(y);
                 self.regs.set32(instr.op0_register(), value as u32);
+            }
+            iced_x86::Code::Idiv_rm32 => {
+                let x = (((self.regs.edx as u64) << 32) | (self.regs.eax as u64)) as i64;
+                let y = self.op0_rm32(instr) as i32 as i64;
+                self.regs.eax = (x / y) as i32 as u32;
+                self.regs.edx = (x % y) as i32 as u32;
+                // TODO: flags.
             }
             iced_x86::Code::Dec_r32 => {
                 self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
