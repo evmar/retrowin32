@@ -331,6 +331,14 @@ impl X86 {
         f64::from_bits(n)
     }
 
+    pub fn write_f64(&mut self, addr: u32, value: f64) {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer read at {addr:#x}");
+        }
+        let addr = addr as usize;
+        self.mem[addr..addr + 8].copy_from_slice(&f64::to_le_bytes(value));
+    }
+
     pub fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
         self.write_u32(self.regs.esp, value);
@@ -952,7 +960,7 @@ impl X86 {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| x >> y);
             }
-            iced_x86::Code::Sar_rm32_imm8 => {
+            iced_x86::Code::Sar_rm32_imm8 | iced_x86::Code::Sar_rm32_1 => {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
             }
@@ -1245,6 +1253,11 @@ impl X86 {
                 self.regs.st_top -= 1;
                 *self.regs.st_top() = 1.0;
             }
+            iced_x86::Code::Fldz => {
+                self.regs.st_top -= 1;
+                *self.regs.st_top() = 0.0;
+            }
+
             iced_x86::Code::Fld_m64fp => {
                 self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_f64(self.addr(instr));
@@ -1262,6 +1275,15 @@ impl X86 {
                 *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
             }
 
+            iced_x86::Code::Fst_m64fp => {
+                let f = *self.regs.st_top();
+                self.write_f64(self.addr(instr), f);
+            }
+            iced_x86::Code::Fstp_m64fp => {
+                let f = *self.regs.st_top();
+                self.write_f64(self.addr(instr), f);
+                self.regs.st_top += 1;
+            }
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
@@ -1292,10 +1314,21 @@ impl X86 {
                 *reg = reg.sqrt();
             }
 
+            iced_x86::Code::Fadd_m64fp => {
+                let y = self.read_f64(self.addr(instr));
+                *self.regs.st_top() += y;
+            }
             iced_x86::Code::Fadd_m32fp => {
                 let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
                 *self.regs.st_top() += y;
             }
+            iced_x86::Code::Faddp_sti_st0 => {
+                let y = *self.regs.getst(instr.op1_register());
+                let x = self.regs.getst(instr.op0_register());
+                *x += y;
+                self.regs.st_top += 1;
+            }
+
             iced_x86::Code::Fsubr_m64fp => {
                 let x = self.read_f64(self.addr(instr));
                 let y = self.regs.st_top();
@@ -1309,6 +1342,11 @@ impl X86 {
             iced_x86::Code::Fmul_m32fp => {
                 let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
                 *self.regs.st_top() *= y;
+            }
+            iced_x86::Code::Fmul_st0_sti | iced_x86::Code::Fmul_sti_st0 => {
+                let y = *self.regs.getst(instr.op1_register());
+                let x = self.regs.getst(instr.op0_register());
+                *x *= y;
             }
             iced_x86::Code::Fmulp_sti_st0 => {
                 let y = *self.regs.st_top();
