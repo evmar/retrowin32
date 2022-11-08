@@ -209,7 +209,7 @@ impl Emulator {
     }
 
     pub fn st(&self) -> Box<[f64]> {
-        let s = &self.runner.x86.regs.st[0..self.runner.x86.regs.st_len];
+        let s = &self.runner.x86.regs.st[self.runner.x86.regs.st_top..];
         s.into()
     }
 

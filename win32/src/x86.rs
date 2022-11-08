@@ -78,8 +78,8 @@ pub struct Registers {
 
     /// FPU registers.
     pub st: [f64; 8],
-    /// Top of FPU stack is at len-1.
-    pub st_len: usize,
+    /// Top of FPU stack; 8 when stack empty.
+    pub st_top: usize,
 }
 impl Registers {
     fn new() -> Self {
@@ -102,7 +102,7 @@ impl Registers {
             flags: Flags::empty(),
 
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            st_len: 0,
+            st_top: 8,
         }
     }
 
@@ -199,7 +199,7 @@ impl Registers {
 
     /// Get st(0), the current top of the FPU stack.
     fn st_top(&mut self) -> &mut f64 {
-        &mut self.st[self.st_len - 1]
+        &mut self.st[self.st_top]
     }
     fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
         let ofs = match reg {
@@ -207,7 +207,7 @@ impl Registers {
             iced_x86::Register::ST1 => 1,
             _ => unreachable!("{reg:?}"),
         };
-        &mut self.st[self.st_len - ofs - 1]
+        &mut self.st[self.st_top + ofs]
     }
 }
 
@@ -1235,35 +1235,35 @@ impl X86 {
             }
 
             iced_x86::Code::Fld1 => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = 1.0;
             }
             iced_x86::Code::Fld_m64fp => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_f64(self.addr(instr));
             }
             iced_x86::Code::Fld_m32fp => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
             }
             iced_x86::Code::Fild_m32int => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_u32(self.addr(instr)) as i32 as f64;
             }
             iced_x86::Code::Fild_m16int => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
             }
 
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
             }
             iced_x86::Code::Fistp_m32int => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), f as i32 as u32);
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
             }
 
             iced_x86::Code::Fchs => {
@@ -1307,7 +1307,7 @@ impl X86 {
                 let y = *self.regs.st_top();
                 let x = self.regs.getst(instr.op0_register());
                 *x *= y;
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
             }
 
             iced_x86::Code::Fxch_st0_sti => {
