@@ -62,15 +62,6 @@ bitflags! {
     }
 }
 
-/// Offset from top of FP stack for a given ST0, ST1 etc reg.
-fn st_offset(reg: iced_x86::Register) -> usize {
-    match reg {
-        iced_x86::Register::ST0 => 0,
-        iced_x86::Register::ST1 => 1,
-        _ => unreachable!("{reg:?}"),
-    }
-}
-
 #[derive(Tsify)]
 pub struct Registers {
     pub eax: u32,
@@ -222,11 +213,22 @@ impl Registers {
     fn st_top(&mut self) -> &mut f64 {
         &mut self.st[self.st_top]
     }
+    /// Offset from top of FP stack for a given ST0, ST1 etc reg.
+    fn st_offset(&self, reg: iced_x86::Register) -> usize {
+        self.st_top
+            + match reg {
+                iced_x86::Register::ST0 => 0,
+                iced_x86::Register::ST1 => 1,
+                _ => unreachable!("{reg:?}"),
+            }
+    }
     fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
-        self.st.swap(st_offset(r1), st_offset(r2));
+        let o1 = self.st_offset(r1);
+        let o2 = self.st_offset(r2);
+        self.st.swap(o1, o2);
     }
     fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
-        &mut self.st[self.st_top + st_offset(reg)]
+        &mut self.st[self.st_offset(reg)]
     }
 }
 
@@ -1301,6 +1303,12 @@ impl X86 {
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
                 self.regs.st_top += 1;
             }
+            iced_x86::Code::Fistp_m64int => {
+                let f = *self.regs.st_top();
+                let addr = self.addr(instr) as usize;
+                self.mem[addr..addr + 8].copy_from_slice(&(f as i64).to_le_bytes());
+                self.regs.st_top += 1;
+            }
             iced_x86::Code::Fistp_m32int => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), f as i32 as u32);
@@ -1402,6 +1410,7 @@ impl X86 {
                     self.regs.fpu_status.set(FPUStatus::C2, true);
                     self.regs.fpu_status.set(FPUStatus::C0, true);
                 }
+                self.regs.st_top += 1;
             }
             iced_x86::Code::Fnstsw_AX => {
                 // TODO: does this need stack top in it?
