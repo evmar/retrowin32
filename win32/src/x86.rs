@@ -588,6 +588,27 @@ impl X86 {
         }
     }
 
+    /// Compare two values and set floating-point comparison flags.
+    fn fcom<T: std::cmp::PartialOrd>(&mut self, x: T, y: T) {
+        if x > y {
+            self.regs.fpu_status.set(FPUStatus::C3, false);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, false);
+        } else if x < y {
+            self.regs.fpu_status.set(FPUStatus::C3, false);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, true);
+        } else if x == y {
+            self.regs.fpu_status.set(FPUStatus::C3, true);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, false);
+        } else {
+            self.regs.fpu_status.set(FPUStatus::C3, true);
+            self.regs.fpu_status.set(FPUStatus::C2, true);
+            self.regs.fpu_status.set(FPUStatus::C0, true);
+        }
+    }
+
     fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
         if addr < 0x1000 {
             bail!("jmp to null page");
@@ -1409,26 +1430,16 @@ impl X86 {
                     .st_swap(instr.op0_register(), instr.op1_register());
             }
 
+            iced_x86::Code::Fcomp_m32fp => {
+                let x = *self.regs.st_top();
+                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                self.fcom(x, y);
+                self.regs.st_top += 1;
+            }
             iced_x86::Code::Fcomp_m64fp => {
                 let x = *self.regs.st_top();
                 let y = self.read_f64(self.addr(instr));
-                if x > y {
-                    self.regs.fpu_status.set(FPUStatus::C3, false);
-                    self.regs.fpu_status.set(FPUStatus::C2, false);
-                    self.regs.fpu_status.set(FPUStatus::C0, false);
-                } else if x < y {
-                    self.regs.fpu_status.set(FPUStatus::C3, false);
-                    self.regs.fpu_status.set(FPUStatus::C2, false);
-                    self.regs.fpu_status.set(FPUStatus::C0, true);
-                } else if x == y {
-                    self.regs.fpu_status.set(FPUStatus::C3, true);
-                    self.regs.fpu_status.set(FPUStatus::C2, false);
-                    self.regs.fpu_status.set(FPUStatus::C0, false);
-                } else {
-                    self.regs.fpu_status.set(FPUStatus::C3, true);
-                    self.regs.fpu_status.set(FPUStatus::C2, true);
-                    self.regs.fpu_status.set(FPUStatus::C0, true);
-                }
+                self.fcom(x, y);
                 self.regs.st_top += 1;
             }
             iced_x86::Code::Fnstsw_AX => {
@@ -1480,6 +1491,18 @@ impl X86 {
                 };
             }
 
+            iced_x86::Code::Emms
+            | iced_x86::Code::Movd_mm_rm32
+            | iced_x86::Code::Movd_rm32_mm
+            | iced_x86::Code::Packuswb_mm_mmm64
+            | iced_x86::Code::Pmullw_mm_mmm64
+            | iced_x86::Code::Psrlw_mm_imm8
+            | iced_x86::Code::Punpcklbw_mm_mmm32
+            | iced_x86::Code::Psubusb_mm_mmm64
+            | iced_x86::Code::Pxor_mm_mmm64 => {
+                // TODO: mmx
+            }
+
             iced_x86::Code::Nopd => {}
 
             iced_x86::Code::Int3 => {
@@ -1487,7 +1510,7 @@ impl X86 {
             }
 
             code => {
-                bail!("unhandled instruction {:?}", code);
+                log::error!("unhandled instruction {:?}", code);
             }
         }
         Ok(true)
