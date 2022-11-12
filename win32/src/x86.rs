@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::bail;
 use bitflags::bitflags;
+use serde::ser::SerializeStruct;
 use tsify::Tsify;
 
 use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi, windows::load_exe};
@@ -41,6 +42,7 @@ fn check_oob<T>(mem: &[u8], addr: u32) -> bool {
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 bitflags! {
+    #[derive(serde::Serialize)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
@@ -54,6 +56,7 @@ bitflags! {
 }
 
 bitflags! {
+    #[derive(serde::Serialize)]
     pub struct FPUStatus: u16 {
         const C3 = 1 << 14;
         const C2 = 1 << 10;
@@ -62,7 +65,7 @@ bitflags! {
     }
 }
 
-#[derive(Tsify)]
+#[derive(serde::Serialize, Tsify)]
 pub struct Registers {
     pub eax: u32,
     pub ebx: u32,
@@ -1514,6 +1517,16 @@ impl X86 {
             }
         }
         Ok(true)
+    }
+}
+
+impl serde::Serialize for X86 {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("X86", 2)?;
+        // TODO: serialize remaining state.
+        state.serialize_field("mem", &self.mem)?;
+        state.serialize_field("regs", &self.regs)?;
+        state.end()
     }
 }
 

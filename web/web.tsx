@@ -5,6 +5,7 @@ import { Code } from './code';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
+import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { hex } from './util';
@@ -501,6 +502,13 @@ class Page extends preact.Component<Page.Props, Page.State> {
                     this.props.vm.toggleBreak(addr);
                     this.forceUpdate();
                   }}
+                />
+              ),
+
+              snapshots: (
+                <SnapshotsComponent
+                  take={() => this.props.vm.emu.snapshot()}
+                  load={(snap) => this.props.vm.emu.load_snapshot(snap)}
                 />
               ),
             }}

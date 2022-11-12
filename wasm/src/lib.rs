@@ -250,6 +250,13 @@ impl Emulator {
     pub fn poke(&mut self, addr: u32, value: u8) {
         self.runner.x86.mem[addr as usize] = value;
     }
+
+    pub fn snapshot(&self) -> Box<[u8]> {
+        bincode::serialize(&self.runner.x86).unwrap().into()
+    }
+    pub fn load_snapshot(&mut self, snap: &[u8]) {
+        log::error!("todo: load snapshot {}", snap.len());
+    }
 }
 
 #[wasm_bindgen]
