@@ -36,9 +36,6 @@ namespace SnapshotsComponent {
 
 export class SnapshotsComponent extends preact.Component<SnapshotsComponent.Props, SnapshotsComponent.State> {
   private async load(): Promise<Snapshots.DBProps> {
-    if (this.state.state === 'ok') {
-      return this.state.data;
-    }
     const req = indexedDB.open('retrowin32');
     req.onupgradeneeded = () => {
       console.log('upg');
@@ -66,7 +63,7 @@ export class SnapshotsComponent extends preact.Component<SnapshotsComponent.Prop
 
   render() {
     if (this.state.state === 'ok') {
-      return <Snapshots {...this.props} {...this.state.data} />;
+      return <Snapshots {...this.props} {...this.state.data} reload={() => this.load()} />;
     } else if (this.state.state === 'error') {
       return <section>error: {this.state.data}</section>;
     } else {
@@ -76,7 +73,7 @@ export class SnapshotsComponent extends preact.Component<SnapshotsComponent.Prop
 }
 
 namespace Snapshots {
-  export type Props = SnapshotsComponent.Props & DBProps;
+  export type Props = SnapshotsComponent.Props & DBProps & { reload: () => void };
   export interface DBProps {
     db: IDBDatabase;
     snaps: Uint8Array[];
@@ -97,11 +94,16 @@ class Snapshots extends preact.Component<Snapshots.Props> {
     await this.trans(async (t) => {
       t.objectStore('snap').add(snap);
     });
+    this.props.reload();
   }
-  private async load() {
+  private load() {
     this.props.load(this.props.snaps[0]);
   }
-  private clear() {
+  private async clear() {
+    await this.trans(async (t) => {
+      t.objectStore('snap').clear();
+    });
+    this.props.reload();
   }
 
   render() {

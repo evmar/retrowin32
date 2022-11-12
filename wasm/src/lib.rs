@@ -255,7 +255,8 @@ impl Emulator {
         bincode::serialize(&self.runner.x86).unwrap().into()
     }
     pub fn load_snapshot(&mut self, snap: &[u8]) {
-        log::error!("todo: load snapshot {}", snap.len());
+        let x86 = bincode::deserialize(snap).unwrap();
+        self.runner.load_snapshot(x86);
     }
 }
 

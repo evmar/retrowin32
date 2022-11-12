@@ -42,7 +42,7 @@ fn check_oob<T>(mem: &[u8], addr: u32) -> bool {
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 bitflags! {
-    #[derive(serde::Serialize)]
+    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
@@ -56,7 +56,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(serde::Serialize)]
+    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct FPUStatus: u16 {
         const C3 = 1 << 14;
         const C2 = 1 << 10;
@@ -65,7 +65,7 @@ bitflags! {
     }
 }
 
-#[derive(serde::Serialize, Tsify)]
+#[derive(serde::Serialize, serde::Deserialize, Tsify)]
 pub struct Registers {
     pub eax: u32,
     pub ebx: u32,
@@ -1530,6 +1530,36 @@ impl serde::Serialize for X86 {
     }
 }
 
+impl<'de> serde::Deserialize<'de> for X86 {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Visitor;
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = X86;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("struct X86")
+            }
+            fn visit_seq<V: serde::de::SeqAccess<'de>>(self, mut seq: V) -> Result<X86, V::Error> {
+                let mem = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                let regs = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                let host = unsafe { std::mem::uninitialized() };
+                Ok(X86 {
+                    host,
+                    mem,
+                    regs,
+                    shims: Shims::new(),
+                    state: winapi::State::new(),
+                })
+            }
+        }
+        deserializer.deserialize_struct("X86", &["mem", "regs"], Visitor)
+    }
+}
+
 /// Manages decoding and running instructions in an owned X86.
 pub struct Runner {
     pub x86: X86,
@@ -1666,5 +1696,11 @@ impl Runner {
             }
         }
         Ok(true)
+    }
+
+    pub fn load_snapshot(&mut self, x86: X86) {
+        self.x86.mem = x86.mem;
+        self.x86.regs = x86.regs;
+        self.jmp(self.x86.regs.eip);
     }
 }
