@@ -1524,7 +1524,7 @@ impl serde::Serialize for X86 {
     fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("X86", 2)?;
         // TODO: serialize remaining state.
-        state.serialize_field("mem", &self.mem)?;
+        state.serialize_field("mem", serde_bytes::Bytes::new(&self.mem))?;
         state.serialize_field("regs", &self.regs)?;
         state.end()
     }
@@ -1548,13 +1548,16 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
                 self,
                 mut seq: V,
             ) -> Result<Snapshot, V::Error> {
-                let mem = seq
+                let mem: serde_bytes::ByteBuf = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
                 let regs = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
-                Ok(Snapshot { mem, regs })
+                Ok(Snapshot {
+                    mem: mem.into_vec(),
+                    regs,
+                })
             }
         }
         deserializer.deserialize_struct("X86", &["mem", "regs"], Visitor)
