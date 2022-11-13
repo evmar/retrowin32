@@ -1530,30 +1530,31 @@ impl serde::Serialize for X86 {
     }
 }
 
-impl<'de> serde::Deserialize<'de> for X86 {
+pub struct Snapshot {
+    mem: Vec<u8>,
+    regs: Registers,
+}
+
+impl<'de> serde::Deserialize<'de> for Snapshot {
     fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct Visitor;
         impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = X86;
+            type Value = Snapshot;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
                 formatter.write_str("struct X86")
             }
-            fn visit_seq<V: serde::de::SeqAccess<'de>>(self, mut seq: V) -> Result<X86, V::Error> {
+            fn visit_seq<V: serde::de::SeqAccess<'de>>(
+                self,
+                mut seq: V,
+            ) -> Result<Snapshot, V::Error> {
                 let mem = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
                 let regs = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
-                let host = unsafe { std::mem::uninitialized() };
-                Ok(X86 {
-                    host,
-                    mem,
-                    regs,
-                    shims: Shims::new(),
-                    state: winapi::State::new(),
-                })
+                Ok(Snapshot { mem, regs })
             }
         }
         deserializer.deserialize_struct("X86", &["mem", "regs"], Visitor)
@@ -1698,9 +1699,9 @@ impl Runner {
         Ok(true)
     }
 
-    pub fn load_snapshot(&mut self, x86: X86) {
-        self.x86.mem = x86.mem;
-        self.x86.regs = x86.regs;
+    pub fn load_snapshot(&mut self, snap: Snapshot) {
+        self.x86.mem = snap.mem;
+        self.x86.regs = snap.regs;
         self.jmp(self.x86.regs.eip);
     }
 }

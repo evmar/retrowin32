@@ -508,7 +508,10 @@ class Page extends preact.Component<Page.Props, Page.State> {
               snapshots: (
                 <SnapshotsComponent
                   take={() => this.props.vm.emu.snapshot()}
-                  load={(snap) => this.props.vm.emu.load_snapshot(snap)}
+                  load={(snap) => {
+                    this.props.vm.emu.load_snapshot(snap);
+                    this.forceUpdate();
+                  }}
                 />
               ),
             }}

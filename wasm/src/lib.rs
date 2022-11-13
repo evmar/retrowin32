@@ -254,9 +254,9 @@ impl Emulator {
     pub fn snapshot(&self) -> Box<[u8]> {
         bincode::serialize(&self.runner.x86).unwrap().into()
     }
-    pub fn load_snapshot(&mut self, snap: &[u8]) {
-        let x86 = bincode::deserialize(snap).unwrap();
-        self.runner.load_snapshot(x86);
+    pub fn load_snapshot(&mut self, bytes: &[u8]) {
+        let snap = bincode::deserialize(bytes).unwrap();
+        self.runner.load_snapshot(snap);
     }
 }
 
