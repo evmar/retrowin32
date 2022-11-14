@@ -1,7 +1,16 @@
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
+import { h } from 'preact';
 
-function wrap<T>(req: IDBRequest<T>): Promise<T> {
+/** Entry in the 'snap' object store, metadata about a snapshot. */
+interface Snapshot {
+  /** Key for this entry as well as the key in the 'image' object store. */
+  idbKey: IDBValidKey;
+  /** Byte size of this entry's image. */
+  size: number;
+}
+
+/** Run an IDB request to completion, waiting for its result. */
+function idbRequest<T>(req: IDBRequest<T>): Promise<T> {
   return new Promise((res, rej) => {
     req.onerror = (err: any) => {
       rej(err);
@@ -12,7 +21,8 @@ function wrap<T>(req: IDBRequest<T>): Promise<T> {
   });
 }
 
-function runTransaction<T>(t: IDBTransaction): Promise<void> {
+/** Run an IDB transation to completion. */
+function finishTransaction(t: IDBTransaction): Promise<void> {
   return new Promise((res, rej) => {
     t.onerror = (err: any) => {
       rej(err);
@@ -28,24 +38,33 @@ namespace SnapshotsComponent {
     take: () => Uint8Array;
     load: (snap: Uint8Array) => void;
   }
-  export type State = { state: undefined; data: undefined } | { state: 'ok'; data: Snapshots.DBProps } | {
+  interface StateLoading {
+    state: undefined;
+    data: undefined;
+  }
+  interface StateLoaded {
+    state: 'ok';
+    data: Snapshots.DBProps;
+  }
+  interface StateError {
     state: 'error';
     data: string;
-  };
+  }
+  export type State = StateLoading | StateLoaded | StateError;
 }
-
 export class SnapshotsComponent extends preact.Component<SnapshotsComponent.Props, SnapshotsComponent.State> {
   private async load(): Promise<Snapshots.DBProps> {
     const req = indexedDB.open('retrowin32');
     req.onupgradeneeded = () => {
-      console.log('upg');
-      req.result.createObjectStore('snap', { autoIncrement: true });
+      const db = req.result;
+      db.createObjectStore('image', { autoIncrement: true });
+      db.createObjectStore('snap', { keyPath: 'idbKey' });
     };
 
-    const db = await wrap(req);
-    const snaps = await wrap(db.transaction('snap', 'readonly').objectStore('snap').getAll());
+    const db = await idbRequest(req);
+    const snaps: Snapshot[] = await idbRequest(db.transaction('snap').objectStore('snap').getAll());
 
-    const st = { db, snaps };
+    const st: Snapshots.DBProps = { db, snaps };
     this.setState({ state: 'ok', data: st });
     db.onerror = (error) => {
       this.setState({
@@ -76,55 +95,55 @@ namespace Snapshots {
   export type Props = SnapshotsComponent.Props & DBProps & { reload: () => void };
   export interface DBProps {
     db: IDBDatabase;
-    snaps: Uint8Array[];
+    snaps: Snapshot[];
   }
 }
 class Snapshots extends preact.Component<Snapshots.Props> {
-  private async trans(f: (t: IDBTransaction) => Promise<void>): Promise<void> {
-    const t = this.props.db.transaction(['snap'], 'readwrite');
-    return new Promise((res, rej) => {
-      f(t);
-      t.oncomplete = () => res();
-      t.onerror = (err) => rej(err);
-    });
-  }
-
   private async save() {
-    const snap = this.props.take();
-    await this.trans(async (t) => {
-      t.objectStore('snap').add(snap);
-    });
+    const image = this.props.take();
+    const t = this.props.db.transaction(['snap', 'image'], 'readwrite');
+    const idbKey = await idbRequest(t.objectStore('image').add(image));
+    const snap: Snapshot = { idbKey, size: image.length };
+    await idbRequest(t.objectStore('snap').add(snap));
+    await finishTransaction(t);
     this.props.reload();
   }
-  private load() {
-    this.props.load(this.props.snaps[0]);
+  private async load(key: IDBValidKey) {
+    const t = this.props.db.transaction(['image'], 'readonly');
+    const image = await idbRequest(t.objectStore('image').get(key));
+    await finishTransaction(t);
+    this.props.load(image);
   }
   private async clear() {
-    await this.trans(async (t) => {
-      t.objectStore('snap').clear();
-    });
+    const t = this.props.db.transaction(['snap', 'image'], 'readwrite');
+    t.objectStore('snap').clear();
+    t.objectStore('image').clear();
+    await finishTransaction(t);
     this.props.reload();
   }
 
   render() {
+    let snaps = [];
+    if (this.props.snaps.length > 0) {
+      for (const snap of this.props.snaps) {
+        snaps.push(
+          <div>
+            {snap.size} bytes <button onClick={() => this.load(snap.idbKey)}>load</button>
+          </div>,
+        );
+      }
+      snaps.push(
+        <p>
+          <button onClick={() => this.clear()}>clear snapshots</button>
+        </p>,
+      );
+    }
     return (
       <section>
         <p>
           <button onClick={() => this.save()}>save snapshot</button>
         </p>
-        {this.props.snaps.length > 0
-          ? (
-            <>
-              <div>{this.props.snaps.map(snap => <span>{snap.length} bytes</span>)}</div>
-              <p>
-                <button onClick={() => this.load()}>load snapshot</button>
-              </p>
-              <p>
-                <button onClick={() => this.clear()}>clear snapshot</button>
-              </p>
-            </>
-          )
-          : null}
+        {snaps}
       </section>
     );
   }
