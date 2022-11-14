@@ -348,6 +348,10 @@ impl X86 {
         f64::from_bits(n)
     }
 
+    pub fn read_f32(&self, addr: u32) -> f32 {
+        f32::from_bits(self.read_u32(addr))
+    }
+
     pub fn write_f64(&mut self, addr: u32, value: f64) {
         if addr < NULL_POINTER_REGION_SIZE {
             panic!("null pointer read at {addr:#x}");
@@ -1321,7 +1325,7 @@ impl X86 {
             }
             iced_x86::Code::Fld_m32fp => {
                 self.regs.st_top -= 1;
-                *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                *self.regs.st_top() = self.read_f32(self.addr(instr)) as f64;
             }
             iced_x86::Code::Fild_m32int => {
                 self.regs.st_top -= 1;
@@ -1387,7 +1391,7 @@ impl X86 {
                 *self.regs.st_top() += y;
             }
             iced_x86::Code::Fadd_m32fp => {
-                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                let y = self.read_f32(self.addr(instr)) as f64;
                 *self.regs.st_top() += y;
             }
             iced_x86::Code::Faddp_sti_st0 => {
@@ -1397,10 +1401,20 @@ impl X86 {
                 self.regs.st_top += 1;
             }
 
+            iced_x86::Code::Fsub_m32fp => {
+                let y = self.read_f32(self.addr(instr)) as f64;
+                let x = self.regs.st_top();
+                *x = *x - y;
+            }
             iced_x86::Code::Fsubr_m64fp => {
-                let x = self.read_f64(self.addr(instr));
-                let y = self.regs.st_top();
-                *y = x - *y;
+                let y = self.read_f64(self.addr(instr));
+                let x = self.regs.st_top();
+                *x = y - *x;
+            }
+            iced_x86::Code::Fsubr_m32fp => {
+                let y = self.read_f32(self.addr(instr)) as f64;
+                let x = self.regs.st_top();
+                *x = y - *x;
             }
 
             iced_x86::Code::Fmul_m64fp => {
@@ -1408,7 +1422,7 @@ impl X86 {
                 *self.regs.st_top() *= y;
             }
             iced_x86::Code::Fmul_m32fp => {
-                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                let y = self.read_f32(self.addr(instr)) as f64;
                 *self.regs.st_top() *= y;
             }
             iced_x86::Code::Fmul_st0_sti | iced_x86::Code::Fmul_sti_st0 => {
@@ -1423,6 +1437,12 @@ impl X86 {
                 self.regs.st_top += 1;
             }
 
+            iced_x86::Code::Fdivrp_sti_st0 => {
+                let x = *self.regs.st_top();
+                self.regs.st_top += 1;
+                *self.regs.st_top() /= x;
+            }
+
             iced_x86::Code::Fdiv_m64fp => {
                 let y = self.read_f64(self.addr(instr));
                 *self.regs.st_top() /= y;
@@ -1435,7 +1455,7 @@ impl X86 {
 
             iced_x86::Code::Fcomp_m32fp => {
                 let x = *self.regs.st_top();
-                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                let y = self.read_f32(self.addr(instr)) as f64;
                 self.fcom(x, y);
                 self.regs.st_top += 1;
             }
@@ -1498,6 +1518,7 @@ impl X86 {
             | iced_x86::Code::Movd_mm_rm32
             | iced_x86::Code::Movd_rm32_mm
             | iced_x86::Code::Packuswb_mm_mmm64
+            | iced_x86::Code::Paddusb_mm_mmm64
             | iced_x86::Code::Pmullw_mm_mmm64
             | iced_x86::Code::Psrlw_mm_imm8
             | iced_x86::Code::Punpcklbw_mm_mmm32
@@ -1513,7 +1534,7 @@ impl X86 {
             }
 
             code => {
-                log::error!("unhandled instruction {:?}", code);
+                bail!("unhandled instruction {:?}", code);
             }
         }
         Ok(true)
