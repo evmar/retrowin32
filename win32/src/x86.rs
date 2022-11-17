@@ -5,7 +5,13 @@ use bitflags::bitflags;
 use serde::ser::SerializeStruct;
 use tsify::Tsify;
 
-use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi, windows::load_exe};
+use crate::{
+    host,
+    memory::{Memory, DWORD},
+    pe::ImageSectionFlags,
+    winapi,
+    windows::load_exe,
+};
 
 /// If the x86 code does something wrong (like OOB read), we want to crash.
 /// We cannot recover from a panic in wasm, so instead we use this janky flag.
@@ -918,21 +924,24 @@ impl X86 {
             }
             iced_x86::Code::Stosd_m32_EAX => {
                 let dst = self.regs.edi as usize;
-                let value = self.regs.eax;
-                if value != 0 {
-                    bail!("TODO: stosd impl");
-                }
+                let value = self.regs.eax; // TODO: endianness
+
                 if instr.has_rep_prefix() {
                     let count = self.regs.ecx as usize;
-                    self.mem[dst..dst + count * 4].fill(0);
+                    let mem: &mut [u32] = unsafe {
+                        let mem = &mut self.mem[dst..];
+                        std::slice::from_raw_parts_mut(mem.as_ptr() as *mut u32, count)
+                    };
+                    mem.fill(value);
                     self.regs.edi += count as u32 * 4;
                     self.regs.ecx = 0;
                 } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
                     bail!("unimpl");
                 } else {
-                    self.mem[dst..dst + 4].fill(0);
+                    self.mem.view_mut::<DWORD>(dst as u32).set(value);
                     self.regs.edi += 4;
                 }
+                // TODO: does this modify esi?  Sources disagree (!?)
             }
             iced_x86::Code::Stosb_m8_AL => {
                 let dst = self.regs.edi as usize;
