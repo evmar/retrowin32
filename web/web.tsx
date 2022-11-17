@@ -96,7 +96,7 @@ class Window implements JsWindow {
   constructor(
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) {}
+  ) { }
   title: string = '';
   width: number | undefined;
   height: number | undefined;
@@ -137,7 +137,7 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // this.addBreak({ addr: 0x4047e9 });
+    this.addBreak({ addr: 0x424f8d });
     // this.addBreak({ addr: 0x404941 });
     // this.addBreak({ addr: 0x4049b7 });
   }
@@ -162,7 +162,7 @@ class VM implements JsHost {
     }
   }
 
-  /// Check if the current address is a break/exit point, returning true if so.
+  /** Check if the current address is a break/exit point, returning true if so. */
   checkBreak(): boolean {
     if (this.exitCode !== undefined) return true;
     const ip = this.emu.eip;
@@ -178,19 +178,22 @@ class VM implements JsHost {
     return false;
   }
 
-  stepPastBreak() {
+  /** Returns true if we should keep running after this (no breakpoint). */
+  stepPastBreak(): boolean {
     const ip = this.emu.eip;
     const bp = this.breakpoints.get(ip);
     if (bp && !bp.disabled) {
       this.emu.breakpoint_clear(ip);
-      this.step();
+      const ret = this.step();
       this.emu.breakpoint_add(ip);
+      return ret;
     } else {
-      this.step();
+      return this.step();
     }
   }
 
-  step() {
+  /** Returns true if we should keep running after this (no breakpoint). */
+  step(): boolean {
     this.emu.step();
     return !this.checkBreak();
   }
@@ -373,7 +376,10 @@ class Page extends preact.Component<Page.Props, Page.State> {
     if (start === (this.state.running !== 0)) return;
 
     if (start) {
-      this.props.vm.stepPastBreak();
+      if (!this.props.vm.stepPastBreak()) {
+        this.forceUpdate();
+        return;
+      }
       const interval = setInterval(() => {
         this.forceUpdate();
       }, 500);
