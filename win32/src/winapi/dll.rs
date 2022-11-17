@@ -97,6 +97,10 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
+    fn SetLastError(x86: &mut X86) {
+        let dwErrCode: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::SetLastError(x86, dwErrCode) as u32;
+    }
     fn GetLastError(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetLastError(x86) as u32;
     }
@@ -312,6 +316,7 @@ pub mod kernel32 {
     }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
+            "SetLastError" => SetLastError,
             "GetLastError" => GetLastError,
             "ExitProcess" => ExitProcess,
             "GetACP" => GetACP,

@@ -290,7 +290,13 @@ struct RTL_USER_PROCESS_PARAMETERS {
 }
 unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
 
+pub fn SetLastError(x86: &mut X86, dwErrCode: u32) -> u32 {
+    teb_mut(x86).LastErrorValue.set(dwErrCode);
+    0 // unused
+}
+
 pub fn GetLastError(_x86: &mut X86) -> u32 {
+    // TODO: should we start calling SetLastError when appropriate?
     0x1c // printer out of paper
 }
 
