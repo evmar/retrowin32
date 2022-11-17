@@ -132,7 +132,7 @@ fn print(tokens: TokenStream) -> anyhow::Result<()> {
     println!("#![allow(unused_imports)]");
     let mut text = file.to_token_stream().to_string();
     rustfmt(&mut text)?;
-    println!("{}", text);
+    print!("{}", text);
     Ok(())
 }
 
