@@ -1022,11 +1022,11 @@ impl X86 {
                 let y = self.regs.ecx as u8;
                 self.rm32_x(instr, |x86, x| {
                     let out = x.rotate_right(y as u32);
-                    let cf = (out & 1) != 0;
-                    x86.regs.flags.set(Flags::CF, cf);
+                    let msb = (out & 0x8000_0000) != 0;
+                    x86.regs.flags.set(Flags::CF, msb);
                     x86.regs
                         .flags
-                        .set(Flags::OF, ((out & 0x8000_0000) != 0) ^ cf);
+                        .set(Flags::OF, msb ^ ((out & 04000_0000) != 0));
                     out
                 });
             }
