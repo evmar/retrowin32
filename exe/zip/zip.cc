@@ -9,15 +9,18 @@
 
 namespace {
 
-std::vector<uint8_t> read_stdin() {
+std::vector<uint8_t> read_file(const char* path) {
   std::vector<uint8_t> out;
   uint8_t buf[16 << 10];
-  _setmode(0, _O_BINARY);  // you stay crazy, windows
+
+  FILE* f = fopen(path, "rb");
+  assert(f);
   for (;;) {
-    auto n = fread(buf, 1, sizeof(buf), stdin);
+    auto n = fread(buf, 1, sizeof(buf), f);
     if (n <= 0) break;
     out.insert(out.end(), buf, buf + n);
   }
+  fclose(f);
   return out;
 }
 
@@ -44,8 +47,10 @@ std::vector<uint8_t> decompress(const std::vector<uint8_t>& input) {
 }
 
 int main(int argc, const char* argv[]) {
-  auto input = read_stdin();
-  if (input.empty()) {
+  std::vector<uint8_t> input;
+  if (argc > 1) {
+    input = read_file(argv[1]);
+  } else {
     std::string_view text = "hello, world";
     for (auto i = 0; i < 1000; i++) {
       input.insert(input.begin(), text.begin(), text.end());
