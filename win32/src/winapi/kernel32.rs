@@ -110,22 +110,34 @@ impl State {
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     fn init_teb_peb(&mut self, mem: &mut [u8]) {
-        let params_addr = self.heap.alloc(mem, 0x100);
-        let peb_addr = self.heap.alloc(mem, 0x100);
-        let teb_addr = self.heap.alloc(mem, 0x100);
-
-        // PEB
-        mem.write_u32(peb_addr + 0x10, params_addr);
-
+        let params_addr = self.heap.alloc(
+            mem,
+            std::cmp::max(
+                std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+                0x100,
+            ),
+        );
         // RTL_USER_PROCESS_PARAMETERS
+        let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
         // x86.write_u32(params_addr + 0x10, console_handle);
         // x86.write_u32(params_addr + 0x14, console_flags);
         // x86.write_u32(params_addr + 0x18, stdin);
-        mem.write_u32(params_addr + 0x1c, STDOUT_HFILE);
+        params.hStdOutput.set(STDOUT_HFILE);
+
+        // PEB
+        let peb_addr = self
+            .heap
+            .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
+        let peb = mem.view_mut::<PEB>(peb_addr);
+        peb.ProcessParameters.set(params_addr);
 
         // TEB
-        mem.write_u32(teb_addr + 0x18, teb_addr); // Confusing: it points to itself.
-        mem.write_u32(teb_addr + 0x30, peb_addr);
+        let teb_addr = self
+            .heap
+            .alloc(mem, std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
+        let teb = mem.view_mut::<TEB>(teb_addr);
+        teb.Tib._Self.set(teb_addr); // Confusing: it points to itself.
+        teb.Peb.set(peb_addr);
 
         self.teb = teb_addr;
     }
@@ -201,6 +213,60 @@ impl State {
         addr
     }
 }
+
+#[repr(C)]
+struct PEB {
+    InheritedAddressSpace: u8,
+    ReadImageFileExecOptions: u8,
+    BeingDebugged: u8,
+    SpareBool: u8,
+    Mutant: DWORD,
+    ImageBaseAddress: DWORD,
+    LdrData: DWORD,
+    ProcessParameters: DWORD,
+    // TODO: more fields
+}
+unsafe impl Pod for PEB {}
+
+#[repr(C)]
+struct NT_TIB {
+    ExceptionList: DWORD,
+    StackBase: DWORD,
+    StackLimit: DWORD,
+    SubSystemTib: DWORD,
+    FiberData: DWORD,
+    ArbitraryUserPointer: DWORD,
+    _Self: DWORD,
+}
+unsafe impl Pod for NT_TIB {}
+
+#[repr(C)]
+struct TEB {
+    Tib: NT_TIB,
+    EnvironmentPointer: DWORD,
+    ClientId: DWORD,
+    ActiveRpcHandle: DWORD,
+    ThreadLocalStoragePointer: DWORD,
+    Peb: DWORD,
+    LastErrorValue: DWORD,
+    // TOOD: ... there are many more fields
+}
+unsafe impl Pod for TEB {}
+
+#[repr(C)]
+struct RTL_USER_PROCESS_PARAMETERS {
+    AllocationSize: DWORD,
+    Size: DWORD,
+    Flags: DWORD,
+    DebugFlags: DWORD,
+    ConsoleHandle: DWORD,
+    ConsoleFlags: DWORD,
+    hStdInput: DWORD,
+    hStdOutput: DWORD,
+    hStdError: DWORD,
+    // TODO: ... more fields
+}
+unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
 
 pub fn GetLastError(_x86: &mut X86) -> u32 {
     0x1c // printer out of paper
