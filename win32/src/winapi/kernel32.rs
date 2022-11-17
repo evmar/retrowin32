@@ -615,8 +615,9 @@ pub fn InitializeCriticalSectionAndSpinCount(
     _lpCriticalSection: u32,
     _dwSpinCount: u32,
 ) -> bool {
-    // On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero).
-    false
+    // "On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero)."
+    // "This function always succeeds and returns a nonzero value."
+    true
 }
 
 pub fn EnterCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
