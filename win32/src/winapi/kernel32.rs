@@ -110,6 +110,7 @@ impl State {
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     fn init_teb_peb(&mut self, mem: &mut [u8]) {
+        // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.heap.alloc(
             mem,
             std::cmp::max(
@@ -117,7 +118,6 @@ impl State {
                 0x100,
             ),
         );
-        // RTL_USER_PROCESS_PARAMETERS
         let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
         // x86.write_u32(params_addr + 0x10, console_handle);
         // x86.write_u32(params_addr + 0x14, console_flags);
@@ -130,6 +130,7 @@ impl State {
             .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.view_mut::<PEB>(peb_addr);
         peb.ProcessParameters.set(params_addr);
+        peb.TlsCount.set(0);
 
         // TEB
         let teb_addr = self
@@ -716,7 +717,6 @@ pub fn TlsAlloc(x86: &mut X86) -> u32 {
     let peb_addr = teb.Peb.get();
     let peb = x86.mem.view_mut::<PEB>(peb_addr);
     let slot = peb.TlsCount.get();
-    log::info!("tls alloc slot {}", slot);
     peb.TlsCount.set(slot + 1);
     slot
 }
