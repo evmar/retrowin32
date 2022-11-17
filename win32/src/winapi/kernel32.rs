@@ -215,6 +215,17 @@ impl State {
     }
 }
 
+fn teb(x86: &X86) -> &TEB {
+    x86.mem.view::<TEB>(x86.state.kernel32.teb)
+}
+fn teb_mut(x86: &mut X86) -> &mut TEB {
+    x86.mem.view_mut::<TEB>(x86.state.kernel32.teb)
+}
+fn peb_mut(x86: &mut X86) -> &mut PEB {
+    let peb_addr = teb(x86).Peb.get();
+    x86.mem.view_mut::<PEB>(peb_addr)
+}
+
 #[repr(C)]
 struct PEB {
     InheritedAddressSpace: u8,
@@ -225,6 +236,8 @@ struct PEB {
     ImageBaseAddress: DWORD,
     LdrData: DWORD,
     ProcessParameters: DWORD,
+    SubSystemData: DWORD,
+    ProcessHeap: DWORD,
     // TODO: more fields
 
     // This is at the wrong offset, but it shouldn't matter.
@@ -583,6 +596,16 @@ pub fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
     1 // success
 }
 
+pub fn GetProcessHeap(x86: &mut X86) -> u32 {
+    let heap = peb_mut(x86).ProcessHeap.get();
+    if heap != 0 {
+        return heap;
+    }
+    let heap = HeapCreate(x86, 0, 4 << 10, 4 << 10);
+    peb_mut(x86).ProcessHeap.set(heap);
+    heap
+}
+
 pub fn LoadLibraryA(_x86: &mut X86, filename: &str) -> u32 {
     log::error!("LoadLibrary({filename:?})");
     0 // fail
@@ -713,16 +736,14 @@ pub fn NtCurrentTeb(x86: &mut X86) -> u32 {
 }
 
 pub fn TlsAlloc(x86: &mut X86) -> u32 {
-    let teb = x86.mem.view::<TEB>(x86.state.kernel32.teb);
-    let peb_addr = teb.Peb.get();
-    let peb = x86.mem.view_mut::<PEB>(peb_addr);
+    let peb = peb_mut(x86);
     let slot = peb.TlsCount.get();
     peb.TlsCount.set(slot + 1);
     slot
 }
 
 pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
-    let teb = x86.mem.view_mut::<TEB>(x86.state.kernel32.teb);
+    let teb = teb_mut(x86);
     teb.TlsSlots[dwTlsIndex as usize].set(lpTlsValue);
     true
 }

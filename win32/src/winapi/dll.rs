@@ -222,6 +222,9 @@ pub mod kernel32 {
         let hHeap: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::HeapDestroy(x86, hHeap) as u32;
     }
+    fn GetProcessHeap(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetProcessHeap(x86) as u32;
+    }
     fn LoadLibraryA(x86: &mut X86) {
         let filename: &str = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, filename) as u32;
@@ -335,6 +338,7 @@ pub mod kernel32 {
             "HeapReAlloc" => HeapReAlloc,
             "HeapCreate" => HeapCreate,
             "HeapDestroy" => HeapDestroy,
+            "GetProcessHeap" => GetProcessHeap,
             "LoadLibraryA" => LoadLibraryA,
             "LoadLibraryExW" => LoadLibraryExW,
             "SetHandleCount" => SetHandleCount,
