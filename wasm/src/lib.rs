@@ -209,7 +209,7 @@ impl Emulator {
     }
 
     pub fn st(&self) -> Box<[f64]> {
-        let s = &self.runner.x86.regs.st[0..self.runner.x86.regs.st_len];
+        let s = &self.runner.x86.regs.st[self.runner.x86.regs.st_top..];
         s.into()
     }
 
@@ -249,6 +249,14 @@ impl Emulator {
 
     pub fn poke(&mut self, addr: u32, value: u8) {
         self.runner.x86.mem[addr as usize] = value;
+    }
+
+    pub fn snapshot(&self) -> Box<[u8]> {
+        bincode::serialize(&self.runner.x86).unwrap().into()
+    }
+    pub fn load_snapshot(&mut self, bytes: &[u8]) {
+        let snap = bincode::deserialize(bytes).unwrap();
+        self.runner.load_snapshot(snap);
     }
 }
 

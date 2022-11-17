@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use anyhow::bail;
 use bitflags::bitflags;
+use serde::ser::SerializeStruct;
 use tsify::Tsify;
 
 use crate::{host, memory::Memory, pe::ImageSectionFlags, winapi, windows::load_exe};
@@ -41,6 +42,7 @@ fn check_oob<T>(mem: &[u8], addr: u32) -> bool {
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 bitflags! {
+    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
@@ -53,7 +55,17 @@ bitflags! {
     }
 }
 
-#[derive(Tsify)]
+bitflags! {
+    #[derive(serde::Serialize, serde::Deserialize)]
+    pub struct FPUStatus: u16 {
+        const C3 = 1 << 14;
+        const C2 = 1 << 10;
+        const C1 = 1 << 9;
+        const C0 = 1 << 8;
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Tsify)]
 pub struct Registers {
     pub eax: u32,
     pub ebx: u32,
@@ -78,8 +90,10 @@ pub struct Registers {
 
     /// FPU registers.
     pub st: [f64; 8],
-    /// Top of FPU stack is at len-1.
-    pub st_len: usize,
+    /// Top of FPU stack; 8 when stack empty.
+    pub st_top: usize,
+    /// FPU status word (TODO fold st_top in here?)
+    pub fpu_status: FPUStatus,
 }
 impl Registers {
     fn new() -> Self {
@@ -102,7 +116,8 @@ impl Registers {
             flags: Flags::empty(),
 
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            st_len: 0,
+            st_top: 8,
+            fpu_status: FPUStatus::empty(),
         }
     }
 
@@ -135,7 +150,7 @@ impl Registers {
             iced_x86::Register::DS => self.ds,
             iced_x86::Register::FS => self.fs,
             iced_x86::Register::GS => self.gs,
-            _ => unreachable!(),
+            _ => unreachable!("{reg:?}"),
         }
     }
     fn get8(&self, reg: iced_x86::Register) -> u8 {
@@ -199,15 +214,24 @@ impl Registers {
 
     /// Get st(0), the current top of the FPU stack.
     fn st_top(&mut self) -> &mut f64 {
-        &mut self.st[self.st_len - 1]
+        &mut self.st[self.st_top]
+    }
+    /// Offset from top of FP stack for a given ST0, ST1 etc reg.
+    fn st_offset(&self, reg: iced_x86::Register) -> usize {
+        self.st_top
+            + match reg {
+                iced_x86::Register::ST0 => 0,
+                iced_x86::Register::ST1 => 1,
+                _ => unreachable!("{reg:?}"),
+            }
+    }
+    fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
+        let o1 = self.st_offset(r1);
+        let o2 = self.st_offset(r2);
+        self.st.swap(o1, o2);
     }
     fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
-        let ofs = match reg {
-            iced_x86::Register::ST0 => 0,
-            iced_x86::Register::ST1 => 1,
-            _ => unreachable!("{reg:?}"),
-        };
-        &mut self.st[self.st_len - ofs - 1]
+        &mut self.st[self.st_offset(reg)]
     }
 }
 
@@ -324,6 +348,18 @@ impl X86 {
         f64::from_bits(n)
     }
 
+    pub fn read_f32(&self, addr: u32) -> f32 {
+        f32::from_bits(self.read_u32(addr))
+    }
+
+    pub fn write_f64(&mut self, addr: u32, value: f64) {
+        if addr < NULL_POINTER_REGION_SIZE {
+            panic!("null pointer read at {addr:#x}");
+        }
+        let addr = addr as usize;
+        self.mem[addr..addr + 8].copy_from_slice(&f64::to_le_bytes(value));
+    }
+
     pub fn push(&mut self, value: u32) {
         self.regs.esp -= 4;
         self.write_u32(self.regs.esp, value);
@@ -356,6 +392,13 @@ impl X86 {
         (seg + base + index).wrapping_add(instr.memory_displacement32())
     }
 
+    fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
+            iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
     fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op1_register()),
@@ -552,6 +595,27 @@ impl X86 {
         }
     }
 
+    /// Compare two values and set floating-point comparison flags.
+    fn fcom<T: std::cmp::PartialOrd>(&mut self, x: T, y: T) {
+        if x > y {
+            self.regs.fpu_status.set(FPUStatus::C3, false);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, false);
+        } else if x < y {
+            self.regs.fpu_status.set(FPUStatus::C3, false);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, true);
+        } else if x == y {
+            self.regs.fpu_status.set(FPUStatus::C3, true);
+            self.regs.fpu_status.set(FPUStatus::C2, false);
+            self.regs.fpu_status.set(FPUStatus::C0, false);
+        } else {
+            self.regs.fpu_status.set(FPUStatus::C3, true);
+            self.regs.fpu_status.set(FPUStatus::C2, true);
+            self.regs.fpu_status.set(FPUStatus::C0, true);
+        }
+    }
+
     fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
         if addr < 0x1000 {
             bail!("jmp to null page");
@@ -667,6 +731,11 @@ impl X86 {
             }
             iced_x86::Code::Jne_rel32_32 | iced_x86::Code::Jne_rel8_32 => {
                 if !self.regs.flags.contains(Flags::ZF) {
+                    self.jmp(instr.near_branch32())?;
+                }
+            }
+            iced_x86::Code::Jns_rel32_32 | iced_x86::Code::Jns_rel8_32 => {
+                if !self.regs.flags.contains(Flags::SF) {
                     self.jmp(instr.near_branch32())?;
                 }
             }
@@ -945,6 +1014,10 @@ impl X86 {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| x >> y);
             }
+            iced_x86::Code::Sar_rm32_imm8 | iced_x86::Code::Sar_rm32_1 => {
+                let y = instr.immediate8() as u32;
+                self.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+            }
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
                 self.rm32_x(instr, |_x86, x| x ^ y);
@@ -1044,6 +1117,13 @@ impl X86 {
                 let y = instr.immediate8to32();
                 let value = x.wrapping_mul(y);
                 self.regs.set32(instr.op0_register(), value as u32);
+            }
+            iced_x86::Code::Idiv_rm32 => {
+                let x = (((self.regs.edx as u64) << 32) | (self.regs.eax as u64)) as i64;
+                let y = self.op0_rm32(instr) as i32 as i64;
+                self.regs.eax = (x / y) as i32 as u32;
+                self.regs.edx = (x % y) as i32 as u32;
+                // TODO: flags.
             }
             iced_x86::Code::Dec_r32 => {
                 self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
@@ -1231,40 +1311,74 @@ impl X86 {
             }
 
             iced_x86::Code::Fld1 => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = 1.0;
             }
+            iced_x86::Code::Fldz => {
+                self.regs.st_top -= 1;
+                *self.regs.st_top() = 0.0;
+            }
+
+            iced_x86::Code::Fld_m64fp => {
+                self.regs.st_top -= 1;
+                *self.regs.st_top() = self.read_f64(self.addr(instr));
+            }
             iced_x86::Code::Fld_m32fp => {
-                self.regs.st_len += 1;
-                *self.regs.st_top() = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                self.regs.st_top -= 1;
+                *self.regs.st_top() = self.read_f32(self.addr(instr)) as f64;
             }
             iced_x86::Code::Fild_m32int => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_u32(self.addr(instr)) as i32 as f64;
             }
             iced_x86::Code::Fild_m16int => {
-                self.regs.st_len += 1;
+                self.regs.st_top -= 1;
                 *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
+            }
+
+            iced_x86::Code::Fst_m64fp => {
+                let f = *self.regs.st_top();
+                self.write_f64(self.addr(instr), f);
+            }
+            iced_x86::Code::Fstp_m64fp => {
+                let f = *self.regs.st_top();
+                self.write_f64(self.addr(instr), f);
+                self.regs.st_top += 1;
             }
             iced_x86::Code::Fstp_m32fp => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), (f as f32).to_bits());
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
+            }
+            iced_x86::Code::Fistp_m64int => {
+                let f = *self.regs.st_top();
+                let addr = self.addr(instr) as usize;
+                self.mem[addr..addr + 8].copy_from_slice(&(f as i64).to_le_bytes());
+                self.regs.st_top += 1;
             }
             iced_x86::Code::Fistp_m32int => {
                 let f = *self.regs.st_top();
                 self.write_u32(self.addr(instr), f as i32 as u32);
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
+            }
+
+            iced_x86::Code::Fchs => {
+                *self.regs.st_top() = -*self.regs.st_top();
             }
 
             iced_x86::Code::Fcos => {
                 let reg = self.regs.st_top();
                 *reg = reg.cos();
             }
-
             iced_x86::Code::Fsin => {
                 let reg = self.regs.st_top();
                 *reg = reg.sin();
+            }
+            iced_x86::Code::Fpatan => {
+                let x = *self.regs.st_top();
+                self.regs.st_top += 1;
+                let reg = self.regs.st_top();
+                *reg = reg.atan2(x);
             }
 
             iced_x86::Code::Fsqrt => {
@@ -1272,14 +1386,35 @@ impl X86 {
                 *reg = reg.sqrt();
             }
 
-            iced_x86::Code::Fadd_m32fp => {
-                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+            iced_x86::Code::Fadd_m64fp => {
+                let y = self.read_f64(self.addr(instr));
                 *self.regs.st_top() += y;
             }
+            iced_x86::Code::Fadd_m32fp => {
+                let y = self.read_f32(self.addr(instr)) as f64;
+                *self.regs.st_top() += y;
+            }
+            iced_x86::Code::Faddp_sti_st0 => {
+                let y = *self.regs.getst(instr.op1_register());
+                let x = self.regs.getst(instr.op0_register());
+                *x += y;
+                self.regs.st_top += 1;
+            }
+
+            iced_x86::Code::Fsub_m32fp => {
+                let y = self.read_f32(self.addr(instr)) as f64;
+                let x = self.regs.st_top();
+                *x = *x - y;
+            }
             iced_x86::Code::Fsubr_m64fp => {
-                let x = self.read_f64(self.addr(instr));
-                let y = self.regs.st_top();
-                *y = x - *y;
+                let y = self.read_f64(self.addr(instr));
+                let x = self.regs.st_top();
+                *x = y - *x;
+            }
+            iced_x86::Code::Fsubr_m32fp => {
+                let y = self.read_f32(self.addr(instr)) as f64;
+                let x = self.regs.st_top();
+                *x = y - *x;
             }
 
             iced_x86::Code::Fmul_m64fp => {
@@ -1287,14 +1422,52 @@ impl X86 {
                 *self.regs.st_top() *= y;
             }
             iced_x86::Code::Fmul_m32fp => {
-                let y = f32::from_bits(self.read_u32(self.addr(instr))) as f64;
+                let y = self.read_f32(self.addr(instr)) as f64;
                 *self.regs.st_top() *= y;
+            }
+            iced_x86::Code::Fmul_st0_sti | iced_x86::Code::Fmul_sti_st0 => {
+                let y = *self.regs.getst(instr.op1_register());
+                let x = self.regs.getst(instr.op0_register());
+                *x *= y;
             }
             iced_x86::Code::Fmulp_sti_st0 => {
                 let y = *self.regs.st_top();
                 let x = self.regs.getst(instr.op0_register());
                 *x *= y;
-                self.regs.st_len -= 1;
+                self.regs.st_top += 1;
+            }
+
+            iced_x86::Code::Fdivrp_sti_st0 => {
+                let x = *self.regs.st_top();
+                self.regs.st_top += 1;
+                *self.regs.st_top() /= x;
+            }
+
+            iced_x86::Code::Fdiv_m64fp => {
+                let y = self.read_f64(self.addr(instr));
+                *self.regs.st_top() /= y;
+            }
+
+            iced_x86::Code::Fxch_st0_sti => {
+                self.regs
+                    .st_swap(instr.op0_register(), instr.op1_register());
+            }
+
+            iced_x86::Code::Fcomp_m32fp => {
+                let x = *self.regs.st_top();
+                let y = self.read_f32(self.addr(instr)) as f64;
+                self.fcom(x, y);
+                self.regs.st_top += 1;
+            }
+            iced_x86::Code::Fcomp_m64fp => {
+                let x = *self.regs.st_top();
+                let y = self.read_f64(self.addr(instr));
+                self.fcom(x, y);
+                self.regs.st_top += 1;
+            }
+            iced_x86::Code::Fnstsw_AX => {
+                // TODO: does this need stack top in it?
+                self.regs.eax = self.regs.fpu_status.bits() as u32;
             }
 
             iced_x86::Code::Pushad => {
@@ -1324,6 +1497,11 @@ impl X86 {
             iced_x86::Code::Popfd => {
                 self.regs.flags = Flags::from_bits(self.pop()).unwrap();
             }
+            iced_x86::Code::Sahf => {
+                let ah = (self.regs.eax >> 8) as u8;
+                self.regs.flags =
+                    Flags::from_bits((self.regs.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
+            }
 
             iced_x86::Code::Cwde => {
                 self.regs.eax = self.regs.eax as i16 as i32 as u32;
@@ -1334,6 +1512,19 @@ impl X86 {
                 } else {
                     0xFFFF_FFFF
                 };
+            }
+
+            iced_x86::Code::Emms
+            | iced_x86::Code::Movd_mm_rm32
+            | iced_x86::Code::Movd_rm32_mm
+            | iced_x86::Code::Packuswb_mm_mmm64
+            | iced_x86::Code::Paddusb_mm_mmm64
+            | iced_x86::Code::Pmullw_mm_mmm64
+            | iced_x86::Code::Psrlw_mm_imm8
+            | iced_x86::Code::Punpcklbw_mm_mmm32
+            | iced_x86::Code::Psubusb_mm_mmm64
+            | iced_x86::Code::Pxor_mm_mmm64 => {
+                // TODO: mmx
             }
 
             iced_x86::Code::Nopd => {}
@@ -1347,6 +1538,50 @@ impl X86 {
             }
         }
         Ok(true)
+    }
+}
+
+impl serde::Serialize for X86 {
+    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        let mut state = serializer.serialize_struct("X86", 2)?;
+        // TODO: serialize remaining state.
+        state.serialize_field("mem", serde_bytes::Bytes::new(&self.mem))?;
+        state.serialize_field("regs", &self.regs)?;
+        state.end()
+    }
+}
+
+pub struct Snapshot {
+    mem: Vec<u8>,
+    regs: Registers,
+}
+
+impl<'de> serde::Deserialize<'de> for Snapshot {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        struct Visitor;
+        impl<'de> serde::de::Visitor<'de> for Visitor {
+            type Value = Snapshot;
+
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("struct X86")
+            }
+            fn visit_seq<V: serde::de::SeqAccess<'de>>(
+                self,
+                mut seq: V,
+            ) -> Result<Snapshot, V::Error> {
+                let mem: serde_bytes::ByteBuf = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                let regs = seq
+                    .next_element()?
+                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
+                Ok(Snapshot {
+                    mem: mem.into_vec(),
+                    regs,
+                })
+            }
+        }
+        deserializer.deserialize_struct("X86", &["mem", "regs"], Visitor)
     }
 }
 
@@ -1486,5 +1721,11 @@ impl Runner {
             }
         }
         Ok(true)
+    }
+
+    pub fn load_snapshot(&mut self, snap: Snapshot) {
+        self.x86.mem = snap.mem;
+        self.x86.regs = snap.regs;
+        self.jmp(self.x86.regs.eip);
     }
 }

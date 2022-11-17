@@ -5,6 +5,7 @@ import { Code } from './code';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
+import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { hex } from './util';
@@ -136,7 +137,9 @@ class VM implements JsHost {
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    this.addBreak({ addr: 0x405a00 });
+    // this.addBreak({ addr: 0x4047e9 });
+    // this.addBreak({ addr: 0x404941 });
+    // this.addBreak({ addr: 0x4049b7 });
   }
 
   addBreak(bp: Breakpoint) {
@@ -497,6 +500,16 @@ class Page extends preact.Component<Page.Props, Page.State> {
                   showMemory={this.showMemory}
                   toggle={(addr) => {
                     this.props.vm.toggleBreak(addr);
+                    this.forceUpdate();
+                  }}
+                />
+              ),
+
+              snapshots: (
+                <SnapshotsComponent
+                  take={() => this.props.vm.emu.snapshot()}
+                  load={(snap) => {
+                    this.props.vm.emu.load_snapshot(snap);
                     this.forceUpdate();
                   }}
                 />
