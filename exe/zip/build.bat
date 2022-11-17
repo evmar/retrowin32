@@ -1,8 +1,8 @@
 @echo off
 
 rem /std           c++ version
+rem /EHsc          allow exceptions
 rem /Os            optimize for size
-rem /GS-           disable stack guard code
 rem /link          linker options follow
 rem /subsystem     console binary
 rem /nologo        don't print copyright goop

@@ -45,6 +45,12 @@ std::vector<uint8_t> decompress(const std::vector<uint8_t>& input) {
 
 int main(int argc, const char* argv[]) {
   auto input = read_stdin();
+  if (input.empty()) {
+    std::string_view text = "hello, world";
+    for (auto i = 0; i < 1000; i++) {
+      input.insert(input.begin(), text.begin(), text.end());
+    }
+  }
   auto output = compress(input);
   auto reinput = decompress(output);
   printf("input size %d, compressed size %d, recompressed %d\n", input.size(), output.size(), reinput.size());
