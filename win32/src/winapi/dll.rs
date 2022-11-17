@@ -152,8 +152,8 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
     }
     fn IsProcessorFeaturePresent(x86: &mut X86) {
-        let _feature: u32 = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, _feature) as u32;
+        let feature: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::IsProcessorFeaturePresent(x86, feature) as u32;
     }
     fn IsDebuggerPresent(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::IsDebuggerPresent(x86) as u32;
