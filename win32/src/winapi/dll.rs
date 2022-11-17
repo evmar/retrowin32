@@ -292,6 +292,17 @@ pub mod kernel32 {
         let _exceptionInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::UnhandledExceptionFilter(x86, _exceptionInfo) as u32;
     }
+    fn NtCurrentTeb(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::NtCurrentTeb(x86) as u32;
+    }
+    fn TlsAlloc(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::TlsAlloc(x86) as u32;
+    }
+    fn TlsSetValue(x86: &mut X86) {
+        let dwTlsIndex: u32 = unsafe { from_x86(x86) };
+        let lpTlsValue: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::TlsSetValue(x86, dwTlsIndex, lpTlsValue) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "GetLastError" => GetLastError,
@@ -335,6 +346,9 @@ pub mod kernel32 {
             "EnterCriticalSection" => EnterCriticalSection,
             "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
             "UnhandledExceptionFilter" => UnhandledExceptionFilter,
+            "NtCurrentTeb" => NtCurrentTeb,
+            "TlsAlloc" => TlsAlloc,
+            "TlsSetValue" => TlsSetValue,
             _ => return None,
         })
     }

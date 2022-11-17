@@ -225,6 +225,10 @@ struct PEB {
     LdrData: DWORD,
     ProcessParameters: DWORD,
     // TODO: more fields
+
+    // This is at the wrong offset, but it shouldn't matter.
+    // TODO: this should be TlsBitmap.
+    TlsCount: DWORD,
 }
 unsafe impl Pod for PEB {}
 
@@ -244,12 +248,16 @@ unsafe impl Pod for NT_TIB {}
 struct TEB {
     Tib: NT_TIB,
     EnvironmentPointer: DWORD,
-    ClientId: DWORD,
+    ClientId_UniqueProcess: DWORD,
+    ClientId_UniqueThread: DWORD,
     ActiveRpcHandle: DWORD,
     ThreadLocalStoragePointer: DWORD,
     Peb: DWORD,
     LastErrorValue: DWORD,
-    // TOOD: ... there are many more fields
+    // TODO: ... there are many more fields here
+
+    // This is at the wrong offset, but it shouldn't matter.
+    TlsSlots: [DWORD; 64],
 }
 unsafe impl Pod for TEB {}
 
@@ -697,4 +705,24 @@ pub fn SetUnhandledExceptionFilter(_x86: &mut X86, _lpTopLevelExceptionFilter: u
 pub fn UnhandledExceptionFilter(_x86: &mut X86, _exceptionInfo: u32) -> u32 {
     // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
     0 // EXCEPTION_CONTINUE_SEARCH
+}
+
+pub fn NtCurrentTeb(x86: &mut X86) -> u32 {
+    x86.state.kernel32.teb
+}
+
+pub fn TlsAlloc(x86: &mut X86) -> u32 {
+    let teb = x86.mem.view::<TEB>(x86.state.kernel32.teb);
+    let peb_addr = teb.Peb.get();
+    let peb = x86.mem.view_mut::<PEB>(peb_addr);
+    let slot = peb.TlsCount.get();
+    log::info!("tls alloc slot {}", slot);
+    peb.TlsCount.set(slot + 1);
+    slot
+}
+
+pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
+    let teb = x86.mem.view_mut::<TEB>(x86.state.kernel32.teb);
+    teb.TlsSlots[dwTlsIndex as usize].set(lpTlsValue);
+    true
 }
