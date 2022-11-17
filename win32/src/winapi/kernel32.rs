@@ -467,14 +467,29 @@ pub fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
     1 // success
 }
 
-pub fn LoadLibraryA(x86: &mut X86, lpLibFileName: u32) -> u32 {
-    let filename = &x86.mem[lpLibFileName as usize..].read_strz();
+pub fn LoadLibraryA(_x86: &mut X86, filename: &str) -> u32 {
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
 
-pub fn LoadLibraryExW(_x86: &mut X86, lpLibFileName: u32, hFile: u32, dwFlags: u32) -> u32 {
-    log::error!("LoadLibraryExW({lpLibFileName:x}, {hFile:x}, {dwFlags:x})");
+pub fn LoadLibraryExW(x86: &mut X86, lpLibFileName: u32, hFile: u32, dwFlags: u32) -> u32 {
+    // TODO: move utf16 decode elsewhere.
+    let mem16: &[u16] = unsafe {
+        let mem = &x86.mem[lpLibFileName as usize..];
+        let ptr = mem.as_ptr() as *const u16;
+        std::slice::from_raw_parts(ptr, mem.len() / 2)
+    };
+    let mut filename = String::new();
+    for &c in mem16 {
+        if c == 0 {
+            break;
+        }
+        if c > 0xFF {
+            panic!("unhandled non-ascii");
+        }
+        filename.push(c as u8 as char);
+    }
+    log::error!("LoadLibraryExW({filename:?}, {hFile:x}, {dwFlags:x})");
     0 // fail
 }
 

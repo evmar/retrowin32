@@ -223,8 +223,8 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::HeapDestroy(x86, hHeap) as u32;
     }
     fn LoadLibraryA(x86: &mut X86) {
-        let lpLibFileName: u32 = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, lpLibFileName) as u32;
+        let filename: &str = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, filename) as u32;
     }
     fn LoadLibraryExW(x86: &mut X86) {
         let lpLibFileName: u32 = unsafe { from_x86(x86) };
