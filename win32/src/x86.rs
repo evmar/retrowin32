@@ -1635,13 +1635,18 @@ impl Runner {
         code
     }
 
-    fn ip_to_instr_index(&self, target_ip: u32) -> Result<usize, &'static str> {
+    fn ip_to_instr_index(&self, target_ip: u32) -> Option<usize> {
         match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
-            Ok(pos) => Ok(pos),
-            Err(_) => {
+            Ok(pos) => Some(pos),
+            Err(pos) => {
                 // I think we may hit this case if the disassembler gets desynchronized from the instruction
                 // stream.  We might need to re-disassemble or something in that case.
-                Err("invalid ip, possible desync?")
+                let nearby = match self.instrs.get(pos) {
+                    Some(&(ip, _)) => format!("nearby address {:x}", ip),
+                    None => format!("address beyond decoded range"),
+                };
+                log::error!("invalid ip {:x}, possible desync? {}", target_ip, nearby);
+                None
             }
         }
     }
@@ -1677,7 +1682,7 @@ impl Runner {
     pub fn add_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
         let index = self
             .ip_to_instr_index(addr)
-            .map_err(|err| anyhow::anyhow!(err))?;
+            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
         let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
@@ -1690,7 +1695,7 @@ impl Runner {
     pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
         let index = self
             .ip_to_instr_index(addr)
-            .map_err(|err| anyhow::anyhow!(err))?;
+            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
         let prev = self.breakpoints.remove(&addr).unwrap();
         self.instrs[index].1 = prev;
         Ok(())
