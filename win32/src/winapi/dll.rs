@@ -306,6 +306,10 @@ pub mod kernel32 {
         let lpTlsValue: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::TlsSetValue(x86, dwTlsIndex, lpTlsValue) as u32;
     }
+    fn TlsGetValue(x86: &mut X86) {
+        let dwTlsIndex: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::TlsGetValue(x86, dwTlsIndex) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "GetLastError" => GetLastError,
@@ -353,6 +357,7 @@ pub mod kernel32 {
             "NtCurrentTeb" => NtCurrentTeb,
             "TlsAlloc" => TlsAlloc,
             "TlsSetValue" => TlsSetValue,
+            "TlsGetValue" => TlsGetValue,
             _ => return None,
         })
     }

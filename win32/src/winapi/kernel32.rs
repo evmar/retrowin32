@@ -747,3 +747,8 @@ pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
     teb.TlsSlots[dwTlsIndex as usize].set(lpTlsValue);
     true
 }
+
+pub fn TlsGetValue(x86: &mut X86, dwTlsIndex: u32) -> u32 {
+    let teb = teb_mut(x86);
+    teb.TlsSlots[dwTlsIndex as usize].get()
+}
