@@ -1018,6 +1018,18 @@ impl X86 {
                 let y = instr.immediate8() as u32;
                 self.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
             }
+            iced_x86::Code::Ror_rm32_CL => {
+                let y = self.regs.ecx as u8;
+                self.rm32_x(instr, |x86, x| {
+                    let out = x.rotate_right(y as u32);
+                    let cf = (out & 1) != 0;
+                    x86.regs.flags.set(Flags::CF, cf);
+                    x86.regs
+                        .flags
+                        .set(Flags::OF, ((out & 0x8000_0000) != 0) ^ cf);
+                    out
+                });
+            }
             iced_x86::Code::Xor_rm32_r32 => {
                 let y = self.regs.get32(instr.op1_register());
                 self.rm32_x(instr, |_x86, x| x ^ y);
