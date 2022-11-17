@@ -1,2 +1,7 @@
 *.asm
 *.obj
+
+# ghidra
+*.gpr
+*.rep
+*.lock*
