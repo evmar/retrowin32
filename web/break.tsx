@@ -13,6 +13,7 @@ namespace BreakpointsComponent {
     breakpoints: Breakpoint[];
     highlight: number;
     toggle: (addr: number) => void;
+    add: (text: string) => boolean;
   }
 }
 
@@ -34,7 +35,36 @@ export class BreakpointsComponent extends preact.Component<BreakpointsComponent.
     return (
       <section>
         {rows}
+        <AddComponent onAccept={(text) => this.props.add(text)} />
       </section>
+    );
+  }
+}
+
+namespace AddComponent {
+  export interface Props {
+    onAccept(text: string): boolean;
+  }
+  export interface State {
+    text: string;
+  }
+}
+class AddComponent extends preact.Component<AddComponent.Props, AddComponent.State> {
+  onInput = (ev: Event) => {
+    const text = (ev.target! as HTMLInputElement).value;
+    this.setState({ text });
+  };
+  onSubmit = (ev: Event) => {
+    ev.preventDefault();
+    if (this.props.onAccept(this.state.text)) {
+      this.setState({ text: '' });
+    }
+  };
+  render() {
+    return (
+      <form onSubmit={this.onSubmit}>
+        add: <input value={this.state.text} onInput={this.onInput} />
+      </form>
     );
   }
 }

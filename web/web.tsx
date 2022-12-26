@@ -147,6 +147,21 @@ class VM implements JsHost {
     this.emu.breakpoint_add(bp.addr);
   }
 
+  addBreakByName(name: string): boolean {
+    for (const [addr, label] of this.labels) {
+      if (label === name) {
+        this.addBreak({ addr });
+        return true;
+      }
+    }
+    if (name.match(/^[0-9a-fA-F]+$/)) {
+      const addr = parseInt(name, 16);
+      this.addBreak({ addr });
+      return true;
+    }
+    return false;
+  }
+
   delBreak(addr: number) {
     this.breakpoints.delete(addr);
     this.emu.breakpoint_clear(addr);
@@ -507,6 +522,11 @@ class Page extends preact.Component<Page.Props, Page.State> {
                   toggle={(addr) => {
                     this.props.vm.toggleBreak(addr);
                     this.forceUpdate();
+                  }}
+                  add={(text) => {
+                    const ret = this.props.vm.addBreakByName(text);
+                    this.forceUpdate();
+                    return ret;
                   }}
                 />
               ),

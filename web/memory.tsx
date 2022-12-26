@@ -3,6 +3,10 @@ import { h } from 'preact';
 import { hex } from './util';
 
 export namespace Number {
+  /**
+   * Props used for any place in the UI where we show hex numbers, to add 'jump to address'
+   * shortcuts.
+   */
   export interface Interactions {
     showMemory: (addr: number) => void;
     highlightMemory: (addr: number) => void;
