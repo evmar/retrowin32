@@ -8,9 +8,7 @@ web/web.js: wasm/pkg/stamp
 
 fmt-rust:
 	cargo fmt
-fmt-web:
-	cd web && npm run fmt
-fmt-md:
-	prettier -w --prose-wrap always *.md doc/*.md
+fmt-dprint:
+	web/node_modules/.bin/dprint fmt
 
-fmt: fmt-rust fmt-web fmt-md
+fmt: fmt-rust fmt-dprint

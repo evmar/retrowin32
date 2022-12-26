@@ -33,7 +33,7 @@ hard to run. Even on Windows itself, there's a
 [32-bit Windows translation layer](https://en.wikipedia.org/wiki/WoW64) when
 running on now standard x86-64 hardware. On non-Windows the best tool is Wine,
 but it requires x86 hardware. On a recent non-x86 Mac
-[their x86 emulator](<https://en.wikipedia.org/wiki/Rosetta_(software)>) dropped
+[their x86 emulator](https://en.wikipedia.org/wiki/Rosetta_(software)) dropped
 32-bit support, so even Wine isn't sufficient there.
 
 So my idea is this: what if you treated a win32 executable in the same way you

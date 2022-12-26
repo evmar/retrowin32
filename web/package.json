@@ -2,16 +2,15 @@
   "name": "web",
   "version": "1.0.0",
   "scripts": {
-    "fmt": "dprint fmt",
     "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js web.tsx",
     "build": "esbuild --bundle --target=es2020 --format=esm --sourcemap --outfile=bundle.js web.tsx"
   },
   "devDependencies": {
+    "dprint": "^0.32.1",
+    "esbuild": "^0.15.7",
     "typescript": "^4.8.3"
   },
   "dependencies": {
-    "dprint": "^0.32.1",
-    "esbuild": "^0.15.7",
     "preact": "^10.11.0"
   }
 }
