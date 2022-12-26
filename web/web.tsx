@@ -516,6 +516,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
               breakpoints: (
                 <BreakpointsComponent
                   breakpoints={Array.from(this.props.vm.breakpoints.values())}
+                  labels={this.props.vm.labels}
                   highlight={this.props.vm.emu.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}

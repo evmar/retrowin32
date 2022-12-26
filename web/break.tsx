@@ -11,6 +11,7 @@ export interface Breakpoint {
 namespace BreakpointsComponent {
   export interface Props extends Number.Interactions {
     breakpoints: Breakpoint[];
+    labels: Map<number, string>;
     highlight: number;
     toggle: (addr: number) => void;
     add: (text: string) => boolean;
@@ -22,13 +23,23 @@ export class BreakpointsComponent extends preact.Component<BreakpointsComponent.
     const rows = [];
     for (const bp of this.props.breakpoints) {
       const className = bp.addr === this.props.highlight ? 'highlight' : undefined;
+      const label = this.props.labels.get(bp.addr);
       rows.push(
-        <div className={className} style={{ display: 'flex', alignItems: 'center' }}>
+        <div className={className} style={{ display: 'flex', alignItems: 'center', gap: '0.5ex' }}>
           <input type='checkbox' checked={!bp.disabled} onChange={() => this.props.toggle(bp.addr)} />
           <div>
-            <Number digits={8} {...this.props}>{bp.addr}</Number>
+            <code>
+              <Number digits={8} {...this.props}>{bp.addr}</Number>
+            </code>
           </div>
-          {bp.oneShot ? ' [once]' : null}
+          {bp.oneShot ? '[once]' : null}
+          {label
+            ? (
+              <div>
+                (<code>{label}</code>)
+              </div>
+            )
+            : null}
         </div>,
       );
     }
