@@ -121,7 +121,7 @@ class VM implements JsHost {
   stdout = '';
   page!: Page;
 
-  constructor(exe: ArrayBuffer, labels: Map<number, string>) {
+  constructor(private readonly path: string, exe: ArrayBuffer, labels: Map<number, string>) {
     this.labels = labels;
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
@@ -133,22 +133,29 @@ class VM implements JsHost {
       this.labels.set(addr, name);
     }
 
-    // // XXX hacks for debugging basicDD.exe
-    // this.labels.set(0x004023fe, 'setup_env');
-    // this.labels.set(0x00402850, 'setup_heap');
-    // this.labels.set(0x004019da, 'fatal');
-
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
 
-    // this.addBreak({ addr: 0x424f8d });
-    // this.addBreak({ addr: 0x404941 });
-    // this.addBreak({ addr: 0x4049b7 });
+    this.loadBreakpoints();
   }
 
-  addBreak(bp: Breakpoint) {
+  private loadBreakpoints() {
+    const json = window.localStorage.getItem(this.path);
+    if (!json) return;
+    const bps = JSON.parse(json) as Breakpoint[];
+    for (const bp of bps) {
+      this.addBreak(bp, /* save= */ false);
+    }
+  }
+
+  private saveBreakpoints() {
+    window.localStorage.setItem(this.path, JSON.stringify(Array.from(this.breakpoints.values())));
+  }
+
+  addBreak(bp: Breakpoint, save = true) {
     this.breakpoints.set(bp.addr, bp);
     this.emu.breakpoint_add(bp.addr);
+    if (save) this.saveBreakpoints();
   }
 
   addBreakByName(name: string): boolean {
@@ -169,6 +176,7 @@ class VM implements JsHost {
   delBreak(addr: number) {
     this.breakpoints.delete(addr);
     this.emu.breakpoint_clear(addr);
+    this.saveBreakpoints();
   }
 
   toggleBreak(addr: number) {
@@ -179,6 +187,7 @@ class VM implements JsHost {
     } else {
       this.emu.breakpoint_add(addr);
     }
+    this.saveBreakpoints();
   }
 
   /** Check if the current address is a break/exit point, returning true if so. */
@@ -561,7 +570,7 @@ async function main() {
   const labels = await loadLabels(path);
   await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
 
-  const vm = new VM(exe, labels);
+  const vm = new VM(path, exe, labels);
   preact.render(<Page vm={vm} />, document.body);
 }
 
