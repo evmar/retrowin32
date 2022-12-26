@@ -6,6 +6,10 @@ use std::mem::size_of;
 /// A trait for types where it's safe to reintepret_cast<> from/to random memory blocks.
 pub unsafe trait Pod: 'static {}
 
+// See discussion of endianness in doc/design_notes.md.
+unsafe impl Pod for u16 {}
+unsafe impl Pod for u32 {}
+
 pub trait Memory {
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
@@ -30,10 +34,10 @@ impl Memory for [u8] {
     }
 
     fn read_u32(&self, addr: u32) -> u32 {
-        self.view::<DWORD>(addr).get()
+        *self.view::<u32>(addr)
     }
     fn write_u32(&mut self, addr: u32, value: u32) {
-        self.view_mut::<DWORD>(addr).set(value)
+        *self.view_mut::<u32>(addr) = value;
     }
 
     fn read_strz(&self) -> &str {
@@ -42,55 +46,5 @@ impl Memory for [u8] {
             span = &self[0..nul];
         }
         std::str::from_utf8(span).unwrap()
-    }
-}
-
-pub struct WORD([u8; 2]);
-impl WORD {
-    // pub fn set(&mut self, val: u16) {
-    //     self.0[0] = val as u8;
-    //     self.0[1] = (val >> 8) as u8;
-    // }
-    pub fn get(&self) -> u16 {
-        (self.0[1] as u16) << 8 | self.0[0] as u16
-    }
-}
-unsafe impl Pod for WORD {}
-impl std::fmt::Debug for WORD {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:x}", self.get())
-    }
-}
-
-#[derive(Clone, Copy)]
-pub struct DWORD([u8; 4]);
-impl DWORD {
-    pub fn new() -> Self {
-        DWORD([0, 0, 0, 0])
-    }
-    pub fn set(&mut self, val: u32) {
-        self.0[0] = val as u8;
-        self.0[1] = (val >> 8) as u8;
-        self.0[2] = (val >> 16) as u8;
-        self.0[3] = (val >> 24) as u8;
-    }
-    pub fn get(&self) -> u32 {
-        (self.0[3] as u32) << 24
-            | (self.0[2] as u32) << 16
-            | (self.0[1] as u32) << 8
-            | self.0[0] as u32
-    }
-}
-unsafe impl Pod for DWORD {}
-impl std::fmt::Debug for DWORD {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:x}", self.get())
-    }
-}
-impl From<u32> for DWORD {
-    fn from(x: u32) -> Self {
-        let mut dw = DWORD::new();
-        dw.set(x);
-        dw
     }
 }

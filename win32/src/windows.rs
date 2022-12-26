@@ -5,10 +5,10 @@ use crate::{pe, winapi, x86::X86};
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
 
-    let base = file.opt_header.ImageBase.get();
+    let base = file.opt_header.ImageBase;
     x86.state.kernel32.image_base = base;
     x86.mem
-        .resize((base + file.opt_header.SizeOfImage.get()) as usize, 0);
+        .resize((base + file.opt_header.SizeOfImage) as usize, 0);
     log::info!(
         "image base {base:#x}, image total size {:#x}",
         x86.mem.len()
@@ -31,7 +31,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
 
     x86.state.kernel32.init(&mut x86.mem);
 
-    let mut stack_size = file.opt_header.SizeOfStackReserve.get();
+    let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.
     if stack_size > 1 << 20 {
         log::warn!(
@@ -53,7 +53,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
         &mut x86.mem[base as usize..],
-        imports_data.VirtualAddress.get() as usize,
+        imports_data.VirtualAddress as usize,
         |dll, sym, iat_addr| {
             labels.insert(base + iat_addr, format!("{}@IAT", sym));
 
@@ -71,9 +71,9 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
 
     const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
     let res_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
-    x86.state.user32.resources_base = res_data.VirtualAddress.get();
+    x86.state.user32.resources_base = res_data.VirtualAddress;
 
-    let entry_point = base + file.opt_header.AddressOfEntryPoint.get();
+    let entry_point = base + file.opt_header.AddressOfEntryPoint;
     x86.regs.eip = entry_point;
 
     Ok(labels)

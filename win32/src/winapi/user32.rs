@@ -5,11 +5,13 @@ use bitflags::bitflags;
 
 use crate::{
     host,
-    memory::{Memory, Pod, DWORD, WORD},
+    memory::{Memory, Pod},
     pe,
     winapi::gdi32,
     x86::X86,
 };
+
+use super::types::{DWORD, WORD};
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
@@ -177,14 +179,14 @@ struct BITMAPINFOHEADER {
 unsafe impl Pod for BITMAPINFOHEADER {}
 impl BITMAPINFOHEADER {
     fn width(&self) -> u32 {
-        self.biWidth.get()
+        self.biWidth
     }
     fn height(&self) -> u32 {
         // Height is negative if top-down DIB.
-        (self.biHeight.get() as i32).abs() as u32
+        (self.biHeight as i32).abs() as u32
     }
     fn is_top_down(&self) -> bool {
-        (self.biHeight.get() as i32) < 0
+        (self.biHeight as i32) < 0
     }
 }
 
@@ -206,12 +208,12 @@ impl std::fmt::Debug for Bitmap {
 fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     let header = buf.view::<BITMAPINFOHEADER>(0);
     let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
-    if header.biSize.get() as usize != header_size {
+    if header.biSize as usize != header_size {
         bail!("bad bitmap header");
     }
 
-    let palette_count = match header.biBitCount.get() {
-        8 => match header.biClrUsed.get() {
+    let palette_count = match header.biBitCount {
+        8 => match header.biClrUsed {
             0 => 256,
             _ => unimplemented!(),
         },

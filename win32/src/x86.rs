@@ -7,9 +7,9 @@ use tsify::Tsify;
 
 use crate::{
     host,
-    memory::{Memory, DWORD},
+    memory::Memory,
     pe::ImageSectionFlags,
-    winapi,
+    winapi::{self, types::DWORD},
     windows::load_exe,
 };
 
@@ -938,7 +938,7 @@ impl X86 {
                 } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
                     bail!("unimpl");
                 } else {
-                    self.mem.view_mut::<DWORD>(dst as u32).set(value);
+                    *self.mem.view_mut::<DWORD>(dst as u32) = value;
                     self.regs.edi += 4;
                 }
                 // TODO: does this modify esi?  Sources disagree (!?)

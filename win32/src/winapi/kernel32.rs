@@ -5,12 +5,14 @@ use num_traits::FromPrimitive;
 use std::collections::HashMap;
 
 use crate::{
-    memory::{Memory, Pod, DWORD},
+    memory::{Memory, Pod},
     pe::{self, ImageSectionFlags},
     x86::{self, X86},
 };
 use std::io::Write;
 use tsify::Tsify;
+
+use super::types::DWORD;
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: u32 = 0xF11E_0100;
@@ -122,23 +124,23 @@ impl State {
         // x86.write_u32(params_addr + 0x10, console_handle);
         // x86.write_u32(params_addr + 0x14, console_flags);
         // x86.write_u32(params_addr + 0x18, stdin);
-        params.hStdOutput.set(STDOUT_HFILE);
+        params.hStdOutput = STDOUT_HFILE;
 
         // PEB
         let peb_addr = self
             .heap
             .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.view_mut::<PEB>(peb_addr);
-        peb.ProcessParameters.set(params_addr);
-        peb.TlsCount.set(0);
+        peb.ProcessParameters = params_addr;
+        peb.TlsCount = 0;
 
         // TEB
         let teb_addr = self
             .heap
             .alloc(mem, std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
         let teb = mem.view_mut::<TEB>(teb_addr);
-        teb.Tib._Self.set(teb_addr); // Confusing: it points to itself.
-        teb.Peb.set(peb_addr);
+        teb.Tib._Self = teb_addr; // Confusing: it points to itself.
+        teb.Peb = peb_addr;
 
         self.teb = teb_addr;
     }
@@ -222,7 +224,7 @@ fn teb_mut(x86: &mut X86) -> &mut TEB {
     x86.mem.view_mut::<TEB>(x86.state.kernel32.teb)
 }
 fn peb_mut(x86: &mut X86) -> &mut PEB {
-    let peb_addr = teb(x86).Peb.get();
+    let peb_addr = teb(x86).Peb;
     x86.mem.view_mut::<PEB>(peb_addr)
 }
 
@@ -291,7 +293,7 @@ struct RTL_USER_PROCESS_PARAMETERS {
 unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
 
 pub fn SetLastError(x86: &mut X86, dwErrCode: u32) -> u32 {
-    teb_mut(x86).LastErrorValue.set(dwErrCode);
+    teb_mut(x86).LastErrorValue = dwErrCode;
     0 // unused
 }
 
@@ -413,7 +415,7 @@ pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     x86.mem[ofs..ofs + size].fill(0);
 
     let info = x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
-    info.cb.set(size as u32);
+    info.cb = size as u32;
     0
 }
 
@@ -527,9 +529,9 @@ pub fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
     let info: &mut OSVERSIONINFO =
         unsafe { (buf.as_mut_ptr() as *mut OSVERSIONINFO).as_mut().unwrap() };
 
-    info.dwOSVersionInfoSize.set(size as u32);
-    info.dwMajorVersion.set(6); // ? pulled from debugger
-    info.dwPlatformId.set(2 /* VER_PLATFORM_WIN32_NT */);
+    info.dwOSVersionInfoSize = size as u32;
+    info.dwMajorVersion = 6; // ? pulled from debugger
+    info.dwPlatformId = 2 /* VER_PLATFORM_WIN32_NT */;
 
     1
 }
@@ -603,12 +605,12 @@ pub fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
 }
 
 pub fn GetProcessHeap(x86: &mut X86) -> u32 {
-    let heap = peb_mut(x86).ProcessHeap.get();
+    let heap = peb_mut(x86).ProcessHeap;
     if heap != 0 {
         return heap;
     }
     let heap = HeapCreate(x86, 0, 4 << 10, 4 << 10);
-    peb_mut(x86).ProcessHeap.set(heap);
+    peb_mut(x86).ProcessHeap = heap;
     heap
 }
 
@@ -743,18 +745,18 @@ pub fn NtCurrentTeb(x86: &mut X86) -> u32 {
 
 pub fn TlsAlloc(x86: &mut X86) -> u32 {
     let peb = peb_mut(x86);
-    let slot = peb.TlsCount.get();
-    peb.TlsCount.set(slot + 1);
+    let slot = peb.TlsCount;
+    peb.TlsCount = slot + 1;
     slot
 }
 
 pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
     let teb = teb_mut(x86);
-    teb.TlsSlots[dwTlsIndex as usize].set(lpTlsValue);
+    teb.TlsSlots[dwTlsIndex as usize] = lpTlsValue;
     true
 }
 
 pub fn TlsGetValue(x86: &mut X86, dwTlsIndex: u32) -> u32 {
     let teb = teb_mut(x86);
-    teb.TlsSlots[dwTlsIndex as usize].get()
+    teb.TlsSlots[dwTlsIndex as usize]
 }

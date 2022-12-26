@@ -4,8 +4,9 @@
 use std::mem::size_of;
 
 use crate::{
-    memory::{self, Memory, DWORD, WORD},
+    memory::{self, Memory},
     reader::Reader,
+    winapi::types::{DWORD, WORD},
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
@@ -16,7 +17,7 @@ use bitflags::bitflags;
 fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
-    Ok(r.view::<DWORD>().get())
+    Ok(*r.view::<DWORD>())
 }
 
 #[derive(Debug)]
@@ -97,7 +98,7 @@ fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
     let header: &'a IMAGE_FILE_HEADER = r.view::<IMAGE_FILE_HEADER>();
-    if header.Machine.get() != 0x14c {
+    if header.Machine != 0x14c {
         bail!("bad machine {:?}", header.Machine);
     }
     Ok(header)
@@ -164,7 +165,7 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
         sections: Vec::new(),
     };
 
-    for _ in 0..file.header.NumberOfSections.get() {
+    for _ in 0..file.header.NumberOfSections {
         file.sections.push(read_section(&mut r));
     }
 
@@ -196,10 +197,10 @@ pub fn parse_imports(
     let mut patches = Vec::new();
     loop {
         let descriptor = r.view::<IMAGE_IMPORT_DESCRIPTOR>();
-        if descriptor.Name.get() == 0 {
+        if descriptor.Name == 0 {
             break;
         }
-        let dll_name = mem[descriptor.Name.get() as usize..]
+        let dll_name = mem[descriptor.Name as usize..]
             .read_strz()
             .to_ascii_lowercase();
 
@@ -217,10 +218,10 @@ pub fn parse_imports(
         // On load, each IAT entry points to the function name (as parsed below).
         // The loader is supposed to overwrite the IAT with the addresses to the loaded DLL,
         // but we instead just record the IAT addresses to remap them.
-        let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk.get() as usize..]);
+        let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk as usize..]);
         loop {
-            let addr = descriptor.FirstThunk.get() + iat_reader.pos as u32;
-            let entry = iat_reader.view::<DWORD>().get();
+            let addr = descriptor.FirstThunk + iat_reader.pos as u32;
+            let entry = *iat_reader.view::<DWORD>();
             if entry == 0 {
                 break;
             }
@@ -257,7 +258,7 @@ struct IMAGE_RESOURCE_DIRECTORY {
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
 impl IMAGE_RESOURCE_DIRECTORY {
     fn entries(&self, mem: &[u8]) -> &[IMAGE_RESOURCE_DIRECTORY_ENTRY] {
-        let count = (self.NumberOfIdEntries.get() + self.NumberOfNamedEntries.get()) as usize;
+        let count = (self.NumberOfIdEntries + self.NumberOfNamedEntries) as usize;
         // Entries are in memory immediately after the directory.
         let mem = &mem[size_of::<IMAGE_RESOURCE_DIRECTORY>()..];
         let mem = &mem[0..(count * size_of::<IMAGE_RESOURCE_DIRECTORY_ENTRY>()) as usize];
@@ -285,7 +286,7 @@ enum ResourceName {
 }
 impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
     fn name(&self) -> ResourceName {
-        let val = self.Name.get();
+        let val = self.Name;
         if val >> 31 == 0 {
             ResourceName::Id(val)
         } else {
@@ -293,10 +294,10 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
         }
     }
     fn is_directory(&self) -> bool {
-        self.OffsetToData.get() >> 31 == 1
+        self.OffsetToData >> 31 == 1
     }
     fn offset(&self) -> u32 {
-        self.OffsetToData.get() & 0x7FFF_FFFF
+        self.OffsetToData & 0x7FFF_FFFF
     }
 }
 
@@ -342,8 +343,8 @@ pub fn get_resource(
             for lang_entry in entries {
                 assert!(!lang_entry.is_directory());
                 let data = section.view::<IMAGE_RESOURCE_DATA_ENTRY>(lang_entry.offset());
-                let ofs = data.OffsetToData.get() as usize;
-                let len = data.Size.get() as usize;
+                let ofs = data.OffsetToData as usize;
+                let len = data.Size as usize;
                 let buf = &mem[ofs..ofs + len];
                 return Some(buf);
             }

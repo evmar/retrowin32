@@ -5,13 +5,13 @@ use std::collections::HashMap;
 
 use crate::{
     host,
-    memory::{Memory, Pod, DWORD},
+    memory::{Memory, Pod},
     winapi::vtable,
     winapi::winapi_shims,
     x86::X86,
 };
 
-use super::kernel32;
+use super::{kernel32, types::DWORD};
 use bitflags::bitflags;
 
 #[repr(C)]
@@ -92,7 +92,7 @@ struct DDSCAPS2 {
 unsafe impl Pod for DDSCAPS2 {}
 impl DDSCAPS2 {
     fn caps1(&self) -> DDSCAPS {
-        unsafe { DDSCAPS::from_bits_unchecked(self.dwCaps.get()) }
+        unsafe { DDSCAPS::from_bits_unchecked(self.dwCaps) }
     }
 }
 
@@ -184,7 +184,7 @@ struct DDSURFACEDESC {
 unsafe impl Pod for DDSURFACEDESC {}
 impl DDSURFACEDESC {
     fn flags(&self) -> DDSD {
-        unsafe { DDSD::from_bits_unchecked(self.dwFlags.get()) }
+        unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
     }
     fn caps(&self) -> Option<&DDSCAPS> {
         if !self.flags().contains(DDSD::CAPS) {
@@ -196,7 +196,7 @@ impl DDSURFACEDESC {
         if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
             return None;
         }
-        Some(self.dwBackBufferCount.get())
+        Some(self.dwBackBufferCount)
     }
 }
 
@@ -228,13 +228,13 @@ struct DDSURFACEDESC2 {
 unsafe impl Pod for DDSURFACEDESC2 {}
 impl DDSURFACEDESC2 {
     fn flags(&self) -> DDSD {
-        unsafe { DDSD::from_bits_unchecked(self.dwFlags.get()) }
+        unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
     }
     fn back_buffer_count(&self) -> Option<u32> {
         if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
             return None;
         }
-        Some(self.dwBackBufferCount_dwDepth.get())
+        Some(self.dwBackBufferCount_dwDepth)
     }
     fn caps(&self) -> Option<&DDSCAPS2> {
         if !self.flags().contains(DDSD::CAPS) {
@@ -294,7 +294,7 @@ mod IDirectDraw {
         lplpDDSurface: u32,
         _pUnkOuter: u32,
     ) -> u32 {
-        assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize.get() as usize);
+        assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize as usize);
 
         let mut opts = host::SurfaceOptions::default();
         let mut flags = desc.flags();
@@ -416,7 +416,7 @@ mod IDirectDrawSurface {
 
     fn GetPixelFormat(_x86: &mut X86, fmt: &mut DDPIXELFORMAT) -> u32 {
         *fmt = unsafe { std::mem::zeroed() };
-        fmt.dwSize.set(std::mem::size_of::<DDPIXELFORMAT>() as u32);
+        fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
     }
 
@@ -431,8 +431,6 @@ const IID_IDirectDraw7: [u8; 16] = [
 ];
 
 mod IDirectDraw7 {
-    use crate::memory::DWORD;
-
     use super::*;
 
     vtable![shims
@@ -480,7 +478,7 @@ mod IDirectDraw7 {
         lpDirectDrawSurface7: u32,
         _unused: u32,
     ) -> u32 {
-        assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize.get() as usize);
+        assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
 
         log::warn!(
             "{this:x}->CreateSurface({:?}, {desc:?}, {lpDirectDrawSurface7:x})",
@@ -489,10 +487,10 @@ mod IDirectDraw7 {
 
         let mut opts = host::SurfaceOptions::default();
         if desc.flags().contains(DDSD::WIDTH) {
-            opts.width = desc.dwWidth.get();
+            opts.width = desc.dwWidth;
         }
         if desc.flags().contains(DDSD::HEIGHT) {
-            opts.height = desc.dwHeight.get();
+            opts.height = desc.dwHeight;
         }
         if let Some(caps) = desc.caps() {
             log::warn!("  caps: {:?}", caps.caps1());
@@ -573,8 +571,6 @@ mod IDirectDraw7 {
 }
 
 mod IDirectDrawSurface7 {
-    use crate::memory::DWORD;
-
     use super::*;
 
     vtable![shims
@@ -661,10 +657,10 @@ mod IDirectDrawSurface7 {
             (&mut *dst, &*src)
         };
         let rect = x86.mem.view::<RECT>(lpRect);
-        let sx = rect.left.get();
-        let w = rect.right.get() - sx;
-        let sy = rect.top.get();
-        let h = rect.bottom.get() - sy;
+        let sx = rect.left;
+        let w = rect.right - sx;
+        let sy = rect.top;
+        let h = rect.bottom - sy;
         dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
         DD_OK
     }
@@ -711,14 +707,14 @@ mod IDirectDrawSurface7 {
     fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDesc: u32) -> u32 {
         let surf = x86.state.ddraw.surfaces.get(&this).unwrap();
         let desc = x86.mem.view_mut::<DDSURFACEDESC2>(lpDesc);
-        assert!(desc.dwSize.get() as usize == std::mem::size_of::<DDSURFACEDESC2>());
+        assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
         let mut flags = desc.flags();
         if flags.contains(DDSD::WIDTH) {
-            desc.dwWidth.set(surf.width);
+            desc.dwWidth = surf.width;
             flags.remove(DDSD::WIDTH);
         }
         if flags.contains(DDSD::HEIGHT) {
-            desc.dwHeight.set(surf.height);
+            desc.dwHeight = surf.height;
             flags.remove(DDSD::HEIGHT);
         }
         if !flags.is_empty() {
