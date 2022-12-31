@@ -154,7 +154,9 @@ class VM implements JsHost {
 
   addBreak(bp: Breakpoint, save = true) {
     this.breakpoints.set(bp.addr, bp);
-    this.emu.breakpoint_add(bp.addr);
+    if (!bp.disabled) {
+      this.emu.breakpoint_add(bp.addr);
+    }
     if (save) this.saveBreakpoints();
   }
 
