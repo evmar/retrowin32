@@ -5,3 +5,5 @@
 *.gpr
 *.rep
 *.lock*
+
+zig-cache
