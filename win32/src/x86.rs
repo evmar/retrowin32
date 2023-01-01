@@ -276,6 +276,8 @@ pub struct X86 {
     pub regs: Registers,
     pub shims: Shims,
     pub state: winapi::State,
+    /// Toggled on by breakpoints/process exit.
+    pub stopped: bool,
 }
 impl X86 {
     pub fn new(host: Box<dyn host::Host>) -> Self {
@@ -292,6 +294,7 @@ impl X86 {
             regs,
             shims: Shims::new(),
             state: winapi::State::new(),
+            stopped: false,
         }
     }
 
@@ -642,8 +645,7 @@ impl X86 {
         Ok(())
     }
 
-    /// Returns Ok(false) if we hit a breakpoint.
-    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<bool> {
+    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
             iced_x86::Code::Enterd_imm16_imm8 => {
@@ -1558,14 +1560,14 @@ impl X86 {
             iced_x86::Code::Nopd => {}
 
             iced_x86::Code::Int3 => {
-                return Ok(false);
+                self.stopped = true;
             }
 
             code => {
                 bail!("unhandled instruction {:?}", code);
             }
         }
-        Ok(true)
+        Ok(())
     }
 }
 
@@ -1717,7 +1719,7 @@ impl Runner {
         Ok(())
     }
 
-    // Single-step execution.  Returns Ok(false) on breakpoint.
+    // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
         let (ip, ref instr) = self.instrs[self.instr_index];
         match self.x86.run(instr) {
@@ -1726,12 +1728,7 @@ impl Runner {
                 self.x86.regs.eip = ip;
                 Err(err)
             }
-            Ok(false) => {
-                // Hit breakpoint
-                self.x86.regs.eip = ip;
-                Ok(false)
-            }
-            Ok(true) => {
+            Ok(_) => {
                 unsafe {
                     if let Some(ref msg) = CRASHED {
                         self.x86.regs.eip = ip;
@@ -1740,8 +1737,9 @@ impl Runner {
                 }
                 self.instr_count += 1;
                 self.instr_index += 1;
-                if self.x86.regs.eip == winapi::kernel32::MAGIC_EXIT_ADDRESS {
+                if self.x86.stopped {
                     self.x86.regs.eip = ip;
+                    self.x86.stopped = false;
                     return Ok(false);
                 }
                 self.jmp(self.x86.regs.eip);
@@ -1751,13 +1749,13 @@ impl Runner {
     }
 
     // Multi-step execution.  Returns Ok(false) on breakpoint.
-    pub fn step_many(&mut self, count: usize) -> anyhow::Result<bool> {
-        for _ in 0..count {
+    pub fn step_many(&mut self, count: usize) -> anyhow::Result<usize> {
+        for i in 0..count {
             if !self.step()? {
-                return Ok(false);
+                return Ok(i);
             }
         }
-        Ok(true)
+        Ok(count)
     }
 
     pub fn load_snapshot(&mut self, snap: Snapshot) {

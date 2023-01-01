@@ -228,7 +228,7 @@ impl Emulator {
             Ok(_) => Ok(()),
         }
     }
-    pub fn step_many(&mut self, count: usize) -> Result<bool, String> {
+    pub fn step_many(&mut self, count: usize) -> Result<usize, String> {
         self.runner.step_many(count).map_err(|err| err.to_string())
     }
 

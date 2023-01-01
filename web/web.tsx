@@ -232,13 +232,15 @@ class VM implements JsHost {
   stepSize = 5000;
   /** Moving average of instructions executed per millisecond. */
   instrPerMs = 0;
+
+  /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
     const start = performance.now();
-    const ranAll = this.emu.step_many(this.stepSize);
+    const steps = this.emu.step_many(this.stepSize);
     const end = performance.now();
 
-    if (!ranAll) { // Hit breakpoint.
-      return !this.checkBreak();
+    if (this.checkBreak()) {
+      return false;
     }
 
     const delta = end - start;

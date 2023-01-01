@@ -244,12 +244,11 @@ fn main() -> anyhow::Result<()> {
                 log::error!("{:?}", err);
                 break;
             }
-            Ok(false) => {
+            Ok(_) => {
                 if host.0.borrow().exit_code.is_some() {
                     break;
                 }
             }
-            Ok(true) => {}
         }
     }
 
