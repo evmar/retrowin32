@@ -125,6 +125,7 @@ impl State {
         // x86.write_u32(params_addr + 0x14, console_flags);
         // x86.write_u32(params_addr + 0x18, stdin);
         params.hStdOutput = STDOUT_HFILE;
+        params.hStdError = STDERR_HFILE;
 
         // PEB
         let peb_addr = self
@@ -237,6 +238,7 @@ struct PEB {
     Mutant: DWORD,
     ImageBaseAddress: DWORD,
     LdrData: DWORD,
+    /* 0x10 */
     ProcessParameters: DWORD,
     SubSystemData: DWORD,
     ProcessHeap: DWORD,
