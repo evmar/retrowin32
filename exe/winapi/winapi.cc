@@ -1,5 +1,3 @@
-// Currently unused: demo of using only the Windows API, no C runtime.
-
 #define WIN32_LEAN_AND_MEAN
 #define STRICT
 #include <windows.h>

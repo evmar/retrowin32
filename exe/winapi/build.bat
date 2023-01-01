@@ -7,8 +7,6 @@ rem /GS-           disable stack guard code
 rem /link          linker options follow
 rem /subsystem     console binary
 rem /nologo        don't print copyright goop
-
-cl demo.cc /std:c++20 /Fademo.asm /Os /GS- /link /subsystem:console /nologo kernel32.lib
-
 rem /nodefaultlib  disable C runtime
-rem   void mainCRTStartup(void) {
+
+cl winapi.cc /std:c++20 /Fademo.asm /Os /GS- /link /subsystem:console /nologo /nodefaultlib kernel32.lib
