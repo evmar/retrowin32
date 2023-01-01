@@ -1719,28 +1719,29 @@ impl Runner {
 
     // Single-step execution.  Returns Ok(false) on breakpoint.
     pub fn step(&mut self) -> anyhow::Result<bool> {
-        let instr = &self.instrs[self.instr_index].1;
+        let (ip, ref instr) = self.instrs[self.instr_index];
         match self.x86.run(instr) {
             Err(err) => {
-                // On errors, back up one instruction so the debugger points at the failed instruction.
-                self.x86.regs.eip -= instr.len() as u32;
+                // Point the debugger at the failed instruction.
+                self.x86.regs.eip = ip;
                 Err(err)
             }
             Ok(false) => {
                 // Hit breakpoint
-                self.x86.regs.eip -= instr.len() as u32;
+                self.x86.regs.eip = ip;
                 Ok(false)
             }
             Ok(true) => {
                 unsafe {
                     if let Some(ref msg) = CRASHED {
-                        self.x86.regs.eip -= instr.len() as u32;
+                        self.x86.regs.eip = ip;
                         bail!(msg);
                     }
                 }
                 self.instr_count += 1;
                 self.instr_index += 1;
                 if self.x86.regs.eip == winapi::kernel32::MAGIC_EXIT_ADDRESS {
+                    self.x86.regs.eip = ip;
                     return Ok(false);
                 }
                 self.jmp(self.x86.regs.eip);
