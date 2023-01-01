@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use bitflags::bitflags;
 use num_traits::FromPrimitive;
 use std::collections::HashMap;
 
@@ -538,10 +539,21 @@ pub fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
     1
 }
 
-pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
-    if dwFlags != 0 {
-        log::warn!("HeapAlloc flags {dwFlags:x}");
+bitflags! {
+    pub struct HeapAllocFlags: u32 {
+        const HEAP_GENERATE_EXCEPTIONS = 0x4;
+        const HEAP_NO_SERIALIZE = 0x1;
+        const HEAP_ZERO_MEMORY = 0x8;
     }
+}
+
+pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
+    let mut flags = HeapAllocFlags::from_bits(dwFlags).unwrap_or_else(|| {
+        log::warn!("HeapAlloc invalid flags {dwFlags:x}");
+        HeapAllocFlags::empty()
+    });
+    flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
+    flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
     let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
@@ -549,7 +561,15 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
         }
         Some(heap) => heap,
     };
-    heap.alloc(&mut x86.mem, dwBytes)
+    let addr = heap.alloc(&mut x86.mem, dwBytes);
+    if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
+        x86.mem[addr as usize..(addr + dwBytes) as usize].fill(0);
+        flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
+    }
+    if !flags.is_empty() {
+        log::error!("HeapAlloc: unhandled flags {flags:?}");
+    }
+    addr
 }
 
 pub fn HeapFree(_x86: &mut X86, _hHeap: u32, dwFlags: u32, _lpMem: u32) -> u32 {
