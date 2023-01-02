@@ -633,7 +633,10 @@ impl X86 {
         if addr & 0xFFFF_0000 == SHIM_BASE {
             let ret = self.pop();
             let eip = self.regs.eip;
-            let handler = self.shims.get(addr).unwrap();
+            let handler = self
+                .shims
+                .get(addr)
+                .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
             handler(self);
             if self.regs.eip != eip {
                 return Ok(()); // handler set eip.
