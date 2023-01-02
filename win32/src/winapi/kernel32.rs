@@ -134,13 +134,24 @@ impl State {
             .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.view_mut::<PEB>(peb_addr);
         peb.ProcessParameters = params_addr;
+        peb.ProcessHeap = 0; // Initialized lazily.
         peb.TlsCount = 0;
+
+        // SEH chain
+        let seh_addr = self.heap.alloc(
+            mem,
+            std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
+        );
+        let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
+        seh.Prev = 0xFFFF_FFFF;
+        seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
 
         // TEB
         let teb_addr = self
             .heap
             .alloc(mem, std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
         let teb = mem.view_mut::<TEB>(teb_addr);
+        teb.Tib.ExceptionList = seh_addr;
         teb.Tib._Self = teb_addr; // Confusing: it points to itself.
         teb.Peb = peb_addr;
 
@@ -294,6 +305,13 @@ struct RTL_USER_PROCESS_PARAMETERS {
     // TODO: ... more fields
 }
 unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
+
+#[repr(C)]
+struct _EXCEPTION_REGISTRATION_RECORD {
+    Prev: DWORD,
+    Handler: DWORD,
+}
+unsafe impl Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
 pub fn SetLastError(x86: &mut X86, dwErrCode: u32) -> u32 {
     teb_mut(x86).LastErrorValue = dwErrCode;
