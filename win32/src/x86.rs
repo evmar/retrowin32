@@ -1736,12 +1736,12 @@ impl Runner {
                     }
                 }
                 self.instr_count += 1;
-                self.instr_index += 1;
                 if self.x86.stopped {
                     self.x86.regs.eip = ip;
                     self.x86.stopped = false;
                     return Ok(false);
                 }
+                self.instr_index += 1;
                 self.jmp(self.x86.regs.eip);
                 Ok(true)
             }
