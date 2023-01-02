@@ -290,6 +290,10 @@ pub mod kernel32 {
         let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::EnterCriticalSection(x86, _lpCriticalSection) as u32;
     }
+    fn LeaveCriticalSection(x86: &mut X86) {
+        let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::LeaveCriticalSection(x86, _lpCriticalSection) as u32;
+    }
     fn SetUnhandledExceptionFilter(x86: &mut X86) {
         let _lpTopLevelExceptionFilter: u32 = unsafe { from_x86(x86) };
         x86.regs.eax =
@@ -357,6 +361,7 @@ pub mod kernel32 {
             "OutputDebugStringA" => OutputDebugStringA,
             "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
             "EnterCriticalSection" => EnterCriticalSection,
+            "LeaveCriticalSection" => LeaveCriticalSection,
             "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
             "UnhandledExceptionFilter" => UnhandledExceptionFilter,
             "NtCurrentTeb" => NtCurrentTeb,

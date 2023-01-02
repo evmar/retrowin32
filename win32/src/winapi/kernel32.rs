@@ -767,6 +767,10 @@ pub fn EnterCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
     0
 }
 
+pub fn LeaveCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+    0
+}
+
 pub fn SetUnhandledExceptionFilter(_x86: &mut X86, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
