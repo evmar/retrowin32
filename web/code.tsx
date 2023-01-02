@@ -1,12 +1,13 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
+import { Labels } from './labels';
 import { Number } from './memory';
 import { hex } from './util';
 import { Instruction } from './wasm/wasm';
 
 namespace Code {
   export interface Props extends Number.Interactions {
-    labels: Map<number, string>;
+    labels: Labels;
     runTo: (addr: number) => void;
     instrs: Instruction[];
   }

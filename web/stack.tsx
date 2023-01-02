@@ -1,12 +1,13 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import { Labels } from './labels';
 import { Number } from './memory';
 import { Emulator } from './wasm/wasm';
 
 namespace Stack {
   export interface Props extends Number.Interactions {
     emu: Emulator;
-    labels: Map<number, string>;
+    labels: Labels;
   }
 }
 export class Stack extends preact.Component<Stack.Props> {

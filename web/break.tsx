@@ -1,5 +1,6 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import { Labels } from './labels';
 import { Number } from './memory';
 
 export interface Breakpoint {
@@ -11,7 +12,7 @@ export interface Breakpoint {
 namespace BreakpointsComponent {
   export interface Props extends Number.Interactions {
     breakpoints: Breakpoint[];
-    labels: Map<number, string>;
+    labels: Labels;
     highlight: number;
     toggle: (addr: number) => void;
     add: (text: string) => boolean;
