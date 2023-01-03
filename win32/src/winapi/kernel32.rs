@@ -13,7 +13,7 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::types::DWORD;
+use super::types::{DWORD, WORD};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: u32 = 0xF11E_0100;
@@ -93,7 +93,12 @@ impl State {
     pub fn init(&mut self, mem: &mut Vec<u8>) {
         self.heap = self.new_private_heap(mem, 0x1000, "kernel32 data".into());
         // Fill region with garbage so it's clearer when we access something we don't intend to.
-        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0xde);
+        let mut i = 0;
+        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill_with(|| {
+            let val = i;
+            i += 1;
+            (val >> 2) as u8
+        });
 
         self.init_teb_peb(mem);
 
@@ -120,8 +125,8 @@ impl State {
         // x86.write_u32(params_addr + 0x18, stdin);
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
-        params.ImagePathName = 0;
-        params.CommandLine = 0;
+        params.ImagePathName.clear();
+        params.CommandLine.clear();
 
         // PEB
         let peb_addr = self
@@ -151,6 +156,7 @@ impl State {
         teb.Peb = peb_addr;
 
         self.teb = teb_addr;
+        // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
     }
 
     pub fn add_mapping(&mut self, mapping: Mapping) {
@@ -287,6 +293,27 @@ struct TEB {
 unsafe impl Pod for TEB {}
 
 #[repr(C)]
+struct UNICODE_STRING {
+    Length: WORD,
+    MaximumLength: WORD,
+    Buffer: DWORD,
+}
+
+impl UNICODE_STRING {
+    fn clear(&mut self) {
+        self.Length = 0;
+        self.MaximumLength = 0;
+        self.Buffer = 0;
+    }
+}
+
+#[repr(C)]
+struct CURDIR {
+    DosPath: UNICODE_STRING,
+    Handle: DWORD,
+}
+
+#[repr(C)]
 struct RTL_USER_PROCESS_PARAMETERS {
     AllocationSize: DWORD,
     Size: DWORD,
@@ -297,9 +324,10 @@ struct RTL_USER_PROCESS_PARAMETERS {
     hStdInput: DWORD,
     hStdOutput: DWORD,
     hStdError: DWORD,
-    todo: [DWORD; 5], // TODO: ... more fields
-    ImagePathName: DWORD,
-    CommandLine: DWORD,
+    CurrentDirectory: CURDIR,
+    DllPath: UNICODE_STRING,
+    ImagePathName: UNICODE_STRING,
+    CommandLine: UNICODE_STRING,
 }
 unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
 
@@ -336,14 +364,14 @@ pub fn GetCommandLineA(x86: &mut X86) -> u32 {
     let addr = peb_mut(x86).ProcessParameters;
     let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
     // TODO: decide if this is unicode or not
-    params.CommandLine
+    params.CommandLine.Buffer
 }
 
 pub fn GetCommandLineW(x86: &mut X86) -> u32 {
     let addr = peb_mut(x86).ProcessParameters;
     let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
     // TODO: decide if this is unicode or not
-    params.CommandLine
+    params.CommandLine.Buffer
 }
 
 pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
