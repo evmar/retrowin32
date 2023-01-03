@@ -114,6 +114,9 @@ pub mod kernel32 {
     fn GetCommandLineA(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetCommandLineA(x86) as u32;
     }
+    fn GetCommandLineW(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetCommandLineW(x86) as u32;
+    }
     fn GetCPInfo(x86: &mut X86) {
         let _CodePage: u32 = unsafe { from_x86(x86) };
         let _lpCPInfo: u32 = unsafe { from_x86(x86) };
@@ -154,6 +157,10 @@ pub mod kernel32 {
     fn GetStartupInfoA(x86: &mut X86) {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
+    }
+    fn GetStartupInfoW(x86: &mut X86) {
+        let lpStartupInfo: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::GetStartupInfoW(x86, lpStartupInfo) as u32;
     }
     fn IsProcessorFeaturePresent(x86: &mut X86) {
         let feature: u32 = unsafe { from_x86(x86) };
@@ -325,6 +332,7 @@ pub mod kernel32 {
             "ExitProcess" => ExitProcess,
             "GetACP" => GetACP,
             "GetCommandLineA" => GetCommandLineA,
+            "GetCommandLineW" => GetCommandLineW,
             "GetCPInfo" => GetCPInfo,
             "GetEnvironmentStrings" => GetEnvironmentStrings,
             "FreeEnvironmentStringsA" => FreeEnvironmentStringsA,
@@ -335,6 +343,7 @@ pub mod kernel32 {
             "GetModuleHandleA" => GetModuleHandleA,
             "GetModuleHandleW" => GetModuleHandleW,
             "GetStartupInfoA" => GetStartupInfoA,
+            "GetStartupInfoW" => GetStartupInfoW,
             "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
             "IsDebuggerPresent" => IsDebuggerPresent,
             "GetCurrentThreadId" => GetCurrentThreadId,

@@ -70,7 +70,6 @@ pub struct State {
     pub mappings: Vec<Mapping>,
     /// Heaps created by HeapAlloc().
     pub heaps: HashMap<u32, Heap>,
-    cmdline: u32,
     env: u32,
 }
 impl State {
@@ -87,7 +86,6 @@ impl State {
             teb: 0,
             mappings,
             heaps: HashMap::new(),
-            cmdline: 0,
             env: 0,
         }
     }
@@ -98,11 +96,6 @@ impl State {
         mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0xde);
 
         self.init_teb_peb(mem);
-
-        let cmdline = "retrowin32.exe\0".as_bytes();
-        let cmdline_addr = self.heap.alloc(mem, cmdline.len() as u32);
-        mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
-        self.cmdline = cmdline_addr;
 
         let env = "\0\0".as_bytes();
         let env_addr = self.heap.alloc(mem, env.len() as u32);
@@ -127,6 +120,8 @@ impl State {
         // x86.write_u32(params_addr + 0x18, stdin);
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
+        params.ImagePathName = 0;
+        params.CommandLine = 0;
 
         // PEB
         let peb_addr = self
@@ -302,7 +297,9 @@ struct RTL_USER_PROCESS_PARAMETERS {
     hStdInput: DWORD,
     hStdOutput: DWORD,
     hStdError: DWORD,
-    // TODO: ... more fields
+    todo: [DWORD; 5], // TODO: ... more fields
+    ImagePathName: DWORD,
+    CommandLine: DWORD,
 }
 unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
 
@@ -336,8 +333,17 @@ pub fn GetACP(_x86: &mut X86) -> u32 {
 }
 
 pub fn GetCommandLineA(x86: &mut X86) -> u32 {
-    // TODO: possibly this should come from PEB->ProcessParameters->CommandLine.
-    x86.state.kernel32.cmdline
+    let addr = peb_mut(x86).ProcessParameters;
+    let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
+    // TODO: decide if this is unicode or not
+    params.CommandLine
+}
+
+pub fn GetCommandLineW(x86: &mut X86) -> u32 {
+    let addr = peb_mut(x86).ProcessParameters;
+    let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
+    // TODO: decide if this is unicode or not
+    params.CommandLine
 }
 
 pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
@@ -429,6 +435,17 @@ unsafe impl Pod for STARTUPINFOA {}
 
 pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
+    let size = std::mem::size_of::<STARTUPINFOA>();
+    x86.mem[ofs..ofs + size].fill(0);
+
+    let info = x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
+    info.cb = size as u32;
+    0
+}
+
+pub fn GetStartupInfoW(x86: &mut X86, lpStartupInfo: u32) -> u32 {
+    let ofs = lpStartupInfo as usize;
+    // STARTUPINFOA is the same shape as the W one, just the strings are different...
     let size = std::mem::size_of::<STARTUPINFOA>();
     x86.mem[ofs..ofs + size].fill(0);
 
