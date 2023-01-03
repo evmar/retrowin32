@@ -93,12 +93,13 @@ impl State {
     pub fn init(&mut self, mem: &mut Vec<u8>) {
         self.heap = self.new_private_heap(mem, 0x1000, "kernel32 data".into());
         // Fill region with garbage so it's clearer when we access something we don't intend to.
-        let mut i = 0;
-        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill_with(|| {
-            let val = i;
-            i += 1;
-            (val >> 2) as u8
-        });
+        // let mut i = 0;
+        // mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill_with(|| {
+        //     let val = i;
+        //     i += 1;
+        //     (val >> 2) as u8
+        // });
+        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0);
 
         self.init_teb_peb(mem);
 
@@ -285,6 +286,13 @@ struct TEB {
     ThreadLocalStoragePointer: DWORD,
     Peb: DWORD,
     LastErrorValue: DWORD,
+    CountOfOwnedCriticalSections: DWORD,
+    CsrClientThread: DWORD,
+    Win32ThreadInfo: DWORD,
+    User32Reserved: [DWORD; 26],
+    UserReserved: [DWORD; 5],
+    WOW32Reserved: DWORD,
+    CurrentLocale: DWORD,
     // TODO: ... there are many more fields here
 
     // This is at the wrong offset, but it shouldn't matter.
