@@ -1,6 +1,7 @@
 mod debug;
 mod host;
 mod memory;
+mod ops;
 mod pe;
 mod reader;
 mod winapi;

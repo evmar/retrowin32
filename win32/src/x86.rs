@@ -8,6 +8,7 @@ use tsify::Tsify;
 use crate::{
     host,
     memory::Memory,
+    ops,
     pe::ImageSectionFlags,
     winapi::{self, types::DWORD},
     windows::load_exe,
@@ -221,7 +222,7 @@ impl Registers {
     }
 
     /// Get st(0), the current top of the FPU stack.
-    fn st_top(&mut self) -> &mut f64 {
+    pub fn st_top(&mut self) -> &mut f64 {
         &mut self.st[self.st_top]
     }
     /// Offset from top of FP stack for a given ST0, ST1 etc reg.
@@ -233,12 +234,12 @@ impl Registers {
                 _ => unreachable!("{reg:?}"),
             }
     }
-    fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
+    pub fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
         let o1 = self.st_offset(r1);
         let o2 = self.st_offset(r2);
         self.st.swap(o1, o2);
     }
-    fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
+    pub fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
         &mut self.st[self.st_offset(reg)]
     }
 }
@@ -384,7 +385,7 @@ impl X86 {
 
     /// Compute the address found in instructions that reference memory, e.g.
     ///   mov [eax+03h],...
-    fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
+    pub fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
         let seg = if instr.segment_prefix() == iced_x86::Register::FS {
             self.state.kernel32.teb
         } else {
@@ -603,27 +604,6 @@ impl X86 {
                 self.write_u8(addr, value);
             }
             _ => unimplemented!(),
-        }
-    }
-
-    /// Compare two values and set floating-point comparison flags.
-    fn fcom<T: std::cmp::PartialOrd>(&mut self, x: T, y: T) {
-        if x > y {
-            self.regs.fpu_status.set(FPUStatus::C3, false);
-            self.regs.fpu_status.set(FPUStatus::C2, false);
-            self.regs.fpu_status.set(FPUStatus::C0, false);
-        } else if x < y {
-            self.regs.fpu_status.set(FPUStatus::C3, false);
-            self.regs.fpu_status.set(FPUStatus::C2, false);
-            self.regs.fpu_status.set(FPUStatus::C0, true);
-        } else if x == y {
-            self.regs.fpu_status.set(FPUStatus::C3, true);
-            self.regs.fpu_status.set(FPUStatus::C2, false);
-            self.regs.fpu_status.set(FPUStatus::C0, false);
-        } else {
-            self.regs.fpu_status.set(FPUStatus::C3, true);
-            self.regs.fpu_status.set(FPUStatus::C2, true);
-            self.regs.fpu_status.set(FPUStatus::C0, true);
         }
     }
 
@@ -981,7 +961,7 @@ impl X86 {
                 // TODO: does this modify esi?  Sources disagree (!?)
             }
             iced_x86::Code::Stosb_m8_AL => {
-                assert!(self.regs.flags.contains(Flags::DF)); // TODO
+                assert!(!self.regs.flags.contains(Flags::DF)); // TODO
 
                 let dst = self.regs.edi as usize;
                 let value = self.regs.eax as u8;
@@ -1386,176 +1366,41 @@ impl X86 {
                 self.rm8_x(instr, |_x86, _x| value);
             }
 
-            iced_x86::Code::Fld1 => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = 1.0;
-            }
-            iced_x86::Code::Fldz => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = 0.0;
-            }
-
-            iced_x86::Code::Fld_m64fp => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = self.read_f64(self.addr(instr));
-            }
-            iced_x86::Code::Fld_m32fp => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = self.read_f32(self.addr(instr)) as f64;
-            }
-            iced_x86::Code::Fild_m32int => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = self.read_u32(self.addr(instr)) as i32 as f64;
-            }
-            iced_x86::Code::Fild_m16int => {
-                self.regs.st_top -= 1;
-                *self.regs.st_top() = self.read_u16(self.addr(instr)) as i16 as f64;
-            }
-
-            iced_x86::Code::Fst_m64fp => {
-                let f = *self.regs.st_top();
-                self.write_f64(self.addr(instr), f);
-            }
-            iced_x86::Code::Fstp_m64fp => {
-                let f = *self.regs.st_top();
-                self.write_f64(self.addr(instr), f);
-                self.regs.st_top += 1;
-            }
-            iced_x86::Code::Fstp_m32fp => {
-                let f = *self.regs.st_top();
-                self.write_u32(self.addr(instr), (f as f32).to_bits());
-                self.regs.st_top += 1;
-            }
-            iced_x86::Code::Fistp_m64int => {
-                let f = *self.regs.st_top();
-                let addr = self.addr(instr) as usize;
-                self.mem[addr..addr + 8].copy_from_slice(&(f as i64).to_le_bytes());
-                self.regs.st_top += 1;
-            }
-            iced_x86::Code::Fistp_m32int => {
-                let f = *self.regs.st_top();
-                self.write_u32(self.addr(instr), f as i32 as u32);
-                self.regs.st_top += 1;
-            }
-
-            iced_x86::Code::Fchs => {
-                *self.regs.st_top() = -*self.regs.st_top();
-            }
-
-            iced_x86::Code::Fcos => {
-                let reg = self.regs.st_top();
-                *reg = reg.cos();
-            }
-            iced_x86::Code::Fsin => {
-                let reg = self.regs.st_top();
-                *reg = reg.sin();
-            }
-            iced_x86::Code::Fpatan => {
-                let x = *self.regs.st_top();
-                self.regs.st_top += 1;
-                let reg = self.regs.st_top();
-                *reg = reg.atan2(x);
-            }
-
-            iced_x86::Code::Fsqrt => {
-                let reg = self.regs.st_top();
-                *reg = reg.sqrt();
-            }
-
-            iced_x86::Code::Fadd_m64fp => {
-                let y = self.read_f64(self.addr(instr));
-                *self.regs.st_top() += y;
-            }
-            iced_x86::Code::Fadd_m32fp => {
-                let y = self.read_f32(self.addr(instr)) as f64;
-                *self.regs.st_top() += y;
-            }
-            iced_x86::Code::Faddp_sti_st0 => {
-                let y = *self.regs.getst(instr.op1_register());
-                let x = self.regs.getst(instr.op0_register());
-                *x += y;
-                self.regs.st_top += 1;
-            }
-
-            iced_x86::Code::Fsub_m32fp => {
-                let y = self.read_f32(self.addr(instr)) as f64;
-                let x = self.regs.st_top();
-                *x = *x - y;
-            }
-            iced_x86::Code::Fsubr_m64fp => {
-                let y = self.read_f64(self.addr(instr));
-                let x = self.regs.st_top();
-                *x = y - *x;
-            }
-            iced_x86::Code::Fsubr_m32fp => {
-                let y = self.read_f32(self.addr(instr)) as f64;
-                let x = self.regs.st_top();
-                *x = y - *x;
-            }
-
-            iced_x86::Code::Fmul_m64fp => {
-                let y = self.read_f64(self.addr(instr));
-                *self.regs.st_top() *= y;
-            }
-            iced_x86::Code::Fmul_m32fp => {
-                let y = self.read_f32(self.addr(instr)) as f64;
-                *self.regs.st_top() *= y;
-            }
-            iced_x86::Code::Fmul_st0_sti | iced_x86::Code::Fmul_sti_st0 => {
-                let y = *self.regs.getst(instr.op1_register());
-                let x = self.regs.getst(instr.op0_register());
-                *x *= y;
-            }
-            iced_x86::Code::Fmulp_sti_st0 => {
-                let y = *self.regs.st_top();
-                let x = self.regs.getst(instr.op0_register());
-                *x *= y;
-                self.regs.st_top += 1;
-            }
-
-            iced_x86::Code::Fdivrp_sti_st0 => {
-                let x = *self.regs.st_top();
-                self.regs.st_top += 1;
-                *self.regs.st_top() /= x;
-            }
-
-            iced_x86::Code::Fdiv_m64fp => {
-                let y = self.read_f64(self.addr(instr));
-                *self.regs.st_top() /= y;
-            }
-
-            iced_x86::Code::Fxch_st0_sti => {
-                self.regs
-                    .st_swap(instr.op0_register(), instr.op1_register());
-            }
-
-            iced_x86::Code::Fcomp_m32fp => {
-                let x = *self.regs.st_top();
-                let y = self.read_f32(self.addr(instr)) as f64;
-                self.fcom(x, y);
-                self.regs.st_top += 1;
-            }
-            iced_x86::Code::Fcomp_m64fp => {
-                let x = *self.regs.st_top();
-                let y = self.read_f64(self.addr(instr));
-                self.fcom(x, y);
-                self.regs.st_top += 1;
-            }
-            iced_x86::Code::Fnstsw_AX => {
-                // TODO: does this need stack top in it?
-                self.regs.eax = self.regs.fpu_status.bits() as u32;
-            }
-
-            iced_x86::Code::Fnstcw_m2byte => {
-                // TODO: control word
-                let cw = 0x37u16; // default value
-                self.write_u16(self.addr(instr), cw);
-            }
-            iced_x86::Code::Fldcw_m2byte => {
-                // TODO: control word
-                self.read_u16(self.addr(instr));
-            }
-
+            iced_x86::Code::Fld1 => ops::fld1(self, instr),
+            iced_x86::Code::Fldz => ops::fldz(self, instr),
+            iced_x86::Code::Fld_m64fp => ops::fld_m64fp(self, instr),
+            iced_x86::Code::Fld_m32fp => ops::fld_m32fp(self, instr),
+            iced_x86::Code::Fild_m32int => ops::fild_m32int(self, instr),
+            iced_x86::Code::Fild_m16int => ops::fild_m16int(self, instr),
+            iced_x86::Code::Fst_m64fp => ops::fst_m64fp(self, instr),
+            iced_x86::Code::Fstp_m64fp => ops::fstp_m64fp(self, instr),
+            iced_x86::Code::Fstp_m32fp => ops::fstp_m32fp(self, instr),
+            iced_x86::Code::Fistp_m64int => ops::fistp_m64int(self, instr),
+            iced_x86::Code::Fistp_m32int => ops::fistp_m32int(self, instr),
+            iced_x86::Code::Fchs => ops::fchs(self, instr),
+            iced_x86::Code::Fcos => ops::fcos(self, instr),
+            iced_x86::Code::Fsin => ops::fsin(self, instr),
+            iced_x86::Code::Fpatan => ops::fpatan(self, instr),
+            iced_x86::Code::Fsqrt => ops::fsqrt(self, instr),
+            iced_x86::Code::Fadd_m64fp => ops::fadd_m64fp(self, instr),
+            iced_x86::Code::Fadd_m32fp => ops::fadd_m32fp(self, instr),
+            iced_x86::Code::Faddp_sti_st0 => ops::faddp_sti_st0(self, instr),
+            iced_x86::Code::Fsub_m32fp => ops::fsub_m32fp(self, instr),
+            iced_x86::Code::Fsubr_m64fp => ops::fsubr_m64fp(self, instr),
+            iced_x86::Code::Fsubr_m32fp => ops::fsubr_m32fp(self, instr),
+            iced_x86::Code::Fmul_m64fp => ops::fmul_m64fp(self, instr),
+            iced_x86::Code::Fmul_m32fp => ops::fmul_m32fp(self, instr),
+            iced_x86::Code::Fmul_st0_sti => ops::fmul_sti_sti(self, instr),
+            iced_x86::Code::Fmul_sti_st0 => ops::fmul_sti_sti(self, instr),
+            iced_x86::Code::Fmulp_sti_st0 => ops::fmulp_sti_st0(self, instr),
+            iced_x86::Code::Fdivrp_sti_st0 => ops::fdivrp_sti_st0(self, instr),
+            iced_x86::Code::Fdiv_m64fp => ops::fdiv_m64fp(self, instr),
+            iced_x86::Code::Fxch_st0_sti => ops::fxch_st0_sti(self, instr),
+            iced_x86::Code::Fcomp_m32fp => ops::fcomp_m32fp(self, instr),
+            iced_x86::Code::Fcomp_m64fp => ops::fcomp_m64fp(self, instr),
+            iced_x86::Code::Fnstsw_AX => ops::fnstsw_ax(self, instr),
+            iced_x86::Code::Fnstcw_m2byte => ops::fnstcw_m2byte(self, instr),
+            iced_x86::Code::Fldcw_m2byte => ops::fldcw_m2byte(self, instr),
             iced_x86::Code::Fclex | iced_x86::Code::Fnclex | iced_x86::Code::Wait => {
                 // ignore
             }
