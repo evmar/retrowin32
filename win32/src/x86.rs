@@ -487,7 +487,7 @@ impl X86 {
         }
     }
 
-    fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
+    pub fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
         if addr < 0x1000 {
             bail!("jmp to null page");
         }
@@ -523,124 +523,41 @@ impl X86 {
                 self.regs.ebp = self.pop();
             }
 
-            iced_x86::Code::Call_rel32_32 => {
-                let target = instr.near_branch32();
-                if target == 0x00408d65 || target == 0x0040a281 {
-                    log::warn!("HACK: manually nop'd call at {target:x}");
-                } else {
-                    self.push(self.regs.eip);
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
-            iced_x86::Code::Call_rm32 => {
-                // call dword ptr [addr]
-                let target = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                self.push(self.regs.eip);
-                self.jmp(target)?;
-            }
-            iced_x86::Code::Retnd => {
-                let addr = self.pop();
-                self.jmp(addr)?;
-            }
-            iced_x86::Code::Retnd_imm16 => {
-                let addr = self.pop();
-                self.jmp(addr)?;
-                self.regs.esp += instr.immediate16() as u32;
-            }
-
-            iced_x86::Code::Jmp_rel8_32 => {
-                self.jmp(instr.near_branch32())?;
-            }
-            iced_x86::Code::Jmp_rel32_32 => {
-                self.jmp(instr.near_branch32())?;
-            }
-            iced_x86::Code::Jmp_rm32 => {
-                let target = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                self.jmp(target)?;
-            }
-
-            iced_x86::Code::Ja_rel8_32 => {
-                if !self.regs.flags.contains(Flags::CF) && !self.regs.flags.contains(Flags::ZF) {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
+            iced_x86::Code::Call_rel32_32 => ops::call_rel32_32(self, instr)?,
+            iced_x86::Code::Call_rm32 => ops::call_rm32(self, instr)?,
+            iced_x86::Code::Retnd => ops::retnd(self, instr)?,
+            iced_x86::Code::Retnd_imm16 => ops::retnd_imm16(self, instr)?,
+            iced_x86::Code::Jmp_rel8_32 => ops::jmp_rel8_32(self, instr)?,
+            iced_x86::Code::Jmp_rel32_32 => ops::jmp_rel32_32(self, instr)?,
+            iced_x86::Code::Jmp_rm32 => ops::jmp_rm32(self, instr)?,
+            iced_x86::Code::Ja_rel8_32 => ops::ja_rel8_32(self, instr)?,
             iced_x86::Code::Jae_rel32_32 | iced_x86::Code::Jae_rel8_32 => {
-                if !self.regs.flags.contains(Flags::CF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jae_rel8_32(self, instr)?
             }
             iced_x86::Code::Jb_rel8_32 | iced_x86::Code::Jb_rel32_32 => {
-                if self.regs.flags.contains(Flags::CF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jb_rel32_32(self, instr)?
             }
             iced_x86::Code::Jbe_rel32_32 | iced_x86::Code::Jbe_rel8_32 => {
-                if self.regs.flags.contains(Flags::CF) || self.regs.flags.contains(Flags::ZF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jbe_rel8_32(self, instr)?
             }
-            iced_x86::Code::Je_rel8_32 => {
-                if self.regs.flags.contains(Flags::ZF) {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
-            iced_x86::Code::Je_rel32_32 => {
-                if self.regs.flags.contains(Flags::ZF) {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
-            iced_x86::Code::Jecxz_rel8_32 => {
-                if self.regs.ecx == 0 {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
+            iced_x86::Code::Je_rel8_32 => ops::je_rel8_32(self, instr)?,
+            iced_x86::Code::Je_rel32_32 => ops::je_rel32_32(self, instr)?,
+            iced_x86::Code::Jecxz_rel8_32 => ops::jecxz_rel8_32(self, instr)?,
             iced_x86::Code::Jne_rel32_32 | iced_x86::Code::Jne_rel8_32 => {
-                if !self.regs.flags.contains(Flags::ZF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jne_rel8_32(self, instr)?
             }
             iced_x86::Code::Jns_rel32_32 | iced_x86::Code::Jns_rel8_32 => {
-                if !self.regs.flags.contains(Flags::SF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jns_rel8_32(self, instr)?
             }
-            iced_x86::Code::Jg_rel8_32 => {
-                if !self.regs.flags.contains(Flags::ZF)
-                    && (self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF))
-                {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
+            iced_x86::Code::Jg_rel8_32 => ops::jg_rel8_32(self, instr)?,
             iced_x86::Code::Jge_rel32_32 | iced_x86::Code::Jge_rel8_32 => {
-                if self.regs.flags.contains(Flags::SF) == self.regs.flags.contains(Flags::OF) {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jge_rel8_32(self, instr)?
             }
-            iced_x86::Code::Jl_rel32_32 => {
-                if self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF) {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
+            iced_x86::Code::Jl_rel32_32 => ops::jl_rel32_32(self, instr)?,
             iced_x86::Code::Jle_rel32_32 | iced_x86::Code::Jle_rel8_32 => {
-                if self.regs.flags.contains(Flags::ZF)
-                    || (self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF))
-                {
-                    self.jmp(instr.near_branch32())?;
-                }
+                ops::jle_rel8_32(self, instr)?
             }
-            iced_x86::Code::Jl_rel8_32 => {
-                if self.regs.flags.contains(Flags::SF) != self.regs.flags.contains(Flags::OF) {
-                    self.jmp(instr.near_branch32())?;
-                }
-            }
+            iced_x86::Code::Jl_rel8_32 => ops::jl_rel8_32(self, instr)?,
 
             iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
             iced_x86::Code::Pushd_imm32 => self.push(instr.immediate32()),
