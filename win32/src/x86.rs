@@ -1158,7 +1158,7 @@ impl X86 {
                 self.regs.edx = (x % y) as u32;
                 // TODO: flags.
             }
-            iced_x86::Code::Dec_r32 => {
+            iced_x86::Code::Dec_r32 | iced_x86::Code::Dec_rm32 => {
                 self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
             }
             iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {

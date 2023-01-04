@@ -635,6 +635,9 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
         Some(heap) => heap,
     };
     let addr = heap.alloc(&mut x86.mem, dwBytes);
+    if addr == 0 {
+        log::warn!("HeapAlloc({hHeap:x}) failed");
+    }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
         x86.mem[addr as usize..(addr + dwBytes) as usize].fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
@@ -704,7 +707,8 @@ pub fn GetProcessHeap(x86: &mut X86) -> u32 {
     if heap != 0 {
         return heap;
     }
-    let heap = HeapCreate(x86, 0, 4 << 10, 4 << 10);
+    let size = 64 << 10;
+    let heap = HeapCreate(x86, 0, size, size);
     peb_mut(x86).ProcessHeap = heap;
     heap
 }
