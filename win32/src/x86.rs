@@ -1005,8 +1005,12 @@ impl X86 {
                 let y = instr.immediate8();
                 self.rm8_x(instr, |x86, x| x86.and8(x, y));
             }
-            iced_x86::Code::Or_rm32_r32 => {
+            iced_x86::Code::Or_rm32_r32 | iced_x86::Code::Or_r32_rm32 => {
                 let y = self.op1_rm32(instr);
+                self.rm32_x(instr, |x86, x| x86.or32(x, y));
+            }
+            iced_x86::Code::Or_rm32_imm32 => {
+                let y = instr.immediate32();
                 self.rm32_x(instr, |x86, x| x86.or32(x, y));
             }
             iced_x86::Code::Or_rm32_imm8 => {
@@ -1032,6 +1036,9 @@ impl X86 {
             iced_x86::Code::Shl_rm8_CL => {
                 let y = self.regs.ecx as u8;
                 self.rm8_x(instr, |x86, x| x86.shl8(x, y));
+            }
+            iced_x86::Code::Shr_rm32_1 => {
+                self.rm32_x(instr, |_x86, x| x >> 1);
             }
             iced_x86::Code::Shr_rm32_imm8 => {
                 let y = instr.immediate8() as u32;
@@ -1318,7 +1325,7 @@ impl X86 {
                 let y = self.regs.get8(instr.op1_register());
                 self.and8(x, y);
             }
-            iced_x86::Code::Test_rm8_imm8 => {
+            iced_x86::Code::Test_rm8_imm8 | iced_x86::Code::Test_AL_imm8 => {
                 let x = match instr.op0_kind() {
                     iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
                     iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
@@ -1510,6 +1517,16 @@ impl X86 {
             iced_x86::Code::Fnstsw_AX => {
                 // TODO: does this need stack top in it?
                 self.regs.eax = self.regs.fpu_status.bits() as u32;
+            }
+
+            iced_x86::Code::Fnstcw_m2byte => {
+                // TODO: control word
+                let cw = 0x37u16; // default value
+                self.write_u16(self.addr(instr), cw);
+            }
+            iced_x86::Code::Fldcw_m2byte => {
+                // TODO: control word
+                self.read_u16(self.addr(instr));
             }
 
             iced_x86::Code::Fclex | iced_x86::Code::Fnclex | iced_x86::Code::Wait => {
