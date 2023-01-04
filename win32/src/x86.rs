@@ -1512,6 +1512,10 @@ impl X86 {
                 self.regs.eax = self.regs.fpu_status.bits() as u32;
             }
 
+            iced_x86::Code::Fclex | iced_x86::Code::Fnclex => {
+                // ignore
+            }
+
             iced_x86::Code::Pushad => {
                 let esp = self.regs.esp;
                 self.push(self.regs.eax);
