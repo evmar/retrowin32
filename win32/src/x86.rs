@@ -844,6 +844,11 @@ impl X86 {
                 let y = self.op1_rm8(instr) as i8 as u32;
                 self.rm32_x(instr, |_x86, _x| y);
             }
+
+            iced_x86::Code::Movzx_r32_rm16 => {
+                let y = self.op1_rm16(instr) as u32;
+                self.rm32_x(instr, |_x86, _x| y);
+            }
             iced_x86::Code::Movzx_r32_rm8 => {
                 let y = self.op1_rm8(instr) as u32;
                 self.rm32_x(instr, |_x86, _x| y);
@@ -896,13 +901,17 @@ impl X86 {
                     bail!("unimpl");
                 }
             }
-            iced_x86::Code::Movsb_m8_m8 => {
+            i @ (iced_x86::Code::Movsd_m32_m32 | iced_x86::Code::Movsb_m8_m8) => {
                 if !instr.has_rep_prefix() {
                     bail!("expected rep movsb");
                 }
                 let dst = self.regs.edi as usize;
                 let src = self.regs.esi as usize;
-                let count = self.regs.ecx as usize;
+                let count = match i {
+                    iced_x86::Code::Movsd_m32_m32 => self.regs.ecx * 4,
+                    iced_x86::Code::Movsb_m8_m8 => self.regs.ecx,
+                    _ => unreachable!(),
+                } as usize;
                 self.mem.copy_within(src..src + count, dst);
                 self.regs.edi += count as u32;
                 self.regs.esi += count as u32;
