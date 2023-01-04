@@ -194,6 +194,22 @@ impl X86 {
         }
     }
 
+    pub fn op0_rm16(&self, instr: &iced_x86::Instruction) -> u16 {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
+            iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn op0_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
+        match instr.op0_kind() {
+            iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
+            iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
+            _ => unreachable!(),
+        }
+    }
+
     pub fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op1_register()),

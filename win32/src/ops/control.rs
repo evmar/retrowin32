@@ -15,11 +15,7 @@ pub fn call_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn call_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // call dword ptr [addr]
-    let target = match instr.op0_kind() {
-        iced_x86::OpKind::Register => x86.regs.get32(instr.op0_register()),
-        iced_x86::OpKind::Memory => x86.read_u32(x86.addr(instr)),
-        _ => unreachable!(),
-    };
+    let target = x86.op0_rm32(instr);
     x86.push(x86.regs.eip);
     x86.jmp(target)?;
     Ok(())
@@ -49,11 +45,7 @@ pub fn jmp_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn jmp_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let target = match instr.op0_kind() {
-        iced_x86::OpKind::Register => x86.regs.get32(instr.op0_register()),
-        iced_x86::OpKind::Memory => x86.read_u32(x86.addr(instr)),
-        _ => unreachable!(),
-    };
+    let target = x86.op0_rm32(instr);
     x86.jmp(target)?;
     Ok(())
 }
