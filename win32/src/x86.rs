@@ -5,14 +5,7 @@ use bitflags::bitflags;
 use serde::ser::SerializeStruct;
 use tsify::Tsify;
 
-use crate::{
-    host,
-    memory::Memory,
-    ops,
-    pe::ImageSectionFlags,
-    winapi::{self, types::DWORD},
-    windows::load_exe,
-};
+use crate::{host, memory::Memory, ops, pe::ImageSectionFlags, winapi, windows::load_exe};
 
 /// If the x86 code does something wrong (like OOB read), we want to crash.
 /// We cannot recover from a panic in wasm, so instead we use this janky flag.
@@ -752,135 +745,13 @@ impl X86 {
                 };
             }
 
-            iced_x86::Code::Cmpsb_m8_m8 => {
-                assert!(self.regs.flags.contains(Flags::DF)); // TODO
-                let p1 = self.regs.esi as usize;
-                let p2 = self.regs.edi as usize;
-                let count = self.regs.ecx as usize;
-                if instr.has_repe_prefix() {
-                    let pos = self.mem[p1..p1 + count]
-                        .iter()
-                        .zip(self.mem[p2..p2 + count].iter())
-                        .position(|(&x, &y)| x == y)
-                        .unwrap_or(count);
-                    self.regs.esi += pos as u32;
-                    self.regs.edi += pos as u32;
-                    self.regs.ecx -= pos as u32;
-                    ops::sub8(
-                        self,
-                        self.read_u8(self.regs.esi),
-                        self.read_u8(self.regs.edi),
-                    );
-                } else {
-                    bail!("unimpl");
-                }
-            }
-            i @ (iced_x86::Code::Movsd_m32_m32 | iced_x86::Code::Movsb_m8_m8) => {
-                if !instr.has_rep_prefix() {
-                    bail!("expected rep movsb");
-                }
-                let reverse = self.regs.flags.contains(Flags::DF);
-                let mut dst = self.regs.edi as usize;
-                let mut src = self.regs.esi as usize;
-                let size = match i {
-                    iced_x86::Code::Movsd_m32_m32 => 4,
-                    iced_x86::Code::Movsb_m8_m8 => 1,
-                    _ => unreachable!(),
-                } as usize;
-                let len = self.regs.ecx as usize * size;
-                if reverse {
-                    src -= len - size;
-                    dst -= len - size;
-                }
-                self.mem.copy_within(src..src + len, dst);
-                if reverse {
-                    self.regs.edi += len as u32;
-                    self.regs.esi += len as u32;
-                } else {
-                    self.regs.edi -= len as u32;
-                    self.regs.esi -= len as u32;
-                }
-                self.regs.ecx = 0;
-            }
-            iced_x86::Code::Scasb_AL_m8 => {
-                assert!(self.regs.flags.contains(Flags::DF)); // TODO
-                let src = self.regs.edi as usize;
-                let value = self.regs.eax as u8;
-                let count = self.regs.ecx as usize;
-                if instr.has_repne_prefix() {
-                    let pos = self.mem[src..src + count]
-                        .iter()
-                        .position(|&c| c == value)
-                        .unwrap_or(count);
-                    self.regs.edi += pos as u32;
-                    self.regs.ecx -= pos as u32;
-                    ops::sub8(
-                        self,
-                        self.regs.get8(iced_x86::Register::AL),
-                        self.regs.get8(iced_x86::Register::DL),
-                    );
-                } else {
-                    bail!("unimpl");
-                }
-            }
-            iced_x86::Code::Stosd_m32_EAX => {
-                let mut dst = self.regs.edi as usize;
-                let value = self.regs.eax;
-
-                if instr.has_rep_prefix() {
-                    let count = self.regs.ecx as usize;
-                    let reverse = self.regs.flags.contains(Flags::DF);
-                    if reverse && count > 1 {
-                        dst -= (count - 1) * 4;
-                    }
-                    let mem: &mut [u32] = unsafe {
-                        let mem = &mut self.mem[dst..];
-                        std::slice::from_raw_parts_mut(mem.as_ptr() as *mut u32, count)
-                    };
-                    mem.fill(value);
-                    if reverse {
-                        self.regs.edi -= count as u32 * 4;
-                    } else {
-                        self.regs.edi += count as u32 * 4;
-                    }
-                    self.regs.ecx = 0;
-                } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-                    bail!("unimpl");
-                } else {
-                    *self.mem.view_mut::<DWORD>(dst as u32) = value;
-                    self.regs.edi += 4;
-                }
-                // TODO: does this modify esi?  Sources disagree (!?)
-            }
-            iced_x86::Code::Stosb_m8_AL => {
-                assert!(!self.regs.flags.contains(Flags::DF)); // TODO
-
-                let dst = self.regs.edi as usize;
-                let value = self.regs.eax as u8;
-                if instr.has_rep_prefix() {
-                    let count = self.regs.ecx as usize;
-                    self.mem[dst..dst + count].fill(value);
-                    self.regs.edi += count as u32;
-                    self.regs.ecx = 0;
-                } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-                    bail!("unimpl");
-                } else {
-                    self.mem[dst] = value;
-                    self.regs.edi += 1;
-                }
-            }
-
-            iced_x86::Code::Lodsd_EAX_m32 => {
-                assert!(self.regs.flags.contains(Flags::DF)); // TODO
-
-                assert!(
-                    !instr.has_rep_prefix()
-                        && !instr.has_repe_prefix()
-                        && !instr.has_repne_prefix()
-                );
-                self.regs.eax = self.read_u32(self.regs.esi);
-                self.regs.esi += 4;
-            }
+            iced_x86::Code::Cmpsb_m8_m8 => ops::cmps(self, instr),
+            iced_x86::Code::Movsd_m32_m32 => ops::movs(self, instr, 4),
+            iced_x86::Code::Movsb_m8_m8 => ops::movs(self, instr, 1),
+            iced_x86::Code::Scasb_AL_m8 => ops::scas(self, instr),
+            iced_x86::Code::Stosd_m32_EAX => ops::stosd(self, instr),
+            iced_x86::Code::Stosb_m8_AL => ops::stosb(self, instr),
+            iced_x86::Code::Lodsd_EAX_m32 => ops::lods(self, instr),
 
             iced_x86::Code::And_rm32_imm32 => ops::and_rm32_imm32(self, instr),
             iced_x86::Code::And_EAX_imm32 => ops::and_rm32_imm32(self, instr),
