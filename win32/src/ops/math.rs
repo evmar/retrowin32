@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::x86::{Flags, X86};
+use crate::{registers::Flags, x86::X86};
 
 fn add32(x86: &mut X86, x: u32, y: u32) -> u32 {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."

@@ -4,6 +4,7 @@ mod memory;
 mod ops;
 mod pe;
 mod reader;
+mod registers;
 mod winapi;
 mod windows;
 mod x86;

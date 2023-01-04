@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::x86::{Flags, X86};
+use crate::{registers::Flags, x86::X86};
 
 pub fn call_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let target = instr.near_branch32();

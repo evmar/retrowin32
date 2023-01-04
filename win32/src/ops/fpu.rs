@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::x86::{FPUStatus, X86};
+use crate::{registers::FPUStatus, x86::X86};
 
 /// Compare two values and set floating-point comparison flags.
 fn fcom<T: std::cmp::PartialOrd>(x86: &mut X86, x: T, y: T) {
