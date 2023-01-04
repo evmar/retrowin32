@@ -56,6 +56,8 @@ bitflags! {
         const ZF = 1 << 6;
         /// sign
         const SF = 1 << 7;
+        /// direction
+        const DF = 1 << 10;
         /// overflow
         const OF = 1 << 11;
     }
@@ -884,6 +886,7 @@ impl X86 {
             }
 
             iced_x86::Code::Cmpsb_m8_m8 => {
+                assert!(self.regs.flags.contains(Flags::DF)); // TODO
                 let p1 = self.regs.esi as usize;
                 let p2 = self.regs.edi as usize;
                 let count = self.regs.ecx as usize;
@@ -905,19 +908,31 @@ impl X86 {
                 if !instr.has_rep_prefix() {
                     bail!("expected rep movsb");
                 }
-                let dst = self.regs.edi as usize;
-                let src = self.regs.esi as usize;
-                let count = match i {
-                    iced_x86::Code::Movsd_m32_m32 => self.regs.ecx * 4,
-                    iced_x86::Code::Movsb_m8_m8 => self.regs.ecx,
+                let reverse = self.regs.flags.contains(Flags::DF);
+                let mut dst = self.regs.edi as usize;
+                let mut src = self.regs.esi as usize;
+                let size = match i {
+                    iced_x86::Code::Movsd_m32_m32 => 4,
+                    iced_x86::Code::Movsb_m8_m8 => 1,
                     _ => unreachable!(),
                 } as usize;
-                self.mem.copy_within(src..src + count, dst);
-                self.regs.edi += count as u32;
-                self.regs.esi += count as u32;
+                let len = self.regs.ecx as usize * size;
+                if reverse {
+                    src -= len - size;
+                    dst -= len - size;
+                }
+                self.mem.copy_within(src..src + len, dst);
+                if reverse {
+                    self.regs.edi += len as u32;
+                    self.regs.esi += len as u32;
+                } else {
+                    self.regs.edi -= len as u32;
+                    self.regs.esi -= len as u32;
+                }
                 self.regs.ecx = 0;
             }
             iced_x86::Code::Scasb_AL_m8 => {
+                assert!(self.regs.flags.contains(Flags::DF)); // TODO
                 let src = self.regs.edi as usize;
                 let value = self.regs.eax as u8;
                 let count = self.regs.ecx as usize;
@@ -937,17 +952,25 @@ impl X86 {
                 }
             }
             iced_x86::Code::Stosd_m32_EAX => {
-                let dst = self.regs.edi as usize;
-                let value = self.regs.eax; // TODO: endianness
+                let mut dst = self.regs.edi as usize;
+                let value = self.regs.eax;
 
                 if instr.has_rep_prefix() {
                     let count = self.regs.ecx as usize;
+                    let reverse = self.regs.flags.contains(Flags::DF);
+                    if reverse && count > 1 {
+                        dst -= (count - 1) * 4;
+                    }
                     let mem: &mut [u32] = unsafe {
                         let mem = &mut self.mem[dst..];
                         std::slice::from_raw_parts_mut(mem.as_ptr() as *mut u32, count)
                     };
                     mem.fill(value);
-                    self.regs.edi += count as u32 * 4;
+                    if reverse {
+                        self.regs.edi -= count as u32 * 4;
+                    } else {
+                        self.regs.edi += count as u32 * 4;
+                    }
                     self.regs.ecx = 0;
                 } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
                     bail!("unimpl");
@@ -958,6 +981,8 @@ impl X86 {
                 // TODO: does this modify esi?  Sources disagree (!?)
             }
             iced_x86::Code::Stosb_m8_AL => {
+                assert!(self.regs.flags.contains(Flags::DF)); // TODO
+
                 let dst = self.regs.edi as usize;
                 let value = self.regs.eax as u8;
                 if instr.has_rep_prefix() {
@@ -974,6 +999,8 @@ impl X86 {
             }
 
             iced_x86::Code::Lodsd_EAX_m32 => {
+                assert!(self.regs.flags.contains(Flags::DF)); // TODO
+
                 assert!(
                     !instr.has_rep_prefix()
                         && !instr.has_repe_prefix()
@@ -1566,6 +1593,12 @@ impl X86 {
                     Flags::from_bits((self.regs.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
             }
 
+            iced_x86::Code::Std => {
+                self.regs.flags.insert(Flags::DF);
+            }
+            iced_x86::Code::Cld => {
+                self.regs.flags.remove(Flags::DF);
+            }
             iced_x86::Code::Cwde => {
                 self.regs.eax = self.regs.eax as i16 as i32 as u32;
             }
