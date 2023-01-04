@@ -511,148 +511,30 @@ impl X86 {
                 self.regs.set32(instr.op0_register(), self.addr(instr));
             }
 
-            iced_x86::Code::Cmp_rm32_r32 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.regs.get32(instr.op1_register());
-                ops::sub32(self, x, y);
-            }
-            iced_x86::Code::Cmp_r32_rm32 => {
-                let x = self.regs.get32(instr.op0_register());
-                let y = self.op1_rm32(instr);
-                ops::sub32(self, x, y);
-            }
+            iced_x86::Code::Cmp_rm32_r32 => ops::cmp_rm32_r32(self, instr),
+            iced_x86::Code::Cmp_r32_rm32 => ops::cmp_r32_rm32(self, instr),
             iced_x86::Code::Cmp_EAX_imm32 | iced_x86::Code::Cmp_rm32_imm32 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate32();
-                ops::sub32(self, x, y);
+                ops::cmp_rm32_imm32(self, instr)
             }
-            iced_x86::Code::Cmp_rm32_imm8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate8to32() as u32;
-                ops::sub32(self, x, y);
-            }
-            iced_x86::Code::Cmp_rm16_r16 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.op1_rm16(instr);
-                ops::sub16(self, x, y);
-            }
-            iced_x86::Code::Cmp_rm16_imm16 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate16();
-                ops::sub16(self, x, y);
-            }
-            iced_x86::Code::Cmp_rm16_imm8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate8to16() as u16;
-                ops::sub16(self, x, y);
-            }
+            iced_x86::Code::Cmp_rm32_imm8 => ops::cmp_rm32_imm8(self, instr),
+            iced_x86::Code::Cmp_rm16_r16 => ops::cmp_rm16_r16(self, instr),
+            iced_x86::Code::Cmp_rm16_imm16 => ops::cmp_rm16_imm16(self, instr),
+            iced_x86::Code::Cmp_rm16_imm8 => ops::cmp_rm16_imm8(self, instr),
             iced_x86::Code::Cmp_rm8_imm8 | iced_x86::Code::Cmp_AL_imm8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate8();
-                ops::sub8(self, x, y);
+                ops::cmp_rm8_imm8(self, instr)
             }
-            iced_x86::Code::Cmp_rm8_r8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.regs.get8(instr.op1_register());
-                ops::sub8(self, x, y);
-            }
-            iced_x86::Code::Cmp_r8_rm8 => {
-                let x = self.regs.get8(instr.op0_register());
-                let y = match instr.op1_kind() {
-                    iced_x86::OpKind::Register => self.regs.get8(instr.op1_register()),
-                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                ops::sub8(self, x, y);
-            }
-
-            iced_x86::Code::Test_rm32_r32 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.regs.get32(instr.op1_register());
-                ops::and32(self, x, y);
-            }
+            iced_x86::Code::Cmp_rm8_r8 => ops::cmp_rm8_r8(self, instr),
+            iced_x86::Code::Cmp_r8_rm8 => ops::cmp_r8_rm8(self, instr),
+            iced_x86::Code::Test_rm32_r32 => ops::test_rm32_r32(self, instr),
             iced_x86::Code::Test_rm32_imm32 | iced_x86::Code::Test_EAX_imm32 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate32();
-                ops::and32(self, x, y);
+                ops::test_rm32_imm32(self, instr)
             }
-            iced_x86::Code::Test_rm16_r16 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.regs.get16(instr.op1_register());
-                ops::and16(self, x, y);
-            }
-            iced_x86::Code::Test_rm8_r8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = self.regs.get8(instr.op1_register());
-                ops::and8(self, x, y);
-            }
+            iced_x86::Code::Test_rm16_r16 => ops::test_rm16_r16(self, instr),
+            iced_x86::Code::Test_rm8_r8 => ops::test_rm8_r8(self, instr),
             iced_x86::Code::Test_rm8_imm8 | iced_x86::Code::Test_AL_imm8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate8();
-                ops::and8(self, x, y);
+                ops::test_rm8_imm8(self, instr)
             }
-
-            iced_x86::Code::Bt_rm32_imm8 => {
-                let x = match instr.op0_kind() {
-                    iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
-                    iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
-                    _ => unreachable!(),
-                };
-                let y = instr.immediate8() % 32;
-                self.regs.flags.set(Flags::CF, ((x >> y) & 1) != 0);
-            }
+            iced_x86::Code::Bt_rm32_imm8 => ops::bt_rm32_imm8(self, instr),
 
             iced_x86::Code::Sete_rm8 => {
                 let value = self.regs.flags.contains(Flags::ZF) as u8;
