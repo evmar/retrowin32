@@ -130,7 +130,7 @@ impl Registers {
         }
     }
 
-    fn get32(&self, reg: iced_x86::Register) -> u32 {
+    pub fn get32(&self, reg: iced_x86::Register) -> u32 {
         match reg {
             iced_x86::Register::EAX => self.eax,
             iced_x86::Register::EBX => self.ebx,
@@ -143,7 +143,8 @@ impl Registers {
             _ => unreachable!("{reg:?}"),
         }
     }
-    fn get16(&self, reg: iced_x86::Register) -> u16 {
+
+    pub fn get16(&self, reg: iced_x86::Register) -> u16 {
         match reg {
             iced_x86::Register::AX => self.eax as u16,
             iced_x86::Register::CX => self.ecx as u16,
@@ -162,7 +163,8 @@ impl Registers {
             _ => unreachable!("{reg:?}"),
         }
     }
-    fn get8(&self, reg: iced_x86::Register) -> u8 {
+
+    pub fn get8(&self, reg: iced_x86::Register) -> u8 {
         match reg {
             iced_x86::Register::AL => self.eax as u8,
             iced_x86::Register::CL => self.ecx as u8,
@@ -176,7 +178,7 @@ impl Registers {
         }
     }
 
-    fn set32(&mut self, reg: iced_x86::Register, value: u32) {
+    pub fn set32(&mut self, reg: iced_x86::Register, value: u32) {
         match reg {
             iced_x86::Register::EAX => self.eax = value,
             iced_x86::Register::EBX => self.ebx = value,
@@ -189,7 +191,8 @@ impl Registers {
             _ => unreachable!(),
         }
     }
-    fn set16(&mut self, reg: iced_x86::Register, value: u16) {
+
+    pub fn set16(&mut self, reg: iced_x86::Register, value: u16) {
         match reg {
             iced_x86::Register::AX => self.eax = (self.eax as u16 | value) as u32,
             iced_x86::Register::CX => self.ecx = (self.ecx as u16 | value) as u32,
@@ -206,7 +209,8 @@ impl Registers {
             _ => unreachable!("{reg:?}"),
         }
     }
-    fn set8(&mut self, reg: iced_x86::Register, value: u8) {
+
+    pub fn set8(&mut self, reg: iced_x86::Register, value: u8) {
         match reg {
             iced_x86::Register::AL => self.eax = (self.eax & 0xFFFF_FF00) | value as u32,
             iced_x86::Register::CL => self.ecx = (self.ecx & 0xFFFF_FF00) | value as u32,
@@ -404,28 +408,31 @@ impl X86 {
         (seg + base + index).wrapping_add(instr.memory_displacement32())
     }
 
-    fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+    pub fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
             iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
             _ => unreachable!(),
         }
     }
-    fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+
+    pub fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
             _ => unreachable!(),
         }
     }
-    fn op1_rm16(&self, instr: &iced_x86::Instruction) -> u16 {
+
+    pub fn op1_rm16(&self, instr: &iced_x86::Instruction) -> u16 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get16(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
             _ => unreachable!(),
         }
     }
-    fn op1_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
+
+    pub fn op1_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get8(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
@@ -433,129 +440,7 @@ impl X86 {
         }
     }
 
-    fn add32(&mut self, x: u32, y: u32) -> u32 {
-        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        let (result, carry) = x.overflowing_add(y);
-        self.regs.flags.set(Flags::CF, carry);
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
-        // Overflow is true exactly when the high (sign) bits are like:
-        //   x  y  result
-        //   0  0  1
-        //   1  1  0
-        let of = ((x ^ !y) & (x ^ result)) >> 31 != 0;
-        self.regs.flags.set(Flags::OF, of);
-        result
-    }
-    fn add8(&mut self, x: u8, y: u8) -> u8 {
-        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        let (result, carry) = x.overflowing_add(y);
-        self.regs.flags.set(Flags::CF, carry);
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
-        // Overflow is true exactly when the high (sign) bits are like:
-        //   x  y  result
-        //   0  0  1
-        //   1  1  0
-        let of = ((x ^ !y) & (x ^ result)) >> 7 != 0;
-        self.regs.flags.set(Flags::OF, of);
-        result
-    }
-
-    fn sub32(&mut self, x: u32, y: u32) -> u32 {
-        let (result, carry) = x.overflowing_sub(y);
-        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        self.regs.flags.set(Flags::CF, carry);
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
-        // Overflow is true exactly when the high (sign) bits are like:
-        //   x  y  result
-        //   0  1  1
-        //   1  0  0
-        let of = ((x ^ y) & (x ^ result)) >> 31 != 0;
-        self.regs.flags.set(Flags::OF, of);
-        result
-    }
-    fn sub16(&mut self, x: u16, y: u16) -> u16 {
-        let (result, carry) = x.overflowing_sub(y);
-        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        self.regs.flags.set(Flags::CF, carry);
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
-        // See comment in sub32.
-        let of = ((x ^ y) & (x ^ result)) >> 7 != 0;
-        self.regs.flags.set(Flags::OF, of);
-        result
-    }
-    fn sub8(&mut self, x: u8, y: u8) -> u8 {
-        let (result, carry) = x.overflowing_sub(y);
-        // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-        self.regs.flags.set(Flags::CF, carry);
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
-        // See comment in sub32.
-        let of = ((x ^ y) & (x ^ result)) >> 7 != 0;
-        self.regs.flags.set(Flags::OF, of);
-        result
-    }
-
-    fn and32(&mut self, x: u32, y: u32) -> u32 {
-        let result = x & y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
-        self.regs.flags.set(Flags::OF, false);
-        result
-    }
-    fn and16(&mut self, x: u16, y: u16) -> u16 {
-        let result = x & y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x8000 != 0);
-        self.regs.flags.set(Flags::OF, false);
-        result
-    }
-    fn and8(&mut self, x: u8, y: u8) -> u8 {
-        let result = x & y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        self.regs.flags.set(Flags::SF, result & 0x80 != 0);
-        self.regs.flags.set(Flags::OF, false);
-        result
-    }
-    fn or32(&mut self, x: u32, y: u32) -> u32 {
-        let result = x | y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        result
-    }
-    fn or16(&mut self, x: u16, y: u16) -> u16 {
-        let result = x | y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        result
-    }
-    fn or8(&mut self, x: u8, y: u8) -> u8 {
-        let result = x | y;
-        // XXX More flags.
-        self.regs.flags.set(Flags::ZF, result == 0);
-        result
-    }
-
-    fn shl32(&mut self, x: u32, y: u8) -> u32 {
-        // Note: overflowing_shl is not what we want.
-        let val = (x as u64).wrapping_shl(y as u32);
-        self.regs.flags.set(Flags::CF, val & (1 << 32) != 0);
-        val as u32
-    }
-    fn shl8(&mut self, x: u8, y: u8) -> u8 {
-        // Note: overflowing_shl is not what we want.
-        let val = (x as u16).wrapping_shl(y as u32);
-        self.regs.flags.set(Flags::CF, val & (1 << 8) != 0);
-        val as u8
-    }
-
-    fn rm32_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
+    pub fn rm32_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => {
                 let reg = instr.op0_register();
@@ -572,7 +457,8 @@ impl X86 {
             _ => unimplemented!(),
         }
     }
-    fn rm16_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u16) -> u16) {
+
+    pub fn rm16_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u16) -> u16) {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => {
                 let reg = instr.op0_register();
@@ -589,7 +475,8 @@ impl X86 {
             _ => unimplemented!(),
         }
     }
-    fn rm8_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u8) -> u8) {
+
+    pub fn rm8_x(&mut self, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u8) -> u8) {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => {
                 let reg = instr.op0_register();
@@ -879,7 +766,11 @@ impl X86 {
                     self.regs.esi += pos as u32;
                     self.regs.edi += pos as u32;
                     self.regs.ecx -= pos as u32;
-                    self.sub8(self.read_u8(self.regs.esi), self.read_u8(self.regs.edi));
+                    ops::sub8(
+                        self,
+                        self.read_u8(self.regs.esi),
+                        self.read_u8(self.regs.edi),
+                    );
                 } else {
                     bail!("unimpl");
                 }
@@ -923,7 +814,8 @@ impl X86 {
                         .unwrap_or(count);
                     self.regs.edi += pos as u32;
                     self.regs.ecx -= pos as u32;
-                    self.sub8(
+                    ops::sub8(
+                        self,
                         self.regs.get8(iced_x86::Register::AL),
                         self.regs.get8(iced_x86::Register::DL),
                     );
@@ -990,219 +882,56 @@ impl X86 {
                 self.regs.esi += 4;
             }
 
-            iced_x86::Code::And_rm32_imm32 | iced_x86::Code::And_EAX_imm32 => {
-                let y = instr.immediate32();
-                self.rm32_x(instr, |x86, x| x86.and32(x, y));
-            }
-            iced_x86::Code::And_rm32_imm8 => {
-                let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |x86, x| x86.and32(x, y));
-            }
-            iced_x86::Code::And_r32_rm32 => {
-                let reg = instr.op0_register();
-                let y = self.op1_rm32(instr);
-                let value = self.regs.get32(reg) & y;
-                self.regs.set32(reg, value);
-            }
-            iced_x86::Code::And_rm16_imm16 => {
-                let y = instr.immediate16();
-                self.rm16_x(instr, |x86, x| x86.and16(x, y));
-            }
-            iced_x86::Code::And_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |x86, x| x86.and8(x, y));
-            }
+            iced_x86::Code::And_rm32_imm32 => ops::and_rm32_imm32(self, instr),
+            iced_x86::Code::And_EAX_imm32 => ops::and_rm32_imm32(self, instr),
+            iced_x86::Code::And_rm32_imm8 => ops::and_rm32_imm8(self, instr),
+            iced_x86::Code::And_r32_rm32 => ops::and_r32_rm32(self, instr),
+            iced_x86::Code::And_rm16_imm16 => ops::and_rm16_imm16(self, instr),
+            iced_x86::Code::And_rm8_imm8 => ops::and_rm8_imm8(self, instr),
             iced_x86::Code::Or_rm32_r32 | iced_x86::Code::Or_r32_rm32 => {
-                let y = self.op1_rm32(instr);
-                self.rm32_x(instr, |x86, x| x86.or32(x, y));
+                ops::or_r32_rm32(self, instr)
             }
-            iced_x86::Code::Or_rm32_imm32 => {
-                let y = instr.immediate32();
-                self.rm32_x(instr, |x86, x| x86.or32(x, y));
-            }
-            iced_x86::Code::Or_rm32_imm8 => {
-                let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |x86, x| x86.or32(x, y));
-            }
-            iced_x86::Code::Or_rm16_imm16 => {
-                let y = instr.immediate16();
-                self.rm16_x(instr, |x86, x| x86.or16(x, y));
-            }
-            iced_x86::Code::Or_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |x86, x| x86.or8(x, y));
-            }
-            iced_x86::Code::Shl_rm32_imm8 => {
-                let y = instr.immediate8();
-                self.rm32_x(instr, |x86, x| x86.shl32(x, y));
-            }
-            iced_x86::Code::Shl_rm32_CL => {
-                let y = self.regs.ecx as u8;
-                self.rm32_x(instr, |x86, x| x86.shl32(x, y));
-            }
-            iced_x86::Code::Shl_rm8_CL => {
-                let y = self.regs.ecx as u8;
-                self.rm8_x(instr, |x86, x| x86.shl8(x, y));
-            }
-            iced_x86::Code::Shr_rm32_1 => {
-                self.rm32_x(instr, |_x86, x| x >> 1);
-            }
-            iced_x86::Code::Shr_rm32_imm8 => {
-                let y = instr.immediate8() as u32;
-                self.rm32_x(instr, |_x86, x| x >> y);
-            }
-            iced_x86::Code::Sar_rm32_imm8 | iced_x86::Code::Sar_rm32_1 => {
-                let y = instr.immediate8() as u32;
-                self.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
-            }
-            iced_x86::Code::Ror_rm32_CL => {
-                let y = self.regs.ecx as u8;
-                self.rm32_x(instr, |x86, x| {
-                    let out = x.rotate_right(y as u32);
-                    let msb = (out & 0x8000_0000) != 0;
-                    x86.regs.flags.set(Flags::CF, msb);
-                    x86.regs
-                        .flags
-                        .set(Flags::OF, msb ^ ((out & 04000_0000) != 0));
-                    out
-                });
-            }
-            iced_x86::Code::Xor_rm32_r32 => {
-                let y = self.regs.get32(instr.op1_register());
-                self.rm32_x(instr, |_x86, x| x ^ y);
-            }
-            iced_x86::Code::Xor_rm32_imm8 => {
-                let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |_x86, x| x ^ y);
-            }
-            iced_x86::Code::Xor_r32_rm32 => {
-                let reg = instr.op0_register();
-                let y = self.op1_rm32(instr);
-                let value = self.regs.get32(reg) ^ y;
-                self.regs.set32(reg, value);
-            }
-            iced_x86::Code::Xor_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |_x86, x| x ^ y);
-            }
-            iced_x86::Code::Xor_r8_rm8 => {
-                let y = self.op1_rm8(instr);
-                self.rm8_x(instr, |_x86, x| x ^ y);
-            }
-
-            iced_x86::Code::Add_r32_rm32 => {
-                let reg = instr.op0_register();
-                let value = self.add32(self.regs.get32(reg), self.op1_rm32(&instr));
-                self.regs.set32(reg, value);
-            }
-            iced_x86::Code::Add_rm32_r32 => {
-                let y = self.regs.get32(instr.op1_register());
-                self.rm32_x(instr, |x86, x| x86.add32(x, y));
-            }
-            iced_x86::Code::Add_rm32_imm32 | iced_x86::Code::Add_EAX_imm32 => {
-                let y = instr.immediate32();
-                self.rm32_x(instr, |x86, x| x86.add32(x, y));
-            }
-            iced_x86::Code::Add_rm32_imm8 => {
-                let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |x86, x| x86.add32(x, y));
-            }
-            iced_x86::Code::Add_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |x86, x| x86.add8(x, y));
-            }
-
-            iced_x86::Code::Sub_rm32_imm8 => {
-                let y = instr.immediate8to32() as u32;
-                self.rm32_x(instr, |x86, x| x86.sub32(x, y));
-            }
-            iced_x86::Code::Sub_EAX_imm32 | iced_x86::Code::Sub_rm32_imm32 => {
-                let y = instr.immediate32();
-                self.rm32_x(instr, |x86, x| x86.sub32(x, y));
-            }
-            iced_x86::Code::Sub_rm32_r32 => {
-                let y = self.regs.get32(instr.op1_register());
-                self.rm32_x(instr, |x86, x| x86.sub32(x, y));
-            }
-            iced_x86::Code::Sub_r32_rm32 => {
-                let reg = instr.op0_register();
-                let y = self.op1_rm32(instr);
-                let value = self.sub32(self.regs.get32(reg), y);
-                self.regs.set32(reg, value);
-            }
-            iced_x86::Code::Sub_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |x86, x| x86.sub8(x, y));
-            }
-
-            iced_x86::Code::Sbb_r32_rm32 => {
-                let reg = instr.op0_register();
-                let carry = self.regs.flags.contains(Flags::CF) as u32;
-                let y = self.op1_rm32(instr).wrapping_add(carry);
-                let value = self.sub32(self.regs.get32(reg), y);
-                self.regs.set32(reg, value);
-            }
-            iced_x86::Code::Sbb_r8_rm8 => {
-                let reg = instr.op0_register();
-                let carry = self.regs.flags.contains(Flags::CF) as u8;
-                let y = self.op1_rm8(instr).wrapping_add(carry);
-                let value = self.sub8(self.regs.get8(reg), y);
-                self.regs.set8(reg, value);
-            }
-            iced_x86::Code::Imul_r32_rm32 => {
-                let x = self.regs.get32(instr.op0_register());
-                let y = self.op1_rm32(instr);
-                let value = x.wrapping_mul(y);
-                self.regs.set32(instr.op0_register(), value);
-            }
-            iced_x86::Code::Imul_r32_rm32_imm32 => {
-                let x = self.op1_rm32(instr) as i32;
-                let y = instr.immediate32() as i32;
-                let value = x.wrapping_mul(y);
-                self.regs.set32(instr.op0_register(), value as u32);
-            }
-            iced_x86::Code::Imul_r32_rm32_imm8 => {
-                let x = self.op1_rm32(instr) as i32;
-                let y = instr.immediate8to32();
-                let value = x.wrapping_mul(y);
-                self.regs.set32(instr.op0_register(), value as u32);
-            }
-            iced_x86::Code::Idiv_rm32 => {
-                let x = (((self.regs.edx as u64) << 32) | (self.regs.eax as u64)) as i64;
-                let y = self.op0_rm32(instr) as i32 as i64;
-                self.regs.eax = (x / y) as i32 as u32;
-                self.regs.edx = (x % y) as i32 as u32;
-                // TODO: flags.
-            }
-            iced_x86::Code::Div_rm32 => {
-                let x = ((self.regs.edx as u64) << 32) | (self.regs.eax as u64);
-                let y = self.op0_rm32(instr) as u64;
-                self.regs.eax = (x / y) as u32;
-                self.regs.edx = (x % y) as u32;
-                // TODO: flags.
-            }
-            iced_x86::Code::Dec_r32 | iced_x86::Code::Dec_rm32 => {
-                self.rm32_x(instr, |x86, x| x86.sub32(x, 1));
-            }
-            iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => {
-                // TODO: flags.  Note that it's not add32(1) because CF should be preserved.
-                self.rm32_x(instr, |_x86, x| x + 1);
-            }
-            iced_x86::Code::Inc_rm8 => {
-                // TODO: flags.  Note that it's not add8(1) because CF should be preserved.
-                self.rm8_x(instr, |_x86, x| x.wrapping_add(1));
-            }
-            iced_x86::Code::Neg_rm32 => {
-                self.rm32_x(instr, |x86, x| {
-                    x86.regs.flags.set(Flags::CF, x != 0);
-                    // TODO: other flags registers.
-                    -(x as i32) as u32
-                });
-            }
-
-            iced_x86::Code::Not_rm32 => {
-                self.rm32_x(instr, |_x86, x| !x);
-            }
+            iced_x86::Code::Or_rm32_imm32 => ops::or_rm32_imm32(self, instr),
+            iced_x86::Code::Or_rm32_imm8 => ops::or_rm32_imm8(self, instr),
+            iced_x86::Code::Or_rm16_imm16 => ops::or_rm16_imm16(self, instr),
+            iced_x86::Code::Or_rm8_imm8 => ops::or_rm8_imm8(self, instr),
+            iced_x86::Code::Shl_rm32_imm8 => ops::shl_rm32_imm8(self, instr),
+            iced_x86::Code::Shl_rm32_CL => ops::shl_rm32_cl(self, instr),
+            iced_x86::Code::Shl_rm8_CL => ops::shl_rm8_cl(self, instr),
+            iced_x86::Code::Shr_rm32_1 => ops::shr_rm32_1(self, instr),
+            iced_x86::Code::Shr_rm32_imm8 => ops::shr_rm32_imm8(self, instr),
+            iced_x86::Code::Sar_rm32_imm8 => ops::sar_rm32_imm8(self, instr),
+            iced_x86::Code::Sar_rm32_1 => ops::sar_rm32_imm8(self, instr),
+            iced_x86::Code::Ror_rm32_CL => ops::ror_rm32_cl(self, instr),
+            iced_x86::Code::Xor_rm32_r32 => ops::xor_rm32_r32(self, instr),
+            iced_x86::Code::Xor_rm32_imm8 => ops::xor_rm32_imm8(self, instr),
+            iced_x86::Code::Xor_r32_rm32 => ops::xor_r32_rm32(self, instr),
+            iced_x86::Code::Xor_rm8_imm8 => ops::xor_rm8_imm8(self, instr),
+            iced_x86::Code::Xor_r8_rm8 => ops::xor_r8_rm8(self, instr),
+            iced_x86::Code::Add_r32_rm32 => ops::add_r32_rm32(self, instr),
+            iced_x86::Code::Add_rm32_r32 => ops::add_rm32_r32(self, instr),
+            iced_x86::Code::Add_rm32_imm32 => ops::add_rm32_imm32(self, instr),
+            iced_x86::Code::Add_EAX_imm32 => ops::add_rm32_imm32(self, instr),
+            iced_x86::Code::Add_rm32_imm8 => ops::add_rm32_imm8(self, instr),
+            iced_x86::Code::Add_rm8_imm8 => ops::add_rm8_imm8(self, instr),
+            iced_x86::Code::Sub_rm32_imm8 => ops::sub_rm32_imm8(self, instr),
+            iced_x86::Code::Sub_EAX_imm32 => ops::sub_rm32_imm32(self, instr),
+            iced_x86::Code::Sub_rm32_imm32 => ops::sub_rm32_imm32(self, instr),
+            iced_x86::Code::Sub_rm32_r32 => ops::sub_rm32_r32(self, instr),
+            iced_x86::Code::Sub_r32_rm32 => ops::sub_r32_rm32(self, instr),
+            iced_x86::Code::Sub_rm8_imm8 => ops::sub_rm8_imm8(self, instr),
+            iced_x86::Code::Sbb_r32_rm32 => ops::sbb_r32_rm32(self, instr),
+            iced_x86::Code::Sbb_r8_rm8 => ops::sbb_r8_rm8(self, instr),
+            iced_x86::Code::Imul_r32_rm32 => ops::imul_r32_rm32(self, instr),
+            iced_x86::Code::Imul_r32_rm32_imm32 => ops::imul_r32_rm32_imm32(self, instr),
+            iced_x86::Code::Imul_r32_rm32_imm8 => ops::imul_r32_rm32_imm8(self, instr),
+            iced_x86::Code::Idiv_rm32 => ops::idiv_rm32(self, instr),
+            iced_x86::Code::Div_rm32 => ops::div_rm32(self, instr),
+            iced_x86::Code::Dec_r32 | iced_x86::Code::Dec_rm32 => ops::dec_rm32(self, instr),
+            iced_x86::Code::Inc_r32 | iced_x86::Code::Inc_rm32 => ops::inc_rm32(self, instr),
+            iced_x86::Code::Inc_rm8 => ops::inc_rm8(self, instr),
+            iced_x86::Code::Neg_rm32 => ops::neg_rm32(self, instr),
+            iced_x86::Code::Not_rm32 => ops::not_rm32(self, instr),
 
             iced_x86::Code::Lea_r32_m => {
                 // lea eax,[esp+10h]
@@ -1216,12 +945,12 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get32(instr.op1_register());
-                self.sub32(x, y);
+                ops::sub32(self, x, y);
             }
             iced_x86::Code::Cmp_r32_rm32 => {
                 let x = self.regs.get32(instr.op0_register());
                 let y = self.op1_rm32(instr);
-                self.sub32(x, y);
+                ops::sub32(self, x, y);
             }
             iced_x86::Code::Cmp_EAX_imm32 | iced_x86::Code::Cmp_rm32_imm32 => {
                 let x = match instr.op0_kind() {
@@ -1230,7 +959,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate32();
-                self.sub32(x, y);
+                ops::sub32(self, x, y);
             }
             iced_x86::Code::Cmp_rm32_imm8 => {
                 let x = match instr.op0_kind() {
@@ -1239,7 +968,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate8to32() as u32;
-                self.sub32(x, y);
+                ops::sub32(self, x, y);
             }
             iced_x86::Code::Cmp_rm16_r16 => {
                 let x = match instr.op0_kind() {
@@ -1248,7 +977,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.op1_rm16(instr);
-                self.sub16(x, y);
+                ops::sub16(self, x, y);
             }
             iced_x86::Code::Cmp_rm16_imm16 => {
                 let x = match instr.op0_kind() {
@@ -1257,7 +986,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate16();
-                self.sub16(x, y);
+                ops::sub16(self, x, y);
             }
             iced_x86::Code::Cmp_rm16_imm8 => {
                 let x = match instr.op0_kind() {
@@ -1266,7 +995,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate8to16() as u16;
-                self.sub16(x, y);
+                ops::sub16(self, x, y);
             }
             iced_x86::Code::Cmp_rm8_imm8 | iced_x86::Code::Cmp_AL_imm8 => {
                 let x = match instr.op0_kind() {
@@ -1275,7 +1004,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate8();
-                self.sub8(x, y);
+                ops::sub8(self, x, y);
             }
             iced_x86::Code::Cmp_rm8_r8 => {
                 let x = match instr.op0_kind() {
@@ -1284,7 +1013,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get8(instr.op1_register());
-                self.sub8(x, y);
+                ops::sub8(self, x, y);
             }
             iced_x86::Code::Cmp_r8_rm8 => {
                 let x = self.regs.get8(instr.op0_register());
@@ -1293,7 +1022,7 @@ impl X86 {
                     iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
                     _ => unreachable!(),
                 };
-                self.sub8(x, y);
+                ops::sub8(self, x, y);
             }
 
             iced_x86::Code::Test_rm32_r32 => {
@@ -1303,7 +1032,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get32(instr.op1_register());
-                self.and32(x, y);
+                ops::and32(self, x, y);
             }
             iced_x86::Code::Test_rm32_imm32 | iced_x86::Code::Test_EAX_imm32 => {
                 let x = match instr.op0_kind() {
@@ -1312,7 +1041,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate32();
-                self.and32(x, y);
+                ops::and32(self, x, y);
             }
             iced_x86::Code::Test_rm16_r16 => {
                 let x = match instr.op0_kind() {
@@ -1321,7 +1050,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get16(instr.op1_register());
-                self.and16(x, y);
+                ops::and16(self, x, y);
             }
             iced_x86::Code::Test_rm8_r8 => {
                 let x = match instr.op0_kind() {
@@ -1330,7 +1059,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = self.regs.get8(instr.op1_register());
-                self.and8(x, y);
+                ops::and8(self, x, y);
             }
             iced_x86::Code::Test_rm8_imm8 | iced_x86::Code::Test_AL_imm8 => {
                 let x = match instr.op0_kind() {
@@ -1339,7 +1068,7 @@ impl X86 {
                     _ => unreachable!(),
                 };
                 let y = instr.immediate8();
-                self.and8(x, y);
+                ops::and8(self, x, y);
             }
 
             iced_x86::Code::Bt_rm32_imm8 => {
