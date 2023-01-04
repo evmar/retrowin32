@@ -158,6 +158,13 @@ pub mod kernel32 {
         let lpModuleName: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleW(x86, lpModuleName) as u32;
     }
+    fn GetModuleFileNameW(x86: &mut X86) {
+        let lpModuleName: u32 = unsafe { from_x86(x86) };
+        let lpFilename: u32 = unsafe { from_x86(x86) };
+        let nSize: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax =
+            winapi::kernel32::GetModuleFileNameW(x86, lpModuleName, lpFilename, nSize) as u32;
+    }
     fn GetStartupInfoA(x86: &mut X86) {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetStartupInfoA(x86, lpStartupInfo) as u32;
@@ -355,6 +362,7 @@ pub mod kernel32 {
             "GetModuleFileNameA" => GetModuleFileNameA,
             "GetModuleHandleA" => GetModuleHandleA,
             "GetModuleHandleW" => GetModuleHandleW,
+            "GetModuleFileNameW" => GetModuleFileNameW,
             "GetStartupInfoA" => GetStartupInfoA,
             "GetStartupInfoW" => GetStartupInfoW,
             "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,

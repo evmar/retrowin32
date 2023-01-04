@@ -455,6 +455,13 @@ pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: u32) -> u32 {
     GetModuleHandleA(x86, 0)
 }
 
+pub fn GetModuleFileNameW(x86: &mut X86, lpModuleName: u32, lpFilename: u32, nSize: u32) -> u32 {
+    if lpModuleName != 0 {
+        log::error!("unimplemented: GetModuleHandleW(non-null)")
+    }
+    0 // fail
+}
+
 #[repr(C)]
 struct STARTUPINFOA {
     cb: DWORD,
