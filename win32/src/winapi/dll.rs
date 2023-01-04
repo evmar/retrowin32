@@ -111,16 +111,20 @@ pub mod kernel32 {
     fn GetACP(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetACP(x86) as u32;
     }
-    fn GetCommandLineA(x86: &mut X86) {
-        x86.regs.eax = winapi::kernel32::GetCommandLineA(x86) as u32;
-    }
-    fn GetCommandLineW(x86: &mut X86) {
-        x86.regs.eax = winapi::kernel32::GetCommandLineW(x86) as u32;
+    fn IsValidCodePage(x86: &mut X86) {
+        let CodePage: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::IsValidCodePage(x86, CodePage) as u32;
     }
     fn GetCPInfo(x86: &mut X86) {
         let _CodePage: u32 = unsafe { from_x86(x86) };
         let _lpCPInfo: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetCPInfo(x86, _CodePage, _lpCPInfo) as u32;
+    }
+    fn GetCommandLineA(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetCommandLineA(x86) as u32;
+    }
+    fn GetCommandLineW(x86: &mut X86) {
+        x86.regs.eax = winapi::kernel32::GetCommandLineW(x86) as u32;
     }
     fn GetEnvironmentStrings(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::GetEnvironmentStrings(x86) as u32;
@@ -339,9 +343,10 @@ pub mod kernel32 {
             "GetLastError" => GetLastError,
             "ExitProcess" => ExitProcess,
             "GetACP" => GetACP,
+            "IsValidCodePage" => IsValidCodePage,
+            "GetCPInfo" => GetCPInfo,
             "GetCommandLineA" => GetCommandLineA,
             "GetCommandLineW" => GetCommandLineW,
-            "GetCPInfo" => GetCPInfo,
             "GetEnvironmentStrings" => GetEnvironmentStrings,
             "FreeEnvironmentStringsA" => FreeEnvironmentStringsA,
             "GetEnvironmentStringsW" => GetEnvironmentStringsW,

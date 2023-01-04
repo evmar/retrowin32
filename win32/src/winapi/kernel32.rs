@@ -373,6 +373,14 @@ pub fn GetACP(_x86: &mut X86) -> u32 {
     1252 // windows-1252
 }
 
+pub fn IsValidCodePage(_x86: &mut X86, CodePage: u32) -> bool {
+    CodePage == 1252
+}
+
+pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
+    0 // fail
+}
+
 pub fn GetCommandLineA(x86: &mut X86) -> u32 {
     let addr = peb_mut(x86).ProcessParameters;
     let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
@@ -385,10 +393,6 @@ pub fn GetCommandLineW(x86: &mut X86) -> u32 {
     let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
     // TODO: decide if this is unicode or not
     params.CommandLine.Buffer
-}
-
-pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
-    0 // fail
 }
 
 pub fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
