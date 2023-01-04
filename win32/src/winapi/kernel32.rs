@@ -455,7 +455,7 @@ pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: u32) -> u32 {
     GetModuleHandleA(x86, 0)
 }
 
-pub fn GetModuleFileNameW(x86: &mut X86, lpModuleName: u32, lpFilename: u32, nSize: u32) -> u32 {
+pub fn GetModuleFileNameW(_x86: &mut X86, lpModuleName: u32, _lpFilename: u32, _nSize: u32) -> u32 {
     if lpModuleName != 0 {
         log::error!("unimplemented: GetModuleHandleW(non-null)")
     }
@@ -887,4 +887,18 @@ pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
 pub fn TlsGetValue(x86: &mut X86, dwTlsIndex: u32) -> u32 {
     let teb = teb_mut(x86);
     teb.TlsSlots[dwTlsIndex as usize]
+}
+
+// TODO: this has a bunch of synchronization magic that I haven't implemented,
+// but I did at least make this struct the right size (128 bits).
+#[repr(C)]
+pub struct SLIST_HEADER {
+    Next: u32,
+    todo: [u32; 3],
+}
+unsafe impl Pod for SLIST_HEADER {}
+
+pub fn InitializeSListHead(_x86: &mut X86, ListHead: &mut SLIST_HEADER) -> u32 {
+    ListHead.Next = 0;
+    0
 }

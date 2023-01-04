@@ -344,6 +344,10 @@ pub mod kernel32 {
         let dwTlsIndex: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::TlsGetValue(x86, dwTlsIndex) as u32;
     }
+    fn InitializeSListHead(x86: &mut X86) {
+        let ListHead: &mut SLIST_HEADER = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::InitializeSListHead(x86, ListHead) as u32;
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "SetLastError" => SetLastError,
@@ -400,6 +404,7 @@ pub mod kernel32 {
             "TlsFree" => TlsFree,
             "TlsSetValue" => TlsSetValue,
             "TlsGetValue" => TlsGetValue,
+            "InitializeSListHead" => InitializeSListHead,
             _ => return None,
         })
     }
