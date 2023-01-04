@@ -117,6 +117,11 @@ impl State {
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     fn init_teb_peb(&mut self, mem: &mut [u8]) {
+        // TOOD: UTF-16
+        let cmdline = "retrowin32\0".as_bytes();
+        let cmdline_addr = self.heap.alloc(mem, cmdline.len() as u32);
+        mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
+
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.heap.alloc(
             mem,
@@ -132,7 +137,11 @@ impl State {
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
         params.ImagePathName.clear();
-        params.CommandLine.clear();
+        params.CommandLine = UNICODE_STRING {
+            Length: cmdline.len() as u16,
+            MaximumLength: cmdline.len() as u16,
+            Buffer: cmdline_addr,
+        };
 
         // PEB
         let peb_addr = self
