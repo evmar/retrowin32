@@ -293,6 +293,10 @@ pub mod kernel32 {
             _dwSpinCount,
         ) as u32;
     }
+    fn DeleteCriticalSection(x86: &mut X86) {
+        let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::DeleteCriticalSection(x86, _lpCriticalSection) as u32;
+    }
     fn EnterCriticalSection(x86: &mut X86) {
         let _lpCriticalSection: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::EnterCriticalSection(x86, _lpCriticalSection) as u32;
@@ -315,6 +319,10 @@ pub mod kernel32 {
     }
     fn TlsAlloc(x86: &mut X86) {
         x86.regs.eax = winapi::kernel32::TlsAlloc(x86) as u32;
+    }
+    fn TlsFree(x86: &mut X86) {
+        let dwTlsIndex: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::TlsFree(x86, dwTlsIndex) as u32;
     }
     fn TlsSetValue(x86: &mut X86) {
         let dwTlsIndex: u32 = unsafe { from_x86(x86) };
@@ -369,12 +377,14 @@ pub mod kernel32 {
             "VirtualFree" => VirtualFree,
             "OutputDebugStringA" => OutputDebugStringA,
             "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
+            "DeleteCriticalSection" => DeleteCriticalSection,
             "EnterCriticalSection" => EnterCriticalSection,
             "LeaveCriticalSection" => LeaveCriticalSection,
             "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
             "UnhandledExceptionFilter" => UnhandledExceptionFilter,
             "NtCurrentTeb" => NtCurrentTeb,
             "TlsAlloc" => TlsAlloc,
+            "TlsFree" => TlsFree,
             "TlsSetValue" => TlsSetValue,
             "TlsGetValue" => TlsGetValue,
             _ => return None,

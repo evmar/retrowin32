@@ -45,7 +45,12 @@ impl Heap {
     pub fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
         let alloc_size = size + 4; // TODO: align?
         if self.next + alloc_size > self.size {
-            log::error!("Heap::alloc cannot allocate {:x}", size);
+            log::error!(
+                "Heap::alloc cannot allocate {:x}, using {:x}/{:x}",
+                size,
+                self.size - self.next,
+                self.size
+            );
             return 0;
         }
         let addr = self.addr + self.next;
@@ -816,6 +821,10 @@ pub fn InitializeCriticalSectionAndSpinCount(
     true
 }
 
+pub fn DeleteCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+    0
+}
+
 pub fn EnterCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
     0
 }
@@ -842,6 +851,16 @@ pub fn TlsAlloc(x86: &mut X86) -> u32 {
     let slot = peb.TlsCount;
     peb.TlsCount = slot + 1;
     slot
+}
+
+pub fn TlsFree(x86: &mut X86, dwTlsIndex: u32) -> bool {
+    let peb = peb_mut(x86);
+    if dwTlsIndex >= peb.TlsCount {
+        log::warn!("TlsFree of unknown slot {dwTlsIndex}");
+        return false;
+    }
+    // TODO
+    true
 }
 
 pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
