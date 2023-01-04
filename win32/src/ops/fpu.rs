@@ -1,6 +1,30 @@
 use iced_x86::Instruction;
 
-use crate::{registers::FPUStatus, x86::X86};
+use crate::{
+    registers::FPUStatus,
+    x86::{NULL_POINTER_REGION_SIZE, X86},
+};
+
+fn read_f32(x86: &X86, addr: u32) -> f32 {
+    f32::from_bits(x86.read_u32(addr))
+}
+
+pub fn read_f64(x86: &X86, addr: u32) -> f64 {
+    if addr < NULL_POINTER_REGION_SIZE {
+        panic!("null pointer read at {addr:#x}");
+    }
+    let addr = addr as usize;
+    let n = u64::from_le_bytes(x86.mem[addr..addr + 8].try_into().unwrap());
+    f64::from_bits(n)
+}
+
+pub fn write_f64(x86: &mut X86, addr: u32, value: f64) {
+    if addr < NULL_POINTER_REGION_SIZE {
+        panic!("null pointer read at {addr:#x}");
+    }
+    let addr = addr as usize;
+    x86.mem[addr..addr + 8].copy_from_slice(&f64::to_le_bytes(value));
+}
 
 /// Compare two values and set floating-point comparison flags.
 fn fcom<T: std::cmp::PartialOrd>(x86: &mut X86, x: T, y: T) {
@@ -36,12 +60,12 @@ pub fn fldz(x86: &mut X86, _instr: &Instruction) {
 
 pub fn fld_m64fp(x86: &mut X86, instr: &Instruction) {
     x86.regs.st_top -= 1;
-    *x86.regs.st_top() = x86.read_f64(x86.addr(instr));
+    *x86.regs.st_top() = read_f64(x86, x86.addr(instr));
 }
 
 pub fn fld_m32fp(x86: &mut X86, instr: &Instruction) {
     x86.regs.st_top -= 1;
-    *x86.regs.st_top() = x86.read_f32(x86.addr(instr)) as f64;
+    *x86.regs.st_top() = read_f32(x86, x86.addr(instr)) as f64;
 }
 
 pub fn fild_m32int(x86: &mut X86, instr: &Instruction) {
@@ -56,12 +80,12 @@ pub fn fild_m16int(x86: &mut X86, instr: &Instruction) {
 
 pub fn fst_m64fp(x86: &mut X86, instr: &Instruction) {
     let f = *x86.regs.st_top();
-    x86.write_f64(x86.addr(instr), f);
+    write_f64(x86, x86.addr(instr), f);
 }
 
 pub fn fstp_m64fp(x86: &mut X86, instr: &Instruction) {
     let f = *x86.regs.st_top();
-    x86.write_f64(x86.addr(instr), f);
+    write_f64(x86, x86.addr(instr), f);
     x86.regs.st_top += 1;
 }
 
@@ -109,12 +133,12 @@ pub fn fsqrt(x86: &mut X86, _instr: &Instruction) {
 }
 
 pub fn fadd_m64fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f64(x86.addr(instr));
+    let y = read_f64(x86, x86.addr(instr));
     *x86.regs.st_top() += y;
 }
 
 pub fn fadd_m32fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f32(x86.addr(instr)) as f64;
+    let y = read_f32(x86, x86.addr(instr)) as f64;
     *x86.regs.st_top() += y;
 }
 
@@ -126,30 +150,30 @@ pub fn faddp_sti_st0(x86: &mut X86, instr: &Instruction) {
 }
 
 pub fn fsub_m32fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f32(x86.addr(instr)) as f64;
+    let y = read_f32(x86, x86.addr(instr)) as f64;
     let x = x86.regs.st_top();
     *x = *x - y;
 }
 
 pub fn fsubr_m64fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f64(x86.addr(instr));
+    let y = read_f64(x86, x86.addr(instr));
     let x = x86.regs.st_top();
     *x = y - *x;
 }
 
 pub fn fsubr_m32fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f32(x86.addr(instr)) as f64;
+    let y = read_f32(x86, x86.addr(instr)) as f64;
     let x = x86.regs.st_top();
     *x = y - *x;
 }
 
 pub fn fmul_m64fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f64(x86.addr(instr));
+    let y = read_f64(x86, x86.addr(instr));
     *x86.regs.st_top() *= y;
 }
 
 pub fn fmul_m32fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f32(x86.addr(instr)) as f64;
+    let y = read_f32(x86, x86.addr(instr)) as f64;
     *x86.regs.st_top() *= y;
 }
 
@@ -173,7 +197,7 @@ pub fn fdivrp_sti_st0(x86: &mut X86, _instr: &Instruction) {
 }
 
 pub fn fdiv_m64fp(x86: &mut X86, instr: &Instruction) {
-    let y = x86.read_f64(x86.addr(instr));
+    let y = read_f64(x86, x86.addr(instr));
     *x86.regs.st_top() /= y;
 }
 
@@ -183,14 +207,14 @@ pub fn fxch_st0_sti(x86: &mut X86, instr: &Instruction) {
 
 pub fn fcomp_m32fp(x86: &mut X86, instr: &Instruction) {
     let x = *x86.regs.st_top();
-    let y = x86.read_f32(x86.addr(instr)) as f64;
+    let y = read_f32(x86, x86.addr(instr)) as f64;
     fcom(x86, x, y);
     x86.regs.st_top += 1;
 }
 
 pub fn fcomp_m64fp(x86: &mut X86, instr: &Instruction) {
     let x = *x86.regs.st_top();
-    let y = x86.read_f64(x86.addr(instr));
+    let y = read_f64(x86, x86.addr(instr));
     fcom(x86, x, y);
     x86.regs.st_top += 1;
 }
