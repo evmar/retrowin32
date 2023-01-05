@@ -43,25 +43,25 @@ export class Labels {
     this.byAddr.sort(([a, _], [b, __]) => a - b);
   }
 
-  find(addr: number): [string, number] | undefined {
+  find(target: number): [string, number] | undefined {
     // binary search for addr
     if (this.byAddr.length === 0) return undefined;
     let lo = 0, hi = this.byAddr.length;
     while (lo < hi - 1) {
       const mid = Math.floor((lo + hi) / 2);
       const [cur, label] = this.byAddr[mid];
-      if (cur < addr) {
+      if (cur < target) {
         lo = mid;
-      } else if (cur > addr) {
+      } else if (cur > target) {
         hi = mid;
-      } else if (addr === cur) {
+      } else if (cur === target) {
         return [label, 0];
       }
     }
     const [cur, label] = this.byAddr[lo];
-    if (cur < addr) {
+    if (cur <= target) {
       // Show the offset relative to the nearest labelled entry.
-      const delta = addr - cur;
+      const delta = target - cur;
       // We don't want very high addresses to appear as last+largenumber, so cap delta.
       if (delta < 0x1000) {
         return [label, delta];
