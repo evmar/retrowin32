@@ -165,6 +165,13 @@ pub mod kernel32 {
         let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleW(x86, lpModuleName).to_raw();
     }
+    fn GetModuleHandleExW(x86: &mut X86) {
+        let dwFlags: u32 = unsafe { from_x86(x86) };
+        let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
+        let hModule: Option<&mut HMODULE> = unsafe { from_x86(x86) };
+        x86.regs.eax =
+            winapi::kernel32::GetModuleHandleExW(x86, dwFlags, lpModuleName, hModule).to_raw();
+    }
     fn GetModuleFileNameW(x86: &mut X86) {
         let lpModuleName: u32 = unsafe { from_x86(x86) };
         let _lpFilename: u32 = unsafe { from_x86(x86) };
@@ -376,6 +383,7 @@ pub mod kernel32 {
             "GetModuleFileNameA" => GetModuleFileNameA,
             "GetModuleHandleA" => GetModuleHandleA,
             "GetModuleHandleW" => GetModuleHandleW,
+            "GetModuleHandleExW" => GetModuleHandleExW,
             "GetModuleFileNameW" => GetModuleFileNameW,
             "GetStartupInfoA" => GetStartupInfoA,
             "GetStartupInfoW" => GetStartupInfoW,

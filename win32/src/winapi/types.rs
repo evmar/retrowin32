@@ -1,5 +1,7 @@
 //! Types exposed by the Windows API.
 
+use crate::memory::Pod;
+
 use super::shims::{FromX86, ToX86};
 
 pub type WORD = u16;
@@ -14,6 +16,7 @@ macro_rules! declare_handle {
         #[derive(Debug, Eq, PartialEq)]
         #[repr(transparent)]
         pub struct $name(pub u32);
+        unsafe impl Pod for $name {}
         impl FromX86 for $name {
             fn from_raw(raw: u32) -> Self {
                 $name(raw)
