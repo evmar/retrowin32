@@ -32,7 +32,7 @@ fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
     }
     quote!(fn #name(x86: &mut X86) {
         #(#body)*
-        x86.regs.eax = winapi::#module::#name(#(#args),*) as u32;
+        x86.regs.eax = winapi::#module::#name(#(#args),*).to_raw();
     })
 }
 
@@ -100,7 +100,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::from_x86, winapi::types::*};
+        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::{from_x86, ToX86}, winapi::types::*};
 
         #(#mods)*
     })

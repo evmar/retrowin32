@@ -566,12 +566,12 @@ pub fn GetCurrentProcessId(_x86: &mut X86) -> u32 {
     1
 }
 
-pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
+pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> HFILE {
     match nStdHandle as i32 {
-        -10 => STDIN_HFILE.0,
-        -11 => STDOUT_HFILE.0,
-        -12 => STDERR_HFILE.0,
-        _ => (-1i32) as u32,
+        -10 => STDIN_HFILE,
+        -11 => STDOUT_HFILE,
+        -12 => STDERR_HFILE,
+        _ => HFILE((-1i32) as u32),
     }
 }
 

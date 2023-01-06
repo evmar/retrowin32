@@ -65,3 +65,27 @@ impl FromX86 for &str {
 pub unsafe fn from_x86<T: FromX86>(x86: &mut X86) -> T {
     T::from_x86(x86)
 }
+
+/// Types that can be returned from a winapi function, passed via EAX.
+pub trait ToX86 {
+    fn to_raw(&self) -> u32;
+}
+impl ToX86 for bool {
+    fn to_raw(&self) -> u32 {
+        if *self {
+            1
+        } else {
+            0
+        }
+    }
+}
+impl ToX86 for u32 {
+    fn to_raw(&self) -> u32 {
+        *self
+    }
+}
+impl ToX86 for usize {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}

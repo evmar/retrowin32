@@ -1,6 +1,6 @@
 //! Types exposed by the Windows API.
 
-use super::shims::FromX86;
+use super::shims::{FromX86, ToX86};
 
 pub type WORD = u16;
 pub type DWORD = u32;
@@ -17,6 +17,11 @@ macro_rules! declare_handle {
         impl FromX86 for $name {
             fn from_raw(raw: u32) -> Self {
                 $name(raw)
+            }
+        }
+        impl ToX86 for $name {
+            fn to_raw(&self) -> u32 {
+                self.0
             }
         }
     };
