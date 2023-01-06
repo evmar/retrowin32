@@ -1,9 +1,10 @@
 use super::math::sub8;
+use anyhow::bail;
 use iced_x86::Instruction;
 
 use crate::{memory::Memory, registers::Flags, x86::X86};
 
-pub fn cmps(x86: &mut X86, instr: &Instruction) {
+pub fn cmps(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
     let p1 = x86.regs.esi as usize;
     let p2 = x86.regs.edi as usize;
@@ -19,13 +20,14 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) {
         x86.regs.ecx -= pos as u32;
         sub8(x86, x86.read_u8(x86.regs.esi), x86.read_u8(x86.regs.edi));
     } else {
-        panic!("unimpl");
+        bail!("unimpl");
     }
+    Ok(())
 }
 
-pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) {
+pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> anyhow::Result<()> {
     if !instr.has_rep_prefix() {
-        panic!("expected rep movsb");
+        bail!("expected rep movsb");
     }
     let reverse = x86.regs.flags.contains(Flags::DF);
     let mut dst = x86.regs.edi as usize;
@@ -44,9 +46,10 @@ pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) {
         x86.regs.esi -= len as u32;
     }
     x86.regs.ecx = 0;
+    Ok(())
 }
 
-pub fn scas(x86: &mut X86, instr: &Instruction) {
+pub fn scas(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
     let src = x86.regs.edi as usize;
     let value = x86.regs.eax as u8;
@@ -64,11 +67,12 @@ pub fn scas(x86: &mut X86, instr: &Instruction) {
             x86.regs.get8(iced_x86::Register::DL),
         );
     } else {
-        panic!("unimpl");
+        bail!("unimpl");
     }
+    Ok(())
 }
 
-pub fn stosd(x86: &mut X86, instr: &Instruction) {
+pub fn stosd(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let mut dst = x86.regs.edi as usize;
     let value = x86.regs.eax;
 
@@ -90,15 +94,16 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) {
         }
         x86.regs.ecx = 0;
     } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        panic!("unimpl");
+        bail!("unimpl");
     } else {
         *x86.mem.view_mut::<u32>(dst as u32) = value;
         x86.regs.edi += 4;
     }
     // TODO: does this modify esi?  Sources disagree (!?)
+    Ok(())
 }
 
-pub fn stosb(x86: &mut X86, instr: &Instruction) {
+pub fn stosb(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     assert!(!x86.regs.flags.contains(Flags::DF)); // TODO
 
     let dst = x86.regs.edi as usize;
@@ -109,17 +114,19 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) {
         x86.regs.edi += count as u32;
         x86.regs.ecx = 0;
     } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        panic!("unimpl");
+        bail!("unimpl");
     } else {
         x86.mem[dst] = value;
         x86.regs.edi += 1;
     }
+    Ok(())
 }
 
-pub fn lods(x86: &mut X86, instr: &Instruction) {
+pub fn lods(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
 
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
     x86.regs.eax = x86.read_u32(x86.regs.esi);
     x86.regs.esi += 4;
+    Ok(())
 }

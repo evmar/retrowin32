@@ -390,13 +390,13 @@ impl X86 {
             }
             iced_x86::Code::Cmpxchg_rm32_r32 => ops::cmpxchg_rm32_r32(self, instr),
 
-            iced_x86::Code::Cmpsb_m8_m8 => ops::cmps(self, instr),
-            iced_x86::Code::Movsd_m32_m32 => ops::movs(self, instr, 4),
-            iced_x86::Code::Movsb_m8_m8 => ops::movs(self, instr, 1),
-            iced_x86::Code::Scasb_AL_m8 => ops::scas(self, instr),
-            iced_x86::Code::Stosd_m32_EAX => ops::stosd(self, instr),
-            iced_x86::Code::Stosb_m8_AL => ops::stosb(self, instr),
-            iced_x86::Code::Lodsd_EAX_m32 => ops::lods(self, instr),
+            iced_x86::Code::Cmpsb_m8_m8 => ops::cmps(self, instr)?,
+            iced_x86::Code::Movsd_m32_m32 => ops::movs(self, instr, 4)?,
+            iced_x86::Code::Movsb_m8_m8 => ops::movs(self, instr, 1)?,
+            iced_x86::Code::Scasb_AL_m8 => ops::scas(self, instr)?,
+            iced_x86::Code::Stosd_m32_EAX => ops::stosd(self, instr)?,
+            iced_x86::Code::Stosb_m8_AL => ops::stosb(self, instr)?,
+            iced_x86::Code::Lodsd_EAX_m32 => ops::lods(self, instr)?,
 
             iced_x86::Code::And_rm32_imm32 => ops::and_rm32_imm32(self, instr),
             iced_x86::Code::And_EAX_imm32 => ops::and_rm32_imm32(self, instr),
