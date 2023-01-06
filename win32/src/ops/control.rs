@@ -2,7 +2,7 @@ use iced_x86::Instruction;
 
 use crate::{registers::Flags, x86::X86};
 
-pub fn call_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn call(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let target = instr.near_branch32();
     if target == 0x00408d65 || target == 0x0040a281 {
         log::warn!("HACK: manually nop'd call at {target:x}");
@@ -34,12 +34,7 @@ pub fn retnd_imm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn jmp_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.jmp(instr.near_branch32())?;
-    Ok(())
-}
-
-pub fn jmp_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jmp(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     x86.jmp(instr.near_branch32())?;
     Ok(())
 }
@@ -50,70 +45,63 @@ pub fn jmp_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn ja_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn ja(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if !x86.regs.flags.contains(Flags::CF) && !x86.regs.flags.contains(Flags::ZF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jae_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jae(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if !x86.regs.flags.contains(Flags::CF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jb_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jb(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::CF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jbe_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jbe(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::CF) || x86.regs.flags.contains(Flags::ZF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn je_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn je(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::ZF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn je_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    if x86.regs.flags.contains(Flags::ZF) {
-        x86.jmp(instr.near_branch32())?;
-    }
-    Ok(())
-}
-
-pub fn jecxz_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jecxz(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.ecx == 0 {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jne_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jne(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if !x86.regs.flags.contains(Flags::ZF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jns_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jns(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if !x86.regs.flags.contains(Flags::SF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jg_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jg(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if !x86.regs.flags.contains(Flags::ZF)
         && (x86.regs.flags.contains(Flags::SF) == x86.regs.flags.contains(Flags::OF))
     {
@@ -122,21 +110,14 @@ pub fn jg_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn jge_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jge(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::SF) == x86.regs.flags.contains(Flags::OF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn jl_rel32_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    if x86.regs.flags.contains(Flags::SF) != x86.regs.flags.contains(Flags::OF) {
-        x86.jmp(instr.near_branch32())?;
-    }
-    Ok(())
-}
-
-pub fn jle_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jle(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::ZF)
         || (x86.regs.flags.contains(Flags::SF) != x86.regs.flags.contains(Flags::OF))
     {
@@ -145,14 +126,14 @@ pub fn jle_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn jl_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn jl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::SF) != x86.regs.flags.contains(Flags::OF) {
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
 }
 
-pub fn js_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn js(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if x86.regs.flags.contains(Flags::SF) {
         x86.jmp(instr.near_branch32())?;
     }

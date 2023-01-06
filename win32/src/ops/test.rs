@@ -28,7 +28,7 @@ pub fn cmp_rm32_imm8(x86: &mut X86, instr: &Instruction) {
     sub32(x86, x, y);
 }
 
-pub fn cmp_rm16_r16(x86: &mut X86, instr: &Instruction) {
+pub fn cmp_rm16_rm16(x86: &mut X86, instr: &Instruction) {
     let x = x86.op0_rm16(instr);
     let y = x86.op1_rm16(instr);
     sub16(x86, x, y);

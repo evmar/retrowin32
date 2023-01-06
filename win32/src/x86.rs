@@ -319,43 +319,25 @@ impl X86 {
             iced_x86::Code::Enterd_imm16_imm8 => ops::enterd_imm16_imm8(self, instr),
             iced_x86::Code::Leaved => ops::leaved(self, instr),
 
-            iced_x86::Code::Call_rel32_32 => ops::call_rel32_32(self, instr)?,
+            iced_x86::Code::Call_rel32_32 => ops::call(self, instr)?,
             iced_x86::Code::Call_rm32 => ops::call_rm32(self, instr)?,
             iced_x86::Code::Retnd => ops::retnd(self, instr)?,
             iced_x86::Code::Retnd_imm16 => ops::retnd_imm16(self, instr)?,
-            iced_x86::Code::Jmp_rel8_32 => ops::jmp_rel8_32(self, instr)?,
-            iced_x86::Code::Jmp_rel32_32 => ops::jmp_rel32_32(self, instr)?,
+            iced_x86::Code::Jmp_rel32_32 | iced_x86::Code::Jmp_rel8_32 => ops::jmp(self, instr)?,
             iced_x86::Code::Jmp_rm32 => ops::jmp_rm32(self, instr)?,
-            iced_x86::Code::Ja_rel8_32 => ops::ja_rel8_32(self, instr)?,
-            iced_x86::Code::Jae_rel32_32 | iced_x86::Code::Jae_rel8_32 => {
-                ops::jae_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Jb_rel8_32 | iced_x86::Code::Jb_rel32_32 => {
-                ops::jb_rel32_32(self, instr)?
-            }
-            iced_x86::Code::Jbe_rel32_32 | iced_x86::Code::Jbe_rel8_32 => {
-                ops::jbe_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Je_rel8_32 => ops::je_rel8_32(self, instr)?,
-            iced_x86::Code::Je_rel32_32 => ops::je_rel32_32(self, instr)?,
-            iced_x86::Code::Jecxz_rel8_32 => ops::jecxz_rel8_32(self, instr)?,
-            iced_x86::Code::Jne_rel32_32 | iced_x86::Code::Jne_rel8_32 => {
-                ops::jne_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Jns_rel32_32 | iced_x86::Code::Jns_rel8_32 => {
-                ops::jns_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Jg_rel8_32 => ops::jg_rel8_32(self, instr)?,
-            iced_x86::Code::Jge_rel32_32 | iced_x86::Code::Jge_rel8_32 => {
-                ops::jge_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Jl_rel32_32 => ops::jl_rel32_32(self, instr)?,
-            iced_x86::Code::Jle_rel32_32 | iced_x86::Code::Jle_rel8_32 => {
-                ops::jle_rel8_32(self, instr)?
-            }
-            iced_x86::Code::Jl_rel8_32 => ops::jl_rel8_32(self, instr)?,
-            iced_x86::Code::Js_rel8_32 => ops::js_rel8_32(self, instr)?,
-            iced_x86::Code::Js_rel32_32 => ops::js_rel8_32(self, instr)?,
+            iced_x86::Code::Ja_rel32_32 | iced_x86::Code::Ja_rel8_32 => ops::ja(self, instr)?,
+            iced_x86::Code::Jae_rel32_32 | iced_x86::Code::Jae_rel8_32 => ops::jae(self, instr)?,
+            iced_x86::Code::Jb_rel32_32 | iced_x86::Code::Jb_rel8_32 => ops::jb(self, instr)?,
+            iced_x86::Code::Jbe_rel32_32 | iced_x86::Code::Jbe_rel8_32 => ops::jbe(self, instr)?,
+            iced_x86::Code::Je_rel32_32 | iced_x86::Code::Je_rel8_32 => ops::je(self, instr)?,
+            iced_x86::Code::Jecxz_rel8_32 => ops::jecxz(self, instr)?,
+            iced_x86::Code::Jne_rel32_32 | iced_x86::Code::Jne_rel8_32 => ops::jne(self, instr)?,
+            iced_x86::Code::Jns_rel32_32 | iced_x86::Code::Jns_rel8_32 => ops::jns(self, instr)?,
+            iced_x86::Code::Jg_rel32_32 | iced_x86::Code::Jg_rel8_32 => ops::jg(self, instr)?,
+            iced_x86::Code::Jge_rel32_32 | iced_x86::Code::Jge_rel8_32 => ops::jge(self, instr)?,
+            iced_x86::Code::Jle_rel32_32 | iced_x86::Code::Jle_rel8_32 => ops::jle(self, instr)?,
+            iced_x86::Code::Jl_rel32_32 | iced_x86::Code::Jl_rel8_32 => ops::jl(self, instr)?,
+            iced_x86::Code::Js_rel32_32 | iced_x86::Code::Js_rel8_32 => ops::js(self, instr)?,
 
             iced_x86::Code::Pushd_imm8 => ops::pushd_imm8(self, instr),
             iced_x86::Code::Pushd_imm32 => ops::pushd_imm32(self, instr),
@@ -409,7 +391,9 @@ impl X86 {
             iced_x86::Code::Or_rm32_r32 | iced_x86::Code::Or_r32_rm32 => {
                 ops::or_rm32_rm32(self, instr)
             }
-            iced_x86::Code::Or_rm32_imm32 => ops::or_rm32_imm32(self, instr),
+            iced_x86::Code::Or_rm32_imm32 | iced_x86::Code::Or_EAX_imm32 => {
+                ops::or_rm32_imm32(self, instr)
+            }
             iced_x86::Code::Or_rm32_imm8 => ops::or_rm32_imm8(self, instr),
             iced_x86::Code::Or_rm16_imm16 => ops::or_rm16_imm16(self, instr),
             iced_x86::Code::Or_rm8_imm8 => ops::or_rm8_imm8(self, instr),
@@ -462,7 +446,9 @@ impl X86 {
                 ops::cmp_rm32_imm32(self, instr)
             }
             iced_x86::Code::Cmp_rm32_imm8 => ops::cmp_rm32_imm8(self, instr),
-            iced_x86::Code::Cmp_rm16_r16 => ops::cmp_rm16_r16(self, instr),
+            iced_x86::Code::Cmp_rm16_r16 | iced_x86::Code::Cmp_r16_rm16 => {
+                ops::cmp_rm16_rm16(self, instr)
+            }
             iced_x86::Code::Cmp_rm16_imm16 => ops::cmp_rm16_imm16(self, instr),
             iced_x86::Code::Cmp_rm16_imm8 => ops::cmp_rm16_imm8(self, instr),
             iced_x86::Code::Cmp_rm8_imm8 | iced_x86::Code::Cmp_AL_imm8 => {
