@@ -56,9 +56,11 @@ int main(int argc, const char* argv[]) {
       input.insert(input.begin(), text.begin(), text.end());
     }
   }
+  printf("input size: %d\n", input.size());
   auto output = compress(input);
+  printf("compressed size: %d\n", output.size());
   auto reinput = decompress(output);
-  printf("input size %d, compressed size %d, recompressed %d\n", input.size(), output.size(), reinput.size());
+  printf("recompressed size: %d\n", reinput.size());
   if (input != reinput) {
     printf("ERROR: round trip failed!\n");
     return 1;
