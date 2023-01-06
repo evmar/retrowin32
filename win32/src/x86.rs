@@ -354,6 +354,8 @@ impl X86 {
                 ops::jle_rel8_32(self, instr)?
             }
             iced_x86::Code::Jl_rel8_32 => ops::jl_rel8_32(self, instr)?,
+            iced_x86::Code::Js_rel8_32 => ops::js_rel8_32(self, instr)?,
+            iced_x86::Code::Js_rel32_32 => ops::js_rel8_32(self, instr)?,
 
             iced_x86::Code::Pushd_imm8 => ops::pushd_imm8(self, instr),
             iced_x86::Code::Pushd_imm32 => ops::pushd_imm32(self, instr),
@@ -402,6 +404,7 @@ impl X86 {
             iced_x86::Code::And_r32_rm32 => ops::and_r32_rm32(self, instr),
             iced_x86::Code::And_rm16_imm16 => ops::and_rm16_imm16(self, instr),
             iced_x86::Code::And_rm8_imm8 => ops::and_rm8_imm8(self, instr),
+            iced_x86::Code::And_AL_imm8 => ops::and_rm8_imm8(self, instr),
             iced_x86::Code::Or_rm32_r32 | iced_x86::Code::Or_r32_rm32 => {
                 ops::or_r32_rm32(self, instr)
             }

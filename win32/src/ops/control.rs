@@ -151,3 +151,10 @@ pub fn jl_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     }
     Ok(())
 }
+
+pub fn js_rel8_32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+    if x86.regs.flags.contains(Flags::SF) {
+        x86.jmp(instr.near_branch32())?;
+    }
+    Ok(())
+}
