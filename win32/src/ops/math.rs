@@ -158,6 +158,11 @@ pub fn and_rm32_imm8(x86: &mut X86, instr: &Instruction) {
     x86.rm32_x(instr, |x86, x| and32(x86, x, y));
 }
 
+pub fn and_rm32_r32(x86: &mut X86, instr: &Instruction) {
+    let y = x86.regs.get32(instr.op1_register());
+    x86.rm32_x(instr, |x86, x| and32(x86, x, y));
+}
+
 pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) {
     let reg = instr.op0_register();
     let y = x86.op1_rm32(instr);

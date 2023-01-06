@@ -401,6 +401,7 @@ impl X86 {
             iced_x86::Code::And_rm32_imm32 => ops::and_rm32_imm32(self, instr),
             iced_x86::Code::And_EAX_imm32 => ops::and_rm32_imm32(self, instr),
             iced_x86::Code::And_rm32_imm8 => ops::and_rm32_imm8(self, instr),
+            iced_x86::Code::And_rm32_r32 => ops::and_rm32_r32(self, instr),
             iced_x86::Code::And_r32_rm32 => ops::and_r32_rm32(self, instr),
             iced_x86::Code::And_rm16_imm16 => ops::and_rm16_imm16(self, instr),
             iced_x86::Code::And_rm8_imm8 => ops::and_rm8_imm8(self, instr),
