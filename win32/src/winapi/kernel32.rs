@@ -723,7 +723,7 @@ pub fn GetProcessHeap(x86: &mut X86) -> u32 {
     if heap != 0 {
         return heap;
     }
-    let size = 64 << 10;
+    let size = 1 << 20;
     let heap = HeapCreate(x86, 0, size, size);
     peb_mut(x86).ProcessHeap = heap;
     heap
