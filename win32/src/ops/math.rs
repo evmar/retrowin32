@@ -227,31 +227,36 @@ pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) {
     });
 }
 
-pub fn xor_rm32_r32(x86: &mut X86, instr: &Instruction) {
-    let y = x86.regs.get32(instr.op1_register());
-    x86.rm32_x(instr, |_x86, x| x ^ y);
+fn xor32(x86: &mut X86, x: u32, y: u32) -> u32 {
+    let result = x ^ y;
+    // The OF and CF flags are cleared; the SF, ZF, and PF flags are set according to the result. The state of the AF flag is undefined.
+    x86.regs.flags.remove(Flags::OF);
+    x86.regs.flags.remove(Flags::CF);
+    x86.regs.flags.set(Flags::ZF, result == 0);
+    x86.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+    result
+}
+
+pub fn xor_rm32_rm32(x86: &mut X86, instr: &Instruction) {
+    let y = x86.op1_rm32(instr);
+    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
 }
 
 pub fn xor_rm32_imm8(x86: &mut X86, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |_x86, x| x ^ y);
-}
-
-pub fn xor_r32_rm32(x86: &mut X86, instr: &Instruction) {
-    let reg = instr.op0_register();
-    let y = x86.op1_rm32(instr);
-    let value = x86.regs.get32(reg) ^ y;
-    x86.regs.set32(reg, value);
+    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
 }
 
 pub fn xor_rm8_imm8(x86: &mut X86, instr: &Instruction) {
     let y = instr.immediate8();
     x86.rm8_x(instr, |_x86, x| x ^ y);
+    // TODO: flags
 }
 
 pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) {
     let y = x86.op1_rm8(instr);
     x86.rm8_x(instr, |_x86, x| x ^ y);
+    // TODO: flags
 }
 
 pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) {
