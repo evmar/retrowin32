@@ -13,7 +13,7 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::types::{DWORD, HFILE, HMODULE, WORD};
+use super::types::{Str16, DWORD, HFILE, HMODULE, WORD};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE(0xF11E_0100);
@@ -446,22 +446,23 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
 }
 
 pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
-    if lpModuleName.is_some() {
-        log::error!("unimplemented: GetModuleHandle(non-null)");
+    if let Some(name) = lpModuleName {
+        log::error!("unimplemented: GetModuleHandle({name:?})");
         return HMODULE(0);
     }
     // HMODULE is base address of current module.
     HMODULE(x86.state.kernel32.image_base)
 }
 
-pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
-    GetModuleHandleA(x86, lpModuleName)
+pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<Str16>) -> HMODULE {
+    let ascii = lpModuleName.map(|str| str.to_string());
+    GetModuleHandleA(x86, ascii.as_deref())
 }
 
 pub fn GetModuleHandleExW(
     x86: &mut X86,
     dwFlags: u32,
-    lpModuleName: Option<&str>,
+    lpModuleName: Option<Str16>,
     hModule: Option<&mut HMODULE>,
 ) -> bool {
     if dwFlags != 0 {
@@ -748,24 +749,13 @@ pub fn LoadLibraryA(_x86: &mut X86, filename: Option<&str>) -> u32 {
     0 // fail
 }
 
-pub fn LoadLibraryExW(x86: &mut X86, lpLibFileName: u32, hFile: u32, dwFlags: u32) -> u32 {
-    // TODO: move utf16 decode elsewhere.
-    let mem16: &[u16] = unsafe {
-        let mem = &x86.mem[lpLibFileName as usize..];
-        let ptr = mem.as_ptr() as *const u16;
-        std::slice::from_raw_parts(ptr, mem.len() / 2)
-    };
-    let mut filename = String::new();
-    for &c in mem16 {
-        if c == 0 {
-            break;
-        }
-        if c > 0xFF {
-            panic!("unhandled non-ascii");
-        }
-        filename.push(c as u8 as char);
-    }
-    log::error!("LoadLibraryExW({filename:?}, {hFile:x}, {dwFlags:x})");
+pub fn LoadLibraryExW(
+    _x86: &mut X86,
+    lpLibFileName: Option<Str16>,
+    hFile: HFILE,
+    dwFlags: u32,
+) -> u32 {
+    log::error!("LoadLibraryExW({lpLibFileName:?}, {hFile:x?}, {dwFlags:x})");
     0 // fail
 }
 

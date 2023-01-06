@@ -162,12 +162,12 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetModuleHandleA(x86, lpModuleName).to_raw();
     }
     fn GetModuleHandleW(x86: &mut X86) {
-        let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
+        let lpModuleName: Option<Str16> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleW(x86, lpModuleName).to_raw();
     }
     fn GetModuleHandleExW(x86: &mut X86) {
         let dwFlags: u32 = unsafe { from_x86(x86) };
-        let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
+        let lpModuleName: Option<Str16> = unsafe { from_x86(x86) };
         let hModule: Option<&mut HMODULE> = unsafe { from_x86(x86) };
         x86.regs.eax =
             winapi::kernel32::GetModuleHandleExW(x86, dwFlags, lpModuleName, hModule).to_raw();
@@ -266,8 +266,8 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, filename).to_raw();
     }
     fn LoadLibraryExW(x86: &mut X86) {
-        let lpLibFileName: u32 = unsafe { from_x86(x86) };
-        let hFile: u32 = unsafe { from_x86(x86) };
+        let lpLibFileName: Option<Str16> = unsafe { from_x86(x86) };
+        let hFile: HFILE = unsafe { from_x86(x86) };
         let dwFlags: u32 = unsafe { from_x86(x86) };
         x86.regs.eax =
             winapi::kernel32::LoadLibraryExW(x86, lpLibFileName, hFile, dwFlags).to_raw();

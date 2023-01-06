@@ -2,6 +2,8 @@
 
 use crate::{memory::Memory, x86::X86};
 
+use super::types::Str16;
+
 unsafe fn smuggle<T: ?Sized>(x: &T) -> &'static T {
     std::mem::transmute(x)
 }
@@ -64,7 +66,20 @@ impl FromX86 for Option<&str> {
         Some(smuggle(strz))
     }
 }
-
+impl<'a> FromX86 for Option<Str16<'a>> {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        let ofs = x86.pop() as usize;
+        if ofs == 0 {
+            return None;
+        }
+        let mem16: &[u16] = {
+            let mem = &x86.mem[ofs as usize..];
+            let ptr = mem.as_ptr() as *const u16;
+            std::slice::from_raw_parts(ptr, mem.len() / 2)
+        };
+        Some(Str16::from_nul_term(mem16))
+    }
+}
 pub unsafe fn from_x86<T: FromX86>(x86: &mut X86) -> T {
     T::from_x86(x86)
 }
