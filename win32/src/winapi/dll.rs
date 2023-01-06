@@ -146,7 +146,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetFileType(x86, hFile) as u32;
     }
     fn GetModuleFileNameA(x86: &mut X86) {
-        let hModule: Option<HMODULE> = unsafe { from_x86(x86) };
+        let hModule: HMODULE = unsafe { from_x86(x86) };
         let filename: &mut [u8] = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleFileNameA(x86, hModule, filename) as u32;
     }
@@ -160,10 +160,10 @@ pub mod kernel32 {
     }
     fn GetModuleFileNameW(x86: &mut X86) {
         let lpModuleName: u32 = unsafe { from_x86(x86) };
-        let lpFilename: u32 = unsafe { from_x86(x86) };
-        let nSize: u32 = unsafe { from_x86(x86) };
+        let _lpFilename: u32 = unsafe { from_x86(x86) };
+        let _nSize: u32 = unsafe { from_x86(x86) };
         x86.regs.eax =
-            winapi::kernel32::GetModuleFileNameW(x86, lpModuleName, lpFilename, nSize) as u32;
+            winapi::kernel32::GetModuleFileNameW(x86, lpModuleName, _lpFilename, _nSize) as u32;
     }
     fn GetStartupInfoA(x86: &mut X86) {
         let lpStartupInfo: u32 = unsafe { from_x86(x86) };
@@ -198,7 +198,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::QueryPerformanceCounter(x86, _ptr) as u32;
     }
     fn GetSystemTimeAsFileTime(x86: &mut X86) {
-        let _time: &mut FILETIME = unsafe { from_x86(x86) };
+        let _time: Option<&mut FILETIME> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetSystemTimeAsFileTime(x86, _time) as u32;
     }
     fn GetVersion(x86: &mut X86) {
@@ -265,7 +265,7 @@ pub mod kernel32 {
         let hFile: u32 = unsafe { from_x86(x86) };
         let lpBuffer: u32 = unsafe { from_x86(x86) };
         let nNumberOfBytesToWrite: u32 = unsafe { from_x86(x86) };
-        let lpNumberOfBytesWritten: u32 = unsafe { from_x86(x86) };
+        let lpNumberOfBytesWritten: Option<&mut u32> = unsafe { from_x86(x86) };
         let lpOverlapped: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::WriteFile(
             x86,
@@ -345,7 +345,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::TlsGetValue(x86, dwTlsIndex) as u32;
     }
     fn InitializeSListHead(x86: &mut X86) {
-        let ListHead: &mut SLIST_HEADER = unsafe { from_x86(x86) };
+        let ListHead: Option<&mut SLIST_HEADER> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::InitializeSListHead(x86, ListHead) as u32;
     }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {

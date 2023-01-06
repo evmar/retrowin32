@@ -290,10 +290,11 @@ mod IDirectDraw {
     fn CreateSurface(
         x86: &mut X86,
         _this: u32,
-        desc: &DDSURFACEDESC,
+        desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: u32,
         _pUnkOuter: u32,
     ) -> u32 {
+        let desc = desc.unwrap();
         assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize as usize);
 
         let mut opts = host::SurfaceOptions::default();
@@ -336,7 +337,12 @@ mod IDirectDraw {
     }
 
     winapi_shims!(
-        fn CreateSurface(this: u32, desc: &DDSURFACEDESC, lplpDDSurface: u32, pUnkOuter: u32);
+        fn CreateSurface(
+            this: u32,
+            desc: Option<&DDSURFACEDESC>,
+            lplpDDSurface: u32,
+            pUnkOuter: u32,
+        );
         fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32);
     );
 }
@@ -414,7 +420,8 @@ mod IDirectDrawSurface {
         DD_OK
     }
 
-    fn GetPixelFormat(_x86: &mut X86, fmt: &mut DDPIXELFORMAT) -> u32 {
+    fn GetPixelFormat(_x86: &mut X86, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
+        let fmt = fmt.unwrap();
         *fmt = unsafe { std::mem::zeroed() };
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
@@ -422,7 +429,7 @@ mod IDirectDrawSurface {
 
     winapi_shims!(
         fn GetAttachedSurface(this: u32, lpDDSCaps: u32, lpDirectDrawSurface: u32);
-        fn GetPixelFormat(fmt: &mut DDPIXELFORMAT);
+        fn GetPixelFormat(fmt: Option<&mut DDPIXELFORMAT>);
     );
 }
 
@@ -474,10 +481,11 @@ mod IDirectDraw7 {
     fn CreateSurface(
         x86: &mut X86,
         this: u32,
-        desc: &DDSURFACEDESC2,
+        desc: Option<&DDSURFACEDESC2>,
         lpDirectDrawSurface7: u32,
         _unused: u32,
     ) -> u32 {
+        let desc = desc.unwrap();
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
 
         log::warn!(
@@ -564,7 +572,12 @@ mod IDirectDraw7 {
 
     winapi_shims!(
         fn Release(this: u32);
-        fn CreateSurface(this: u32, desc: &DDSURFACEDESC2, lpDirectDrawSurface7: u32, unused: u32);
+        fn CreateSurface(
+            this: u32,
+            desc: Option<&DDSURFACEDESC2>,
+            lpDirectDrawSurface7: u32,
+            unused: u32,
+        );
         fn SetCooperativeLevel(this: u32, hwnd: u32, flags: u32);
         fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32, refresh: u32, flags: u32);
     );

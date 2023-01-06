@@ -13,7 +13,10 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::types::{DWORD, WORD};
+use super::{
+    shims::FromX86,
+    types::{DWORD, WORD},
+};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: u32 = 0xF11E_0100;
@@ -434,12 +437,8 @@ pub fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
     }
 }
 
-pub fn GetModuleFileNameA(
-    _x86: &mut X86,
-    hModule: Option<HMODULE>,
-    mut filename: &mut [u8],
-) -> usize {
-    assert!(hModule.is_none());
+pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [u8]) -> usize {
+    assert!(hModule.0 == 0);
     match filename.write(b"TODO.exe\0") {
         Ok(n) => n,
         Err(err) => {
@@ -593,7 +592,7 @@ pub struct FILETIME {
     dwHighDateTime: DWORD,
 }
 unsafe impl Pod for FILETIME {}
-pub fn GetSystemTimeAsFileTime(_x86: &mut X86, _time: &mut FILETIME) -> u32 {
+pub fn GetSystemTimeAsFileTime(_x86: &mut X86, _time: Option<&mut FILETIME>) -> u32 {
     0
 }
 
@@ -769,7 +768,7 @@ pub fn WriteFile(
     hFile: u32,
     lpBuffer: u32,
     nNumberOfBytesToWrite: u32,
-    lpNumberOfBytesWritten: u32,
+    lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> u32 {
     assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
@@ -778,7 +777,7 @@ pub fn WriteFile(
 
     let n = x86.host.write(buf);
 
-    x86.write_u32(lpNumberOfBytesWritten, n as u32);
+    *lpNumberOfBytesWritten.unwrap() = n as u32;
     1
 }
 
@@ -824,9 +823,9 @@ pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32)
 
 #[repr(transparent)]
 pub struct HMODULE(u32);
-impl From<u32> for HMODULE {
-    fn from(x: u32) -> Self {
-        Self(x)
+impl FromX86 for HMODULE {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        Self(x86.pop())
     }
 }
 
@@ -907,7 +906,7 @@ pub struct SLIST_HEADER {
 }
 unsafe impl Pod for SLIST_HEADER {}
 
-pub fn InitializeSListHead(_x86: &mut X86, ListHead: &mut SLIST_HEADER) -> u32 {
-    ListHead.Next = 0;
+pub fn InitializeSListHead(_x86: &mut X86, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
+    ListHead.unwrap().Next = 0;
     0
 }

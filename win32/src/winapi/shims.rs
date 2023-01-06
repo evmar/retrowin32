@@ -22,26 +22,24 @@ impl FromX86 for bool {
         x86.pop() != 0
     }
 }
-impl<T: From<u32>> FromX86 for Option<T> {
+impl<T: crate::memory::Pod> FromX86 for Option<&T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let val = x86.pop();
-        if val == 0 {
+        let addr = x86.pop();
+        if addr == 0 {
             None
         } else {
-            Some(T::from(val))
+            Some(smuggle(x86.mem.view::<T>(addr)))
         }
     }
 }
-impl<T: crate::memory::Pod> FromX86 for &T {
+impl<T: crate::memory::Pod> FromX86 for Option<&mut T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let addr = x86.pop();
-        smuggle(x86.mem.view::<T>(addr))
-    }
-}
-impl<T: crate::memory::Pod> FromX86 for &mut T {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let addr = x86.pop();
-        smuggle_mut(x86.mem.view_mut::<T>(addr))
+        if addr == 0 {
+            None
+        } else {
+            Some(smuggle_mut(x86.mem.view_mut::<T>(addr)))
+        }
     }
 }
 impl FromX86 for &mut [u8] {
