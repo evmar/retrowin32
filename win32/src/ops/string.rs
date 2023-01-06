@@ -26,26 +26,33 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> anyhow::Result<()> {
-    if !instr.has_rep_prefix() {
-        bail!("expected rep movsb");
-    }
     let reverse = x86.regs.flags.contains(Flags::DF);
+    let step = if reverse {
+        -(size as isize) as usize
+    } else {
+        size
+    };
     let mut dst = x86.regs.edi as usize;
     let mut src = x86.regs.esi as usize;
-    let len = x86.regs.ecx as usize * size;
-    if reverse {
-        src -= len - size;
-        dst -= len - size;
-    }
-    x86.mem.copy_within(src..src + len, dst);
-    if reverse {
-        x86.regs.edi += len as u32;
-        x86.regs.esi += len as u32;
+
+    let mut movs_single = || {
+        x86.mem.copy_within(src..src + size, dst);
+        src = src.wrapping_add(step);
+        dst = dst.wrapping_add(step);
+    };
+    if instr.has_rep_prefix() {
+        let count = x86.regs.ecx;
+        for _ in 0..count {
+            movs_single();
+        }
+        x86.regs.ecx = 0;
+    } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
+        bail!("movs: unimplemented prefix");
     } else {
-        x86.regs.edi -= len as u32;
-        x86.regs.esi -= len as u32;
-    }
-    x86.regs.ecx = 0;
+        movs_single();
+    };
+    x86.regs.edi = dst as u32;
+    x86.regs.esi = src as u32;
     Ok(())
 }
 
