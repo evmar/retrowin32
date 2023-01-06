@@ -4,12 +4,7 @@ use anyhow::bail;
 use serde::ser::SerializeStruct;
 
 use crate::{
-    host,
-    memory::Memory,
-    ops,
-    pe::ImageSectionFlags,
-    registers::{Flags, Registers},
-    winapi,
+    host, memory::Memory, ops, pe::ImageSectionFlags, registers::Registers, winapi,
     windows::load_exe,
 };
 
@@ -319,15 +314,8 @@ impl X86 {
     fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         self.regs.eip = instr.next_ip() as u32;
         match instr.code() {
-            iced_x86::Code::Enterd_imm16_imm8 => {
-                self.push(self.regs.ebp);
-                self.regs.ebp = self.regs.esp;
-                self.regs.esp -= instr.immediate16() as u32;
-            }
-            iced_x86::Code::Leaved => {
-                self.regs.esp = self.regs.ebp;
-                self.regs.ebp = self.pop();
-            }
+            iced_x86::Code::Enterd_imm16_imm8 => ops::enterd_imm16_imm8(self, instr),
+            iced_x86::Code::Leaved => ops::leaved(self, instr),
 
             iced_x86::Code::Call_rel32_32 => ops::call_rel32_32(self, instr)?,
             iced_x86::Code::Call_rm32 => ops::call_rm32(self, instr)?,
@@ -365,108 +353,38 @@ impl X86 {
             }
             iced_x86::Code::Jl_rel8_32 => ops::jl_rel8_32(self, instr)?,
 
-            iced_x86::Code::Pushd_imm8 => self.push(instr.immediate8to32() as u32),
-            iced_x86::Code::Pushd_imm32 => self.push(instr.immediate32()),
-            iced_x86::Code::Push_r32 => self.push(self.regs.get32(instr.op0_register())),
-            iced_x86::Code::Push_rm32 => {
-                // push [eax+10h]
-                let value = self.read_u32(self.addr(instr));
-                self.push(value);
-            }
+            iced_x86::Code::Pushd_imm8 => ops::pushd_imm8(self, instr),
+            iced_x86::Code::Pushd_imm32 => ops::pushd_imm32(self, instr),
+            iced_x86::Code::Push_r32 => ops::push_r32(self, instr),
+            iced_x86::Code::Push_rm32 => ops::push_rm32(self, instr),
 
-            iced_x86::Code::Pop_r32 | iced_x86::Code::Pop_rm32 => {
-                let value = self.pop();
-                self.rm32_x(instr, |_x86, _x| value);
-            }
+            iced_x86::Code::Pop_r32 | iced_x86::Code::Pop_rm32 => ops::pop_rm32(self, instr),
 
-            iced_x86::Code::Mov_rm32_imm32 => {
-                // mov dword ptr [x], y
-                // TODO: why is this 'rm32' when there is an r32 variant just below?
-                self.rm32_x(instr, |_x86, _x| instr.immediate32());
-            }
-            iced_x86::Code::Mov_r32_imm32 => {
-                self.regs.set32(instr.op0_register(), instr.immediate32());
-            }
-            iced_x86::Code::Mov_moffs32_EAX => {
-                // mov [x],eax
-                self.write_u32(self.addr(instr), self.regs.eax);
-            }
-            iced_x86::Code::Mov_EAX_moffs32 => {
-                // mov eax,[x]
-                self.regs.eax = self.read_u32(self.addr(instr));
-            }
-            iced_x86::Code::Mov_rm32_r32 => {
-                let value = self.regs.get32(instr.op1_register());
-                self.rm32_x(instr, |_x86, _x| value);
-            }
-            iced_x86::Code::Mov_r32_rm32 => {
-                self.regs.set32(instr.op0_register(), self.op1_rm32(instr));
-            }
-            iced_x86::Code::Mov_r16_rm16 => {
-                self.regs.set16(instr.op0_register(), self.op1_rm16(instr));
-            }
+            iced_x86::Code::Mov_rm32_imm32 => ops::mov_rm32_imm32(self, instr),
+            iced_x86::Code::Mov_r32_imm32 => ops::mov_r32_imm32(self, instr),
+            iced_x86::Code::Mov_moffs32_EAX => ops::mov_moffs32_eax(self, instr),
+            iced_x86::Code::Mov_EAX_moffs32 => ops::mov_eax_moffs32(self, instr),
+            iced_x86::Code::Mov_rm32_r32 => ops::mov_rm32_r32(self, instr),
+            iced_x86::Code::Mov_r32_rm32 => ops::mov_r32_rm32(self, instr),
+            iced_x86::Code::Mov_r16_rm16 => ops::mov_r16_rm16(self, instr),
             iced_x86::Code::Mov_rm16_r16 | iced_x86::Code::Mov_rm16_Sreg => {
-                let y = instr.immediate16();
-                self.rm16_x(instr, |_x86, _x| y);
+                ops::mov_rm16_sreg(self, instr)
             }
-            iced_x86::Code::Mov_r8_rm8 => {
-                self.regs.set8(instr.op0_register(), self.op1_rm8(instr));
-            }
-            iced_x86::Code::Mov_rm8_r8 => {
-                let y = self.regs.get8(instr.op1_register());
-                self.rm8_x(instr, |_x86, _x| y);
-            }
+            iced_x86::Code::Mov_r8_rm8 => ops::mov_r8_rm8(self, instr),
+            iced_x86::Code::Mov_rm8_r8 => ops::mov_rm8_r8(self, instr),
             iced_x86::Code::Mov_r8_imm8 | iced_x86::Code::Mov_rm8_imm8 => {
-                let y = instr.immediate8();
-                self.rm8_x(instr, |_x86, _x| y);
+                ops::mov_rm8_imm8(self, instr)
             }
 
-            iced_x86::Code::Movsx_r32_rm16 => {
-                let y = self.op1_rm16(instr) as i16 as u32;
-                self.rm32_x(instr, |_x86, _x| y);
-            }
-            iced_x86::Code::Movsx_r32_rm8 => {
-                let y = self.op1_rm8(instr) as i8 as u32;
-                self.rm32_x(instr, |_x86, _x| y);
-            }
+            iced_x86::Code::Movsx_r32_rm16 => ops::movsx_r32_rm16(self, instr),
+            iced_x86::Code::Movsx_r32_rm8 => ops::movsx_r32_rm8(self, instr),
 
-            iced_x86::Code::Movzx_r32_rm16 => {
-                let y = self.op1_rm16(instr) as u32;
-                self.rm32_x(instr, |_x86, _x| y);
-            }
-            iced_x86::Code::Movzx_r32_rm8 => {
-                let y = self.op1_rm8(instr) as u32;
-                self.rm32_x(instr, |_x86, _x| y);
-            }
-            iced_x86::Code::Movzx_r16_rm8 => {
-                let y = self.op1_rm8(instr) as u16;
-                self.rm16_x(instr, |_x86, _x| y);
-            }
+            iced_x86::Code::Movzx_r32_rm16 => ops::movzx_r32_rm16(self, instr),
+            iced_x86::Code::Movzx_r32_rm8 => ops::movzx_r32_rm8(self, instr),
+            iced_x86::Code::Movzx_r16_rm8 => ops::movzx_r16_rm8(self, instr),
 
-            iced_x86::Code::Xchg_rm32_r32 => {
-                let r1 = instr.op1_register();
-                self.rm32_x(instr, |x86, x| {
-                    let tmp = x86.regs.get32(r1);
-                    x86.regs.set32(r1, x);
-                    tmp
-                });
-            }
-            iced_x86::Code::Cmpxchg_rm32_r32 => {
-                let y = self.regs.get32(instr.op1_register());
-                match instr.op0_kind() {
-                    iced_x86::OpKind::Register => todo!(),
-                    iced_x86::OpKind::Memory => {
-                        let addr = self.addr(instr);
-                        let x = self.mem.read_u32(addr);
-                        if self.regs.eax == x {
-                            self.mem.write_u32(addr, y);
-                        } else {
-                            self.regs.eax = y;
-                        }
-                    }
-                    _ => unreachable!(),
-                };
-            }
+            iced_x86::Code::Xchg_rm32_r32 => ops::xchg_rm32_r32(self, instr),
+            iced_x86::Code::Cmpxchg_rm32_r32 => ops::cmpxchg_rm32_r32(self, instr),
 
             iced_x86::Code::Cmpsb_m8_m8 => ops::cmps(self, instr),
             iced_x86::Code::Movsd_m32_m32 => ops::movs(self, instr, 4),
@@ -527,10 +445,7 @@ impl X86 {
             iced_x86::Code::Neg_rm32 => ops::neg_rm32(self, instr),
             iced_x86::Code::Not_rm32 => ops::not_rm32(self, instr),
 
-            iced_x86::Code::Lea_r32_m => {
-                // lea eax,[esp+10h]
-                self.regs.set32(instr.op0_register(), self.addr(instr));
-            }
+            iced_x86::Code::Lea_r32_m => ops::lea_r32_m(self, instr),
 
             iced_x86::Code::Cmp_rm32_r32 => ops::cmp_rm32_r32(self, instr),
             iced_x86::Code::Cmp_r32_rm32 => ops::cmp_r32_rm32(self, instr),
@@ -557,19 +472,9 @@ impl X86 {
             }
             iced_x86::Code::Bt_rm32_imm8 => ops::bt_rm32_imm8(self, instr),
 
-            iced_x86::Code::Sete_rm8 => {
-                let value = self.regs.flags.contains(Flags::ZF) as u8;
-                self.rm8_x(instr, |_x86, _x| value);
-            }
-            iced_x86::Code::Setne_rm8 => {
-                let value = !self.regs.flags.contains(Flags::ZF) as u8;
-                self.rm8_x(instr, |_x86, _x| value);
-            }
-            iced_x86::Code::Setge_rm8 => {
-                let value = (self.regs.flags.contains(Flags::ZF)
-                    == self.regs.flags.contains(Flags::OF)) as u8;
-                self.rm8_x(instr, |_x86, _x| value);
-            }
+            iced_x86::Code::Sete_rm8 => ops::sete_rm8(self, instr),
+            iced_x86::Code::Setne_rm8 => ops::setne_rm8(self, instr),
+            iced_x86::Code::Setge_rm8 => ops::setge_rm8(self, instr),
 
             iced_x86::Code::Fld1 => ops::fld1(self, instr),
             iced_x86::Code::Fldz => ops::fldz(self, instr),
@@ -610,55 +515,16 @@ impl X86 {
                 // ignore
             }
 
-            iced_x86::Code::Pushad => {
-                let esp = self.regs.esp;
-                self.push(self.regs.eax);
-                self.push(self.regs.ecx);
-                self.push(self.regs.edx);
-                self.push(self.regs.ebx);
-                self.push(esp);
-                self.push(self.regs.ebp);
-                self.push(self.regs.esi);
-                self.push(self.regs.edi);
-            }
-            iced_x86::Code::Popad => {
-                self.regs.edi = self.pop();
-                self.regs.esi = self.pop();
-                self.regs.ebp = self.pop();
-                self.pop(); // ignore esp
-                self.regs.ebx = self.pop();
-                self.regs.edx = self.pop();
-                self.regs.ecx = self.pop();
-                self.regs.eax = self.pop();
-            }
-            iced_x86::Code::Pushfd => {
-                self.push(self.regs.flags.bits());
-            }
-            iced_x86::Code::Popfd => {
-                self.regs.flags = Flags::from_bits(self.pop()).unwrap();
-            }
-            iced_x86::Code::Sahf => {
-                let ah = (self.regs.eax >> 8) as u8;
-                self.regs.flags =
-                    Flags::from_bits((self.regs.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
-            }
+            iced_x86::Code::Pushad => ops::pushad(self, instr),
+            iced_x86::Code::Popad => ops::popad(self, instr),
+            iced_x86::Code::Pushfd => ops::pushfd(self, instr),
+            iced_x86::Code::Popfd => ops::popfd(self, instr),
+            iced_x86::Code::Sahf => ops::sahf(self, instr),
 
-            iced_x86::Code::Std => {
-                self.regs.flags.insert(Flags::DF);
-            }
-            iced_x86::Code::Cld => {
-                self.regs.flags.remove(Flags::DF);
-            }
-            iced_x86::Code::Cwde => {
-                self.regs.eax = self.regs.eax as i16 as i32 as u32;
-            }
-            iced_x86::Code::Cdq => {
-                self.regs.edx = if self.regs.eax >> 31 == 0 {
-                    0
-                } else {
-                    0xFFFF_FFFF
-                };
-            }
+            iced_x86::Code::Std => ops::std(self, instr),
+            iced_x86::Code::Cld => ops::cld(self, instr),
+            iced_x86::Code::Cwde => ops::cwde(self, instr),
+            iced_x86::Code::Cdq => ops::cdq(self, instr),
 
             iced_x86::Code::Emms
             | iced_x86::Code::Movd_mm_rm32
