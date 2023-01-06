@@ -362,6 +362,7 @@ impl X86 {
 
             iced_x86::Code::Movsx_r32_rm16 => ops::movsx_r32_rm16(self, instr),
             iced_x86::Code::Movsx_r32_rm8 => ops::movsx_r32_rm8(self, instr),
+            iced_x86::Code::Movsx_r16_rm8 => ops::movsx_r16_rm8(self, instr),
 
             iced_x86::Code::Movzx_r32_rm16 => ops::movzx_r32_rm16(self, instr),
             iced_x86::Code::Movzx_r32_rm8 => ops::movzx_r32_rm8(self, instr),

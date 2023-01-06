@@ -98,6 +98,11 @@ pub fn movsx_r32_rm8(x86: &mut X86, instr: &Instruction) {
     x86.rm32_x(instr, |_x86, _x| y);
 }
 
+pub fn movsx_r16_rm8(x86: &mut X86, instr: &Instruction) {
+    let y = x86.op1_rm8(instr) as i8 as u16;
+    x86.rm16_x(instr, |_x86, _x| y);
+}
+
 pub fn movzx_r32_rm16(x86: &mut X86, instr: &Instruction) {
     let y = x86.op1_rm16(instr) as u32;
     x86.rm32_x(instr, |_x86, _x| y);
