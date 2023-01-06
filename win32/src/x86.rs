@@ -183,7 +183,12 @@ impl X86 {
         } else {
             0
         };
-        (seg + base + index).wrapping_add(instr.memory_displacement32())
+        // In general these operations aren't written to wrap, but in some cases
+        // the components are negative which is implemented in two's complement by
+        // a wrapping add.
+        seg.wrapping_add(base)
+            .wrapping_add(index)
+            .wrapping_add(instr.memory_displacement32())
     }
 
     pub fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
