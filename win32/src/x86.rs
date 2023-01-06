@@ -407,7 +407,7 @@ impl X86 {
             iced_x86::Code::And_rm8_imm8 => ops::and_rm8_imm8(self, instr),
             iced_x86::Code::And_AL_imm8 => ops::and_rm8_imm8(self, instr),
             iced_x86::Code::Or_rm32_r32 | iced_x86::Code::Or_r32_rm32 => {
-                ops::or_r32_rm32(self, instr)
+                ops::or_rm32_rm32(self, instr)
             }
             iced_x86::Code::Or_rm32_imm32 => ops::or_rm32_imm32(self, instr),
             iced_x86::Code::Or_rm32_imm8 => ops::or_rm32_imm8(self, instr),

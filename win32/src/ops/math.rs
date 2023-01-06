@@ -180,7 +180,7 @@ pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) {
     x86.rm8_x(instr, |x86, x| and8(x86, x, y));
 }
 
-pub fn or_r32_rm32(x86: &mut X86, instr: &Instruction) {
+pub fn or_rm32_rm32(x86: &mut X86, instr: &Instruction) {
     let y = x86.op1_rm32(instr);
     x86.rm32_x(instr, |x86, x| or32(x86, x, y));
 }
