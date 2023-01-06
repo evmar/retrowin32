@@ -381,7 +381,9 @@ impl X86 {
             iced_x86::Code::Movzx_r32_rm8 => ops::movzx_r32_rm8(self, instr),
             iced_x86::Code::Movzx_r16_rm8 => ops::movzx_r16_rm8(self, instr),
 
-            iced_x86::Code::Xchg_rm32_r32 => ops::xchg_rm32_r32(self, instr),
+            iced_x86::Code::Xchg_rm32_r32 | iced_x86::Code::Xchg_r32_EAX => {
+                ops::xchg_rm32_r32(self, instr)
+            }
             iced_x86::Code::Cmpxchg_rm32_r32 => ops::cmpxchg_rm32_r32(self, instr),
 
             iced_x86::Code::Cmpsb_m8_m8 => ops::cmps(self, instr),
