@@ -777,7 +777,11 @@ pub fn WriteFile(
 
     let n = x86.host.write(buf);
 
-    *lpNumberOfBytesWritten.unwrap() = n as u32;
+    // The docs say this parameter may not be null, but a test program with the param as null
+    // runs fine on real Windows...
+    if let Some(written) = lpNumberOfBytesWritten {
+        *written = n as u32;
+    }
     1
 }
 
