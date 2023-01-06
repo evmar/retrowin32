@@ -402,6 +402,7 @@ impl X86 {
             iced_x86::Code::Shl_rm32_1 => ops::shl_rm32_imm8(self, instr),
             iced_x86::Code::Shl_rm32_CL => ops::shl_rm32_cl(self, instr),
             iced_x86::Code::Shl_rm8_CL => ops::shl_rm8_cl(self, instr),
+            iced_x86::Code::Shr_rm32_CL => ops::shr_rm32_cl(self, instr),
             iced_x86::Code::Shr_rm32_1 => ops::shr_rm32_1(self, instr),
             iced_x86::Code::Shr_rm32_imm8 => ops::shr_rm32_imm8(self, instr),
             iced_x86::Code::Sar_rm32_imm8 => ops::sar_rm32_imm8(self, instr),
@@ -410,6 +411,9 @@ impl X86 {
             iced_x86::Code::Ror_rm32_CL => ops::ror_rm32_cl(self, instr),
             iced_x86::Code::Xor_rm32_r32 => ops::xor_rm32_rm32(self, instr),
             iced_x86::Code::Xor_r32_rm32 => ops::xor_rm32_rm32(self, instr),
+            iced_x86::Code::Xor_rm32_imm32 | iced_x86::Code::Xor_EAX_imm32 => {
+                ops::xor_rm32_imm32(self, instr)
+            }
             iced_x86::Code::Xor_rm32_imm8 => ops::xor_rm32_imm8(self, instr),
             iced_x86::Code::Xor_rm8_imm8 => ops::xor_rm8_imm8(self, instr),
             iced_x86::Code::Xor_r8_rm8 => ops::xor_r8_rm8(self, instr),

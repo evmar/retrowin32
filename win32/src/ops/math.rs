@@ -220,6 +220,11 @@ pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) {
     x86.rm8_x(instr, |x86, x| shl8(x86, x, y));
 }
 
+pub fn shr_rm32_cl(x86: &mut X86, instr: &Instruction) {
+    let y = x86.regs.ecx as u8;
+    x86.rm32_x(instr, |_x86, x| x >> y);
+}
+
 pub fn shr_rm32_1(x86: &mut X86, instr: &Instruction) {
     x86.rm32_x(instr, |_x86, x| x >> 1);
 }
@@ -264,6 +269,11 @@ fn xor32(x86: &mut X86, x: u32, y: u32) -> u32 {
 
 pub fn xor_rm32_rm32(x86: &mut X86, instr: &Instruction) {
     let y = x86.op1_rm32(instr);
+    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
+}
+
+pub fn xor_rm32_imm32(x86: &mut X86, instr: &Instruction) {
+    let y = instr.immediate32();
     x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
 }
 
