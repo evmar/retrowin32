@@ -144,7 +144,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetEnvironmentStringsW(x86).to_raw();
     }
     fn GetEnvironmentVariableA(x86: &mut X86) {
-        let name: &str = unsafe { from_x86(x86) };
+        let name: Option<&str> = unsafe { from_x86(x86) };
         let buf: &mut [u8] = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetEnvironmentVariableA(x86, name, buf).to_raw();
     }
@@ -158,11 +158,11 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetModuleFileNameA(x86, hModule, filename).to_raw();
     }
     fn GetModuleHandleA(x86: &mut X86) {
-        let lpModuleName: u32 = unsafe { from_x86(x86) };
+        let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleA(x86, lpModuleName).to_raw();
     }
     fn GetModuleHandleW(x86: &mut X86) {
-        let lpModuleName: u32 = unsafe { from_x86(x86) };
+        let lpModuleName: Option<&str> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetModuleHandleW(x86, lpModuleName).to_raw();
     }
     fn GetModuleFileNameW(x86: &mut X86) {
@@ -255,7 +255,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetProcessHeap(x86).to_raw();
     }
     fn LoadLibraryA(x86: &mut X86) {
-        let filename: &str = unsafe { from_x86(x86) };
+        let filename: Option<&str> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::LoadLibraryA(x86, filename).to_raw();
     }
     fn LoadLibraryExW(x86: &mut X86) {
@@ -301,7 +301,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::VirtualFree(x86, lpAddress, dwSize, dwFreeType).to_raw();
     }
     fn OutputDebugStringA(x86: &mut X86) {
-        let msg: &str = unsafe { from_x86(x86) };
+        let msg: Option<&str> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::OutputDebugStringA(x86, msg).to_raw();
     }
     fn InitializeCriticalSectionAndSpinCount(x86: &mut X86) {
@@ -428,8 +428,8 @@ pub mod user32 {
     }
     fn CreateWindowExA(x86: &mut X86) {
         let dwExStyle: u32 = unsafe { from_x86(x86) };
-        let className: &str = unsafe { from_x86(x86) };
-        let windowName: &str = unsafe { from_x86(x86) };
+        let className: Option<&str> = unsafe { from_x86(x86) };
+        let windowName: Option<&str> = unsafe { from_x86(x86) };
         let dwStyle: u32 = unsafe { from_x86(x86) };
         let X: u32 = unsafe { from_x86(x86) };
         let Y: u32 = unsafe { from_x86(x86) };

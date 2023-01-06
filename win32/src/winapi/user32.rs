@@ -67,8 +67,8 @@ bitflags! {
 pub fn CreateWindowExA(
     x86: &mut X86,
     dwExStyle: u32,
-    className: &str,
-    windowName: &str,
+    className: Option<&str>,
+    windowName: Option<&str>,
     dwStyle: u32,
     X: u32,
     Y: u32,
@@ -87,10 +87,10 @@ pub fn CreateWindowExA(
     // TODO: we ignore most fields here.
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
-    log::warn!("CreateWindowExA({dwExStyle:x}, {className}, {windowName}, {style:?}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
+    log::warn!("CreateWindowExA({dwExStyle:x}, {className:?}, {windowName:?}, {style:?}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
 
     let mut x86_win = x86.host.create_window();
-    x86_win.set_title(windowName);
+    x86_win.set_title(windowName.unwrap());
     if nWidth > 0 && nHeight > 0 {
         x86_win.set_size(nWidth, nHeight);
     }

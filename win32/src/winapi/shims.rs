@@ -54,11 +54,14 @@ impl FromX86 for &mut [u8] {
         smuggle_mut(&mut x86.mem[ofs..ofs + len])
     }
 }
-impl FromX86 for &str {
+impl FromX86 for Option<&str> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86.pop() as usize;
+        if ofs == 0 {
+            return None;
+        }
         let strz = x86.mem[ofs..].read_strz();
-        smuggle(strz)
+        Some(smuggle(strz))
     }
 }
 

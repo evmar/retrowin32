@@ -417,7 +417,7 @@ pub fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
     0
 }
 
-pub fn GetEnvironmentVariableA(_x86: &mut X86, name: &str, buf: &mut [u8]) -> usize {
+pub fn GetEnvironmentVariableA(_x86: &mut X86, name: Option<&str>, buf: &mut [u8]) -> usize {
     println!("name {:?} buf {:?}", name, buf);
     0
 }
@@ -445,19 +445,16 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
     }
 }
 
-pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: u32) -> u32 {
-    if lpModuleName != 0 {
+pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> u32 {
+    if lpModuleName.is_some() {
         log::error!("unimplemented: GetModuleHandle(non-null)")
     }
     // HMODULE is base address of current module.
     x86.state.kernel32.image_base
 }
 
-pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: u32) -> u32 {
-    if lpModuleName != 0 {
-        log::error!("unimplemented: GetModuleHandleW(non-null)")
-    }
-    GetModuleHandleA(x86, 0)
+pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<&str>) -> u32 {
+    GetModuleHandleA(x86, lpModuleName)
 }
 
 pub fn GetModuleFileNameW(_x86: &mut X86, lpModuleName: u32, _lpFilename: u32, _nSize: u32) -> u32 {
@@ -729,7 +726,7 @@ pub fn GetProcessHeap(x86: &mut X86) -> u32 {
     heap
 }
 
-pub fn LoadLibraryA(_x86: &mut X86, filename: &str) -> u32 {
+pub fn LoadLibraryA(_x86: &mut X86, filename: Option<&str>) -> u32 {
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
@@ -822,7 +819,7 @@ pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32)
     1 // success
 }
 
-pub fn OutputDebugStringA(_x86: &mut X86, msg: &str) -> u32 {
+pub fn OutputDebugStringA(_x86: &mut X86, msg: Option<&str>) -> u32 {
     log::warn!("OutputDebugStringA: {:?}", msg);
     0
 }
