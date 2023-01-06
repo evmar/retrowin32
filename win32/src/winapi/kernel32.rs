@@ -18,10 +18,19 @@ use super::{
     types::{DWORD, WORD},
 };
 
+#[repr(transparent)]
+#[derive(Debug, PartialEq, Eq)]
+pub struct HFILE(u32);
+impl FromX86 for HFILE {
+    fn from_raw(raw: u32) -> Self {
+        Self(raw)
+    }
+}
+
 // For now, a magic variable that makes it easier to spot.
-pub const STDIN_HFILE: u32 = 0xF11E_0100;
-pub const STDOUT_HFILE: u32 = 0xF11E_0101;
-pub const STDERR_HFILE: u32 = 0xF11E_0102;
+pub const STDIN_HFILE: HFILE = HFILE(0xF11E_0100);
+pub const STDOUT_HFILE: HFILE = HFILE(0xF11E_0101);
+pub const STDERR_HFILE: HFILE = HFILE(0xF11E_0102);
 
 #[derive(Debug, tsify::Tsify, serde::Serialize)]
 pub struct Mapping {
@@ -346,9 +355,9 @@ struct RTL_USER_PROCESS_PARAMETERS {
     DebugFlags: DWORD,
     ConsoleHandle: DWORD,
     ConsoleFlags: DWORD,
-    hStdInput: DWORD,
-    hStdOutput: DWORD,
-    hStdError: DWORD,
+    hStdInput: HFILE,
+    hStdOutput: HFILE,
+    hStdError: HFILE,
     CurrentDirectory: CURDIR,
     DllPath: UNICODE_STRING,
     ImagePathName: UNICODE_STRING,
@@ -425,13 +434,13 @@ pub fn GetEnvironmentVariableA(_x86: &mut X86, name: &str, buf: &mut [u8]) -> us
     0
 }
 
-pub fn GetFileType(_x86: &mut X86, hFile: u32) -> u32 {
+pub fn GetFileType(_x86: &mut X86, hFile: HFILE) -> u32 {
     let FILE_TYPE_CHAR = 0x2;
     let FILE_TYPE_UNKNOWN = 0x8;
     match hFile {
         STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => FILE_TYPE_CHAR,
         _ => {
-            log::error!("GetFileType({hFile:x}) unknown handle");
+            log::error!("GetFileType({hFile:?}) unknown handle");
             FILE_TYPE_UNKNOWN
         }
     }
@@ -571,9 +580,9 @@ pub fn GetCurrentProcessId(_x86: &mut X86) -> u32 {
 
 pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> u32 {
     match nStdHandle as i32 {
-        -10 => STDIN_HFILE,
-        -11 => STDOUT_HFILE,
-        -12 => STDERR_HFILE,
+        -10 => STDIN_HFILE.0,
+        -11 => STDOUT_HFILE.0,
+        -12 => STDERR_HFILE.0,
         _ => (-1i32) as u32,
     }
 }
@@ -765,7 +774,7 @@ pub fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
 
 pub fn WriteFile(
     x86: &mut X86,
-    hFile: u32,
+    hFile: HFILE,
     lpBuffer: u32,
     nNumberOfBytesToWrite: u32,
     lpNumberOfBytesWritten: Option<&mut u32>,
@@ -828,7 +837,7 @@ pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32)
 #[repr(transparent)]
 pub struct HMODULE(u32);
 impl FromX86 for HMODULE {
-    unsafe fn from_raw(raw: u32) -> Self {
+    fn from_raw(raw: u32) -> Self {
         Self(raw)
     }
 }

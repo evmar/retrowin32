@@ -10,7 +10,7 @@ unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
 }
 
 pub trait FromX86: Sized {
-    unsafe fn from_raw(_raw: u32) -> Self {
+    fn from_raw(_raw: u32) -> Self {
         unimplemented!()
     }
     unsafe fn from_x86(x86: &mut X86) -> Self {
@@ -18,12 +18,12 @@ pub trait FromX86: Sized {
     }
 }
 impl FromX86 for u32 {
-    unsafe fn from_raw(raw: u32) -> Self {
+    fn from_raw(raw: u32) -> Self {
         raw
     }
 }
 impl FromX86 for bool {
-    unsafe fn from_raw(raw: u32) -> Self {
+    fn from_raw(raw: u32) -> Self {
         raw != 0
     }
 }

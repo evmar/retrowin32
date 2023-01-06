@@ -142,7 +142,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::GetEnvironmentVariableA(x86, name, buf) as u32;
     }
     fn GetFileType(x86: &mut X86) {
-        let hFile: u32 = unsafe { from_x86(x86) };
+        let hFile: HFILE = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::GetFileType(x86, hFile) as u32;
     }
     fn GetModuleFileNameA(x86: &mut X86) {
@@ -262,7 +262,7 @@ pub mod kernel32 {
         x86.regs.eax = winapi::kernel32::SetHandleCount(x86, uNumber) as u32;
     }
     fn WriteFile(x86: &mut X86) {
-        let hFile: u32 = unsafe { from_x86(x86) };
+        let hFile: HFILE = unsafe { from_x86(x86) };
         let lpBuffer: u32 = unsafe { from_x86(x86) };
         let nNumberOfBytesToWrite: u32 = unsafe { from_x86(x86) };
         let lpNumberOfBytesWritten: Option<&mut u32> = unsafe { from_x86(x86) };
