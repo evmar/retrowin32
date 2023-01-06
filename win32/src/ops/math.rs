@@ -229,6 +229,11 @@ pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) {
     x86.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
 }
 
+pub fn sar_rm32_cl(x86: &mut X86, instr: &Instruction) {
+    let y = x86.regs.ecx as u8;
+    x86.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+}
+
 pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) {
     let y = x86.regs.ecx as u8;
     x86.rm32_x(instr, |x86, x| {

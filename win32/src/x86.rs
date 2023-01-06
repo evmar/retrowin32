@@ -174,7 +174,9 @@ impl X86 {
             0
         };
         let index = if instr.memory_index() != iced_x86::Register::None {
-            self.regs.get32(instr.memory_index()) * instr.memory_index_scale()
+            self.regs
+                .get32(instr.memory_index())
+                .wrapping_mul(instr.memory_index_scale())
         } else {
             0
         };
@@ -408,12 +410,14 @@ impl X86 {
             iced_x86::Code::Or_rm16_imm16 => ops::or_rm16_imm16(self, instr),
             iced_x86::Code::Or_rm8_imm8 => ops::or_rm8_imm8(self, instr),
             iced_x86::Code::Shl_rm32_imm8 => ops::shl_rm32_imm8(self, instr),
+            iced_x86::Code::Shl_rm32_1 => ops::shl_rm32_imm8(self, instr),
             iced_x86::Code::Shl_rm32_CL => ops::shl_rm32_cl(self, instr),
             iced_x86::Code::Shl_rm8_CL => ops::shl_rm8_cl(self, instr),
             iced_x86::Code::Shr_rm32_1 => ops::shr_rm32_1(self, instr),
             iced_x86::Code::Shr_rm32_imm8 => ops::shr_rm32_imm8(self, instr),
             iced_x86::Code::Sar_rm32_imm8 => ops::sar_rm32_imm8(self, instr),
             iced_x86::Code::Sar_rm32_1 => ops::sar_rm32_imm8(self, instr),
+            iced_x86::Code::Sar_rm32_CL => ops::sar_rm32_cl(self, instr),
             iced_x86::Code::Ror_rm32_CL => ops::ror_rm32_cl(self, instr),
             iced_x86::Code::Xor_rm32_r32 => ops::xor_rm32_rm32(self, instr),
             iced_x86::Code::Xor_r32_rm32 => ops::xor_rm32_rm32(self, instr),
