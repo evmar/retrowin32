@@ -69,9 +69,8 @@ pub fn mov_r16_rm16(x86: &mut X86, instr: &Instruction) {
     x86.regs.set16(instr.op0_register(), x86.op1_rm16(instr));
 }
 
-pub fn mov_rm16_sreg(x86: &mut X86, instr: &Instruction) {
-    log::warn!("TODO: this looks wrong, copy paste error?");
-    let y = instr.immediate16();
+pub fn mov_rm16_r16(x86: &mut X86, instr: &Instruction) {
+    let y = x86.regs.get16(instr.op1_register());
     x86.rm16_x(instr, |_x86, _x| y);
 }
 

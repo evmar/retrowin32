@@ -367,9 +367,7 @@ impl X86 {
             iced_x86::Code::Mov_rm32_r32 => ops::mov_rm32_r32(self, instr),
             iced_x86::Code::Mov_r32_rm32 => ops::mov_r32_rm32(self, instr),
             iced_x86::Code::Mov_r16_rm16 => ops::mov_r16_rm16(self, instr),
-            iced_x86::Code::Mov_rm16_r16 | iced_x86::Code::Mov_rm16_Sreg => {
-                ops::mov_rm16_sreg(self, instr)
-            }
+            iced_x86::Code::Mov_rm16_r16 => ops::mov_rm16_r16(self, instr),
             iced_x86::Code::Mov_r8_rm8 => ops::mov_r8_rm8(self, instr),
             iced_x86::Code::Mov_rm8_r8 => ops::mov_rm8_r8(self, instr),
             iced_x86::Code::Mov_r8_imm8 | iced_x86::Code::Mov_rm8_imm8 => {
