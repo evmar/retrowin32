@@ -445,16 +445,16 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
     }
 }
 
-pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> u32 {
+pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
     if lpModuleName.is_some() {
         log::error!("unimplemented: GetModuleHandle(non-null)");
-        return 0;
+        return HMODULE(0);
     }
     // HMODULE is base address of current module.
-    x86.state.kernel32.image_base
+    HMODULE(x86.state.kernel32.image_base)
 }
 
-pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<&str>) -> u32 {
+pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
     GetModuleHandleA(x86, lpModuleName)
 }
 
@@ -469,9 +469,9 @@ pub fn GetModuleHandleExW(
     }
     let hMod = GetModuleHandleW(x86, lpModuleName);
     if let Some(out) = hModule {
-        *out = HMODULE(hMod);
+        *out = hMod;
     }
-    return hMod != 0;
+    return hMod.0 != 0;
 }
 
 pub fn GetModuleFileNameW(_x86: &mut X86, lpModuleName: u32, _lpFilename: u32, _nSize: u32) -> u32 {

@@ -13,7 +13,7 @@ pub type DWORD = u32;
 // to work with.
 macro_rules! declare_handle {
     ($name:ident) => {
-        #[derive(Debug, Eq, PartialEq)]
+        #[derive(Debug, Eq, PartialEq, Clone, Copy)]
         #[repr(transparent)]
         pub struct $name(pub u32);
         unsafe impl Pod for $name {}
