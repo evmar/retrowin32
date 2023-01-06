@@ -824,8 +824,8 @@ pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32)
 #[repr(transparent)]
 pub struct HMODULE(u32);
 impl FromX86 for HMODULE {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        Self(x86.pop())
+    unsafe fn from_raw(raw: u32) -> Self {
+        Self(raw)
     }
 }
 

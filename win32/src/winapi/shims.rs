@@ -9,17 +9,22 @@ unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
     std::mem::transmute(x)
 }
 
-pub trait FromX86 {
-    unsafe fn from_x86(x86: &mut X86) -> Self;
+pub trait FromX86: Sized {
+    unsafe fn from_raw(_raw: u32) -> Self {
+        unimplemented!()
+    }
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        Self::from_raw(x86.pop())
+    }
 }
 impl FromX86 for u32 {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        x86.pop()
+    unsafe fn from_raw(raw: u32) -> Self {
+        raw
     }
 }
 impl FromX86 for bool {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        x86.pop() != 0
+    unsafe fn from_raw(raw: u32) -> Self {
+        raw != 0
     }
 }
 impl<T: crate::memory::Pod> FromX86 for Option<&T> {
