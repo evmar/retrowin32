@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(unused_imports)]
 #[doc = r" Generated code, do not edit."]
-use crate::{memory::Memory, winapi, winapi::shims::from_x86, x86::X86};
+use crate::{memory::Memory, winapi, winapi::shims::from_x86, winapi::types::*, x86::X86};
 pub mod ddraw {
     use super::*;
     use winapi::ddraw::*;

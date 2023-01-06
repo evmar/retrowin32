@@ -13,19 +13,7 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::{
-    shims::FromX86,
-    types::{DWORD, WORD},
-};
-
-#[repr(transparent)]
-#[derive(Debug, PartialEq, Eq)]
-pub struct HFILE(u32);
-impl FromX86 for HFILE {
-    fn from_raw(raw: u32) -> Self {
-        Self(raw)
-    }
-}
+use super::types::{DWORD, HFILE, HMODULE, WORD};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE(0xF11E_0100);
@@ -832,14 +820,6 @@ pub fn VirtualAlloc(
 pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
     1 // success
-}
-
-#[repr(transparent)]
-pub struct HMODULE(u32);
-impl FromX86 for HMODULE {
-    fn from_raw(raw: u32) -> Self {
-        Self(raw)
-    }
 }
 
 pub fn OutputDebugStringA(_x86: &mut X86, msg: &str) -> u32 {

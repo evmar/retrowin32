@@ -100,7 +100,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::from_x86};
+        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::from_x86, winapi::types::*};
 
         #(#mods)*
     })
