@@ -425,6 +425,7 @@ impl X86 {
             iced_x86::Code::Add_rm32_imm32 => ops::add_rm32_imm32(self, instr),
             iced_x86::Code::Add_EAX_imm32 => ops::add_rm32_imm32(self, instr),
             iced_x86::Code::Add_rm32_imm8 => ops::add_rm32_imm8(self, instr),
+            iced_x86::Code::Add_rm16_imm8 => ops::add_rm16_imm8(self, instr),
             iced_x86::Code::Add_rm8_imm8 => ops::add_rm8_imm8(self, instr),
             iced_x86::Code::Sub_rm32_imm8 => ops::sub_rm32_imm8(self, instr),
             iced_x86::Code::Sub_EAX_imm32 => ops::sub_rm32_imm32(self, instr),

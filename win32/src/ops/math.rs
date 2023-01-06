@@ -17,6 +17,21 @@ fn add32(x86: &mut X86, x: u32, y: u32) -> u32 {
     result
 }
 
+fn add16(x86: &mut X86, x: u16, y: u16) -> u16 {
+    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+    let (result, carry) = x.overflowing_add(y);
+    x86.regs.flags.set(Flags::CF, carry);
+    x86.regs.flags.set(Flags::ZF, result == 0);
+    x86.regs.flags.set(Flags::SF, result & 0x8000 != 0);
+    // Overflow is true exactly when the high (sign) bits are like:
+    //   x  y  result
+    //   0  0  1
+    //   1  1  0
+    let of = ((x ^ !y) & (x ^ result)) >> 15 != 0;
+    x86.regs.flags.set(Flags::OF, of);
+    result
+}
+
 fn add8(x86: &mut X86, x: u8, y: u8) -> u8 {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let (result, carry) = x.overflowing_add(y);
@@ -278,6 +293,11 @@ pub fn add_rm32_imm32(x86: &mut X86, instr: &Instruction) {
 pub fn add_rm32_imm8(x86: &mut X86, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     x86.rm32_x(instr, |x86, x| add32(x86, x, y));
+}
+
+pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) {
+    let y = instr.immediate8to16() as u16;
+    x86.rm16_x(instr, |x86, x| add16(x86, x, y));
 }
 
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) {
