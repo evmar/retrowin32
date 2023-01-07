@@ -137,15 +137,30 @@ fn or8(x86: &mut X86, x: u8, y: u8) -> u8 {
 fn shl32(x86: &mut X86, x: u32, y: u8) -> u32 {
     // Note: overflowing_shl is not what we want.
     let val = (x as u64).wrapping_shl(y as u32);
-    x86.regs.flags.set(Flags::CF, val & (1 << 32) != 0);
+    x86.regs.flags.set(Flags::CF, val & (1 << 31) != 0);
     val as u32
 }
 
 fn shl8(x86: &mut X86, x: u8, y: u8) -> u8 {
     // Note: overflowing_shl is not what we want.
     let val = (x as u16).wrapping_shl(y as u32);
-    x86.regs.flags.set(Flags::CF, val & (1 << 8) != 0);
+    x86.regs.flags.set(Flags::CF, val & (1 << 7) != 0);
     val as u8
+}
+
+fn shr32(x86: &mut X86, x: u32, y: u8) -> u32 {
+    if y == 0 {
+        return x; // Don't affect flags.
+    }
+    x86.regs.flags.set(Flags::CF, (x >> (y - 1)) & 1 != 0);
+    let val = x >> y;
+    x86.regs.flags.set(Flags::SF, false); // ?
+    x86.regs.flags.set(Flags::ZF, val == 0);
+
+    // Note: OF state undefined for shifts > 1 bit, but the following behavior
+    // matches what my Windows box does in practice.
+    x86.regs.flags.set(Flags::OF, x & (1 << 31) != 0);
+    val
 }
 
 pub fn and_rm32_imm32(x86: &mut X86, instr: &Instruction) {
@@ -227,16 +242,16 @@ pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) {
 
 pub fn shr_rm32_cl(x86: &mut X86, instr: &Instruction) {
     let y = x86.regs.ecx as u8;
-    x86.rm32_x(instr, |_x86, x| x >> y);
+    x86.rm32_x(instr, |x86, x| shr32(x86, x, y));
 }
 
 pub fn shr_rm32_1(x86: &mut X86, instr: &Instruction) {
-    x86.rm32_x(instr, |_x86, x| x >> 1);
+    x86.rm32_x(instr, |x86, x| shr32(x86, x, 1));
 }
 
 pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) {
-    let y = instr.immediate8() as u32;
-    x86.rm32_x(instr, |_x86, x| x >> y);
+    let y = instr.immediate8();
+    x86.rm32_x(instr, |x86, x| shr32(x86, x, y));
 }
 
 pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) {
