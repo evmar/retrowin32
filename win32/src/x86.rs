@@ -154,9 +154,20 @@ impl X86 {
         self.write_u32(self.regs.esp, value);
     }
 
+    pub fn push16(&mut self, value: u16) {
+        self.regs.esp -= 2;
+        self.write_u16(self.regs.esp, value);
+    }
+
     pub fn pop(&mut self) -> u32 {
         let value = self.read_u32(self.regs.esp);
         self.regs.esp += 4;
+        value
+    }
+
+    pub fn pop16(&mut self) -> u16 {
+        let value = self.read_u16(self.regs.esp);
+        self.regs.esp += 2;
         value
     }
 
@@ -343,8 +354,10 @@ impl X86 {
             iced_x86::Code::Pushd_imm32 => ops::pushd_imm32(self, instr),
             iced_x86::Code::Push_r32 => ops::push_r32(self, instr),
             iced_x86::Code::Push_rm32 => ops::push_rm32(self, instr),
+            iced_x86::Code::Push_rm16 => ops::push_rm16(self, instr),
 
             iced_x86::Code::Pop_r32 | iced_x86::Code::Pop_rm32 => ops::pop_rm32(self, instr),
+            iced_x86::Code::Pop_r16 | iced_x86::Code::Pop_rm16 => ops::pop_rm16(self, instr),
 
             iced_x86::Code::Mov_rm32_imm32 => ops::mov_rm32_imm32(self, instr),
             iced_x86::Code::Mov_r32_imm32 => ops::mov_r32_imm32(self, instr),
@@ -402,6 +415,7 @@ impl X86 {
             iced_x86::Code::Shl_rm32_1 => ops::shl_rm32_imm8(self, instr),
             iced_x86::Code::Shl_rm32_CL => ops::shl_rm32_cl(self, instr),
             iced_x86::Code::Shl_rm8_CL => ops::shl_rm8_cl(self, instr),
+            iced_x86::Code::Shl_rm8_imm8 => ops::shl_rm8_imm8(self, instr),
             iced_x86::Code::Shr_rm32_CL => ops::shr_rm32_cl(self, instr),
             iced_x86::Code::Shr_rm32_1 => ops::shr_rm32_1(self, instr),
             iced_x86::Code::Shr_rm32_imm8 => ops::shr_rm32_imm8(self, instr),
@@ -424,6 +438,7 @@ impl X86 {
             iced_x86::Code::Add_rm32_imm8 => ops::add_rm32_imm8(self, instr),
             iced_x86::Code::Add_rm16_imm8 => ops::add_rm16_imm8(self, instr),
             iced_x86::Code::Add_rm8_imm8 => ops::add_rm8_imm8(self, instr),
+            iced_x86::Code::Add_r8_rm8 => ops::add_r8_rm8(self, instr),
             iced_x86::Code::Sub_rm32_imm8 => ops::sub_rm32_imm8(self, instr),
             iced_x86::Code::Sub_EAX_imm32 => ops::sub_rm32_imm32(self, instr),
             iced_x86::Code::Sub_rm32_imm32 => ops::sub_rm32_imm32(self, instr),
@@ -518,7 +533,9 @@ impl X86 {
             iced_x86::Code::Pushad => ops::pushad(self, instr),
             iced_x86::Code::Popad => ops::popad(self, instr),
             iced_x86::Code::Pushfd => ops::pushfd(self, instr),
+            iced_x86::Code::Pushfw => ops::pushfw(self, instr),
             iced_x86::Code::Popfd => ops::popfd(self, instr),
+            iced_x86::Code::Popfw => ops::popfw(self, instr),
             iced_x86::Code::Sahf => ops::sahf(self, instr),
 
             iced_x86::Code::Std => ops::std(self, instr),

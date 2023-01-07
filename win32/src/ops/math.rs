@@ -220,6 +220,11 @@ pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) {
     x86.rm8_x(instr, |x86, x| shl8(x86, x, y));
 }
 
+pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) {
+    let y = instr.immediate8();
+    x86.rm8_x(instr, |x86, x| shl8(x86, x, y));
+}
+
 pub fn shr_rm32_cl(x86: &mut X86, instr: &Instruction) {
     let y = x86.regs.ecx as u8;
     x86.rm32_x(instr, |_x86, x| x >> y);
@@ -322,6 +327,11 @@ pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) {
 
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) {
     let y = instr.immediate8();
+    x86.rm8_x(instr, |x86, x| add8(x86, x, y));
+}
+
+pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) {
+    let y = x86.op1_rm8(instr);
     x86.rm8_x(instr, |x86, x| add8(x86, x, y));
 }
 

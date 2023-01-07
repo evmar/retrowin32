@@ -26,14 +26,23 @@ pub fn push_r32(x86: &mut X86, instr: &Instruction) {
 }
 
 pub fn push_rm32(x86: &mut X86, instr: &Instruction) {
-    // push [eax+10h]
-    let value = x86.read_u32(x86.addr(instr));
+    let value = x86.op0_rm32(instr);
     x86.push(value);
+}
+
+pub fn push_rm16(x86: &mut X86, instr: &Instruction) {
+    let value = x86.op0_rm16(instr);
+    x86.push16(value);
 }
 
 pub fn pop_rm32(x86: &mut X86, instr: &Instruction) {
     let value = x86.pop();
     x86.rm32_x(instr, |_x86, _x| value);
+}
+
+pub fn pop_rm16(x86: &mut X86, instr: &Instruction) {
+    let value = x86.pop16();
+    x86.rm16_x(instr, |_x86, _x| value);
 }
 
 pub fn mov_rm32_imm32(x86: &mut X86, instr: &Instruction) {
@@ -191,8 +200,19 @@ pub fn pushfd(x86: &mut X86, _instr: &Instruction) {
     x86.push(x86.regs.flags.bits());
 }
 
+pub fn pushfw(x86: &mut X86, _instr: &Instruction) {
+    let value = (x86.regs.flags.bits() & 0x0000_FFFF) as u16;
+    x86.push16(value);
+}
+
 pub fn popfd(x86: &mut X86, _instr: &Instruction) {
     x86.regs.flags = Flags::from_bits(x86.pop()).unwrap();
+}
+
+pub fn popfw(x86: &mut X86, _instr: &Instruction) {
+    let prev = Flags::from_bits(x86.regs.flags.bits() & 0xFFFF_0000).unwrap();
+    let new = Flags::from_bits(x86.pop16() as u32).unwrap();
+    x86.regs.flags = prev.union(new);
 }
 
 pub fn sahf(x86: &mut X86, _instr: &Instruction) {
