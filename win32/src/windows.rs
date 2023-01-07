@@ -4,6 +4,7 @@ use crate::{pe, winapi, x86::X86};
 
 pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
+    log::info!("{:x?}", file);
 
     let base = file.opt_header.ImageBase;
     x86.state.kernel32.image_base = base;
