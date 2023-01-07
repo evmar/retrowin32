@@ -1,0 +1,10 @@
+add 3,5 => 8
+add 3,-3 => 0 CF ZF
+add 3,-5 => fffffffe SF
+shr 3,0 => 3
+shr 3,1 => 1 CF
+shr 3,2 => 0 CF ZF
+shr 0x80000000,1 => 40000000 OF
+shr 0x80000000,2 => 20000000 OF
+shr 0x80000001,1 => 40000000 CF OF
+shr 0x80000001,2 => 20000000 OF
