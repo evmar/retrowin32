@@ -445,6 +445,13 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
     }
 }
 
+pub fn GetModuleFileNameW(_x86: &mut X86, hModule: HMODULE, _lpFilename: u32, _nSize: u32) -> u32 {
+    if hModule.0 != 0 {
+        log::error!("unimplemented: GetModuleHandleW(non-null)")
+    }
+    0 // fail
+}
+
 pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
     if let Some(name) = lpModuleName {
         log::error!("unimplemented: GetModuleHandle({name:?})");
@@ -473,13 +480,6 @@ pub fn GetModuleHandleExW(
         *out = hMod;
     }
     return hMod.0 != 0;
-}
-
-pub fn GetModuleFileNameW(_x86: &mut X86, lpModuleName: u32, _lpFilename: u32, _nSize: u32) -> u32 {
-    if lpModuleName != 0 {
-        log::error!("unimplemented: GetModuleHandleW(non-null)")
-    }
-    0 // fail
 }
 
 #[repr(C)]
