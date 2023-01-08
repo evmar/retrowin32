@@ -8,7 +8,6 @@ pub fn load_exe(
     cmdline: String,
 ) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
-    log::info!("{:x?}", file);
 
     let base = file.opt_header.ImageBase;
     x86.state.kernel32.image_base = base;
