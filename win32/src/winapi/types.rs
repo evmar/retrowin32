@@ -61,3 +61,24 @@ impl<'a> std::fmt::Debug for Str16<'a> {
         f.write_fmt(format_args!("{:?}", self.to_string()))
     }
 }
+
+pub struct String16(pub Vec<u16>);
+
+impl String16 {
+    pub fn byte_size(&self) -> usize {
+        self.0.len() * 2
+    }
+
+    pub fn from(str: &str) -> Self {
+        String16(
+            str.chars()
+                .map(|c| {
+                    if c as u16 > 0x7f {
+                        panic!("unhandled non-ascii {:?}", c);
+                    }
+                    c as u16
+                })
+                .collect(),
+        )
+    }
+}

@@ -2,7 +2,11 @@ use std::collections::HashMap;
 
 use crate::{pe, winapi, x86::X86};
 
-pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
+pub fn load_exe(
+    x86: &mut X86,
+    buf: &[u8],
+    cmdline: String,
+) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
     log::info!("{:x?}", file);
 
@@ -30,7 +34,7 @@ pub fn load_exe(x86: &mut X86, buf: &[u8]) -> anyhow::Result<HashMap<u32, String
         });
     }
 
-    x86.state.kernel32.init(&mut x86.mem);
+    x86.state.kernel32.init(&mut x86.mem, cmdline);
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.

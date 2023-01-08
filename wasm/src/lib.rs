@@ -126,7 +126,10 @@ pub struct Emulator {
 impl Emulator {
     #[wasm_bindgen]
     pub fn load_exe(&mut self, buf: &[u8]) -> Result<String, String> {
-        let imports = self.runner.load_exe(buf).map_err(|err| err.to_string())?;
+        let imports = self
+            .runner
+            .load_exe(buf, "".into())
+            .map_err(|err| err.to_string())?;
         serde_json::to_string(&imports).map_err(|err| err.to_string())
     }
 

@@ -245,15 +245,16 @@ impl Texture {
 fn main() -> anyhow::Result<()> {
     logging::init()?;
     let args: Vec<String> = std::env::args().collect();
-    let exe = match args.as_slice() {
-        [_, exe] => exe,
-        _ => bail!("specify path"),
-    };
+    if args.len() < 2 {
+        bail!("specify path to exe");
+    }
+    let exe = &args[1];
+    let cmdline = args[1..].join(" ");
 
     let buf = std::fs::read(exe)?;
     let host = EnvRef(Rc::new(RefCell::new(Env::new())));
     let mut runner = win32::Runner::new(Box::new(host.clone()));
-    runner.load_exe(&buf)?;
+    runner.load_exe(&buf, cmdline)?;
 
     loop {
         if let Some(gui) = &mut host.0.borrow_mut().gui {

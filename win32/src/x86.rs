@@ -714,8 +714,12 @@ impl Runner {
         self.instr_index = self.ip_to_instr_index(target_ip).unwrap();
     }
 
-    pub fn load_exe(&mut self, buf: &[u8]) -> anyhow::Result<HashMap<u32, String>> {
-        let labels = load_exe(&mut self.x86, buf)?;
+    pub fn load_exe(
+        &mut self,
+        buf: &[u8],
+        cmdline: String,
+    ) -> anyhow::Result<HashMap<u32, String>> {
+        let labels = load_exe(&mut self.x86, buf, cmdline)?;
 
         // Disassemble the 'code' section.
         let mapping = self

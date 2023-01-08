@@ -13,7 +13,7 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::types::{Str16, DWORD, HFILE, HMODULE, WORD};
+use super::types::{Str16, String16, DWORD, HFILE, HMODULE, WORD};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE(0xF11E_0100);
@@ -75,7 +75,13 @@ pub struct State {
     pub mappings: Vec<Mapping>,
     /// Heaps created by HeapAlloc().
     pub heaps: HashMap<u32, Heap>,
+
     env: u32,
+
+    /// Command line, ASCII.
+    cmdline: u32,
+    /// Command line, UTF16.
+    cmdline16: u32,
 }
 impl State {
     pub fn new() -> Self {
@@ -92,10 +98,12 @@ impl State {
             mappings,
             heaps: HashMap::new(),
             env: 0,
+            cmdline: 0,
+            cmdline16: 0,
         }
     }
 
-    pub fn init(&mut self, mem: &mut Vec<u8>) {
+    pub fn init(&mut self, mem: &mut Vec<u8>, cmdline: String) {
         self.heap = self.new_private_heap(mem, 0x1000, "kernel32 data".into());
         // Fill region with garbage so it's clearer when we access something we don't intend to.
         // let mut i = 0;
@@ -106,7 +114,9 @@ impl State {
         // });
         mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0);
 
-        self.init_teb_peb(mem);
+        let cmdline_len = cmdline.len();
+        self.init_cmdline(mem, cmdline);
+        self.init_teb_peb(mem, cmdline_len);
 
         let env = "\0\0".as_bytes();
         let env_addr = self.heap.alloc(mem, env.len() as u32);
@@ -114,14 +124,29 @@ impl State {
         self.env = env_addr;
     }
 
+    fn init_cmdline(&mut self, mem: &mut [u8], mut cmdline: String) {
+        // Gross: GetCommandLineA() needs to return a pointer that's never freed,
+        // so we need to hang on to both versions of the command line.
+
+        cmdline.push(0 as char); // nul terminator
+
+        self.cmdline = self.heap.alloc(mem, cmdline.len() as u32);
+        mem[self.cmdline as usize..self.cmdline as usize + cmdline.len()]
+            .copy_from_slice(cmdline.as_bytes());
+
+        let cmdline16 = String16::from(&cmdline);
+        self.cmdline16 = self.heap.alloc(mem, cmdline16.byte_size() as u32);
+        let mem16: &mut [u16] = unsafe {
+            std::mem::transmute(
+                &mut mem[self.cmdline16 as usize..self.cmdline16 as usize + cmdline16.0.len()],
+            )
+        };
+        mem16.copy_from_slice(&cmdline16.0);
+    }
+
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    fn init_teb_peb(&mut self, mem: &mut [u8]) {
-        // TOOD: UTF-16
-        let cmdline = "retrowin32\0".as_bytes();
-        let cmdline_addr = self.heap.alloc(mem, cmdline.len() as u32);
-        mem[cmdline_addr as usize..cmdline_addr as usize + cmdline.len()].copy_from_slice(cmdline);
-
+    fn init_teb_peb(&mut self, mem: &mut [u8], cmdline_len: usize) {
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.heap.alloc(
             mem,
@@ -138,9 +163,9 @@ impl State {
         params.hStdError = STDERR_HFILE;
         params.ImagePathName.clear();
         params.CommandLine = UNICODE_STRING {
-            Length: cmdline.len() as u16,
-            MaximumLength: cmdline.len() as u16,
-            Buffer: cmdline_addr,
+            Length: cmdline_len as u16,
+            MaximumLength: cmdline_len as u16,
+            Buffer: self.cmdline16,
         };
 
         // PEB
@@ -391,17 +416,11 @@ pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
 }
 
 pub fn GetCommandLineA(x86: &mut X86) -> u32 {
-    let addr = peb_mut(x86).ProcessParameters;
-    let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
-    // TODO: decide if this is unicode or not
-    params.CommandLine.Buffer
+    x86.state.kernel32.cmdline
 }
 
 pub fn GetCommandLineW(x86: &mut X86) -> u32 {
-    let addr = peb_mut(x86).ProcessParameters;
-    let params = x86.mem.view::<RTL_USER_PROCESS_PARAMETERS>(addr);
-    // TODO: decide if this is unicode or not
-    params.CommandLine.Buffer
+    x86.state.kernel32.cmdline16
 }
 
 pub fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
