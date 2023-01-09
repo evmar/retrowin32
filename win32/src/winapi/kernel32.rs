@@ -16,9 +16,9 @@ use tsify::Tsify;
 use super::types::{Str16, String16, DWORD, HFILE, HMODULE, WORD};
 
 // For now, a magic variable that makes it easier to spot.
-pub const STDIN_HFILE: HFILE = HFILE(0xF11E_0100);
-pub const STDOUT_HFILE: HFILE = HFILE(0xF11E_0101);
-pub const STDERR_HFILE: HFILE = HFILE(0xF11E_0102);
+pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
+pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
+pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
 #[derive(Debug, tsify::Tsify, serde::Serialize)]
 pub struct Mapping {
@@ -454,7 +454,7 @@ pub fn GetFileType(_x86: &mut X86, hFile: HFILE) -> u32 {
 }
 
 pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [u8]) -> usize {
-    assert!(hModule.0 == 0);
+    assert!(hModule.is_null());
     match filename.write(b"TODO.exe\0") {
         Ok(n) => n,
         Err(err) => {
@@ -465,7 +465,7 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
 }
 
 pub fn GetModuleFileNameW(_x86: &mut X86, hModule: HMODULE, _lpFilename: u32, _nSize: u32) -> u32 {
-    if hModule.0 != 0 {
+    if !hModule.is_null() {
         log::error!("unimplemented: GetModuleHandleW(non-null)")
     }
     0 // fail
@@ -474,10 +474,10 @@ pub fn GetModuleFileNameW(_x86: &mut X86, hModule: HMODULE, _lpFilename: u32, _n
 pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
     if let Some(name) = lpModuleName {
         log::error!("unimplemented: GetModuleHandle({name:?})");
-        return HMODULE(0);
+        return HMODULE::null();
     }
     // HMODULE is base address of current module.
-    HMODULE(x86.state.kernel32.image_base)
+    HMODULE::from_raw(x86.state.kernel32.image_base)
 }
 
 pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<Str16>) -> HMODULE {
@@ -498,7 +498,7 @@ pub fn GetModuleHandleExW(
     if let Some(out) = hModule {
         *out = hMod;
     }
-    return hMod.0 != 0;
+    return !hMod.is_null();
 }
 
 #[repr(C)]
@@ -605,7 +605,7 @@ pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> HFILE {
         -10 => STDIN_HFILE,
         -11 => STDOUT_HFILE,
         -12 => STDERR_HFILE,
-        _ => HFILE((-1i32) as u32),
+        _ => HFILE::invalid(),
     }
 }
 
@@ -824,11 +824,11 @@ pub fn CreateFileW(
     if dwFlagsAndAttributes != FILE_ATTRIBUTE_NORMAL {
         unimplemented!("dwFlagsAndAttributes {dwFlagsAndAttributes:x}");
     }
-    if hTemplateFile.0 != 0 {
+    if !hTemplateFile.is_null() {
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
     log::error!("CreateFileW {lpFileName:?} {dwDesiredAccess:x} {dwCreationDisposition:x?} {dwFlagsAndAttributes:x} {hTemplateFile:?}");
-    HFILE(-1i32 as u32)
+    HFILE::invalid()
 }
 
 pub fn WriteFile(

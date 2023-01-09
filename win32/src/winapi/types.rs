@@ -15,8 +15,29 @@ macro_rules! declare_handle {
     ($name:ident) => {
         #[derive(Debug, Eq, PartialEq, Clone, Copy)]
         #[repr(transparent)]
-        pub struct $name(pub u32);
+        pub struct $name(u32);
         unsafe impl Pod for $name {}
+        #[allow(dead_code)]
+        impl $name {
+            pub const fn from_raw(raw: u32) -> Self {
+                $name(raw)
+            }
+
+            // Handles have both null and invalid states, whoopsie.
+            // https://devblogs.microsoft.com/oldnewthing/20040302-00/
+            pub fn null() -> Self {
+                Self::from_raw(0)
+            }
+            pub fn invalid() -> Self {
+                Self::from_raw(-1i32 as u32)
+            }
+            pub fn is_null(&self) -> bool {
+                self.0 == 0
+            }
+            pub fn is_invalid(&self) -> bool {
+                *self == Self::invalid()
+            }
+        }
         impl FromX86 for $name {
             fn from_raw(raw: u32) -> Self {
                 $name(raw)
