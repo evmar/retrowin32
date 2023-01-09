@@ -783,6 +783,54 @@ pub fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
     uNumber
 }
 
+const GENERIC_READ: u32 = 0x8000_0000;
+
+#[derive(Debug)]
+pub enum CreationDisposition {
+    OPEN_EXISTING = 3,
+}
+impl TryFrom<u32> for CreationDisposition {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            x if x == CreationDisposition::OPEN_EXISTING as u32 => {
+                CreationDisposition::OPEN_EXISTING
+            }
+            _ => return Err(value),
+        })
+    }
+}
+
+pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
+
+pub fn CreateFileW(
+    _x86: &mut X86,
+    lpFileName: Option<Str16>,
+    dwDesiredAccess: u32,
+    _dwShareMode: u32,
+    _lpSecurityAttributes: u32,
+    dwCreationDisposition: Result<CreationDisposition, u32>,
+    dwFlagsAndAttributes: u32,
+    hTemplateFile: HFILE,
+) -> HFILE {
+    if dwDesiredAccess != GENERIC_READ {
+        unimplemented!("CreateFileW access {:x}", dwDesiredAccess);
+    }
+    let dwCreationDisposition = match dwCreationDisposition {
+        Err(x) => unimplemented!("dwCreationDisposition {x:?}"),
+        Ok(disp) => disp,
+    };
+    if dwFlagsAndAttributes != FILE_ATTRIBUTE_NORMAL {
+        unimplemented!("dwFlagsAndAttributes {dwFlagsAndAttributes:x}");
+    }
+    if hTemplateFile.0 != 0 {
+        unimplemented!("hTemplateFile {hTemplateFile:?}");
+    }
+    log::error!("CreateFileW {lpFileName:?} {dwDesiredAccess:x} {dwCreationDisposition:x?} {dwFlagsAndAttributes:x} {hTemplateFile:?}");
+    HFILE(-1i32 as u32)
+}
+
 pub fn WriteFile(
     x86: &mut X86,
     hFile: HFILE,

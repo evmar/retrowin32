@@ -276,6 +276,26 @@ pub mod kernel32 {
         let uNumber: u32 = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::SetHandleCount(x86, uNumber).to_raw();
     }
+    fn CreateFileW(x86: &mut X86) {
+        let lpFileName: Option<Str16> = unsafe { from_x86(x86) };
+        let dwDesiredAccess: u32 = unsafe { from_x86(x86) };
+        let _dwShareMode: u32 = unsafe { from_x86(x86) };
+        let _lpSecurityAttributes: u32 = unsafe { from_x86(x86) };
+        let dwCreationDisposition: Result<CreationDisposition, u32> = unsafe { from_x86(x86) };
+        let dwFlagsAndAttributes: u32 = unsafe { from_x86(x86) };
+        let hTemplateFile: HFILE = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::CreateFileW(
+            x86,
+            lpFileName,
+            dwDesiredAccess,
+            _dwShareMode,
+            _lpSecurityAttributes,
+            dwCreationDisposition,
+            dwFlagsAndAttributes,
+            hTemplateFile,
+        )
+        .to_raw();
+    }
     fn WriteFile(x86: &mut X86) {
         let hFile: HFILE = unsafe { from_x86(x86) };
         let lpBuffer: u32 = unsafe { from_x86(x86) };
@@ -367,14 +387,14 @@ pub mod kernel32 {
     }
     fn MultiByteToWideChar(x86: &mut X86) {
         let CodePage: u32 = unsafe { from_x86(x86) };
-        let dwFlags: u32 = unsafe { from_x86(x86) };
+        let _dwFlags: u32 = unsafe { from_x86(x86) };
         let lpMultiByteStr: u32 = unsafe { from_x86(x86) };
         let cbMultiByte: i32 = unsafe { from_x86(x86) };
         let lpWideCharStr: Option<&mut [u16]> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::MultiByteToWideChar(
             x86,
             CodePage,
-            dwFlags,
+            _dwFlags,
             lpMultiByteStr,
             cbMultiByte,
             lpWideCharStr,
@@ -423,6 +443,7 @@ pub mod kernel32 {
             "LoadLibraryA" => LoadLibraryA,
             "LoadLibraryExW" => LoadLibraryExW,
             "SetHandleCount" => SetHandleCount,
+            "CreateFileW" => CreateFileW,
             "WriteFile" => WriteFile,
             "VirtualAlloc" => VirtualAlloc,
             "VirtualFree" => VirtualFree,

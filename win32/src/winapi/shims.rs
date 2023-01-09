@@ -34,6 +34,11 @@ impl FromX86 for bool {
         raw != 0
     }
 }
+impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
+    fn from_raw(raw: u32) -> Self {
+        T::try_from(raw)
+    }
+}
 impl<T: crate::memory::Pod> FromX86 for Option<&T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let addr = x86.pop();
