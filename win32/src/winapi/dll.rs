@@ -298,19 +298,12 @@ pub mod kernel32 {
     }
     fn WriteFile(x86: &mut X86) {
         let hFile: HFILE = unsafe { from_x86(x86) };
-        let lpBuffer: u32 = unsafe { from_x86(x86) };
-        let nNumberOfBytesToWrite: u32 = unsafe { from_x86(x86) };
+        let lpBuffer: &[u8] = unsafe { from_x86(x86) };
         let lpNumberOfBytesWritten: Option<&mut u32> = unsafe { from_x86(x86) };
         let lpOverlapped: u32 = unsafe { from_x86(x86) };
-        x86.regs.eax = winapi::kernel32::WriteFile(
-            x86,
-            hFile,
-            lpBuffer,
-            nNumberOfBytesToWrite,
-            lpNumberOfBytesWritten,
-            lpOverlapped,
-        )
-        .to_raw();
+        x86.regs.eax =
+            winapi::kernel32::WriteFile(x86, hFile, lpBuffer, lpNumberOfBytesWritten, lpOverlapped)
+                .to_raw();
     }
     fn VirtualAlloc(x86: &mut X86) {
         let lpAddress: u32 = unsafe { from_x86(x86) };
@@ -401,6 +394,20 @@ pub mod kernel32 {
         )
         .to_raw();
     }
+    fn WriteConsoleW(x86: &mut X86) {
+        let hConsoleOutput: HFILE = unsafe { from_x86(x86) };
+        let lpBuffer: Option<&[u16]> = unsafe { from_x86(x86) };
+        let lpNumberOfCharsWritten: Option<&mut u32> = unsafe { from_x86(x86) };
+        let _lpReserved: u32 = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::WriteConsoleW(
+            x86,
+            hConsoleOutput,
+            lpBuffer,
+            lpNumberOfCharsWritten,
+            _lpReserved,
+        )
+        .to_raw();
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "SetLastError" => SetLastError,
@@ -461,6 +468,7 @@ pub mod kernel32 {
             "TlsGetValue" => TlsGetValue,
             "InitializeSListHead" => InitializeSListHead,
             "MultiByteToWideChar" => MultiByteToWideChar,
+            "WriteConsoleW" => WriteConsoleW,
             _ => return None,
         })
     }

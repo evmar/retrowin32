@@ -834,23 +834,21 @@ pub fn CreateFileW(
 pub fn WriteFile(
     x86: &mut X86,
     hFile: HFILE,
-    lpBuffer: u32,
-    nNumberOfBytesToWrite: u32,
+    lpBuffer: &[u8],
     lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
-) -> u32 {
+) -> bool {
     assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
     assert!(lpOverlapped == 0);
-    let buf = &x86.mem[lpBuffer as usize..(lpBuffer + nNumberOfBytesToWrite) as usize];
 
-    let n = x86.host.write(buf);
+    let n = x86.host.write(lpBuffer);
 
     // The docs say this parameter may not be null, but a test program with the param as null
     // runs fine on real Windows...
     if let Some(written) = lpNumberOfBytesWritten {
         *written = n as u32;
     }
-    1
+    true
 }
 
 pub fn VirtualAlloc(
@@ -1019,4 +1017,28 @@ pub fn MultiByteToWideChar(
             len
         }
     }
+}
+
+pub fn WriteConsoleW(
+    x86: &mut X86,
+    hConsoleOutput: HFILE,
+    lpBuffer: Option<&[u16]>,
+    lpNumberOfCharsWritten: Option<&mut u32>,
+    _lpReserved: u32,
+) -> bool {
+    let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
+    let mut bytesWritten = 0;
+    if !WriteFile(
+        x86,
+        hConsoleOutput,
+        buf.as_bytes(),
+        Some(&mut bytesWritten),
+        0,
+    ) {
+        return false;
+    }
+    if let Some(charsWritten) = lpNumberOfCharsWritten {
+        *charsWritten = bytesWritten;
+    }
+    return bytesWritten == buf.len() as u32;
 }

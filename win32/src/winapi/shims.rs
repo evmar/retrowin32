@@ -59,11 +59,25 @@ impl<T: crate::memory::Pod> FromX86 for Option<&mut T> {
         }
     }
 }
+impl FromX86 for &[u8] {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        let ofs = x86.pop() as usize;
+        let len = x86.pop() as usize;
+        smuggle(&x86.mem[ofs..ofs + len])
+    }
+}
 impl FromX86 for &mut [u8] {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86.pop() as usize;
         let len = x86.pop() as usize;
         smuggle_mut(&mut x86.mem[ofs..ofs + len])
+    }
+}
+impl FromX86 for Option<&[u16]> {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        let ofs = x86.pop() as usize;
+        let len = x86.pop() as usize;
+        std::mem::transmute(&x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for Option<&mut [u16]> {

@@ -58,6 +58,9 @@ declare_handle!(HMODULE);
 pub struct Str16<'a>(&'a [u16]);
 
 impl<'a> Str16<'a> {
+    pub fn from_buffer(mem: &'a [u16]) -> Self {
+        Str16(mem)
+    }
     pub fn from_nul_term(mem: &'a [u16]) -> Self {
         let end = mem.iter().position(|&c| c == 0).unwrap();
         Str16(&mem[..end])
