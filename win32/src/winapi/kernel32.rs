@@ -926,3 +926,49 @@ pub fn InitializeSListHead(_x86: &mut X86, ListHead: Option<&mut SLIST_HEADER>) 
     ListHead.unwrap().Next = 0;
     0
 }
+
+/// The system default Windows ANSI code page.
+const CP_ACP: u32 = 0;
+
+pub fn MultiByteToWideChar(
+    x86: &mut X86,
+    CodePage: u32,
+    _dwFlags: u32,
+    lpMultiByteStr: u32,
+    cbMultiByte: i32,
+    mut lpWideCharStr: Option<&mut [u16]>,
+) -> u32 {
+    if CodePage != CP_ACP && CodePage != 1252 {
+        unimplemented!("MultiByteToWideChar code page {CodePage}");
+    }
+    // TODO: dwFlags
+
+    let input = match cbMultiByte {
+        0 => return 0, // TODO: invalid param
+        -1 => x86.mem[lpMultiByteStr as usize..].read_strz_with_nul(),
+        len => std::str::from_utf8(
+            &x86.mem[lpMultiByteStr as usize..lpMultiByteStr as usize + len as usize],
+        )
+        .unwrap(),
+    };
+
+    match lpWideCharStr {
+        Some(buf) if buf.len() == 0 => lpWideCharStr = None,
+        _ => (),
+    };
+
+    match lpWideCharStr {
+        None => input.len() as u32,
+        Some(buf) => {
+            let mut len = 0;
+            for (c_in, c_out) in std::iter::zip(input.bytes(), buf) {
+                if c_in > 0x7f {
+                    unimplemented!("unicode");
+                }
+                *c_out = c_in as u16;
+                len += 1;
+            }
+            len
+        }
+    }
+}

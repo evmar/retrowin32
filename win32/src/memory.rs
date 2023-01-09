@@ -15,7 +15,10 @@ pub trait Memory {
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
+    /// Read a nul-terminated string.
     fn read_strz(&self) -> &str;
+    /// Read a nul-terminated string, including the trailing nul.
+    fn read_strz_with_nul(&self) -> &str;
 }
 
 // TODO: wrap the x86 memory with a newtype and use that here instead.
@@ -44,6 +47,14 @@ impl Memory for [u8] {
         let mut span = self;
         if let Some(nul) = self.iter().position(|&c| c == 0) {
             span = &self[0..nul];
+        }
+        std::str::from_utf8(span).unwrap()
+    }
+
+    fn read_strz_with_nul(&self) -> &str {
+        let mut span = self;
+        if let Some(nul) = self.iter().position(|&c| c == 0) {
+            span = &self[0..nul + 1];
         }
         std::str::from_utf8(span).unwrap()
     }

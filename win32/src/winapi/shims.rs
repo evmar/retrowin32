@@ -24,6 +24,11 @@ impl FromX86 for u32 {
         raw
     }
 }
+impl FromX86 for i32 {
+    fn from_raw(raw: u32) -> Self {
+        raw as i32
+    }
+}
 impl FromX86 for bool {
     fn from_raw(raw: u32) -> Self {
         raw != 0
@@ -54,6 +59,13 @@ impl FromX86 for &mut [u8] {
         let ofs = x86.pop() as usize;
         let len = x86.pop() as usize;
         smuggle_mut(&mut x86.mem[ofs..ofs + len])
+    }
+}
+impl FromX86 for Option<&mut [u16]> {
+    unsafe fn from_x86(x86: &mut X86) -> Self {
+        let ofs = x86.pop() as usize;
+        let len = x86.pop() as usize;
+        std::mem::transmute(&mut x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for Option<&str> {

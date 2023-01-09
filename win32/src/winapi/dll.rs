@@ -365,6 +365,22 @@ pub mod kernel32 {
         let ListHead: Option<&mut SLIST_HEADER> = unsafe { from_x86(x86) };
         x86.regs.eax = winapi::kernel32::InitializeSListHead(x86, ListHead).to_raw();
     }
+    fn MultiByteToWideChar(x86: &mut X86) {
+        let CodePage: u32 = unsafe { from_x86(x86) };
+        let dwFlags: u32 = unsafe { from_x86(x86) };
+        let lpMultiByteStr: u32 = unsafe { from_x86(x86) };
+        let cbMultiByte: i32 = unsafe { from_x86(x86) };
+        let lpWideCharStr: Option<&mut [u16]> = unsafe { from_x86(x86) };
+        x86.regs.eax = winapi::kernel32::MultiByteToWideChar(
+            x86,
+            CodePage,
+            dwFlags,
+            lpMultiByteStr,
+            cbMultiByte,
+            lpWideCharStr,
+        )
+        .to_raw();
+    }
     pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
         Some(match name {
             "SetLastError" => SetLastError,
@@ -423,6 +439,7 @@ pub mod kernel32 {
             "TlsSetValue" => TlsSetValue,
             "TlsGetValue" => TlsGetValue,
             "InitializeSListHead" => InitializeSListHead,
+            "MultiByteToWideChar" => MultiByteToWideChar,
             _ => return None,
         })
     }
