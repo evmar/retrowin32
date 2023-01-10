@@ -24,6 +24,22 @@ std::vector<uint8_t> read_file(const char* path) {
   return out;
 }
 
+std::vector<uint8_t> construct_input(const char* arg) {
+  int kb = 1;
+  if (arg) {
+    if (std::string(arg).find_first_not_of("0123456789") != std::string::npos) {
+      return read_file(arg);
+    }
+    kb = std::atoi(arg);
+  }
+  std::vector<uint8_t> input;
+  std::string_view text = "sixteen letters!";
+  for (auto i = 0; i < kb * (1024 / text.size()); i++) {
+    input.insert(input.end(), text.begin(), text.end());
+  }
+  return input;
+}
+
 mz_bool put_vec(const void *pBuf, int len, void *pUser) {
   auto vec = static_cast<std::vector<uint8_t>*>(pUser);
   std::string_view buf(static_cast<const char*>(pBuf), len);
@@ -47,15 +63,7 @@ std::vector<uint8_t> decompress(const std::vector<uint8_t>& input) {
 }
 
 int main(int argc, const char* argv[]) {
-  std::vector<uint8_t> input;
-  if (argc > 1) {
-    input = read_file(argv[1]);
-  } else {
-    std::string_view text = "hello, world";
-    for (auto i = 0; i < 1000; i++) {
-      input.insert(input.begin(), text.begin(), text.end());
-    }
-  }
+  std::vector<uint8_t> input = construct_input(argc > 1 ? argv[1] : nullptr);
   printf("input size: %d\n", input.size());
   auto output = compress(input);
   printf("compressed size: %d\n", output.size());
