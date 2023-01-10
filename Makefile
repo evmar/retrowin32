@@ -1,9 +1,9 @@
 all: web/web.js
 
-web/wasm/pkg/stamp: web/wasm/src/lib.rs
-	cd web/wasm && ./build.sh
+web/glue/pkg/stamp: web/glue/src/lib.rs
+	cd web/glue && ./build.sh
 
-web/web.js: web/wasm/pkg/stamp
+web/web.js: web/glue/pkg/stamp
 	cd web && npx tsc
 
 fmt-rust:

@@ -52,4 +52,4 @@ for how this is similar but different.
   - `win32/src/winapi/` -- the Windows API implementation
 - `cli/` -- a command-line emulator runner
 - `web/` -- a webapp that runs the emulator in a browser
-  - `web/wasm/` -- wasm glue for the `win32/` API
+  - `web/glue/` -- wasm glue for the `win32/` API

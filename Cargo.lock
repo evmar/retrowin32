@@ -116,6 +116,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "glue"
+version = "0.1.0"
+dependencies = [
+ "bincode",
+ "console_log",
+ "js-sys",
+ "log",
+ "serde_json",
+ "wasm-bindgen",
+ "win32",
+]
+
+[[package]]
 name = "iced-x86"
 version = "1.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -359,19 +372,6 @@ name = "version-compare"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe88247b92c1df6b6de80ddc290f3976dbdf2f5f5d3fd049a9fb598c6dd5ca73"
-
-[[package]]
-name = "wasm"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "console_log",
- "js-sys",
- "log",
- "serde_json",
- "wasm-bindgen",
- "win32",
-]
 
 [[package]]
 name = "wasm-bindgen"

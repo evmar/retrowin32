@@ -2,6 +2,7 @@ import * as preact from 'preact';
 import { Fragment, h } from 'preact';
 import { Breakpoint, BreakpointsComponent } from './break';
 import { Code } from './code';
+import * as wasm from './glue/pkg';
 import { Labels, Loader as LabelsLoader } from './labels';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
@@ -10,7 +11,6 @@ import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { hex } from './util';
-import * as wasm from './wasm/pkg/wasm';
 
 async function loadExe(path: string): Promise<ArrayBuffer> {
   return await (await fetch(path)).arrayBuffer();

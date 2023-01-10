@@ -1,9 +1,9 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
+import { Instruction } from './glue/pkg';
 import { Labels } from './labels';
 import { Number } from './memory';
 import { hex } from './util';
-import { Instruction } from './wasm/pkg/wasm';
 
 namespace Code {
   export interface Props extends Number.Interactions {
