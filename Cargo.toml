@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "cli",
+  "wasm",
   "web/glue",
   "win32",
   "win32/src/winapi/gen",
