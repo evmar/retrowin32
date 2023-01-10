@@ -1,7 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
-import * as wasm from './wasm/wasm';
+import * as wasm from './wasm/pkg/wasm';
 
 namespace Mappings {
   export interface Props {

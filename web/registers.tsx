@@ -2,7 +2,6 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Number } from './memory';
 import { hex } from './util';
-import * as wasm from './wasm/wasm';
 
 interface Registers {
   eax: number;

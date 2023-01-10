@@ -10,7 +10,7 @@ import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { hex } from './util';
-import * as wasm from './wasm/wasm';
+import * as wasm from './wasm/pkg/wasm';
 
 async function loadExe(path: string): Promise<ArrayBuffer> {
   return await (await fetch(path)).arrayBuffer();
@@ -558,7 +558,7 @@ async function main() {
   const exe = await loadExe(path);
   const loader = new LabelsLoader();
   await loader.fetchCSV(path);
-  await wasm.default(new URL('wasm/wasm_bg.wasm', document.location.href));
+  await wasm.default(new URL('wasm.wasm', document.location.href));
 
   const vm = new VM(path, exe, loader);
   preact.render(<Page vm={vm} />, document.body);

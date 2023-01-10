@@ -2,7 +2,7 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Labels } from './labels';
 import { Number } from './memory';
-import { Emulator } from './wasm/wasm';
+import { Emulator } from './wasm/pkg/wasm';
 
 namespace Stack {
   export interface Props extends Number.Interactions {

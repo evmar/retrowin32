@@ -3,7 +3,7 @@ import { Fragment, h } from 'preact';
 import { Labels } from './labels';
 import { Number } from './memory';
 import { hex } from './util';
-import { Instruction } from './wasm/wasm';
+import { Instruction } from './wasm/pkg/wasm';
 
 namespace Code {
   export interface Props extends Number.Interactions {

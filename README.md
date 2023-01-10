@@ -51,6 +51,5 @@ for how this is similar but different.
 - `win32/` -- the x86/win32 emulator
   - `win32/src/winapi/` -- the Windows API implementation
 - `cli/` -- a command-line emulator runner
-- `wasm/` -- a wrapper that exposes the `win32/` API
-- `web/` -- a webapp that uses the Wasm bundle to single-step/debug the emulator
-  in a browser
+- `web/` -- a webapp that runs the emulator in a browser
+  - `web/wasm/` -- wasm glue for the `win32/` API
