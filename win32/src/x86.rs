@@ -444,7 +444,9 @@ impl X86 {
             iced_x86::Code::Sub_rm32_imm32 => ops::sub_rm32_imm32(self, instr),
             iced_x86::Code::Sub_rm32_r32 => ops::sub_rm32_r32(self, instr),
             iced_x86::Code::Sub_r32_rm32 => ops::sub_r32_rm32(self, instr),
-            iced_x86::Code::Sub_rm8_imm8 => ops::sub_rm8_imm8(self, instr),
+            iced_x86::Code::Sub_rm8_imm8 | iced_x86::Code::Sub_AL_imm8 => {
+                ops::sub_rm8_imm8(self, instr)
+            }
             iced_x86::Code::Sbb_r32_rm32 => ops::sbb_r32_rm32(self, instr),
             iced_x86::Code::Sbb_r8_rm8 => ops::sbb_r8_rm8(self, instr),
             iced_x86::Code::Imul_r32_rm32 => ops::imul_r32_rm32(self, instr),
