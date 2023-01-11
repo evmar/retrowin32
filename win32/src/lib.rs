@@ -2,7 +2,7 @@ mod debug;
 mod host;
 mod memory;
 mod ops;
-mod pe;
+pub mod pe;
 mod reader;
 mod registers;
 mod winapi;

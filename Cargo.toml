@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "cli",
+  "codegen",
   "wasm",
   "web/glue",
   "win32",
