@@ -20,7 +20,7 @@ async function run(wasmBuffer) {
     host: {
       mem: memory,
       icall(fn) {
-        console.log(`icall ${fn}`);
+        console.log(`icall ${hex32(fn)}`);
         dump_state(wasm);
         const esp = wasm.exports.ESP.value;
         for (const ofs of [0, 4, 8, 0xc, 0x10]) {
@@ -33,10 +33,11 @@ async function run(wasmBuffer) {
 
   const mod = wasmBuffer instanceof Response
     ? await WebAssembly.instantiateStreaming(wasmBuffer, importObject)
-    : WebAssembly.instantiate(wasmBuffer, importObject);
+    : await WebAssembly.instantiate(wasmBuffer, importObject);
   const wasm = mod.instance;
   wasm.exports.ESP.value = 0x0010_0000;
   wasm.exports.run();
+  return [memory, wasm];
 }
 
 globalThis.run = run;

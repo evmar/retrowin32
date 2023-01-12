@@ -279,15 +279,25 @@ pub fn load(buf: &[u8]) -> anyhow::Result<()> {
 
     let base = file.opt_header.ImageBase;
 
-    let mut body = String::new();
+    let mut parts = Vec::new();
     for sec in file.sections {
         let flags = sec.characteristics()?;
+        let src = sec.PointerToRawData as usize;
+        let size = sec.SizeOfRawData as usize;
+        let dst = (base + sec.VirtualAddress) as usize;
+        if !flags.contains(win32::pe::ImageSectionFlags::UNINITIALIZED_DATA) {
+            let mut str = String::new();
+            for c in &buf[src..(src + size)] {
+                str.push_str(&format!("\\{c:02x}"));
+            }
+            parts.push(format!("(data (offset i32.const {dst:#x}) \"{str}\")"));
+        }
         if flags.contains(ImageSectionFlags::CODE) {
-            let src = sec.PointerToRawData as usize;
-            let size = sec.SizeOfRawData as usize;
-            let dst = (base + sec.VirtualAddress) as usize;
             let code = &buf[src..src + size];
-            body = disassemble(code, dst as u32);
+            parts.push(format!(
+                "(func (export \"run\") {})",
+                disassemble(code, dst as u32)
+            ));
         }
     }
 
@@ -304,17 +314,15 @@ pub fn load(buf: &[u8]) -> anyhow::Result<()> {
     .map(|reg| format!("(global (export \"{reg:?}\") (mut i32) (i32.const 0))"))
     .join("\n");
 
-    let ofs = 0x1000;
-    let data = format!("(data (offset i32.const {ofs:x}) \"hello\")");
-
     println!(
         r#"
 (module
     (import "host" "mem" (memory 1))
     (import "host" "icall" (func $icall (param i32)))
     {globals}
-    {data}
-    (func (export "run") {body}))"#
+    {}
+)"#,
+        parts.join("\n")
     );
 
     Ok(())

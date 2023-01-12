@@ -1,7 +1,8 @@
 <script src="run.js"></script>
 <script>
     async function main() {
-        await globalThis.run(await fetch('t.wasm'));
+        const [mem, mod] = await globalThis.run(await fetch('t.wasm'));
+        console.log(mem);
     }
     main();
 </script>
