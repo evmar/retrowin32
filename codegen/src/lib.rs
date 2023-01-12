@@ -304,12 +304,16 @@ pub fn load(buf: &[u8]) -> anyhow::Result<()> {
     .map(|reg| format!("(global (export \"{reg:?}\") (mut i32) (i32.const 0))"))
     .join("\n");
 
+    let ofs = 0x1000;
+    let data = format!("(data (offset i32.const {ofs:x}) \"hello\")");
+
     println!(
         r#"
 (module
     (import "host" "mem" (memory 1))
     (import "host" "icall" (func $icall (param i32)))
     {globals}
+    {data}
     (func (export "run") {body}))"#
     );
 
