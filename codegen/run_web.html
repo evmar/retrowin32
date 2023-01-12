@@ -1,1 +1,7 @@
-<script src="run_web.js"></script>
+<script src="run.js"></script>
+<script>
+    async function main() {
+        await globalThis.run(await fetch('t.wasm'));
+    }
+    main();
+</script>

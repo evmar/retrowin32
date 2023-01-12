@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 function hex32(n) {
   return n.toString(16).padStart(8, '0');
 }
@@ -15,9 +13,7 @@ function dump_state(wasm) {
   }
 }
 
-async function main() {
-  const wasmBuffer = fs.readFileSync('t.wasm');
-
+async function run(wasmBuffer) {
   const memory = new WebAssembly.Memory({ initial: 128 }); // 8mb
   const view = new DataView(memory.buffer);
   const importObject = {
@@ -34,9 +30,13 @@ async function main() {
       },
     },
   };
-  const mod = await WebAssembly.instantiate(wasmBuffer, importObject);
+
+  const mod = wasmBuffer instanceof Response
+    ? await WebAssembly.instantiateStreaming(wasmBuffer, importObject)
+    : WebAssembly.instantiate(wasmBuffer, importObject);
   const wasm = mod.instance;
   wasm.exports.ESP.value = 0x0010_0000;
   wasm.exports.run();
 }
-main();
+
+globalThis.run = run;
