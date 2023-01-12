@@ -11,18 +11,20 @@ enum Register {
     ESI,
     EDI,
 }
+
 fn globalidx(reg: Register) -> usize {
     match reg {
-        Register::EAX => 1,
-        Register::ECX => 2,
-        Register::EDX => 3,
-        Register::EBX => 4,
-        Register::ESP => 5,
-        Register::EBP => 6,
-        Register::ESI => 7,
-        Register::EDI => 8,
+        Register::EAX => 0,
+        Register::ECX => 1,
+        Register::EDX => 2,
+        Register::EBX => 3,
+        Register::ESP => 4,
+        Register::EBP => 5,
+        Register::ESI => 6,
+        Register::EDI => 7,
     }
 }
+
 fn reg_from_iced(reg: iced_x86::Register) -> Register {
     match reg {
         iced_x86::Register::EAX => Register::EAX,
@@ -45,13 +47,18 @@ trait WAssembler {
     fn global_set(&mut self, idx: usize);
 
     fn i32_const(&mut self, val: u32);
+
+    fn i32_load(&mut self, offset: usize);
     fn i32_store(&mut self, offset: usize);
+
     fn i32_add(&mut self);
     fn i32_sub(&mut self);
+    fn i32_mul(&mut self);
 
     fn call(&mut self, func: u32);
     fn drop(&mut self);
 }
+
 struct WATAssembler {
     lines: Vec<String>,
 }
@@ -86,6 +93,14 @@ impl WAssembler for WATAssembler {
         self.line(format!("i32.const 0x{val:x}"));
     }
 
+    fn i32_load(&mut self, offset: usize) {
+        if offset > 0 {
+            self.line(format!("i32.load offset=0x{offset:x}"));
+        } else {
+            self.line("i32.load");
+        }
+    }
+
     fn i32_store(&mut self, offset: usize) {
         if offset > 0 {
             self.line(format!("i32.store offset=0x{offset:x}"));
@@ -100,6 +115,10 @@ impl WAssembler for WATAssembler {
 
     fn i32_sub(&mut self) {
         self.line("i32.sub");
+    }
+
+    fn i32_mul(&mut self) {
+        self.line("i32.mul");
     }
 
     fn call(&mut self, func: u32) {
@@ -128,16 +147,16 @@ impl<A: WAssembler> X86Assembler<A> {
     }
 
     fn x86_push(&mut self, f: impl FnOnce(&mut Self)) {
-        // mem[esp] = reg
-        self.get_reg(Register::ESP);
-        f(self); // note: value must be at top of stack, after addr!
-        self.wasm.i32_store(0);
-
-        // esp += 4
+        // esp -= 4
         self.get_reg(Register::ESP);
         self.wasm.i32_const(4);
-        self.wasm.i32_add();
+        self.wasm.i32_sub();
         self.set_reg(Register::ESP);
+
+        // mem[esp] = reg
+        self.get_reg(Register::ESP);
+        f(self);
+        self.wasm.i32_store(0);
     }
 
     fn x86_sub(&mut self) {
@@ -145,23 +164,66 @@ impl<A: WAssembler> X86Assembler<A> {
         // flags
     }
 
+    fn addr(&mut self, instr: &iced_x86::Instruction) {
+        let mut pushed = false;
+
+        /* let seg = if instr.segment_prefix() == iced_x86::Register::FS {
+            self.state.kernel32.teb
+        } else {
+            0
+        };*/
+
+        if instr.memory_base() != iced_x86::Register::None {
+            self.get_reg(reg_from_iced(instr.memory_base()));
+            if pushed {
+                self.wasm.i32_add(); // + base
+            } else {
+                pushed = true;
+            }
+        };
+
+        if instr.memory_index() != iced_x86::Register::None {
+            self.get_reg(reg_from_iced(instr.memory_index()));
+            self.wasm.i32_const(instr.memory_index_scale());
+            self.wasm.i32_mul(); // index*scale
+            if pushed {
+                self.wasm.i32_add(); // + index
+            } else {
+                pushed = true;
+            }
+        }
+
+        let disp = instr.memory_displacement32();
+        if disp > 0 {
+            self.wasm.i32_const(disp);
+
+            if pushed {
+                self.wasm.i32_add(); // + disp
+            }
+        }
+    }
+
     fn get_rm32(&mut self, instr: &iced_x86::Instruction, idx: u32) {
         match instr.op_kind(idx) {
             iced_x86::OpKind::Register => self.get_reg(reg_from_iced(instr.op_register(idx))),
             iced_x86::OpKind::Memory => {
-                self.wasm.comment("TODO: memory ref");
-                self.wasm.i32_const(0);
+                self.addr(instr);
+                self.wasm.i32_load(0);
             }
             _ => unreachable!(),
         }
     }
 
-    fn set_rm32(&mut self, instr: &iced_x86::Instruction, idx: u32) {
+    fn set_rm32(&mut self, instr: &iced_x86::Instruction, idx: u32, f: impl FnOnce(&mut Self)) {
         match instr.op_kind(idx) {
-            iced_x86::OpKind::Register => self.set_reg(reg_from_iced(instr.op_register(idx))),
+            iced_x86::OpKind::Register => {
+                f(self);
+                self.set_reg(reg_from_iced(instr.op_register(idx)))
+            }
             iced_x86::OpKind::Memory => {
-                self.wasm.comment("TODO: memory ref");
-                self.wasm.drop();
+                self.addr(instr);
+                f(self);
+                self.wasm.i32_store(0);
             }
             _ => unreachable!(),
         }
@@ -188,8 +250,7 @@ fn disassemble(buf: &[u8], ip: u32) -> String {
                 asm.x86_push(|asm| asm.wasm.i32_const(instr.immediate8to32() as u32));
             }
             iced_x86::Code::Mov_r32_rm32 | iced_x86::Code::Mov_rm32_r32 => {
-                asm.get_rm32(&instr, 1);
-                asm.set_rm32(&instr, 0);
+                asm.set_rm32(&instr, 0, |asm| asm.get_rm32(&instr, 1));
             }
             iced_x86::Code::Test_rm32_r32 => {
                 asm.get_rm32(&instr, 0);

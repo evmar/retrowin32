@@ -1,29 +1,42 @@
 const fs = require('fs');
 
 function hex32(n) {
-    return n.toString(16).padStart(8, '0');
+  return n.toString(16).padStart(8, '0');
 }
 
 function dump_state(wasm) {
-    const regs = ['EAX', 'EBX'];
-    //console.log(`EAX ${}`)
+  for (const row of [['EAX', 'ECX', 'EDX', 'EBX'], ['ESP', 'EBP', 'ESI', 'EDI']]) {
+    console.log(
+      row.map(r => {
+        const value = wasm.exports[r].value;
+        return `${r} ${hex32(value)}`;
+      }).join(' '),
+    );
+  }
 }
 
 async function main() {
-    const wasmBuffer = fs.readFileSync('t.wasm');
+  const wasmBuffer = fs.readFileSync('t.wasm');
 
-    const memory = new WebAssembly.Memory({ initial: 64 }); // 4mb
-    const importObject = {
-        host: {
-            mem: memory,
-            icall() {
-                console.log('icall');
-            }
-        },
-    };
-    const mod = await WebAssembly.instantiate(wasmBuffer, importObject);
-    console.log('exports are', mod.instance.exports);
-
-    mod.instance.exports.run();
+  const memory = new WebAssembly.Memory({ initial: 128 }); // 8mb
+  const view = new DataView(memory.buffer);
+  const importObject = {
+    host: {
+      mem: memory,
+      icall(fn) {
+        console.log(`icall ${fn}`);
+        dump_state(wasm);
+        const esp = wasm.exports.ESP.value;
+        for (const ofs of [0, 4, 8, 0xc, 0x10]) {
+          const addr = esp + ofs;
+          console.log(`${hex32(addr)} ${hex32(view.getUint32(addr, true))}`);
+        }
+      },
+    },
+  };
+  const mod = await WebAssembly.instantiate(wasmBuffer, importObject);
+  const wasm = mod.instance;
+  wasm.exports.ESP.value = 0x0010_0000;
+  wasm.exports.run();
 }
 main();
