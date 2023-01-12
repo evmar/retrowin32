@@ -3,9 +3,9 @@ use win32::pe::ImageSectionFlags;
 #[derive(Debug, Clone, Copy)]
 enum Register {
     EAX,
-    EBX,
     ECX,
     EDX,
+    EBX,
     ESP,
     EBP,
     ESI,
@@ -14,9 +14,9 @@ enum Register {
 fn globalidx(reg: Register) -> usize {
     match reg {
         Register::EAX => 1,
-        Register::EBX => 2,
-        Register::ECX => 3,
-        Register::EDX => 4,
+        Register::ECX => 2,
+        Register::EDX => 3,
+        Register::EBX => 4,
         Register::ESP => 5,
         Register::EBP => 6,
         Register::ESI => 7,
@@ -127,9 +127,10 @@ impl<A: WAssembler> X86Assembler<A> {
         self.wasm.inline_comment(&format!("{:?}", reg));
     }
 
-    fn x86_push(&mut self) {
+    fn x86_push(&mut self, f: impl FnOnce(&mut Self)) {
         // mem[esp] = reg
         self.get_reg(Register::ESP);
+        f(self); // note: value must be at top of stack, after addr!
         self.wasm.i32_store(0);
 
         // esp += 4
@@ -147,7 +148,10 @@ impl<A: WAssembler> X86Assembler<A> {
     fn get_rm32(&mut self, instr: &iced_x86::Instruction, idx: u32) {
         match instr.op_kind(idx) {
             iced_x86::OpKind::Register => self.get_reg(reg_from_iced(instr.op_register(idx))),
-            iced_x86::OpKind::Memory => {} //todo!(),
+            iced_x86::OpKind::Memory => {
+                self.wasm.comment("TODO: memory ref");
+                self.wasm.i32_const(0);
+            }
             _ => unreachable!(),
         }
     }
@@ -155,13 +159,16 @@ impl<A: WAssembler> X86Assembler<A> {
     fn set_rm32(&mut self, instr: &iced_x86::Instruction, idx: u32) {
         match instr.op_kind(idx) {
             iced_x86::OpKind::Register => self.set_reg(reg_from_iced(instr.op_register(idx))),
-            iced_x86::OpKind::Memory => {} //todo!(),
+            iced_x86::OpKind::Memory => {
+                self.wasm.comment("TODO: memory ref");
+                self.wasm.drop();
+            }
             _ => unreachable!(),
         }
     }
 }
 
-fn disassemble(buf: &[u8], ip: u32) {
+fn disassemble(buf: &[u8], ip: u32) -> String {
     let mut asm = X86Assembler {
         wasm: WATAssembler::new(),
     };
@@ -172,16 +179,13 @@ fn disassemble(buf: &[u8], ip: u32) {
         asm.wasm.comment(&format!("{}", instr));
         match instr.code() {
             iced_x86::Code::Push_rm32 | iced_x86::Code::Push_r32 => {
-                asm.get_rm32(&instr, 0);
-                asm.x86_push();
+                asm.x86_push(|asm| asm.get_rm32(&instr, 0));
             }
             iced_x86::Code::Pushd_imm32 => {
-                asm.wasm.i32_const(instr.immediate32());
-                asm.x86_push();
+                asm.x86_push(|asm| asm.wasm.i32_const(instr.immediate32()));
             }
             iced_x86::Code::Pushd_imm8 => {
-                asm.wasm.i32_const(instr.immediate8to32() as u32);
-                asm.x86_push();
+                asm.x86_push(|asm| asm.wasm.i32_const(instr.immediate8to32() as u32));
             }
             iced_x86::Code::Mov_r32_rm32 | iced_x86::Code::Mov_rm32_r32 => {
                 asm.get_rm32(&instr, 1);
@@ -194,8 +198,10 @@ fn disassemble(buf: &[u8], ip: u32) {
                 asm.wasm.drop(); // discard result of sub
             }
             iced_x86::Code::Call_rm32 => {
+                // XXX push eip
                 asm.get_rm32(&instr, 0);
-                asm.wasm.call(1 /* xxx */);
+                asm.wasm.call(0 /* indirect */);
+                // XXX pop eip
             }
             code => {
                 asm.wasm.comment(format!("todo: {:?}", code));
@@ -203,7 +209,7 @@ fn disassemble(buf: &[u8], ip: u32) {
             }
         };
     }
-    println!("{}\n", asm.wasm.lines.join("\n"));
+    format!("{}\n", asm.wasm.lines.join("\n"))
 }
 
 pub fn load(buf: &[u8]) -> anyhow::Result<()> {
@@ -212,6 +218,7 @@ pub fn load(buf: &[u8]) -> anyhow::Result<()> {
 
     let base = file.opt_header.ImageBase;
 
+    let mut body = String::new();
     for sec in file.sections {
         let flags = sec.characteristics()?;
         if flags.contains(ImageSectionFlags::CODE) {
@@ -219,9 +226,31 @@ pub fn load(buf: &[u8]) -> anyhow::Result<()> {
             let size = sec.SizeOfRawData as usize;
             let dst = (base + sec.VirtualAddress) as usize;
             let code = &buf[src..src + size];
-            disassemble(code, dst as u32);
+            body = disassemble(code, dst as u32);
         }
     }
+
+    let globals = [
+        Register::EAX,
+        Register::ECX,
+        Register::EDX,
+        Register::EBX,
+        Register::ESP,
+        Register::EBP,
+        Register::ESI,
+        Register::EDI,
+    ]
+    .map(|reg| format!("(global (export \"{reg:?}\") (mut i32) (i32.const 0))"))
+    .join("\n");
+
+    println!(
+        r#"
+(module
+    (import "host" "mem" (memory 1))
+    (import "host" "icall" (func $icall (param i32)))
+    {globals}
+    (func (export "run") {body}))"#
+    );
 
     Ok(())
 }
