@@ -14,7 +14,8 @@ use std::io::Write;
 use tsify::Tsify;
 
 use super::{
-    alloc::Heap,
+    alloc::Alloc,
+    alloc::{Arena, Heap},
     types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
 };
 
@@ -33,7 +34,7 @@ pub struct Mapping {
 
 pub struct State {
     /// Memory for kernel32 data structures.
-    heap: Heap,
+    arena: Arena,
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (FS register).
@@ -58,7 +59,7 @@ impl State {
             flags: ImageSectionFlags::empty(),
         }];
         State {
-            heap: Heap::new(0, 0),
+            arena: Arena::new(0, 0),
             image_base: 0,
             teb: 0,
             mappings,
@@ -70,22 +71,15 @@ impl State {
     }
 
     pub fn init(&mut self, mem: &mut Vec<u8>, cmdline: String) {
-        self.heap = self.new_private_heap(mem, 0x1000, "kernel32 data".into());
-        // Fill region with garbage so it's clearer when we access something we don't intend to.
-        // let mut i = 0;
-        // mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill_with(|| {
-        //     let val = i;
-        //     i += 1;
-        //     (val >> 2) as u8
-        // });
-        mem[self.heap.addr as usize..(self.heap.addr + self.heap.size) as usize].fill(0);
+        let mapping = self.new_mapping(0x1000, "kernel32 data".into(), mem);
+        self.arena = Arena::new(mapping.addr, mapping.size);
 
         let cmdline_len = cmdline.len();
         self.init_cmdline(mem, cmdline);
         self.init_teb_peb(mem, cmdline_len);
 
         let env = "\0\0".as_bytes();
-        let env_addr = self.heap.alloc(mem, env.len() as u32);
+        let env_addr = self.arena.alloc(mem, env.len() as u32);
         mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
         self.env = env_addr;
     }
@@ -96,12 +90,12 @@ impl State {
 
         cmdline.push(0 as char); // nul terminator
 
-        self.cmdline = self.heap.alloc(mem, cmdline.len() as u32);
+        self.cmdline = self.arena.alloc(mem, cmdline.len() as u32);
         mem[self.cmdline as usize..self.cmdline as usize + cmdline.len()]
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
-        self.cmdline16 = self.heap.alloc(mem, cmdline16.byte_size() as u32);
+        self.cmdline16 = self.arena.alloc(mem, cmdline16.byte_size() as u32);
         let mem16: &mut [u16] = unsafe {
             std::mem::transmute(
                 &mut mem[self.cmdline16 as usize..self.cmdline16 as usize + cmdline16.0.len()],
@@ -114,7 +108,7 @@ impl State {
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     fn init_teb_peb(&mut self, mem: &mut [u8], cmdline_len: usize) {
         // RTL_USER_PROCESS_PARAMETERS
-        let params_addr = self.heap.alloc(
+        let params_addr = self.arena.alloc(
             mem,
             std::cmp::max(
                 std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
@@ -136,7 +130,7 @@ impl State {
 
         // PEB
         let peb_addr = self
-            .heap
+            .arena
             .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.view_mut::<PEB>(peb_addr);
         peb.ProcessParameters = params_addr;
@@ -144,7 +138,7 @@ impl State {
         peb.TlsCount = 0;
 
         // SEH chain
-        let seh_addr = self.heap.alloc(
+        let seh_addr = self.arena.alloc(
             mem,
             std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
         );
@@ -154,7 +148,7 @@ impl State {
 
         // TEB
         let teb_addr = self
-            .heap
+            .arena
             .alloc(mem, std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
         let teb = mem.view_mut::<TEB>(teb_addr);
         teb.Tib.ExceptionList = seh_addr;
@@ -226,7 +220,7 @@ impl State {
 
     pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> Heap {
         let mapping = self.new_mapping(size as u32, desc, mem);
-        Heap::new(mapping.addr, mapping.size)
+        Heap::new(mem, mapping.addr, mapping.size)
     }
 
     pub fn new_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> u32 {
@@ -664,10 +658,18 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     addr
 }
 
-pub fn HeapFree(_x86: &mut X86, _hHeap: u32, dwFlags: u32, _lpMem: u32) -> u32 {
+pub fn HeapFree(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
+    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+        None => {
+            log::error!("HeapFree({hHeap:x}): no such heap");
+            return 0;
+        }
+        Some(heap) => heap,
+    };
+    heap.free(&mut x86.mem, lpMem);
     1 // success
 }
 

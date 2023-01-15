@@ -11,7 +11,7 @@ use crate::{
     x86::X86,
 };
 
-use super::{alloc::Heap, kernel32, types::DWORD};
+use super::{alloc::Alloc, alloc::Heap, kernel32, types::DWORD};
 use bitflags::bitflags;
 
 #[repr(C)]
