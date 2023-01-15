@@ -13,7 +13,10 @@ use crate::{
 use std::io::Write;
 use tsify::Tsify;
 
-use super::types::{Str16, String16, DWORD, HFILE, HMODULE, WORD};
+use super::{
+    alloc::Heap,
+    types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
+};
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
@@ -26,43 +29,6 @@ pub struct Mapping {
     pub size: u32,
     pub desc: String,
     pub flags: pe::ImageSectionFlags,
-}
-
-pub struct Heap {
-    addr: u32,
-    size: u32,
-    next: u32,
-}
-impl Heap {
-    fn new(addr: u32, size: u32) -> Self {
-        Heap {
-            addr,
-            size,
-            next: 0,
-        }
-    }
-
-    pub fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
-        let alloc_size = size + 4; // TODO: align?
-        if self.next + alloc_size > self.size {
-            log::error!(
-                "Heap::alloc cannot allocate {:x}, using {:x}/{:x}",
-                size,
-                self.size - self.next,
-                self.size
-            );
-            return 0;
-        }
-        let addr = self.addr + self.next;
-        mem.write_u32(addr, size);
-        self.next += alloc_size;
-        addr + 4
-    }
-
-    pub fn size(&self, mem: &[u8], addr: u32) -> u32 {
-        assert!(addr >= self.addr + 4 && addr < self.addr + self.size);
-        mem.read_u32(addr - 4)
-    }
 }
 
 pub struct State {

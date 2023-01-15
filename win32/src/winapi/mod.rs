@@ -1,5 +1,6 @@
 use crate::x86::X86;
 
+mod alloc;
 pub mod ddraw;
 mod dll;
 pub mod gdi32;

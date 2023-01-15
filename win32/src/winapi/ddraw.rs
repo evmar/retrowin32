@@ -11,7 +11,7 @@ use crate::{
     x86::X86,
 };
 
-use super::{kernel32, types::DWORD};
+use super::{alloc::Heap, kernel32, types::DWORD};
 use bitflags::bitflags;
 
 #[repr(C)]
@@ -72,7 +72,7 @@ impl State {
         ddraw
     }
 
-    fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut kernel32::Heap {
+    fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut Heap {
         kernel32.heaps.get_mut(&self.hheap).unwrap()
     }
 }
