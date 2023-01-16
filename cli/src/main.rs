@@ -256,6 +256,7 @@ fn main() -> anyhow::Result<()> {
     let mut runner = win32::Runner::new(Box::new(host.clone()));
     runner.load_exe(&buf, cmdline)?;
 
+    let start = std::time::Instant::now();
     loop {
         if let Some(gui) = &mut host.0.borrow_mut().gui {
             if !gui.pump_messages() {
@@ -275,6 +276,13 @@ fn main() -> anyhow::Result<()> {
             }
         }
     }
+    let elapsed = start.elapsed();
+    eprintln!(
+        "{} instrs in {} ms: {}k/s",
+        runner.instr_count,
+        elapsed.as_millis(),
+        (runner.instr_count / elapsed.as_millis() as usize) / 1000
+    );
 
     Ok(())
 }
