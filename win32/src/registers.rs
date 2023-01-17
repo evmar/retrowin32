@@ -27,12 +27,14 @@ bitflags! {
     }
 }
 
+#[repr(C)]
 #[derive(serde::Serialize, serde::Deserialize, Tsify)]
 pub struct Registers {
+    // Warning: get32 assumes the registers start with eax and are in a particular order.
     pub eax: u32,
-    pub ebx: u32,
     pub ecx: u32,
     pub edx: u32,
+    pub ebx: u32,
 
     pub esp: u32,
     pub ebp: u32,
@@ -85,17 +87,17 @@ impl Registers {
     }
 
     pub fn get32(&self, reg: iced_x86::Register) -> u32 {
-        match reg {
-            iced_x86::Register::EAX => self.eax,
-            iced_x86::Register::EBX => self.ebx,
-            iced_x86::Register::ECX => self.ecx,
-            iced_x86::Register::EDX => self.edx,
-            iced_x86::Register::ESP => self.esp,
-            iced_x86::Register::EBP => self.ebp,
-            iced_x86::Register::ESI => self.esi,
-            iced_x86::Register::EDI => self.edi,
-            _ => unreachable!("{reg:?}"),
+        // This function is hot in profiles, and even if we write
+        // a match statement that maps register N to struct offset 4*N,
+        // llvm doesn't seem to optimize it to the obvious math.
+        // I tried the equivalent in C++ and that didn't optimize either.
+        // So instead here's some unsafe hackery.
+        let idx = reg as usize - iced_x86::Register::EAX as usize;
+        if idx >= 8 {
+            unreachable!("{reg:?}");
         }
+        // XXX this assumes register order matches between our struct and iced_x86.
+        unsafe { *(self as *const Registers as *const u32).add(idx) }
     }
 
     pub fn get16(&self, reg: iced_x86::Register) -> u16 {
@@ -133,16 +135,13 @@ impl Registers {
     }
 
     pub fn set32(&mut self, reg: iced_x86::Register, value: u32) {
-        match reg {
-            iced_x86::Register::EAX => self.eax = value,
-            iced_x86::Register::EBX => self.ebx = value,
-            iced_x86::Register::ECX => self.ecx = value,
-            iced_x86::Register::EDX => self.edx = value,
-            iced_x86::Register::ESP => self.esp = value,
-            iced_x86::Register::EBP => self.ebp = value,
-            iced_x86::Register::ESI => self.esi = value,
-            iced_x86::Register::EDI => self.edi = value,
-            _ => unreachable!(),
+        let idx = reg as usize - iced_x86::Register::EAX as usize;
+        if idx >= 8 {
+            unreachable!("{reg:?}");
+        }
+        // XXX this assumes register order matches between our struct and iced_x86.
+        unsafe {
+            *(self as *mut Registers as *mut u32).add(idx) = value;
         }
     }
 
