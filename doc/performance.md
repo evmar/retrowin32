@@ -1,5 +1,19 @@
 # Performance notes
 
+## Dumping assembly
+
+```
+$ cargo install cargo-show-asm
+$ cargo asm --wasm -p win32 mov_r32
+```
+
+## Profiling on Mac
+
+```
+$ brew install cargo-instruments
+$ cargo instruments --release -t time -p retrowin32 -- exe/zip/zip.exe 200
+```
+
 ## Registers struct
 
 Registers are known named slots, e.g. eax, ebx. It's natural to represent them
