@@ -2,13 +2,14 @@
   "typescript": {
     "quoteStyle": "preferSingle"
   },
-  "json": {
-  },
+  "json": {},
   "markdown": {
+    "textWrap": "always"
   },
-  "toml": {
-  },
-  "includes": ["**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,toml}"],
+  "toml": {},
+  "includes": [
+    "**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,toml}"
+  ],
   "excludes": [
     "**/node_modules",
     "**/*-lock.json"
