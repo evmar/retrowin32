@@ -286,3 +286,8 @@ pub fn cdq(x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
     };
     Ok(())
 }
+
+pub fn int3(x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
+    x86.stopped = true;
+    Ok(())
+}

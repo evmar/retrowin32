@@ -1,9 +1,15 @@
+//! Efficiently maps an iced_x86::Code (roughly x86 opcode) to a implementation of the op.
+
 use iced_x86::Instruction;
 
 use crate::{ops, x86::X86};
 
+/// The type of all operations defined in the ops module.
 type Op = fn(&mut X86, &Instruction) -> anyhow::Result<()>;
-static mut OP_TAB: [Option<Op>; 4096] = [None; 4096];
+
+// This table is constant and ideally would be initialized at compile time,
+// but it's too fiddly to do with const fns, so we'd likely need to codegen it.
+static mut OP_TAB: [Option<Op>; 2135] = [None; 2135];
 
 pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Enterd_imm16_imm8 as usize] = Some(ops::enterd_imm16_imm8);
@@ -240,8 +246,11 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Nopd as usize] = Some(ops::nop);
 
-    //    iced_x86::Code::Nopd =>
-    // OP_TAB[    iced_x86::Code::Int3 as usize] = Some(self.stopped = true);
+    OP_TAB[iced_x86::Code::Int3 as usize] = Some(ops::int3);
+
+    // Code to print the necessary size of the table:
+    // let last = OP_TAB.iter().rposition(|op| op.is_some());
+    // log::info!("highest op at {}", last.unwrap());
 }
 
 pub unsafe fn execute(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
