@@ -25,7 +25,7 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> anyhow::Result<()> {
+fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> anyhow::Result<()> {
     let reverse = x86.regs.flags.contains(Flags::DF);
     let step = if reverse {
         -(size as isize) as usize
@@ -54,6 +54,14 @@ pub fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> anyhow::Result<(
     x86.regs.edi = dst as u32;
     x86.regs.esi = src as u32;
     Ok(())
+}
+
+pub fn movsd(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+    movs(x86, instr, 4)
+}
+
+pub fn movsb(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+    movs(x86, instr, 1)
 }
 
 pub fn scas(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
