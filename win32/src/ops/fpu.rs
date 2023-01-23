@@ -5,7 +5,7 @@ use crate::{
     x86::{NULL_POINTER_REGION_SIZE, X86},
 };
 
-fn read_f32(x86: &X86, addr: u32) -> f32 {
+fn read_f32(x86: &mut X86, addr: u32) -> f32 {
     f32::from_bits(x86.read_u32(addr))
 }
 

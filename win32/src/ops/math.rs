@@ -342,7 +342,9 @@ pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
-    let value = add32(x86, x86.regs.get32(reg), x86.op1_rm32(&instr));
+    let x = x86.regs.get32(reg);
+    let y = x86.op1_rm32(&instr);
+    let value = add32(x86, x, y);
     x86.regs.set32(reg, value);
     Ok(())
 }

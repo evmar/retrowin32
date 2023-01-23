@@ -8,34 +8,9 @@ use crate::{
     windows::load_exe,
 };
 
-/// If the x86 code does something wrong (like OOB read), we want to crash.
-/// We cannot recover from a panic in wasm, so instead we use this janky flag.
-// TODO: there are lots of array bounds in this codebase, we need to somehow
-// track all them down(?).
-static mut CRASHED: Option<String> = None;
-
-pub fn crash(msg: String) {
-    unsafe {
-        CRASHED = Some(msg);
-    }
-}
-
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
-
-/// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
-fn check_oob<T>(mem: &[u8], addr: u32) -> bool {
-    if addr < NULL_POINTER_REGION_SIZE {
-        crash(format!("crash: null pointer at {addr:#x}"));
-        return true;
-    }
-    if addr as usize + std::mem::size_of::<T>() > mem.len() {
-        crash(format!("crash: oob pointer at {addr:#x}"));
-        return true;
-    }
-    false
-}
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -79,6 +54,7 @@ pub struct X86 {
     pub state: winapi::State,
     /// Toggled on by breakpoints/process exit.
     pub stopped: bool,
+    pub crashed: Option<String>,
 }
 impl X86 {
     pub fn new(host: Box<dyn host::Host>) -> Self {
@@ -99,17 +75,36 @@ impl X86 {
             shims: Shims::new(),
             state: winapi::State::new(),
             stopped: false,
+            crashed: None,
         }
     }
 
+    fn crash(&mut self, msg: String) {
+        self.crashed = Some(msg);
+        self.stopped = true;
+    }
+
+    /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
+    fn check_oob<T>(&mut self, addr: u32) -> bool {
+        if addr < NULL_POINTER_REGION_SIZE {
+            self.crash(format!("crash: null pointer at {addr:#x}"));
+            return true;
+        }
+        if addr as usize + std::mem::size_of::<T>() > self.mem.len() {
+            self.crash(format!("crash: oob pointer at {addr:#x}"));
+            return true;
+        }
+        false
+    }
+
     pub fn write_u32(&mut self, addr: u32, value: u32) {
-        if check_oob::<u32>(&self.mem, addr) {
+        if self.check_oob::<u32>(addr) {
             return;
         }
         self.mem.write_u32(addr, value);
     }
     pub fn write_u16(&mut self, addr: u32, value: u16) {
-        if check_oob::<u16>(&self.mem, addr) {
+        if self.check_oob::<u16>(addr) {
             return;
         }
         let addr = addr as usize;
@@ -120,21 +115,21 @@ impl X86 {
         }
     }
     pub fn write_u8(&mut self, addr: u32, value: u8) {
-        if check_oob::<u8>(&self.mem, addr) {
+        if self.check_oob::<u8>(addr) {
             return;
         }
         // Safety: check_oob checked bounds.
         unsafe { *self.mem.get_unchecked_mut(addr as usize) = value }
     }
 
-    pub fn read_u32(&self, addr: u32) -> u32 {
-        if check_oob::<u32>(&self.mem, addr) {
+    pub fn read_u32(&mut self, addr: u32) -> u32 {
+        if self.check_oob::<u32>(addr) {
             return 0;
         }
         self.mem.read_u32(addr)
     }
-    pub fn read_u16(&self, addr: u32) -> u16 {
-        if check_oob::<u16>(&self.mem, addr) {
+    pub fn read_u16(&mut self, addr: u32) -> u16 {
+        if self.check_oob::<u16>(addr) {
             return 0;
         }
         let offset = addr as usize;
@@ -144,8 +139,8 @@ impl X86 {
                 | (*self.mem.get_unchecked(offset + 1) as u16) << 8
         }
     }
-    pub fn read_u8(&self, addr: u32) -> u8 {
-        if check_oob::<u8>(&self.mem, addr) {
+    pub fn read_u8(&mut self, addr: u32) -> u8 {
+        if self.check_oob::<u8>(addr) {
             return 0;
         }
         // Safety: check_oob checked bounds.
@@ -202,7 +197,7 @@ impl X86 {
             .wrapping_add(instr.memory_displacement32())
     }
 
-    pub fn op0_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+    pub fn op0_rm32(&mut self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op0_register()),
             iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
@@ -210,7 +205,7 @@ impl X86 {
         }
     }
 
-    pub fn op0_rm16(&self, instr: &iced_x86::Instruction) -> u16 {
+    pub fn op0_rm16(&mut self, instr: &iced_x86::Instruction) -> u16 {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => self.regs.get16(instr.op0_register()),
             iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
@@ -218,7 +213,7 @@ impl X86 {
         }
     }
 
-    pub fn op0_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
+    pub fn op0_rm8(&mut self, instr: &iced_x86::Instruction) -> u8 {
         match instr.op0_kind() {
             iced_x86::OpKind::Register => self.regs.get8(instr.op0_register()),
             iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
@@ -226,7 +221,7 @@ impl X86 {
         }
     }
 
-    pub fn op1_rm32(&self, instr: &iced_x86::Instruction) -> u32 {
+    pub fn op1_rm32(&mut self, instr: &iced_x86::Instruction) -> u32 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get32(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u32(self.addr(instr)),
@@ -234,7 +229,7 @@ impl X86 {
         }
     }
 
-    pub fn op1_rm16(&self, instr: &iced_x86::Instruction) -> u16 {
+    pub fn op1_rm16(&mut self, instr: &iced_x86::Instruction) -> u16 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get16(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u16(self.addr(instr)),
@@ -242,7 +237,7 @@ impl X86 {
         }
     }
 
-    pub fn op1_rm8(&self, instr: &iced_x86::Instruction) -> u8 {
+    pub fn op1_rm8(&mut self, instr: &iced_x86::Instruction) -> u8 {
         match instr.op1_kind() {
             iced_x86::OpKind::Register => self.regs.get8(instr.op1_register()),
             iced_x86::OpKind::Memory => self.read_u8(self.addr(instr)),
@@ -533,15 +528,12 @@ impl Runner {
                 Err(err)
             }
             Ok(_) => {
-                unsafe {
-                    if let Some(ref msg) = CRASHED {
-                        self.x86.regs.eip = ip;
-                        bail!(msg);
-                    }
-                }
                 self.instr_count += 1;
                 if self.x86.stopped {
                     self.x86.regs.eip = ip;
+                    if let Some(msg) = &self.x86.crashed {
+                        bail!(msg.clone());
+                    }
                     self.x86.stopped = false;
                     return Ok(false);
                 }

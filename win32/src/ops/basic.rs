@@ -89,12 +89,14 @@ pub fn mov_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn mov_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.regs.set32(instr.op0_register(), x86.op1_rm32(instr));
+    let value = x86.op1_rm32(instr);
+    x86.regs.set32(instr.op0_register(), value);
     Ok(())
 }
 
 pub fn mov_r16_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.regs.set16(instr.op0_register(), x86.op1_rm16(instr));
+    let value = x86.op1_rm16(instr);
+    x86.regs.set16(instr.op0_register(), value);
     Ok(())
 }
 
@@ -105,7 +107,8 @@ pub fn mov_rm16_r16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn mov_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.regs.set8(instr.op0_register(), x86.op1_rm8(instr));
+    let value = x86.op1_rm8(instr);
+    x86.regs.set8(instr.op0_register(), value);
     Ok(())
 }
 

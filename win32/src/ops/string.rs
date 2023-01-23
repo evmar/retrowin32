@@ -18,7 +18,9 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
         x86.regs.esi += pos as u32;
         x86.regs.edi += pos as u32;
         x86.regs.ecx -= pos as u32;
-        sub8(x86, x86.read_u8(x86.regs.esi), x86.read_u8(x86.regs.edi));
+        let x = x86.read_u8(x86.regs.esi);
+        let y = x86.read_u8(x86.regs.edi);
+        sub8(x86, x, y);
     } else {
         bail!("unimpl");
     }
