@@ -995,18 +995,18 @@ pub fn WriteConsoleW(
     _lpReserved: u32,
 ) -> bool {
     let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
-    let mut bytesWritten = 0;
+    let mut bytes_written = 0;
     if !WriteFile(
         x86,
         hConsoleOutput,
         buf.as_bytes(),
-        Some(&mut bytesWritten),
+        Some(&mut bytes_written),
         0,
     ) {
         return false;
     }
-    if let Some(charsWritten) = lpNumberOfCharsWritten {
-        *charsWritten = bytesWritten;
+    if let Some(chars_written) = lpNumberOfCharsWritten {
+        *chars_written = bytes_written;
     }
-    return bytesWritten == buf.len() as u32;
+    return bytes_written == buf.len() as u32;
 }
