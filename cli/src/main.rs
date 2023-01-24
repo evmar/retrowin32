@@ -278,7 +278,7 @@ fn main() -> anyhow::Result<()> {
     }
     let elapsed = start.elapsed();
     eprintln!(
-        "{} instrs in {} ms: {}k/s",
+        "{} instrs in {} ms: {}m/s",
         runner.instr_count,
         elapsed.as_millis(),
         (runner.instr_count / elapsed.as_millis() as usize) / 1000
