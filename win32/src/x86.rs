@@ -377,14 +377,14 @@ struct InstrCache {
     /// (ip, instruction) pairs of cached decoded instructions.
     instrs: Vec<(u32, iced_x86::Instruction)>,
     /// Current position within instrs.
-    instr_index: usize,
+    index: usize,
 }
 
 impl InstrCache {
     fn new() -> Self {
         InstrCache {
             instrs: Vec::new(),
-            instr_index: 0,
+            index: 0,
         }
     }
 
@@ -452,11 +452,11 @@ impl InstrCache {
     }
 
     fn jmp(&mut self, mem: &[u8], target_ip: u32) {
-        let (cur_ip, _) = self.instrs[self.instr_index];
+        let (cur_ip, _) = self.instrs[self.index];
         if cur_ip == target_ip {
             return;
         }
-        self.instr_index = self.ip_to_instr_index(mem, target_ip).unwrap();
+        self.index = self.ip_to_instr_index(mem, target_ip).unwrap();
     }
 
     /// Replace the instruction found at a given ip, returning the previous instruction.
@@ -540,7 +540,7 @@ impl Runner {
 
     // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
-        let (ip, ref instr) = self.icache.instrs[self.icache.instr_index];
+        let (ip, ref instr) = self.icache.instrs[self.icache.index];
         match self.x86.run(instr) {
             Err(err) => {
                 // Point the debugger at the failed instruction.
@@ -557,7 +557,7 @@ impl Runner {
                     self.x86.stopped = false;
                     return Ok(false);
                 }
-                self.icache.instr_index += 1;
+                self.icache.index += 1;
                 self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
                 Ok(true)
             }
