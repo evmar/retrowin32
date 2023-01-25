@@ -73,7 +73,7 @@ pub fn cmp_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let x = x86.regs.get8(instr.op0_register());
     let y = match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get8(instr.op1_register()),
-        iced_x86::OpKind::Memory => x86.read_u8(x86.addr(instr)),
+        iced_x86::OpKind::Memory => x86.read_u8(x86_addr(x86, instr)),
         _ => unreachable!(),
     };
     sub8(x86, x, y);

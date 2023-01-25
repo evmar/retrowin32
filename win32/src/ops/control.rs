@@ -9,7 +9,7 @@ pub fn call(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     if target == 0x00408d65 || target == 0x0040a281 {
         log::warn!("HACK: manually nop'd call at {target:x}");
     } else {
-        x86.push(x86.regs.eip);
+        push(x86, x86.regs.eip);
         x86.jmp(instr.near_branch32())?;
     }
     Ok(())
@@ -18,19 +18,19 @@ pub fn call(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 pub fn call_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // call dword ptr [addr]
     let target = op0_rm32(x86, instr);
-    x86.push(x86.regs.eip);
+    push(x86, x86.regs.eip);
     x86.jmp(target)?;
     Ok(())
 }
 
 pub fn retnd(x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
-    let addr = x86.pop();
+    let addr = pop(x86);
     x86.jmp(addr)?;
     Ok(())
 }
 
 pub fn retnd_imm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let addr = x86.pop();
+    let addr = pop(x86);
     x86.jmp(addr)?;
     x86.regs.esp += instr.immediate16() as u32;
     Ok(())

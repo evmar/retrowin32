@@ -1,6 +1,6 @@
 //! Functions to unsafely grab winapi function arguments from an X86.
 
-use crate::{memory::Memory, x86::X86};
+use crate::{memory::Memory, ops::pop, x86::X86};
 
 use super::types::Str16;
 
@@ -16,7 +16,7 @@ pub trait FromX86: Sized {
         unimplemented!()
     }
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        Self::from_raw(x86.pop())
+        Self::from_raw(pop(x86))
     }
 }
 impl FromX86 for u32 {
@@ -41,7 +41,7 @@ impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
 }
 impl<T: crate::memory::Pod> FromX86 for Option<&T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let addr = x86.pop();
+        let addr = pop(x86);
         if addr == 0 {
             None
         } else {
@@ -51,7 +51,7 @@ impl<T: crate::memory::Pod> FromX86 for Option<&T> {
 }
 impl<T: crate::memory::Pod> FromX86 for Option<&mut T> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let addr = x86.pop();
+        let addr = pop(x86);
         if addr == 0 {
             None
         } else {
@@ -61,35 +61,35 @@ impl<T: crate::memory::Pod> FromX86 for Option<&mut T> {
 }
 impl FromX86 for &[u8] {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
-        let len = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
+        let len = pop(x86) as usize;
         smuggle(&x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for &mut [u8] {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
-        let len = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
+        let len = pop(x86) as usize;
         smuggle_mut(&mut x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for Option<&[u16]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
-        let len = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
+        let len = pop(x86) as usize;
         std::mem::transmute(&x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for Option<&mut [u16]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
-        let len = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
+        let len = pop(x86) as usize;
         std::mem::transmute(&mut x86.mem[ofs..ofs + len])
     }
 }
 impl FromX86 for Option<&str> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
         if ofs == 0 {
             return None;
         }
@@ -99,7 +99,7 @@ impl FromX86 for Option<&str> {
 }
 impl<'a> FromX86 for Option<Str16<'a>> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86.pop() as usize;
+        let ofs = pop(x86) as usize;
         if ofs == 0 {
             return None;
         }

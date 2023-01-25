@@ -149,63 +149,13 @@ impl X86 {
         unsafe { *self.mem.get_unchecked(addr as usize) }
     }
 
-    pub fn push(&mut self, value: u32) {
-        self.regs.esp -= 4;
-        self.write_u32(self.regs.esp, value);
-    }
-
-    pub fn push16(&mut self, value: u16) {
-        self.regs.esp -= 2;
-        self.write_u16(self.regs.esp, value);
-    }
-
-    pub fn pop(&mut self) -> u32 {
-        let value = self.read_u32(self.regs.esp);
-        self.regs.esp += 4;
-        value
-    }
-
-    pub fn pop16(&mut self) -> u16 {
-        let value = self.read_u16(self.regs.esp);
-        self.regs.esp += 2;
-        value
-    }
-
-    /// Compute the address found in instructions that reference memory, e.g.
-    ///   mov [eax+03h],...
-    pub fn addr(&self, instr: &iced_x86::Instruction) -> u32 {
-        let seg = if instr.segment_prefix() == iced_x86::Register::FS {
-            self.state.kernel32.teb
-        } else {
-            0
-        };
-        let base = if instr.memory_base() != iced_x86::Register::None {
-            self.regs.get32(instr.memory_base())
-        } else {
-            0
-        };
-        let index = if instr.memory_index() != iced_x86::Register::None {
-            self.regs
-                .get32(instr.memory_index())
-                .wrapping_mul(instr.memory_index_scale())
-        } else {
-            0
-        };
-        // In general these operations aren't written to wrap, but in some cases
-        // the components are negative which is implemented in two's complement by
-        // a wrapping add.
-        seg.wrapping_add(base)
-            .wrapping_add(index)
-            .wrapping_add(instr.memory_displacement32())
-    }
-
     pub fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
         if addr < 0x1000 {
             bail!("jmp to null page");
         }
 
         if addr & 0xFFFF_0000 == SHIM_BASE {
-            let ret = self.pop();
+            let ret = ops::pop(self);
             let eip = self.regs.eip;
             let handler = self
                 .shims
