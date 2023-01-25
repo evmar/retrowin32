@@ -2,6 +2,8 @@ use iced_x86::Instruction;
 
 use crate::{memory::Memory, registers::Flags, x86::X86};
 
+use super::helpers::*;
+
 pub fn nop(_x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
@@ -35,33 +37,33 @@ pub fn push_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn push_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let value = x86.op0_rm32(instr);
+    let value = op0_rm32(x86, instr);
     x86.push(value);
     Ok(())
 }
 
 pub fn push_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let value = x86.op0_rm16(instr);
+    let value = op0_rm16(x86, instr);
     x86.push16(value);
     Ok(())
 }
 
 pub fn pop_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = x86.pop();
-    x86.rm32_x(instr, |_x86, _x| value);
+    rm32_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn pop_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = x86.pop16();
-    x86.rm16_x(instr, |_x86, _x| value);
+    rm16_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn mov_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // mov dword ptr [x], y
     // TODO: why is this 'rm32' when there is an r32 variant just below?
-    x86.rm32_x(instr, |_x86, _x| instr.immediate32());
+    rm32_x(x86, instr, |_x86, _x| instr.immediate32());
     Ok(())
 }
 
@@ -84,85 +86,85 @@ pub fn mov_eax_moffs32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()>
 
 pub fn mov_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = x86.regs.get32(instr.op1_register());
-    x86.rm32_x(instr, |_x86, _x| value);
+    rm32_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn mov_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let value = x86.op1_rm32(instr);
+    let value = op1_rm32(x86, instr);
     x86.regs.set32(instr.op0_register(), value);
     Ok(())
 }
 
 pub fn mov_r16_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let value = x86.op1_rm16(instr);
+    let value = op1_rm16(x86, instr);
     x86.regs.set16(instr.op0_register(), value);
     Ok(())
 }
 
 pub fn mov_rm16_r16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.get16(instr.op1_register());
-    x86.rm16_x(instr, |_x86, _x| y);
+    rm16_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn mov_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let value = x86.op1_rm8(instr);
+    let value = op1_rm8(x86, instr);
     x86.regs.set8(instr.op0_register(), value);
     Ok(())
 }
 
 pub fn mov_rm8_r8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.get8(instr.op1_register());
-    x86.rm8_x(instr, |_x86, _x| y);
+    rm8_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn mov_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |_x86, _x| y);
+    rm8_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movsx_r32_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm16(instr) as i16 as u32;
-    x86.rm32_x(instr, |_x86, _x| y);
+    let y = op1_rm16(x86, instr) as i16 as u32;
+    rm32_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movsx_r32_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr) as i8 as u32;
-    x86.rm32_x(instr, |_x86, _x| y);
+    let y = op1_rm8(x86, instr) as i8 as u32;
+    rm32_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movsx_r16_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr) as i8 as u16;
-    x86.rm16_x(instr, |_x86, _x| y);
+    let y = op1_rm8(x86, instr) as i8 as u16;
+    rm16_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movzx_r32_rm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm16(instr) as u32;
-    x86.rm32_x(instr, |_x86, _x| y);
+    let y = op1_rm16(x86, instr) as u32;
+    rm32_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movzx_r32_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr) as u32;
-    x86.rm32_x(instr, |_x86, _x| y);
+    let y = op1_rm8(x86, instr) as u32;
+    rm32_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn movzx_r16_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr) as u16;
-    x86.rm16_x(instr, |_x86, _x| y);
+    let y = op1_rm8(x86, instr) as u16;
+    rm16_x(x86, instr, |_x86, _x| y);
     Ok(())
 }
 
 pub fn xchg_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let r1 = instr.op1_register();
-    x86.rm32_x(instr, |x86, x| {
+    rm32_x(x86, instr, |x86, x| {
         let tmp = x86.regs.get32(r1);
         x86.regs.set32(r1, x);
         tmp
@@ -196,19 +198,19 @@ pub fn lea_r32_m(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn sete_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = x86.regs.flags.contains(Flags::ZF) as u8;
-    x86.rm8_x(instr, |_x86, _x| value);
+    rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn setne_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = !x86.regs.flags.contains(Flags::ZF) as u8;
-    x86.rm8_x(instr, |_x86, _x| value);
+    rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn setge_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let value = (x86.regs.flags.contains(Flags::ZF) == x86.regs.flags.contains(Flags::OF)) as u8;
-    x86.rm8_x(instr, |_x86, _x| value);
+    rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 

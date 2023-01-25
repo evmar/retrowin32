@@ -2,6 +2,8 @@ use iced_x86::Instruction;
 
 use crate::{registers::Flags, x86::X86};
 
+use super::helpers::*;
+
 pub fn call(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let target = instr.near_branch32();
     if target == 0x00408d65 || target == 0x0040a281 {
@@ -15,7 +17,7 @@ pub fn call(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn call_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // call dword ptr [addr]
-    let target = x86.op0_rm32(instr);
+    let target = op0_rm32(x86, instr);
     x86.push(x86.regs.eip);
     x86.jmp(target)?;
     Ok(())
@@ -40,7 +42,7 @@ pub fn jmp(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn jmp_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let target = x86.op0_rm32(instr);
+    let target = op0_rm32(x86, instr);
     x86.jmp(target)?;
     Ok(())
 }

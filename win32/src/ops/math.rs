@@ -2,6 +2,8 @@ use iced_x86::Instruction;
 
 use crate::{registers::Flags, x86::X86};
 
+use super::helpers::*;
+
 fn add32(x86: &mut X86, x: u32, y: u32) -> u32 {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let (result, carry) = x.overflowing_add(y);
@@ -165,25 +167,25 @@ fn shr32(x86: &mut X86, x: u32, y: u8) -> u32 {
 
 pub fn and_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate32();
-    x86.rm32_x(instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.get32(instr.op1_register());
-    x86.rm32_x(instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
     Ok(())
 }
 
 pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
-    let y = x86.op1_rm32(instr);
+    let y = op1_rm32(x86, instr);
     let value = x86.regs.get32(reg) & y;
     x86.regs.set32(reg, value);
     Ok(())
@@ -191,102 +193,102 @@ pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn and_rm16_imm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate16();
-    x86.rm16_x(instr, |x86, x| and16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| and16(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |x86, x| and8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| and8(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm32(instr);
-    x86.rm32_x(instr, |x86, x| or32(x86, x, y));
+    let y = op1_rm32(x86, instr);
+    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate32();
-    x86.rm32_x(instr, |x86, x| or32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |x86, x| or32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm16_imm16(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate16();
-    x86.rm16_x(instr, |x86, x| or16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| or16(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |x86, x| or8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| or8(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm32_x(instr, |x86, x| shl32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shl32(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm32_cl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.ecx as u8;
-    x86.rm32_x(instr, |x86, x| shl32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shl32(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.ecx as u8;
-    x86.rm8_x(instr, |x86, x| shl8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl8(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |x86, x| shl8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl8(x86, x, y));
     Ok(())
 }
 
 pub fn shr_rm32_cl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.ecx as u8;
-    x86.rm32_x(instr, |x86, x| shr32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shr32(x86, x, y));
     Ok(())
 }
 
 pub fn shr_rm32_1(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.rm32_x(instr, |x86, x| shr32(x86, x, 1));
+    rm32_x(x86, instr, |x86, x| shr32(x86, x, 1));
     Ok(())
 }
 
 pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm32_x(instr, |x86, x| shr32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shr32(x86, x, y));
     Ok(())
 }
 
 pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8() as u32;
-    x86.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+    rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
     Ok(())
 }
 
 pub fn sar_rm32_cl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.ecx as u8;
-    x86.rm32_x(instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+    rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
     Ok(())
 }
 
 pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.ecx as u8;
-    x86.rm32_x(instr, |x86, x| {
+    rm32_x(x86, instr, |x86, x| {
         let out = x.rotate_right(y as u32);
         let msb = (out & 0x8000_0000) != 0;
         x86.regs.flags.set(Flags::CF, msb);
@@ -309,33 +311,33 @@ fn xor32(x86: &mut X86, x: u32, y: u32) -> u32 {
 }
 
 pub fn xor_rm32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm32(instr);
-    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
+    let y = op1_rm32(x86, instr);
+    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
     Ok(())
 }
 
 pub fn xor_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate32();
-    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
     Ok(())
 }
 
 pub fn xor_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |x86, x| xor32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
     Ok(())
 }
 
 pub fn xor_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |_x86, x| x ^ y);
+    rm8_x(x86, instr, |_x86, x| x ^ y);
     // TODO: flags
     Ok(())
 }
 
 pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr);
-    x86.rm8_x(instr, |_x86, x| x ^ y);
+    let y = op1_rm8(x86, instr);
+    rm8_x(x86, instr, |_x86, x| x ^ y);
     // TODO: flags
     Ok(())
 }
@@ -343,7 +345,7 @@ pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
     let x = x86.regs.get32(reg);
-    let y = x86.op1_rm32(&instr);
+    let y = op1_rm32(x86, &instr);
     let value = add32(x86, x, y);
     x86.regs.set32(reg, value);
     Ok(())
@@ -351,61 +353,61 @@ pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn add_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.get32(instr.op1_register());
-    x86.rm32_x(instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate32();
-    x86.rm32_x(instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to16() as u16;
-    x86.rm16_x(instr, |x86, x| add16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| add16(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |x86, x| add8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| add8(x86, x, y));
     Ok(())
 }
 
 pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let y = x86.op1_rm8(instr);
-    x86.rm8_x(instr, |x86, x| add8(x86, x, y));
+    let y = op1_rm8(x86, instr);
+    rm8_x(x86, instr, |x86, x| add8(x86, x, y));
     Ok(())
 }
 
 pub fn sub_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8to32() as u32;
-    x86.rm32_x(instr, |x86, x| sub32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| sub32(x86, x, y));
     Ok(())
 }
 
 pub fn sub_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate32();
-    x86.rm32_x(instr, |x86, x| sub32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| sub32(x86, x, y));
     Ok(())
 }
 
 pub fn sub_rm32_r32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = x86.regs.get32(instr.op1_register());
-    x86.rm32_x(instr, |x86, x| sub32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| sub32(x86, x, y));
     Ok(())
 }
 
 pub fn sub_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
-    let y = x86.op1_rm32(instr);
+    let y = op1_rm32(x86, instr);
     let value = sub32(x86, x86.regs.get32(reg), y);
     x86.regs.set32(reg, value);
     Ok(())
@@ -413,7 +415,7 @@ pub fn sub_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn sub_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
-    let y = x86.op1_rm8(instr);
+    let y = op1_rm8(x86, instr);
     let value = sub8(x86, x86.regs.get8(reg), y);
     x86.regs.set8(reg, value);
     Ok(())
@@ -421,14 +423,14 @@ pub fn sub_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn sub_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
-    x86.rm8_x(instr, |x86, x| sub8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| sub8(x86, x, y));
     Ok(())
 }
 
 pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
     let carry = x86.regs.flags.contains(Flags::CF) as u32;
-    let y = x86.op1_rm32(instr).wrapping_add(carry);
+    let y = op1_rm32(x86, instr).wrapping_add(carry);
     let value = sub32(x86, x86.regs.get32(reg), y);
     x86.regs.set32(reg, value);
     Ok(())
@@ -437,7 +439,7 @@ pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let reg = instr.op0_register();
     let carry = x86.regs.flags.contains(Flags::CF) as u8;
-    let y = x86.op1_rm8(instr).wrapping_add(carry);
+    let y = op1_rm8(x86, instr).wrapping_add(carry);
     let value = sub8(x86, x86.regs.get8(reg), y);
     x86.regs.set8(reg, value);
     Ok(())
@@ -445,14 +447,14 @@ pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn imul_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let x = x86.regs.get32(instr.op0_register());
-    let y = x86.op1_rm32(instr);
+    let y = op1_rm32(x86, instr);
     let value = x.wrapping_mul(y);
     x86.regs.set32(instr.op0_register(), value);
     Ok(())
 }
 
 pub fn imul_r32_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let x = x86.op1_rm32(instr) as i32;
+    let x = op1_rm32(x86, instr) as i32;
     let y = instr.immediate32() as i32;
     let value = x.wrapping_mul(y);
     x86.regs.set32(instr.op0_register(), value as u32);
@@ -460,7 +462,7 @@ pub fn imul_r32_rm32_imm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result
 }
 
 pub fn imul_r32_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    let x = x86.op1_rm32(instr) as i32;
+    let x = op1_rm32(x86, instr) as i32;
     let y = instr.immediate8to32();
     let value = x.wrapping_mul(y);
     x86.regs.set32(instr.op0_register(), value as u32);
@@ -469,7 +471,7 @@ pub fn imul_r32_rm32_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<
 
 pub fn idiv_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let x = (((x86.regs.edx as u64) << 32) | (x86.regs.eax as u64)) as i64;
-    let y = x86.op0_rm32(instr) as i32 as i64;
+    let y = op0_rm32(x86, instr) as i32 as i64;
     x86.regs.eax = (x / y) as i32 as u32;
     x86.regs.edx = (x % y) as i32 as u32;
     // TODO: flags.
@@ -478,7 +480,7 @@ pub fn idiv_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 
 pub fn div_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let x = ((x86.regs.edx as u64) << 32) | (x86.regs.eax as u64);
-    let y = x86.op0_rm32(instr) as u64;
+    let y = op0_rm32(x86, instr) as u64;
     x86.regs.eax = (x / y) as u32;
     x86.regs.edx = (x % y) as u32;
     // TODO: flags.
@@ -486,24 +488,24 @@ pub fn div_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn dec_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.rm32_x(instr, |x86, x| sub32(x86, x, 1));
+    rm32_x(x86, instr, |x86, x| sub32(x86, x, 1));
     Ok(())
 }
 
 pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // TODO: flags.  Note that it's not add32(1) because CF should be preserved.
-    x86.rm32_x(instr, |_x86, x| x + 1);
+    rm32_x(x86, instr, |_x86, x| x + 1);
     Ok(())
 }
 
 pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     // TODO: flags.  Note that it's not add8(1) because CF should be preserved.
-    x86.rm8_x(instr, |_x86, x| x.wrapping_add(1));
+    rm8_x(x86, instr, |_x86, x| x.wrapping_add(1));
     Ok(())
 }
 
 pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.rm32_x(instr, |x86, x| {
+    rm32_x(x86, instr, |x86, x| {
         x86.regs.flags.set(Flags::CF, x != 0);
         // TODO: other flags registers.
         -(x as i32) as u32
@@ -512,6 +514,6 @@ pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
 }
 
 pub fn not_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    x86.rm32_x(instr, |_x86, x| !x);
+    rm32_x(x86, instr, |_x86, x| !x);
     Ok(())
 }

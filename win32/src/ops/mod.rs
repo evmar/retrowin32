@@ -1,6 +1,7 @@
 mod basic;
 mod control;
 mod fpu;
+mod helpers;
 mod math;
 mod string;
 mod table;
