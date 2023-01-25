@@ -9,7 +9,7 @@ type Op = fn(&mut X86, &Instruction) -> anyhow::Result<()>;
 
 // This table is constant and ideally would be initialized at compile time,
 // but it's too fiddly to do with const fns, so we'd likely need to codegen it.
-static mut OP_TAB: [Option<Op>; 2135] = [None; 2135];
+static mut OP_TAB: [Option<Op>; 2453] = [None; 2453];
 
 pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Enterd_imm16_imm8 as usize] = Some(ops::enterd_imm16_imm8);
