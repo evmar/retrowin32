@@ -173,27 +173,33 @@ impl X86 {
     }
 
     fn step(&mut self) -> anyhow::Result<bool> {
-        let (ip, ref instr) = self.icache.instrs[self.icache.index];
+        let (prev_ip, ref instr) = self.icache.instrs[self.icache.index];
         // Hack: ops don't mutate icache (yet) but Rust doesn't know that.
         let instr: &'static iced_x86::Instruction = unsafe { std::mem::transmute(instr) };
-        self.regs.eip = instr.next_ip() as u32;
+        let next_ip = instr.next_ip() as u32;
+        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
+        self.regs.eip = next_ip;
         match unsafe { ops::execute(self, instr) } {
             Err(err) => {
                 // Point the debugger at the failed instruction.
-                self.regs.eip = ip;
+                self.regs.eip = prev_ip;
                 Err(err)
             }
             Ok(_) => {
                 if self.stopped {
-                    self.regs.eip = ip;
+                    self.regs.eip = prev_ip;
                     if let Some(msg) = &self.crashed {
                         bail!(msg.clone());
                     }
                     self.stopped = false;
                     return Ok(false);
                 }
-                self.icache.index += 1;
-                self.icache.jmp(&self.mem, self.regs.eip);
+                if self.regs.eip == next_ip {
+                    self.icache.index += 1;
+                } else {
+                    // Instruction changed eip.  Update icache to match.
+                    self.icache.jmp(&self.mem, self.regs.eip);
+                }
                 Ok(true)
             }
         }
@@ -324,10 +330,6 @@ impl InstrCache {
     }
 
     fn jmp(&mut self, mem: &[u8], target_ip: u32) {
-        let (cur_ip, _) = self.instrs[self.index];
-        if cur_ip == target_ip {
-            return;
-        }
         self.index = self.ip_to_instr_index(mem, target_ip).unwrap();
     }
 
