@@ -50,7 +50,7 @@ fn fcom<T: std::cmp::PartialOrd>(x86: &mut X86, x: T, y: T) {
 pub fn fld1(x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
     x86.regs.st_top -= 1;
     *x86.regs.st_top() = 1.0;
-    panic!("test");
+    Ok(())
 }
 
 pub fn fldz(x86: &mut X86, _instr: &Instruction) -> anyhow::Result<()> {
