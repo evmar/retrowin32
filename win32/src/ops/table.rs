@@ -256,6 +256,6 @@ pub unsafe fn init_op_tab() {
 pub unsafe fn execute(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     match OP_TAB[instr.code() as usize] {
         Some(f) => f(x86, instr),
-        None => panic!("{}", instr),
+        None => anyhow::bail!("no dispatch for: {:?}", instr.code()),
     }
 }
