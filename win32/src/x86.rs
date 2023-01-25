@@ -50,6 +50,7 @@ pub struct X86 {
     pub host: Box<dyn host::Host>,
     pub mem: Vec<u8>,
     pub regs: Registers,
+    icache: InstrCache,
     pub shims: Shims,
     pub state: winapi::State,
     /// Toggled on by breakpoints/process exit.
@@ -72,6 +73,7 @@ impl X86 {
             host,
             mem: Vec::new(),
             regs,
+            icache: InstrCache::new(),
             shims: Shims::new(),
             state: winapi::State::new(),
             stopped: false,
@@ -322,9 +324,31 @@ impl X86 {
         Ok(())
     }
 
-    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+    fn step(&mut self) -> anyhow::Result<bool> {
+        let (ip, ref instr) = self.icache.instrs[self.icache.index];
+        // Hack: ops don't mutate icache (yet) but Rust doesn't know that.
+        let instr: &'static iced_x86::Instruction = unsafe { std::mem::transmute(instr) };
         self.regs.eip = instr.next_ip() as u32;
-        unsafe { ops::execute(self, instr) }
+        match unsafe { ops::execute(self, instr) } {
+            Err(err) => {
+                // Point the debugger at the failed instruction.
+                self.regs.eip = ip;
+                Err(err)
+            }
+            Ok(_) => {
+                if self.stopped {
+                    self.regs.eip = ip;
+                    if let Some(msg) = &self.crashed {
+                        bail!(msg.clone());
+                    }
+                    self.stopped = false;
+                    return Ok(false);
+                }
+                self.icache.index += 1;
+                self.icache.jmp(&self.mem, self.regs.eip);
+                Ok(true)
+            }
+        }
     }
 }
 
@@ -484,8 +508,6 @@ pub struct Runner {
     /// enabling/disabling breakpoints.  The map values are the instruction
     /// from before the breakpoint.
     breakpoints: HashMap<u32, iced_x86::Instruction>,
-
-    icache: InstrCache,
 }
 impl Runner {
     pub fn new(host: Box<dyn host::Host>) -> Self {
@@ -493,7 +515,6 @@ impl Runner {
             x86: X86::new(host),
             instr_count: 0,
             breakpoints: HashMap::new(),
-            icache: InstrCache::new(),
         }
     }
 
@@ -514,8 +535,8 @@ impl Runner {
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;
         let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
-        self.icache.disassemble(section, mapping.addr);
-        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.x86.icache.disassemble(section, mapping.addr);
+        self.x86.icache.jmp(&self.x86.mem, self.x86.regs.eip);
 
         Ok(labels)
     }
@@ -526,7 +547,7 @@ impl Runner {
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
         int3.set_next_ip(addr as u64 + 1);
-        let prev = self.icache.patch(addr, int3)?;
+        let prev = self.x86.icache.patch(addr, int3)?;
         self.breakpoints.insert(addr, prev);
         Ok(())
     }
@@ -534,34 +555,14 @@ impl Runner {
     /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.icache.patch(addr, prev)?;
+        self.x86.icache.patch(addr, prev)?;
         Ok(())
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
-        let (ip, ref instr) = self.icache.instrs[self.icache.index];
-        match self.x86.run(instr) {
-            Err(err) => {
-                // Point the debugger at the failed instruction.
-                self.x86.regs.eip = ip;
-                Err(err)
-            }
-            Ok(_) => {
-                self.instr_count += 1;
-                if self.x86.stopped {
-                    self.x86.regs.eip = ip;
-                    if let Some(msg) = &self.x86.crashed {
-                        bail!(msg.clone());
-                    }
-                    self.x86.stopped = false;
-                    return Ok(false);
-                }
-                self.icache.index += 1;
-                self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
-                Ok(true)
-            }
-        }
+        self.instr_count += 1;
+        self.x86.step()
     }
 
     // Multi-step execution.  Returns Ok(false) on breakpoint.
@@ -577,6 +578,6 @@ impl Runner {
     pub fn load_snapshot(&mut self, snap: Snapshot) {
         self.x86.mem = snap.mem;
         self.x86.regs = snap.regs;
-        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.x86.icache.jmp(&self.x86.mem, self.x86.regs.eip);
     }
 }
