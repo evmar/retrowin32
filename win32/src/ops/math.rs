@@ -411,6 +411,14 @@ pub fn sub_r32_rm32(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     Ok(())
 }
 
+pub fn sub_r8_rm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+    let reg = instr.op0_register();
+    let y = x86.op1_rm8(instr);
+    let value = sub8(x86, x86.regs.get8(reg), y);
+    x86.regs.set8(reg, value);
+    Ok(())
+}
+
 pub fn sub_rm8_imm8(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
     let y = instr.immediate8();
     x86.rm8_x(instr, |x86, x| sub8(x86, x, y));
