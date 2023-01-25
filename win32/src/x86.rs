@@ -372,51 +372,38 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
     }
 }
 
-/// Manages decoding and running instructions in an owned X86.
-pub struct Runner {
-    pub x86: X86,
-    /// Total number of instructions executed.
-    pub instr_count: usize,
-
-    /// Places to stop execution in a step_many() call.
-    /// We unconditionally stop on these; the web frontend manages things like
-    /// enabling/disabling breakpoints.  The map values are the instruction
-    /// from before the breakpoint.
-    breakpoints: HashMap<u32, iced_x86::Instruction>,
-
-    /// Code section of executable we're decoding.
+/// Cache of decoded instructions, indexed by ip.
+struct InstrCache {
+    /// (ip, instruction) pairs of cached decoded instructions.
     instrs: Vec<(u32, iced_x86::Instruction)>,
-    /// Current position within code.  Updated from eip.
+    /// Current position within instrs.
     instr_index: usize,
 }
-impl Runner {
-    pub fn new(host: Box<dyn host::Host>) -> Self {
-        Runner {
-            x86: X86::new(host),
-            instr_count: 0,
-            breakpoints: HashMap::new(),
+
+impl InstrCache {
+    fn new() -> Self {
+        InstrCache {
             instrs: Vec::new(),
             instr_index: 0,
         }
     }
 
-    fn disassemble(buf: &[u8], ip: u32) -> Vec<(u32, iced_x86::Instruction)> {
-        let mut code = Vec::new();
+    fn disassemble(&mut self, buf: &[u8], ip: u32) {
+        self.instrs.clear();
         let mut decoder =
             iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
         while decoder.can_decode() {
-            code.push((decoder.ip() as u32, decoder.decode()));
+            self.instrs.push((decoder.ip() as u32, decoder.decode()));
         }
-        code
     }
 
     /// Given an IP that wasn't found in the decoded instructions, re-decode starting at that
     /// address and patch in the new instructions in place of the previous ones.
     /// start is the index of where in the instruction table the patch will begin.
-    fn repatch(&mut self, addr: u32, start: usize) {
+    fn repatch(&mut self, mem: &[u8], addr: u32, start: usize) {
         let mut decoder = iced_x86::Decoder::with_ip(
             32,
-            &self.x86.mem[addr as usize..],
+            &mem[addr as usize..],
             addr as u64,
             iced_x86::DecoderOptions::NONE,
         );
@@ -447,7 +434,7 @@ impl Runner {
         self.instrs.splice(start..end, patch);
     }
 
-    fn ip_to_instr_index(&mut self, target_ip: u32) -> Option<usize> {
+    fn ip_to_instr_index(&mut self, mem: &[u8], target_ip: u32) -> Option<usize> {
         match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
             Ok(pos) => Some(pos),
             Err(pos) => {
@@ -458,18 +445,56 @@ impl Runner {
                     None => format!("address beyond decoded range"),
                 };
                 log::error!("invalid ip {:x}, desync? {}", target_ip, nearby);
-                self.repatch(target_ip, pos);
-                self.ip_to_instr_index(target_ip)
+                self.repatch(mem, target_ip, pos);
+                self.ip_to_instr_index(mem, target_ip)
             }
         }
     }
 
-    fn jmp(&mut self, target_ip: u32) {
+    fn jmp(&mut self, mem: &[u8], target_ip: u32) {
         let (cur_ip, _) = self.instrs[self.instr_index];
         if cur_ip == target_ip {
             return;
         }
-        self.instr_index = self.ip_to_instr_index(target_ip).unwrap();
+        self.instr_index = self.ip_to_instr_index(mem, target_ip).unwrap();
+    }
+
+    /// Replace the instruction found at a given ip, returning the previous instruction.
+    fn patch(
+        &mut self,
+        addr: u32,
+        instr: iced_x86::Instruction,
+    ) -> anyhow::Result<iced_x86::Instruction> {
+        let index = self
+            .ip_to_instr_index(&[], addr)
+            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
+        let prev = std::mem::replace(&mut self.instrs[index].1, instr);
+        Ok(prev)
+    }
+}
+
+/// Manages decoding and running instructions in an owned X86.
+pub struct Runner {
+    pub x86: X86,
+    /// Total number of instructions executed.
+    pub instr_count: usize,
+
+    /// Places to stop execution in a step_many() call.
+    /// We unconditionally stop on these; the web frontend manages things like
+    /// enabling/disabling breakpoints.  The map values are the instruction
+    /// from before the breakpoint.
+    breakpoints: HashMap<u32, iced_x86::Instruction>,
+
+    icache: InstrCache,
+}
+impl Runner {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
+        Runner {
+            x86: X86::new(host),
+            instr_count: 0,
+            breakpoints: HashMap::new(),
+            icache: InstrCache::new(),
+        }
     }
 
     pub fn load_exe(
@@ -489,38 +514,33 @@ impl Runner {
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;
         let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
-        self.instrs = Runner::disassemble(section, mapping.addr);
-        self.jmp(self.x86.regs.eip);
+        self.icache.disassemble(section, mapping.addr);
+        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
 
         Ok(labels)
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
-        let index = self
-            .ip_to_instr_index(addr)
-            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
         let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
         int3.set_next_ip(addr as u64 + 1);
-        let prev = std::mem::replace(&mut self.instrs[index].1, int3);
+        let prev = self.icache.patch(addr, int3)?;
         self.breakpoints.insert(addr, prev);
         Ok(())
     }
+
     /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
-        let index = self
-            .ip_to_instr_index(addr)
-            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.instrs[index].1 = prev;
+        self.icache.patch(addr, prev)?;
         Ok(())
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
-        let (ip, ref instr) = self.instrs[self.instr_index];
+        let (ip, ref instr) = self.icache.instrs[self.icache.instr_index];
         match self.x86.run(instr) {
             Err(err) => {
                 // Point the debugger at the failed instruction.
@@ -537,8 +557,8 @@ impl Runner {
                     self.x86.stopped = false;
                     return Ok(false);
                 }
-                self.instr_index += 1;
-                self.jmp(self.x86.regs.eip);
+                self.icache.instr_index += 1;
+                self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
                 Ok(true)
             }
         }
@@ -557,6 +577,6 @@ impl Runner {
     pub fn load_snapshot(&mut self, snap: Snapshot) {
         self.x86.mem = snap.mem;
         self.x86.regs = snap.regs;
-        self.jmp(self.x86.regs.eip);
+        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
     }
 }
