@@ -149,27 +149,18 @@ impl X86 {
         unsafe { *self.mem.get_unchecked(addr as usize) }
     }
 
-    pub fn jmp(&mut self, addr: u32) -> anyhow::Result<()> {
-        if addr < 0x1000 {
-            bail!("jmp to null page");
+    /// If eip points at a shim address, call the handler and update eip.
+    fn check_shim_call(&mut self) -> anyhow::Result<()> {
+        if self.regs.eip & 0xFFFF_0000 != SHIM_BASE {
+            return Ok(());
         }
-
-        if addr & 0xFFFF_0000 == SHIM_BASE {
-            let ret = ops::pop(self);
-            let eip = self.regs.eip;
-            let handler = self
-                .shims
-                .get(addr)
-                .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
-            handler(self);
-            if self.regs.eip != eip {
-                return Ok(()); // handler set eip.
-            }
-            return self.jmp(ret);
-        }
-
-        self.regs.eip = addr;
-        Ok(())
+        let ret = ops::pop(self);
+        let handler = self
+            .shims
+            .get(self.regs.eip)
+            .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
+        handler(self);
+        ops::x86_jmp(self, ret)
     }
 
     fn step(&mut self) -> anyhow::Result<bool> {
@@ -197,6 +188,7 @@ impl X86 {
                 if self.regs.eip == next_ip {
                     self.icache.index += 1;
                 } else {
+                    self.check_shim_call()?;
                     // Instruction changed eip.  Update icache to match.
                     self.icache.jmp(&self.mem, self.regs.eip);
                 }

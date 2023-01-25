@@ -9,7 +9,7 @@ mod test;
 pub use basic::*;
 pub use control::*;
 pub use fpu::*;
-pub use helpers::{pop, push};
+pub use helpers::{pop, push, x86_jmp};
 pub use math::*;
 pub use string::*;
 pub use table::{execute, init_op_tab};

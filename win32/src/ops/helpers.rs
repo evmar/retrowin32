@@ -157,3 +157,11 @@ pub fn x86_addr(x86: &X86, instr: &iced_x86::Instruction) -> u32 {
         .wrapping_add(index)
         .wrapping_add(instr.memory_displacement32())
 }
+
+pub fn x86_jmp(x86: &mut X86, addr: u32) -> anyhow::Result<()> {
+    if addr < 0x1000 {
+        anyhow::bail!("jmp to null page");
+    }
+    x86.regs.eip = addr;
+    Ok(())
+}
