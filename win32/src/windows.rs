@@ -13,10 +13,7 @@ pub fn load_exe(
     x86.state.kernel32.image_base = base;
     x86.mem
         .resize((base + file.opt_header.SizeOfImage) as usize, 0);
-    log::info!(
-        "image base {base:#x}, image total size {:#x}",
-        x86.mem.len()
-    );
+
     for sec in file.sections {
         let src = sec.PointerToRawData as usize;
         let dst = (base + sec.VirtualAddress) as usize;
