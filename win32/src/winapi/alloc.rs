@@ -51,6 +51,7 @@ impl Alloc for Arena {
 pub struct Heap {
     pub addr: u32,
     pub size: u32,
+    /// Pointer to first free block: head of the FreeNode list.
     free: u32,
 }
 
@@ -99,6 +100,8 @@ impl Alloc for Heap {
     fn alloc(&mut self, mem: &mut [u8], size: u32) -> u32 {
         let alloc_size = size + 4;
 
+        // Find a FreeNode large enough to accommodate alloc_size.
+        // To use it, update the previous node to point past it.
         let mut prev = 0;
         let mut cur = self.free;
         let mut blocks = 0;
@@ -115,8 +118,10 @@ impl Alloc for Heap {
             panic!("heap OOM allocating {alloc_size:#x} freelist {blocks} entries");
         }
 
+        // Find the pointer to the point after the allocated block.
         let next = if FreeNode::get(mem, cur).size > alloc_size + 8 {
-            // Split cur block into smaller piece.
+            // Split cur block into smaller piece; create a new FreeNode in
+            // the remaining space.
             let next = cur + alloc_size;
             let cur = FreeNode::get(mem, cur);
             *FreeNode::get(mem, next) = FreeNode {
@@ -128,6 +133,7 @@ impl Alloc for Heap {
             FreeNode::get(mem, cur).next
         };
 
+        // Link next node into the list.
         if prev == 0 {
             self.free = next;
         } else {
