@@ -708,8 +708,19 @@ pub fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes:
     new_addr
 }
 
-pub fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, dwMaximumSize: u32) -> u32 {
-    log::warn!("HeapCreate({flOptions:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
+bitflags! {
+    pub struct HeapCreateFlags: u32 {
+        const HEAP_CREATE_ENABLE_EXECUTE = 0x00040000;
+        const HEAP_GENERATE_EXCEPTIONS = 0x00000004;
+        const HEAP_NO_SERIALIZE = 0x00000001;
+    }
+}
+
+pub fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, _dwMaximumSize: u32) -> u32 {
+    let _flags = HeapCreateFlags::from_bits(flOptions).unwrap();
+    // Currently none of the flags will affect behavior, but we might need to revisit this
+    // with exceptions or threads support...
+    //log::info!("HeapCreate({flags:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
     x86.state
         .kernel32
         .new_heap(&mut x86.mem, dwInitialSize as usize, "HeapCreate".into())
