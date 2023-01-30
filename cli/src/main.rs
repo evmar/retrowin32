@@ -276,13 +276,15 @@ fn main() -> anyhow::Result<()> {
             }
         }
     }
-    let elapsed = start.elapsed();
-    eprintln!(
-        "{} instrs in {} ms: {}m/s",
-        runner.instr_count,
-        elapsed.as_millis(),
-        (runner.instr_count / elapsed.as_millis() as usize) / 1000
-    );
+    let millis = start.elapsed().as_millis() as usize;
+    if millis > 0 {
+        eprintln!(
+            "{} instrs in {} ms: {}m/s",
+            runner.instr_count,
+            millis,
+            (runner.instr_count / millis) / 1000
+        );
+    }
 
     Ok(())
 }
