@@ -61,7 +61,7 @@ macro_rules! vtable {
         }
 
         pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
-            let addr = x86.state.kernel32.get_heap(&mut x86.mem, ddraw.hheap).alloc(
+            let addr = x86.state.kernel32.get_heap(&mut x86.mem, ddraw.hheap).unwrap().alloc(
                 std::mem::size_of::<Vtable>() as u32,
             );
             let vtable = x86.mem.view_mut::<Vtable>(addr);

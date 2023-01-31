@@ -391,6 +391,7 @@ mod IDirectDrawSurface {
             .state
             .kernel32
             .get_heap(&mut x86.mem, ddraw.hheap)
+            .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
         x86.mem.write_u32(lpDirectDrawSurface, vtable);
@@ -644,6 +645,7 @@ mod IDirectDrawSurface7 {
             .state
             .kernel32
             .get_heap(&mut x86.mem, ddraw.hheap)
+            .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
         x86.mem.write_u32(lpDirectDrawSurface7, vtable);
@@ -789,6 +791,7 @@ pub fn DirectDrawCreateEx(
             .state
             .kernel32
             .get_heap(&mut x86.mem, ddraw.hheap)
+            .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
         x86.write_u32(lpDirectDraw, vtable);
@@ -806,6 +809,7 @@ pub fn DirectDrawCreateEx(
             .state
             .kernel32
             .get_heap(&mut x86.mem, ddraw.hheap)
+            .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;
         x86.write_u32(lpDirectDraw7, vtable);
