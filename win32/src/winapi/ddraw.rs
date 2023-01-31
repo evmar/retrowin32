@@ -11,7 +11,7 @@ use crate::{
     x86::X86,
 };
 
-use super::{alloc::Alloc, alloc::Heap, kernel32, types::DWORD};
+use super::{alloc::Alloc, types::DWORD};
 use bitflags::bitflags;
 
 #[repr(C)]
@@ -70,10 +70,6 @@ impl State {
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, x86);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, x86);
         ddraw
-    }
-
-    fn heap<'a>(&mut self, kernel32: &'a mut kernel32::State) -> &'a mut Heap {
-        kernel32.heaps.get_mut(&self.hheap).unwrap()
     }
 }
 
@@ -390,8 +386,12 @@ mod IDirectDrawSurface {
     ];
 
     pub fn new(x86: &mut X86) -> u32 {
-        let ddraw = &mut x86.state.ddraw;
-        let lpDirectDrawSurface = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let ddraw = &x86.state.ddraw;
+        let lpDirectDrawSurface = x86
+            .state
+            .kernel32
+            .get_heap(&mut x86.mem, ddraw.hheap)
+            .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
         x86.mem.write_u32(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
@@ -640,7 +640,11 @@ mod IDirectDrawSurface7 {
 
     pub fn new(x86: &mut X86) -> u32 {
         let ddraw = &mut x86.state.ddraw;
-        let lpDirectDrawSurface7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let lpDirectDrawSurface7 = x86
+            .state
+            .kernel32
+            .get_heap(&mut x86.mem, ddraw.hheap)
+            .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
         x86.mem.write_u32(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
@@ -781,7 +785,11 @@ pub fn DirectDrawCreateEx(
 
     if iid == 0 {
         // DirectDrawCreate
-        let lpDirectDraw = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let lpDirectDraw = x86
+            .state
+            .kernel32
+            .get_heap(&mut x86.mem, ddraw.hheap)
+            .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
         x86.write_u32(lpDirectDraw, vtable);
         x86.write_u32(lplpDD, lpDirectDraw);
@@ -794,7 +802,11 @@ pub fn DirectDrawCreateEx(
         //   pointer (lplpDD) that they want us to fill in to point to ->
         //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
         //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-        let lpDirectDraw7 = ddraw.heap(&mut x86.state.kernel32).alloc(&mut x86.mem, 4);
+        let lpDirectDraw7 = x86
+            .state
+            .kernel32
+            .get_heap(&mut x86.mem, ddraw.hheap)
+            .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;
         x86.write_u32(lpDirectDraw7, vtable);
         x86.write_u32(lplpDD, lpDirectDraw7);

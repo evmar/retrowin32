@@ -15,7 +15,8 @@ use tsify::Tsify;
 
 use super::{
     alloc::Alloc,
-    alloc::{Arena, Heap},
+    alloc::ArenaInfo,
+    alloc::{Heap, HeapInfo},
     types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
 };
 
@@ -34,14 +35,14 @@ pub struct Mapping {
 
 pub struct State {
     /// Memory for kernel32 data structures.
-    arena: Arena,
+    arena: ArenaInfo,
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (FS register).
     pub teb: u32,
     pub mappings: Vec<Mapping>,
     /// Heaps created by HeapAlloc().
-    pub heaps: HashMap<u32, Heap>,
+    pub heaps: HashMap<u32, HeapInfo>,
 
     env: u32,
 
@@ -59,7 +60,7 @@ impl State {
             flags: ImageSectionFlags::empty(),
         }];
         State {
-            arena: Arena::new(0, 0),
+            arena: ArenaInfo::new(0, 0),
             image_base: 0,
             teb: 0,
             mappings,
@@ -72,14 +73,14 @@ impl State {
 
     pub fn init(&mut self, mem: &mut Vec<u8>, cmdline: String) {
         let mapping = self.new_mapping(0x1000, "kernel32 data".into(), mem);
-        self.arena = Arena::new(mapping.addr, mapping.size);
+        self.arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let cmdline_len = cmdline.len();
         self.init_cmdline(mem, cmdline);
         self.init_teb_peb(mem, cmdline_len);
 
         let env = "\0\0".as_bytes();
-        let env_addr = self.arena.alloc(mem, env.len() as u32);
+        let env_addr = self.arena.get(mem).alloc(env.len() as u32);
         mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
         self.env = env_addr;
     }
@@ -90,12 +91,12 @@ impl State {
 
         cmdline.push(0 as char); // nul terminator
 
-        self.cmdline = self.arena.alloc(mem, cmdline.len() as u32);
+        self.cmdline = self.arena.get(mem).alloc(cmdline.len() as u32);
         mem[self.cmdline as usize..self.cmdline as usize + cmdline.len()]
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
-        self.cmdline16 = self.arena.alloc(mem, cmdline16.byte_size() as u32);
+        self.cmdline16 = self.arena.get(mem).alloc(cmdline16.byte_size() as u32);
         let mem16: &mut [u16] = unsafe {
             std::mem::transmute(
                 &mut mem[self.cmdline16 as usize..self.cmdline16 as usize + cmdline16.0.len()],
@@ -108,13 +109,10 @@ impl State {
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     fn init_teb_peb(&mut self, mem: &mut [u8], cmdline_len: usize) {
         // RTL_USER_PROCESS_PARAMETERS
-        let params_addr = self.arena.alloc(
-            mem,
-            std::cmp::max(
-                std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-                0x100,
-            ),
-        );
+        let params_addr = self.arena.get(mem).alloc(std::cmp::max(
+            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+            0x100,
+        ));
         let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
         // x86.write_u32(params_addr + 0x10, console_handle);
         // x86.write_u32(params_addr + 0x14, console_flags);
@@ -131,17 +129,18 @@ impl State {
         // PEB
         let peb_addr = self
             .arena
-            .alloc(mem, std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
+            .get(mem)
+            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
         let peb = mem.view_mut::<PEB>(peb_addr);
         peb.ProcessParameters = params_addr;
         peb.ProcessHeap = 0; // Initialized lazily.
         peb.TlsCount = 0;
 
         // SEH chain
-        let seh_addr = self.arena.alloc(
-            mem,
-            std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
-        );
+        let seh_addr = self
+            .arena
+            .get(mem)
+            .alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
         let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
         seh.Prev = 0xFFFF_FFFF;
         seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
@@ -149,7 +148,8 @@ impl State {
         // TEB
         let teb_addr = self
             .arena
-            .alloc(mem, std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
+            .get(mem)
+            .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
         let teb = mem.view_mut::<TEB>(teb_addr);
         teb.Tib.ExceptionList = seh_addr;
         teb.Tib._Self = teb_addr; // Confusing: it points to itself.
@@ -218,9 +218,9 @@ impl State {
         &self.mappings[pos]
     }
 
-    pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> Heap {
+    pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> HeapInfo {
         let mapping = self.new_mapping(size as u32, desc, mem);
-        Heap::new(mem, mapping.addr, mapping.size)
+        HeapInfo::new(mem, mapping.addr, mapping.size)
     }
 
     pub fn new_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> u32 {
@@ -228,6 +228,10 @@ impl State {
         let addr = heap.addr;
         self.heaps.insert(addr, heap);
         addr
+    }
+
+    pub fn get_heap<'a>(&'a mut self, mem: &'a mut [u8], addr: u32) -> Heap<'a> {
+        self.heaps.get_mut(&addr).unwrap().get_heap(mem)
     }
 }
 
@@ -637,14 +641,15 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+    let mut heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
-    };
-    let addr = heap.alloc(&mut x86.mem, dwBytes);
+    }
+    .get_heap(&mut x86.mem);
+    let addr = heap.alloc(dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -662,14 +667,14 @@ pub fn HeapFree(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+    let mut heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
             return 0;
         }
-        Some(heap) => heap,
+        Some(heap) => heap.get_heap(&mut x86.mem),
     };
-    heap.free(&mut x86.mem, lpMem);
+    heap.free(lpMem);
     1 // success
 }
 
@@ -677,29 +682,29 @@ pub fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match x86.state.kernel32.heaps.get(&hHeap) {
+    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
-        Some(heap) => heap,
+        Some(heap) => heap.get_heap(&mut x86.mem),
     };
-    heap.size(&x86.mem, lpMem)
+    heap.size(lpMem)
 }
 
 pub fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
+    let mut heap = match x86.state.kernel32.heaps.get_mut(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
-        Some(heap) => heap,
+        Some(heap) => heap.get_heap(&mut x86.mem),
     };
-    let old_size = heap.size(&x86.mem, lpMem);
-    let new_addr = heap.alloc(&mut x86.mem, dwBytes);
+    let old_size = heap.size(lpMem);
+    let new_addr = heap.alloc(dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
     x86.mem.copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
