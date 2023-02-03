@@ -50,7 +50,6 @@ pub struct X86 {
     pub host: Box<dyn host::Host>,
     pub mem: Vec<u8>,
     pub regs: Registers,
-    icache: InstrCache,
     pub shims: Shims,
     pub state: winapi::State,
     /// Toggled on by breakpoints/process exit.
@@ -73,7 +72,6 @@ impl X86 {
             host,
             mem: Vec::new(),
             regs,
-            icache: InstrCache::new(),
             shims: Shims::new(),
             state: winapi::State::new(),
             stopped: false,
@@ -149,52 +147,8 @@ impl X86 {
         unsafe { *self.mem.get_unchecked(addr as usize) }
     }
 
-    /// If eip points at a shim address, call the handler and update eip.
-    fn check_shim_call(&mut self) -> anyhow::Result<()> {
-        if self.regs.eip & 0xFFFF_0000 != SHIM_BASE {
-            return Ok(());
-        }
-        let ret = ops::pop(self);
-        let handler = self
-            .shims
-            .get(self.regs.eip)
-            .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
-        handler(self);
-        ops::x86_jmp(self, ret)
-    }
-
-    fn step(&mut self) -> anyhow::Result<bool> {
-        let (prev_ip, ref instr) = self.icache.instrs[self.icache.index];
-        // Hack: ops don't mutate icache (yet) but Rust doesn't know that.
-        let instr: &'static iced_x86::Instruction = unsafe { std::mem::transmute(instr) };
-        let next_ip = instr.next_ip() as u32;
-        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
-        self.regs.eip = next_ip;
-        match unsafe { ops::execute(self, instr) } {
-            Err(err) => {
-                // Point the debugger at the failed instruction.
-                self.regs.eip = prev_ip;
-                Err(err)
-            }
-            Ok(_) => {
-                if self.stopped {
-                    self.regs.eip = prev_ip;
-                    if let Some(msg) = &self.crashed {
-                        bail!(msg.clone());
-                    }
-                    self.stopped = false;
-                    return Ok(false);
-                }
-                if self.regs.eip == next_ip {
-                    self.icache.index += 1;
-                } else {
-                    self.check_shim_call()?;
-                    // Instruction changed eip.  Update icache to match.
-                    self.icache.jmp(&self.mem, self.regs.eip);
-                }
-                Ok(true)
-            }
-        }
+    fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+        ops::execute(self, instr)
     }
 }
 
@@ -345,6 +299,8 @@ pub struct Runner {
     /// Total number of instructions executed.
     pub instr_count: usize,
 
+    icache: InstrCache,
+
     /// Places to stop execution in a step_many() call.
     /// We unconditionally stop on these; the web frontend manages things like
     /// enabling/disabling breakpoints.  The map values are the instruction
@@ -356,6 +312,7 @@ impl Runner {
         Runner {
             x86: X86::new(host),
             instr_count: 0,
+            icache: InstrCache::new(),
             breakpoints: HashMap::new(),
         }
     }
@@ -378,8 +335,8 @@ impl Runner {
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;
         let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
-        self.x86.icache.disassemble(section, mapping.addr);
-        self.x86.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.icache.disassemble(section, mapping.addr);
+        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
 
         Ok(labels)
     }
@@ -390,7 +347,7 @@ impl Runner {
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
         int3.set_next_ip(addr as u64 + 1);
-        let prev = self.x86.icache.patch(addr, int3)?;
+        let prev = self.icache.patch(addr, int3)?;
         self.breakpoints.insert(addr, prev);
         Ok(())
     }
@@ -398,14 +355,58 @@ impl Runner {
     /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.x86.icache.patch(addr, prev)?;
+        self.icache.patch(addr, prev)?;
         Ok(())
+    }
+
+    /// If eip points at a shim address, call the handler and update eip.
+    fn check_shim_call(&mut self) -> anyhow::Result<()> {
+        if self.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
+            return Ok(());
+        }
+        let ret = ops::pop(&mut self.x86);
+        let handler = self
+            .x86
+            .shims
+            .get(self.x86.regs.eip)
+            .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
+        handler(&mut self.x86);
+        ops::x86_jmp(&mut self.x86, ret)
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
         self.instr_count += 1;
-        self.x86.step()
+
+        let (prev_ip, ref instr) = self.icache.instrs[self.icache.index];
+        let next_ip = instr.next_ip() as u32;
+        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
+        self.x86.regs.eip = next_ip;
+        match self.x86.run(instr) {
+            Err(err) => {
+                // Point the debugger at the failed instruction.
+                self.x86.regs.eip = prev_ip;
+                Err(err)
+            }
+            Ok(_) => {
+                if self.x86.stopped {
+                    self.x86.regs.eip = prev_ip;
+                    if let Some(msg) = &self.x86.crashed {
+                        bail!(msg.clone());
+                    }
+                    self.x86.stopped = false;
+                    return Ok(false);
+                }
+                if self.x86.regs.eip == next_ip {
+                    self.icache.index += 1;
+                } else {
+                    self.check_shim_call()?;
+                    // Instruction changed eip.  Update icache to match.
+                    self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+                }
+                Ok(true)
+            }
+        }
     }
 
     // Multi-step execution.  Returns Ok(false) on breakpoint.
@@ -421,6 +422,6 @@ impl Runner {
     pub fn load_snapshot(&mut self, snap: Snapshot) {
         self.x86.mem = snap.mem;
         self.x86.regs = snap.regs;
-        self.x86.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
     }
 }

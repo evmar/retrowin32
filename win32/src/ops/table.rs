@@ -254,8 +254,8 @@ pub unsafe fn init_op_tab() {
     // log::info!("highest op at {}", last.unwrap());
 }
 
-pub unsafe fn execute(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
-    match OP_TAB[instr.code() as usize] {
+pub fn execute(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+    match unsafe { OP_TAB[instr.code() as usize] } {
         Some(f) => f(x86, instr),
         None => anyhow::bail!("no dispatch for: {:?}", instr.code()),
     }
