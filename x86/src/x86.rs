@@ -1,4 +1,4 @@
-use crate::{memory::Memory, ops, registers::Registers, Result};
+use crate::{memory::Memory, ops, registers::Registers, Error, Result};
 use serde::ser::SerializeStruct;
 
 /// Addresses from 0 up to this point cause panics if we access them.
@@ -9,8 +9,10 @@ pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
     /// Toggled on by breakpoints/process exit.
-    pub stopped: bool,
-    pub crashed: Option<String>,
+    // TODO: this is gross, because we must check it after every instruction.
+    // It would be nice if there was some more clever way to thread process exit...
+    stopped: bool,
+    crashed: Option<String>,
 }
 impl X86 {
     pub fn new() -> Self {
@@ -34,6 +36,10 @@ impl X86 {
 
     fn crash(&mut self, msg: String) {
         self.crashed = Some(msg);
+        self.stopped = true;
+    }
+
+    pub fn stop(&mut self) {
         self.stopped = true;
     }
 
@@ -101,7 +107,15 @@ impl X86 {
     }
 
     pub fn run(&mut self, instr: &iced_x86::Instruction) -> Result<()> {
-        ops::execute(self, instr)
+        ops::execute(self, instr)?;
+        if self.stopped {
+            self.stopped = false;
+            if let Some(crash) = self.crashed.take() {
+                return Err(Error::Error(crash));
+            }
+            return Err(Error::Interrupt);
+        }
+        Ok(())
     }
 
     pub fn load_snapshot(&mut self, snap: Snapshot) {

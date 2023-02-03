@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::{memory::Memory, registers::Flags, x86::X86, Result};
+use crate::{memory::Memory, registers::Flags, x86::X86, Error, Result};
 
 use super::helpers::*;
 
@@ -292,7 +292,6 @@ pub fn cdq(x86: &mut X86, _instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-pub fn int3(x86: &mut X86, _instr: &Instruction) -> Result<()> {
-    x86.stopped = true;
-    Ok(())
+pub fn int3(_x86: &mut X86, _instr: &Instruction) -> Result<()> {
+    Err(Error::Interrupt)
 }

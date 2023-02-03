@@ -249,17 +249,12 @@ impl Runner {
             Err(err) => {
                 // Point the debugger at the failed instruction.
                 self.machine.x86.regs.eip = prev_ip;
-                bail!(err)
+                match err {
+                    x86::Error::Interrupt => return Ok(false),
+                    err => bail!(err),
+                }
             }
             Ok(_) => {
-                if self.machine.x86.stopped {
-                    self.machine.x86.regs.eip = prev_ip;
-                    if let Some(msg) = &self.machine.x86.crashed {
-                        bail!(msg.clone());
-                    }
-                    self.machine.x86.stopped = false;
-                    return Ok(false);
-                }
                 if self.machine.x86.regs.eip == next_ip {
                     self.icache.index += 1;
                 } else {
