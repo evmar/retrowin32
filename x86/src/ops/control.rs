@@ -5,28 +5,20 @@ use crate::{registers::Flags, x86::X86, Result};
 use super::helpers::*;
 
 pub fn call(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    let target = instr.near_branch32();
-    if target == 0x00408d65 || target == 0x0040a281 {
-        log::warn!("HACK: manually nop'd call at {target:x}");
-    } else {
-        push(x86, x86.regs.eip);
-        x86_jmp(x86, instr.near_branch32())?;
-    }
-    Ok(())
+    push(x86, x86.regs.eip);
+    x86_jmp(x86, instr.near_branch32())
 }
 
 pub fn call_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     // call dword ptr [addr]
     let target = op0_rm32(x86, instr);
     push(x86, x86.regs.eip);
-    x86_jmp(x86, target)?;
-    Ok(())
+    x86_jmp(x86, target)
 }
 
 pub fn retnd(x86: &mut X86, _instr: &Instruction) -> Result<()> {
     let addr = pop(x86);
-    x86_jmp(x86, addr)?;
-    Ok(())
+    x86_jmp(x86, addr)
 }
 
 pub fn retnd_imm16(x86: &mut X86, instr: &Instruction) -> Result<()> {
@@ -37,14 +29,12 @@ pub fn retnd_imm16(x86: &mut X86, instr: &Instruction) -> Result<()> {
 }
 
 pub fn jmp(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    x86_jmp(x86, instr.near_branch32())?;
-    Ok(())
+    x86_jmp(x86, instr.near_branch32())
 }
 
 pub fn jmp_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let target = op0_rm32(x86, instr);
-    x86_jmp(x86, target)?;
-    Ok(())
+    x86_jmp(x86, target)
 }
 
 pub fn ja(x86: &mut X86, instr: &Instruction) -> Result<()> {
