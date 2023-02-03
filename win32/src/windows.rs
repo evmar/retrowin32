@@ -71,7 +71,7 @@ pub fn load_exe(
                 Some(f) => Ok(f),
                 None => Err(format!("unimplemented: {dll}!{sym}")),
             };
-            let addr = machine.x86.shims.add(entry);
+            let addr = machine.shims.add(entry);
 
             labels.insert(addr, sym.to_string());
 

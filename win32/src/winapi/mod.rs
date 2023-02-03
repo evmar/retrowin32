@@ -65,7 +65,7 @@ macro_rules! vtable {
                 std::mem::size_of::<Vtable>() as u32,
             );
             let vtable = machine.x86.mem.view_mut::<Vtable>(addr);
-            *vtable = Vtable::new(&mut machine.x86.shims);
+            *vtable = Vtable::new(&mut machine.shims);
             addr
         }
     };

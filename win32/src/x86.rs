@@ -50,6 +50,7 @@ pub struct Machine {
     pub x86: X86,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
+    pub shims: Shims,
 }
 
 impl Machine {
@@ -58,6 +59,7 @@ impl Machine {
             x86: X86::new(),
             host,
             state: winapi::State::new(),
+            shims: Shims::new(),
         }
     }
 }
@@ -65,7 +67,6 @@ impl Machine {
 pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
-    pub shims: Shims,
     /// Toggled on by breakpoints/process exit.
     pub stopped: bool,
     pub crashed: Option<String>,
@@ -85,7 +86,6 @@ impl X86 {
         X86 {
             mem: Vec::new(),
             regs,
-            shims: Shims::new(),
             stopped: false,
             crashed: None,
         }
@@ -381,7 +381,6 @@ impl Runner {
         let ret = ops::pop(&mut self.machine.x86);
         let handler = self
             .machine
-            .x86
             .shims
             .get(self.machine.x86.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
