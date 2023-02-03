@@ -45,6 +45,13 @@ namespace Memory {
   }
 }
 export class Memory extends preact.Component<Memory.Props> {
+  onSubmit = (e: Event) => {
+    e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const addr = (form.elements.namedItem('addr') as HTMLInputElement).value;
+    this.props.jumpTo(parseInt(addr, 16));
+  };
+
   render() {
     let rows = [];
     const base = this.props.base & ~0xf;
@@ -70,11 +77,11 @@ export class Memory extends preact.Component<Memory.Props> {
     }
     return (
       <section>
-        <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <button onClick={() => this.props.jumpTo(this.props.base - 0x100)}>&lt;</button>
-          <input size={8} value={hex(this.props.base, 8)} />
-          <button onClick={() => this.props.jumpTo(this.props.base + 0x100)}>&gt;</button>
-        </div>
+        <form style={{ display: 'flex', justifyContent: 'center' }} onSubmit={this.onSubmit}>
+          <button type='button' onClick={() => this.props.jumpTo(this.props.base - 0x100)}>&lt;</button>
+          <input name='addr' size={8} value={hex(this.props.base, 8)} />
+          <button type='button' onClick={() => this.props.jumpTo(this.props.base + 0x100)}>&gt;</button>
+        </form>
         <code>{rows}</code>
       </section>
     );
