@@ -289,8 +289,7 @@ impl Runner {
     }
 
     pub fn load_snapshot(&mut self, snap: Snapshot) {
-        self.machine.x86.mem = snap.mem;
-        self.machine.x86.regs = snap.regs;
+        self.machine.x86.load_snapshot(snap);
         self.icache
             .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
     }

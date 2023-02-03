@@ -104,6 +104,11 @@ impl X86 {
     pub fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
         ops::execute(self, instr)
     }
+
+    pub fn load_snapshot(&mut self, snap: Snapshot) {
+        self.mem = snap.mem;
+        self.regs = snap.regs;
+    }
 }
 
 impl serde::Serialize for X86 {
@@ -117,8 +122,8 @@ impl serde::Serialize for X86 {
 }
 
 pub struct Snapshot {
-    pub mem: Vec<u8>,
-    pub regs: Registers,
+    mem: Vec<u8>,
+    regs: Registers,
 }
 
 impl<'de> serde::Deserialize<'de> for Snapshot {
