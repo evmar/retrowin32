@@ -143,31 +143,17 @@ impl Runner {
     // Single-step execution.  Returns Ok(false) if we stopped.
     pub fn step(&mut self) -> anyhow::Result<bool> {
         self.instr_count += 1;
-
-        let (prev_ip, ref instr) = self.icache.instrs[self.icache.index];
-        let next_ip = instr.next_ip() as u32;
-        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
-        self.machine.x86.regs.eip = next_ip;
-        match self.machine.x86.run(instr) {
-            Err(err) => {
-                // Point the debugger at the failed instruction.
-                self.machine.x86.regs.eip = prev_ip;
-                match err {
-                    x86::Error::Interrupt => return Ok(false),
-                    err => bail!(err),
-                }
-            }
-            Ok(_) => {
-                if self.machine.x86.regs.eip == next_ip {
-                    self.icache.index += 1;
-                } else {
-                    self.check_shim_call()?;
-                    // Instruction changed eip.  Update icache to match.
-                    self.icache
-                        .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
-                }
+        match self.icache.step(&mut self.machine.x86) {
+            Err(x86::Error::Interrupt) => Ok(false),
+            Err(x86::Error::Error(err)) => bail!(err),
+            Ok(false) => {
+                self.check_shim_call()?;
+                // Instruction changed eip.  Update icache to match.
+                self.icache
+                    .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
                 Ok(true)
             }
+            Ok(true) => Ok(true),
         }
     }
 

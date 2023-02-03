@@ -106,6 +106,7 @@ impl X86 {
         unsafe { *self.mem.get_unchecked(addr as usize) }
     }
 
+    /// Executes an instruction, leaving eip alone.
     pub fn run(&mut self, instr: &iced_x86::Instruction) -> Result<()> {
         ops::execute(self, instr)?;
         if self.stopped {
@@ -260,5 +261,30 @@ impl InstrCache {
     pub fn patch(&mut self, addr: u32, instr: iced_x86::Instruction) -> iced_x86::Instruction {
         let index = self.ip_to_instr_index(&[], addr).expect("couldn't map ip");
         std::mem::replace(&mut self.instrs[index].1, instr)
+    }
+
+    /// Executes the current instruction, updating eip.
+    /// Returns Ok(false) if we jumped, Ok(true) if we single-stepped.
+    /// Caller must call self.jmp() in the jump case.
+    pub fn step(&mut self, x86: &mut X86) -> Result<bool> {
+        let (prev_ip, ref instr) = self.instrs[self.index];
+        let next_ip = instr.next_ip() as u32;
+        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
+        x86.regs.eip = next_ip;
+        match x86.run(instr) {
+            Err(err) => {
+                // Point the debugger at the failed instruction.
+                x86.regs.eip = prev_ip;
+                Err(err)
+            }
+            Ok(_) => {
+                if x86.regs.eip == next_ip {
+                    self.index += 1;
+                    Ok(true)
+                } else {
+                    Ok(false)
+                }
+            }
+        }
     }
 }
