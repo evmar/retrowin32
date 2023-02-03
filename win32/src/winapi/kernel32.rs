@@ -134,7 +134,7 @@ pub struct State {
     arena: ArenaInfo,
     /// Address image was loaded at.
     pub image_base: u32,
-    /// Address of TEB (FS register).
+    /// Address of TEB (what FS register-relative addresses refer to).
     pub teb: u32,
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().

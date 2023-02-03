@@ -31,6 +31,7 @@ pub fn load_exe(
     }
 
     x86.state.kernel32.init(&mut x86.mem, cmdline);
+    x86.regs.fs_addr = x86.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.

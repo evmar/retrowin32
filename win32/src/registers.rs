@@ -49,6 +49,11 @@ pub struct Registers {
     pub fs: u16,
     pub gs: u16,
     pub ss: u16,
+    // TODO: segment registers are actually 16-bit indexes into the GDT/LDT,
+    // but for our purposes all we ever care about is making FS-relative accesses point
+    // at the Windows TEB.
+    /// Address that FS-relative accesses point to.
+    pub fs_addr: u32,
 
     pub flags: Flags,
 
@@ -78,6 +83,7 @@ impl Registers {
             fs: 0,
             gs: 0,
             ss: 0,
+            fs_addr: 0,
             flags: Flags::empty(),
 
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],

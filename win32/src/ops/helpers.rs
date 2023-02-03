@@ -133,11 +133,13 @@ pub fn pop16(x86: &mut X86) -> u16 {
 /// Compute the address found in instructions that reference memory, e.g.
 ///   mov [eax+03h],...
 pub fn x86_addr(x86: &X86, instr: &iced_x86::Instruction) -> u32 {
-    let seg = if instr.segment_prefix() == iced_x86::Register::FS {
-        x86.state.kernel32.teb
-    } else {
-        0
+    // TODO: see comments on regs.fs_addr.
+    let seg = match instr.segment_prefix() {
+        iced_x86::Register::FS => x86.regs.fs_addr,
+        iced_x86::Register::None => 0,
+        _ => unimplemented!(),
     };
+
     let base = if instr.memory_base() != iced_x86::Register::None {
         x86.regs.get32(instr.memory_base())
     } else {
