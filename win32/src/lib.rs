@@ -1,6 +1,5 @@
 mod host;
 mod machine;
-mod ops;
 mod pe;
 mod reader;
 mod winapi;
