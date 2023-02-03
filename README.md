@@ -48,7 +48,8 @@ for how this is similar but different.
 
 # Code layout
 
-- `win32/` -- the x86/win32 emulator
+- `x86/` -- the x86 emulator
+- `win32/` -- the win32 emulator
   - `win32/src/winapi/` -- the Windows API implementation
 - `cli/` -- a command-line emulator runner
 - `web/` -- a webapp that runs the emulator in a browser
