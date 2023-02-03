@@ -6,3 +6,6 @@ members = [
   "win32/src/winapi/gen",
   "x86",
 ]
+
+[profile.release]
+lto = true
