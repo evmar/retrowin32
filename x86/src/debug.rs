@@ -45,7 +45,6 @@ pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
     let mut instrs = Vec::new();
     let mut i = 0;
     for instruction in decoder {
-        print!("{:08X} ", instruction.ip());
         let start_index = instruction.ip() as usize;
         let instr_bytes = &mem[start_index..start_index + instruction.len()];
         let mut bytes = String::new();

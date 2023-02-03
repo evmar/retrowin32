@@ -9,17 +9,9 @@ use anyhow::bail;
 fn dump_asm(runner: &win32::Runner) {
     let instrs = win32::disassemble(&runner.machine.x86.mem, runner.machine.x86.regs.eip);
 
-    for instr in instrs {
-        print!("{:08X} ", instr.addr);
-        for b in instr.bytes.bytes() {
-            print!("{:02x}", b);
-        }
-        if instr.bytes.len() < 10 {
-            for _ in 0..10 - instr.bytes.len() {
-                print!("  ");
-            }
-        }
-        for part in instr.code {
+    for instr in &instrs[..5] {
+        print!("{:08x} {:10} ", instr.addr, instr.bytes);
+        for part in &instr.code {
             print!("{}", part.text);
         }
         println!();
