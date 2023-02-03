@@ -6,9 +6,10 @@ use num_traits::FromPrimitive;
 use std::collections::HashMap;
 
 use crate::{
+    machine::Machine,
     memory::{Memory, Pod},
-    pe::{self, ImageSectionFlags},
-    x86::{self, Machine},
+    pe::ImageSectionFlags,
+    x86::NULL_POINTER_REGION_SIZE,
 };
 use std::io::Write;
 use tsify::Tsify;
@@ -31,7 +32,7 @@ pub struct Mapping {
     pub addr: u32,
     pub size: u32,
     pub desc: String,
-    pub flags: pe::ImageSectionFlags,
+    pub flags: ImageSectionFlags,
 }
 
 /// The set of Mappings managed by the kernel.
@@ -41,7 +42,7 @@ impl Mappings {
     fn new() -> Self {
         Mappings(vec![Mapping {
             addr: 0,
-            size: x86::NULL_POINTER_REGION_SIZE,
+            size: NULL_POINTER_REGION_SIZE,
             desc: "avoid null pointers".into(),
             flags: ImageSectionFlags::empty(),
         }])

@@ -5,10 +5,10 @@ use std::collections::HashMap;
 
 use crate::{
     host,
+    machine::Machine,
     memory::{Memory, Pod},
     winapi::vtable,
     winapi::winapi_shims,
-    x86::Machine,
 };
 
 use super::{alloc::Alloc, types::DWORD};

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{pe, winapi, x86::Machine};
+use crate::{machine::Machine, pe, winapi};
 
 pub fn load_exe(
     machine: &mut Machine,

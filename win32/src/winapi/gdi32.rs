@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{winapi::user32, x86::Machine};
+use crate::{machine::Machine, winapi::user32};
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]

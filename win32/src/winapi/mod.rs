@@ -1,4 +1,4 @@
-use crate::x86::Machine;
+use crate::machine::Machine;
 
 mod alloc;
 pub mod ddraw;
@@ -19,7 +19,7 @@ macro_rules! winapi_shims {
     ($(fn $name:ident($($param:ident: $type:ty),* $(,)?);)*) => {
         #[allow(unused_imports)]
         pub mod shims {
-            use crate::x86::X86;
+            use crate::machine::Machine;
             use super::*;
 
             $(#[allow(non_snake_case)]
@@ -53,7 +53,7 @@ macro_rules! vtable {
         }
         unsafe impl crate::memory::Pod for Vtable {}
         impl Vtable {
-            fn new(shims: &mut crate::x86::Shims) -> Self {
+            fn new(shims: &mut crate::machine::Shims) -> Self {
                 Vtable {
                     $($fn: shims.add($crate::winapi::vtable_entry!($shims $fn $status)).into()),*
                 }

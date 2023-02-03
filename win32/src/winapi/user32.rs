@@ -5,10 +5,10 @@ use bitflags::bitflags;
 
 use crate::{
     host,
+    machine::Machine,
     memory::{Memory, Pod},
     pe,
     winapi::gdi32,
-    x86::Machine,
 };
 
 use super::types::{DWORD, WORD};
