@@ -22,7 +22,7 @@ macro_rules! declare_handle {
             }
 
             // Handles have both null and invalid states, whoopsie.
-            // https://devblogs.microsoft.com/oldnewthing/20040302-00/
+            // https://devblogs.microsoft.com/oldnewthing/20040302-00/?p=40443
             pub fn null() -> Self {
                 Self::from_raw(0)
             }
