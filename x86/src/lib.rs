@@ -4,8 +4,6 @@ pub mod ops;
 mod registers;
 mod x86;
 
-use std::fmt::Display;
-
 pub use memory::{Memory, Pod};
 pub use x86::{InstrCache, Snapshot, NULL_POINTER_REGION_SIZE, X86};
 
@@ -14,7 +12,7 @@ pub enum Error {
     Interrupt,
     Error(String),
 }
-impl Display for Error {
+impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }

@@ -1,7 +1,8 @@
-use std::collections::HashMap;
+//! The central x86 machine object.
 
 use crate::{memory::Memory, ops, registers::Registers, Error, Result};
 use serde::ser::SerializeStruct;
+use std::collections::HashMap;
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -110,8 +111,9 @@ impl X86 {
 
     /// Executes an instruction, leaving eip alone.
     pub fn run(&mut self, instr: &iced_x86::Instruction) -> Result<()> {
-        ops::execute(self, instr)?;
+        ops::execute(self, instr)?; // Note: may ::Error or ::Interrupt here...
         if self.stopped {
+            // ...but we also might set self.stopped instead in some scenarios.
             self.stopped = false;
             if let Some(crash) = self.crashed.take() {
                 return Err(Error::Error(crash));
@@ -176,7 +178,10 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
     }
 }
 
-/// Cache of decoded instructions, indexed by ip.
+/// Cache of decoded instructions.
+/// This also caches the current instruction index, so that we don't need to map
+/// x86 eip addresses to the instruction cache entry.  Instead, whenever we step
+/// we update index as appropriate.
 pub struct InstrCache {
     /// (ip, instruction) pairs of cached decoded instructions.
     pub instrs: Vec<(u32, iced_x86::Instruction)>,

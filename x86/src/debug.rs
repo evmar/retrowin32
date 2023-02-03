@@ -1,6 +1,7 @@
-use std::fmt::Write;
+//! Disassembler producing serde/JSON for use in displaying code in the debugger.
 
 use iced_x86::{Formatter, IntelFormatter};
+use std::fmt::Write;
 use tsify::Tsify;
 
 #[derive(Tsify, serde::Serialize)]

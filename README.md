@@ -54,3 +54,4 @@ for how this is similar but different.
 - `cli/` -- a command-line emulator runner
 - `web/` -- a webapp that runs the emulator in a browser
   - `web/glue/` -- wasm glue for the `win32/` API
+- `exe/` -- some sample Windows executables
