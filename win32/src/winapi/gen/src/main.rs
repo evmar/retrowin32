@@ -22,17 +22,17 @@ fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
             _ => unimplemented!(),
         };
         if i == 0 {
-            // first param, the x86
-            args.push(quote!(x86));
+            // first param, the machine
+            args.push(quote!(machine));
         } else {
             args.push(quote!(#name));
             let ty = &arg.ty;
-            body.push(quote!(let #name: #ty = unsafe { from_x86(x86) };));
+            body.push(quote!(let #name: #ty = unsafe { from_x86(&mut machine.x86) };));
         }
     }
-    quote!(fn #name(x86: &mut X86) {
+    quote!(fn #name(machine: &mut Machine) {
         #(#body)*
-        x86.regs.eax = winapi::#module::#name(#(#args),*).to_raw();
+        machine.x86.regs.eax = winapi::#module::#name(#(#args),*).to_raw();
     })
 }
 
@@ -73,7 +73,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
             use winapi::#module::*;
 
             #(#fns)*
-            pub fn resolve(name: &str) -> Option<fn(&mut X86)> {
+            pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
                 Some(match name {
                     #(#matches,)*
                     _ => return None,
@@ -100,7 +100,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{memory::Memory, winapi, x86::X86, winapi::shims::{from_x86, ToX86}, winapi::types::*};
+        use crate::{memory::Memory, winapi, x86::Machine, winapi::shims::{from_x86, ToX86}, winapi::types::*};
 
         #(#mods)*
     })

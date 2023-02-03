@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use crate::{
     memory::{Memory, Pod},
     pe::{self, ImageSectionFlags},
-    x86::{self, X86},
+    x86::{self, Machine},
 };
 use std::io::Write;
 use tsify::Tsify;
@@ -268,15 +268,15 @@ impl State {
     }
 }
 
-fn teb(x86: &X86) -> &TEB {
-    x86.mem.view::<TEB>(x86.state.kernel32.teb)
+fn teb(machine: &Machine) -> &TEB {
+    machine.x86.mem.view::<TEB>(machine.state.kernel32.teb)
 }
-fn teb_mut(x86: &mut X86) -> &mut TEB {
-    x86.mem.view_mut::<TEB>(x86.state.kernel32.teb)
+fn teb_mut(machine: &mut Machine) -> &mut TEB {
+    machine.x86.mem.view_mut::<TEB>(machine.state.kernel32.teb)
 }
-fn peb_mut(x86: &mut X86) -> &mut PEB {
-    let peb_addr = teb(x86).Peb;
-    x86.mem.view_mut::<PEB>(peb_addr)
+fn peb_mut(machine: &mut Machine) -> &mut PEB {
+    let peb_addr = teb(machine).Peb;
+    machine.x86.mem.view_mut::<PEB>(peb_addr)
 }
 
 #[repr(C)]
@@ -382,63 +382,67 @@ struct _EXCEPTION_REGISTRATION_RECORD {
 }
 unsafe impl Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
-pub fn SetLastError(x86: &mut X86, dwErrCode: u32) -> u32 {
-    teb_mut(x86).LastErrorValue = dwErrCode;
+pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
+    teb_mut(machine).LastErrorValue = dwErrCode;
     0 // unused
 }
 
-pub fn GetLastError(_x86: &mut X86) -> u32 {
+pub fn GetLastError(_machine: &mut Machine) -> u32 {
     // TODO: should we start calling SetLastError when appropriate?
     0x1c // printer out of paper
 }
 
-pub fn ExitProcess(x86: &mut X86, uExitCode: u32) -> u32 {
-    x86.host.exit(uExitCode);
+pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
+    machine.host.exit(uExitCode);
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
-    x86.stopped = true;
+    machine.x86.stopped = true;
     0
 }
 
-pub fn GetACP(_x86: &mut X86) -> u32 {
+pub fn GetACP(_machine: &mut Machine) -> u32 {
     1252 // windows-1252
 }
 
-pub fn IsValidCodePage(_x86: &mut X86, CodePage: u32) -> bool {
+pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
     CodePage == 1252
 }
 
-pub fn GetCPInfo(_x86: &mut X86, _CodePage: u32, _lpCPInfo: u32) -> u32 {
+pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 {
     0 // fail
 }
 
-pub fn GetCommandLineA(x86: &mut X86) -> u32 {
-    x86.state.kernel32.cmdline
+pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
+    machine.state.kernel32.cmdline
 }
 
-pub fn GetCommandLineW(x86: &mut X86) -> u32 {
-    x86.state.kernel32.cmdline16
+pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
+    machine.state.kernel32.cmdline16
 }
 
-pub fn GetEnvironmentStrings(x86: &mut X86) -> u32 {
-    x86.state.kernel32.env
+pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
+    machine.state.kernel32.env
 }
 
-pub fn FreeEnvironmentStringsA(_x86: &mut X86, _penv: u32) -> u32 {
+pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> u32 {
     1 // success
 }
 
-pub fn GetEnvironmentStringsW(_x86: &mut X86) -> u32 {
+pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
     0
 }
 
-pub fn GetEnvironmentVariableA(_x86: &mut X86, name: Option<&str>, buf: &mut [u8]) -> usize {
+pub fn GetEnvironmentVariableA(
+    _machine: &mut Machine,
+    name: Option<&str>,
+    buf: &mut [u8],
+) -> usize {
     println!("name {:?} buf {:?}", name, buf);
     0
 }
 
-pub fn GetFileType(_x86: &mut X86, hFile: HFILE) -> u32 {
+pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
     let FILE_TYPE_CHAR = 0x2;
     let FILE_TYPE_UNKNOWN = 0x8;
     match hFile {
@@ -450,7 +454,11 @@ pub fn GetFileType(_x86: &mut X86, hFile: HFILE) -> u32 {
     }
 }
 
-pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [u8]) -> usize {
+pub fn GetModuleFileNameA(
+    _machine: &mut Machine,
+    hModule: HMODULE,
+    mut filename: &mut [u8],
+) -> usize {
     assert!(hModule.is_null());
     match filename.write(b"TODO.exe\0") {
         Ok(n) => n,
@@ -461,29 +469,34 @@ pub fn GetModuleFileNameA(_x86: &mut X86, hModule: HMODULE, mut filename: &mut [
     }
 }
 
-pub fn GetModuleFileNameW(_x86: &mut X86, hModule: HMODULE, _lpFilename: u32, _nSize: u32) -> u32 {
+pub fn GetModuleFileNameW(
+    _machine: &mut Machine,
+    hModule: HMODULE,
+    _lpFilename: u32,
+    _nSize: u32,
+) -> u32 {
     if !hModule.is_null() {
         log::error!("unimplemented: GetModuleHandleW(non-null)")
     }
     0 // fail
 }
 
-pub fn GetModuleHandleA(x86: &mut X86, lpModuleName: Option<&str>) -> HMODULE {
+pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
     if let Some(name) = lpModuleName {
         log::error!("unimplemented: GetModuleHandle({name:?})");
         return HMODULE::null();
     }
     // HMODULE is base address of current module.
-    HMODULE::from_raw(x86.state.kernel32.image_base)
+    HMODULE::from_raw(machine.state.kernel32.image_base)
 }
 
-pub fn GetModuleHandleW(x86: &mut X86, lpModuleName: Option<Str16>) -> HMODULE {
+pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<Str16>) -> HMODULE {
     let ascii = lpModuleName.map(|str| str.to_string());
-    GetModuleHandleA(x86, ascii.as_deref())
+    GetModuleHandleA(machine, ascii.as_deref())
 }
 
 pub fn GetModuleHandleExW(
-    x86: &mut X86,
+    machine: &mut Machine,
     dwFlags: u32,
     lpModuleName: Option<Str16>,
     hModule: Option<&mut HMODULE>,
@@ -491,7 +504,7 @@ pub fn GetModuleHandleExW(
     if dwFlags != 0 {
         unimplemented!("GetModuleHandleExW flags {dwFlags:x}");
     }
-    let hMod = GetModuleHandleW(x86, lpModuleName);
+    let hMod = GetModuleHandleW(machine, lpModuleName);
     if let Some(out) = hModule {
         *out = hMod;
     }
@@ -521,23 +534,23 @@ struct STARTUPINFOA {
 }
 unsafe impl Pod for STARTUPINFOA {}
 
-pub fn GetStartupInfoA(x86: &mut X86, lpStartupInfo: u32) -> u32 {
+pub fn GetStartupInfoA(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     let size = std::mem::size_of::<STARTUPINFOA>();
-    x86.mem[ofs..ofs + size].fill(0);
+    machine.x86.mem[ofs..ofs + size].fill(0);
 
-    let info = x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
+    let info = machine.x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
     info.cb = size as u32;
     0
 }
 
-pub fn GetStartupInfoW(x86: &mut X86, lpStartupInfo: u32) -> u32 {
+pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
     let size = std::mem::size_of::<STARTUPINFOA>();
-    x86.mem[ofs..ofs + size].fill(0);
+    machine.x86.mem[ofs..ofs + size].fill(0);
 
-    let info = x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
+    let info = machine.x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
     info.cb = size as u32;
     0
 }
@@ -579,25 +592,25 @@ pub enum ProcessorFeature {
     RDTSCP_INSTRUCTION_AVAILABLE = 32,
 }
 
-pub fn IsProcessorFeaturePresent(_x86: &mut X86, feature: u32) -> bool {
+pub fn IsProcessorFeaturePresent(_machine: &mut Machine, feature: u32) -> bool {
     let feature = ProcessorFeature::from_u32(feature).unwrap();
     log::warn!("IsProcessorFeaturePresent({feature:?}) => false");
     false
 }
 
-pub fn IsDebuggerPresent(_x86: &mut X86) -> bool {
+pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
     true // Might cause a binary to log info via the debug API? Not sure.
 }
 
-pub fn GetCurrentThreadId(_x86: &mut X86) -> u32 {
+pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
     1
 }
 
-pub fn GetCurrentProcessId(_x86: &mut X86) -> u32 {
+pub fn GetCurrentProcessId(_machine: &mut Machine) -> u32 {
     1
 }
 
-pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> HFILE {
+pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: u32) -> HFILE {
     match nStdHandle as i32 {
         -10 => STDIN_HFILE,
         -11 => STDOUT_HFILE,
@@ -606,11 +619,11 @@ pub fn GetStdHandle(_x86: &mut X86, nStdHandle: u32) -> HFILE {
     }
 }
 
-pub fn GetTickCount(x86: &mut X86) -> u32 {
-    x86.host.time()
+pub fn GetTickCount(machine: &mut Machine) -> u32 {
+    machine.host.time()
 }
 
-pub fn QueryPerformanceCounter(_x86: &mut X86, _ptr: u32) -> bool {
+pub fn QueryPerformanceCounter(_machine: &mut Machine, _ptr: u32) -> bool {
     true // success
 }
 
@@ -620,11 +633,11 @@ pub struct FILETIME {
     dwHighDateTime: DWORD,
 }
 unsafe impl Pod for FILETIME {}
-pub fn GetSystemTimeAsFileTime(_x86: &mut X86, _time: Option<&mut FILETIME>) -> u32 {
+pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
     0
 }
 
-pub fn GetVersion(_x86: &mut X86) -> u32 {
+pub fn GetVersion(_machine: &mut Machine) -> u32 {
     // Win95, version 4.0.
     (1 << 31) | 0x4
 }
@@ -639,16 +652,16 @@ struct OSVERSIONINFO {
     //szCSDVersion: [u8; 128],
 }
 
-pub fn GetVersionExA(x86: &mut X86, lpVersionInformation: u32) -> u32 {
+pub fn GetVersionExA(machine: &mut Machine, lpVersionInformation: u32) -> u32 {
     let ofs = lpVersionInformation as usize;
-    let size = x86.read_u32(lpVersionInformation) as usize;
+    let size = machine.x86.read_u32(lpVersionInformation) as usize;
     if size < std::mem::size_of::<OSVERSIONINFO>() {
         log::error!("GetVersionExA undersized buffer");
         return 0;
     }
-    x86.mem[ofs..ofs + size].fill(0);
+    machine.x86.mem[ofs..ofs + size].fill(0);
 
-    let buf = &mut x86.mem[ofs..ofs + std::mem::size_of::<OSVERSIONINFO>()];
+    let buf = &mut machine.x86.mem[ofs..ofs + std::mem::size_of::<OSVERSIONINFO>()];
     let info: &mut OSVERSIONINFO =
         unsafe { (buf.as_mut_ptr() as *mut OSVERSIONINFO).as_mut().unwrap() };
 
@@ -667,14 +680,14 @@ bitflags! {
     }
 }
 
-pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
+pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     let mut flags = HeapAllocFlags::from_bits(dwFlags).unwrap_or_else(|| {
         log::warn!("HeapAlloc invalid flags {dwFlags:x}");
         HeapAllocFlags::empty()
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let mut heap = match x86.state.kernel32.get_heap(&mut x86.mem, hHeap) {
+    let mut heap = match machine.state.kernel32.get_heap(&mut machine.x86.mem, hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
@@ -686,7 +699,7 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        x86.mem[addr as usize..(addr + dwBytes) as usize].fill(0);
+        machine.x86.mem[addr as usize..(addr + dwBytes) as usize].fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
     }
     if !flags.is_empty() {
@@ -695,11 +708,11 @@ pub fn HeapAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     addr
 }
 
-pub fn HeapFree(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let mut heap = match x86.state.kernel32.get_heap(&mut x86.mem, hHeap) {
+    let mut heap = match machine.state.kernel32.get_heap(&mut machine.x86.mem, hHeap) {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
             return 0;
@@ -710,11 +723,11 @@ pub fn HeapFree(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     1 // success
 }
 
-pub fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match x86.state.kernel32.get_heap(&mut x86.mem, hHeap) {
+    let heap = match machine.state.kernel32.get_heap(&mut machine.x86.mem, hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -724,11 +737,17 @@ pub fn HeapSize(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     heap.size(lpMem)
 }
 
-pub fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes: u32) -> u32 {
+pub fn HeapReAlloc(
+    machine: &mut Machine,
+    hHeap: u32,
+    dwFlags: u32,
+    lpMem: u32,
+    dwBytes: u32,
+) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let mut heap = match x86.state.kernel32.get_heap(&mut x86.mem, hHeap) {
+    let mut heap = match machine.state.kernel32.get_heap(&mut machine.x86.mem, hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -738,7 +757,7 @@ pub fn HeapReAlloc(x86: &mut X86, hHeap: u32, dwFlags: u32, lpMem: u32, dwBytes:
     let old_size = heap.size(lpMem);
     let new_addr = heap.alloc(dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
-    x86.mem.copy_within(
+    machine.x86.mem.copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
         new_addr as usize,
     );
@@ -753,42 +772,49 @@ bitflags! {
     }
 }
 
-pub fn HeapCreate(x86: &mut X86, flOptions: u32, dwInitialSize: u32, _dwMaximumSize: u32) -> u32 {
+pub fn HeapCreate(
+    machine: &mut Machine,
+    flOptions: u32,
+    dwInitialSize: u32,
+    _dwMaximumSize: u32,
+) -> u32 {
     let _flags = HeapCreateFlags::from_bits(flOptions).unwrap();
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
     //log::info!("HeapCreate({flags:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
-    x86.state
-        .kernel32
-        .new_heap(&mut x86.mem, dwInitialSize as usize, "HeapCreate".into())
+    machine.state.kernel32.new_heap(
+        &mut machine.x86.mem,
+        dwInitialSize as usize,
+        "HeapCreate".into(),
+    )
 }
 
-pub fn HeapDestroy(_x86: &mut X86, hHeap: u32) -> u32 {
+pub fn HeapDestroy(_machine: &mut Machine, hHeap: u32) -> u32 {
     log::warn!("HeapDestroy({hHeap:x})");
     1 // success
 }
 
-pub fn GetProcessHeap(x86: &mut X86) -> u32 {
-    let heap = peb_mut(x86).ProcessHeap;
+pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
+    let heap = peb_mut(machine).ProcessHeap;
     if heap != 0 {
         return heap;
     }
     let size = 1 << 20;
-    let heap = x86
+    let heap = machine
         .state
         .kernel32
-        .new_heap(&mut x86.mem, size, "process heap".into());
-    peb_mut(x86).ProcessHeap = heap;
+        .new_heap(&mut machine.x86.mem, size, "process heap".into());
+    peb_mut(machine).ProcessHeap = heap;
     heap
 }
 
-pub fn LoadLibraryA(_x86: &mut X86, filename: Option<&str>) -> u32 {
+pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
 
 pub fn LoadLibraryExW(
-    _x86: &mut X86,
+    _machine: &mut Machine,
     lpLibFileName: Option<Str16>,
     hFile: HFILE,
     dwFlags: u32,
@@ -797,7 +823,7 @@ pub fn LoadLibraryExW(
     0 // fail
 }
 
-pub fn SetHandleCount(_x86: &mut X86, uNumber: u32) -> u32 {
+pub fn SetHandleCount(_machine: &mut Machine, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
 }
@@ -824,7 +850,7 @@ impl TryFrom<u32> for CreationDisposition {
 pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
 
 pub fn CreateFileW(
-    _x86: &mut X86,
+    _machine: &mut Machine,
     lpFileName: Option<Str16>,
     dwDesiredAccess: u32,
     _dwShareMode: u32,
@@ -851,7 +877,7 @@ pub fn CreateFileW(
 }
 
 pub fn WriteFile(
-    x86: &mut X86,
+    machine: &mut Machine,
     hFile: HFILE,
     lpBuffer: &[u8],
     lpNumberOfBytesWritten: Option<&mut u32>,
@@ -860,7 +886,7 @@ pub fn WriteFile(
     assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
     assert!(lpOverlapped == 0);
 
-    let n = x86.host.write(lpBuffer);
+    let n = machine.host.write(lpBuffer);
 
     // The docs say this parameter may not be null, but a test program with the param as null
     // runs fine on real Windows...
@@ -871,7 +897,7 @@ pub fn WriteFile(
 }
 
 pub fn VirtualAlloc(
-    x86: &mut X86,
+    machine: &mut Machine,
     lpAddress: u32,
     dwSize: u32,
     _flAllocationType: u32,
@@ -879,7 +905,7 @@ pub fn VirtualAlloc(
 ) -> u32 {
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
-        match x86
+        match machine
             .state
             .kernel32
             .mappings
@@ -899,26 +925,27 @@ pub fn VirtualAlloc(
     }
     // TODO round dwSize to page boundary
 
-    let mapping = x86
-        .state
-        .kernel32
-        .mappings
-        .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
+    let mapping =
+        machine
+            .state
+            .kernel32
+            .mappings
+            .alloc(dwSize, "VirtualAlloc".into(), &mut machine.x86.mem);
     mapping.addr
 }
 
-pub fn VirtualFree(_x86: &mut X86, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
+pub fn VirtualFree(_machine: &mut Machine, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
     1 // success
 }
 
-pub fn OutputDebugStringA(_x86: &mut X86, msg: Option<&str>) -> u32 {
+pub fn OutputDebugStringA(_machine: &mut Machine, msg: Option<&str>) -> u32 {
     log::warn!("OutputDebugStringA: {:?}", msg);
     0
 }
 
 pub fn InitializeCriticalSectionAndSpinCount(
-    _x86: &mut X86,
+    _machine: &mut Machine,
     _lpCriticalSection: u32,
     _dwSpinCount: u32,
 ) -> bool {
@@ -927,40 +954,40 @@ pub fn InitializeCriticalSectionAndSpinCount(
     true
 }
 
-pub fn DeleteCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+pub fn DeleteCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
-pub fn EnterCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+pub fn EnterCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
-pub fn LeaveCriticalSection(_x86: &mut X86, _lpCriticalSection: u32) -> u32 {
+pub fn LeaveCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
-pub fn SetUnhandledExceptionFilter(_x86: &mut X86, _lpTopLevelExceptionFilter: u32) -> u32 {
+pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
 
-pub fn UnhandledExceptionFilter(_x86: &mut X86, _exceptionInfo: u32) -> u32 {
+pub fn UnhandledExceptionFilter(_machine: &mut Machine, _exceptionInfo: u32) -> u32 {
     // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
     0 // EXCEPTION_CONTINUE_SEARCH
 }
 
-pub fn NtCurrentTeb(x86: &mut X86) -> u32 {
-    x86.state.kernel32.teb
+pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
+    machine.state.kernel32.teb
 }
 
-pub fn TlsAlloc(x86: &mut X86) -> u32 {
-    let peb = peb_mut(x86);
+pub fn TlsAlloc(machine: &mut Machine) -> u32 {
+    let peb = peb_mut(machine);
     let slot = peb.TlsCount;
     peb.TlsCount = slot + 1;
     slot
 }
 
-pub fn TlsFree(x86: &mut X86, dwTlsIndex: u32) -> bool {
-    let peb = peb_mut(x86);
+pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
+    let peb = peb_mut(machine);
     if dwTlsIndex >= peb.TlsCount {
         log::warn!("TlsFree of unknown slot {dwTlsIndex}");
         return false;
@@ -969,14 +996,14 @@ pub fn TlsFree(x86: &mut X86, dwTlsIndex: u32) -> bool {
     true
 }
 
-pub fn TlsSetValue(x86: &mut X86, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
-    let teb = teb_mut(x86);
+pub fn TlsSetValue(machine: &mut Machine, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
+    let teb = teb_mut(machine);
     teb.TlsSlots[dwTlsIndex as usize] = lpTlsValue;
     true
 }
 
-pub fn TlsGetValue(x86: &mut X86, dwTlsIndex: u32) -> u32 {
-    let teb = teb_mut(x86);
+pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
+    let teb = teb_mut(machine);
     teb.TlsSlots[dwTlsIndex as usize]
 }
 
@@ -989,7 +1016,7 @@ pub struct SLIST_HEADER {
 }
 unsafe impl Pod for SLIST_HEADER {}
 
-pub fn InitializeSListHead(_x86: &mut X86, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
+pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
     ListHead.unwrap().Next = 0;
     0
 }
@@ -998,7 +1025,7 @@ pub fn InitializeSListHead(_x86: &mut X86, ListHead: Option<&mut SLIST_HEADER>) 
 const CP_ACP: u32 = 0;
 
 pub fn MultiByteToWideChar(
-    x86: &mut X86,
+    machine: &mut Machine,
     CodePage: u32,
     _dwFlags: u32,
     lpMultiByteStr: u32,
@@ -1012,9 +1039,9 @@ pub fn MultiByteToWideChar(
 
     let input = match cbMultiByte {
         0 => return 0, // TODO: invalid param
-        -1 => x86.mem[lpMultiByteStr as usize..].read_strz_with_nul(),
+        -1 => machine.x86.mem[lpMultiByteStr as usize..].read_strz_with_nul(),
         len => std::str::from_utf8(
-            &x86.mem[lpMultiByteStr as usize..lpMultiByteStr as usize + len as usize],
+            &machine.x86.mem[lpMultiByteStr as usize..lpMultiByteStr as usize + len as usize],
         )
         .unwrap(),
     };
@@ -1041,7 +1068,7 @@ pub fn MultiByteToWideChar(
 }
 
 pub fn WriteConsoleW(
-    x86: &mut X86,
+    machine: &mut Machine,
     hConsoleOutput: HFILE,
     lpBuffer: Option<&[u16]>,
     lpNumberOfCharsWritten: Option<&mut u32>,
@@ -1050,7 +1077,7 @@ pub fn WriteConsoleW(
     let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
     let mut bytes_written = 0;
     if !WriteFile(
-        x86,
+        machine,
         hConsoleOutput,
         buf.as_bytes(),
         Some(&mut bytes_written),

@@ -1,17 +1,19 @@
 use std::collections::HashMap;
 
-use crate::{pe, winapi, x86::X86};
+use crate::{pe, winapi, x86::Machine};
 
 pub fn load_exe(
-    x86: &mut X86,
+    machine: &mut Machine,
     buf: &[u8],
     cmdline: String,
 ) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
 
     let base = file.opt_header.ImageBase;
-    x86.state.kernel32.image_base = base;
-    x86.mem
+    machine.state.kernel32.image_base = base;
+    machine
+        .x86
+        .mem
         .resize((base + file.opt_header.SizeOfImage) as usize, 0);
 
     for sec in file.sections {
@@ -20,18 +22,22 @@ pub fn load_exe(
         let size = sec.SizeOfRawData as usize;
         let flags = sec.characteristics()?;
         if !flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA) {
-            x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
+            machine.x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
-        x86.state.kernel32.mappings.add(winapi::kernel32::Mapping {
-            addr: dst as u32,
-            size: size as u32,
-            desc: format!("{:?} ({:?})", sec.name(), flags),
-            flags,
-        });
+        machine
+            .state
+            .kernel32
+            .mappings
+            .add(winapi::kernel32::Mapping {
+                addr: dst as u32,
+                size: size as u32,
+                desc: format!("{:?} ({:?})", sec.name(), flags),
+                flags,
+            });
     }
 
-    x86.state.kernel32.init(&mut x86.mem, cmdline);
-    x86.regs.fs_addr = x86.state.kernel32.teb;
+    machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
+    machine.x86.regs.fs_addr = machine.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.
@@ -42,20 +48,21 @@ pub fn load_exe(
         );
         stack_size = 32 << 10;
     }
-    let stack = x86
-        .state
-        .kernel32
-        .mappings
-        .alloc(stack_size, "stack".into(), &mut x86.mem);
+    let stack =
+        machine
+            .state
+            .kernel32
+            .mappings
+            .alloc(stack_size, "stack".into(), &mut machine.x86.mem);
     let stack_end = stack.addr + stack.size - 4;
-    x86.regs.esp = stack_end;
-    x86.regs.ebp = stack_end;
+    machine.x86.regs.esp = stack_end;
+    machine.x86.regs.ebp = stack_end;
 
     const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
     let imports_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
-        &mut x86.mem[base as usize..],
+        &mut machine.x86.mem[base as usize..],
         imports_data.VirtualAddress as usize,
         |dll, sym, iat_addr| {
             labels.insert(base + iat_addr, format!("{}@IAT", sym));
@@ -64,7 +71,7 @@ pub fn load_exe(
                 Some(f) => Ok(f),
                 None => Err(format!("unimplemented: {dll}!{sym}")),
             };
-            let addr = x86.shims.add(entry);
+            let addr = machine.x86.shims.add(entry);
 
             labels.insert(addr, sym.to_string());
 
@@ -74,10 +81,10 @@ pub fn load_exe(
 
     const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
     let res_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
-    x86.state.user32.resources_base = res_data.VirtualAddress;
+    machine.state.user32.resources_base = res_data.VirtualAddress;
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
-    x86.regs.eip = entry_point;
+    machine.x86.regs.eip = entry_point;
 
     Ok(labels)
 }

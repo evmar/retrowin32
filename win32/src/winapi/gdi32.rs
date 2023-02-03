@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use crate::{winapi::user32, x86::X86};
+use crate::{winapi::user32, x86::Machine};
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
@@ -70,12 +70,12 @@ impl State {
     }
 }
 
-pub fn GetStockObject(_x86: &mut X86, _i: u32) -> u32 {
+pub fn GetStockObject(_machine: &mut Machine, _i: u32) -> u32 {
     0
 }
 
-pub fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
-    let obj = match x86.state.gdi32.get_object(hGdiObj) {
+pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
+    let obj = match machine.state.gdi32.get_object(hGdiObj) {
         None => return 0, // TODO: HGDI_ERROR
         Some(obj) => obj,
     };
@@ -84,7 +84,7 @@ pub fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
         Object::Bitmap(_) => |dc: &mut DC| std::mem::replace(&mut dc.bitmap, hGdiObj),
     };
 
-    let dc = match x86.state.gdi32.get_dc_mut(hdc) {
+    let dc = match machine.state.gdi32.get_dc_mut(hdc) {
         None => return 0, // TODO: HGDI_ERROR
         Some(dc) => dc,
     };
@@ -92,8 +92,8 @@ pub fn SelectObject(x86: &mut X86, hdc: u32, hGdiObj: u32) -> u32 {
     op(dc) // returns previous value
 }
 
-pub fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
-    let obj = match x86.state.gdi32.get_object(handle) {
+pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) -> u32 {
+    let obj = match machine.state.gdi32.get_object(handle) {
         None => return 0, // fail
         Some(obj) => obj,
     };
@@ -102,13 +102,13 @@ pub fn GetObjectA(x86: &mut X86, handle: u32, _bytes: u32, _out: u32) -> u32 {
     0 // fail
 }
 
-pub fn CreateCompatibleDC(x86: &mut X86, hdc: u32) -> u32 {
+pub fn CreateCompatibleDC(machine: &mut Machine, hdc: u32) -> u32 {
     assert!(hdc == 0); // null means "compatible with current screen"
-    let (handle, _) = x86.state.gdi32.new_dc();
+    let (handle, _) = machine.state.gdi32.new_dc();
     handle
 }
 
-pub fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
+pub fn DeleteDC(_machine: &mut Machine, hdc: u32) -> u32 {
     log::warn!("todo: DeleteDC({hdc:x})");
     0 // fail
 }
@@ -116,7 +116,7 @@ pub fn DeleteDC(_x86: &mut X86, hdc: u32) -> u32 {
 const SRCCOPY: u32 = 0xcc0020;
 
 pub fn BitBlt(
-    x86: &mut X86,
+    machine: &mut Machine,
     hdc: u32,
     x: u32,
     y: u32,
@@ -134,15 +134,15 @@ pub fn BitBlt(
 
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
-    let hdc = x86.state.gdi32.get_dc(hdc).unwrap();
-    let surface = x86
+    let hdc = machine.state.gdi32.get_dc(hdc).unwrap();
+    let surface = machine
         .state
         .ddraw
         .surfaces
         .get_mut(&hdc.ddraw_surface)
         .unwrap();
-    let hdcSrc = x86.state.gdi32.get_dc(hdcSrc).unwrap();
-    let obj = x86.state.gdi32.get_object(hdcSrc.bitmap).unwrap();
+    let hdcSrc = machine.state.gdi32.get_dc(hdcSrc).unwrap();
+    let obj = machine.state.gdi32.get_object(hdcSrc.bitmap).unwrap();
     let bitmap = match obj {
         Object::Bitmap(bmp) => bmp,
     };
@@ -155,7 +155,7 @@ pub fn BitBlt(
 }
 
 pub fn StretchBlt(
-    x86: &mut X86,
+    machine: &mut Machine,
     hdcDest: u32,
     xDest: u32,
     yDest: u32,
@@ -173,6 +173,6 @@ pub fn StretchBlt(
         return 0;
     }
     BitBlt(
-        x86, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
+        machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
     )
 }

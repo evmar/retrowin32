@@ -19,20 +19,20 @@ pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
-pub struct Shims(Vec<Result<fn(&mut X86), String>>);
+pub struct Shims(Vec<Result<fn(&mut Machine), String>>);
 impl Shims {
     fn new() -> Self {
         Shims(Vec::new())
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, entry: Result<fn(&mut X86), String>) -> u32 {
+    pub fn add(&mut self, entry: Result<fn(&mut Machine), String>) -> u32 {
         let id = SHIM_BASE | self.0.len() as u32;
         self.0.push(entry);
         id
     }
 
-    pub fn get(&self, addr: u32) -> Option<&fn(&mut X86)> {
+    pub fn get(&self, addr: u32) -> Option<&fn(&mut Machine)> {
         let index = (addr & 0x0000_FFFF) as usize;
         let handler = self.0.get(index);
         match handler {
@@ -46,18 +46,32 @@ impl Shims {
     }
 }
 
-pub struct X86 {
+pub struct Machine {
+    pub x86: X86,
     pub host: Box<dyn host::Host>,
+    pub state: winapi::State,
+}
+
+impl Machine {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
+        Machine {
+            x86: X86::new(),
+            host,
+            state: winapi::State::new(),
+        }
+    }
+}
+
+pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
     pub shims: Shims,
-    pub state: winapi::State,
     /// Toggled on by breakpoints/process exit.
     pub stopped: bool,
     pub crashed: Option<String>,
 }
 impl X86 {
-    pub fn new(host: Box<dyn host::Host>) -> Self {
+    pub fn new() -> Self {
         unsafe {
             ops::init_op_tab();
         }
@@ -69,11 +83,9 @@ impl X86 {
         regs.esi = 0xdeadbe51;
         regs.edi = 0xdeadbed1;
         X86 {
-            host,
             mem: Vec::new(),
             regs,
             shims: Shims::new(),
-            state: winapi::State::new(),
             stopped: false,
             crashed: None,
         }
@@ -293,9 +305,9 @@ impl InstrCache {
     }
 }
 
-/// Manages decoding and running instructions in an owned X86.
+/// Manages decoding and running instructions in an owned Machine.
 pub struct Runner {
-    pub x86: X86,
+    pub machine: Machine,
     /// Total number of instructions executed.
     pub instr_count: usize,
 
@@ -310,7 +322,7 @@ pub struct Runner {
 impl Runner {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         Runner {
-            x86: X86::new(host),
+            machine: Machine::new(host),
             instr_count: 0,
             icache: InstrCache::new(),
             breakpoints: HashMap::new(),
@@ -322,11 +334,11 @@ impl Runner {
         buf: &[u8],
         cmdline: String,
     ) -> anyhow::Result<HashMap<u32, String>> {
-        let labels = load_exe(&mut self.x86, buf, cmdline)?;
+        let labels = load_exe(&mut self.machine, buf, cmdline)?;
 
         // Disassemble the 'code' section.
         let mapping = self
-            .x86
+            .machine
             .state
             .kernel32
             .mappings
@@ -334,9 +346,11 @@ impl Runner {
             .iter()
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;
-        let section = &self.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
+        let section =
+            &self.machine.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
         self.icache.disassemble(section, mapping.addr);
-        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.icache
+            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
 
         Ok(labels)
     }
@@ -361,17 +375,18 @@ impl Runner {
 
     /// If eip points at a shim address, call the handler and update eip.
     fn check_shim_call(&mut self) -> anyhow::Result<()> {
-        if self.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
+        if self.machine.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(());
         }
-        let ret = ops::pop(&mut self.x86);
+        let ret = ops::pop(&mut self.machine.x86);
         let handler = self
+            .machine
             .x86
             .shims
-            .get(self.x86.regs.eip)
+            .get(self.machine.x86.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
-        handler(&mut self.x86);
-        ops::x86_jmp(&mut self.x86, ret)
+        handler(&mut self.machine);
+        ops::x86_jmp(&mut self.machine.x86, ret)
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
@@ -381,28 +396,29 @@ impl Runner {
         let (prev_ip, ref instr) = self.icache.instrs[self.icache.index];
         let next_ip = instr.next_ip() as u32;
         // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
-        self.x86.regs.eip = next_ip;
-        match self.x86.run(instr) {
+        self.machine.x86.regs.eip = next_ip;
+        match self.machine.x86.run(instr) {
             Err(err) => {
                 // Point the debugger at the failed instruction.
-                self.x86.regs.eip = prev_ip;
+                self.machine.x86.regs.eip = prev_ip;
                 Err(err)
             }
             Ok(_) => {
-                if self.x86.stopped {
-                    self.x86.regs.eip = prev_ip;
-                    if let Some(msg) = &self.x86.crashed {
+                if self.machine.x86.stopped {
+                    self.machine.x86.regs.eip = prev_ip;
+                    if let Some(msg) = &self.machine.x86.crashed {
                         bail!(msg.clone());
                     }
-                    self.x86.stopped = false;
+                    self.machine.x86.stopped = false;
                     return Ok(false);
                 }
-                if self.x86.regs.eip == next_ip {
+                if self.machine.x86.regs.eip == next_ip {
                     self.icache.index += 1;
                 } else {
                     self.check_shim_call()?;
                     // Instruction changed eip.  Update icache to match.
-                    self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+                    self.icache
+                        .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
                 }
                 Ok(true)
             }
@@ -420,8 +436,9 @@ impl Runner {
     }
 
     pub fn load_snapshot(&mut self, snap: Snapshot) {
-        self.x86.mem = snap.mem;
-        self.x86.regs = snap.regs;
-        self.icache.jmp(&self.x86.mem, self.x86.regs.eip);
+        self.machine.x86.mem = snap.mem;
+        self.machine.x86.regs = snap.regs;
+        self.icache
+            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
     }
 }

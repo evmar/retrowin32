@@ -7,7 +7,7 @@ use std::{cell::RefCell, io::Write, rc::Rc};
 use anyhow::bail;
 
 fn dump_asm(runner: &win32::Runner) {
-    let instrs = win32::disassemble(&runner.x86.mem, runner.x86.regs.eip);
+    let instrs = win32::disassemble(&runner.machine.x86.mem, runner.machine.x86.regs.eip);
 
     for instr in instrs {
         print!("{:08X} ", instr.addr);

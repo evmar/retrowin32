@@ -8,7 +8,7 @@ use crate::{
     memory::{Memory, Pod},
     pe,
     winapi::gdi32,
-    x86::X86,
+    x86::Machine,
 };
 
 use super::types::{DWORD, WORD};
@@ -38,7 +38,7 @@ impl State {
     }
 }
 
-pub fn RegisterClassA(_x86: &mut X86, lpWndClass: u32) -> u32 {
+pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
     log::warn!("todo: RegisterClassA({:x})", lpWndClass);
     0
 }
@@ -65,7 +65,7 @@ bitflags! {
 }
 
 pub fn CreateWindowExA(
-    x86: &mut X86,
+    machine: &mut Machine,
     dwExStyle: u32,
     className: Option<&str>,
     windowName: Option<&str>,
@@ -89,41 +89,48 @@ pub fn CreateWindowExA(
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
     log::warn!("CreateWindowExA({dwExStyle:x}, {className:?}, {windowName:?}, {style:?}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
 
-    let mut x86_win = x86.host.create_window();
-    x86_win.set_title(windowName.unwrap());
+    let mut host_win = machine.host.create_window();
+    host_win.set_title(windowName.unwrap());
     if nWidth > 0 && nHeight > 0 {
-        x86_win.set_size(nWidth, nHeight);
+        host_win.set_size(nWidth, nHeight);
     }
 
-    let window = Window { host: x86_win };
-    x86.state.user32.windows.push(window);
-    x86.state.user32.windows.len() as u32
+    let window = Window { host: host_win };
+    machine.state.user32.windows.push(window);
+    machine.state.user32.windows.len() as u32
 }
 
-pub fn UpdateWindow(_x86: &mut X86, _hWnd: u32) -> u32 {
+pub fn UpdateWindow(_machine: &mut Machine, _hWnd: u32) -> u32 {
     // TODO: this should cause a synchronous WM_PAINT.
     0
 }
 
-pub fn ShowWindow(_x86: &mut X86, _hWnd: u32, _nCmdShow: u32) -> u32 {
+pub fn ShowWindow(_machine: &mut Machine, _hWnd: u32, _nCmdShow: u32) -> u32 {
     0
 }
 
-pub fn SetFocus(_x86: &mut X86, _hWnd: u32) -> u32 {
+pub fn SetFocus(_machine: &mut Machine, _hWnd: u32) -> u32 {
     // TODO: supposed to return previous focused hwnd.
     0
 }
 
-pub fn MessageBoxA(x86: &mut X86, _hWnd: u32, lpText: u32, lpCaption: u32, _uType: u32) -> u32 {
-    let caption = &x86.mem[lpCaption as usize..].read_strz();
-    let text = &x86.mem[lpText as usize..].read_strz();
-    x86.host
+pub fn MessageBoxA(
+    machine: &mut Machine,
+    _hWnd: u32,
+    lpText: u32,
+    lpCaption: u32,
+    _uType: u32,
+) -> u32 {
+    let caption = &machine.x86.mem[lpCaption as usize..].read_strz();
+    let text = &machine.x86.mem[lpText as usize..].read_strz();
+    machine
+        .host
         .write(format!("MessageBox: {}\n{}", caption, text).as_bytes());
     1 // IDOK
 }
 
 pub fn DialogBoxParamA(
-    _x86: &mut X86,
+    _machine: &mut Machine,
     hInstance: u32,
     lpTemplateName: u32,
     hWndParent: u32,
@@ -135,7 +142,7 @@ pub fn DialogBoxParamA(
 }
 
 pub fn PeekMessageA(
-    _x86: &mut X86,
+    _machine: &mut Machine,
     _lpMsg: u32,
     _hWnd: u32,
     _wMsgFilterMin: u32,
@@ -148,15 +155,15 @@ pub fn PeekMessageA(
     0 // no messages
 }
 
-pub fn LoadIconA(_x86: &mut X86, _hInstance: u32, _lpIconName: u32) -> u32 {
+pub fn LoadIconA(_machine: &mut Machine, _hInstance: u32, _lpIconName: u32) -> u32 {
     0
 }
 
-pub fn LoadCursorA(_x86: &mut X86, _hInstance: u32, _lpCursorName: u32) -> u32 {
+pub fn LoadCursorA(_machine: &mut Machine, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
-pub fn ShowCursor(_x86: &mut X86, _bShow: bool) -> u32 {
+pub fn ShowCursor(_machine: &mut Machine, _bShow: bool) -> u32 {
     // TODO: increment/decrement refcount
     1 // ref=1
 }
@@ -262,7 +269,7 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
 }
 
 pub fn LoadImageA(
-    x86: &mut X86,
+    machine: &mut Machine,
     hInstance: u32,
     name: u32,
     typ: u32,
@@ -270,7 +277,7 @@ pub fn LoadImageA(
     _cy: u32,
     fuLoad: u32,
 ) -> u32 {
-    assert!(hInstance == x86.state.kernel32.image_base);
+    assert!(hInstance == machine.state.kernel32.image_base);
     if !IS_INTRESOURCE(name) {
         log::error!("unimplemented image name {name:x}");
         return 0;
@@ -287,15 +294,15 @@ pub fn LoadImageA(
     match typ {
         IMAGE_BITMAP => {
             let buf = pe::get_resource(
-                &x86.mem[x86.state.kernel32.image_base as usize..],
-                x86.state.user32.resources_base,
+                &machine.x86.mem[machine.state.kernel32.image_base as usize..],
+                machine.state.user32.resources_base,
                 pe::RT_BITMAP,
                 name,
             )
             .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
-            x86.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
-            x86.state.gdi32.objects.len() as u32
+            machine.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
+            machine.state.gdi32.objects.len() as u32
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
@@ -304,7 +311,7 @@ pub fn LoadImageA(
     }
 }
 
-pub fn GetSystemMetrics(_x86: &mut X86, nIndex: u32) -> u32 {
+pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: u32) -> u32 {
     const SM_CXSCREEN: u32 = 0;
     const SM_CYSCREEN: u32 = 1;
 

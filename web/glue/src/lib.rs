@@ -136,83 +136,83 @@ impl Emulator {
     pub fn memory(&self) -> js_sys::DataView {
         js_sys::DataView::from(mem(
             wasm_bindgen::memory(),
-            self.runner.x86.mem.as_ptr() as u32,
+            self.runner.machine.x86.mem.as_ptr() as u32,
         ))
     }
 
     #[wasm_bindgen(getter)]
     pub fn eax(&self) -> u32 {
-        self.runner.x86.regs.eax
+        self.runner.machine.x86.regs.eax
     }
     #[wasm_bindgen(getter)]
     pub fn ebx(&self) -> u32 {
-        self.runner.x86.regs.ebx
+        self.runner.machine.x86.regs.ebx
     }
     #[wasm_bindgen(getter)]
     pub fn ecx(&self) -> u32 {
-        self.runner.x86.regs.ecx
+        self.runner.machine.x86.regs.ecx
     }
     #[wasm_bindgen(getter)]
     pub fn edx(&self) -> u32 {
-        self.runner.x86.regs.edx
+        self.runner.machine.x86.regs.edx
     }
 
     #[wasm_bindgen(getter)]
     pub fn esp(&self) -> u32 {
-        self.runner.x86.regs.esp
+        self.runner.machine.x86.regs.esp
     }
     #[wasm_bindgen(getter)]
     pub fn ebp(&self) -> u32 {
-        self.runner.x86.regs.ebp
+        self.runner.machine.x86.regs.ebp
     }
     #[wasm_bindgen(getter)]
     pub fn esi(&self) -> u32 {
-        self.runner.x86.regs.esi
+        self.runner.machine.x86.regs.esi
     }
     #[wasm_bindgen(getter)]
     pub fn edi(&self) -> u32 {
-        self.runner.x86.regs.edi
+        self.runner.machine.x86.regs.edi
     }
 
     #[wasm_bindgen(getter)]
     pub fn eip(&self) -> u32 {
-        self.runner.x86.regs.eip
+        self.runner.machine.x86.regs.eip
     }
 
     #[wasm_bindgen(getter)]
     pub fn cs(&self) -> u16 {
-        self.runner.x86.regs.cs
+        self.runner.machine.x86.regs.cs
     }
     #[wasm_bindgen(getter)]
     pub fn ds(&self) -> u16 {
-        self.runner.x86.regs.ds
+        self.runner.machine.x86.regs.ds
     }
     #[wasm_bindgen(getter)]
     pub fn es(&self) -> u16 {
-        self.runner.x86.regs.es
+        self.runner.machine.x86.regs.es
     }
     #[wasm_bindgen(getter)]
     pub fn fs(&self) -> u16 {
-        self.runner.x86.regs.fs
+        self.runner.machine.x86.regs.fs
     }
     #[wasm_bindgen(getter)]
     pub fn gs(&self) -> u16 {
-        self.runner.x86.regs.gs
+        self.runner.machine.x86.regs.gs
     }
     #[wasm_bindgen(getter)]
     pub fn ss(&self) -> u16 {
-        self.runner.x86.regs.ss
+        self.runner.machine.x86.regs.ss
     }
     #[wasm_bindgen(getter)]
     pub fn flags(&self) -> u32 {
-        self.runner.x86.regs.flags.bits()
+        self.runner.machine.x86.regs.flags.bits()
     }
     pub fn flags_str(&self) -> String {
-        format!("{:?}", self.runner.x86.regs.flags)
+        format!("{:?}", self.runner.machine.x86.regs.flags)
     }
 
     pub fn st(&self) -> Box<[f64]> {
-        let s = &self.runner.x86.regs.st[self.runner.x86.regs.st_top..];
+        let s = &self.runner.machine.x86.regs.st[self.runner.machine.x86.regs.st_top..];
         s.into()
     }
 
@@ -222,7 +222,8 @@ impl Emulator {
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
-        serde_json::to_string(&win32::disassemble(&self.runner.x86.mem, addr)).unwrap_throw()
+        serde_json::to_string(&win32::disassemble(&self.runner.machine.x86.mem, addr))
+            .unwrap_throw()
     }
 
     pub fn step(&mut self) -> Result<(), String> {
@@ -247,15 +248,15 @@ impl Emulator {
     }
 
     pub fn mappings_json(&self) -> String {
-        serde_json::to_string(&self.runner.x86.state.kernel32.mappings.vec()).unwrap_throw()
+        serde_json::to_string(&self.runner.machine.state.kernel32.mappings.vec()).unwrap_throw()
     }
 
     pub fn poke(&mut self, addr: u32, value: u8) {
-        self.runner.x86.mem[addr as usize] = value;
+        self.runner.machine.x86.mem[addr as usize] = value;
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
-        bincode::serialize(&self.runner.x86).unwrap().into()
+        bincode::serialize(&self.runner.machine.x86).unwrap().into()
     }
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         let snap = bincode::deserialize(bytes).unwrap();

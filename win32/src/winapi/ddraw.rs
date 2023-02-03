@@ -8,7 +8,7 @@ use crate::{
     memory::{Memory, Pod},
     winapi::vtable,
     winapi::winapi_shims,
-    x86::X86,
+    x86::Machine,
 };
 
 use super::{alloc::Alloc, types::DWORD};
@@ -58,17 +58,18 @@ impl State {
         }
     }
 
-    pub fn new_init(x86: &mut X86) -> Self {
+    pub fn new_init(machine: &mut Machine) -> Self {
         let mut ddraw = State::new_empty();
-        ddraw.hheap = x86
-            .state
-            .kernel32
-            .new_heap(&mut x86.mem, 0x1000, "ddraw.dll heap".into());
+        ddraw.hheap =
+            machine
+                .state
+                .kernel32
+                .new_heap(&mut machine.x86.mem, 0x1000, "ddraw.dll heap".into());
 
-        ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, x86);
-        ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, x86);
-        ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, x86);
-        ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, x86);
+        ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw
     }
 }
@@ -284,7 +285,7 @@ mod IDirectDraw {
     ];
 
     fn CreateSurface(
-        x86: &mut X86,
+        machine: &mut Machine,
         _this: u32,
         desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: u32,
@@ -298,8 +299,8 @@ mod IDirectDraw {
         if let Some(caps) = desc.caps() {
             flags.remove(DDSD::CAPS);
             if caps.contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.width = x86.state.ddraw.width;
-                opts.height = x86.state.ddraw.height;
+                opts.width = machine.state.ddraw.width;
+                opts.height = machine.state.ddraw.height;
                 opts.primary = true;
             }
         }
@@ -309,11 +310,11 @@ mod IDirectDraw {
         }
         assert!(flags.is_empty());
 
-        let surface = x86.host.create_surface(&opts);
+        let surface = machine.host.create_surface(&opts);
 
-        let x86_surface = IDirectDrawSurface::new(x86);
-        x86.mem.write_u32(lplpDDSurface, x86_surface);
-        x86.state.ddraw.surfaces.insert(
+        let x86_surface = IDirectDrawSurface::new(machine);
+        machine.x86.mem.write_u32(lplpDDSurface, x86_surface);
+        machine.state.ddraw.surfaces.insert(
             x86_surface,
             Surface {
                 host: surface,
@@ -325,10 +326,10 @@ mod IDirectDraw {
         DD_OK
     }
 
-    fn SetDisplayMode(x86: &mut X86, this: u32, width: u32, height: u32, bpp: u32) -> u32 {
+    fn SetDisplayMode(machine: &mut Machine, this: u32, width: u32, height: u32, bpp: u32) -> u32 {
         log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp})");
-        x86.state.ddraw.width = width;
-        x86.state.ddraw.height = height;
+        machine.state.ddraw.width = width;
+        machine.state.ddraw.height = height;
         DD_OK
     }
 
@@ -385,28 +386,28 @@ mod IDirectDrawSurface {
         UpdateOverlayZOrder todo,
     ];
 
-    pub fn new(x86: &mut X86) -> u32 {
-        let ddraw = &x86.state.ddraw;
-        let lpDirectDrawSurface = x86
+    pub fn new(machine: &mut Machine) -> u32 {
+        let ddraw = &machine.state.ddraw;
+        let lpDirectDrawSurface = machine
             .state
             .kernel32
-            .get_heap(&mut x86.mem, ddraw.hheap)
+            .get_heap(&mut machine.x86.mem, ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
-        x86.mem.write_u32(lpDirectDrawSurface, vtable);
+        machine.x86.mem.write_u32(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }
 
     fn GetAttachedSurface(
-        x86: &mut X86,
+        machine: &mut Machine,
         this: u32,
         _lpDDSCaps: u32,
         lpDirectDrawSurface: u32,
     ) -> u32 {
         // TODO: consider caps.
         // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        let this_surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let this_surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         let host = this_surface.host.get_attached();
 
         let surface = Surface {
@@ -414,14 +415,14 @@ mod IDirectDrawSurface {
             width: this_surface.width,
             height: this_surface.height,
         };
-        let x86_surface = new(x86);
+        let x86_surface = new(machine);
 
-        x86.mem.write_u32(lpDirectDrawSurface, x86_surface);
-        x86.state.ddraw.surfaces.insert(x86_surface, surface);
+        machine.x86.mem.write_u32(lpDirectDrawSurface, x86_surface);
+        machine.state.ddraw.surfaces.insert(x86_surface, surface);
         DD_OK
     }
 
-    fn GetPixelFormat(_x86: &mut X86, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
+    fn GetPixelFormat(_machine: &mut Machine, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
         let fmt = fmt.unwrap();
         *fmt = unsafe { std::mem::zeroed() };
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
@@ -474,13 +475,13 @@ mod IDirectDraw7 {
         EvaluateMode todo,
     ];
 
-    fn Release(_x86: &mut X86, this: u32) -> u32 {
+    fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     fn CreateSurface(
-        x86: &mut X86,
+        machine: &mut Machine,
         this: u32,
         desc: Option<&DDSURFACEDESC2>,
         lpDirectDrawSurface7: u32,
@@ -504,8 +505,8 @@ mod IDirectDraw7 {
         if let Some(caps) = desc.caps() {
             log::warn!("  caps: {:?}", caps.caps1());
             if caps.caps1().contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.width = x86.state.ddraw.width;
-                opts.height = x86.state.ddraw.height;
+                opts.width = machine.state.ddraw.width;
+                opts.height = machine.state.ddraw.height;
                 opts.primary = true;
             }
         }
@@ -514,12 +515,12 @@ mod IDirectDraw7 {
             log::warn!("  back_buffer: {count:x}");
         }
 
-        //let window = x86.state.user32.get_window(x86.state.ddraw.hwnd);
-        let surface = x86.host.create_surface(&opts);
+        //let window = machine.state.user32.get_window(machine.state.ddraw.hwnd);
+        let surface = machine.host.create_surface(&opts);
 
-        let x86_surface = IDirectDrawSurface7::new(x86);
-        x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
-        x86.state.ddraw.surfaces.insert(
+        let x86_surface = IDirectDrawSurface7::new(machine);
+        machine.x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
+        machine.state.ddraw.surfaces.insert(
             x86_surface,
             Surface {
                 host: surface,
@@ -548,16 +549,16 @@ mod IDirectDraw7 {
         }
     }
 
-    pub fn SetCooperativeLevel(x86: &mut X86, _this: u32, hwnd: u32, _flags: u32) -> u32 {
+    pub fn SetCooperativeLevel(machine: &mut Machine, _this: u32, hwnd: u32, _flags: u32) -> u32 {
         // TODO: this triggers behaviors like fullscreen.
         // let flags = DDSCL::from_bits(flags).unwrap();
         // log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:?})");
-        x86.state.ddraw.hwnd = hwnd;
+        machine.state.ddraw.hwnd = hwnd;
         DD_OK
     }
 
     fn SetDisplayMode(
-        x86: &mut X86,
+        machine: &mut Machine,
         this: u32,
         width: u32,
         height: u32,
@@ -566,8 +567,8 @@ mod IDirectDraw7 {
         flags: u32,
     ) -> u32 {
         log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})");
-        x86.state.ddraw.width = width;
-        x86.state.ddraw.height = height;
+        machine.state.ddraw.width = width;
+        machine.state.ddraw.height = height;
         DD_OK
     }
 
@@ -639,26 +640,26 @@ mod IDirectDrawSurface7 {
         GetLOD todo,
     ];
 
-    pub fn new(x86: &mut X86) -> u32 {
-        let ddraw = &mut x86.state.ddraw;
-        let lpDirectDrawSurface7 = x86
+    pub fn new(machine: &mut Machine) -> u32 {
+        let ddraw = &mut machine.state.ddraw;
+        let lpDirectDrawSurface7 = machine
             .state
             .kernel32
-            .get_heap(&mut x86.mem, ddraw.hheap)
+            .get_heap(&mut machine.x86.mem, ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
-        x86.mem.write_u32(lpDirectDrawSurface7, vtable);
+        machine.x86.mem.write_u32(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }
 
-    fn Release(_x86: &mut X86, this: u32) -> u32 {
+    fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     fn BltFast(
-        x86: &mut X86,
+        machine: &mut Machine,
         this: u32,
         x: u32,
         y: u32,
@@ -670,12 +671,12 @@ mod IDirectDrawSurface7 {
             log::warn!("BltFlat flags: {:x}", flags);
         }
         let (dst, src) = unsafe {
-            let dst = x86.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut Surface;
-            let src = x86.state.ddraw.surfaces.get(&lpSurf).unwrap() as *const Surface;
+            let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut Surface;
+            let src = machine.state.ddraw.surfaces.get(&lpSurf).unwrap() as *const Surface;
             assert_ne!(dst as *const Surface, src);
             (&mut *dst, &*src)
         };
-        let rect = x86.mem.view::<RECT>(lpRect);
+        let rect = machine.x86.mem.view::<RECT>(lpRect);
         let sx = rect.left;
         let w = rect.right - sx;
         let sy = rect.top;
@@ -684,24 +685,24 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    fn Flip(x86: &mut X86, this: u32, lpSurf: u32, flags: u32) -> u32 {
+    fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: u32) -> u32 {
         if lpSurf != 0 || flags != 0 {
             log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
         }
-        let surface = x86.state.ddraw.surfaces.get_mut(&this).unwrap();
+        let surface = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         surface.host.flip();
         DD_OK
     }
 
     fn GetAttachedSurface(
-        x86: &mut X86,
+        machine: &mut Machine,
         this: u32,
         _lpDDSCaps2: u32,
         lpDirectDrawSurface7: u32,
     ) -> u32 {
         // TODO: consider caps.
         // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        let this_surface = x86.state.ddraw.surfaces.get(&this).unwrap();
+        let this_surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         let host = this_surface.host.get_attached();
 
         let surface = Surface {
@@ -709,23 +710,23 @@ mod IDirectDrawSurface7 {
             width: this_surface.width,
             height: this_surface.height,
         };
-        let x86_surface = new(x86);
+        let x86_surface = new(machine);
 
-        x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
-        x86.state.ddraw.surfaces.insert(x86_surface, surface);
+        machine.x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
+        machine.state.ddraw.surfaces.insert(x86_surface, surface);
         DD_OK
     }
 
-    fn GetDC(x86: &mut X86, this: u32, lpHDC: u32) -> u32 {
-        let (handle, dc) = x86.state.gdi32.new_dc();
+    fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> u32 {
+        let (handle, dc) = machine.state.gdi32.new_dc();
         dc.ddraw_surface = this;
-        x86.mem.write_u32(lpHDC, handle);
+        machine.x86.mem.write_u32(lpHDC, handle);
         DD_OK
     }
 
-    fn GetSurfaceDesc(x86: &mut X86, this: u32, lpDesc: u32) -> u32 {
-        let surf = x86.state.ddraw.surfaces.get(&this).unwrap();
-        let desc = x86.mem.view_mut::<DDSURFACEDESC2>(lpDesc);
+    fn GetSurfaceDesc(machine: &mut Machine, this: u32, lpDesc: u32) -> u32 {
+        let surf = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(lpDesc);
         assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
         let mut flags = desc.flags();
         if flags.contains(DDSD::WIDTH) {
@@ -745,12 +746,12 @@ mod IDirectDrawSurface7 {
         DDERR_GENERIC
     }
 
-    fn ReleaseDC(_x86: &mut X86, _this: u32, _hDC: u32) -> u32 {
+    fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
         // leak
         DD_OK
     }
 
-    fn Restore(_x86: &mut X86, _this: u32) -> u32 {
+    fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
         DD_OK
     }
 
@@ -766,12 +767,12 @@ mod IDirectDrawSurface7 {
     );
 }
 
-pub fn DirectDrawCreate(x86: &mut X86, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
-    DirectDrawCreateEx(x86, lpGuid, lplpDD, 0, pUnkOuter)
+pub fn DirectDrawCreate(machine: &mut Machine, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
+    DirectDrawCreateEx(machine, lpGuid, lplpDD, 0, pUnkOuter)
 }
 
 pub fn DirectDrawCreateEx(
-    x86: &mut X86,
+    machine: &mut Machine,
     lpGuid: u32,
     lplpDD: u32,
     iid: u32,
@@ -780,40 +781,40 @@ pub fn DirectDrawCreateEx(
     assert!(lpGuid == 0);
     assert!(pUnkOuter == 0);
 
-    if x86.state.ddraw.hheap == 0 {
-        x86.state.ddraw = State::new_init(x86);
+    if machine.state.ddraw.hheap == 0 {
+        machine.state.ddraw = State::new_init(machine);
     }
-    let ddraw = &mut x86.state.ddraw;
+    let ddraw = &mut machine.state.ddraw;
 
     if iid == 0 {
         // DirectDrawCreate
-        let lpDirectDraw = x86
+        let lpDirectDraw = machine
             .state
             .kernel32
-            .get_heap(&mut x86.mem, ddraw.hheap)
+            .get_heap(&mut machine.x86.mem, ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
-        x86.write_u32(lpDirectDraw, vtable);
-        x86.write_u32(lplpDD, lpDirectDraw);
+        machine.x86.write_u32(lpDirectDraw, vtable);
+        machine.x86.write_u32(lplpDD, lpDirectDraw);
         return DD_OK;
     }
 
-    let iid_slice = &x86.mem[iid as usize..(iid + 16) as usize];
+    let iid_slice = &machine.x86.mem[iid as usize..(iid + 16) as usize];
     if iid_slice == IID_IDirectDraw7 {
         // Caller gives us:
         //   pointer (lplpDD) that they want us to fill in to point to ->
         //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
         //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-        let lpDirectDraw7 = x86
+        let lpDirectDraw7 = machine
             .state
             .kernel32
-            .get_heap(&mut x86.mem, ddraw.hheap)
+            .get_heap(&mut machine.x86.mem, ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;
-        x86.write_u32(lpDirectDraw7, vtable);
-        x86.write_u32(lplpDD, lpDirectDraw7);
+        machine.x86.write_u32(lpDirectDraw7, vtable);
+        machine.x86.write_u32(lplpDD, lpDirectDraw7);
         DD_OK
     } else {
         log::error!("DirectDrawCreateEx: unknown IID {iid_slice:x?}");

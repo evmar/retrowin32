@@ -1,4 +1,4 @@
-use crate::x86::X86;
+use crate::x86::Machine;
 
 mod alloc;
 pub mod ddraw;
@@ -23,9 +23,9 @@ macro_rules! winapi_shims {
             use super::*;
 
             $(#[allow(non_snake_case)]
-            pub fn $name(x86: &mut X86) {
-                $(let $param: $type = unsafe { crate::winapi::shims::from_x86(x86) };)*
-                x86.regs.eax = super::$name(x86, $($param),*);
+            pub fn $name(machine: &mut Machine) {
+                $(let $param: $type = unsafe { crate::winapi::shims::from_x86(&mut machine.x86) };)*
+                machine.x86.regs.eax = super::$name(machine, $($param),*);
             })*
         }
     }
@@ -60,19 +60,19 @@ macro_rules! vtable {
             }
         }
 
-        pub fn vtable(ddraw: &mut State, x86: &mut X86) -> u32 {
-            let addr = x86.state.kernel32.get_heap(&mut x86.mem, ddraw.hheap).unwrap().alloc(
+        pub fn vtable(ddraw: &mut State, machine: &mut Machine) -> u32 {
+            let addr = machine.state.kernel32.get_heap(&mut machine.x86.mem, ddraw.hheap).unwrap().alloc(
                 std::mem::size_of::<Vtable>() as u32,
             );
-            let vtable = x86.mem.view_mut::<Vtable>(addr);
-            *vtable = Vtable::new(&mut x86.shims);
+            let vtable = machine.x86.mem.view_mut::<Vtable>(addr);
+            *vtable = Vtable::new(&mut machine.x86.shims);
             addr
         }
     };
 }
 pub(crate) use vtable;
 
-pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut X86)> {
+pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut Machine)> {
     match dll {
         "ddraw.dll" => dll::ddraw::resolve(sym),
         "gdi32.dll" => dll::gdi32::resolve(sym),
