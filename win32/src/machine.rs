@@ -57,110 +57,13 @@ impl Machine {
     }
 }
 
-/// Cache of decoded instructions, indexed by ip.
-struct InstrCache {
-    /// (ip, instruction) pairs of cached decoded instructions.
-    instrs: Vec<(u32, iced_x86::Instruction)>,
-    /// Current position within instrs.
-    index: usize,
-}
-
-impl InstrCache {
-    fn new() -> Self {
-        InstrCache {
-            instrs: Vec::new(),
-            index: 0,
-        }
-    }
-
-    fn disassemble(&mut self, buf: &[u8], ip: u32) {
-        self.instrs.clear();
-        let mut decoder =
-            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
-        while decoder.can_decode() {
-            self.instrs.push((decoder.ip() as u32, decoder.decode()));
-        }
-    }
-
-    /// Given an IP that wasn't found in the decoded instructions, re-decode starting at that
-    /// address and patch in the new instructions in place of the previous ones.
-    /// start is the index of where in the instruction table the patch will begin.
-    fn repatch(&mut self, mem: &[u8], addr: u32, start: usize) {
-        let mut decoder = iced_x86::Decoder::with_ip(
-            32,
-            &mem[addr as usize..],
-            addr as u64,
-            iced_x86::DecoderOptions::NONE,
-        );
-        let mut end = start;
-        let mut patch = Vec::new();
-        while decoder.can_decode() {
-            let ip = decoder.ip() as u32;
-            // Overwrite any instructions with conflicting ips.
-            while ip > self.instrs[end].0 {
-                end += 1;
-            }
-            if ip == self.instrs[end].0 {
-                break;
-            }
-            patch.push((decoder.ip() as u32, decoder.decode()));
-            if end - start > 100 {
-                // We haven't hit this, just a defense against this going wrong.
-                panic!("resync: oversized patch?");
-            }
-        }
-        log::info!(
-            "replacing [{:x}..{:x}] with {} instrs starting at {:x}",
-            self.instrs[start].0,
-            self.instrs[end].0,
-            patch.len(),
-            patch[0].0,
-        );
-        self.instrs.splice(start..end, patch);
-    }
-
-    fn ip_to_instr_index(&mut self, mem: &[u8], target_ip: u32) -> Option<usize> {
-        match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
-            Ok(pos) => Some(pos),
-            Err(pos) => {
-                // We may hit this case if the disassembler gets desynchronized from the instruction
-                // stream.  We need to re-disassemble or something in that case.
-                let nearby = match self.instrs.get(pos) {
-                    Some(&(ip, _)) => format!("nearby address {:x}", ip),
-                    None => format!("address beyond decoded range"),
-                };
-                log::error!("invalid ip {:x}, desync? {}", target_ip, nearby);
-                self.repatch(mem, target_ip, pos);
-                self.ip_to_instr_index(mem, target_ip)
-            }
-        }
-    }
-
-    fn jmp(&mut self, mem: &[u8], target_ip: u32) {
-        self.index = self.ip_to_instr_index(mem, target_ip).unwrap();
-    }
-
-    /// Replace the instruction found at a given ip, returning the previous instruction.
-    fn patch(
-        &mut self,
-        addr: u32,
-        instr: iced_x86::Instruction,
-    ) -> anyhow::Result<iced_x86::Instruction> {
-        let index = self
-            .ip_to_instr_index(&[], addr)
-            .ok_or_else(|| anyhow::anyhow!("couldn't map ip"))?;
-        let prev = std::mem::replace(&mut self.instrs[index].1, instr);
-        Ok(prev)
-    }
-}
-
 /// Manages decoding and running instructions in an owned Machine.
 pub struct Runner {
     pub machine: Machine,
     /// Total number of instructions executed.
     pub instr_count: usize,
 
-    icache: InstrCache,
+    icache: x86::InstrCache,
 
     /// Places to stop execution in a step_many() call.
     /// We unconditionally stop on these; the web frontend manages things like
@@ -173,7 +76,7 @@ impl Runner {
         Runner {
             machine: Machine::new(host),
             instr_count: 0,
-            icache: InstrCache::new(),
+            icache: x86::InstrCache::new(),
             breakpoints: HashMap::new(),
         }
     }
@@ -210,7 +113,7 @@ impl Runner {
         // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
         int3.set_len(1);
         int3.set_next_ip(addr as u64 + 1);
-        let prev = self.icache.patch(addr, int3)?;
+        let prev = self.icache.patch(addr, int3);
         self.breakpoints.insert(addr, prev);
         Ok(())
     }
@@ -218,7 +121,7 @@ impl Runner {
     /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.icache.patch(addr, prev)?;
+        self.icache.patch(addr, prev);
         Ok(())
     }
 

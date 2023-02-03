@@ -7,7 +7,7 @@ mod x86;
 use std::fmt::Display;
 
 pub use memory::{Memory, Pod};
-pub use x86::{Snapshot, NULL_POINTER_REGION_SIZE, X86};
+pub use x86::{InstrCache, Snapshot, NULL_POINTER_REGION_SIZE, X86};
 
 #[derive(Debug)]
 pub enum Error {
