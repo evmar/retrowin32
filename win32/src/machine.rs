@@ -234,7 +234,7 @@ impl Runner {
             .get(self.machine.x86.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
         handler(&mut self.machine);
-        x86::ops::x86_jmp(&mut self.machine.x86, ret)
+        x86::ops::x86_jmp(&mut self.machine.x86, ret).map_err(|err| anyhow::anyhow!(err))
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
@@ -249,7 +249,7 @@ impl Runner {
             Err(err) => {
                 // Point the debugger at the failed instruction.
                 self.machine.x86.regs.eip = prev_ip;
-                Err(err)
+                bail!(err)
             }
             Ok(_) => {
                 if self.machine.x86.stopped {

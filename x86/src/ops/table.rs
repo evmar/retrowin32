@@ -2,10 +2,10 @@
 
 use iced_x86::Instruction;
 
-use crate::{ops, x86::X86};
+use crate::{ops, x86::X86, Error, Result};
 
 /// The type of all operations defined in the ops module.
-type Op = fn(&mut X86, &Instruction) -> anyhow::Result<()>;
+type Op = fn(&mut X86, &Instruction) -> Result<()>;
 
 // This table is constant and ideally would be initialized at compile time,
 // but it's too fiddly to do with const fns, so we'd likely need to codegen it.
@@ -254,9 +254,9 @@ pub unsafe fn init_op_tab() {
     // log::info!("highest op at {}", last.unwrap());
 }
 
-pub fn execute(x86: &mut X86, instr: &Instruction) -> anyhow::Result<()> {
+pub fn execute(x86: &mut X86, instr: &Instruction) -> Result<()> {
     match unsafe { OP_TAB[instr.code() as usize] } {
         Some(f) => f(x86, instr),
-        None => anyhow::bail!("no dispatch for: {:?}", instr.code()),
+        None => return Err(Error::Error(format!("no dispatch for: {:?}", instr.code()))),
     }
 }

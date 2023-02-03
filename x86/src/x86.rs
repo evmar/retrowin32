@@ -1,4 +1,4 @@
-use crate::{memory::Memory, ops, registers::Registers};
+use crate::{memory::Memory, ops, registers::Registers, Result};
 use serde::ser::SerializeStruct;
 
 /// Addresses from 0 up to this point cause panics if we access them.
@@ -100,7 +100,7 @@ impl X86 {
         unsafe { *self.mem.get_unchecked(addr as usize) }
     }
 
-    pub fn run(&mut self, instr: &iced_x86::Instruction) -> anyhow::Result<()> {
+    pub fn run(&mut self, instr: &iced_x86::Instruction) -> Result<()> {
         ops::execute(self, instr)
     }
 
@@ -111,7 +111,10 @@ impl X86 {
 }
 
 impl serde::Serialize for X86 {
-    fn serialize<S: serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error> {
         let mut state = serializer.serialize_struct("X86", 2)?;
         // TODO: serialize remaining state.
         state.serialize_field("mem", serde_bytes::Bytes::new(&self.mem))?;
@@ -126,7 +129,9 @@ pub struct Snapshot {
 }
 
 impl<'de> serde::Deserialize<'de> for Snapshot {
-    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+    fn deserialize<D: serde::Deserializer<'de>>(
+        deserializer: D,
+    ) -> std::result::Result<Self, D::Error> {
         struct Visitor;
         impl<'de> serde::de::Visitor<'de> for Visitor {
             type Value = Snapshot;
@@ -137,7 +142,7 @@ impl<'de> serde::Deserialize<'de> for Snapshot {
             fn visit_seq<V: serde::de::SeqAccess<'de>>(
                 self,
                 mut seq: V,
-            ) -> Result<Snapshot, V::Error> {
+            ) -> std::result::Result<Snapshot, V::Error> {
                 let mem: serde_bytes::ByteBuf = seq
                     .next_element()?
                     .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
