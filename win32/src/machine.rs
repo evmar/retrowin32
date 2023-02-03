@@ -64,12 +64,6 @@ pub struct Runner {
     pub instr_count: usize,
 
     icache: x86::InstrCache,
-
-    /// Places to stop execution in a step_many() call.
-    /// We unconditionally stop on these; the web frontend manages things like
-    /// enabling/disabling breakpoints.  The map values are the instruction
-    /// from before the breakpoint.
-    breakpoints: HashMap<u32, iced_x86::Instruction>,
 }
 impl Runner {
     pub fn new(host: Box<dyn host::Host>) -> Self {
@@ -77,7 +71,6 @@ impl Runner {
             machine: Machine::new(host),
             instr_count: 0,
             icache: x86::InstrCache::new(),
-            breakpoints: HashMap::new(),
         }
     }
 
@@ -107,22 +100,12 @@ impl Runner {
         Ok(labels)
     }
 
-    /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
-        let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
-        // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
-        int3.set_len(1);
-        int3.set_next_ip(addr as u64 + 1);
-        let prev = self.icache.patch(addr, int3);
-        self.breakpoints.insert(addr, prev);
-        Ok(())
+    pub fn add_breakpoint(&mut self, addr: u32) {
+        self.icache.add_breakpoint(addr)
     }
 
-    /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, addr: u32) -> anyhow::Result<()> {
-        let prev = self.breakpoints.remove(&addr).unwrap();
-        self.icache.patch(addr, prev);
-        Ok(())
+    pub fn clear_breakpoint(&mut self, addr: u32) {
+        self.icache.clear_breakpoint(addr)
     }
 
     /// If eip points at a shim address, call the handler and update eip.

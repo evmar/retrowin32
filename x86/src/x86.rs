@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{memory::Memory, ops, registers::Registers, Error, Result};
 use serde::ser::SerializeStruct;
 
@@ -180,6 +182,10 @@ pub struct InstrCache {
     pub instrs: Vec<(u32, iced_x86::Instruction)>,
     /// Current position within instrs.
     pub index: usize,
+
+    /// Places where we've patched out the instruction with an int3.
+    /// The map values are the instruction from before the breakpoint.
+    breakpoints: HashMap<u32, iced_x86::Instruction>,
 }
 
 impl InstrCache {
@@ -187,6 +193,7 @@ impl InstrCache {
         InstrCache {
             instrs: Vec::new(),
             index: 0,
+            breakpoints: HashMap::new(),
         }
     }
 
@@ -258,9 +265,25 @@ impl InstrCache {
     }
 
     /// Replace the instruction found at a given ip, returning the previous instruction.
-    pub fn patch(&mut self, addr: u32, instr: iced_x86::Instruction) -> iced_x86::Instruction {
+    fn patch(&mut self, addr: u32, instr: iced_x86::Instruction) -> iced_x86::Instruction {
         let index = self.ip_to_instr_index(&[], addr).expect("couldn't map ip");
         std::mem::replace(&mut self.instrs[index].1, instr)
+    }
+
+    /// Patch in an int3 over the instruction at that addr, backing up the current one.
+    pub fn add_breakpoint(&mut self, addr: u32) {
+        let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
+        // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
+        int3.set_len(1);
+        int3.set_next_ip(addr as u64 + 1);
+        let prev = self.patch(addr, int3);
+        self.breakpoints.insert(addr, prev);
+    }
+
+    /// Undo an add_breakpoint().
+    pub fn clear_breakpoint(&mut self, addr: u32) {
+        let prev = self.breakpoints.remove(&addr).unwrap();
+        self.patch(addr, prev);
     }
 
     /// Executes the current instruction, updating eip.
