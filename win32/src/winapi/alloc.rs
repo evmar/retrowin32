@@ -1,5 +1,7 @@
 use crate::memory::{Memory, Pod};
 
+use super::kernel32;
+
 pub trait Alloc {
     fn alloc(&mut self, size: u32) -> u32;
     fn size(&self, addr: u32) -> u32;
@@ -90,14 +92,23 @@ impl HeapInfo {
         }
     }
 
-    pub fn get_heap<'a>(&'a mut self, mem: &'a mut [u8]) -> Heap<'a> {
-        Heap { info: self, mem }
+    pub fn get_heap<'a>(
+        &'a mut self,
+        mem: &'a mut [u8],
+        mappings: &'a mut kernel32::Mappings,
+    ) -> Heap<'a> {
+        Heap {
+            info: self,
+            mem,
+            mappings,
+        }
     }
 }
 
 pub struct Heap<'a> {
     info: &'a mut HeapInfo,
     mem: &'a mut [u8],
+    mappings: &'a mut kernel32::Mappings,
 }
 
 #[derive(Debug)]
@@ -127,6 +138,14 @@ impl<'a> Alloc for Heap<'a> {
             blocks += 1;
             let node = FreeNode::get(self.mem, cur);
             if node.size >= alloc_size {
+                break;
+            }
+            if node.next == 0 {
+                // Reached last node, try resizing before giving up.
+                node.size += self.mappings.grow(self.info.addr);
+                if node.size < alloc_size {
+                    panic!("resized, but still too small");
+                }
                 break;
             }
             prev = cur;

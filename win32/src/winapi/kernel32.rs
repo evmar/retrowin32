@@ -109,6 +109,24 @@ impl Mappings {
     pub fn vec(&self) -> &Vec<Mapping> {
         &self.0
     }
+
+    pub fn grow(&mut self, addr: u32) -> u32 {
+        let pos = self.0.iter().position(|m| m.addr == addr).unwrap();
+        let mapping = &self.0[pos];
+        let new_size = mapping.size * 2;
+        if pos + 1 < self.0.len() {
+            let next = &self.0[pos + 1];
+            if mapping.addr + new_size > next.addr {
+                panic!("cannot grow {:?}", mapping);
+            }
+        }
+
+        let mapping = &mut self.0[pos];
+        let growth = new_size - mapping.size;
+        mapping.size = new_size;
+        log::info!("grew mapping {:?} by {:#x}", mapping.desc, growth);
+        growth
+    }
 }
 
 pub struct State {
@@ -244,7 +262,9 @@ impl State {
     }
 
     pub fn get_heap<'a>(&'a mut self, mem: &'a mut [u8], addr: u32) -> Option<Heap<'a>> {
-        self.heaps.get_mut(&addr).map(|h| h.get_heap(mem))
+        self.heaps
+            .get_mut(&addr)
+            .map(|h| h.get_heap(mem, &mut self.mappings))
     }
 }
 
@@ -754,7 +774,10 @@ pub fn GetProcessHeap(x86: &mut X86) -> u32 {
         return heap;
     }
     let size = 1 << 20;
-    let heap = HeapCreate(x86, 0, size, size);
+    let heap = x86
+        .state
+        .kernel32
+        .new_heap(&mut x86.mem, size, "process heap".into());
     peb_mut(x86).ProcessHeap = heap;
     heap
 }
