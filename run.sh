@@ -1,4 +1,4 @@
 #!/bin/sh
 # usage: run.sh path/to/the.exe
 
-exec cargo run -p retrowin32 -- "$@"
+exec cargo run --release -p retrowin32 -- "$@"
