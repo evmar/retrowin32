@@ -109,18 +109,29 @@ pub fn SetFocus(_machine: &mut Machine, _hWnd: u32) -> u32 {
     0
 }
 
+bitflags! {
+    pub struct MessageBoxFlags: u32 {
+        // None implemented yet.
+    }
+}
+
 pub fn MessageBoxA(
     machine: &mut Machine,
     _hWnd: u32,
-    lpText: u32,
-    lpCaption: u32,
-    _uType: u32,
+    lpText: Option<&str>,
+    lpCaption: Option<&str>,
+    uType: u32,
 ) -> u32 {
-    let caption = &machine.x86.mem[lpCaption as usize..].read_strz();
-    let text = &machine.x86.mem[lpText as usize..].read_strz();
-    machine
-        .host
-        .write(format!("MessageBox: {}\n{}", caption, text).as_bytes());
+    // Check flags here to panic on any unexpected flags.
+    let _flags = MessageBoxFlags::from_bits(uType).unwrap();
+    machine.host.write(
+        format!(
+            "MessageBox: {}\n{}",
+            lpCaption.unwrap_or("Error"),
+            lpText.unwrap_or("")
+        )
+        .as_bytes(),
+    );
     1 // IDOK
 }
 

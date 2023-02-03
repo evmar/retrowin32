@@ -540,8 +540,8 @@ pub mod user32 {
     }
     fn MessageBoxA(machine: &mut Machine) {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
-        let lpText: u32 = unsafe { from_x86(&mut machine.x86) };
-        let lpCaption: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpText: Option<&str> = unsafe { from_x86(&mut machine.x86) };
+        let lpCaption: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let _uType: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::user32::MessageBoxA(machine, _hWnd, lpText, lpCaption, _uType).to_raw();
