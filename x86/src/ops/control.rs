@@ -131,3 +131,11 @@ pub fn js(x86: &mut X86, instr: &Instruction) -> Result<()> {
     }
     Ok(())
 }
+
+pub fn loop_(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    x86.regs.ecx -= 1;
+    if x86.regs.ecx != 0 {
+        x86_jmp(x86, instr.near_branch32())?;
+    }
+    Ok(())
+}

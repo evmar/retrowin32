@@ -47,6 +47,8 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Js_rel32_32 as usize] = Some(ops::js);
     OP_TAB[iced_x86::Code::Js_rel8_32 as usize] = Some(ops::js);
 
+    OP_TAB[iced_x86::Code::Loop_rel8_32_ECX as usize] = Some(ops::loop_);
+
     OP_TAB[iced_x86::Code::Pushd_imm8 as usize] = Some(ops::pushd_imm8);
     OP_TAB[iced_x86::Code::Pushd_imm32 as usize] = Some(ops::pushd_imm32);
     OP_TAB[iced_x86::Code::Push_r32 as usize] = Some(ops::push_r32);
@@ -154,6 +156,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Div_rm32 as usize] = Some(ops::div_rm32);
     OP_TAB[iced_x86::Code::Dec_r32 as usize] = Some(ops::dec_rm32);
     OP_TAB[iced_x86::Code::Dec_rm32 as usize] = Some(ops::dec_rm32);
+    OP_TAB[iced_x86::Code::Dec_rm8 as usize] = Some(ops::dec_rm8);
     OP_TAB[iced_x86::Code::Inc_r32 as usize] = Some(ops::inc_rm32);
     OP_TAB[iced_x86::Code::Inc_rm32 as usize] = Some(ops::inc_rm32);
     OP_TAB[iced_x86::Code::Inc_rm8 as usize] = Some(ops::inc_rm8);

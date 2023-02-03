@@ -492,6 +492,11 @@ pub fn dec_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+pub fn dec_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    rm8_x(x86, instr, |x86, x| sub8(x86, x, 1));
+    Ok(())
+}
+
 pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     // TODO: flags.  Note that it's not add32(1) because CF should be preserved.
     rm32_x(x86, instr, |_x86, x| x + 1);
