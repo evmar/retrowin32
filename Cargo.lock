@@ -443,7 +443,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bitflags",
- "iced-x86",
  "log",
  "num-derive",
  "num-traits",
