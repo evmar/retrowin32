@@ -136,8 +136,7 @@ pub fn x86_addr(x86: &X86, instr: &iced_x86::Instruction) -> u32 {
     // TODO: see comments on regs.fs_addr.
     let seg = match instr.segment_prefix() {
         iced_x86::Register::FS => x86.regs.fs_addr,
-        iced_x86::Register::None => 0,
-        _ => unimplemented!(),
+        _ => 0,
     };
 
     let base = if instr.memory_base() != iced_x86::Register::None {
