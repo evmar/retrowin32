@@ -451,4 +451,19 @@ dependencies = [
  "serde_bytes",
  "tsify",
  "wasm-bindgen",
+ "x86",
+]
+
+[[package]]
+name = "x86"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bitflags",
+ "iced-x86",
+ "log",
+ "serde",
+ "serde_bytes",
+ "tsify",
+ "wasm-bindgen",
 ]

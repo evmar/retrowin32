@@ -3,7 +3,6 @@
 #[doc = r" Generated code, do not edit."]
 use crate::{
     machine::Machine,
-    memory::Memory,
     winapi,
     winapi::shims::{from_x86, ToX86},
     winapi::types::*,

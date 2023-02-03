@@ -1,18 +1,13 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use crate::{machine::Machine, pe::ImageSectionFlags};
 use bitflags::bitflags;
 use num_traits::FromPrimitive;
 use std::collections::HashMap;
-
-use crate::{
-    machine::Machine,
-    memory::{Memory, Pod},
-    pe::ImageSectionFlags,
-    x86::NULL_POINTER_REGION_SIZE,
-};
 use std::io::Write;
 use tsify::Tsify;
+use x86::Memory;
 
 use super::{
     alloc::Alloc,
@@ -42,7 +37,7 @@ impl Mappings {
     fn new() -> Self {
         Mappings(vec![Mapping {
             addr: 0,
-            size: NULL_POINTER_REGION_SIZE,
+            size: x86::NULL_POINTER_REGION_SIZE,
             desc: "avoid null pointers".into(),
             flags: ImageSectionFlags::empty(),
         }])
@@ -299,7 +294,7 @@ struct PEB {
     // TODO: this should be TlsBitmap.
     TlsCount: DWORD,
 }
-unsafe impl Pod for PEB {}
+unsafe impl x86::Pod for PEB {}
 
 #[repr(C)]
 struct NT_TIB {
@@ -311,7 +306,7 @@ struct NT_TIB {
     ArbitraryUserPointer: DWORD,
     _Self: DWORD,
 }
-unsafe impl Pod for NT_TIB {}
+unsafe impl x86::Pod for NT_TIB {}
 
 #[repr(C)]
 struct TEB {
@@ -335,7 +330,7 @@ struct TEB {
     // This is at the wrong offset, but it shouldn't matter.
     TlsSlots: [DWORD; 64],
 }
-unsafe impl Pod for TEB {}
+unsafe impl x86::Pod for TEB {}
 
 #[repr(C)]
 struct UNICODE_STRING {
@@ -374,14 +369,14 @@ struct RTL_USER_PROCESS_PARAMETERS {
     ImagePathName: UNICODE_STRING,
     CommandLine: UNICODE_STRING,
 }
-unsafe impl Pod for RTL_USER_PROCESS_PARAMETERS {}
+unsafe impl x86::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
 #[repr(C)]
 struct _EXCEPTION_REGISTRATION_RECORD {
     Prev: DWORD,
     Handler: DWORD,
 }
-unsafe impl Pod for _EXCEPTION_REGISTRATION_RECORD {}
+unsafe impl x86::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
     teb_mut(machine).LastErrorValue = dwErrCode;
@@ -533,7 +528,7 @@ struct STARTUPINFOA {
     hStdOutput: DWORD,
     hStdError: DWORD,
 }
-unsafe impl Pod for STARTUPINFOA {}
+unsafe impl x86::Pod for STARTUPINFOA {}
 
 pub fn GetStartupInfoA(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
@@ -633,7 +628,7 @@ pub struct FILETIME {
     dwLowDateTime: DWORD,
     dwHighDateTime: DWORD,
 }
-unsafe impl Pod for FILETIME {}
+unsafe impl x86::Pod for FILETIME {}
 pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
     0
 }
@@ -1015,7 +1010,7 @@ pub struct SLIST_HEADER {
     Next: u32,
     todo: [u32; 3],
 }
-unsafe impl Pod for SLIST_HEADER {}
+unsafe impl x86::Pod for SLIST_HEADER {}
 
 pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
     ListHead.unwrap().Next = 0;

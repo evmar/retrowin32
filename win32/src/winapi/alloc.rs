@@ -1,6 +1,5 @@
-use crate::memory::{Memory, Pod};
-
 use super::kernel32;
+use x86::Memory;
 
 pub trait Alloc {
     fn alloc(&mut self, size: u32) -> u32;
@@ -118,7 +117,7 @@ struct FreeNode {
     /// Pointer to next node.
     next: u32,
 }
-unsafe impl Pod for FreeNode {}
+unsafe impl x86::Pod for FreeNode {}
 impl FreeNode {
     fn get(mem: &mut [u8], addr: u32) -> &mut Self {
         mem.view_mut::<FreeNode>(addr)

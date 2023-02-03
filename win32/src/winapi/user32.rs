@@ -2,14 +2,9 @@
 
 use anyhow::bail;
 use bitflags::bitflags;
+use x86::Memory;
 
-use crate::{
-    host,
-    machine::Machine,
-    memory::{Memory, Pod},
-    pe,
-    winapi::gdi32,
-};
+use crate::{host, machine::Machine, pe, winapi::gdi32};
 
 use super::types::{DWORD, WORD};
 
@@ -183,7 +178,7 @@ struct BITMAPINFOHEADER {
     biClrUsed: DWORD,
     biClrImportant: DWORD,
 }
-unsafe impl Pod for BITMAPINFOHEADER {}
+unsafe impl x86::Pod for BITMAPINFOHEADER {}
 impl BITMAPINFOHEADER {
     fn width(&self) -> u32 {
         self.biWidth

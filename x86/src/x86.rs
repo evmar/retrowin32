@@ -1,9 +1,4 @@
-pub mod debug;
-pub mod memory;
-mod ops;
-pub mod registers;
-
-use crate::{registers::Registers, x86::memory::Memory, x86::ops};
+use crate::{memory::Memory, ops, registers::Registers};
 use serde::ser::SerializeStruct;
 
 /// Addresses from 0 up to this point cause panics if we access them.

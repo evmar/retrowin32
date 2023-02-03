@@ -4,4 +4,5 @@ members = [
   "web/glue",
   "win32",
   "win32/src/winapi/gen",
+  "x86",
 ]

@@ -3,16 +3,11 @@
 
 use std::collections::HashMap;
 
-use crate::{
-    host,
-    machine::Machine,
-    memory::{Memory, Pod},
-    winapi::vtable,
-    winapi::winapi_shims,
-};
+use crate::{host, machine::Machine, winapi::vtable, winapi::winapi_shims};
 
 use super::{alloc::Alloc, types::DWORD};
 use bitflags::bitflags;
+use x86::Memory;
 
 #[repr(C)]
 #[derive(Debug)]
@@ -22,7 +17,7 @@ struct RECT {
     right: DWORD,
     bottom: DWORD,
 }
-unsafe impl Pod for RECT {}
+unsafe impl x86::Pod for RECT {}
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,
@@ -86,7 +81,7 @@ struct DDSCAPS2 {
     dwCaps3: DWORD,
     dwCaps4: DWORD,
 }
-unsafe impl Pod for DDSCAPS2 {}
+unsafe impl x86::Pod for DDSCAPS2 {}
 impl DDSCAPS2 {
     fn caps1(&self) -> DDSCAPS {
         unsafe { DDSCAPS::from_bits_unchecked(self.dwCaps) }
@@ -156,7 +151,7 @@ struct DDCOLORKEY {
     dwColorSpaceLowValue: DWORD,
     dwColorSpaceHighValue: DWORD,
 }
-unsafe impl Pod for DDCOLORKEY {}
+unsafe impl x86::Pod for DDCOLORKEY {}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -178,7 +173,7 @@ struct DDSURFACEDESC {
     ddpfPixelFormat: [DWORD; 8],
     ddsCaps: DDSCAPS,
 }
-unsafe impl Pod for DDSURFACEDESC {}
+unsafe impl x86::Pod for DDSURFACEDESC {}
 impl DDSURFACEDESC {
     fn flags(&self) -> DDSD {
         unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
@@ -222,7 +217,7 @@ struct DDSURFACEDESC2 {
     ddsCaps: DDSCAPS2,
     dwTextureStage: DWORD,
 }
-unsafe impl Pod for DDSURFACEDESC2 {}
+unsafe impl x86::Pod for DDSURFACEDESC2 {}
 impl DDSURFACEDESC2 {
     fn flags(&self) -> DDSD {
         unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
@@ -253,7 +248,7 @@ struct DDPIXELFORMAT {
     u4: DWORD,
     u5: DWORD,
 }
-unsafe impl Pod for DDPIXELFORMAT {}
+unsafe impl x86::Pod for DDPIXELFORMAT {}
 
 mod IDirectDraw {
     use super::*;

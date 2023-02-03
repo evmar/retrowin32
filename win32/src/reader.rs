@@ -1,8 +1,7 @@
 use std::mem::size_of;
 
 use anyhow::{anyhow, bail};
-
-use crate::memory::{Memory, Pod};
+use x86::Memory;
 
 pub struct Reader<'a> {
     pub buf: &'a [u8],
@@ -44,7 +43,7 @@ impl<'a> Reader<'a> {
         Ok(())
     }
 
-    pub fn view<T: Pod>(&mut self) -> &'a T {
+    pub fn view<T: x86::Pod>(&mut self) -> &'a T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>();
         t

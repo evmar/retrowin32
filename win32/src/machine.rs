@@ -1,14 +1,9 @@
 use std::collections::HashMap;
 
 use anyhow::bail;
+use x86::X86;
 
-use crate::{
-    host, ops,
-    pe::ImageSectionFlags,
-    winapi,
-    windows::load_exe,
-    x86::{Snapshot, X86},
-};
+use crate::{host, pe::ImageSectionFlags, winapi, windows::load_exe};
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -232,14 +227,14 @@ impl Runner {
         if self.machine.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(());
         }
-        let ret = ops::pop(&mut self.machine.x86);
+        let ret = x86::ops::pop(&mut self.machine.x86);
         let handler = self
             .machine
             .shims
             .get(self.machine.x86.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
         handler(&mut self.machine);
-        ops::x86_jmp(&mut self.machine.x86, ret)
+        x86::ops::x86_jmp(&mut self.machine.x86, ret)
     }
 
     // Single-step execution.  Returns Ok(false) if we stopped.
@@ -288,7 +283,7 @@ impl Runner {
         Ok(count)
     }
 
-    pub fn load_snapshot(&mut self, snap: Snapshot) {
+    pub fn load_snapshot(&mut self, snap: x86::Snapshot) {
         self.machine.x86.load_snapshot(snap);
         self.icache
             .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);

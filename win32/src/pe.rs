@@ -4,12 +4,12 @@
 use std::mem::size_of;
 
 use crate::{
-    memory::{self, Memory},
     reader::Reader,
     winapi::types::{DWORD, WORD},
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
+use x86::Memory;
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
@@ -31,7 +31,7 @@ pub struct IMAGE_FILE_HEADER {
     pub SizeOfOptionalHeader: WORD,
     pub Characteristics: WORD,
 }
-unsafe impl memory::Pod for IMAGE_FILE_HEADER {}
+unsafe impl x86::Pod for IMAGE_FILE_HEADER {}
 
 bitflags! {
     pub struct DllCharacteristics: u16 {
@@ -84,7 +84,7 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub NumberOfRvaAndSizes: DWORD,
     pub DataDirectory: [IMAGE_DATA_DIRECTORY; 16],
 }
-unsafe impl memory::Pod for IMAGE_OPTIONAL_HEADER32 {}
+unsafe impl x86::Pod for IMAGE_OPTIONAL_HEADER32 {}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -92,7 +92,7 @@ pub struct IMAGE_DATA_DIRECTORY {
     pub VirtualAddress: DWORD,
     pub Size: DWORD,
 }
-unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
+unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 
 fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
@@ -118,7 +118,7 @@ pub struct IMAGE_SECTION_HEADER {
     pub NumberOfLinenumbers: u16,
     pub Characteristics: u32,
 }
-unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
+unsafe impl x86::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
     pub fn name(&self) -> &str {
         self.Name.read_strz()
@@ -181,7 +181,7 @@ struct IMAGE_IMPORT_DESCRIPTOR {
     Name: DWORD,
     FirstThunk: DWORD,
 }
-unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
+unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 /// mem: memory starting at image base
 /// addr: address of imports table relative to mem start
@@ -255,7 +255,7 @@ struct IMAGE_RESOURCE_DIRECTORY {
     NumberOfNamedEntries: WORD,
     NumberOfIdEntries: WORD,
 }
-unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
+unsafe impl x86::Pod for IMAGE_RESOURCE_DIRECTORY {}
 impl IMAGE_RESOURCE_DIRECTORY {
     fn entries(&self, mem: &[u8]) -> &[IMAGE_RESOURCE_DIRECTORY_ENTRY] {
         let count = (self.NumberOfIdEntries + self.NumberOfNamedEntries) as usize;
@@ -274,7 +274,7 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
     Name: DWORD,
     OffsetToData: DWORD,
 }
-unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
+unsafe impl x86::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
 /// Top-level dir entry.
 pub const RT_BITMAP: u32 = 2;
@@ -309,7 +309,7 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
     CodePage: DWORD,
     Reserved: DWORD,
 }
-unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
+unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 pub fn get_resource(
     mem: &[u8],
