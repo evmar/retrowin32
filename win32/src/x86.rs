@@ -373,6 +373,7 @@ impl Runner {
             .state
             .kernel32
             .mappings
+            .vec()
             .iter()
             .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
             .ok_or_else(|| anyhow::anyhow!("no code section"))?;

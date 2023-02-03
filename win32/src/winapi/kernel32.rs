@@ -25,12 +25,90 @@ pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
 pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
 pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
+/// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
 #[derive(Debug, tsify::Tsify, serde::Serialize)]
 pub struct Mapping {
     pub addr: u32,
     pub size: u32,
     pub desc: String,
     pub flags: pe::ImageSectionFlags,
+}
+
+/// The set of Mappings managed by the kernel.
+/// These get visualized in the debugger when you hover a pointer.
+pub struct Mappings(Vec<Mapping>);
+impl Mappings {
+    fn new() -> Self {
+        Mappings(vec![Mapping {
+            addr: 0,
+            size: x86::NULL_POINTER_REGION_SIZE,
+            desc: "avoid null pointers".into(),
+            flags: ImageSectionFlags::empty(),
+        }])
+    }
+
+    pub fn add(&mut self, mapping: Mapping) {
+        let pos = self
+            .0
+            .iter()
+            .position(|m| m.addr > mapping.addr)
+            .unwrap_or(self.0.len());
+        if pos > 0 {
+            let prev = &self.0[pos - 1];
+            assert!(prev.addr + prev.size <= mapping.addr);
+        }
+        if pos < self.0.len() {
+            let next = &self.0[pos];
+            assert!(mapping.addr + mapping.size <= next.addr);
+        }
+        self.0.insert(pos, mapping);
+    }
+
+    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
+        if size > 1 << 20 {
+            log::error!("new mapping {:?} {size:x} bytes", desc);
+            assert!(size <= 1 << 20);
+        }
+        let mut prev_end = 0;
+        let pos = self
+            .0
+            .iter()
+            .position(|mapping| {
+                let space = mapping.addr - prev_end;
+                if space > size {
+                    return true;
+                }
+                prev_end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+                false
+            })
+            .unwrap_or_else(|| {
+                let space = if mem.len() as u32 > prev_end {
+                    mem.len() as u32 - prev_end
+                } else {
+                    0
+                };
+                if space < size {
+                    let new_size = (prev_end + size) as usize;
+                    mem.resize(new_size, 0);
+                }
+                self.0.len()
+            });
+
+        self.0.insert(
+            pos,
+            Mapping {
+                addr: prev_end,
+                size,
+                desc,
+                flags: ImageSectionFlags::empty(),
+            },
+        );
+        &self.0[pos]
+    }
+
+    pub fn vec(&self) -> &Vec<Mapping> {
+        &self.0
+    }
 }
 
 pub struct State {
@@ -40,7 +118,7 @@ pub struct State {
     pub image_base: u32,
     /// Address of TEB (FS register).
     pub teb: u32,
-    pub mappings: Vec<Mapping>,
+    pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, HeapInfo>,
 
@@ -53,17 +131,11 @@ pub struct State {
 }
 impl State {
     pub fn new() -> Self {
-        let mappings = vec![Mapping {
-            addr: 0,
-            size: x86::NULL_POINTER_REGION_SIZE,
-            desc: "avoid null pointers".into(),
-            flags: ImageSectionFlags::empty(),
-        }];
         State {
             arena: ArenaInfo::new(0, 0),
             image_base: 0,
             teb: 0,
-            mappings,
+            mappings: Mappings::new(),
             heaps: HashMap::new(),
             env: 0,
             cmdline: 0,
@@ -72,7 +144,7 @@ impl State {
     }
 
     pub fn init(&mut self, mem: &mut Vec<u8>, cmdline: String) {
-        let mapping = self.new_mapping(0x1000, "kernel32 data".into(), mem);
+        let mapping = self.mappings.alloc(0x1000, "kernel32 data".into(), mem);
         self.arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let cmdline_len = cmdline.len();
@@ -159,67 +231,8 @@ impl State {
         // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
     }
 
-    pub fn add_mapping(&mut self, mapping: Mapping) {
-        let pos = self
-            .mappings
-            .iter()
-            .position(|m| m.addr > mapping.addr)
-            .unwrap_or(self.mappings.len());
-        if pos > 0 {
-            let prev = &self.mappings[pos - 1];
-            assert!(prev.addr + prev.size <= mapping.addr);
-        }
-        if pos < self.mappings.len() {
-            let next = &self.mappings[pos];
-            assert!(mapping.addr + mapping.size <= next.addr);
-        }
-        self.mappings.insert(pos, mapping);
-    }
-
-    pub fn new_mapping(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
-        if size > 1 << 20 {
-            log::error!("new mapping {:?} {size:x} bytes", desc);
-            assert!(size <= 1 << 20);
-        }
-        let mut prev_end = 0;
-        let pos = self
-            .mappings
-            .iter()
-            .position(|mapping| {
-                let space = mapping.addr - prev_end;
-                if space > size {
-                    return true;
-                }
-                prev_end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
-                false
-            })
-            .unwrap_or_else(|| {
-                let space = if mem.len() as u32 > prev_end {
-                    mem.len() as u32 - prev_end
-                } else {
-                    0
-                };
-                if space < size {
-                    let new_size = (prev_end + size) as usize;
-                    mem.resize(new_size, 0);
-                }
-                self.mappings.len()
-            });
-
-        self.mappings.insert(
-            pos,
-            Mapping {
-                addr: prev_end,
-                size,
-                desc,
-                flags: ImageSectionFlags::empty(),
-            },
-        );
-        &self.mappings[pos]
-    }
-
     pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> HeapInfo {
-        let mapping = self.new_mapping(size as u32, desc, mem);
+        let mapping = self.mappings.alloc(size as u32, desc, mem);
         HeapInfo::new(mem, mapping.addr, mapping.size)
     }
 
@@ -847,6 +860,7 @@ pub fn VirtualAlloc(
             .state
             .kernel32
             .mappings
+            .vec()
             .iter()
             .find(|&mapping| mapping.addr == lpAddress)
         {
@@ -865,7 +879,8 @@ pub fn VirtualAlloc(
     let mapping = x86
         .state
         .kernel32
-        .new_mapping(dwSize, "VirtualAlloc".into(), &mut x86.mem);
+        .mappings
+        .alloc(dwSize, "VirtualAlloc".into(), &mut x86.mem);
     mapping.addr
 }
 

@@ -22,7 +22,7 @@ pub fn load_exe(
         if !flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA) {
             x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
-        x86.state.kernel32.add_mapping(winapi::kernel32::Mapping {
+        x86.state.kernel32.mappings.add(winapi::kernel32::Mapping {
             addr: dst as u32,
             size: size as u32,
             desc: format!("{:?} ({:?})", sec.name(), flags),
@@ -44,7 +44,8 @@ pub fn load_exe(
     let stack = x86
         .state
         .kernel32
-        .new_mapping(stack_size, "stack".into(), &mut x86.mem);
+        .mappings
+        .alloc(stack_size, "stack".into(), &mut x86.mem);
     let stack_end = stack.addr + stack.size - 4;
     x86.regs.esp = stack_end;
     x86.regs.ebp = stack_end;

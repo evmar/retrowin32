@@ -247,7 +247,7 @@ impl Emulator {
     }
 
     pub fn mappings_json(&self) -> String {
-        serde_json::to_string(&self.runner.x86.state.kernel32.mappings).unwrap_throw()
+        serde_json::to_string(&self.runner.x86.state.kernel32.mappings.vec()).unwrap_throw()
     }
 
     pub fn poke(&mut self, addr: u32, value: u8) {
