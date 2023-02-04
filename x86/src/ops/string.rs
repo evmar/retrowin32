@@ -139,7 +139,9 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) -> Result<()> {
 }
 
 pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
-    assert!(x86.regs.flags.contains(Flags::DF)); // TODO
+    if x86.regs.flags.contains(Flags::DF) {
+        return Err(Error::Error("TODO DF".into()));
+    }
 
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
     match size {
