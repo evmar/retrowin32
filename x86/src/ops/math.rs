@@ -518,6 +518,15 @@ pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+pub fn neg_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    rm8_x(x86, instr, |x86, x| {
+        x86.regs.flags.set(Flags::CF, x != 0);
+        // TODO: other flags registers.
+        -(x as i8) as u8
+    });
+    Ok(())
+}
+
 pub fn not_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     rm32_x(x86, instr, |_x86, x| !x);
     Ok(())
