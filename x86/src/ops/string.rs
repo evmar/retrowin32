@@ -138,11 +138,28 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-pub fn lods(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
 
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
-    x86.regs.eax = x86.read_u32(x86.regs.esi);
-    x86.regs.esi += 4;
+    match size {
+        4 => {
+            x86.regs.eax = x86.read_u32(x86.regs.esi);
+        }
+        1 => {
+            let value = x86.read_u8(x86.regs.esi);
+            x86.regs.set8(iced_x86::Register::AL, value);
+        }
+        _ => unimplemented!("lods size {}", size),
+    }
+    x86.regs.esi += size as u32;
     Ok(())
+}
+
+pub fn lodsd(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    lods(x86, instr, 4)
+}
+
+pub fn lodsb(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    lods(x86, instr, 1)
 }
