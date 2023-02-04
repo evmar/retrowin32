@@ -275,14 +275,23 @@ pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
 }
 
 pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    // TODO: CF, OF
     let y = instr.immediate8() as u32;
     rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
     Ok(())
 }
 
 pub fn sar_rm32_cl(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    // TODO: CF, OF
     let y = x86.regs.ecx as u8;
     rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+    Ok(())
+}
+
+pub fn sar_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    // TODO: CF, OF
+    let y = instr.immediate8() as u8;
+    rm8_x(x86, instr, |_x86, x| (x >> y) | (x & 0x80));
     Ok(())
 }
 
