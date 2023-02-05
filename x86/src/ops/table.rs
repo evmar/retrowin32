@@ -129,9 +129,9 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Xor_r32_rm32 as usize] = Some(ops::xor_rm32_rm32);
     OP_TAB[iced_x86::Code::Xor_rm32_imm32 as usize] = Some(ops::xor_rm32_imm32);
     OP_TAB[iced_x86::Code::Xor_EAX_imm32 as usize] = Some(ops::xor_rm32_imm32);
-
     OP_TAB[iced_x86::Code::Xor_rm32_imm8 as usize] = Some(ops::xor_rm32_imm8);
     OP_TAB[iced_x86::Code::Xor_rm8_imm8 as usize] = Some(ops::xor_rm8_imm8);
+    OP_TAB[iced_x86::Code::Xor_AL_imm8 as usize] = Some(ops::xor_rm8_imm8);
     OP_TAB[iced_x86::Code::Xor_r8_rm8 as usize] = Some(ops::xor_r8_rm8);
     OP_TAB[iced_x86::Code::Add_r32_rm32 as usize] = Some(ops::add_r32_rm32);
     OP_TAB[iced_x86::Code::Add_rm32_r32 as usize] = Some(ops::add_rm32_r32);
@@ -140,6 +140,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Add_rm32_imm8 as usize] = Some(ops::add_rm32_imm8);
     OP_TAB[iced_x86::Code::Add_rm16_imm8 as usize] = Some(ops::add_rm16_imm8);
     OP_TAB[iced_x86::Code::Add_rm8_imm8 as usize] = Some(ops::add_rm8_imm8);
+    OP_TAB[iced_x86::Code::Add_AL_imm8 as usize] = Some(ops::add_rm8_imm8);
     OP_TAB[iced_x86::Code::Add_r8_rm8 as usize] = Some(ops::add_r8_rm8);
     OP_TAB[iced_x86::Code::Sub_rm32_imm8 as usize] = Some(ops::sub_rm32_imm8);
     OP_TAB[iced_x86::Code::Sub_EAX_imm32 as usize] = Some(ops::sub_rm32_imm32);
