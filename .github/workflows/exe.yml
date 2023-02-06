@@ -21,11 +21,11 @@ jobs:
         with:
           filters: |
             ops:
-              - 'ops/**'
+              - 'exe/ops/**'
             winapi:
-              - 'winapi/**'
+              - 'exe/winapi/**'
             zip:
-              - 'zip/**'
+              - 'exe/zip/**'
 
       - name: ops
         if: steps.filter.outputs.ops == 'true'

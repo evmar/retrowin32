@@ -1,4 +1,5 @@
 use iced_x86::Instruction;
+use num_traits::PrimInt;
 
 use crate::{registers::Flags, x86::X86, Result};
 
@@ -274,24 +275,62 @@ pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+trait Int: PrimInt {
+    fn as_usize(self) -> usize;
+    fn bits() -> usize;
+
+    fn sar(self, other: Self) -> Self {
+        self.signed_shr(other.as_usize() as u32)
+    }
+}
+impl Int for u32 {
+    fn as_usize(self) -> usize {
+        self as usize
+    }
+    fn bits() -> usize {
+        32
+    }
+}
+impl Int for u8 {
+    fn as_usize(self) -> usize {
+        self as usize
+    }
+    fn bits() -> usize {
+        8
+    }
+}
+
+fn sar<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+    if y.is_zero() {
+        return x;
+    }
+    x86.regs
+        .flags
+        .set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
+    x86.regs.flags.set(Flags::OF, false);
+    let result = x.sar(y);
+    x86.regs
+        .flags
+        .set(Flags::SF, result.shr(I::bits() - 1).is_one());
+    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    result
+}
+
 pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    // TODO: CF, OF
     let y = instr.immediate8() as u32;
-    rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+    rm32_x(x86, instr, |x86, x| sar(x86, x, y));
     Ok(())
 }
 
 pub fn sar_rm32_cl(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    // TODO: CF, OF
-    let y = x86.regs.ecx as u8;
-    rm32_x(x86, instr, |_x86, x| (x >> y) | (x & 0x8000_0000));
+    let y = x86.regs.ecx as u8 as u32;
+    rm32_x(x86, instr, |x86, x| sar(x86, x, y));
     Ok(())
 }
 
 pub fn sar_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    // TODO: CF, OF
     let y = instr.immediate8() as u8;
-    rm8_x(x86, instr, |_x86, x| (x >> y) | (x & 0x80));
+    rm8_x(x86, instr, |x86, x| sar(x86, x, y));
     Ok(())
 }
 

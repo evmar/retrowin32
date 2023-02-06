@@ -460,6 +460,7 @@ dependencies = [
  "bitflags",
  "iced-x86",
  "log",
+ "num-traits",
  "serde",
  "serde_bytes",
  "tsify",
