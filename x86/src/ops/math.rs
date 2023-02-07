@@ -44,21 +44,6 @@ impl Int for u8 {
     }
 }
 
-fn shr32(x86: &mut X86, x: u32, y: u8) -> u32 {
-    if y == 0 {
-        return x; // Don't affect flags.
-    }
-    x86.regs.flags.set(Flags::CF, (x >> (y - 1)) & 1 != 0);
-    let val = x >> y;
-    x86.regs.flags.set(Flags::SF, false); // ?
-    x86.regs.flags.set(Flags::ZF, val == 0);
-
-    // Note: OF state undefined for shifts > 1 bit, but the following behavior
-    // matches what my Windows box does in practice.
-    x86.regs.flags.set(Flags::OF, x & (1 << 31) != 0);
-    val
-}
-
 // pub(crate) for use in the test opcode impl.
 pub(crate) fn and<I: Int>(x86: &mut X86, x: I, y: I) -> I {
     let result = x & y;
@@ -192,20 +177,39 @@ pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+fn shr<I: Int>(x86: &mut X86, x: I, y: u8) -> I {
+    if y == 0 {
+        return x; // Don't affect flags.
+    }
+    x86.regs
+        .flags
+        .set(Flags::CF, ((x >> (y - 1) as usize) & I::one()).is_one());
+    let val = x >> y as usize;
+    x86.regs.flags.set(Flags::SF, false); // ?
+    x86.regs.flags.set(Flags::ZF, val.is_zero());
+
+    // Note: OF state undefined for shifts > 1 bit, but the following behavior
+    // matches what my Windows box does in practice.
+    x86.regs
+        .flags
+        .set(Flags::OF, (x >> (I::bits() - 1)).is_one());
+    val
+}
+
 pub fn shr_rm32_cl(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = x86.regs.ecx as u8;
-    rm32_x(x86, instr, |x86, x| shr32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shr(x86, x, y));
     Ok(())
 }
 
 pub fn shr_rm32_1(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    rm32_x(x86, instr, |x86, x| shr32(x86, x, 1));
+    rm32_x(x86, instr, |x86, x| shr(x86, x, 1));
     Ok(())
 }
 
 pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm32_x(x86, instr, |x86, x| shr32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shr(x86, x, y));
     Ok(())
 }
 
