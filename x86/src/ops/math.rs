@@ -1,53 +1,41 @@
 use iced_x86::Instruction;
-use num_traits::PrimInt;
+use num_traits::{ops::overflowing::OverflowingAdd, PrimInt};
 
 use crate::{registers::Flags, x86::X86, Result};
 
 use super::helpers::*;
 
-fn add32(x86: &mut X86, x: u32, y: u32) -> u32 {
-    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    let (result, carry) = x.overflowing_add(y);
-    x86.regs.flags.set(Flags::CF, carry);
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
-    // Overflow is true exactly when the high (sign) bits are like:
-    //   x  y  result
-    //   0  0  1
-    //   1  1  0
-    let of = ((x ^ !y) & (x ^ result)) >> 31 != 0;
-    x86.regs.flags.set(Flags::OF, of);
-    result
-}
+trait Int: PrimInt {
+    fn as_usize(self) -> usize;
+    fn bits() -> usize;
 
-fn add16(x86: &mut X86, x: u16, y: u16) -> u16 {
-    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    let (result, carry) = x.overflowing_add(y);
-    x86.regs.flags.set(Flags::CF, carry);
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x8000 != 0);
-    // Overflow is true exactly when the high (sign) bits are like:
-    //   x  y  result
-    //   0  0  1
-    //   1  1  0
-    let of = ((x ^ !y) & (x ^ result)) >> 15 != 0;
-    x86.regs.flags.set(Flags::OF, of);
-    result
+    fn sar(self, other: Self) -> Self {
+        self.signed_shr(other.as_usize() as u32)
+    }
 }
-
-fn add8(x86: &mut X86, x: u8, y: u8) -> u8 {
-    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    let (result, carry) = x.overflowing_add(y);
-    x86.regs.flags.set(Flags::CF, carry);
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x80 != 0);
-    // Overflow is true exactly when the high (sign) bits are like:
-    //   x  y  result
-    //   0  0  1
-    //   1  1  0
-    let of = ((x ^ !y) & (x ^ result)) >> 7 != 0;
-    x86.regs.flags.set(Flags::OF, of);
-    result
+impl Int for u32 {
+    fn as_usize(self) -> usize {
+        self as usize
+    }
+    fn bits() -> usize {
+        32
+    }
+}
+impl Int for u16 {
+    fn as_usize(self) -> usize {
+        self as usize
+    }
+    fn bits() -> usize {
+        16
+    }
+}
+impl Int for u8 {
+    fn as_usize(self) -> usize {
+        self as usize
+    }
+    fn bits() -> usize {
+        8
+    }
 }
 
 pub fn sub32(x86: &mut X86, x: u32, y: u32) -> u32 {
@@ -275,31 +263,6 @@ pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-trait Int: PrimInt {
-    fn as_usize(self) -> usize;
-    fn bits() -> usize;
-
-    fn sar(self, other: Self) -> Self {
-        self.signed_shr(other.as_usize() as u32)
-    }
-}
-impl Int for u32 {
-    fn as_usize(self) -> usize {
-        self as usize
-    }
-    fn bits() -> usize {
-        32
-    }
-}
-impl Int for u8 {
-    fn as_usize(self) -> usize {
-        self as usize
-    }
-    fn bits() -> usize {
-        8
-    }
-}
-
 fn sar<I: Int>(x86: &mut X86, x: I, y: I) -> I {
     if y.is_zero() {
         return x;
@@ -390,48 +353,70 @@ pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+fn add<I: Int + OverflowingAdd>(x86: &mut X86, x: I, y: I) -> I {
+    // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
+    let (result, carry) = x.overflowing_add(&y);
+    x86.regs.flags.set(Flags::CF, carry);
+    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    x86.regs
+        .flags
+        .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    // Overflow is true exactly when the high (sign) bits are like:
+    //   x  y  result
+    //   0  0  1
+    //   1  1  0
+    let of = !(((x ^ !y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
+    x86.regs.flags.set(Flags::OF, of);
+    result
+}
+
 pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let reg = instr.op0_register();
     let x = x86.regs.get32(reg);
     let y = op1_rm32(x86, &instr);
-    let value = add32(x86, x, y);
+    let value = add(x86, x, y);
     x86.regs.set32(reg, value);
     Ok(())
 }
 
 pub fn add_rm32_r32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add(x86, x, y));
+    Ok(())
+}
+pub fn add_rm32_r32_2(x86: &mut X86, instr: &Instruction) -> Result<()> {
+    let y = x86.regs.get32(instr.op1_register());
+    rm32_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm32_imm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| add32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8to16() as u16;
-    rm16_x(x86, instr, |x86, x| add16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| add8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
 pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = op1_rm8(x86, instr);
-    rm8_x(x86, instr, |x86, x| add8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| add(x86, x, y));
     Ok(())
 }
 
@@ -546,13 +531,13 @@ pub fn dec_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
 }
 
 pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    // TODO: flags.  Note that it's not add32(1) because CF should be preserved.
+    // TODO: flags.  Note that it's not add(1) because CF should be preserved.
     rm32_x(x86, instr, |_x86, x| x + 1);
     Ok(())
 }
 
 pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
-    // TODO: flags.  Note that it's not add8(1) because CF should be preserved.
+    // TODO: flags.  Note that it's not add(1) because CF should be preserved.
     rm8_x(x86, instr, |_x86, x| x.wrapping_add(1));
     Ok(())
 }
