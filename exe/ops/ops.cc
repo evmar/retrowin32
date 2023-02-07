@@ -78,9 +78,28 @@ void sar() {
 #undef sar
 }
 
+void shl() {
+#define shl(x,y) \
+  asm_start("shl " #x "," #y) \
+    __asm mov eax,x \
+    __asm shl eax,y \
+  asm_end();
+  shl(3, 0);
+  shl(3, 1);
+  shl(3, 2);
+  shl(0x80000000, 1);
+  shl(0x80000000, 2);
+  shl(0xD0000001, 1);
+  shl(0xD0000001, 2);
+  shl(0xE0000002, 1);
+  shl(0xE0000002, 2);
+#undef shl
+}
+
 int main(void) {
   add();
   shr();
   sar();
+  shl();
   return 0;
 }

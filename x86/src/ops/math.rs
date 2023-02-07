@@ -1,8 +1,4 @@
 use iced_x86::Instruction;
-use num_traits::{
-    ops::overflowing::{OverflowingAdd, OverflowingSub},
-    PrimInt,
-};
 
 use crate::{registers::Flags, x86::X86, Result};
 
@@ -14,7 +10,7 @@ use super::helpers::*;
 /// Even when we need size-specific masks like "the high bit"
 /// (which is x.shr(I::bits() - 1))
 /// that math optimizes down to the appropriate constant.
-pub(crate) trait Int: PrimInt {
+pub(crate) trait Int: num_traits::PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
 
@@ -46,20 +42,6 @@ impl Int for u8 {
     fn bits() -> usize {
         8
     }
-}
-
-fn shl32(x86: &mut X86, x: u32, y: u8) -> u32 {
-    // Note: overflowing_shl is not what we want.
-    let val = (x as u64).wrapping_shl(y as u32);
-    x86.regs.flags.set(Flags::CF, val & (1 << 31) != 0);
-    val as u32
-}
-
-fn shl8(x86: &mut X86, x: u8, y: u8) -> u8 {
-    // Note: overflowing_shl is not what we want.
-    let val = (x as u16).wrapping_shl(y as u32);
-    x86.regs.flags.set(Flags::CF, val & (1 << 7) != 0);
-    val as u8
 }
 
 fn shr32(x86: &mut X86, x: u32, y: u8) -> u32 {
@@ -164,27 +146,49 @@ pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+fn shl<I: Int + num_traits::WrappingShl>(x86: &mut X86, x: I, y: u8) -> I {
+    if y == 0 {
+        return x;
+    }
+    // Carry is the highest bit that will be shifted out.
+    let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
+    let val = x.wrapping_shl(y.as_usize() as u32);
+    x86.regs.flags.set(Flags::CF, cf);
+    let msb = val.shr(I::bits() - 1).is_one();
+    x86.regs.flags.set(Flags::SF, msb);
+    // OF undefined for shifts != 1, but this matches what Windows machine does, and also docs:
+    // "For left shifts, the OF flag is set to 0 if the mostsignificant bit of the result is the
+    // same as the CF flag (that is, the top two bits of the original operand were the same) [...]"
+    x86.regs.flags.set(
+        Flags::OF,
+        x.shr(I::bits() - 1).is_one() ^ (x.shr(I::bits() - 2) & I::one()).is_one(),
+    );
+    x86.regs.flags.set(Flags::ZF, val.is_zero());
+
+    val
+}
+
 pub fn shl_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm32_x(x86, instr, |x86, x| shl32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shl(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm32_cl(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = x86.regs.ecx as u8;
-    rm32_x(x86, instr, |x86, x| shl32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| shl(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = x86.regs.ecx as u8;
-    rm8_x(x86, instr, |x86, x| shl8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl(x86, x, y));
     Ok(())
 }
 
 pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| shl8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl(x86, x, y));
     Ok(())
 }
 
@@ -295,7 +299,7 @@ pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-fn add<I: Int + OverflowingAdd>(x86: &mut X86, x: I, y: I) -> I {
+fn add<I: Int + num_traits::ops::overflowing::OverflowingAdd>(x86: &mut X86, x: I, y: I) -> I {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let (result, carry) = x.overflowing_add(&y);
     x86.regs.flags.set(Flags::CF, carry);
@@ -363,7 +367,11 @@ pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
 }
 
 // pub(crate) for use in the cmp opcode impl.
-pub(crate) fn sub<I: Int + OverflowingSub>(x86: &mut X86, x: I, y: I) -> I {
+pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
+    x86: &mut X86,
+    x: I,
+    y: I,
+) -> I {
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     x86.regs.flags.set(Flags::CF, carry);
