@@ -1,4 +1,4 @@
-use super::math::sub8;
+use super::math::sub;
 use iced_x86::Instruction;
 
 use crate::{memory::Memory, registers::Flags, x86::X86, Error, Result};
@@ -19,7 +19,7 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> Result<()> {
         x86.regs.ecx -= pos as u32;
         let x = x86.read_u8(x86.regs.esi);
         let y = x86.read_u8(x86.regs.edi);
-        sub8(x86, x, y);
+        sub(x86, x, y);
     } else {
         return Err(Error::Error("unimpl".into()));
     }
@@ -77,7 +77,7 @@ pub fn scas(x86: &mut X86, instr: &Instruction) -> Result<()> {
             .unwrap_or(count);
         x86.regs.edi += pos as u32;
         x86.regs.ecx -= pos as u32;
-        sub8(
+        sub(
             x86,
             x86.regs.get8(iced_x86::Register::AL),
             x86.regs.get8(iced_x86::Register::DL),
