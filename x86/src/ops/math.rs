@@ -13,11 +13,6 @@ use super::helpers::*;
 pub(crate) trait Int: num_traits::PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
-
-    /// Wrapper just to avoid the random "u32" in the num-traits definition.
-    fn sar(self, other: Self) -> Self {
-        self.signed_shr(other.as_usize() as u32)
-    }
 }
 impl Int for u32 {
     fn as_usize(self) -> usize {
@@ -221,7 +216,9 @@ fn sar<I: Int>(x86: &mut X86, x: I, y: I) -> I {
         .flags
         .set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
     x86.regs.flags.set(Flags::OF, false);
-    let result = x.sar(y);
+    // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
+    let result = x.signed_shr(y.as_usize() as u32);
+
     x86.regs
         .flags
         .set(Flags::SF, result.shr(I::bits() - 1).is_one());
