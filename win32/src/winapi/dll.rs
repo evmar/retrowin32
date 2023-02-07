@@ -10,14 +10,14 @@ use crate::{
 pub mod ddraw {
     use super::*;
     use winapi::ddraw::*;
-    fn DirectDrawCreate(machine: &mut Machine) {
+    pub fn DirectDrawCreate(machine: &mut Machine) {
         let lpGuid: u32 = unsafe { from_x86(&mut machine.x86) };
         let lplpDD: u32 = unsafe { from_x86(&mut machine.x86) };
         let pUnkOuter: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter).to_raw();
     }
-    fn DirectDrawCreateEx(machine: &mut Machine) {
+    pub fn DirectDrawCreateEx(machine: &mut Machine) {
         let lpGuid: u32 = unsafe { from_x86(&mut machine.x86) };
         let lplpDD: u32 = unsafe { from_x86(&mut machine.x86) };
         let iid: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -36,33 +36,53 @@ pub mod ddraw {
         })
     }
 }
+pub mod dsound {
+    use super::*;
+    use winapi::dsound::*;
+    pub fn DirectSoundCreate(machine: &mut Machine) {
+        let _lpGuid: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _ppDS: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _pUnkOuter: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::dsound::DirectSoundCreate(machine, _lpGuid, _ppDS, _pUnkOuter).to_raw();
+    }
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "DirectSoundCreate" => DirectSoundCreate,
+                _ => return None,
+            },
+            _ => return None,
+        })
+    }
+}
 pub mod gdi32 {
     use super::*;
     use winapi::gdi32::*;
-    fn GetStockObject(machine: &mut Machine) {
+    pub fn GetStockObject(machine: &mut Machine) {
         let _i: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::gdi32::GetStockObject(machine, _i).to_raw();
     }
-    fn SelectObject(machine: &mut Machine) {
+    pub fn SelectObject(machine: &mut Machine) {
         let hdc: u32 = unsafe { from_x86(&mut machine.x86) };
         let hGdiObj: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::gdi32::SelectObject(machine, hdc, hGdiObj).to_raw();
     }
-    fn GetObjectA(machine: &mut Machine) {
+    pub fn GetObjectA(machine: &mut Machine) {
         let handle: u32 = unsafe { from_x86(&mut machine.x86) };
         let _bytes: u32 = unsafe { from_x86(&mut machine.x86) };
         let _out: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::gdi32::GetObjectA(machine, handle, _bytes, _out).to_raw();
     }
-    fn CreateCompatibleDC(machine: &mut Machine) {
+    pub fn CreateCompatibleDC(machine: &mut Machine) {
         let hdc: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::gdi32::CreateCompatibleDC(machine, hdc).to_raw();
     }
-    fn DeleteDC(machine: &mut Machine) {
+    pub fn DeleteDC(machine: &mut Machine) {
         let hdc: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::gdi32::DeleteDC(machine, hdc).to_raw();
     }
-    fn BitBlt(machine: &mut Machine) {
+    pub fn BitBlt(machine: &mut Machine) {
         let hdc: u32 = unsafe { from_x86(&mut machine.x86) };
         let x: u32 = unsafe { from_x86(&mut machine.x86) };
         let y: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -75,7 +95,7 @@ pub mod gdi32 {
         machine.x86.regs.eax =
             winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop).to_raw();
     }
-    fn StretchBlt(machine: &mut Machine) {
+    pub fn StretchBlt(machine: &mut Machine) {
         let hdcDest: u32 = unsafe { from_x86(&mut machine.x86) };
         let xDest: u32 = unsafe { from_x86(&mut machine.x86) };
         let yDest: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -111,148 +131,148 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
-    fn SetLastError(machine: &mut Machine) {
+    pub fn SetLastError(machine: &mut Machine) {
         let dwErrCode: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::SetLastError(machine, dwErrCode).to_raw();
     }
-    fn GetLastError(machine: &mut Machine) {
+    pub fn GetLastError(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetLastError(machine).to_raw();
     }
-    fn ExitProcess(machine: &mut Machine) {
+    pub fn ExitProcess(machine: &mut Machine) {
         let uExitCode: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::ExitProcess(machine, uExitCode).to_raw();
     }
-    fn GetACP(machine: &mut Machine) {
+    pub fn GetACP(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetACP(machine).to_raw();
     }
-    fn IsValidCodePage(machine: &mut Machine) {
+    pub fn IsValidCodePage(machine: &mut Machine) {
         let CodePage: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::IsValidCodePage(machine, CodePage).to_raw();
     }
-    fn GetCPInfo(machine: &mut Machine) {
+    pub fn GetCPInfo(machine: &mut Machine) {
         let _CodePage: u32 = unsafe { from_x86(&mut machine.x86) };
         let _lpCPInfo: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetCPInfo(machine, _CodePage, _lpCPInfo).to_raw();
     }
-    fn GetCommandLineA(machine: &mut Machine) {
+    pub fn GetCommandLineA(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetCommandLineA(machine).to_raw();
     }
-    fn GetCommandLineW(machine: &mut Machine) {
+    pub fn GetCommandLineW(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetCommandLineW(machine).to_raw();
     }
-    fn GetEnvironmentStrings(machine: &mut Machine) {
+    pub fn GetEnvironmentStrings(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetEnvironmentStrings(machine).to_raw();
     }
-    fn FreeEnvironmentStringsA(machine: &mut Machine) {
+    pub fn FreeEnvironmentStringsA(machine: &mut Machine) {
         let _penv: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::FreeEnvironmentStringsA(machine, _penv).to_raw();
     }
-    fn GetEnvironmentStringsW(machine: &mut Machine) {
+    pub fn GetEnvironmentStringsW(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetEnvironmentStringsW(machine).to_raw();
     }
-    fn GetEnvironmentVariableA(machine: &mut Machine) {
+    pub fn GetEnvironmentVariableA(machine: &mut Machine) {
         let name: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let buf: &mut [u8] = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetEnvironmentVariableA(machine, name, buf).to_raw();
     }
-    fn GetFileType(machine: &mut Machine) {
+    pub fn GetFileType(machine: &mut Machine) {
         let hFile: HFILE = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetFileType(machine, hFile).to_raw();
     }
-    fn GetModuleFileNameA(machine: &mut Machine) {
+    pub fn GetModuleFileNameA(machine: &mut Machine) {
         let hModule: HMODULE = unsafe { from_x86(&mut machine.x86) };
         let filename: &mut [u8] = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetModuleFileNameA(machine, hModule, filename).to_raw();
     }
-    fn GetModuleFileNameW(machine: &mut Machine) {
+    pub fn GetModuleFileNameW(machine: &mut Machine) {
         let hModule: HMODULE = unsafe { from_x86(&mut machine.x86) };
         let _lpFilename: u32 = unsafe { from_x86(&mut machine.x86) };
         let _nSize: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetModuleFileNameW(machine, hModule, _lpFilename, _nSize).to_raw();
     }
-    fn GetModuleHandleA(machine: &mut Machine) {
+    pub fn GetModuleHandleA(machine: &mut Machine) {
         let lpModuleName: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetModuleHandleA(machine, lpModuleName).to_raw();
     }
-    fn GetModuleHandleW(machine: &mut Machine) {
+    pub fn GetModuleHandleW(machine: &mut Machine) {
         let lpModuleName: Option<Str16> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetModuleHandleW(machine, lpModuleName).to_raw();
     }
-    fn GetModuleHandleExW(machine: &mut Machine) {
+    pub fn GetModuleHandleExW(machine: &mut Machine) {
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpModuleName: Option<Str16> = unsafe { from_x86(&mut machine.x86) };
         let hModule: Option<&mut HMODULE> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule).to_raw();
     }
-    fn GetStartupInfoA(machine: &mut Machine) {
+    pub fn GetStartupInfoA(machine: &mut Machine) {
         let lpStartupInfo: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetStartupInfoA(machine, lpStartupInfo).to_raw();
     }
-    fn GetStartupInfoW(machine: &mut Machine) {
+    pub fn GetStartupInfoW(machine: &mut Machine) {
         let lpStartupInfo: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo).to_raw();
     }
-    fn IsProcessorFeaturePresent(machine: &mut Machine) {
+    pub fn IsProcessorFeaturePresent(machine: &mut Machine) {
         let feature: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::IsProcessorFeaturePresent(machine, feature).to_raw();
     }
-    fn IsDebuggerPresent(machine: &mut Machine) {
+    pub fn IsDebuggerPresent(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::IsDebuggerPresent(machine).to_raw();
     }
-    fn GetCurrentThreadId(machine: &mut Machine) {
+    pub fn GetCurrentThreadId(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetCurrentThreadId(machine).to_raw();
     }
-    fn GetCurrentProcessId(machine: &mut Machine) {
+    pub fn GetCurrentProcessId(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetCurrentProcessId(machine).to_raw();
     }
-    fn GetStdHandle(machine: &mut Machine) {
+    pub fn GetStdHandle(machine: &mut Machine) {
         let nStdHandle: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw();
     }
-    fn GetTickCount(machine: &mut Machine) {
+    pub fn GetTickCount(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetTickCount(machine).to_raw();
     }
-    fn QueryPerformanceCounter(machine: &mut Machine) {
+    pub fn QueryPerformanceCounter(machine: &mut Machine) {
         let _ptr: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::QueryPerformanceCounter(machine, _ptr).to_raw();
     }
-    fn GetSystemTimeAsFileTime(machine: &mut Machine) {
+    pub fn GetSystemTimeAsFileTime(machine: &mut Machine) {
         let _time: Option<&mut FILETIME> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::GetSystemTimeAsFileTime(machine, _time).to_raw();
     }
-    fn GetVersion(machine: &mut Machine) {
+    pub fn GetVersion(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetVersion(machine).to_raw();
     }
-    fn GetVersionExA(machine: &mut Machine) {
+    pub fn GetVersionExA(machine: &mut Machine) {
         let lpVersionInformation: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetVersionExA(machine, lpVersionInformation).to_raw();
     }
-    fn HeapAlloc(machine: &mut Machine) {
+    pub fn HeapAlloc(machine: &mut Machine) {
         let hHeap: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwBytes: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes).to_raw();
     }
-    fn HeapFree(machine: &mut Machine) {
+    pub fn HeapFree(machine: &mut Machine) {
         let hHeap: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpMem: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem).to_raw();
     }
-    fn HeapSize(machine: &mut Machine) {
+    pub fn HeapSize(machine: &mut Machine) {
         let hHeap: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpMem: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem).to_raw();
     }
-    fn HeapReAlloc(machine: &mut Machine) {
+    pub fn HeapReAlloc(machine: &mut Machine) {
         let hHeap: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpMem: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -260,7 +280,7 @@ pub mod kernel32 {
         machine.x86.regs.eax =
             winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes).to_raw();
     }
-    fn HeapCreate(machine: &mut Machine) {
+    pub fn HeapCreate(machine: &mut Machine) {
         let flOptions: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwInitialSize: u32 = unsafe { from_x86(&mut machine.x86) };
         let _dwMaximumSize: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -268,29 +288,29 @@ pub mod kernel32 {
             winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, _dwMaximumSize)
                 .to_raw();
     }
-    fn HeapDestroy(machine: &mut Machine) {
+    pub fn HeapDestroy(machine: &mut Machine) {
         let hHeap: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::HeapDestroy(machine, hHeap).to_raw();
     }
-    fn GetProcessHeap(machine: &mut Machine) {
+    pub fn GetProcessHeap(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::GetProcessHeap(machine).to_raw();
     }
-    fn LoadLibraryA(machine: &mut Machine) {
+    pub fn LoadLibraryA(machine: &mut Machine) {
         let filename: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::LoadLibraryA(machine, filename).to_raw();
     }
-    fn LoadLibraryExW(machine: &mut Machine) {
+    pub fn LoadLibraryExW(machine: &mut Machine) {
         let lpLibFileName: Option<Str16> = unsafe { from_x86(&mut machine.x86) };
         let hFile: HFILE = unsafe { from_x86(&mut machine.x86) };
         let dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).to_raw();
     }
-    fn SetHandleCount(machine: &mut Machine) {
+    pub fn SetHandleCount(machine: &mut Machine) {
         let uNumber: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::SetHandleCount(machine, uNumber).to_raw();
     }
-    fn CreateFileW(machine: &mut Machine) {
+    pub fn CreateFileW(machine: &mut Machine) {
         let lpFileName: Option<Str16> = unsafe { from_x86(&mut machine.x86) };
         let dwDesiredAccess: u32 = unsafe { from_x86(&mut machine.x86) };
         let _dwShareMode: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -311,7 +331,7 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    fn WriteFile(machine: &mut Machine) {
+    pub fn WriteFile(machine: &mut Machine) {
         let hFile: HFILE = unsafe { from_x86(&mut machine.x86) };
         let lpBuffer: &[u8] = unsafe { from_x86(&mut machine.x86) };
         let lpNumberOfBytesWritten: Option<&mut u32> = unsafe { from_x86(&mut machine.x86) };
@@ -325,7 +345,7 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    fn VirtualAlloc(machine: &mut Machine) {
+    pub fn VirtualAlloc(machine: &mut Machine) {
         let lpAddress: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwSize: u32 = unsafe { from_x86(&mut machine.x86) };
         let _flAllocationType: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -339,18 +359,18 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    fn VirtualFree(machine: &mut Machine) {
+    pub fn VirtualFree(machine: &mut Machine) {
         let lpAddress: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwSize: u32 = unsafe { from_x86(&mut machine.x86) };
         let dwFreeType: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType).to_raw();
     }
-    fn OutputDebugStringA(machine: &mut Machine) {
+    pub fn OutputDebugStringA(machine: &mut Machine) {
         let msg: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::OutputDebugStringA(machine, msg).to_raw();
     }
-    fn InitializeCriticalSectionAndSpinCount(machine: &mut Machine) {
+    pub fn InitializeCriticalSectionAndSpinCount(machine: &mut Machine) {
         let _lpCriticalSection: u32 = unsafe { from_x86(&mut machine.x86) };
         let _dwSpinCount: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::InitializeCriticalSectionAndSpinCount(
@@ -360,57 +380,57 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    fn DeleteCriticalSection(machine: &mut Machine) {
+    pub fn DeleteCriticalSection(machine: &mut Machine) {
         let _lpCriticalSection: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::DeleteCriticalSection(machine, _lpCriticalSection).to_raw();
     }
-    fn EnterCriticalSection(machine: &mut Machine) {
+    pub fn EnterCriticalSection(machine: &mut Machine) {
         let _lpCriticalSection: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::EnterCriticalSection(machine, _lpCriticalSection).to_raw();
     }
-    fn LeaveCriticalSection(machine: &mut Machine) {
+    pub fn LeaveCriticalSection(machine: &mut Machine) {
         let _lpCriticalSection: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::LeaveCriticalSection(machine, _lpCriticalSection).to_raw();
     }
-    fn SetUnhandledExceptionFilter(machine: &mut Machine) {
+    pub fn SetUnhandledExceptionFilter(machine: &mut Machine) {
         let _lpTopLevelExceptionFilter: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter)
                 .to_raw();
     }
-    fn UnhandledExceptionFilter(machine: &mut Machine) {
+    pub fn UnhandledExceptionFilter(machine: &mut Machine) {
         let _exceptionInfo: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::UnhandledExceptionFilter(machine, _exceptionInfo).to_raw();
     }
-    fn NtCurrentTeb(machine: &mut Machine) {
+    pub fn NtCurrentTeb(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::NtCurrentTeb(machine).to_raw();
     }
-    fn TlsAlloc(machine: &mut Machine) {
+    pub fn TlsAlloc(machine: &mut Machine) {
         machine.x86.regs.eax = winapi::kernel32::TlsAlloc(machine).to_raw();
     }
-    fn TlsFree(machine: &mut Machine) {
+    pub fn TlsFree(machine: &mut Machine) {
         let dwTlsIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::TlsFree(machine, dwTlsIndex).to_raw();
     }
-    fn TlsSetValue(machine: &mut Machine) {
+    pub fn TlsSetValue(machine: &mut Machine) {
         let dwTlsIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpTlsValue: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue).to_raw();
     }
-    fn TlsGetValue(machine: &mut Machine) {
+    pub fn TlsGetValue(machine: &mut Machine) {
         let dwTlsIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::TlsGetValue(machine, dwTlsIndex).to_raw();
     }
-    fn InitializeSListHead(machine: &mut Machine) {
+    pub fn InitializeSListHead(machine: &mut Machine) {
         let ListHead: Option<&mut SLIST_HEADER> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::InitializeSListHead(machine, ListHead).to_raw();
     }
-    fn MultiByteToWideChar(machine: &mut Machine) {
+    pub fn MultiByteToWideChar(machine: &mut Machine) {
         let CodePage: u32 = unsafe { from_x86(&mut machine.x86) };
         let _dwFlags: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpMultiByteStr: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -426,7 +446,7 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    fn WriteConsoleW(machine: &mut Machine) {
+    pub fn WriteConsoleW(machine: &mut Machine) {
         let hConsoleOutput: HFILE = unsafe { from_x86(&mut machine.x86) };
         let lpBuffer: Option<&[u16]> = unsafe { from_x86(&mut machine.x86) };
         let lpNumberOfCharsWritten: Option<&mut u32> = unsafe { from_x86(&mut machine.x86) };
@@ -511,11 +531,11 @@ pub mod kernel32 {
 pub mod user32 {
     use super::*;
     use winapi::user32::*;
-    fn RegisterClassA(machine: &mut Machine) {
+    pub fn RegisterClassA(machine: &mut Machine) {
         let lpWndClass: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::RegisterClassA(machine, lpWndClass).to_raw();
     }
-    fn CreateWindowExA(machine: &mut Machine) {
+    pub fn CreateWindowExA(machine: &mut Machine) {
         let dwExStyle: u32 = unsafe { from_x86(&mut machine.x86) };
         let className: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let windowName: Option<&str> = unsafe { from_x86(&mut machine.x86) };
@@ -534,20 +554,20 @@ pub mod user32 {
         )
         .to_raw();
     }
-    fn UpdateWindow(machine: &mut Machine) {
+    pub fn UpdateWindow(machine: &mut Machine) {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::UpdateWindow(machine, _hWnd).to_raw();
     }
-    fn ShowWindow(machine: &mut Machine) {
+    pub fn ShowWindow(machine: &mut Machine) {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         let _nCmdShow: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::ShowWindow(machine, _hWnd, _nCmdShow).to_raw();
     }
-    fn SetFocus(machine: &mut Machine) {
+    pub fn SetFocus(machine: &mut Machine) {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::SetFocus(machine, _hWnd).to_raw();
     }
-    fn MessageBoxA(machine: &mut Machine) {
+    pub fn MessageBoxA(machine: &mut Machine) {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpText: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let lpCaption: Option<&str> = unsafe { from_x86(&mut machine.x86) };
@@ -555,7 +575,7 @@ pub mod user32 {
         machine.x86.regs.eax =
             winapi::user32::MessageBoxA(machine, _hWnd, lpText, lpCaption, uType).to_raw();
     }
-    fn DialogBoxParamA(machine: &mut Machine) {
+    pub fn DialogBoxParamA(machine: &mut Machine) {
         let hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpTemplateName: u32 = unsafe { from_x86(&mut machine.x86) };
         let hWndParent: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -571,7 +591,7 @@ pub mod user32 {
         )
         .to_raw();
     }
-    fn PeekMessageA(machine: &mut Machine) {
+    pub fn PeekMessageA(machine: &mut Machine) {
         let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         let _wMsgFilterMin: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -587,22 +607,22 @@ pub mod user32 {
         )
         .to_raw();
     }
-    fn LoadIconA(machine: &mut Machine) {
+    pub fn LoadIconA(machine: &mut Machine) {
         let _hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let _lpIconName: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::LoadIconA(machine, _hInstance, _lpIconName).to_raw();
     }
-    fn LoadCursorA(machine: &mut Machine) {
+    pub fn LoadCursorA(machine: &mut Machine) {
         let _hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let _lpCursorName: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName).to_raw();
     }
-    fn ShowCursor(machine: &mut Machine) {
+    pub fn ShowCursor(machine: &mut Machine) {
         let _bShow: bool = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::ShowCursor(machine, _bShow).to_raw();
     }
-    fn LoadImageA(machine: &mut Machine) {
+    pub fn LoadImageA(machine: &mut Machine) {
         let hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let name: u32 = unsafe { from_x86(&mut machine.x86) };
         let typ: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -612,7 +632,7 @@ pub mod user32 {
         machine.x86.regs.eax =
             winapi::user32::LoadImageA(machine, hInstance, name, typ, _cx, _cy, fuLoad).to_raw();
     }
-    fn GetSystemMetrics(machine: &mut Machine) {
+    pub fn GetSystemMetrics(machine: &mut Machine) {
         let nIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::GetSystemMetrics(machine, nIndex).to_raw();
     }

@@ -3,6 +3,7 @@ use crate::machine::Machine;
 mod alloc;
 pub mod ddraw;
 mod dll;
+mod dsound;
 pub mod gdi32;
 pub mod kernel32;
 mod shims;
@@ -88,6 +89,14 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
 pub fn resolve(dll: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
     match dll {
         "ddraw.dll" => dll::ddraw::resolve(sym),
+        "dsound.dll" => {
+            // TODO: no support for ordinals yet in dll generation machinery.
+            match *sym {
+                ImportSymbol::Ordinal(1) => return Some(dll::dsound::DirectSoundCreate),
+                _ => {}
+            };
+            dll::dsound::resolve(sym)
+        }
         "gdi32.dll" => dll::gdi32::resolve(sym),
         "kernel32.dll" => dll::kernel32::resolve(sym),
         "user32.dll" => dll::user32::resolve(sym),

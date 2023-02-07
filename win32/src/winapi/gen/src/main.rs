@@ -30,7 +30,7 @@ fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
             body.push(quote!(let #name: #ty = unsafe { from_x86(&mut machine.x86) };));
         }
     }
-    quote!(fn #name(machine: &mut Machine) {
+    quote!(pub fn #name(machine: &mut Machine) {
         #(#body)*
         machine.x86.regs.eax = winapi::#module::#name(#(#args),*).to_raw();
     })
