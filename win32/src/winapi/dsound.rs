@@ -100,6 +100,50 @@ mod IDirectSoundBuffer {
         lpDirectSoundBuffer
     }
 
+    pub fn Lock(
+        _machine: &mut Machine,
+        _this: u32,
+        _dwWriteCursor: u32,
+        _dwWriteBytes: u32,
+        _lplpvAudioPtr1: u32,
+        _lpdwAudioBytes1: u32,
+        _lplpvAudioPtr2: u32,
+        _lpdwAudioBytes2: u32,
+        _dwFlags: u32,
+    ) -> u32 {
+        DS_OK
+    }
+
+    pub fn Play(
+        _machine: &mut Machine,
+        _dwReserved1: u32,
+        _dwReserved2: u32,
+        _dwFlags: u32,
+    ) -> u32 {
+        DS_OK
+    }
+
+    pub fn SetFormat(_machine: &mut Machine, _this: u32, _lpcfxFormat: u32) -> u32 {
+        DS_OK
+    }
+
+    pub fn Unlock(
+        _machine: &mut Machine,
+        _this: u32,
+        _lpvAudioPtr1: u32,
+        _dwAudioBytes1: u32,
+        _lpvAudioPtr2: u32,
+        _dwAudioBytes2: u32,
+    ) -> u32 {
+        DS_OK
+    }
+
+    winapi_shims! {
+        fn Lock(this: u32, dwWriteCursor: u32, dwWriteBytes: u32, lplpvAudioPtr1: u32, lpdwAudioBytes1: u32, lplpvAudioPtr2: u32, lpdwAudioBytes2: u32, dwFlags: u32);
+        fn Play(dwReserved1: u32, dwReserved2: u32, dwFlags: u32);
+        fn SetFormat(this: u32, lpcfxFormat: u32);
+        fn Unlock(this: u32, lpvAudioPtr1: u32, dwAudioBytes1: u32,  lpvAudioPtr2: u32,  dwAudioBytes2: u32);
+    }
     vtable![shims
         QueryInterface todo,
         AddRef todo,
@@ -112,15 +156,15 @@ mod IDirectSoundBuffer {
         GetFrequency todo,
         GetStatus todo,
         Initialize todo,
-        Lock todo,
-        Play todo,
+        Lock ok,
+        Play ok,
         SetCurrentPosition todo,
-        SetFormat todo,
+        SetFormat ok,
         SetVolume todo,
         SetPan todo,
         SetFrequency todo,
         Stop todo,
-        Unlock todo,
+        Unlock ok,
         Restore todo,
     ];
 }
