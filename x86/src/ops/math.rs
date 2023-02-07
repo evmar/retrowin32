@@ -48,33 +48,6 @@ impl Int for u8 {
     }
 }
 
-pub fn and32(x86: &mut X86, x: u32, y: u32) -> u32 {
-    let result = x & y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
-    x86.regs.flags.set(Flags::OF, false);
-    result
-}
-
-pub fn and16(x86: &mut X86, x: u16, y: u16) -> u16 {
-    let result = x & y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x8000 != 0);
-    x86.regs.flags.set(Flags::OF, false);
-    result
-}
-
-pub fn and8(x86: &mut X86, x: u8, y: u8) -> u8 {
-    let result = x & y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x80 != 0);
-    x86.regs.flags.set(Flags::OF, false);
-    result
-}
-
 fn or32(x86: &mut X86, x: u32, y: u32) -> u32 {
     let result = x | y;
     // XXX More flags.
@@ -125,21 +98,33 @@ fn shr32(x86: &mut X86, x: u32, y: u8) -> u32 {
     val
 }
 
+// pub(crate) for use in the test opcode impl.
+pub(crate) fn and<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+    let result = x & y;
+    // XXX More flags.
+    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    x86.regs
+        .flags
+        .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    x86.regs.flags.set(Flags::OF, false);
+    result
+}
+
 pub fn and_rm32_imm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm32_r32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| and32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| and(x86, x, y));
     Ok(())
 }
 
@@ -153,13 +138,13 @@ pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
 
 pub fn and_rm16_imm16(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| and16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| and(x86, x, y));
     Ok(())
 }
 
 pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| and8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| and(x86, x, y));
     Ok(())
 }
 
@@ -391,6 +376,7 @@ pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+// pub(crate) for use in the cmp opcode impl.
 pub(crate) fn sub<I: Int + OverflowingSub>(x86: &mut X86, x: I, y: I) -> I {
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
