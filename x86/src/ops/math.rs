@@ -5,10 +5,17 @@ use crate::{registers::Flags, x86::X86, Result};
 
 use super::helpers::*;
 
+/// This trait is implemented for u32/u16/u8 and lets us write operations generically
+/// over all those bit sizes.
+///
+/// Even when we need size-specific masks like "the high bit"
+/// (which is x.shr(I::bits() - 1))
+/// that math optimizes down to the appropriate constant.
 trait Int: PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
 
+    /// Wrapper just to avoid the random "u32" in the num-traits definition.
     fn sar(self, other: Self) -> Self {
         self.signed_shr(other.as_usize() as u32)
     }
