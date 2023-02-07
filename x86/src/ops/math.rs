@@ -48,27 +48,6 @@ impl Int for u8 {
     }
 }
 
-fn or32(x86: &mut X86, x: u32, y: u32) -> u32 {
-    let result = x | y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    result
-}
-
-fn or16(x86: &mut X86, x: u16, y: u16) -> u16 {
-    let result = x | y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    result
-}
-
-fn or8(x86: &mut X86, x: u8, y: u8) -> u8 {
-    let result = x | y;
-    // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    result
-}
-
 fn shl32(x86: &mut X86, x: u32, y: u8) -> u32 {
     // Note: overflowing_shl is not what we want.
     let val = (x as u64).wrapping_shl(y as u32);
@@ -148,33 +127,40 @@ pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
+fn or<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+    let result = x | y;
+    // XXX More flags.
+    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    result
+}
+
 pub fn or_rm32_rm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = op1_rm32(x86, instr);
-    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| or(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm32_imm32(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| or(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm32_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| or32(x86, x, y));
+    rm32_x(x86, instr, |x86, x| or(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm16_imm16(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| or16(x86, x, y));
+    rm16_x(x86, instr, |x86, x| or(x86, x, y));
     Ok(())
 }
 
 pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> Result<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| or8(x86, x, y));
+    rm8_x(x86, instr, |x86, x| or(x86, x, y));
     Ok(())
 }
 
