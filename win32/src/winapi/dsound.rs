@@ -5,6 +5,7 @@ use super::alloc::Alloc;
 use super::types::DWORD;
 use crate::machine::Machine;
 use crate::winapi::vtable;
+use crate::winapi::winapi_shims;
 use x86::Memory;
 
 pub const DS_OK: u32 = 0;
@@ -43,14 +44,39 @@ impl State {
 mod IDirectSound {
     use super::*;
 
+    pub fn CreateSoundBuffer(
+        machine: &mut Machine,
+        _this: u32,
+        _lpcDSBufferDesc: u32,
+        lplpDirectSoundBuffer: u32,
+        _pUnkOuter: u32,
+    ) -> u32 {
+        let x86_buffer = IDirectSoundBuffer::new(machine);
+        machine.x86.mem.write_u32(lplpDirectSoundBuffer, x86_buffer);
+        DS_OK
+    }
+
+    pub fn SetCooperativeLevel(
+        _machine: &mut Machine,
+        _this: u32,
+        _hwnd: u32,
+        _dwLevel: u32,
+    ) -> u32 {
+        DS_OK
+    }
+
+    winapi_shims! {
+        fn CreateSoundBuffer(this: u32, lpcDSBufferDesc: u32,  lplpDirectSoundBuffer: u32, pUnkOuter: u32);
+        fn SetCooperativeLevel(this: u32, hwnd: u32, dwLevel: u32);
+    }
     vtable![shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
-        CreateSoundBuffer todo,
+        CreateSoundBuffer ok,
         GetCaps todo,
         DuplicateSoundBuffer todo,
-        SetCooperativeLevel todo,
+        SetCooperativeLevel ok,
         Compact todo,
         GetSpeakerConfig todo,
         SetSpeakerConfig todo,
@@ -60,6 +86,19 @@ mod IDirectSound {
 
 mod IDirectSoundBuffer {
     use super::*;
+
+    pub fn new(machine: &mut Machine) -> u32 {
+        let dsound = &mut machine.state.dsound;
+        let lpDirectSoundBuffer = machine
+            .state
+            .kernel32
+            .get_heap(&mut machine.x86.mem, dsound.hheap)
+            .unwrap()
+            .alloc(4);
+        let vtable = dsound.vtable_IDirectSoundBuffer;
+        machine.x86.mem.write_u32(lpDirectSoundBuffer, vtable);
+        lpDirectSoundBuffer
+    }
 
     vtable![shims
         QueryInterface todo,
