@@ -5,7 +5,10 @@ use std::mem::size_of;
 
 use crate::{
     reader::Reader,
-    winapi::types::{DWORD, WORD},
+    winapi::{
+        types::{DWORD, WORD},
+        ImportSymbol,
+    },
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
@@ -189,7 +192,7 @@ unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 pub fn parse_imports(
     mem: &mut [u8],
     addr: usize,
-    mut resolve: impl FnMut(&str, &str, u32) -> u32,
+    mut resolve: impl FnMut(&str, ImportSymbol, u32) -> u32,
 ) -> anyhow::Result<()> {
     // http://sandsprite.com/CodeStuff/Understanding_imports.html
     let mut r = Reader::new(mem);
@@ -225,16 +228,17 @@ pub fn parse_imports(
             if entry == 0 {
                 break;
             }
-            if entry & (1 << 31) != 0 {
+            let symbol = if entry & (1 << 31) != 0 {
                 let ordinal = entry & 0xFFFF;
-                log::warn!("TODO ordinal {}:{}", dll_name, ordinal);
+                ImportSymbol::Ordinal(ordinal)
             } else {
                 // First two bytes at offset are hint/name table index, used to look up
                 // the name faster in the DLL; we just skip them.
                 let sym_name = mem[(entry + 2) as usize..].read_strz();
-                let target = resolve(&dll_name, sym_name, addr);
-                patches.push((addr, target));
-            }
+                ImportSymbol::Name(sym_name)
+            };
+            let target = resolve(&dll_name, symbol, addr);
+            patches.push((addr, target));
         }
     }
 

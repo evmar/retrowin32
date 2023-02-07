@@ -25,10 +25,13 @@ pub mod ddraw {
         machine.x86.regs.eax =
             winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter).to_raw();
     }
-    pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
-        Some(match name {
-            "DirectDrawCreate" => DirectDrawCreate,
-            "DirectDrawCreateEx" => DirectDrawCreateEx,
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "DirectDrawCreate" => DirectDrawCreate,
+                "DirectDrawCreateEx" => DirectDrawCreateEx,
+                _ => return None,
+            },
             _ => return None,
         })
     }
@@ -89,15 +92,18 @@ pub mod gdi32 {
         )
         .to_raw();
     }
-    pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
-        Some(match name {
-            "GetStockObject" => GetStockObject,
-            "SelectObject" => SelectObject,
-            "GetObjectA" => GetObjectA,
-            "CreateCompatibleDC" => CreateCompatibleDC,
-            "DeleteDC" => DeleteDC,
-            "BitBlt" => BitBlt,
-            "StretchBlt" => StretchBlt,
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "GetStockObject" => GetStockObject,
+                "SelectObject" => SelectObject,
+                "GetObjectA" => GetObjectA,
+                "CreateCompatibleDC" => CreateCompatibleDC,
+                "DeleteDC" => DeleteDC,
+                "BitBlt" => BitBlt,
+                "StretchBlt" => StretchBlt,
+                _ => return None,
+            },
             _ => return None,
         })
     }
@@ -434,67 +440,70 @@ pub mod kernel32 {
         )
         .to_raw();
     }
-    pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
-        Some(match name {
-            "SetLastError" => SetLastError,
-            "GetLastError" => GetLastError,
-            "ExitProcess" => ExitProcess,
-            "GetACP" => GetACP,
-            "IsValidCodePage" => IsValidCodePage,
-            "GetCPInfo" => GetCPInfo,
-            "GetCommandLineA" => GetCommandLineA,
-            "GetCommandLineW" => GetCommandLineW,
-            "GetEnvironmentStrings" => GetEnvironmentStrings,
-            "FreeEnvironmentStringsA" => FreeEnvironmentStringsA,
-            "GetEnvironmentStringsW" => GetEnvironmentStringsW,
-            "GetEnvironmentVariableA" => GetEnvironmentVariableA,
-            "GetFileType" => GetFileType,
-            "GetModuleFileNameA" => GetModuleFileNameA,
-            "GetModuleFileNameW" => GetModuleFileNameW,
-            "GetModuleHandleA" => GetModuleHandleA,
-            "GetModuleHandleW" => GetModuleHandleW,
-            "GetModuleHandleExW" => GetModuleHandleExW,
-            "GetStartupInfoA" => GetStartupInfoA,
-            "GetStartupInfoW" => GetStartupInfoW,
-            "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
-            "IsDebuggerPresent" => IsDebuggerPresent,
-            "GetCurrentThreadId" => GetCurrentThreadId,
-            "GetCurrentProcessId" => GetCurrentProcessId,
-            "GetStdHandle" => GetStdHandle,
-            "GetTickCount" => GetTickCount,
-            "QueryPerformanceCounter" => QueryPerformanceCounter,
-            "GetSystemTimeAsFileTime" => GetSystemTimeAsFileTime,
-            "GetVersion" => GetVersion,
-            "GetVersionExA" => GetVersionExA,
-            "HeapAlloc" => HeapAlloc,
-            "HeapFree" => HeapFree,
-            "HeapSize" => HeapSize,
-            "HeapReAlloc" => HeapReAlloc,
-            "HeapCreate" => HeapCreate,
-            "HeapDestroy" => HeapDestroy,
-            "GetProcessHeap" => GetProcessHeap,
-            "LoadLibraryA" => LoadLibraryA,
-            "LoadLibraryExW" => LoadLibraryExW,
-            "SetHandleCount" => SetHandleCount,
-            "CreateFileW" => CreateFileW,
-            "WriteFile" => WriteFile,
-            "VirtualAlloc" => VirtualAlloc,
-            "VirtualFree" => VirtualFree,
-            "OutputDebugStringA" => OutputDebugStringA,
-            "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
-            "DeleteCriticalSection" => DeleteCriticalSection,
-            "EnterCriticalSection" => EnterCriticalSection,
-            "LeaveCriticalSection" => LeaveCriticalSection,
-            "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
-            "UnhandledExceptionFilter" => UnhandledExceptionFilter,
-            "NtCurrentTeb" => NtCurrentTeb,
-            "TlsAlloc" => TlsAlloc,
-            "TlsFree" => TlsFree,
-            "TlsSetValue" => TlsSetValue,
-            "TlsGetValue" => TlsGetValue,
-            "InitializeSListHead" => InitializeSListHead,
-            "MultiByteToWideChar" => MultiByteToWideChar,
-            "WriteConsoleW" => WriteConsoleW,
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "SetLastError" => SetLastError,
+                "GetLastError" => GetLastError,
+                "ExitProcess" => ExitProcess,
+                "GetACP" => GetACP,
+                "IsValidCodePage" => IsValidCodePage,
+                "GetCPInfo" => GetCPInfo,
+                "GetCommandLineA" => GetCommandLineA,
+                "GetCommandLineW" => GetCommandLineW,
+                "GetEnvironmentStrings" => GetEnvironmentStrings,
+                "FreeEnvironmentStringsA" => FreeEnvironmentStringsA,
+                "GetEnvironmentStringsW" => GetEnvironmentStringsW,
+                "GetEnvironmentVariableA" => GetEnvironmentVariableA,
+                "GetFileType" => GetFileType,
+                "GetModuleFileNameA" => GetModuleFileNameA,
+                "GetModuleFileNameW" => GetModuleFileNameW,
+                "GetModuleHandleA" => GetModuleHandleA,
+                "GetModuleHandleW" => GetModuleHandleW,
+                "GetModuleHandleExW" => GetModuleHandleExW,
+                "GetStartupInfoA" => GetStartupInfoA,
+                "GetStartupInfoW" => GetStartupInfoW,
+                "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
+                "IsDebuggerPresent" => IsDebuggerPresent,
+                "GetCurrentThreadId" => GetCurrentThreadId,
+                "GetCurrentProcessId" => GetCurrentProcessId,
+                "GetStdHandle" => GetStdHandle,
+                "GetTickCount" => GetTickCount,
+                "QueryPerformanceCounter" => QueryPerformanceCounter,
+                "GetSystemTimeAsFileTime" => GetSystemTimeAsFileTime,
+                "GetVersion" => GetVersion,
+                "GetVersionExA" => GetVersionExA,
+                "HeapAlloc" => HeapAlloc,
+                "HeapFree" => HeapFree,
+                "HeapSize" => HeapSize,
+                "HeapReAlloc" => HeapReAlloc,
+                "HeapCreate" => HeapCreate,
+                "HeapDestroy" => HeapDestroy,
+                "GetProcessHeap" => GetProcessHeap,
+                "LoadLibraryA" => LoadLibraryA,
+                "LoadLibraryExW" => LoadLibraryExW,
+                "SetHandleCount" => SetHandleCount,
+                "CreateFileW" => CreateFileW,
+                "WriteFile" => WriteFile,
+                "VirtualAlloc" => VirtualAlloc,
+                "VirtualFree" => VirtualFree,
+                "OutputDebugStringA" => OutputDebugStringA,
+                "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
+                "DeleteCriticalSection" => DeleteCriticalSection,
+                "EnterCriticalSection" => EnterCriticalSection,
+                "LeaveCriticalSection" => LeaveCriticalSection,
+                "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
+                "UnhandledExceptionFilter" => UnhandledExceptionFilter,
+                "NtCurrentTeb" => NtCurrentTeb,
+                "TlsAlloc" => TlsAlloc,
+                "TlsFree" => TlsFree,
+                "TlsSetValue" => TlsSetValue,
+                "TlsGetValue" => TlsGetValue,
+                "InitializeSListHead" => InitializeSListHead,
+                "MultiByteToWideChar" => MultiByteToWideChar,
+                "WriteConsoleW" => WriteConsoleW,
+                _ => return None,
+            },
             _ => return None,
         })
     }
@@ -542,9 +551,9 @@ pub mod user32 {
         let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpText: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let lpCaption: Option<&str> = unsafe { from_x86(&mut machine.x86) };
-        let _uType: u32 = unsafe { from_x86(&mut machine.x86) };
+        let uType: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
-            winapi::user32::MessageBoxA(machine, _hWnd, lpText, lpCaption, _uType).to_raw();
+            winapi::user32::MessageBoxA(machine, _hWnd, lpText, lpCaption, uType).to_raw();
     }
     fn DialogBoxParamA(machine: &mut Machine) {
         let hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -607,21 +616,24 @@ pub mod user32 {
         let nIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::GetSystemMetrics(machine, nIndex).to_raw();
     }
-    pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
-        Some(match name {
-            "RegisterClassA" => RegisterClassA,
-            "CreateWindowExA" => CreateWindowExA,
-            "UpdateWindow" => UpdateWindow,
-            "ShowWindow" => ShowWindow,
-            "SetFocus" => SetFocus,
-            "MessageBoxA" => MessageBoxA,
-            "DialogBoxParamA" => DialogBoxParamA,
-            "PeekMessageA" => PeekMessageA,
-            "LoadIconA" => LoadIconA,
-            "LoadCursorA" => LoadCursorA,
-            "ShowCursor" => ShowCursor,
-            "LoadImageA" => LoadImageA,
-            "GetSystemMetrics" => GetSystemMetrics,
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "RegisterClassA" => RegisterClassA,
+                "CreateWindowExA" => CreateWindowExA,
+                "UpdateWindow" => UpdateWindow,
+                "ShowWindow" => ShowWindow,
+                "SetFocus" => SetFocus,
+                "MessageBoxA" => MessageBoxA,
+                "DialogBoxParamA" => DialogBoxParamA,
+                "PeekMessageA" => PeekMessageA,
+                "LoadIconA" => LoadIconA,
+                "LoadCursorA" => LoadCursorA,
+                "ShowCursor" => ShowCursor,
+                "LoadImageA" => LoadImageA,
+                "GetSystemMetrics" => GetSystemMetrics,
+                _ => return None,
+            },
             _ => return None,
         })
     }

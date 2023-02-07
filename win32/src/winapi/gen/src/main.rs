@@ -73,10 +73,13 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
             use winapi::#module::*;
 
             #(#fns)*
-            pub fn resolve(name: &str) -> Option<fn(&mut Machine)> {
-                Some(match name {
-                    #(#matches,)*
-                    _ => return None,
+            pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+                Some(match *sym {
+                    winapi::ImportSymbol::Name(name) => match name {
+                        #(#matches,)*
+                       _ => return None,
+                    }
+                    _ => return None, // TODO: ordinal
                 })
             }
         }

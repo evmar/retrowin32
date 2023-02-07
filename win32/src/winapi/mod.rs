@@ -72,7 +72,20 @@ macro_rules! vtable {
 }
 pub(crate) use vtable;
 
-pub fn resolve(dll: &str, sym: &str) -> Option<fn(&mut Machine)> {
+pub enum ImportSymbol<'a> {
+    Name(&'a str),
+    Ordinal(u32),
+}
+impl<'a> std::fmt::Display for ImportSymbol<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImportSymbol::Name(name) => f.write_str(name),
+            ImportSymbol::Ordinal(ord) => f.write_fmt(format_args!("{}", ord)),
+        }
+    }
+}
+
+pub fn resolve(dll: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
     match dll {
         "ddraw.dll" => dll::ddraw::resolve(sym),
         "gdi32.dll" => dll::gdi32::resolve(sym),
