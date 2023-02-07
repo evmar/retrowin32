@@ -127,8 +127,8 @@ impl Runner {
     pub fn step(&mut self) -> anyhow::Result<bool> {
         self.instr_count += 1;
         match self.icache.step(&mut self.machine.x86) {
-            Err(x86::Error::Interrupt) => Ok(false),
-            Err(x86::Error::Error(err)) => bail!(err),
+            Err(x86::StepError::Interrupt) => Ok(false),
+            Err(x86::StepError::Error(err)) => bail!(err),
             Ok(false) => {
                 self.check_shim_call()?;
                 // Instruction changed eip.  Update icache to match.

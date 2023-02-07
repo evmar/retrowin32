@@ -1,9 +1,9 @@
 use super::math::sub;
 use iced_x86::Instruction;
 
-use crate::{memory::Memory, registers::Flags, x86::X86, Error, Result};
+use crate::{memory::Memory, registers::Flags, x86::X86, StepError, StepResult};
 
-pub fn cmps(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
     let p1 = x86.regs.esi as usize;
     let p2 = x86.regs.edi as usize;
@@ -21,12 +21,12 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> Result<()> {
         let y = x86.read_u8(x86.regs.edi);
         sub(x86, x, y);
     } else {
-        return Err(Error::Error("unimpl".into()));
+        return Err(StepError::Error("unimpl".into()));
     }
     Ok(())
 }
 
-fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
+fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
     let reverse = x86.regs.flags.contains(Flags::DF);
     let step = if reverse {
         -(size as isize) as usize
@@ -48,7 +48,7 @@ fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
         }
         x86.regs.ecx = 0;
     } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(Error::Error("movs: unimplemented prefix".into()));
+        return Err(StepError::Error("movs: unimplemented prefix".into()));
     } else {
         movs_single();
     };
@@ -57,15 +57,15 @@ fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
     Ok(())
 }
 
-pub fn movsd(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn movsd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     movs(x86, instr, 4)
 }
 
-pub fn movsb(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn movsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     movs(x86, instr, 1)
 }
 
-pub fn scas(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn scas(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     assert!(x86.regs.flags.contains(Flags::DF)); // TODO
     let src = x86.regs.edi as usize;
     let value = x86.regs.eax as u8;
@@ -83,12 +83,12 @@ pub fn scas(x86: &mut X86, instr: &Instruction) -> Result<()> {
             x86.regs.get8(iced_x86::Register::DL),
         );
     } else {
-        return Err(Error::Error("unimpl".into()));
+        return Err(StepError::Error("unimpl".into()));
     }
     Ok(())
 }
 
-pub fn stosd(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let mut dst = x86.regs.edi as usize;
     let value = x86.regs.eax;
 
@@ -110,7 +110,7 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) -> Result<()> {
         }
         x86.regs.ecx = 0;
     } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(Error::Error("unimpl".into()));
+        return Err(StepError::Error("unimpl".into()));
     } else {
         *x86.mem.view_mut::<u32>(dst as u32) = value;
         x86.regs.edi += 4;
@@ -119,7 +119,7 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-pub fn stosb(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     assert!(!x86.regs.flags.contains(Flags::DF)); // TODO
 
     let dst = x86.regs.edi as usize;
@@ -130,7 +130,7 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) -> Result<()> {
         x86.regs.edi += count as u32;
         x86.regs.ecx = 0;
     } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(Error::Error("unimpl".into()));
+        return Err(StepError::Error("unimpl".into()));
     } else {
         x86.mem[dst] = value;
         x86.regs.edi += 1;
@@ -138,9 +138,9 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) -> Result<()> {
     Ok(())
 }
 
-pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
+pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
     if x86.regs.flags.contains(Flags::DF) {
-        return Err(Error::Error("TODO DF".into()));
+        return Err(StepError::Error("TODO DF".into()));
     }
 
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
@@ -158,10 +158,10 @@ pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> Result<()> {
     Ok(())
 }
 
-pub fn lodsd(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn lodsd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     lods(x86, instr, 4)
 }
 
-pub fn lodsb(x86: &mut X86, instr: &Instruction) -> Result<()> {
+pub fn lodsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     lods(x86, instr, 1)
 }

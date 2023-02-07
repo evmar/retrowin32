@@ -1,6 +1,6 @@
 //! The central x86 machine object.
 
-use crate::{memory::Memory, ops, registers::Registers, Error, Result};
+use crate::{memory::Memory, ops, registers::Registers, StepError, StepResult};
 use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 
@@ -110,15 +110,15 @@ impl X86 {
     }
 
     /// Executes an instruction, leaving eip alone.
-    pub fn run(&mut self, instr: &iced_x86::Instruction) -> Result<()> {
+    pub fn run(&mut self, instr: &iced_x86::Instruction) -> StepResult<()> {
         ops::execute(self, instr)?; // Note: may ::Error or ::Interrupt here...
         if self.stopped {
             // ...but we also might set self.stopped instead in some scenarios.
             self.stopped = false;
             if let Some(crash) = self.crashed.take() {
-                return Err(Error::Error(crash));
+                return Err(StepError::Error(crash));
             }
-            return Err(Error::Interrupt);
+            return Err(StepError::Interrupt);
         }
         Ok(())
     }
@@ -294,7 +294,7 @@ impl InstrCache {
     /// Executes the current instruction, updating eip.
     /// Returns Ok(false) if we jumped, Ok(true) if we single-stepped.
     /// Caller must call self.jmp() in the jump case.
-    pub fn step(&mut self, x86: &mut X86) -> Result<bool> {
+    pub fn step(&mut self, x86: &mut X86) -> StepResult<bool> {
         let (prev_ip, ref instr) = self.instrs[self.index];
         let next_ip = instr.next_ip() as u32;
         // Need to update eip before executing because instructions like 'call' will push eip onto the stack.

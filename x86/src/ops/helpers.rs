@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::X86, Error, Result};
+use crate::{x86::X86, StepError, StepResult};
 
 pub fn rm32_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
     match instr.op0_kind() {
@@ -159,9 +159,9 @@ pub fn x86_addr(x86: &X86, instr: &iced_x86::Instruction) -> u32 {
         .wrapping_add(instr.memory_displacement32())
 }
 
-pub fn x86_jmp(x86: &mut X86, addr: u32) -> Result<()> {
+pub fn x86_jmp(x86: &mut X86, addr: u32) -> StepResult<()> {
     if addr < 0x1000 {
-        return Err(Error::Error("jmp to null page".into()));
+        return Err(StepError::Error("jmp to null page".into()));
     }
     x86.regs.eip = addr;
     Ok(())
