@@ -101,3 +101,9 @@ pub fn packuswb_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     });
     Ok(())
 }
+
+pub fn emms(_x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    // This is supposed to reset the FPU tag word, but I don't have one of those
+    // because I'm not yet clear on what it's actually used for...
+    Ok(())
+}
