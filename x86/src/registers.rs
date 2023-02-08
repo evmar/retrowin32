@@ -63,6 +63,10 @@ pub struct Registers {
     pub st_top: usize,
     /// FPU status word (TODO fold st_top in here?)
     pub fpu_status: FPUStatus,
+
+    /// MMX registers.
+    // TODO: officially these should alias the FPU registers(!).
+    pub mm: [u64; 8],
 }
 
 impl Registers {
@@ -89,6 +93,8 @@ impl Registers {
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             st_top: 8,
             fpu_status: FPUStatus::empty(),
+
+            mm: [0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
 
@@ -204,5 +210,32 @@ impl Registers {
     }
     pub fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
         &mut self.st[self.st_offset(reg)]
+    }
+
+    pub fn get64(&self, reg: iced_x86::Register) -> u64 {
+        match reg {
+            iced_x86::Register::MM0 => self.mm[0],
+            iced_x86::Register::MM1 => self.mm[1],
+            iced_x86::Register::MM2 => self.mm[2],
+            iced_x86::Register::MM3 => self.mm[3],
+            iced_x86::Register::MM4 => self.mm[4],
+            iced_x86::Register::MM5 => self.mm[5],
+            iced_x86::Register::MM6 => self.mm[6],
+            iced_x86::Register::MM7 => self.mm[7],
+            _ => unimplemented!("{:?}", reg),
+        }
+    }
+    pub fn set64(&mut self, reg: iced_x86::Register, value: u64) {
+        match reg {
+            iced_x86::Register::MM0 => self.mm[0] = value,
+            iced_x86::Register::MM1 => self.mm[1] = value,
+            iced_x86::Register::MM2 => self.mm[2] = value,
+            iced_x86::Register::MM3 => self.mm[3] = value,
+            iced_x86::Register::MM4 => self.mm[4] = value,
+            iced_x86::Register::MM5 => self.mm[5] = value,
+            iced_x86::Register::MM6 => self.mm[6] = value,
+            iced_x86::Register::MM7 => self.mm[7] = value,
+            _ => unimplemented!("{:?}", reg),
+        }
     }
 }

@@ -1,6 +1,39 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::X86, StepError, StepResult};
+use crate::{x86::X86, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE};
+
+pub fn read_u64(x86: &X86, addr: u32) -> u64 {
+    if addr < NULL_POINTER_REGION_SIZE {
+        panic!("null pointer read at {addr:#x}");
+    }
+    *x86.mem.view::<u64>(addr)
+}
+
+pub fn write_u64(x86: &mut X86, addr: u32, value: u64) {
+    if addr < NULL_POINTER_REGION_SIZE {
+        panic!("null pointer read at {addr:#x}");
+    }
+    *x86.mem.view_mut::<u64>(addr) = value;
+}
+
+// TODO: maybe there are no 64-bit memory reads needed (?)
+pub fn rm64_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u64) -> u64) {
+    match instr.op0_kind() {
+        iced_x86::OpKind::Register => {
+            let reg = instr.op0_register();
+            let x = x86.regs.get64(reg);
+            let value = op(x86, x);
+            x86.regs.set64(reg, value);
+        }
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(x86, instr);
+            let x = read_u64(x86, addr);
+            let value = op(x86, x);
+            write_u64(x86, addr, value);
+        }
+        _ => unimplemented!(),
+    }
+}
 
 pub fn rm32_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u32) -> u32) {
     match instr.op0_kind() {

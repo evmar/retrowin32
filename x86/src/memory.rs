@@ -9,6 +9,7 @@ pub unsafe trait Pod: 'static {}
 // See discussion of endianness in doc/design_notes.md.
 unsafe impl Pod for u16 {}
 unsafe impl Pod for u32 {}
+unsafe impl Pod for u64 {}
 
 pub trait Memory {
     fn view<T: Pod>(&self, ofs: u32) -> &T;
