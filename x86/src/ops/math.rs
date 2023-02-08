@@ -355,6 +355,12 @@ pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn add_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.regs.get8(instr.op1_register());
+    rm8_x(x86, instr, |x86, x| add(x86, x, y));
+    Ok(())
+}
+
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
     rm8_x(x86, instr, |x86, x| add(x86, x, y));
