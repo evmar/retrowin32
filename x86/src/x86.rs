@@ -321,6 +321,10 @@ impl InstrCache {
                     self.index += 1;
                     Ok(true)
                 } else {
+                    // if !(0x401000..0x40a600).contains(&x86.regs.eip) && x86.regs.eip < 0xf1a7_000 {
+                    //     x86.regs.eip = prev_ip;
+                    //     return Err(StepError::Error(format!("bad jmp at {:x}", prev_ip)));
+                    // }
                     Ok(false)
                 }
             }

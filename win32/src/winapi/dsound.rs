@@ -116,6 +116,7 @@ mod IDirectSoundBuffer {
 
     pub fn Play(
         _machine: &mut Machine,
+        _this: u32,
         _dwReserved1: u32,
         _dwReserved2: u32,
         _dwFlags: u32,
@@ -140,7 +141,7 @@ mod IDirectSoundBuffer {
 
     winapi_shims! {
         fn Lock(this: u32, dwWriteCursor: u32, dwWriteBytes: u32, lplpvAudioPtr1: u32, lpdwAudioBytes1: u32, lplpvAudioPtr2: u32, lpdwAudioBytes2: u32, dwFlags: u32);
-        fn Play(dwReserved1: u32, dwReserved2: u32, dwFlags: u32);
+        fn Play(this: u32, dwReserved1: u32, dwReserved2: u32, dwFlags: u32);
         fn SetFormat(this: u32, lpcfxFormat: u32);
         fn Unlock(this: u32, lpvAudioPtr1: u32, dwAudioBytes1: u32,  lpvAudioPtr2: u32,  dwAudioBytes2: u32);
     }

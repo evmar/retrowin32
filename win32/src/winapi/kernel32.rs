@@ -1089,13 +1089,14 @@ pub fn WriteConsoleW(
 
 pub fn CreateThread(
     _machine: &mut Machine,
-    _lpThreadAttributes: u32,
-    _dwStackSize: u32,
-    _lpStartAddress: u32,
-    _lpParameter: u32,
-    _dwCreationFlags: u32,
-    _lpThreadId: u32,
+    lpThreadAttributes: u32,
+    dwStackSize: u32,
+    lpStartAddress: u32,
+    lpParameter: u32,
+    dwCreationFlags: u32,
+    lpThreadId: u32,
 ) -> u32 {
+    log::warn!("CreateThread {lpThreadAttributes:x} {dwStackSize:x} {lpStartAddress:x} {lpParameter:x} {dwCreationFlags:x} {lpThreadId:x}");
     0
 }
 
