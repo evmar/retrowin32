@@ -70,3 +70,28 @@ pub fn psrlw_mm_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     });
     Ok(())
 }
+
+fn saturate(x: i16) -> u8 {
+    if x < 0 {
+        0
+    } else if x > 0xFF {
+        0xFF
+    } else {
+        x as u8
+    }
+}
+
+pub fn packuswb_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm64(x86, instr);
+    rm64_x(x86, instr, |_x86, x| {
+        (saturate(((x >> 0) & 0xFFFF) as i16) as u64) << 0
+            | (saturate(((x >> 16) & 0xFFFF) as i16) as u64) << 8
+            | (saturate(((x >> 32) & 0xFFFF) as i16) as u64) << 16
+            | (saturate(((x >> 48) & 0xFFFF) as i16) as u64) << 24
+            | (saturate(((y >> 0) & 0xFFFF) as i16) as u64) << 32
+            | (saturate(((y >> 16) & 0xFFFF) as i16) as u64) << 40
+            | (saturate(((y >> 32) & 0xFFFF) as i16) as u64) << 48
+            | (saturate(((y >> 48) & 0xFFFF) as i16) as u64) << 56
+    });
+    Ok(())
+}
