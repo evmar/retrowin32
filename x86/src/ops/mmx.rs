@@ -32,6 +32,12 @@ pub fn movd_mm_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn movd_rm32_mm(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.regs.get64(instr.op1_register()) as u32;
+    rm32_x(x86, instr, |_x86, _x| y);
+    Ok(())
+}
+
 pub fn punpcklbw_mm_mmm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_mmm32(x86, instr);
     rm64_x(x86, instr, |_x86, x| {
