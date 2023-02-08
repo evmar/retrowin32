@@ -41,10 +41,10 @@ pub mod dsound {
     use winapi::dsound::*;
     pub fn DirectSoundCreate(machine: &mut Machine) {
         let _lpGuid: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _ppDS: u32 = unsafe { from_x86(&mut machine.x86) };
+        let ppDS: u32 = unsafe { from_x86(&mut machine.x86) };
         let _pUnkOuter: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
-            winapi::dsound::DirectSoundCreate(machine, _lpGuid, _ppDS, _pUnkOuter).to_raw();
+            winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter).to_raw();
     }
     pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
@@ -460,6 +460,30 @@ pub mod kernel32 {
         )
         .to_raw();
     }
+    pub fn CreateThread(machine: &mut Machine) {
+        let _lpThreadAttributes: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _dwStackSize: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _lpStartAddress: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _lpParameter: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _dwCreationFlags: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _lpThreadId: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::kernel32::CreateThread(
+            machine,
+            _lpThreadAttributes,
+            _dwStackSize,
+            _lpStartAddress,
+            _lpParameter,
+            _dwCreationFlags,
+            _lpThreadId,
+        )
+        .to_raw();
+    }
+    pub fn SetThreadPriority(machine: &mut Machine) {
+        let _hThread: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _nPriority: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw();
+    }
     pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
@@ -522,6 +546,8 @@ pub mod kernel32 {
                 "InitializeSListHead" => InitializeSListHead,
                 "MultiByteToWideChar" => MultiByteToWideChar,
                 "WriteConsoleW" => WriteConsoleW,
+                "CreateThread" => CreateThread,
+                "SetThreadPriority" => SetThreadPriority,
                 _ => return None,
             },
             _ => return None,

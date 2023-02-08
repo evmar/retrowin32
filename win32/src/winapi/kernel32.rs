@@ -1086,3 +1086,19 @@ pub fn WriteConsoleW(
     }
     return bytes_written == buf.len() as u32;
 }
+
+pub fn CreateThread(
+    _machine: &mut Machine,
+    _lpThreadAttributes: u32,
+    _dwStackSize: u32,
+    _lpStartAddress: u32,
+    _lpParameter: u32,
+    _dwCreationFlags: u32,
+    _lpThreadId: u32,
+) -> u32 {
+    0
+}
+
+pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32) -> bool {
+    true // success
+}
