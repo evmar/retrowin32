@@ -278,6 +278,11 @@ pub fn cld(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn stc(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    x86.regs.flags.insert(Flags::CF);
+    Ok(())
+}
+
 pub fn cwde(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     x86.regs.eax = x86.regs.eax as i16 as i32 as u32;
     Ok(())

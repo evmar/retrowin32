@@ -438,6 +438,13 @@ pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn sbb_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let carry = x86.regs.flags.contains(Flags::CF) as u32;
+    let y = x86.regs.get32(instr.op1_register()) + carry;
+    rm32_x(x86, instr, |x86, x| sub(x86, x, y));
+    Ok(())
+}
+
 pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let reg = instr.op0_register();
     let carry = x86.regs.flags.contains(Flags::CF) as u8;
