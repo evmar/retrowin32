@@ -187,6 +187,8 @@ pub struct InstrCache {
     pub instrs: Vec<(u32, iced_x86::Instruction)>,
     /// Current position within instrs.
     pub index: usize,
+    /// Span of addresses that refer to code, for error checking
+    pub span: std::ops::Range<u32>,
 
     /// Places where we've patched out the instruction with an int3.
     /// The map values are the instruction from before the breakpoint.
@@ -198,6 +200,7 @@ impl InstrCache {
         InstrCache {
             instrs: Vec::new(),
             index: 0,
+            span: 0..0,
             breakpoints: HashMap::new(),
         }
     }
@@ -209,6 +212,7 @@ impl InstrCache {
         while decoder.can_decode() {
             self.instrs.push((decoder.ip() as u32, decoder.decode()));
         }
+        self.span = ip..decoder.ip() as u32;
     }
 
     /// Given an IP that wasn't found in the decoded instructions, re-decode starting at that
@@ -265,8 +269,15 @@ impl InstrCache {
         }
     }
 
-    pub fn jmp(&mut self, mem: &[u8], target_ip: u32) {
+    pub fn jmp(&mut self, mem: &[u8], target_ip: u32) -> StepResult<()> {
+        if !self.span.contains(&target_ip) {
+            return Err(StepError::Error(format!(
+                "jmp to {target_ip:x} outside of code segment {:x?}",
+                self.span
+            )));
+        }
         self.index = self.ip_to_instr_index(mem, target_ip).unwrap();
+        Ok(())
     }
 
     /// Replace the instruction found at a given ip, returning the previous instruction.

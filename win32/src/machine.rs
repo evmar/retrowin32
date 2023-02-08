@@ -95,7 +95,7 @@ impl Runner {
             &self.machine.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
         self.icache.disassemble(section, mapping.addr);
         self.icache
-            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
+            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)?;
 
         Ok(labels)
     }
@@ -133,7 +133,7 @@ impl Runner {
                 self.check_shim_call()?;
                 // Instruction changed eip.  Update icache to match.
                 self.icache
-                    .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
+                    .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)?;
                 Ok(true)
             }
             Ok(true) => Ok(true),
@@ -153,6 +153,7 @@ impl Runner {
     pub fn load_snapshot(&mut self, snap: x86::Snapshot) {
         self.machine.x86.load_snapshot(snap);
         self.icache
-            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip);
+            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)
+            .unwrap();
     }
 }
