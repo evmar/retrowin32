@@ -3,7 +3,7 @@
 
 use std::collections::HashMap;
 
-use crate::{host, machine::Machine, winapi::vtable, winapi::winapi_shims};
+use crate::{host, machine::Machine, winapi::vtable};
 
 use super::{alloc::Alloc, types::DWORD};
 use bitflags::bitflags;
@@ -250,6 +250,7 @@ struct DDPIXELFORMAT {
 }
 unsafe impl x86::Pod for DDPIXELFORMAT {}
 
+#[win32_derive::shims_from_x86]
 mod IDirectDraw {
     use super::*;
 
@@ -327,18 +328,9 @@ mod IDirectDraw {
         machine.state.ddraw.height = height;
         DD_OK
     }
-
-    winapi_shims!(
-        fn CreateSurface(
-            this: u32,
-            desc: Option<&DDSURFACEDESC>,
-            lplpDDSurface: u32,
-            pUnkOuter: u32,
-        );
-        fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32);
-    );
 }
 
+#[win32_derive::shims_from_x86]
 mod IDirectDrawSurface {
     use super::*;
 
@@ -423,17 +415,13 @@ mod IDirectDrawSurface {
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
     }
-
-    winapi_shims!(
-        fn GetAttachedSurface(this: u32, lpDDSCaps: u32, lpDirectDrawSurface: u32);
-        fn GetPixelFormat(fmt: Option<&mut DDPIXELFORMAT>);
-    );
 }
 
 const IID_IDirectDraw7: [u8; 16] = [
     0xc0, 0x5e, 0xe6, 0x15, 0x9c, 0x3b, 0xd2, 0x11, 0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b,
 ];
 
+#[win32_derive::shims_from_x86]
 mod IDirectDraw7 {
     use super::*;
 
@@ -566,20 +554,9 @@ mod IDirectDraw7 {
         machine.state.ddraw.height = height;
         DD_OK
     }
-
-    winapi_shims!(
-        fn Release(this: u32);
-        fn CreateSurface(
-            this: u32,
-            desc: Option<&DDSURFACEDESC2>,
-            lpDirectDrawSurface7: u32,
-            unused: u32,
-        );
-        fn SetCooperativeLevel(this: u32, hwnd: u32, flags: u32);
-        fn SetDisplayMode(this: u32, width: u32, height: u32, bpp: u32, refresh: u32, flags: u32);
-    );
 }
 
+#[win32_derive::shims_from_x86]
 mod IDirectDrawSurface7 {
     use super::*;
 
@@ -749,17 +726,6 @@ mod IDirectDrawSurface7 {
     fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
         DD_OK
     }
-
-    winapi_shims!(
-        fn Release(this: u32);
-        fn BltFast(this: u32, x: u32, y: u32, lpSurf: u32, lpRect: u32, flags: u32);
-        fn Flip(this: u32, lpSurf: u32, flags: u32);
-        fn GetAttachedSurface(this: u32, lpDDSCaps2: u32, lpDirectDrawSurface7: u32);
-        fn GetDC(this: u32, lpHDC: u32);
-        fn GetSurfaceDesc(this: u32, lpDesc: u32);
-        fn ReleaseDC(this: u32, hDC: u32);
-        fn Restore(this: u32);
-    );
 }
 
 #[win32_derive::dllexport]

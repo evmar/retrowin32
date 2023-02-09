@@ -5,7 +5,6 @@ use super::alloc::Alloc;
 use super::types::DWORD;
 use crate::machine::Machine;
 use crate::winapi::vtable;
-use crate::winapi::winapi_shims;
 use x86::Memory;
 
 pub const DS_OK: u32 = 0;
@@ -41,6 +40,7 @@ impl State {
     }
 }
 
+#[win32_derive::shims_from_x86]
 mod IDirectSound {
     use super::*;
 
@@ -65,10 +65,6 @@ mod IDirectSound {
         DS_OK
     }
 
-    winapi_shims! {
-        fn CreateSoundBuffer(this: u32, lpcDSBufferDesc: u32,  lplpDirectSoundBuffer: u32, pUnkOuter: u32);
-        fn SetCooperativeLevel(this: u32, hwnd: u32, dwLevel: u32);
-    }
     vtable![shims
         QueryInterface todo,
         AddRef todo,
@@ -84,6 +80,7 @@ mod IDirectSound {
     ];
 }
 
+#[win32_derive::shims_from_x86]
 mod IDirectSoundBuffer {
     use super::*;
 
@@ -139,12 +136,6 @@ mod IDirectSoundBuffer {
         DS_OK
     }
 
-    winapi_shims! {
-        fn Lock(this: u32, dwWriteCursor: u32, dwWriteBytes: u32, lplpvAudioPtr1: u32, lpdwAudioBytes1: u32, lplpvAudioPtr2: u32, lpdwAudioBytes2: u32, dwFlags: u32);
-        fn Play(this: u32, dwReserved1: u32, dwReserved2: u32, dwFlags: u32);
-        fn SetFormat(this: u32, lpcfxFormat: u32);
-        fn Unlock(this: u32, lpvAudioPtr1: u32, dwAudioBytes1: u32,  lpvAudioPtr2: u32,  dwAudioBytes2: u32);
-    }
     vtable![shims
         QueryInterface todo,
         AddRef todo,

@@ -6,36 +6,7 @@ use std::io::Write;
 
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
-
-/// Process one function, generating the wrapper function that calls it.
-fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
-    let name = &func.sig.ident;
-    let mut args: Vec<TokenStream> = Vec::new();
-    let mut body: Vec<TokenStream> = Vec::new();
-    for (i, arg) in func.sig.inputs.iter().enumerate() {
-        let arg = match arg {
-            syn::FnArg::Typed(arg) => arg,
-            _ => unimplemented!(),
-        };
-
-        let name = match arg.pat.as_ref() {
-            syn::Pat::Ident(ident) => &ident.ident,
-            _ => unimplemented!(),
-        };
-        if i == 0 {
-            // first param, the machine
-            args.push(quote!(machine));
-        } else {
-            args.push(quote!(#name));
-            let ty = &arg.ty;
-            body.push(quote!(let #name: #ty = unsafe { from_x86(&mut machine.x86) };));
-        }
-    }
-    quote!(pub fn #name(machine: &mut Machine) {
-        #(#body)*
-        machine.x86.regs.eax = winapi::#module::#name(#(#args),*).to_raw();
-    })
-}
+mod gen;
 
 enum Attribute {
     DllExport,
@@ -75,7 +46,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
                 }
 
                 if dllexport {
-                    fns.push(process_fn(&module, func));
+                    fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
                     let ident = &func.sig.ident;
                     let quoted = ident.to_string();
                     matches.push(quote!(#quoted => #ident));

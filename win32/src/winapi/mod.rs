@@ -11,29 +11,6 @@ pub mod types;
 pub mod user32;
 mod winmm;
 
-// winapi is stdcall, which means args are right to left and callee-cleaned.
-// The caller of winapi functions is responsible for pushing/popping the
-// return address, because some callers actually 'jmp' directly.
-//
-// This macro generates shim wrappers of functions, taking their
-// input args off the stack and forwarding their return values via eax.
-macro_rules! winapi_shims {
-    ($(fn $name:ident($($param:ident: $type:ty),* $(,)?);)*) => {
-        #[allow(unused_imports)]
-        pub mod shims {
-            use crate::machine::Machine;
-            use super::*;
-
-            $(#[allow(non_snake_case)]
-            pub fn $name(machine: &mut Machine) {
-                $(let $param: $type = unsafe { crate::winapi::shims::from_x86(&mut machine.x86) };)*
-                machine.x86.regs.eax = super::$name(machine, $($param),*);
-            })*
-        }
-    }
-}
-pub(crate) use winapi_shims;
-
 macro_rules! vtable_entry {
     ($shims:ident $fn:ident ok) => {
         Ok($shims::$fn)
