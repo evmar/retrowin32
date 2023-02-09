@@ -170,6 +170,7 @@ mod IDirectSoundBuffer {
     ];
 }
 
+#[win32_derive::dllexport]
 pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOuter: u32) -> u32 {
     if machine.state.dsound.hheap == 0 {
         machine.state.dsound = State::new_init(machine);

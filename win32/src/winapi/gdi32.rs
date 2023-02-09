@@ -70,10 +70,12 @@ impl State {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn GetStockObject(_machine: &mut Machine, _i: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
     let obj = match machine.state.gdi32.get_object(hGdiObj) {
         None => return 0, // TODO: HGDI_ERROR
@@ -92,6 +94,7 @@ pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
     op(dc) // returns previous value
 }
 
+#[win32_derive::dllexport]
 pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) -> u32 {
     let obj = match machine.state.gdi32.get_object(handle) {
         None => return 0, // fail
@@ -102,12 +105,14 @@ pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) ->
     0 // fail
 }
 
+#[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: u32) -> u32 {
     assert!(hdc == 0); // null means "compatible with current screen"
     let (handle, _) = machine.state.gdi32.new_dc();
     handle
 }
 
+#[win32_derive::dllexport]
 pub fn DeleteDC(_machine: &mut Machine, hdc: u32) -> u32 {
     log::warn!("todo: DeleteDC({hdc:x})");
     0 // fail
@@ -115,6 +120,7 @@ pub fn DeleteDC(_machine: &mut Machine, hdc: u32) -> u32 {
 
 const SRCCOPY: u32 = 0xcc0020;
 
+#[win32_derive::dllexport]
 pub fn BitBlt(
     machine: &mut Machine,
     hdc: u32,
@@ -154,6 +160,7 @@ pub fn BitBlt(
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn StretchBlt(
     machine: &mut Machine,
     hdcDest: u32,

@@ -378,16 +378,19 @@ struct _EXCEPTION_REGISTRATION_RECORD {
 }
 unsafe impl x86::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
+#[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
     teb_mut(machine).LastErrorValue = dwErrCode;
     0 // unused
 }
 
+#[win32_derive::dllexport]
 pub fn GetLastError(_machine: &mut Machine) -> u32 {
     // TODO: should we start calling SetLastError when appropriate?
     0x1c // printer out of paper
 }
 
+#[win32_derive::dllexport]
 pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     machine.host.exit(uExitCode);
     // TODO: this is unsatisfying.
@@ -396,39 +399,48 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn GetACP(_machine: &mut Machine) -> u32 {
     1252 // windows-1252
 }
 
+#[win32_derive::dllexport]
 pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
     CodePage == 1252
 }
 
+#[win32_derive::dllexport]
 pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 {
     0 // fail
 }
 
+#[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
     machine.state.kernel32.cmdline
 }
 
+#[win32_derive::dllexport]
 pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
     machine.state.kernel32.cmdline16
 }
 
+#[win32_derive::dllexport]
 pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
     machine.state.kernel32.env
 }
 
+#[win32_derive::dllexport]
 pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> u32 {
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
     0
 }
 
+#[win32_derive::dllexport]
 pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
@@ -438,6 +450,7 @@ pub fn GetEnvironmentVariableA(
     0
 }
 
+#[win32_derive::dllexport]
 pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
     let FILE_TYPE_CHAR = 0x2;
     let FILE_TYPE_UNKNOWN = 0x8;
@@ -450,6 +463,7 @@ pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,
@@ -465,6 +479,7 @@ pub fn GetModuleFileNameA(
     }
 }
 
+#[win32_derive::dllexport]
 pub fn GetModuleFileNameW(
     _machine: &mut Machine,
     hModule: HMODULE,
@@ -477,6 +492,7 @@ pub fn GetModuleFileNameW(
     0 // fail
 }
 
+#[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
     if let Some(name) = lpModuleName {
         log::error!("unimplemented: GetModuleHandle({name:?})");
@@ -486,11 +502,13 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
     HMODULE::from_raw(machine.state.kernel32.image_base)
 }
 
+#[win32_derive::dllexport]
 pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<Str16>) -> HMODULE {
     let ascii = lpModuleName.map(|str| str.to_string());
     GetModuleHandleA(machine, ascii.as_deref())
 }
 
+#[win32_derive::dllexport]
 pub fn GetModuleHandleExW(
     machine: &mut Machine,
     dwFlags: u32,
@@ -530,6 +548,7 @@ struct STARTUPINFOA {
 }
 unsafe impl x86::Pod for STARTUPINFOA {}
 
+#[win32_derive::dllexport]
 pub fn GetStartupInfoA(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     let size = std::mem::size_of::<STARTUPINFOA>();
@@ -540,6 +559,7 @@ pub fn GetStartupInfoA(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
     let ofs = lpStartupInfo as usize;
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
@@ -588,24 +608,29 @@ pub enum ProcessorFeature {
     RDTSCP_INSTRUCTION_AVAILABLE = 32,
 }
 
+#[win32_derive::dllexport]
 pub fn IsProcessorFeaturePresent(_machine: &mut Machine, feature: u32) -> bool {
     let feature = ProcessorFeature::from_u32(feature).unwrap();
     log::warn!("IsProcessorFeaturePresent({feature:?}) => false");
     false
 }
 
+#[win32_derive::dllexport]
 pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
     true // Might cause a binary to log info via the debug API? Not sure.
 }
 
+#[win32_derive::dllexport]
 pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
     1
 }
 
+#[win32_derive::dllexport]
 pub fn GetCurrentProcessId(_machine: &mut Machine) -> u32 {
     1
 }
 
+#[win32_derive::dllexport]
 pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: u32) -> HFILE {
     match nStdHandle as i32 {
         -10 => STDIN_HFILE,
@@ -615,10 +640,12 @@ pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: u32) -> HFILE {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn GetTickCount(machine: &mut Machine) -> u32 {
     machine.host.time()
 }
 
+#[win32_derive::dllexport]
 pub fn QueryPerformanceCounter(_machine: &mut Machine, _ptr: u32) -> bool {
     true // success
 }
@@ -629,10 +656,12 @@ pub struct FILETIME {
     dwHighDateTime: DWORD,
 }
 unsafe impl x86::Pod for FILETIME {}
+#[win32_derive::dllexport]
 pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn GetVersion(_machine: &mut Machine) -> u32 {
     // Win95, version 4.0.
     (1 << 31) | 0x4
@@ -648,6 +677,7 @@ struct OSVERSIONINFO {
     //szCSDVersion: [u8; 128],
 }
 
+#[win32_derive::dllexport]
 pub fn GetVersionExA(machine: &mut Machine, lpVersionInformation: u32) -> u32 {
     let ofs = lpVersionInformation as usize;
     let size = machine.x86.read_u32(lpVersionInformation) as usize;
@@ -676,6 +706,7 @@ bitflags! {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
     let mut flags = HeapAllocFlags::from_bits(dwFlags).unwrap_or_else(|| {
         log::warn!("HeapAlloc invalid flags {dwFlags:x}");
@@ -704,6 +735,7 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
     addr
 }
 
+#[win32_derive::dllexport]
 pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
@@ -719,6 +751,7 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
@@ -733,6 +766,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     heap.size(lpMem)
 }
 
+#[win32_derive::dllexport]
 pub fn HeapReAlloc(
     machine: &mut Machine,
     hHeap: u32,
@@ -768,6 +802,7 @@ bitflags! {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn HeapCreate(
     machine: &mut Machine,
     flOptions: u32,
@@ -785,11 +820,13 @@ pub fn HeapCreate(
     )
 }
 
+#[win32_derive::dllexport]
 pub fn HeapDestroy(_machine: &mut Machine, hHeap: u32) -> u32 {
     log::warn!("HeapDestroy({hHeap:x})");
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
     let heap = peb_mut(machine).ProcessHeap;
     if heap != 0 {
@@ -804,11 +841,13 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
     heap
 }
 
+#[win32_derive::dllexport]
 pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
 
+#[win32_derive::dllexport]
 pub fn LoadLibraryExW(
     _machine: &mut Machine,
     lpLibFileName: Option<Str16>,
@@ -819,6 +858,7 @@ pub fn LoadLibraryExW(
     0 // fail
 }
 
+#[win32_derive::dllexport]
 pub fn SetHandleCount(_machine: &mut Machine, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
@@ -845,6 +885,7 @@ impl TryFrom<u32> for CreationDisposition {
 
 pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
 
+#[win32_derive::dllexport]
 pub fn CreateFileW(
     _machine: &mut Machine,
     lpFileName: Option<Str16>,
@@ -872,6 +913,7 @@ pub fn CreateFileW(
     HFILE::invalid()
 }
 
+#[win32_derive::dllexport]
 pub fn WriteFile(
     machine: &mut Machine,
     hFile: HFILE,
@@ -892,6 +934,7 @@ pub fn WriteFile(
     true
 }
 
+#[win32_derive::dllexport]
 pub fn VirtualAlloc(
     machine: &mut Machine,
     lpAddress: u32,
@@ -930,16 +973,19 @@ pub fn VirtualAlloc(
     mapping.addr
 }
 
+#[win32_derive::dllexport]
 pub fn VirtualFree(_machine: &mut Machine, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn OutputDebugStringA(_machine: &mut Machine, msg: Option<&str>) -> u32 {
     log::warn!("OutputDebugStringA: {:?}", msg);
     0
 }
 
+#[win32_derive::dllexport]
 pub fn InitializeCriticalSectionAndSpinCount(
     _machine: &mut Machine,
     _lpCriticalSection: u32,
@@ -950,31 +996,38 @@ pub fn InitializeCriticalSectionAndSpinCount(
     true
 }
 
+#[win32_derive::dllexport]
 pub fn DeleteCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn EnterCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn LeaveCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
 
+#[win32_derive::dllexport]
 pub fn UnhandledExceptionFilter(_machine: &mut Machine, _exceptionInfo: u32) -> u32 {
     // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
     0 // EXCEPTION_CONTINUE_SEARCH
 }
 
+#[win32_derive::dllexport]
 pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
     machine.state.kernel32.teb
 }
 
+#[win32_derive::dllexport]
 pub fn TlsAlloc(machine: &mut Machine) -> u32 {
     let peb = peb_mut(machine);
     let slot = peb.TlsCount;
@@ -982,6 +1035,7 @@ pub fn TlsAlloc(machine: &mut Machine) -> u32 {
     slot
 }
 
+#[win32_derive::dllexport]
 pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
     let peb = peb_mut(machine);
     if dwTlsIndex >= peb.TlsCount {
@@ -992,12 +1046,14 @@ pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
     true
 }
 
+#[win32_derive::dllexport]
 pub fn TlsSetValue(machine: &mut Machine, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
     let teb = teb_mut(machine);
     teb.TlsSlots[dwTlsIndex as usize] = lpTlsValue;
     true
 }
 
+#[win32_derive::dllexport]
 pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
     let teb = teb_mut(machine);
     teb.TlsSlots[dwTlsIndex as usize]
@@ -1012,6 +1068,7 @@ pub struct SLIST_HEADER {
 }
 unsafe impl x86::Pod for SLIST_HEADER {}
 
+#[win32_derive::dllexport]
 pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
     ListHead.unwrap().Next = 0;
     0
@@ -1020,6 +1077,7 @@ pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_H
 /// The system default Windows ANSI code page.
 const CP_ACP: u32 = 0;
 
+#[win32_derive::dllexport]
 pub fn MultiByteToWideChar(
     machine: &mut Machine,
     CodePage: u32,
@@ -1063,6 +1121,7 @@ pub fn MultiByteToWideChar(
     }
 }
 
+#[win32_derive::dllexport]
 pub fn WriteConsoleW(
     machine: &mut Machine,
     hConsoleOutput: HFILE,
@@ -1087,6 +1146,7 @@ pub fn WriteConsoleW(
     return bytes_written == buf.len() as u32;
 }
 
+#[win32_derive::dllexport]
 pub fn CreateThread(
     _machine: &mut Machine,
     lpThreadAttributes: u32,
@@ -1100,6 +1160,7 @@ pub fn CreateThread(
     0
 }
 
+#[win32_derive::dllexport]
 pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32) -> bool {
     true // success
 }

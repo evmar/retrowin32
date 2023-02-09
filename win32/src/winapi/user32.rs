@@ -33,6 +33,7 @@ impl State {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
     log::warn!("todo: RegisterClassA({:x})", lpWndClass);
     0
@@ -59,6 +60,7 @@ bitflags! {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn CreateWindowExA(
     machine: &mut Machine,
     dwExStyle: u32,
@@ -95,15 +97,18 @@ pub fn CreateWindowExA(
     machine.state.user32.windows.len() as u32
 }
 
+#[win32_derive::dllexport]
 pub fn UpdateWindow(_machine: &mut Machine, _hWnd: u32) -> u32 {
     // TODO: this should cause a synchronous WM_PAINT.
     0
 }
 
+#[win32_derive::dllexport]
 pub fn ShowWindow(_machine: &mut Machine, _hWnd: u32, _nCmdShow: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn SetFocus(_machine: &mut Machine, _hWnd: u32) -> u32 {
     // TODO: supposed to return previous focused hwnd.
     0
@@ -115,6 +120,7 @@ bitflags! {
     }
 }
 
+#[win32_derive::dllexport]
 pub fn MessageBoxA(
     machine: &mut Machine,
     _hWnd: u32,
@@ -135,6 +141,7 @@ pub fn MessageBoxA(
     1 // IDOK
 }
 
+#[win32_derive::dllexport]
 pub fn DialogBoxParamA(
     _machine: &mut Machine,
     hInstance: u32,
@@ -147,6 +154,7 @@ pub fn DialogBoxParamA(
     1 // success
 }
 
+#[win32_derive::dllexport]
 pub fn PeekMessageA(
     _machine: &mut Machine,
     _lpMsg: u32,
@@ -161,14 +169,17 @@ pub fn PeekMessageA(
     0 // no messages
 }
 
+#[win32_derive::dllexport]
 pub fn LoadIconA(_machine: &mut Machine, _hInstance: u32, _lpIconName: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn LoadCursorA(_machine: &mut Machine, _hInstance: u32, _lpCursorName: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
 pub fn ShowCursor(_machine: &mut Machine, _bShow: bool) -> u32 {
     // TODO: increment/decrement refcount
     1 // ref=1
@@ -274,6 +285,7 @@ fn parse_bitmap(buf: &[u8]) -> anyhow::Result<Bitmap> {
     })
 }
 
+#[win32_derive::dllexport]
 pub fn LoadImageA(
     machine: &mut Machine,
     hInstance: u32,
@@ -317,6 +329,7 @@ pub fn LoadImageA(
     }
 }
 
+#[win32_derive::dllexport]
 pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: u32) -> u32 {
     const SM_CXSCREEN: u32 = 0;
     const SM_CYSCREEN: u32 = 1;

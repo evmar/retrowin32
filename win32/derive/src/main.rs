@@ -73,13 +73,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
                     }
                 }
 
-                let is_public = match func.vis {
-                    syn::Visibility::Public(_) => true,
-                    _ => false,
-                };
-                let name = func.sig.ident.to_string();
-                let is_upper = name.chars().next().unwrap().is_uppercase();
-                if (is_public && is_upper) || dllexport {
+                if dllexport {
                     fns.push(process_fn(&module, func));
                     let ident = &func.sig.ident;
                     let quoted = ident.to_string();

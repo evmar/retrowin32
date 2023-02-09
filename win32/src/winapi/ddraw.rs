@@ -762,10 +762,12 @@ mod IDirectDrawSurface7 {
     );
 }
 
+#[win32_derive::dllexport]
 pub fn DirectDrawCreate(machine: &mut Machine, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
     DirectDrawCreateEx(machine, lpGuid, lplpDD, 0, pUnkOuter)
 }
 
+#[win32_derive::dllexport]
 pub fn DirectDrawCreateEx(
     machine: &mut Machine,
     lpGuid: u32,
