@@ -461,20 +461,20 @@ pub mod kernel32 {
         .to_raw();
     }
     pub fn CreateThread(machine: &mut Machine) {
-        let _lpThreadAttributes: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _dwStackSize: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _lpStartAddress: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _lpParameter: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _dwCreationFlags: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _lpThreadId: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpThreadAttributes: u32 = unsafe { from_x86(&mut machine.x86) };
+        let dwStackSize: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpStartAddress: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpParameter: u32 = unsafe { from_x86(&mut machine.x86) };
+        let dwCreationFlags: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpThreadId: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::CreateThread(
             machine,
-            _lpThreadAttributes,
-            _dwStackSize,
-            _lpStartAddress,
-            _lpParameter,
-            _dwCreationFlags,
-            _lpThreadId,
+            lpThreadAttributes,
+            dwStackSize,
+            lpStartAddress,
+            lpParameter,
+            dwCreationFlags,
+            lpThreadId,
         )
         .to_raw();
     }
