@@ -109,10 +109,26 @@ pub fn emms(_x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 
 pub fn psubusb_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     fn op(x: u8, y: u8) -> u8 {
-        if y < x {
-            return 0; // saturating
-        }
-        y - x
+        y.saturating_sub(x)
+    }
+
+    let y = op1_mmm64(x86, instr);
+    rm64_x(x86, instr, |_x86, x| {
+        ((op((x >> 0) as u8, (y >> 0) as u8) as u64) << 0)
+            | ((op((x >> 8) as u8, (y >> 8) as u8) as u64) << 8)
+            | ((op((x >> 16) as u8, (y >> 16) as u8) as u64) << 16)
+            | ((op((x >> 24) as u8, (y >> 24) as u8) as u64) << 24)
+            | ((op((x >> 32) as u8, (y >> 32) as u8) as u64) << 32)
+            | ((op((x >> 40) as u8, (y >> 40) as u8) as u64) << 40)
+            | ((op((x >> 48) as u8, (y >> 48) as u8) as u64) << 48)
+            | ((op((x >> 56) as u8, (y >> 56) as u8) as u64) << 56)
+    });
+    Ok(())
+}
+
+pub fn paddusb_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    fn op(x: u8, y: u8) -> u8 {
+        x.saturating_add(y)
     }
 
     let y = op1_mmm64(x86, instr);
