@@ -1,5 +1,6 @@
 //! Code generator for winapi functions.
 //! Generates functions that pop arguments off the x86 stack.
+//! TODO: move this code to lib, and switch to using a macro for codegen.
 
 use std::io::Write;
 
