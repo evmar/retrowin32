@@ -688,14 +688,20 @@ pub mod winmm {
     use super::*;
     use winapi::winmm::*;
     pub fn timeSetEvent(machine: &mut Machine) {
-        let uDelay: u32 = unsafe { from_x86(&mut machine.x86) };
-        let uResolution: u32 = unsafe { from_x86(&mut machine.x86) };
-        let lpTimeProc: u32 = unsafe { from_x86(&mut machine.x86) };
-        let dwUser: u32 = unsafe { from_x86(&mut machine.x86) };
-        let fuEvent: u32 = unsafe { from_x86(&mut machine.x86) };
-        machine.x86.regs.eax =
-            winapi::winmm::timeSetEvent(machine, uDelay, uResolution, lpTimeProc, dwUser, fuEvent)
-                .to_raw();
+        let _uDelay: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _uResolution: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _lpTimeProc: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _dwUser: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _fuEvent: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::winmm::timeSetEvent(
+            machine,
+            _uDelay,
+            _uResolution,
+            _lpTimeProc,
+            _dwUser,
+            _fuEvent,
+        )
+        .to_raw();
     }
     pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {

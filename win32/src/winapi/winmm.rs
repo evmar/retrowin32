@@ -5,12 +5,12 @@ use crate::machine::Machine;
 
 #[win32_derive::dllexport]
 pub fn timeSetEvent(
-    machine: &mut Machine,
-    uDelay: u32,
-    uResolution: u32,
-    lpTimeProc: u32,
-    dwUser: u32,
-    fuEvent: u32,
+    _machine: &mut Machine,
+    _uDelay: u32,
+    _uResolution: u32,
+    _lpTimeProc: u32,
+    _dwUser: u32,
+    _fuEvent: u32,
 ) -> u32 {
     0
 }

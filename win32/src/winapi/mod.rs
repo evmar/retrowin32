@@ -101,6 +101,7 @@ pub fn resolve(dll: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
         "gdi32.dll" => dll::gdi32::resolve(sym),
         "kernel32.dll" => dll::kernel32::resolve(sym),
         "user32.dll" => dll::user32::resolve(sym),
+        "winmm.dll" => dll::winmm::resolve(sym),
         _ => None,
     }
     // .or_else(|| {
