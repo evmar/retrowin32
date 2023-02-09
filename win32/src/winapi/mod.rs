@@ -9,6 +9,7 @@ pub mod kernel32;
 mod shims;
 pub mod types;
 pub mod user32;
+mod winmm;
 
 // winapi is stdcall, which means args are right to left and callee-cleaned.
 // The caller of winapi functions is responsible for pushing/popping the

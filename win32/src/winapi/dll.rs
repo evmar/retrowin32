@@ -684,3 +684,26 @@ pub mod user32 {
         })
     }
 }
+pub mod winmm {
+    use super::*;
+    use winapi::winmm::*;
+    pub fn timeSetEvent(machine: &mut Machine) {
+        let uDelay: u32 = unsafe { from_x86(&mut machine.x86) };
+        let uResolution: u32 = unsafe { from_x86(&mut machine.x86) };
+        let lpTimeProc: u32 = unsafe { from_x86(&mut machine.x86) };
+        let dwUser: u32 = unsafe { from_x86(&mut machine.x86) };
+        let fuEvent: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::winmm::timeSetEvent(machine, uDelay, uResolution, lpTimeProc, dwUser, fuEvent)
+                .to_raw();
+    }
+    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "timeSetEvent" => timeSetEvent,
+                _ => return None,
+            },
+            _ => return None,
+        })
+    }
+}

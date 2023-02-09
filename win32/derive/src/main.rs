@@ -36,6 +36,25 @@ fn process_fn(module: &syn::Ident, func: &syn::ItemFn) -> TokenStream {
     })
 }
 
+enum Attribute {
+    DllExport,
+}
+
+fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
+    if attr.path.leading_colon.is_some()
+        || attr.path.segments.len() != 2
+        || attr.path.segments[0].ident != "win32_derive"
+    {
+        return Ok(None);
+    }
+    let seg = &attr.path.segments[1];
+    if seg.ident == "dllexport" {
+        Ok(Some(Attribute::DllExport))
+    } else {
+        anyhow::bail!("bad win32_derive attribute")
+    }
+}
+
 /// Process one module, generating the wrapper functions and resolve helper.
 fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
     let buf = std::fs::read_to_string(path)?;
@@ -45,7 +64,14 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
     for item in &file.items {
         match item {
             syn::Item::Fn(func) => {
-                // if func.attrs.iter().any(|attr| attr.path.is_ident("winapi")) {
+                let mut dllexport = false;
+                for attr in func.attrs.iter() {
+                    if let Some(attr) = parse_attr(attr)? {
+                        match attr {
+                            Attribute::DllExport => dllexport = true,
+                        }
+                    }
+                }
 
                 let is_public = match func.vis {
                     syn::Visibility::Public(_) => true,
@@ -53,7 +79,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
                 };
                 let name = func.sig.ident.to_string();
                 let is_upper = name.chars().next().unwrap().is_uppercase();
-                if is_public && is_upper {
+                if (is_public && is_upper) || dllexport {
                     fns.push(process_fn(&module, func));
                     let ident = &func.sig.ident;
                     let quoted = ident.to_string();
