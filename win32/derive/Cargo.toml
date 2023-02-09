@@ -1,7 +1,10 @@
 [package]
-name = "gen"
+name = "win32-derive"
 version = "0.1.0"
 edition = "2021"
+
+[lib]
+proc-macro = true
 
 [dependencies]
 anyhow = "1.0"

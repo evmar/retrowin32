@@ -3,7 +3,7 @@ members = [
   "cli",
   "web/glue",
   "win32",
-  "win32/src/winapi/gen",
+  "win32/derive",
   "x86",
 ]
 
