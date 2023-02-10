@@ -108,6 +108,12 @@ pub fn mov_rm16_r16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn mov_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate16();
+    rm16_x(x86, instr, |_x86, _x| y);
+    Ok(())
+}
+
 pub fn mov_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = op1_rm8(x86, instr);
     x86.regs.set8(instr.op0_register(), value);
