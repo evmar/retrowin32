@@ -300,6 +300,13 @@ pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn xor_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.regs.get8(instr.op1_register());
+    rm8_x(x86, instr, |_x86, x| x ^ y);
+    // TODO: flags
+    Ok(())
+}
+
 fn add<I: Int + num_traits::ops::overflowing::OverflowingAdd>(x86: &mut X86, x: I, y: I) -> I {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let (result, carry) = x.overflowing_add(&y);
