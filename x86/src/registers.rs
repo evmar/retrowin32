@@ -200,7 +200,10 @@ impl Registers {
             + match reg {
                 iced_x86::Register::ST0 => 0,
                 iced_x86::Register::ST1 => 1,
-                _ => unreachable!("{reg:?}"),
+                iced_x86::Register::ST2 => 2,
+                iced_x86::Register::ST3 => 3,
+                iced_x86::Register::ST4 => 4,
+                _ => unreachable!("st_offset: {reg:?}"),
             }
     }
     pub fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
