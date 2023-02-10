@@ -92,6 +92,12 @@ pub fn fst_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn fst_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let f = *x86.regs.st_top();
+    x86.write_u32(x86_addr(x86, instr), (f as f32).to_bits());
+    Ok(())
+}
+
 pub fn fstp_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
     write_f64(x86, x86_addr(x86, instr), f);
