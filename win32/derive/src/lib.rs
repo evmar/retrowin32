@@ -53,6 +53,6 @@ pub fn shims_from_x86(
     let out = quote! {
         #module
     };
-    eprintln!("out {}", out);
+    // eprintln!("out {}", out);
     out.into()
 }
