@@ -43,7 +43,7 @@ impl<'a> Reader<'a> {
         Ok(())
     }
 
-    pub fn view<T: x86::Pod>(&mut self) -> &'a T {
+    pub fn read<T: x86::Pod>(&mut self) -> &'a T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>();
         t

@@ -20,7 +20,7 @@ use x86::Memory;
 fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
-    Ok(*r.view::<DWORD>())
+    Ok(*r.read::<DWORD>())
 }
 
 #[derive(Debug)]
@@ -85,9 +85,22 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub SizeOfHeapCommit: DWORD,
     pub LoaderFlags: DWORD,
     pub NumberOfRvaAndSizes: DWORD,
-    pub DataDirectory: [IMAGE_DATA_DIRECTORY; 16],
+    DataDirectory: [IMAGE_DATA_DIRECTORY; 0],
 }
 unsafe impl x86::Pod for IMAGE_OPTIONAL_HEADER32 {}
+impl IMAGE_OPTIONAL_HEADER32 {
+    pub fn data_directory(&self) -> &[IMAGE_DATA_DIRECTORY] {
+        unsafe {
+            std::slice::from_raw_parts(
+                &self.DataDirectory as *const IMAGE_DATA_DIRECTORY,
+                self.NumberOfRvaAndSizes as usize,
+            )
+        }
+    }
+    pub fn data_directory_size(&self) -> usize {
+        self.NumberOfRvaAndSizes as usize * size_of::<IMAGE_DATA_DIRECTORY>()
+    }
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -100,7 +113,7 @@ unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
-    let header: &'a IMAGE_FILE_HEADER = r.view::<IMAGE_FILE_HEADER>();
+    let header: &'a IMAGE_FILE_HEADER = r.read::<IMAGE_FILE_HEADER>();
     if header.Machine != 0x14c {
         bail!("bad machine {:?}", header.Machine);
     }
@@ -128,7 +141,7 @@ impl IMAGE_SECTION_HEADER {
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
         ImageSectionFlags::from_bits(self.Characteristics)
-            .ok_or_else(|| anyhow!("bad flags {:#x}", self.Characteristics))
+            .ok_or_else(|| anyhow!("unhandled PE flags {:#x}", self.Characteristics))
     }
 }
 
@@ -145,10 +158,6 @@ bitflags! {
     }
 }
 
-fn read_section<'a>(r: &mut Reader<'a>) -> &'a IMAGE_SECTION_HEADER {
-    r.view::<IMAGE_SECTION_HEADER>()
-}
-
 #[derive(Debug)]
 pub struct File<'a> {
     pub header: &'a IMAGE_FILE_HEADER,
@@ -162,17 +171,20 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
     let ofs = dos_header(&mut r)?;
     r.seek(ofs as usize)?;
 
-    let mut file = File {
-        header: pe_header(&mut r)?,
-        opt_header: r.view::<IMAGE_OPTIONAL_HEADER32>(),
-        sections: Vec::new(),
-    };
+    let header = pe_header(&mut r)?;
+    let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
+    r.skip(opt_header.data_directory_size())?;
 
-    for _ in 0..file.header.NumberOfSections {
-        file.sections.push(read_section(&mut r));
+    let mut sections = Vec::new();
+    for _ in 0..header.NumberOfSections {
+        sections.push(r.read::<IMAGE_SECTION_HEADER>());
     }
 
-    Ok(file)
+    Ok(File {
+        header,
+        opt_header,
+        sections,
+    })
 }
 
 #[derive(Debug)]
@@ -199,7 +211,7 @@ pub fn parse_imports(
     r.seek(addr)?;
     let mut patches = Vec::new();
     loop {
-        let descriptor = r.view::<IMAGE_IMPORT_DESCRIPTOR>();
+        let descriptor = r.read::<IMAGE_IMPORT_DESCRIPTOR>();
         if descriptor.Name == 0 {
             break;
         }
@@ -224,7 +236,7 @@ pub fn parse_imports(
         let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk as usize..]);
         loop {
             let addr = descriptor.FirstThunk + iat_reader.pos as u32;
-            let entry = *iat_reader.view::<DWORD>();
+            let entry = *iat_reader.read::<DWORD>();
             if entry == 0 {
                 break;
             }

@@ -21,7 +21,14 @@ pub fn load_exe(
         let dst = (base + sec.VirtualAddress) as usize;
         let size = sec.SizeOfRawData as usize;
         let flags = sec.characteristics()?;
-        if !flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA) {
+
+        // Load the section contents from the file, unless marked otherwise.
+        // But kkrunchy-packed files have a single section marked
+        // CODE | INITIALIZED_DATA | UNINITIALIZED_DATA | MEM_EXECUTE | MEM_READ | MEM_WRITE
+        // so we have to ignore the UNINITIALIZED_DATA flag in that case.
+        let skip_loading = flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA)
+            && !flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
+        if !skip_loading {
             machine.x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
         }
         machine
@@ -58,8 +65,9 @@ pub fn load_exe(
     machine.x86.regs.esp = stack_end;
     machine.x86.regs.ebp = stack_end;
 
+    let datadir = file.opt_header.data_directory();
     const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
-    let imports_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    let imports_data = &datadir[IMAGE_DIRECTORY_ENTRY_IMPORT];
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
         &mut machine.x86.mem[base as usize..],
@@ -80,7 +88,7 @@ pub fn load_exe(
     )?;
 
     const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
-    let res_data = &file.opt_header.DataDirectory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+    let res_data = &datadir[IMAGE_DIRECTORY_ENTRY_RESOURCE];
     machine.state.user32.resources_base = res_data.VirtualAddress;
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
