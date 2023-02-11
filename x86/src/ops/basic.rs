@@ -306,3 +306,16 @@ pub fn cdq(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 pub fn int3(_x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Err(StepError::Interrupt)
 }
+
+pub fn bswap_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let reg = instr.op0_register();
+    let val = x86.regs.get32(reg);
+    x86.regs.set32(
+        reg,
+        ((val >> 24) & 0xFF) << 0
+            | ((val >> 16) & 0xFF) << 8
+            | ((val >> 8) & 0xFF) << 16
+            | ((val >> 0) & 0xFF) << 24,
+    );
+    Ok(())
+}
