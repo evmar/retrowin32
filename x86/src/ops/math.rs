@@ -307,10 +307,14 @@ pub fn xor_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn add<I: Int + num_traits::ops::overflowing::OverflowingAdd>(x86: &mut X86, x: I, y: I) -> I {
+fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: I) -> I {
+    addc(x86, x, y, I::zero())
+}
+
+fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: I, z: I) -> I {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    let (result, carry) = x.overflowing_add(&y);
-    x86.regs.flags.set(Flags::CF, carry);
+    let result = x.wrapping_add(&y).wrapping_add(&z);
+    x86.regs.flags.set(Flags::CF, result < x);
     x86.regs.flags.set(Flags::ZF, result.is_zero());
     x86.regs
         .flags
@@ -377,6 +381,13 @@ pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     rm8_x(x86, instr, |x86, x| add(x86, x, y));
+    Ok(())
+}
+
+pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(x86, instr);
+    let carry = x86.regs.flags.contains(Flags::CF);
+    rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
     Ok(())
 }
 
