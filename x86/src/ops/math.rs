@@ -391,6 +391,13 @@ pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let carry = x86.regs.flags.contains(Flags::CF);
+    rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
+    Ok(())
+}
+
 // pub(crate) for use in the cmp opcode impl.
 pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
     x86: &mut X86,
