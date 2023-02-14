@@ -313,8 +313,11 @@ fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: 
 
 fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: I, z: I) -> I {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    let result = x.wrapping_add(&y).wrapping_add(&z);
-    x86.regs.flags.set(Flags::CF, result < x);
+    let y = y.wrapping_add(&z);
+    let result = x.wrapping_add(&y);
+    x86.regs
+        .flags
+        .set(Flags::CF, result < x || (y.is_zero() && !z.is_zero()));
     x86.regs.flags.set(Flags::ZF, result.is_zero());
     x86.regs
         .flags
@@ -402,7 +405,7 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     x86: &mut X86,
     x: I,
     y: I,
-    b: bool, // TODO
+    b: bool,
 ) -> I {
     let mut y = y;
     if b {
@@ -410,7 +413,9 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     }
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    x86.regs.flags.set(Flags::CF, carry);
+    x86.regs
+        .flags
+        .set(Flags::CF, carry || (b && y == I::zero()));
     x86.regs.flags.set(Flags::ZF, result.is_zero());
     x86.regs
         .flags
