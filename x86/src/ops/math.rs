@@ -398,12 +398,16 @@ pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub>(
+fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::WrappingAdd>(
     x86: &mut X86,
     x: I,
     y: I,
-    _b: bool, // TODO
+    b: bool, // TODO
 ) -> I {
+    let mut y = y;
+    if b {
+        y = y.wrapping_add(&I::one());
+    }
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     x86.regs.flags.set(Flags::CF, carry);
@@ -421,7 +425,9 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub>(
 }
 
 // pub(crate) for use in the cmp opcode impl.
-pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
+pub(crate) fn sub<
+    I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::WrappingAdd,
+>(
     x86: &mut X86,
     x: I,
     y: I,
