@@ -1,6 +1,14 @@
 add 3,5 => 8
 add 3,-3 => 0 CF ZF
 add 3,-5 => fffffffe SF
+adc (CF=1) 0xFF,0 => 0 CF ZF
+adc (CF=1) 0xFF,1 => 1 CF
+adc (CF=1) 0xFF,0xFE => fe CF SF
+adc (CF=1) 0xFF,0xFF => ff CF SF
+sbb (CF=1) 0,0 => ff CF SF
+sbb (CF=1) 0,1 => fe CF SF
+sbb (CF=1) 0,0xFE => 1 CF
+sbb (CF=1) 0,0xFF => 0 CF ZF
 shr 3,0 => 3
 shr 3,1 => 1 CF
 shr 3,2 => 0 CF ZF

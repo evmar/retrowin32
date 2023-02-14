@@ -44,6 +44,34 @@ void add() {
 #undef add
 }
 
+void adc() {
+#define adc(x,y) \
+  asm_start("adc (CF=1) " #x "," #y) \
+    __asm stc \
+    __asm mov al,x \
+    __asm adc al,y \
+  asm_end();
+  adc(0xFF, 0);
+  adc(0xFF, 1);
+  adc(0xFF, 0xFE);
+  adc(0xFF, 0xFF);
+#undef adc
+}
+
+void sbb() {
+#define sbb(x,y) \
+  asm_start("sbb (CF=1) " #x "," #y) \
+    __asm stc \
+    __asm mov al,x \
+    __asm sbb al,y \
+  asm_end();
+  sbb(0, 0);
+  sbb(0, 1);
+  sbb(0, 0xFE);
+  sbb(0, 0xFF);
+#undef sbb
+}
+
 void shr() {
 #define shr(x,y) \
   asm_start("shr " #x "," #y) \
@@ -96,8 +124,11 @@ void shl() {
 #undef shl
 }
 
+
 int main(void) {
   add();
+  adc();
+  sbb();
   shr();
   sar();
   shl();
