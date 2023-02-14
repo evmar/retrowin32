@@ -398,11 +398,11 @@ pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-// pub(crate) for use in the cmp opcode impl.
-pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
+fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub>(
     x86: &mut X86,
     x: I,
     y: I,
+    _b: bool, // TODO
 ) -> I {
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
@@ -418,6 +418,15 @@ pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
     let of = !(((x ^ y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
     x86.regs.flags.set(Flags::OF, of);
     result
+}
+
+// pub(crate) for use in the cmp opcode impl.
+pub(crate) fn sub<I: Int + num_traits::ops::overflowing::OverflowingSub>(
+    x86: &mut X86,
+    x: I,
+    y: I,
+) -> I {
+    sbb(x86, x, y, false)
 }
 
 pub fn sub_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
@@ -461,27 +470,23 @@ pub fn sub_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
-    let carry = x86.regs.flags.contains(Flags::CF) as u32;
-    let y = op1_rm32(x86, instr).wrapping_add(carry);
-    let value = sub(x86, x86.regs.get32(reg), y);
-    x86.regs.set32(reg, value);
+    let carry = x86.regs.flags.contains(Flags::CF);
+    let y = op1_rm32(x86, instr);
+    rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF) as u32;
-    let y = x86.regs.get32(instr.op1_register()) + carry;
-    rm32_x(x86, instr, |x86, x| sub(x86, x, y));
+    let carry = x86.regs.flags.contains(Flags::CF);
+    let y = x86.regs.get32(instr.op1_register());
+    rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
-    let carry = x86.regs.flags.contains(Flags::CF) as u8;
-    let y = op1_rm8(x86, instr).wrapping_add(carry);
-    let value = sub(x86, x86.regs.get8(reg), y);
-    x86.regs.set8(reg, value);
+    let carry = x86.regs.flags.contains(Flags::CF);
+    let y = op1_rm8(x86, instr);
+    rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
