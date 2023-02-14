@@ -496,6 +496,13 @@ pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn sbb_r8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let carry = x86.regs.flags.contains(Flags::CF);
+    let y = instr.immediate8();
+    rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    Ok(())
+}
+
 pub fn imul_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = x86.regs.get32(instr.op0_register());
     let y = op1_rm32(x86, instr);
