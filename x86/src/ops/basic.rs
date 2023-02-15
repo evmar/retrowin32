@@ -257,7 +257,9 @@ pub fn pushfw(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn popfd(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    x86.regs.flags = Flags::from_bits(pop(x86)).unwrap();
+    let value = pop(x86);
+    x86.regs.flags =
+        Flags::from_bits(value).unwrap_or_else(|| panic!("invalid flags {:#x}", value));
     Ok(())
 }
 
