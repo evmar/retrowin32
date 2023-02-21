@@ -172,7 +172,7 @@ pub mod kernel32 {
     }
     pub fn GetEnvironmentVariableA(machine: &mut Machine) {
         let name: Option<&str> = unsafe { from_x86(&mut machine.x86) };
-        let buf: &mut [u8] = unsafe { from_x86(&mut machine.x86) };
+        let buf: Option<&mut [u8]> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetEnvironmentVariableA(machine, name, buf).to_raw();
     }
@@ -182,7 +182,7 @@ pub mod kernel32 {
     }
     pub fn GetModuleFileNameA(machine: &mut Machine) {
         let hModule: HMODULE = unsafe { from_x86(&mut machine.x86) };
-        let filename: &mut [u8] = unsafe { from_x86(&mut machine.x86) };
+        let filename: Option<&mut [u8]> = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
             winapi::kernel32::GetModuleFileNameA(machine, hModule, filename).to_raw();
     }
@@ -333,7 +333,7 @@ pub mod kernel32 {
     }
     pub fn WriteFile(machine: &mut Machine) {
         let hFile: HFILE = unsafe { from_x86(&mut machine.x86) };
-        let lpBuffer: &[u8] = unsafe { from_x86(&mut machine.x86) };
+        let lpBuffer: Option<&[u8]> = unsafe { from_x86(&mut machine.x86) };
         let lpNumberOfBytesWritten: Option<&mut u32> = unsafe { from_x86(&mut machine.x86) };
         let lpOverlapped: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::WriteFile(

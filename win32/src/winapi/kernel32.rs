@@ -444,7 +444,7 @@ pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
 pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
-    buf: &mut [u8],
+    buf: Option<&mut [u8]>,
 ) -> usize {
     println!("name {:?} buf {:?}", name, buf);
     0
@@ -467,10 +467,10 @@ pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
 pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,
-    mut filename: &mut [u8],
+    filename: Option<&mut [u8]>,
 ) -> usize {
     assert!(hModule.is_null());
-    match filename.write(b"TODO.exe\0") {
+    match filename.unwrap().write(b"TODO.exe\0") {
         Ok(n) => n,
         Err(err) => {
             log::warn!("GetModuleFileNameA(): {}", err);
@@ -917,14 +917,14 @@ pub fn CreateFileW(
 pub fn WriteFile(
     machine: &mut Machine,
     hFile: HFILE,
-    lpBuffer: &[u8],
+    lpBuffer: Option<&[u8]>,
     lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
     assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
     assert!(lpOverlapped == 0);
 
-    let n = machine.host.write(lpBuffer);
+    let n = machine.host.write(lpBuffer.unwrap());
 
     // The docs say this parameter may not be null, but a test program with the param as null
     // runs fine on real Windows...
@@ -1134,7 +1134,7 @@ pub fn WriteConsoleW(
     if !WriteFile(
         machine,
         hConsoleOutput,
-        buf.as_bytes(),
+        Some(buf.as_bytes()),
         Some(&mut bytes_written),
         0,
     ) {

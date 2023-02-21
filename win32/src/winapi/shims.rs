@@ -58,24 +58,33 @@ impl<T: x86::Pod> FromX86 for Option<&mut T> {
         }
     }
 }
-impl FromX86 for &[u8] {
+impl FromX86 for Option<&[u8]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86::ops::pop(x86) as usize;
         let len = x86::ops::pop(x86) as usize;
-        smuggle(&x86.mem[ofs..ofs + len])
+        if ofs == 0 {
+            return None;
+        }
+        Some(smuggle(&x86.mem[ofs..ofs + len]))
     }
 }
-impl FromX86 for &mut [u8] {
+impl FromX86 for Option<&mut [u8]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86::ops::pop(x86) as usize;
         let len = x86::ops::pop(x86) as usize;
-        smuggle_mut(&mut x86.mem[ofs..ofs + len])
+        if ofs == 0 {
+            return None;
+        }
+        Some(smuggle_mut(&mut x86.mem[ofs..ofs + len]))
     }
 }
 impl FromX86 for Option<&[u16]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86::ops::pop(x86) as usize;
         let len = x86::ops::pop(x86) as usize;
+        if ofs == 0 {
+            return None;
+        }
         std::mem::transmute(&x86.mem[ofs..ofs + len])
     }
 }
@@ -83,6 +92,9 @@ impl FromX86 for Option<&mut [u16]> {
     unsafe fn from_x86(x86: &mut X86) -> Self {
         let ofs = x86::ops::pop(x86) as usize;
         let len = x86::ops::pop(x86) as usize;
+        if ofs == 0 {
+            return None;
+        }
         std::mem::transmute(&mut x86.mem[ofs..ofs + len])
     }
 }
