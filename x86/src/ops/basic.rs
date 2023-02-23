@@ -57,7 +57,8 @@ pub fn pop_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn pop_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = pop16(x86);
-    rm16_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm16(x86, instr);
+    *x = value;
     Ok(())
 }
 
@@ -107,13 +108,15 @@ pub fn mov_r16_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn mov_rm16_r16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get16(instr.op1_register());
-    rm16_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm16(x86, instr);
+    *x = y;
     Ok(())
 }
 
 pub fn mov_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm16(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -125,13 +128,15 @@ pub fn mov_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn mov_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get8(instr.op1_register());
-    rm8_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm8(x86, instr);
+    *x = y;
     Ok(())
 }
 
 pub fn mov_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm8(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -151,7 +156,8 @@ pub fn movsx_r32_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn movsx_r16_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr) as i8 as u16;
-    rm16_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm16(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -171,7 +177,8 @@ pub fn movzx_r32_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn movzx_r16_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr) as u16;
-    rm16_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm16(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -211,19 +218,22 @@ pub fn lea_r32_m(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn sete_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = x86.flags.contains(Flags::ZF) as u8;
-    rm8_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm8(x86, instr);
+    *x = value;
     Ok(())
 }
 
 pub fn setne_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = !x86.flags.contains(Flags::ZF) as u8;
-    rm8_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm8(x86, instr);
+    *x = value;
     Ok(())
 }
 
 pub fn setge_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = (x86.flags.contains(Flags::ZF) == x86.flags.contains(Flags::OF)) as u8;
-    rm8_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm8(x86, instr);
+    *x = value;
     Ok(())
 }
 
