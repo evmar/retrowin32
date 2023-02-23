@@ -79,13 +79,15 @@ pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn and_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| and(x, y, &mut x86.flags));
+    let (x, flags) = rm16(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
 pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| and(x, y, &mut x86.flags));
+    let (x, flags) = rm8(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
