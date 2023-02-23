@@ -86,6 +86,21 @@ pub fn rm16_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut
     }
 }
 
+pub fn rm16<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u16, &'a mut Flags) {
+    let dest = match instr.op0_kind() {
+        iced_x86::OpKind::Register => {
+            let reg = instr.op0_register();
+            x86.regs.get16_mut(reg)
+        }
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(x86, instr);
+            x86.mem.view_mut::<u16>(addr)
+        }
+        _ => unimplemented!(),
+    };
+    (dest, &mut x86.flags)
+}
+
 pub fn rm8_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u8) -> u8) {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => {
@@ -102,6 +117,21 @@ pub fn rm8_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut 
         }
         _ => unimplemented!(),
     }
+}
+
+pub fn rm8<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u8, &'a mut Flags) {
+    let dest = match instr.op0_kind() {
+        iced_x86::OpKind::Register => {
+            let reg = instr.op0_register();
+            x86.regs.get8_mut(reg)
+        }
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(x86, instr);
+            x86.mem.view_mut::<u8>(addr)
+        }
+        _ => unimplemented!(),
+    };
+    (dest, &mut x86.flags)
 }
 
 pub fn op0_rm32(x86: &mut X86, instr: &iced_x86::Instruction) -> u32 {

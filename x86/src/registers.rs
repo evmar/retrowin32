@@ -138,6 +138,28 @@ impl Registers {
         }
     }
 
+    pub fn get16_mut(&mut self, reg: iced_x86::Register) -> &mut u16 {
+        unsafe {
+            match reg {
+                iced_x86::Register::AX => &mut *(&mut self.eax as *mut u32 as *mut u16),
+                iced_x86::Register::CX => &mut *(&mut self.ecx as *mut u32 as *mut u16),
+                iced_x86::Register::DX => &mut *(&mut self.edx as *mut u32 as *mut u16),
+                iced_x86::Register::BX => &mut *(&mut self.ebx as *mut u32 as *mut u16),
+                iced_x86::Register::SP => &mut *(&mut self.esp as *mut u32 as *mut u16),
+                iced_x86::Register::BP => &mut *(&mut self.ebp as *mut u32 as *mut u16),
+                iced_x86::Register::SI => &mut *(&mut self.esi as *mut u32 as *mut u16),
+                iced_x86::Register::DI => &mut *(&mut self.edi as *mut u32 as *mut u16),
+                iced_x86::Register::ES => &mut self.es,
+                iced_x86::Register::CS => &mut self.cs,
+                iced_x86::Register::SS => &mut self.ss,
+                iced_x86::Register::DS => &mut self.ds,
+                iced_x86::Register::FS => &mut self.fs,
+                iced_x86::Register::GS => &mut self.gs,
+                _ => unreachable!("{reg:?}"),
+            }
+        }
+    }
+
     pub fn get8(&self, reg: iced_x86::Register) -> u8 {
         match reg {
             iced_x86::Register::AL => self.eax as u8,
@@ -149,6 +171,22 @@ impl Registers {
             iced_x86::Register::DH => (self.edx >> 8) as u8,
             iced_x86::Register::BH => (self.ebx >> 8) as u8,
             _ => unreachable!("{reg:?}"),
+        }
+    }
+
+    pub fn get8_mut(&mut self, reg: iced_x86::Register) -> &mut u8 {
+        unsafe {
+            match reg {
+                iced_x86::Register::AL => &mut *(&mut self.eax as *mut u32 as *mut u8),
+                iced_x86::Register::CL => &mut *(&mut self.ecx as *mut u32 as *mut u8),
+                iced_x86::Register::DL => &mut *(&mut self.edx as *mut u32 as *mut u8),
+                iced_x86::Register::BL => &mut *(&mut self.ebx as *mut u32 as *mut u8),
+                iced_x86::Register::AH => &mut *(&mut self.eax as *mut u32 as *mut u8).add(1),
+                iced_x86::Register::CH => &mut *(&mut self.ecx as *mut u32 as *mut u8).add(1),
+                iced_x86::Register::DH => &mut *(&mut self.edx as *mut u32 as *mut u8).add(1),
+                iced_x86::Register::BH => &mut *(&mut self.ebx as *mut u32 as *mut u8).add(1),
+                _ => unreachable!("{reg:?}"),
+            }
         }
     }
 
