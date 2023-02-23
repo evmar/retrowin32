@@ -38,35 +38,35 @@ pub fn jmp_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn ja(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if !x86.regs.flags.contains(Flags::CF) && !x86.regs.flags.contains(Flags::ZF) {
+    if !x86.flags.contains(Flags::CF) && !x86.flags.contains(Flags::ZF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jae(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if !x86.regs.flags.contains(Flags::CF) {
+    if !x86.flags.contains(Flags::CF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::CF) {
+    if x86.flags.contains(Flags::CF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jbe(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::CF) || x86.regs.flags.contains(Flags::ZF) {
+    if x86.flags.contains(Flags::CF) || x86.flags.contains(Flags::ZF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn je(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::ZF) {
+    if x86.flags.contains(Flags::ZF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
@@ -80,22 +80,22 @@ pub fn jecxz(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn jne(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if !x86.regs.flags.contains(Flags::ZF) {
+    if !x86.flags.contains(Flags::ZF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jns(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if !x86.regs.flags.contains(Flags::SF) {
+    if !x86.flags.contains(Flags::SF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jg(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if !x86.regs.flags.contains(Flags::ZF)
-        && (x86.regs.flags.contains(Flags::SF) == x86.regs.flags.contains(Flags::OF))
+    if !x86.flags.contains(Flags::ZF)
+        && (x86.flags.contains(Flags::SF) == x86.flags.contains(Flags::OF))
     {
         x86_jmp(x86, instr.near_branch32())?;
     }
@@ -103,15 +103,15 @@ pub fn jg(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn jge(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::SF) == x86.regs.flags.contains(Flags::OF) {
+    if x86.flags.contains(Flags::SF) == x86.flags.contains(Flags::OF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn jle(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::ZF)
-        || (x86.regs.flags.contains(Flags::SF) != x86.regs.flags.contains(Flags::OF))
+    if x86.flags.contains(Flags::ZF)
+        || (x86.flags.contains(Flags::SF) != x86.flags.contains(Flags::OF))
     {
         x86_jmp(x86, instr.near_branch32())?;
     }
@@ -119,14 +119,14 @@ pub fn jle(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn jl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::SF) != x86.regs.flags.contains(Flags::OF) {
+    if x86.flags.contains(Flags::SF) != x86.flags.contains(Flags::OF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())
 }
 
 pub fn js(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::SF) {
+    if x86.flags.contains(Flags::SF) {
         x86_jmp(x86, instr.near_branch32())?;
     }
     Ok(())

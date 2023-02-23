@@ -205,10 +205,10 @@ impl Emulator {
     }
     #[wasm_bindgen(getter)]
     pub fn flags(&self) -> u32 {
-        self.runner.machine.x86.regs.flags.bits()
+        self.runner.machine.x86.flags.bits()
     }
     pub fn flags_str(&self) -> String {
-        format!("{:?}", self.runner.machine.x86.regs.flags)
+        format!("{:?}", self.runner.machine.x86.flags)
     }
 
     pub fn st(&self) -> Box<[f64]> {

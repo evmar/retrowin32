@@ -55,8 +55,6 @@ pub struct Registers {
     /// Address that FS-relative accesses point to.
     pub fs_addr: u32,
 
-    pub flags: Flags,
-
     /// FPU registers.
     pub st: [f64; 8],
     /// Top of FPU stack; 8 when stack empty.
@@ -88,7 +86,6 @@ impl Registers {
             gs: 0,
             ss: 0,
             fs_addr: 0,
-            flags: Flags::empty(),
 
             st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
             st_top: 8,

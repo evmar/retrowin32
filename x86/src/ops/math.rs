@@ -43,11 +43,10 @@ impl Int for u8 {
 pub(crate) fn and<I: Int>(x86: &mut X86, x: I, y: I) -> I {
     let result = x & y;
     // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result.is_zero());
-    x86.regs
-        .flags
+    x86.flags.set(Flags::ZF, result.is_zero());
+    x86.flags
         .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
-    x86.regs.flags.set(Flags::OF, false);
+    x86.flags.set(Flags::OF, false);
     result
 }
 
@@ -92,7 +91,7 @@ pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 fn or<I: Int>(x86: &mut X86, x: I, y: I) -> I {
     let result = x | y;
     // XXX More flags.
-    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    x86.flags.set(Flags::ZF, result.is_zero());
     result
 }
 
@@ -133,17 +132,17 @@ fn shl<I: Int + num_traits::WrappingShl>(x86: &mut X86, x: I, y: u8) -> I {
     // Carry is the highest bit that will be shifted out.
     let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
     let val = x.wrapping_shl(y.as_usize() as u32);
-    x86.regs.flags.set(Flags::CF, cf);
+    x86.flags.set(Flags::CF, cf);
     let msb = val.shr(I::bits() - 1).is_one();
-    x86.regs.flags.set(Flags::SF, msb);
+    x86.flags.set(Flags::SF, msb);
     // OF undefined for shifts != 1, but this matches what Windows machine does, and also docs:
     // "For left shifts, the OF flag is set to 0 if the mostsignificant bit of the result is the
     // same as the CF flag (that is, the top two bits of the original operand were the same) [...]"
-    x86.regs.flags.set(
+    x86.flags.set(
         Flags::OF,
         x.shr(I::bits() - 1).is_one() ^ (x.shr(I::bits() - 2) & I::one()).is_one(),
     );
-    x86.regs.flags.set(Flags::ZF, val.is_zero());
+    x86.flags.set(Flags::ZF, val.is_zero());
 
     val
 }
@@ -176,18 +175,15 @@ fn shr<I: Int>(x86: &mut X86, x: I, y: u8) -> I {
     if y == 0 {
         return x; // Don't affect flags.
     }
-    x86.regs
-        .flags
+    x86.flags
         .set(Flags::CF, ((x >> (y - 1) as usize) & I::one()).is_one());
     let val = x >> y as usize;
-    x86.regs.flags.set(Flags::SF, false); // ?
-    x86.regs.flags.set(Flags::ZF, val.is_zero());
+    x86.flags.set(Flags::SF, false); // ?
+    x86.flags.set(Flags::ZF, val.is_zero());
 
     // Note: OF state undefined for shifts > 1 bit, but the following behavior
     // matches what my Windows box does in practice.
-    x86.regs
-        .flags
-        .set(Flags::OF, (x >> (I::bits() - 1)).is_one());
+    x86.flags.set(Flags::OF, (x >> (I::bits() - 1)).is_one());
     val
 }
 
@@ -212,17 +208,14 @@ fn sar<I: Int>(x86: &mut X86, x: I, y: I) -> I {
     if y.is_zero() {
         return x;
     }
-    x86.regs
-        .flags
+    x86.flags
         .set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
-    x86.regs.flags.set(Flags::OF, false);
+    x86.flags.set(Flags::OF, false);
     // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
     let result = x.signed_shr(y.as_usize() as u32);
 
-    x86.regs
-        .flags
-        .set(Flags::SF, result.shr(I::bits() - 1).is_one());
-    x86.regs.flags.set(Flags::ZF, result.is_zero());
+    x86.flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
+    x86.flags.set(Flags::ZF, result.is_zero());
     result
 }
 
@@ -249,10 +242,8 @@ pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     rm32_x(x86, instr, |x86, x| {
         let out = x.rotate_right(y as u32);
         let msb = (out & 0x8000_0000) != 0;
-        x86.regs.flags.set(Flags::CF, msb);
-        x86.regs
-            .flags
-            .set(Flags::OF, msb ^ ((out & 04000_0000) != 0));
+        x86.flags.set(Flags::CF, msb);
+        x86.flags.set(Flags::OF, msb ^ ((out & 04000_0000) != 0));
         out
     });
     Ok(())
@@ -261,10 +252,10 @@ pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 fn xor32(x86: &mut X86, x: u32, y: u32) -> u32 {
     let result = x ^ y;
     // The OF and CF flags are cleared; the SF, ZF, and PF flags are set according to the result. The state of the AF flag is undefined.
-    x86.regs.flags.remove(Flags::OF);
-    x86.regs.flags.remove(Flags::CF);
-    x86.regs.flags.set(Flags::ZF, result == 0);
-    x86.regs.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+    x86.flags.remove(Flags::OF);
+    x86.flags.remove(Flags::CF);
+    x86.flags.set(Flags::ZF, result == 0);
+    x86.flags.set(Flags::SF, result & 0x8000_0000 != 0);
     result
 }
 
@@ -315,19 +306,17 @@ fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y:
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let y = y.wrapping_add(&z);
     let result = x.wrapping_add(&y);
-    x86.regs
-        .flags
+    x86.flags
         .set(Flags::CF, result < x || (y.is_zero() && !z.is_zero()));
-    x86.regs.flags.set(Flags::ZF, result.is_zero());
-    x86.regs
-        .flags
+    x86.flags.set(Flags::ZF, result.is_zero());
+    x86.flags
         .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  0  1
     //   1  1  0
     let of = !(((x ^ !y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
-    x86.regs.flags.set(Flags::OF, of);
+    x86.flags.set(Flags::OF, of);
     result
 }
 
@@ -389,14 +378,14 @@ pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
     Ok(())
 }
 
 pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
     Ok(())
 }
@@ -413,19 +402,16 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     }
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    x86.regs
-        .flags
-        .set(Flags::CF, carry || (b && y == I::zero()));
-    x86.regs.flags.set(Flags::ZF, result.is_zero());
-    x86.regs
-        .flags
+    x86.flags.set(Flags::CF, carry || (b && y == I::zero()));
+    x86.flags.set(Flags::ZF, result.is_zero());
+    x86.flags
         .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  1  1
     //   1  0  0
     let of = !(((x ^ y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
-    x86.regs.flags.set(Flags::OF, of);
+    x86.flags.set(Flags::OF, of);
     result
 }
 
@@ -481,35 +467,35 @@ pub fn sub_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     let y = op1_rm32(x86, instr);
     rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     let y = x86.regs.get32(instr.op1_register());
     rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     let y = instr.immediate8to32() as u32;
     rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     let y = op1_rm8(x86, instr);
     rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
 }
 
 pub fn sbb_r8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.regs.flags.contains(Flags::CF);
+    let carry = x86.flags.contains(Flags::CF);
     let y = instr.immediate8();
     rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
     Ok(())
@@ -581,7 +567,7 @@ pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     rm32_x(x86, instr, |x86, x| {
-        x86.regs.flags.set(Flags::CF, x != 0);
+        x86.flags.set(Flags::CF, x != 0);
         // TODO: other flags registers.
         -(x as i32) as u32
     });
@@ -590,7 +576,7 @@ pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn neg_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     rm8_x(x86, instr, |x86, x| {
-        x86.regs.flags.set(Flags::CF, x != 0);
+        x86.flags.set(Flags::CF, x != 0);
         // TODO: other flags registers.
         -(x as i8) as u8
     });

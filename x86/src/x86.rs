@@ -1,6 +1,11 @@
 //! The central x86 machine object.
 
-use crate::{memory::Memory, ops, registers::Registers, StepError, StepResult};
+use crate::{
+    memory::Memory,
+    ops,
+    registers::{Flags, Registers},
+    StepError, StepResult,
+};
 use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 
@@ -11,6 +16,9 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 pub struct X86 {
     pub mem: Vec<u8>,
     pub regs: Registers,
+    // Flags are in principle a register but we hold it outside of regs for lifetime reasons,
+    // because there are operations we want to do over mut regs and flags at the same time.
+    pub flags: Flags,
     /// Toggled on by breakpoints/process exit.
     // TODO: this is gross, because we must check it after every instruction.
     // It would be nice if there was some more clever way to thread process exit...
@@ -32,6 +40,7 @@ impl X86 {
         X86 {
             mem: Vec::new(),
             regs,
+            flags: Flags::empty(),
             stopped: false,
             crashed: None,
         }

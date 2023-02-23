@@ -203,19 +203,19 @@ pub fn lea_r32_m(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn sete_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let value = x86.regs.flags.contains(Flags::ZF) as u8;
+    let value = x86.flags.contains(Flags::ZF) as u8;
     rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn setne_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let value = !x86.regs.flags.contains(Flags::ZF) as u8;
+    let value = !x86.flags.contains(Flags::ZF) as u8;
     rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
 
 pub fn setge_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let value = (x86.regs.flags.contains(Flags::ZF) == x86.regs.flags.contains(Flags::OF)) as u8;
+    let value = (x86.flags.contains(Flags::ZF) == x86.flags.contains(Flags::OF)) as u8;
     rm8_x(x86, instr, |_x86, _x| value);
     Ok(())
 }
@@ -246,48 +246,47 @@ pub fn popad(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn pushfd(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    push(x86, x86.regs.flags.bits());
+    push(x86, x86.flags.bits());
     Ok(())
 }
 
 pub fn pushfw(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    let value = (x86.regs.flags.bits() & 0x0000_FFFF) as u16;
+    let value = (x86.flags.bits() & 0x0000_FFFF) as u16;
     push16(x86, value);
     Ok(())
 }
 
 pub fn popfd(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     let value = pop(x86);
-    x86.regs.flags =
-        Flags::from_bits(value).unwrap_or_else(|| panic!("invalid flags {:#x}", value));
+    x86.flags = Flags::from_bits(value).unwrap_or_else(|| panic!("invalid flags {:#x}", value));
     Ok(())
 }
 
 pub fn popfw(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    let prev = Flags::from_bits(x86.regs.flags.bits() & 0xFFFF_0000).unwrap();
+    let prev = Flags::from_bits(x86.flags.bits() & 0xFFFF_0000).unwrap();
     let new = Flags::from_bits(pop16(x86) as u32).unwrap();
-    x86.regs.flags = prev.union(new);
+    x86.flags = prev.union(new);
     Ok(())
 }
 
 pub fn sahf(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     let ah = (x86.regs.eax >> 8) as u8;
-    x86.regs.flags = Flags::from_bits((x86.regs.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
+    x86.flags = Flags::from_bits((x86.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
     Ok(())
 }
 
 pub fn std(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    x86.regs.flags.insert(Flags::DF);
+    x86.flags.insert(Flags::DF);
     Ok(())
 }
 
 pub fn cld(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    x86.regs.flags.remove(Flags::DF);
+    x86.flags.remove(Flags::DF);
     Ok(())
 }
 
 pub fn stc(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    x86.regs.flags.insert(Flags::CF);
+    x86.flags.insert(Flags::CF);
     Ok(())
 }
 

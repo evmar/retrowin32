@@ -4,7 +4,7 @@ use iced_x86::Instruction;
 use crate::{memory::Memory, registers::Flags, x86::X86, StepError, StepResult};
 
 pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    assert!(x86.regs.flags.contains(Flags::DF)); // TODO
+    assert!(x86.flags.contains(Flags::DF)); // TODO
     let p1 = x86.regs.esi as usize;
     let p2 = x86.regs.edi as usize;
     let count = x86.regs.ecx as usize;
@@ -27,7 +27,7 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
-    let reverse = x86.regs.flags.contains(Flags::DF);
+    let reverse = x86.flags.contains(Flags::DF);
     let step = if reverse {
         -(size as isize) as usize
     } else {
@@ -66,7 +66,7 @@ pub fn movsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn scas(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    assert!(x86.regs.flags.contains(Flags::DF)); // TODO
+    assert!(x86.flags.contains(Flags::DF)); // TODO
     let src = x86.regs.edi as usize;
     let value = x86.regs.eax as u8;
     let count = x86.regs.ecx as usize;
@@ -94,7 +94,7 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
     if instr.has_rep_prefix() {
         let count = x86.regs.ecx as usize;
-        let reverse = x86.regs.flags.contains(Flags::DF);
+        let reverse = x86.flags.contains(Flags::DF);
         if reverse && count > 1 {
             dst -= (count - 1) * 4;
         }
@@ -120,7 +120,7 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    assert!(!x86.regs.flags.contains(Flags::DF)); // TODO
+    assert!(!x86.flags.contains(Flags::DF)); // TODO
 
     let dst = x86.regs.edi as usize;
     let value = x86.regs.eax as u8;
@@ -139,7 +139,7 @@ pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
-    if x86.regs.flags.contains(Flags::DF) {
+    if x86.flags.contains(Flags::DF) {
         return Err(StepError::Error("TODO DF".into()));
     }
 
