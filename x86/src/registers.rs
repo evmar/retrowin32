@@ -95,6 +95,15 @@ impl Registers {
         }
     }
 
+    pub fn get32_mut(&mut self, reg: iced_x86::Register) -> &mut u32 {
+        // XXX move comments from get32 here and rename once everything moved.
+        let idx = reg as usize - iced_x86::Register::EAX as usize;
+        if idx >= 8 {
+            unreachable!("{reg:?}");
+        }
+        unsafe { &mut *(self as *mut Registers as *mut u32).add(idx) }
+    }
+
     pub fn get32(&self, reg: iced_x86::Register) -> u32 {
         // This function is hot in profiles, and even if we write
         // a match statement that maps register N to struct offset 4*N,

@@ -40,51 +40,52 @@ impl Int for u8 {
 }
 
 // pub(crate) for use in the test opcode impl.
-pub(crate) fn and<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x & y;
     // XXX More flags.
-    x86.flags.set(Flags::ZF, result.is_zero());
-    x86.flags
-        .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
-    x86.flags.set(Flags::OF, false);
+    flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::OF, false);
     result
 }
 
 pub fn and_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| and(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
 pub fn and_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| and(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
 pub fn and_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| and(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
 pub fn and_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
     let y = op1_rm32(x86, instr);
-    let value = x86.regs.get32(reg) & y;
-    x86.regs.set32(reg, value);
+    let (x, flags) = rm32(x86, instr);
+    *x = and(*x, y, flags);
     Ok(())
 }
 
 pub fn and_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| and(x86, x, y));
+    rm16_x(x86, instr, |x86, x| and(x, y, &mut x86.flags));
     Ok(())
 }
 
 pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| and(x86, x, y));
+    rm8_x(x86, instr, |x86, x| and(x, y, &mut x86.flags));
     Ok(())
 }
 

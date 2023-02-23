@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::X86, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE};
+use crate::{registers::Flags, x86::X86, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE};
 
 pub fn read_u64(x86: &X86, addr: u32) -> u64 {
     if addr < NULL_POINTER_REGION_SIZE {
@@ -51,6 +51,21 @@ pub fn rm32_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut
         }
         _ => unimplemented!(),
     }
+}
+
+pub fn rm32<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u32, &'a mut Flags) {
+    let dest = match instr.op0_kind() {
+        iced_x86::OpKind::Register => {
+            let reg = instr.op0_register();
+            x86.regs.get32_mut(reg)
+        }
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(x86, instr);
+            x86.mem.view_mut::<u32>(addr)
+        }
+        _ => unimplemented!(),
+    };
+    (dest, &mut x86.flags)
 }
 
 pub fn rm16_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u16) -> u16) {

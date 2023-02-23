@@ -81,37 +81,37 @@ pub fn cmp_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn test_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let x = op0_rm32(x86, instr);
     let y = x86.regs.get32(instr.op1_register());
-    and(x86, x, y);
+    let (x, flags) = rm32(x86, instr);
+    and(*x, y, flags);
     Ok(())
 }
 
 pub fn test_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let x = op0_rm32(x86, instr);
     let y = instr.immediate32();
-    and(x86, x, y);
+    let (x, flags) = rm32(x86, instr);
+    and(*x, y, flags);
     Ok(())
 }
 
 pub fn test_rm16_r16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op0_rm16(x86, instr);
     let y = x86.regs.get16(instr.op1_register());
-    and(x86, x, y);
+    and(x, y, &mut x86.flags);
     Ok(())
 }
 
 pub fn test_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op0_rm8(x86, instr);
     let y = x86.regs.get8(instr.op1_register());
-    and(x86, x, y);
+    and(x, y, &mut x86.flags);
     Ok(())
 }
 
 pub fn test_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op0_rm8(x86, instr);
     let y = instr.immediate8();
-    and(x86, x, y);
+    and(x, y, &mut x86.flags);
     Ok(())
 }
 
