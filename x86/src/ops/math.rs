@@ -585,14 +585,16 @@ pub fn dec_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let (x, _flags) = rm32(x86, instr);
     // TODO: flags.  Note that it's not add(1) because CF should be preserved.
-    rm32_x(x86, instr, |_x86, x| x + 1);
+    *x = x.wrapping_add(1);
     Ok(())
 }
 
 pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let (x, _flags) = rm8(x86, instr);
     // TODO: flags.  Note that it's not add(1) because CF should be preserved.
-    rm8_x(x86, instr, |_x86, x| x.wrapping_add(1));
+    *x = x.wrapping_add(1);
     Ok(())
 }
 
