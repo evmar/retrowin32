@@ -216,36 +216,38 @@ pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn sar<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     if y.is_zero() {
         return x;
     }
-    x86.flags
-        .set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
-    x86.flags.set(Flags::OF, false);
+    flags.set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
+    flags.set(Flags::OF, false);
     // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
     let result = x.signed_shr(y.as_usize() as u32);
 
-    x86.flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
-    x86.flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
+    flags.set(Flags::ZF, result.is_zero());
     result
 }
 
 pub fn sar_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8() as u32;
-    rm32_x(x86, instr, |x86, x| sar(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = sar(*x, y, flags);
     Ok(())
 }
 
 pub fn sar_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.ecx as u8 as u32;
-    rm32_x(x86, instr, |x86, x| sar(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = sar(*x, y, flags);
     Ok(())
 }
 
 pub fn sar_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8() as u8;
-    rm8_x(x86, instr, |x86, x| sar(x86, x, y));
+    let (x, flags) = rm8(x86, instr);
+    *x = sar(*x, y, flags);
     Ok(())
 }
 
