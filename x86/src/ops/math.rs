@@ -262,52 +262,55 @@ pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn xor32(x86: &mut X86, x: u32, y: u32) -> u32 {
+fn xor<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x ^ y;
     // The OF and CF flags are cleared; the SF, ZF, and PF flags are set according to the result. The state of the AF flag is undefined.
-    x86.flags.remove(Flags::OF);
-    x86.flags.remove(Flags::CF);
-    x86.flags.set(Flags::ZF, result == 0);
-    x86.flags.set(Flags::SF, result & 0x8000_0000 != 0);
+    flags.remove(Flags::OF);
+    flags.remove(Flags::CF);
+    flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     result
 }
 
 pub fn xor_rm32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm32(x86, instr);
-    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
 pub fn xor_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
 pub fn xor_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| xor32(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
 pub fn xor_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |_x86, x| x ^ y);
-    // TODO: flags
+    let (x, flags) = rm8(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
 pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
-    rm8_x(x86, instr, |_x86, x| x ^ y);
-    // TODO: flags
+    let (x, flags) = rm8(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
 pub fn xor_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get8(instr.op1_register());
-    rm8_x(x86, instr, |_x86, x| x ^ y);
-    // TODO: flags
+    let (x, flags) = rm8(x86, instr);
+    *x = xor(*x, y, flags);
     Ok(())
 }
 
