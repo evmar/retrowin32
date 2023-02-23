@@ -89,86 +89,91 @@ pub fn and_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn or<I: Int>(x86: &mut X86, x: I, y: I) -> I {
+fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x | y;
     // XXX More flags.
-    x86.flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::ZF, result.is_zero());
     result
 }
 
 pub fn or_rm32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm32(x86, instr);
-    rm32_x(x86, instr, |x86, x| or(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = or(*x, y, flags);
     Ok(())
 }
 
 pub fn or_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| or(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = or(*x, y, flags);
     Ok(())
 }
 
 pub fn or_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| or(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = or(*x, y, flags);
     Ok(())
 }
 
 pub fn or_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| or(x86, x, y));
+    rm16_x(x86, instr, |x86, x| or(x, y, &mut x86.flags));
     Ok(())
 }
 
 pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| or(x86, x, y));
+    rm8_x(x86, instr, |x86, x| or(x, y, &mut x86.flags));
     Ok(())
 }
 
-fn shl<I: Int + num_traits::WrappingShl>(x86: &mut X86, x: I, y: u8) -> I {
+fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x;
     }
     // Carry is the highest bit that will be shifted out.
     let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
     let val = x.wrapping_shl(y.as_usize() as u32);
-    x86.flags.set(Flags::CF, cf);
+    flags.set(Flags::CF, cf);
     let msb = val.shr(I::bits() - 1).is_one();
-    x86.flags.set(Flags::SF, msb);
+    flags.set(Flags::SF, msb);
     // OF undefined for shifts != 1, but this matches what Windows machine does, and also docs:
     // "For left shifts, the OF flag is set to 0 if the mostsignificant bit of the result is the
     // same as the CF flag (that is, the top two bits of the original operand were the same) [...]"
-    x86.flags.set(
+    flags.set(
         Flags::OF,
         x.shr(I::bits() - 1).is_one() ^ (x.shr(I::bits() - 2) & I::one()).is_one(),
     );
-    x86.flags.set(Flags::ZF, val.is_zero());
+    flags.set(Flags::ZF, val.is_zero());
 
     val
 }
 
 pub fn shl_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm32_x(x86, instr, |x86, x| shl(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = shl(*x, y, flags);
     Ok(())
 }
 
 pub fn shl_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.ecx as u8;
-    rm32_x(x86, instr, |x86, x| shl(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = shl(*x, y, flags);
     Ok(())
 }
 
 pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.ecx as u8;
-    rm8_x(x86, instr, |x86, x| shl(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl(x, y, &mut x86.flags));
     Ok(())
 }
 
 pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| shl(x86, x, y));
+    rm8_x(x86, instr, |x86, x| shl(x, y, &mut x86.flags));
     Ok(())
 }
 
