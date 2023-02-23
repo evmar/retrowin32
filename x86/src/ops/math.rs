@@ -599,20 +599,18 @@ pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn neg_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    rm32_x(x86, instr, |x86, x| {
-        x86.flags.set(Flags::CF, x != 0);
-        // TODO: other flags registers.
-        -(x as i32) as u32
-    });
+    let (x, flags) = rm32(x86, instr);
+    flags.set(Flags::CF, *x != 0);
+    // TODO: other flags registers.
+    *x = -(*x as i32) as u32;
     Ok(())
 }
 
 pub fn neg_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    rm8_x(x86, instr, |x86, x| {
-        x86.flags.set(Flags::CF, x != 0);
-        // TODO: other flags registers.
-        -(x as i8) as u8
-    });
+    let (x, flags) = rm8(x86, instr);
+    flags.set(Flags::CF, *x != 0);
+    // TODO: other flags registers.
+    *x = -(*x as i8) as u8;
     Ok(())
 }
 
