@@ -50,7 +50,8 @@ pub fn push_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn pop_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = pop(x86);
-    rm32_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm32(x86, instr);
+    *x = value;
     Ok(())
 }
 
@@ -63,7 +64,8 @@ pub fn pop_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 pub fn mov_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     // mov dword ptr [x], y
     // TODO: why is this 'rm32' when there is an r32 variant just below?
-    rm32_x(x86, instr, |_x86, _x| instr.immediate32());
+    let (x, _flags) = rm32(x86, instr);
+    *x = instr.immediate32();
     Ok(())
 }
 
@@ -86,7 +88,8 @@ pub fn mov_eax_moffs32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn mov_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |_x86, _x| value);
+    let (x, _flags) = rm32(x86, instr);
+    *x = value;
     Ok(())
 }
 
@@ -134,13 +137,15 @@ pub fn mov_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn movsx_r32_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm16(x86, instr) as i16 as u32;
-    rm32_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm32(x86, instr);
+    *x = y;
     Ok(())
 }
 
 pub fn movsx_r32_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr) as i8 as u32;
-    rm32_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm32(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -152,13 +157,15 @@ pub fn movsx_r16_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn movzx_r32_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm16(x86, instr) as u32;
-    rm32_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm32(x86, instr);
+    *x = y;
     Ok(())
 }
 
 pub fn movzx_r32_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr) as u32;
-    rm32_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm32(x86, instr);
+    *x = y;
     Ok(())
 }
 
@@ -170,11 +177,11 @@ pub fn movzx_r16_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn xchg_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let r1 = instr.op1_register();
-    rm32_x(x86, instr, |x86, x| {
-        let tmp = x86.regs.get32(r1);
-        x86.regs.set32(r1, x);
-        tmp
-    });
+    let y = x86.regs.get32(r1);
+    let (x, _flags) = rm32(x86, instr);
+    let tmp = *x;
+    *x = y;
+    x86.regs.set32(r1, tmp);
     Ok(())
 }
 
