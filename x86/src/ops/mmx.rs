@@ -34,7 +34,8 @@ pub fn movd_mm_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn movd_rm32_mm(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get64(instr.op1_register()) as u32;
-    rm32_x(x86, instr, |_x86, _x| y);
+    let (x, _flags) = rm32(x86, instr);
+    *x = y;
     Ok(())
 }
 
