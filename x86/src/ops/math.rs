@@ -615,6 +615,7 @@ pub fn neg_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn not_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    rm32_x(x86, instr, |_x86, x| !x);
+    let (x, _flags) = rm32(x86, instr);
+    *x = !*x;
     Ok(())
 }
