@@ -19,7 +19,7 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
         x86.regs.ecx -= pos as u32;
         let x = x86.read_u8(x86.regs.esi);
         let y = x86.read_u8(x86.regs.edi);
-        sub(x86, x, y);
+        sub(x, y, &mut x86.flags);
     } else {
         return Err(StepError::Error("unimpl".into()));
     }
@@ -78,9 +78,9 @@ pub fn scas(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
         x86.regs.edi += pos as u32;
         x86.regs.ecx -= pos as u32;
         sub(
-            x86,
             x86.regs.get8(iced_x86::Register::AL),
             x86.regs.get8(iced_x86::Register::DL),
+            &mut x86.flags,
         );
     } else {
         return Err(StepError::Error("unimpl".into()));

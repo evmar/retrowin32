@@ -414,10 +414,10 @@ pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::WrappingAdd>(
-    x86: &mut X86,
     x: I,
     y: I,
     b: bool,
+    flags: &mut Flags,
 ) -> I {
     let mut y = y;
     if b {
@@ -425,16 +425,15 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
     }
     let (result, carry) = x.overflowing_sub(&y);
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
-    x86.flags.set(Flags::CF, carry || (b && y == I::zero()));
-    x86.flags.set(Flags::ZF, result.is_zero());
-    x86.flags
-        .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::CF, carry || (b && y == I::zero()));
+    flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  1  1
     //   1  0  0
     let of = !(((x ^ y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
-    x86.flags.set(Flags::OF, of);
+    flags.set(Flags::OF, of);
     result
 }
 
@@ -442,85 +441,92 @@ fn sbb<I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::Wrapp
 pub(crate) fn sub<
     I: Int + num_traits::ops::overflowing::OverflowingSub + num_traits::WrappingAdd,
 >(
-    x86: &mut X86,
     x: I,
     y: I,
+    flags: &mut Flags,
 ) -> I {
-    sbb(x86, x, y, false)
+    sbb(x, y, false, flags)
 }
 
 pub fn sub_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| sub(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sub_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| sub(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sub_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| sub(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sub_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
     let y = op1_rm32(x86, instr);
-    let value = sub(x86, x86.regs.get32(reg), y);
-    x86.regs.set32(reg, value);
+    let (x, flags) = rm32(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sub_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
     let y = op1_rm8(x86, instr);
-    let value = sub(x86, x86.regs.get8(reg), y);
-    x86.regs.set8(reg, value);
+    let (x, flags) = rm8(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sub_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| sub(x86, x, y));
+    let (x, flags) = rm8(x86, instr);
+    *x = sub(*x, y, flags);
     Ok(())
 }
 
 pub fn sbb_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let carry = x86.flags.contains(Flags::CF);
     let y = op1_rm32(x86, instr);
-    rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    let (x, flags) = rm32(x86, instr);
+    *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
 pub fn sbb_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let carry = x86.flags.contains(Flags::CF);
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    let (x, flags) = rm32(x86, instr);
+    *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
 pub fn sbb_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let carry = x86.flags.contains(Flags::CF);
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    let (x, flags) = rm32(x86, instr);
+    *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
 pub fn sbb_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let carry = x86.flags.contains(Flags::CF);
     let y = op1_rm8(x86, instr);
-    rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    let (x, flags) = rm8(x86, instr);
+    *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
 pub fn sbb_r8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let carry = x86.flags.contains(Flags::CF);
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| sbb(x86, x, y, carry));
+    let (x, flags) = rm8(x86, instr);
+    *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
@@ -567,12 +573,14 @@ pub fn div_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn dec_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    rm32_x(x86, instr, |x86, x| sub(x86, x, 1));
+    let (x, flags) = rm32(x86, instr);
+    *x = sub(*x, 1, flags);
     Ok(())
 }
 
 pub fn dec_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    rm8_x(x86, instr, |x86, x| sub(x86, x, 1));
+    let (x, flags) = rm8(x86, instr);
+    *x = sub(*x, 1, flags);
     Ok(())
 }
 
