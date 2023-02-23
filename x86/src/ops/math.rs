@@ -119,13 +119,15 @@ pub fn or_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn or_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    rm16_x(x86, instr, |x86, x| or(x, y, &mut x86.flags));
+    let (x, flags) = rm16(x86, instr);
+    *x = or(*x, y, flags);
     Ok(())
 }
 
 pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| or(x, y, &mut x86.flags));
+    let (x, flags) = rm8(x86, instr);
+    *x = or(*x, y, flags);
     Ok(())
 }
 
@@ -167,13 +169,15 @@ pub fn shl_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn shl_rm8_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.ecx as u8;
-    rm8_x(x86, instr, |x86, x| shl(x, y, &mut x86.flags));
+    let (x, flags) = rm8(x86, instr);
+    *x = shl(*x, y, flags);
     Ok(())
 }
 
 pub fn shl_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| shl(x, y, &mut x86.flags));
+    let (x, flags) = rm8(x86, instr);
+    *x = shl(*x, y, flags);
     Ok(())
 }
 
