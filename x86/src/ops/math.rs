@@ -314,95 +314,102 @@ pub fn xor_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: I) -> I {
-    addc(x86, x, y, I::zero())
+fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, flags: &mut Flags) -> I {
+    addc(x, y, I::zero(), flags)
 }
 
-fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x86: &mut X86, x: I, y: I, z: I) -> I {
+fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, z: I, flags: &mut Flags) -> I {
     // TODO "The CF, OF, SF, ZF, AF, and PF flags are set according to the result."
     let y = y.wrapping_add(&z);
     let result = x.wrapping_add(&y);
-    x86.flags
-        .set(Flags::CF, result < x || (y.is_zero() && !z.is_zero()));
-    x86.flags.set(Flags::ZF, result.is_zero());
-    x86.flags
-        .set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::CF, result < x || (y.is_zero() && !z.is_zero()));
+    flags.set(Flags::ZF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     // Overflow is true exactly when the high (sign) bits are like:
     //   x  y  result
     //   0  0  1
     //   1  1  0
     let of = !(((x ^ !y) & (x ^ result)) >> (I::bits() - 1)).is_zero();
-    x86.flags.set(Flags::OF, of);
+    flags.set(Flags::OF, of);
     result
 }
 
 pub fn add_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let reg = instr.op0_register();
-    let x = x86.regs.get32(reg);
     let y = op1_rm32(x86, &instr);
-    let value = add(x86, x, y);
-    x86.regs.set32(reg, value);
+    let (x, flags) = rm32(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
+
 pub fn add_rm32_r32_2(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get32(instr.op1_register());
-    rm32_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    rm32_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    rm32_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm32(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to16() as u16;
-    rm16_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm16(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get8(instr.op1_register());
-    rm8_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm8(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm8_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm8(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
-    rm8_x(x86, instr, |x86, x| add(x86, x, y));
+    let (x, flags) = rm8(x86, instr);
+    *x = add(*x, y, flags);
     Ok(())
 }
 
 pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     let carry = x86.flags.contains(Flags::CF);
-    rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
+    let (x, flags) = rm8(x86, instr);
+    *x = addc(*x, y, carry as u8, flags);
     Ok(())
 }
 
 pub fn adc_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
     let carry = x86.flags.contains(Flags::CF);
-    rm8_x(x86, instr, |x86, x| addc(x86, x, y, carry as u8));
+    let (x, flags) = rm8(x86, instr);
+    *x = addc(*x, y, carry as u8, flags);
     Ok(())
 }
 
