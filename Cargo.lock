@@ -109,6 +109,7 @@ dependencies = [
 name = "glue"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bincode",
  "console_log",
  "js-sys",

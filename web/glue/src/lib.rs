@@ -7,6 +7,11 @@ extern "C" {
     fn mem(mem: JsValue, offset: u32) -> JsValue;
 }
 
+type JsResult<T> = Result<T, JsError>;
+fn err_from_anyhow(err: anyhow::Error) -> JsError {
+    JsError::new(&err.to_string())
+}
+
 #[wasm_bindgen]
 extern "C" {
     pub type JsSurface;
@@ -125,12 +130,13 @@ pub struct Emulator {
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
-    pub fn load_exe(&mut self, buf: &[u8]) -> Result<String, String> {
+    pub fn load_exe(&mut self, buf: &[u8]) -> JsResult<String> {
         let imports = self
             .runner
             .load_exe(buf, "".into())
-            .map_err(|err| err.to_string())?;
-        serde_json::to_string(&imports).map_err(|err| err.to_string())
+            .map_err(err_from_anyhow)?;
+        let str = serde_json::to_string(&imports)?;
+        Ok(str)
     }
 
     pub fn memory(&self) -> js_sys::DataView {
@@ -226,14 +232,12 @@ impl Emulator {
             .unwrap_throw()
     }
 
-    pub fn step(&mut self) -> Result<(), String> {
-        match self.runner.step() {
-            Err(err) => Err(err.to_string()),
-            Ok(_) => Ok(()),
-        }
+    pub fn step(&mut self) -> JsResult<()> {
+        self.runner.step().map_err(err_from_anyhow)?;
+        Ok(())
     }
-    pub fn step_many(&mut self, count: usize) -> Result<usize, String> {
-        self.runner.step_many(count).map_err(|err| err.to_string())
+    pub fn step_many(&mut self, count: usize) -> JsResult<usize> {
+        self.runner.step_many(count).map_err(err_from_anyhow)
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
@@ -261,7 +265,7 @@ impl Emulator {
 }
 
 #[wasm_bindgen]
-pub fn new_emulator(host: JsHost) -> Result<Emulator, String> {
+pub fn new_emulator(host: JsHost) -> JsResult<Emulator> {
     let runner = win32::Runner::new(Box::new(host));
     Ok(Emulator { runner })
 }
@@ -271,8 +275,8 @@ fn panic_hook(info: &std::panic::PanicInfo) {
 }
 
 #[wasm_bindgen(start)]
-pub fn init_logging() -> Result<(), JsValue> {
-    console_log::init().map_err(|err| err.to_string())?;
+pub fn init_logging() -> JsResult<()> {
+    console_log::init().map_err(|err| JsError::new(&err.to_string()))?;
     std::panic::set_hook(Box::new(panic_hook));
     Ok(())
 }
