@@ -26,34 +26,33 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn movs(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
+fn movs(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
     let reverse = x86.flags.contains(Flags::DF);
-    let step = if reverse {
-        -(size as isize) as usize
+    let step = if reverse { -(size as i32) as u32 } else { size };
+    let mut c = 1u32; // 1 step if no rep prefix
+    let counter = if instr.has_rep_prefix() || instr.has_repe_prefix() || instr.has_repne_prefix() {
+        &mut x86.regs.ecx
     } else {
-        size
+        &mut c
     };
-    let mut dst = x86.regs.edi as usize;
-    let mut src = x86.regs.esi as usize;
+    while *counter > 0 {
+        *counter -= 1;
 
-    let mut movs_single = || {
-        x86.mem.copy_within(src..src + size, dst);
-        src = src.wrapping_add(step);
-        dst = dst.wrapping_add(step);
-    };
-    if instr.has_rep_prefix() {
-        let count = x86.regs.ecx;
-        for _ in 0..count {
-            movs_single();
+        if x86.regs.edi as usize >= x86.mem.len() - 8 {
+            return Err(StepError::Error("movs overflow".into()));
         }
-        x86.regs.ecx = 0;
-    } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(StepError::Error("movs: unimplemented prefix".into()));
-    } else {
-        movs_single();
-    };
-    x86.regs.edi = dst as u32;
-    x86.regs.esi = src as u32;
+
+        x86.mem.copy_within(
+            x86.regs.esi as usize..(x86.regs.esi + size) as usize,
+            x86.regs.edi as usize,
+        );
+        x86.regs.esi = x86.regs.esi.wrapping_add(step);
+        x86.regs.edi = x86.regs.edi.wrapping_add(step);
+        if instr.has_repe_prefix() || instr.has_repne_prefix() {
+            // https://stackoverflow.com/questions/40219519/why-do-repe-and-repne-do-the-same-before-movsb
+            // return Err(StepError::Error("movs: unimplemented prefix".into()));
+        }
+    }
     Ok(())
 }
 
