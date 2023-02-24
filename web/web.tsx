@@ -359,6 +359,7 @@ namespace Page {
   }
   export interface State {
     stdout: string;
+    error: string;
     memBase: number;
     memHighlight?: number;
     /** When running, the setInterval id that is updating the UI. */
@@ -367,7 +368,7 @@ namespace Page {
   }
 }
 class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { stdout: '', memBase: 0x40_1000, selectedTab: 'output' };
+  state: Page.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
   constructor(props: Page.Props) {
     super(props);
@@ -406,7 +407,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
     try {
       stop = !this.props.vm.stepMany();
     } catch (e) {
-      console.error(e);
+      const err = e as Error;
+      console.error(err);
+      this.setState({ error: err.message });
       stop = true;
     }
     if (stop) {
@@ -486,7 +489,10 @@ class Page extends preact.Component<Page.Props, Page.State> {
             tabs={{
               output: (
                 <section>
-                  <code>{this.state.stdout}</code>
+                  <code>
+                    {this.state.stdout}
+                    {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
+                  </code>
                 </section>
               ),
 
