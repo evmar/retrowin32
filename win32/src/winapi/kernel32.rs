@@ -22,7 +22,7 @@ pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
 pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
 /// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
-#[derive(Debug, tsify::Tsify, serde::Serialize)]
+#[derive(Debug, tsify::Tsify, serde::Serialize, serde::Deserialize)]
 pub struct Mapping {
     pub addr: u32,
     pub size: u32,
@@ -32,6 +32,7 @@ pub struct Mapping {
 
 /// The set of Mappings managed by the kernel.
 /// These get visualized in the debugger when you hover a pointer.
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Mappings(Vec<Mapping>);
 impl Mappings {
     fn new() -> Self {
@@ -125,6 +126,7 @@ impl Mappings {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
     arena: ArenaInfo,

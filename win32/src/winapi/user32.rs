@@ -21,15 +21,16 @@ pub struct State {
     windows: Vec<Window>,
 }
 impl State {
-    pub fn new() -> Self {
+    pub fn get_window(&mut self, hwnd: u32) -> &mut Window {
+        &mut self.windows[hwnd as usize - 1]
+    }
+}
+impl Default for State {
+    fn default() -> Self {
         State {
             resources_base: 0,
             windows: Vec::new(),
         }
-    }
-
-    pub fn get_window(&mut self, hwnd: u32) -> &mut Window {
-        &mut self.windows[hwnd as usize - 1]
     }
 }
 

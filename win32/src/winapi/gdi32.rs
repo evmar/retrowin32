@@ -32,14 +32,8 @@ pub struct State {
     dcs: Vec<DC>,
     pub objects: Vec<Object>,
 }
-impl State {
-    pub fn new() -> Self {
-        State {
-            dcs: Vec::new(),
-            objects: Vec::new(),
-        }
-    }
 
+impl State {
     pub fn new_dc(&mut self) -> (u32, &mut DC) {
         self.dcs.push(DC::new());
         let handle = self.dcs.len() as u32;
@@ -66,6 +60,15 @@ impl State {
             self.objects.get((handle - 1) as usize)
         } else {
             None
+        }
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State {
+            dcs: Vec::new(),
+            objects: Vec::new(),
         }
     }
 }

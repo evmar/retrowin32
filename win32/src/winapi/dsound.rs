@@ -18,16 +18,10 @@ pub struct State {
     vtable_IDirectSound: u32,
     vtable_IDirectSoundBuffer: u32,
 }
+
 impl State {
-    pub fn new_empty() -> Self {
-        State {
-            hheap: 0,
-            vtable_IDirectSound: 0,
-            vtable_IDirectSoundBuffer: 0,
-        }
-    }
     pub fn new_init(machine: &mut Machine) -> Self {
-        let mut dsound = State::new_empty();
+        let mut dsound = State::default();
         dsound.hheap =
             machine
                 .state
@@ -37,6 +31,16 @@ impl State {
         dsound.vtable_IDirectSound = IDirectSound::vtable(&mut dsound, machine);
         dsound.vtable_IDirectSoundBuffer = IDirectSoundBuffer::vtable(&mut dsound, machine);
         dsound
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State {
+            hheap: 0,
+            vtable_IDirectSound: 0,
+            vtable_IDirectSoundBuffer: 0,
+        }
     }
 }
 

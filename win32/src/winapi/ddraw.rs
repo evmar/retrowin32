@@ -38,23 +38,10 @@ pub struct State {
     height: u32,
     pub surfaces: HashMap<u32, Surface>,
 }
-impl State {
-    pub fn new_empty() -> Self {
-        State {
-            hheap: 0,
-            vtable_IDirectDraw: 0,
-            vtable_IDirectDrawSurface: 0,
-            vtable_IDirectDraw7: 0,
-            vtable_IDirectDrawSurface7: 0,
-            hwnd: 0,
-            width: 0,
-            height: 0,
-            surfaces: HashMap::new(),
-        }
-    }
 
+impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
-        let mut ddraw = State::new_empty();
+        let mut ddraw = State::default();
         ddraw.hheap =
             machine
                 .state
@@ -66,6 +53,22 @@ impl State {
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw
+    }
+}
+
+impl Default for State {
+    fn default() -> Self {
+        State {
+            hheap: 0,
+            vtable_IDirectDraw: 0,
+            vtable_IDirectDrawSurface: 0,
+            vtable_IDirectDraw7: 0,
+            vtable_IDirectDrawSurface7: 0,
+            hwnd: 0,
+            width: 0,
+            height: 0,
+            surfaces: HashMap::new(),
+        }
     }
 }
 

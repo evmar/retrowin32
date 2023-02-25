@@ -7,6 +7,7 @@ pub trait Alloc {
     fn free(&mut self, addr: u32);
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct ArenaInfo {
     pub addr: u32,
     pub size: u32,
@@ -58,6 +59,7 @@ impl<'a> Alloc for Arena<'a> {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct HeapInfo {
     pub addr: u32,
     pub size: u32,

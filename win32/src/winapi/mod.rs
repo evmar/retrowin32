@@ -87,21 +87,27 @@ pub fn resolve(dll: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
     // })
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
+    #[serde(skip)] // TODO
     pub ddraw: ddraw::State,
+    #[serde(skip)] // TODO
     pub dsound: dsound::State,
+    #[serde(skip)] // TODO
     pub gdi32: gdi32::State,
     pub kernel32: kernel32::State,
+    #[serde(skip)] // TODO
     pub user32: user32::State,
 }
+
 impl State {
     pub fn new() -> Self {
         State {
-            ddraw: ddraw::State::new_empty(),
-            dsound: dsound::State::new_empty(),
-            gdi32: gdi32::State::new(),
+            ddraw: ddraw::State::default(),
+            dsound: dsound::State::default(),
+            gdi32: gdi32::State::default(),
             kernel32: kernel32::State::new(),
-            user32: user32::State::new(),
+            user32: user32::State::default(),
         }
     }
 }
