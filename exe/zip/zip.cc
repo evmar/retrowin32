@@ -70,8 +70,9 @@ int main(int argc, const char* argv[]) {
   auto reinput = decompress(output);
   printf("recompressed size: %d\n", reinput.size());
   if (input != reinput) {
-    printf("ERROR: round trip failed!\n");
+    printf("ERROR: round trip failed\n");
     return 1;
   }
+  printf("round trip succeeded\n");
   return 0; 
-} 
+}
