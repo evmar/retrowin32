@@ -150,8 +150,8 @@ impl Runner {
         Ok(count)
     }
 
-    pub fn load_snapshot(&mut self, snap: x86::Snapshot) {
-        self.machine.x86.load_snapshot(snap);
+    pub fn load_snapshot(&mut self, snap: x86::X86) {
+        self.machine.x86 = snap;
         self.icache
             .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)
             .unwrap();

@@ -6,14 +6,15 @@ use crate::{
     registers::{Flags, Registers},
     StepError, StepResult,
 };
-use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
+    #[serde(with = "serde_bytes")]
     pub mem: Vec<u8>,
     pub regs: Registers,
     // Flags are in principle a register but we hold it outside of regs for lifetime reasons,
@@ -130,60 +131,6 @@ impl X86 {
             return Err(StepError::Interrupt);
         }
         Ok(())
-    }
-
-    pub fn load_snapshot(&mut self, snap: Snapshot) {
-        self.mem = snap.mem;
-        self.regs = snap.regs;
-    }
-}
-
-impl serde::Serialize for X86 {
-    fn serialize<S: serde::Serializer>(
-        &self,
-        serializer: S,
-    ) -> std::result::Result<S::Ok, S::Error> {
-        let mut state = serializer.serialize_struct("X86", 2)?;
-        // TODO: serialize remaining state.
-        state.serialize_field("mem", serde_bytes::Bytes::new(&self.mem))?;
-        state.serialize_field("regs", &self.regs)?;
-        state.end()
-    }
-}
-
-pub struct Snapshot {
-    mem: Vec<u8>,
-    regs: Registers,
-}
-
-impl<'de> serde::Deserialize<'de> for Snapshot {
-    fn deserialize<D: serde::Deserializer<'de>>(
-        deserializer: D,
-    ) -> std::result::Result<Self, D::Error> {
-        struct Visitor;
-        impl<'de> serde::de::Visitor<'de> for Visitor {
-            type Value = Snapshot;
-
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-                formatter.write_str("struct X86")
-            }
-            fn visit_seq<V: serde::de::SeqAccess<'de>>(
-                self,
-                mut seq: V,
-            ) -> std::result::Result<Snapshot, V::Error> {
-                let mem: serde_bytes::ByteBuf = seq
-                    .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
-                let regs = seq
-                    .next_element()?
-                    .ok_or_else(|| serde::de::Error::invalid_length(0, &self))?;
-                Ok(Snapshot {
-                    mem: mem.into_vec(),
-                    regs,
-                })
-            }
-        }
-        deserializer.deserialize_struct("X86", &["mem", "regs"], Visitor)
     }
 }
 
