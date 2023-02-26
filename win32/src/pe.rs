@@ -149,7 +149,7 @@ pub struct File<'a> {
     pub header: &'a IMAGE_FILE_HEADER,
     pub opt_header: &'a IMAGE_OPTIONAL_HEADER32,
     pub data_directory: &'a [IMAGE_DATA_DIRECTORY],
-    pub sections: Vec<&'a IMAGE_SECTION_HEADER>,
+    pub sections: &'a [IMAGE_SECTION_HEADER],
 }
 
 pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
@@ -161,11 +161,7 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
     let header = pe_header(&mut r)?;
     let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
     let data_directory = r.read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes as usize);
-
-    let mut sections = Vec::new();
-    for _ in 0..header.NumberOfSections {
-        sections.push(r.read::<IMAGE_SECTION_HEADER>());
-    }
+    let sections = r.read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as usize);
 
     Ok(File {
         header,
