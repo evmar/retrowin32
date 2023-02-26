@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use anyhow::bail;
+
 use crate::{machine::Machine, pe, winapi};
 
 pub fn load_exe(
@@ -19,7 +21,12 @@ pub fn load_exe(
     for sec in file.sections {
         let src = sec.PointerToRawData as usize;
         let dst = (base + sec.VirtualAddress) as usize;
-        let size = sec.SizeOfRawData as usize;
+        // sec.SizeOfRawData is the amount of data in the file that should be copied to memory.
+        // sec.VirtualSize is the in-memory size of the resulting section, which can be:
+        // - greater than SizeOfRawData for sections that should be zero-filled (like uninitialized data),
+        // - less than SizeOfRawData because SizeOfRawData is padded up to FileAlignment(!).
+
+        let data_size = sec.SizeOfRawData as usize;
         let flags = sec.characteristics()?;
 
         // Load the section contents from the file, unless marked otherwise.
@@ -29,7 +36,12 @@ pub fn load_exe(
         let skip_loading = flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA)
             && !flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
         if !skip_loading {
-            machine.x86.mem[dst..dst + size].copy_from_slice(&buf[src..(src + size)]);
+            machine.x86.mem[dst..dst + data_size].copy_from_slice(&buf[src..(src + data_size)]);
+        }
+        if skip_loading && data_size > 0 {
+            bail!("TODO: section has data but skip_loading?");
+        } else if !skip_loading && data_size == 0 {
+            bail!("TODO: section has no data but !skip_loading?");
         }
         machine
             .state
@@ -37,7 +49,7 @@ pub fn load_exe(
             .mappings
             .add(winapi::kernel32::Mapping {
                 addr: dst as u32,
-                size: size as u32,
+                size: sec.VirtualSize as u32,
                 desc: format!("{:?} ({:?})", sec.name(), flags),
                 flags,
             });

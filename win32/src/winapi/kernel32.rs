@@ -21,6 +21,10 @@ pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
 pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
 pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
+pub fn round_up_to_page_granularity(size: u32) -> u32 {
+    size + (0x1000 - 1) & !(0x1000 - 1)
+}
+
 /// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
 #[derive(Debug, tsify::Tsify, serde::Serialize, serde::Deserialize)]
 pub struct Mapping {
@@ -44,7 +48,8 @@ impl Mappings {
         }])
     }
 
-    pub fn add(&mut self, mapping: Mapping) {
+    pub fn add(&mut self, mut mapping: Mapping) {
+        mapping.size = round_up_to_page_granularity(mapping.size);
         let pos = self
             .0
             .iter()
@@ -62,6 +67,7 @@ impl Mappings {
     }
 
     pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
+        let size = round_up_to_page_granularity(size);
         if size > 1 << 20 {
             log::error!("new mapping {:?} {size:x} bytes", desc);
             assert!(size <= 1 << 20);
@@ -75,7 +81,7 @@ impl Mappings {
                 if space > size {
                     return true;
                 }
-                prev_end = mapping.addr + mapping.size + (0x1000 - 1) & !(0x1000 - 1);
+                prev_end = mapping.addr + mapping.size;
                 false
             })
             .unwrap_or_else(|| {
