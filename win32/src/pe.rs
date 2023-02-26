@@ -256,14 +256,24 @@ struct IMAGE_RESOURCE_DIRECTORY {
     NumberOfIdEntries: WORD,
 }
 unsafe impl x86::Pod for IMAGE_RESOURCE_DIRECTORY {}
-impl IMAGE_RESOURCE_DIRECTORY {
-    fn entries(&self, mem: &[u8]) -> &[IMAGE_RESOURCE_DIRECTORY_ENTRY] {
-        let count = (self.NumberOfIdEntries + self.NumberOfNamedEntries) as usize;
+
+struct ImageResourceDirectory<'a> {
+    _header: &'a IMAGE_RESOURCE_DIRECTORY,
+    entries: &'a [IMAGE_RESOURCE_DIRECTORY_ENTRY],
+}
+
+impl<'a> ImageResourceDirectory<'a> {
+    fn read(mem: &'a [u8], ofs: u32) -> ImageResourceDirectory<'a> {
+        let header = mem.view::<IMAGE_RESOURCE_DIRECTORY>(ofs);
+        let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as usize;
         // Entries are in memory immediately after the directory.
-        let mem = &mem[size_of::<IMAGE_RESOURCE_DIRECTORY>()..];
-        let mem = &mem[0..(count * size_of::<IMAGE_RESOURCE_DIRECTORY_ENTRY>()) as usize];
-        unsafe {
-            std::slice::from_raw_parts(mem.as_ptr() as *const IMAGE_RESOURCE_DIRECTORY_ENTRY, count)
+        let entries = mem.view_n::<IMAGE_RESOURCE_DIRECTORY_ENTRY>(
+            ofs as usize + size_of::<IMAGE_RESOURCE_DIRECTORY>(),
+            count,
+        );
+        ImageResourceDirectory {
+            _header: header,
+            entries,
         }
     }
 }
@@ -321,26 +331,25 @@ pub fn get_resource(
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
-    let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(0);
-    for type_entry in dir.entries(section) {
+    let dir = ImageResourceDirectory::read(section, 0);
+    for type_entry in dir.entries {
         assert!(type_entry.is_directory());
         match type_entry.name() {
             ResourceName::Id(id) if id == query_type => {}
             _ => continue,
         };
-        let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(type_entry.offset());
-        for id_entry in dir.entries(&section[type_entry.offset() as usize..]) {
+        let dir = ImageResourceDirectory::read(section, type_entry.offset());
+        for id_entry in dir.entries {
             assert!(id_entry.is_directory());
             match id_entry.name() {
                 ResourceName::Id(id) if id == query_id => {}
                 _ => continue,
             };
-            let dir = section.view::<IMAGE_RESOURCE_DIRECTORY>(id_entry.offset());
-            let entries = dir.entries(&section[id_entry.offset() as usize..]);
-            if entries.len() > 1 {
+            let dir = ImageResourceDirectory::read(section, id_entry.offset());
+            if dir.entries.len() > 1 {
                 log::warn!("multiple res entries, picking first");
             }
-            for lang_entry in entries {
+            for lang_entry in dir.entries {
                 assert!(!lang_entry.is_directory());
                 let data = section.view::<IMAGE_RESOURCE_DATA_ENTRY>(lang_entry.offset());
                 let ofs = data.OffsetToData as usize;
