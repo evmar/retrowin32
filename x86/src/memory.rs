@@ -15,6 +15,7 @@ unsafe impl Pod for u64 {}
 pub trait Memory {
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
+    fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T];
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
     /// Read a nul-terminated string.
@@ -36,6 +37,14 @@ impl Memory for [u8] {
         let buf = &mut self[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
+    }
+
+    fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T] {
+        let size = size_of::<T>() * count;
+        if ofs + size > self.len() {
+            panic!("out of bounds");
+        }
+        unsafe { std::slice::from_raw_parts(&self[ofs] as *const u8 as *const T, count) }
     }
 
     fn read_u32(&self, addr: u32) -> u32 {

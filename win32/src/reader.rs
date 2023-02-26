@@ -50,15 +50,8 @@ impl<'a> Reader<'a> {
     }
 
     pub fn read_n<T: x86::Pod>(&mut self, count: usize) -> &'a [T] {
-        // TODO: move to Memory trait?
-        let size = size_of::<T>() * count;
-        if self.pos + size > self.buf.len() {
-            panic!("out of bounds");
-        }
-        let slice = unsafe {
-            std::slice::from_raw_parts(&self.buf[self.pos] as *const u8 as *const T, count)
-        };
-        self.pos += size;
+        let slice = self.buf.view_n::<T>(self.pos, count);
+        self.pos += size_of::<T>() * count;
         slice
     }
 }
