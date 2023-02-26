@@ -65,9 +65,8 @@ pub fn load_exe(
     machine.x86.regs.esp = stack_end;
     machine.x86.regs.ebp = stack_end;
 
-    let datadir = file.opt_header.data_directory();
     const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
-    let imports_data = &datadir[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    let imports_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     let mut labels: HashMap<u32, String> = HashMap::new();
     pe::parse_imports(
         &mut machine.x86.mem[base as usize..],
@@ -88,7 +87,7 @@ pub fn load_exe(
     )?;
 
     const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
-    let res_data = &datadir[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+    let res_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
     machine.state.user32.resources_base = res_data.VirtualAddress;
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;

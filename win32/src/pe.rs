@@ -85,22 +85,8 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub SizeOfHeapCommit: DWORD,
     pub LoaderFlags: DWORD,
     pub NumberOfRvaAndSizes: DWORD,
-    DataDirectory: [IMAGE_DATA_DIRECTORY; 0],
 }
 unsafe impl x86::Pod for IMAGE_OPTIONAL_HEADER32 {}
-impl IMAGE_OPTIONAL_HEADER32 {
-    pub fn data_directory(&self) -> &[IMAGE_DATA_DIRECTORY] {
-        unsafe {
-            std::slice::from_raw_parts(
-                &self.DataDirectory as *const IMAGE_DATA_DIRECTORY,
-                self.NumberOfRvaAndSizes as usize,
-            )
-        }
-    }
-    pub fn data_directory_size(&self) -> usize {
-        self.NumberOfRvaAndSizes as usize * size_of::<IMAGE_DATA_DIRECTORY>()
-    }
-}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -162,6 +148,7 @@ bitflags! {
 pub struct File<'a> {
     pub header: &'a IMAGE_FILE_HEADER,
     pub opt_header: &'a IMAGE_OPTIONAL_HEADER32,
+    pub data_directory: &'a [IMAGE_DATA_DIRECTORY],
     pub sections: Vec<&'a IMAGE_SECTION_HEADER>,
 }
 
@@ -173,7 +160,7 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
 
     let header = pe_header(&mut r)?;
     let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
-    r.skip(opt_header.data_directory_size())?;
+    let data_directory = r.read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes as usize);
 
     let mut sections = Vec::new();
     for _ in 0..header.NumberOfSections {
@@ -183,6 +170,7 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
     Ok(File {
         header,
         opt_header,
+        data_directory,
         sections,
     })
 }
