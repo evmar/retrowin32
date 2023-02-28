@@ -29,6 +29,7 @@ fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
 
 /// Process one module, generating the wrapper functions and resolve helper.
 fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
+    let dll_name = format!("{}.dll", module);
     let buf = std::fs::read_to_string(path)?;
     let file = syn::parse_file(&buf)?;
     let mut fns = Vec::new();
@@ -65,7 +66,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
             use winapi::#module::*;
 
             #(#fns)*
-            pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+            fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
                 Some(match *sym {
                     winapi::ImportSymbol::Name(name) => match name {
                         #(#matches,)*
@@ -74,6 +75,10 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
                     _ => return None, // TODO: ordinal
                 })
             }
+            pub const DLL: BuiltinDLL = BuiltinDLL {
+                file_name: #dll_name,
+                resolve,
+            };
         }
     })
 }
@@ -95,7 +100,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{winapi, machine::Machine, winapi::shims::{from_x86, ToX86}, winapi::types::*};
+        use crate::{winapi, machine::Machine, winapi::BuiltinDLL, winapi::shims::{from_x86, ToX86}, winapi::types::*};
 
         #(#mods)*
     })

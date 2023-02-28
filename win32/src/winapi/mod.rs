@@ -64,27 +64,31 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub fn resolve(dll: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
-    match dll {
-        "ddraw.dll" => dll::ddraw::resolve(sym),
-        "dsound.dll" => {
-            // TODO: no support for ordinals yet in dll generation machinery.
-            match *sym {
-                ImportSymbol::Ordinal(1) => return Some(dll::dsound::DirectSoundCreate),
-                _ => {}
-            };
-            dll::dsound::resolve(sym)
+pub struct BuiltinDLL {
+    file_name: &'static str,
+    resolve: fn(&ImportSymbol) -> Option<fn(&mut Machine)>,
+}
+
+const DLLS: [BuiltinDLL; 6] = [
+    dll::ddraw::DLL,
+    dll::dsound::DLL,
+    dll::gdi32::DLL,
+    dll::kernel32::DLL,
+    dll::user32::DLL,
+    dll::winmm::DLL,
+];
+
+pub fn resolve(file_name: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
+    // TODO: no support for ordinals yet in dll generation machinery.
+    if file_name == dll::ddraw::DLL.file_name {
+        match *sym {
+            ImportSymbol::Ordinal(1) => return Some(dll::dsound::DirectSoundCreate),
+            _ => {}
         }
-        "gdi32.dll" => dll::gdi32::resolve(sym),
-        "kernel32.dll" => dll::kernel32::resolve(sym),
-        "user32.dll" => dll::user32::resolve(sym),
-        "winmm.dll" => dll::winmm::resolve(sym),
-        _ => None,
     }
-    // .or_else(|| {
-    //     log::warn!("unresolved symbol {}:{}", dll, sym);
-    //     None
-    // })
+
+    let dll = DLLS.iter().find(|&dll| dll.file_name == file_name)?;
+    (dll.resolve)(sym)
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]

@@ -6,6 +6,7 @@ use crate::{
     winapi,
     winapi::shims::{from_x86, ToX86},
     winapi::types::*,
+    winapi::BuiltinDLL,
 };
 pub mod ddraw {
     use super::*;
@@ -25,7 +26,7 @@ pub mod ddraw {
         machine.x86.regs.eax =
             winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter).to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "DirectDrawCreate" => DirectDrawCreate,
@@ -35,6 +36,10 @@ pub mod ddraw {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "ddraw.dll",
+        resolve,
+    };
 }
 pub mod dsound {
     use super::*;
@@ -46,7 +51,7 @@ pub mod dsound {
         machine.x86.regs.eax =
             winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter).to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "DirectSoundCreate" => DirectSoundCreate,
@@ -55,6 +60,10 @@ pub mod dsound {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "dsound.dll",
+        resolve,
+    };
 }
 pub mod gdi32 {
     use super::*;
@@ -112,7 +121,7 @@ pub mod gdi32 {
         )
         .to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "GetStockObject" => GetStockObject,
@@ -127,6 +136,10 @@ pub mod gdi32 {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "gdi32.dll",
+        resolve,
+    };
 }
 pub mod kernel32 {
     use super::*;
@@ -484,7 +497,7 @@ pub mod kernel32 {
         machine.x86.regs.eax =
             winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "SetLastError" => SetLastError,
@@ -553,6 +566,10 @@ pub mod kernel32 {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "kernel32.dll",
+        resolve,
+    };
 }
 pub mod user32 {
     use super::*;
@@ -662,7 +679,7 @@ pub mod user32 {
         let nIndex: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::GetSystemMetrics(machine, nIndex).to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "RegisterClassA" => RegisterClassA,
@@ -683,6 +700,10 @@ pub mod user32 {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "user32.dll",
+        resolve,
+    };
 }
 pub mod winmm {
     use super::*;
@@ -703,7 +724,7 @@ pub mod winmm {
         )
         .to_raw();
     }
-    pub fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "timeSetEvent" => timeSetEvent,
@@ -712,4 +733,8 @@ pub mod winmm {
             _ => return None,
         })
     }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "winmm.dll",
+        resolve,
+    };
 }
