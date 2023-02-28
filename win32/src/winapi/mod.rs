@@ -69,7 +69,7 @@ pub struct BuiltinDLL {
     resolve: fn(&ImportSymbol) -> Option<fn(&mut Machine)>,
 }
 
-const DLLS: [BuiltinDLL; 6] = [
+pub const DLLS: [BuiltinDLL; 6] = [
     dll::ddraw::DLL,
     dll::dsound::DLL,
     dll::gdi32::DLL,

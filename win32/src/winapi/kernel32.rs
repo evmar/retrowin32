@@ -851,6 +851,17 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
+    let filename = filename.unwrap();
+    let filename = filename.to_ascii_lowercase();
+
+    if let Some(index) = crate::winapi::DLLS
+        .iter()
+        .position(|dll| dll.file_name == filename)
+    {
+        // Use pointer value as handle.
+        return (index + 1) as u32;
+    }
+
     log::error!("LoadLibrary({filename:?})");
     0 // fail
 }
