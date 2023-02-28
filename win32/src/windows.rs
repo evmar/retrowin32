@@ -18,6 +18,22 @@ pub fn load_exe(
         .mem
         .resize((base + file.opt_header.SizeOfImage) as usize, 0);
 
+    // The first 0x1000 of the PE file itself is loaded at the base address.
+    // I cannot find documentation of this but it is what I observe in a debugger,
+    // and kkrunchy relies on file data found after the PE header but outside of any section.
+    let size = 0x1000 as usize;
+    machine
+        .state
+        .kernel32
+        .mappings
+        .add(winapi::kernel32::Mapping {
+            addr: base,
+            size: size as u32,
+            desc: format!("PE header"),
+            flags: pe::ImageSectionFlags::MEM_READ,
+        });
+    machine.x86.mem[base as usize..(base as usize + size)].copy_from_slice(&buf[..size]);
+
     for sec in file.sections {
         let src = sec.PointerToRawData as usize;
         let dst = (base + sec.VirtualAddress) as usize;
