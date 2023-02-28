@@ -1,5 +1,37 @@
 use wasm_bindgen::prelude::*;
 
+struct HostLogger {
+    host: JsHost,
+}
+unsafe impl Send for HostLogger {}
+unsafe impl Sync for HostLogger {}
+impl log::Log for HostLogger {
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+
+    fn log(&self, record: &log::Record) {
+        let level = match record.level() {
+            log::Level::Error => 5,
+            log::Level::Warn => 4,
+            log::Level::Info => 3,
+            log::Level::Debug => 2,
+            log::Level::Trace => 1,
+        };
+        self.host.log(
+            level,
+            format!(
+                "{}:{}: {}",
+                record.file().unwrap_or(""),
+                record.line().unwrap_or(0),
+                record.args()
+            ),
+        );
+    }
+
+    fn flush(&self) {}
+}
+
 #[wasm_bindgen(
     inline_js = "export function mem(memory, offset) { return new DataView(memory.buffer, offset); }"
 )]
@@ -90,6 +122,10 @@ impl win32::Window for JsWindow {
 #[wasm_bindgen]
 extern "C" {
     pub type JsHost;
+
+    #[wasm_bindgen(method)]
+    fn log(this: &JsHost, level: u8, msg: String);
+
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
     #[wasm_bindgen(method)]
@@ -266,6 +302,7 @@ impl Emulator {
 
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost) -> JsResult<Emulator> {
+    init_logging(JsHost::from(host.clone()))?;
     let runner = win32::Runner::new(Box::new(host));
     Ok(Emulator { runner })
 }
@@ -274,9 +311,10 @@ fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
 }
 
-#[wasm_bindgen(start)]
-pub fn init_logging() -> JsResult<()> {
-    console_log::init().map_err(|err| JsError::new(&err.to_string()))?;
+pub fn init_logging(host: JsHost) -> JsResult<()> {
+    let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
+    log::set_logger(logger).map_err(|err| JsError::new(&err.to_string()))?;
+    log::set_max_level(log::LevelFilter::Debug);
     std::panic::set_hook(Box::new(panic_hook));
     Ok(())
 }

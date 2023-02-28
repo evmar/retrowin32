@@ -32,6 +32,7 @@ interface JsWindow {
 
 // Matches 'pub type JsHost' in lib.rs.
 interface JsHost {
+  log(level: number, msg: string): void;
   exit(code: number): void;
   write(buf: Uint8Array): number;
   time(): number;
@@ -122,6 +123,29 @@ class VM implements JsHost {
     // this.x86.poke(0x004095a4, 1);
 
     this.loadBreakpoints();
+  }
+
+  log(level: number, msg: string) {
+    // TODO: surface this in the UI.
+    switch (level) {
+      case 5:
+        console.error(msg);
+        break;
+      case 4:
+        console.warn(msg);
+        break;
+      case 3:
+        console.info(msg);
+        break;
+      case 2:
+        console.log(msg);
+        break;
+      case 1:
+        console.debug(msg);
+        break;
+      default:
+        throw new Error(`unexpected log level #{level}`);
+    }
   }
 
   private loadBreakpoints() {
