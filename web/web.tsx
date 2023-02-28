@@ -130,6 +130,9 @@ class VM implements JsHost {
     switch (level) {
       case 5:
         console.error(msg);
+        if (this.page) {
+          this.page.setState({ error: msg });
+        }
         break;
       case 4:
         console.warn(msg);
