@@ -319,6 +319,12 @@ pub mod kernel32 {
         machine.x86.regs.eax =
             winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).to_raw();
     }
+    pub fn GetProcAddress(machine: &mut Machine) {
+        let hModule: HMODULE = unsafe { from_x86(&mut machine.x86) };
+        let lpProcName: Option<&str> = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::kernel32::GetProcAddress(machine, hModule, lpProcName).to_raw();
+    }
     pub fn SetHandleCount(machine: &mut Machine) {
         let uNumber: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::SetHandleCount(machine, uNumber).to_raw();
@@ -539,6 +545,7 @@ pub mod kernel32 {
                 "GetProcessHeap" => GetProcessHeap,
                 "LoadLibraryA" => LoadLibraryA,
                 "LoadLibraryExW" => LoadLibraryExW,
+                "GetProcAddress" => GetProcAddress,
                 "SetHandleCount" => SetHandleCount,
                 "CreateFileW" => CreateFileW,
                 "WriteFile" => WriteFile,

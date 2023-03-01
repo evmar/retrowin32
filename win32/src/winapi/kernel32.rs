@@ -878,6 +878,12 @@ pub fn LoadLibraryExW(
 }
 
 #[win32_derive::dllexport]
+pub fn GetProcAddress(_machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
+    log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
+    0 // fail
+}
+
+#[win32_derive::dllexport]
 pub fn SetHandleCount(_machine: &mut Machine, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
