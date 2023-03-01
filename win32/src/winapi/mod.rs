@@ -6,6 +6,8 @@ mod dll;
 pub mod dsound;
 pub mod gdi32;
 pub mod kernel32;
+mod ole32;
+mod oleaut32;
 mod shims;
 pub mod types;
 pub mod user32;
@@ -69,11 +71,13 @@ pub struct BuiltinDLL {
     resolve: fn(&ImportSymbol) -> Option<fn(&mut Machine)>,
 }
 
-pub const DLLS: [BuiltinDLL; 6] = [
+pub const DLLS: [BuiltinDLL; 8] = [
     dll::ddraw::DLL,
     dll::dsound::DLL,
     dll::gdi32::DLL,
     dll::kernel32::DLL,
+    dll::ole32::DLL,
+    dll::oleaut32::DLL,
     dll::user32::DLL,
     dll::winmm::DLL,
 ];

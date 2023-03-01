@@ -30,6 +30,7 @@ fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
 /// Process one module, generating the wrapper functions and resolve helper.
 fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
     let dll_name = format!("{}.dll", module);
+    eprintln!("{}", dll_name);
     let buf = std::fs::read_to_string(path)?;
     let file = syn::parse_file(&buf)?;
     let mut fns = Vec::new();
@@ -56,9 +57,6 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
             // syn::Item::Struct(_) => todo!(),
             _ => {}
         }
-    }
-    if fns.is_empty() {
-        return Ok(quote!());
     }
     Ok(quote! {
         pub mod #module {
