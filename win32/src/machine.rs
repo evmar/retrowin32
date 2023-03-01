@@ -43,6 +43,13 @@ impl Shims {
         };
         None
     }
+
+    pub fn lookup(&self, name: &str) -> Option<u32> {
+        if let Some(idx) = self.0.iter().position(|shim| shim.name == name) {
+            return Some(SHIM_BASE | idx as u32);
+        }
+        None
+    }
 }
 
 pub struct Machine {

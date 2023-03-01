@@ -1,7 +1,11 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::{machine::Machine, pe::ImageSectionFlags};
+use crate::{
+    machine::Machine,
+    pe::ImageSectionFlags,
+    winapi::{self, shims::ToX86},
+};
 use bitflags::bitflags;
 use num_traits::FromPrimitive;
 use std::collections::HashMap;
@@ -878,7 +882,19 @@ pub fn LoadLibraryExW(
 }
 
 #[win32_derive::dllexport]
-pub fn GetProcAddress(_machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
+pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
+    let proc_name = lpProcName.unwrap();
+    if let Some(dll) = winapi::DLLS.get(hModule.to_raw() as usize - 1) {
+        // See if the symbol was already imported.
+        let full_name = format!("{}!{}", dll.file_name, proc_name);
+        if let Some(addr) = machine.shims.lookup(&full_name) {
+            return addr;
+        }
+
+        let handler = (dll.resolve)(&winapi::ImportSymbol::Name(proc_name));
+        let addr = machine.shims.add(full_name, handler);
+        return addr;
+    }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail
 }
