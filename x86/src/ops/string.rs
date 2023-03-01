@@ -147,6 +147,10 @@ pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
         4 => {
             x86.regs.eax = x86.read_u32(x86.regs.esi);
         }
+        2 => {
+            let value = x86.read_u16(x86.regs.esi);
+            x86.regs.set16(iced_x86::Register::AX, value);
+        }
         1 => {
             let value = x86.read_u8(x86.regs.esi);
             x86.regs.set8(iced_x86::Register::AL, value);
@@ -159,6 +163,10 @@ pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
 
 pub fn lodsd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     lods(x86, instr, 4)
+}
+
+pub fn lodsw(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    lods(x86, instr, 2)
 }
 
 pub fn lodsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
