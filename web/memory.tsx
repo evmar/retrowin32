@@ -52,6 +52,20 @@ export class Memory extends preact.Component<Memory.Props> {
     this.props.jumpTo(parseInt(addr, 16));
   };
 
+  jump(e: PointerEvent, direction: number) {
+    let step = 0x100;
+    if (e.shiftKey) step *= 0x10;
+    if (e.altKey) step *= 0x100;
+    step *= direction;
+    this.props.jumpTo(this.props.base + step);
+  }
+  onJumpForward = (e: Event) => {
+    this.jump(e as PointerEvent, 1);
+  };
+  onJumpBack = (e: Event) => {
+    this.jump(e as PointerEvent, -1);
+  };
+
   render() {
     let rows = [];
     const base = this.props.base & ~0xf;
@@ -78,9 +92,9 @@ export class Memory extends preact.Component<Memory.Props> {
     return (
       <section>
         <form style={{ display: 'flex', justifyContent: 'center' }} onSubmit={this.onSubmit}>
-          <button type='button' onClick={() => this.props.jumpTo(this.props.base - 0x100)}>&lt;</button>
+          <button type='button' onClick={this.onJumpBack}>&lt;</button>
           <input name='addr' size={8} value={hex(this.props.base, 8)} />
-          <button type='button' onClick={() => this.props.jumpTo(this.props.base + 0x100)}>&gt;</button>
+          <button type='button' onClick={this.onJumpForward}>&gt;</button>
         </form>
         <code>{rows}</code>
       </section>
