@@ -10,29 +10,35 @@ use crate::{host, pe::ImageSectionFlags, winapi, windows::load_exe};
 /// "fake IAT" => "FIAT" => "F1A7"
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
+struct Shim {
+    name: String,
+    handler: Option<fn(&mut Machine)>,
+}
+
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
-pub struct Shims(Vec<Result<fn(&mut Machine), String>>);
+pub struct Shims(Vec<Shim>);
 impl Shims {
     fn new() -> Self {
         Shims(Vec::new())
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, entry: Result<fn(&mut Machine), String>) -> u32 {
+    pub fn add(&mut self, name: String, handler: Option<fn(&mut Machine)>) -> u32 {
         let id = SHIM_BASE | self.0.len() as u32;
-        self.0.push(entry);
+        self.0.push(Shim { name, handler });
         id
     }
 
     pub fn get(&self, addr: u32) -> Option<&fn(&mut Machine)> {
         let index = (addr & 0x0000_FFFF) as usize;
-        let handler = self.0.get(index);
-        match handler {
-            Some(handler) => match handler {
-                Ok(handler) => return Some(handler),
-                Err(msg) => log::error!("{}", msg),
-            },
+        match self.0.get(index) {
+            Some(shim) => {
+                if let Some(handler) = &shim.handler {
+                    return Some(handler);
+                }
+                log::error!("unimplemented: {}", shim.name);
+            }
             None => log::error!("unknown import reference at {:x}", addr),
         };
         None

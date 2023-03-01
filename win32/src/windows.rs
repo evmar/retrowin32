@@ -100,15 +100,12 @@ pub fn load_exe(
         &mut machine.x86.mem[base as usize..],
         imports_data.VirtualAddress as usize,
         |dll, sym, iat_addr| {
-            labels.insert(base + iat_addr, format!("{}@IAT", sym));
+            let name = format!("{}!{}", dll, sym.to_string());
+            labels.insert(base + iat_addr, format!("{}@IAT", name));
 
-            let entry = match winapi::resolve(dll, &sym) {
-                Some(f) => Ok(f),
-                None => Err(format!("unimplemented: {dll}!{sym}")),
-            };
-            let addr = machine.shims.add(entry);
-
-            labels.insert(addr, sym.to_string());
+            let handler = winapi::resolve(dll, &sym);
+            let addr = machine.shims.add(name.clone(), handler);
+            labels.insert(addr, name);
 
             addr
         },
