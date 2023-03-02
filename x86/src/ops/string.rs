@@ -60,6 +60,10 @@ pub fn movsd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     movs(x86, instr, 4)
 }
 
+pub fn movsw(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    movs(x86, instr, 2)
+}
+
 pub fn movsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     movs(x86, instr, 1)
 }

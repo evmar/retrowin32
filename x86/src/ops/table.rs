@@ -90,6 +90,7 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Cmpsb_m8_m8 as usize] = Some(ops::cmps);
     OP_TAB[iced_x86::Code::Movsd_m32_m32 as usize] = Some(ops::movsd);
+    OP_TAB[iced_x86::Code::Movsw_m16_m16 as usize] = Some(ops::movsw);
     OP_TAB[iced_x86::Code::Movsb_m8_m8 as usize] = Some(ops::movsb);
     OP_TAB[iced_x86::Code::Scasb_AL_m8 as usize] = Some(ops::scas);
     OP_TAB[iced_x86::Code::Stosd_m32_EAX as usize] = Some(ops::stosd);
