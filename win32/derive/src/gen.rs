@@ -38,3 +38,23 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
         machine.x86.regs.eax = #module::#name(#(#args),*).to_raw();
     })
 }
+
+// TODO: this fn is used by main.rs, but not lib.rs.
+#[allow(dead_code)]
+pub fn resolve_fn(fn_names: Vec<&syn::Ident>) -> TokenStream {
+    let matches = fn_names.into_iter().map(|sym| {
+        let quoted = sym.to_string();
+        quote!(#quoted => #sym)
+    });
+    quote! {
+        fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+            Some(match *sym {
+                winapi::ImportSymbol::Name(name) => match name {
+                    #(#matches,)*
+                    _ => return None,
+                }
+                _ => return None, // TODO: ordinal
+            })
+        }
+    }
+}

@@ -34,7 +34,7 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
     let buf = std::fs::read_to_string(path)?;
     let file = syn::parse_file(&buf)?;
     let mut fns = Vec::new();
-    let mut matches = Vec::new();
+    let mut fn_names = Vec::new();
     for item in &file.items {
         match item {
             syn::Item::Fn(func) => {
@@ -48,31 +48,24 @@ fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
                 }
 
                 if dllexport {
+                    fn_names.push(&func.sig.ident);
                     fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
-                    let ident = &func.sig.ident;
-                    let quoted = ident.to_string();
-                    matches.push(quote!(#quoted => #ident));
                 }
             }
             // syn::Item::Struct(_) => todo!(),
             _ => {}
         }
     }
+
+    let resolve_fn = gen::resolve_fn(fn_names);
+
     Ok(quote! {
         pub mod #module {
             use super::*;
             use winapi::#module::*;
 
             #(#fns)*
-            fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-                Some(match *sym {
-                    winapi::ImportSymbol::Name(name) => match name {
-                        #(#matches,)*
-                       _ => return None,
-                    }
-                    _ => return None, // TODO: ordinal
-                })
-            }
+            #resolve_fn
             pub const DLL: BuiltinDLL = BuiltinDLL {
                 file_name: #dll_name,
                 resolve,
