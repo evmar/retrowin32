@@ -215,7 +215,7 @@ impl InstrCache {
                 // We may hit this case if the disassembler gets desynchronized from the instruction
                 // stream.  We need to re-disassemble or something in that case.
                 let nearby = match self.instrs.get(pos) {
-                    Some(&(ip, _)) => format!("nearby address {:x}", ip),
+                    Some((ip, instr)) => format!("nearby address {:x} {}", ip, instr),
                     None => format!("address beyond decoded range"),
                 };
                 log::error!("invalid ip {:x}, desync? {}", target_ip, nearby);
