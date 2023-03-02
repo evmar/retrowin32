@@ -184,19 +184,20 @@ impl InstrCache {
         let mut end = start;
         let mut patch = Vec::new();
         while decoder.can_decode() {
-            let ip = decoder.ip() as u32;
+            let new_entry = (decoder.ip() as u32, decoder.decode());
             // Overwrite any instructions with conflicting ips.
-            while ip > self.instrs[end].0 {
+            while new_entry.0 > self.instrs[end].0 {
                 end += 1;
             }
-            if ip == self.instrs[end].0 {
+            if new_entry == self.instrs[end] {
+                // Resynchronized.
+                // Note: this compares both ip and the decoded instruction, to handle the case
+                // where the IPs line up but the underlying instructions still don't match due
+                // to a change in memory.  This is an incorrect fix to the more general problem
+                // of keeping this cache up to date with writes to memory.
                 break;
             }
-            patch.push((decoder.ip() as u32, decoder.decode()));
-            if end - start > 100 {
-                // We haven't hit this, just a defense against this going wrong.
-                panic!("resync: oversized patch?");
-            }
+            patch.push(new_entry);
         }
         log::info!(
             "replacing [{:x}..{:x}] with {} instrs starting at {:x}",
