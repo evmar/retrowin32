@@ -260,14 +260,25 @@ pub fn sar_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+fn ror(x: u32, y: u8, flags: &mut Flags) -> u32 {
+    let result = x.rotate_right(y as u32);
+    let msb = (result & 0x8000_0000) != 0;
+    flags.set(Flags::CF, msb);
+    flags.set(Flags::OF, msb ^ ((result & 04000_0000) != 0));
+    result
+}
+
 pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.ecx as u8;
     let (x, flags) = rm32(x86, instr);
-    let out = x.rotate_right(y as u32);
-    let msb = (out & 0x8000_0000) != 0;
-    flags.set(Flags::CF, msb);
-    flags.set(Flags::OF, msb ^ ((out & 04000_0000) != 0));
-    *x = out;
+    *x = ror(*x, y, flags);
+    Ok(())
+}
+
+pub fn ror_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let (x, flags) = rm32(x86, instr);
+    *x = ror(*x, y, flags);
     Ok(())
 }
 
