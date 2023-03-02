@@ -581,13 +581,8 @@ pub mod kernel32 {
 pub mod ole32 {
     use super::*;
     use winapi::ole32::*;
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name(name) => match name {
-                _ => return None,
-            },
-            _ => return None,
-        })
+    fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        None
     }
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
@@ -597,13 +592,8 @@ pub mod ole32 {
 pub mod oleaut32 {
     use super::*;
     use winapi::oleaut32::*;
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name(name) => match name {
-                _ => return None,
-            },
-            _ => return None,
-        })
+    fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        None
     }
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "oleaut32.dll",
