@@ -593,17 +593,24 @@ pub fn dec_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
+    // Note this is not add(1) because CF should be preserved.
+    let result = x.wrapping_add(&I::one());
+    flags.set(Flags::OF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::ZF, result.is_zero());
+    result
+}
+
 pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let (x, _flags) = rm32(x86, instr);
-    // TODO: flags.  Note that it's not add(1) because CF should be preserved.
-    *x = x.wrapping_add(1);
+    let (x, flags) = rm32(x86, instr);
+    *x = inc(*x, flags);
     Ok(())
 }
 
 pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let (x, _flags) = rm8(x86, instr);
-    // TODO: flags.  Note that it's not add(1) because CF should be preserved.
-    *x = x.wrapping_add(1);
+    let (x, flags) = rm8(x86, instr);
+    *x = inc(*x, flags);
     Ok(())
 }
 
