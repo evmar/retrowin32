@@ -344,3 +344,10 @@ pub fn bswap_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     );
     Ok(())
 }
+
+pub fn xlat_m8(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    let addr = x86.regs.ebx + (x86.regs.eax & 0xFF);
+    x86.regs
+        .set8(iced_x86::Register::AL, x86.mem[addr as usize]);
+    Ok(())
+}
