@@ -672,6 +672,12 @@ pub fn inc_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn inc_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm16(x86, instr);
+    *x = inc(*x, flags);
+    Ok(())
+}
+
 pub fn inc_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let (x, flags) = rm8(x86, instr);
     *x = inc(*x, flags);
