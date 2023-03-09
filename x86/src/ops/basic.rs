@@ -140,6 +140,11 @@ pub fn mov_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn mov_moffs8_al(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    x86.write_u8(x86_addr(x86, instr), x86.regs.eax as u8);
+    Ok(())
+}
+
 pub fn movsx_r32_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm16(x86, instr) as i16 as u32;
     let (x, _flags) = rm32(x86, instr);
