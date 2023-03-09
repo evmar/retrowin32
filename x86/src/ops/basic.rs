@@ -314,6 +314,18 @@ pub fn sahf(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn salc(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    x86.regs.set8(
+        iced_x86::Register::AL,
+        if x86.flags.contains(Flags::CF) {
+            0xFF
+        } else {
+            0
+        },
+    );
+    Ok(())
+}
+
 pub fn std(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     x86.flags.insert(Flags::DF);
     Ok(())

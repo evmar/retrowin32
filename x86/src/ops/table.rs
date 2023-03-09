@@ -266,6 +266,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Popfw as usize] = Some(ops::popfw);
     OP_TAB[iced_x86::Code::Sahf as usize] = Some(ops::sahf);
 
+    OP_TAB[iced_x86::Code::Salc as usize] = Some(ops::salc);
     OP_TAB[iced_x86::Code::Std as usize] = Some(ops::std);
     OP_TAB[iced_x86::Code::Cld as usize] = Some(ops::cld);
     OP_TAB[iced_x86::Code::Stc as usize] = Some(ops::stc);
