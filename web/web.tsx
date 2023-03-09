@@ -86,7 +86,7 @@ class Window implements JsWindow {
   constructor(
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) { }
+  ) {}
   title: string = '';
   width: number | undefined;
   height: number | undefined;

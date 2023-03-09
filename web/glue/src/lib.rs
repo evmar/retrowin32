@@ -278,7 +278,9 @@ impl Emulator {
     pub fn execute_many(&mut self, count: usize) -> JsResult<usize> {
         let start = self.runner.instr_count;
         while self.runner.instr_count < start + count {
-            self.runner.execute_block().map_err(err_from_anyhow)?;
+            if !self.runner.execute_block().map_err(err_from_anyhow)? {
+                break;
+            }
         }
         Ok(self.runner.instr_count - start)
     }
