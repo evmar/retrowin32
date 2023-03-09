@@ -69,7 +69,7 @@ pub fn movsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 fn scas(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
-    assert!(x86.flags.contains(Flags::DF)); // TODO
+    assert!(!x86.flags.contains(Flags::DF)); // TODO
 
     let mut c = 1u32; // 1 step if no rep prefix
     let counter = if instr.has_rep_prefix() || instr.has_repe_prefix() || instr.has_repne_prefix() {
@@ -80,8 +80,16 @@ fn scas(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
 
     while *counter > 0 {
         match size {
+            4 => {
+                let src = *x86.mem.view::<u32>(x86.regs.edi);
+                sub(x86.regs.eax, src, &mut x86.flags);
+            }
+            2 => {
+                let src = *x86.mem.view::<u16>(x86.regs.edi);
+                sub(x86.regs.eax as u16, src, &mut x86.flags);
+            }
             1 => {
-                let src = x86.mem[x86.regs.edi as usize];
+                let src = *x86.mem.view::<u8>(x86.regs.edi);
                 sub(x86.regs.eax as u8, src, &mut x86.flags);
             }
             _ => unimplemented!(),
@@ -98,6 +106,12 @@ fn scas(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
     Ok(())
 }
 
+pub fn scasd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    scas(x86, instr, 4)
+}
+pub fn scasw(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    scas(x86, instr, 2)
+}
 pub fn scasb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     scas(x86, instr, 1)
 }
