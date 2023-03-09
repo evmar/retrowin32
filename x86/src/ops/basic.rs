@@ -197,6 +197,16 @@ pub fn xchg_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn xchg_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let r1 = instr.op1_register();
+    let y = x86.regs.get8(r1);
+    let (x, _flags) = rm8(x86, instr);
+    let tmp = *x;
+    *x = y;
+    x86.regs.set8(r1, tmp);
+    Ok(())
+}
+
 pub fn cmpxchg_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get32(instr.op1_register());
     match instr.op0_kind() {
