@@ -557,6 +557,16 @@ pub fn sbb_r8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn mul_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let x = op0_rm32(x86, instr);
+    let y = x86.regs.eax;
+    let res = (x as u64).wrapping_mul(y as u64);
+    // TODO: flags.
+    x86.regs.edx = (res >> 32) as u32;
+    x86.regs.eax = res as u32;
+    Ok(())
+}
+
 pub fn imul_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op0_rm32(x86, instr) as i32;
     let y = x86.regs.eax as i32;
