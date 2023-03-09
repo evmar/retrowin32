@@ -225,6 +225,19 @@ pub fn shr_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn shrd_rm32_r32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let count = instr.immediate8();
+    if count == 0 {
+        return Ok(());
+    }
+    let y = op1_rm32(x86, instr);
+    let (x, _flags) = rm32(x86, instr);
+    let src = ((y as u64) << 32) | (*x as u64);
+    *x = (src >> count) as u32;
+    // TODO: flags.
+    Ok(())
+}
+
 fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     if y.is_zero() {
         return x;
