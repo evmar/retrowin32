@@ -396,6 +396,13 @@ pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn add_r16_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm16(x86, instr);
+    let (x, flags) = rm16(x86, instr);
+    *x = add(*x, y, flags);
+    Ok(())
+}
+
 pub fn add_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get8(instr.op1_register());
     let (x, flags) = rm8(x86, instr);
