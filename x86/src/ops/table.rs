@@ -269,6 +269,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Std as usize] = Some(ops::std);
     OP_TAB[iced_x86::Code::Cld as usize] = Some(ops::cld);
     OP_TAB[iced_x86::Code::Stc as usize] = Some(ops::stc);
+    OP_TAB[iced_x86::Code::Cmc as usize] = Some(ops::cmc);
     OP_TAB[iced_x86::Code::Cwde as usize] = Some(ops::cwde);
     OP_TAB[iced_x86::Code::Cdq as usize] = Some(ops::cdq);
 

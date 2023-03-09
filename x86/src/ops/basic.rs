@@ -329,6 +329,11 @@ pub fn stc(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn cmc(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    x86.flags.set(Flags::CF, !x86.flags.contains(Flags::CF));
+    Ok(())
+}
+
 pub fn cwde(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     x86.regs.eax = x86.regs.eax as i16 as i32 as u32;
     Ok(())
