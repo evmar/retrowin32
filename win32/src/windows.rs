@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use anyhow::bail;
-
 use crate::{machine::Machine, pe, winapi};
 
 pub fn load_exe(
@@ -45,19 +43,14 @@ pub fn load_exe(
         let data_size = sec.SizeOfRawData as usize;
         let flags = sec.characteristics()?;
 
-        // Load the section contents from the file, unless marked otherwise.
-        // But kkrunchy-packed files have a single section marked
+        // Load the section contents from the file.
+        // Note: kkrunchy-packed files have a single section marked
         // CODE | INITIALIZED_DATA | UNINITIALIZED_DATA | MEM_EXECUTE | MEM_READ | MEM_WRITE
-        // so we have to ignore the UNINITIALIZED_DATA flag in that case.
-        let skip_loading = flags.contains(pe::ImageSectionFlags::UNINITIALIZED_DATA)
-            && !flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
-        if !skip_loading {
+        // so we ignore the UNINITIALIZED_DATA flag.
+        let load_data = flags.contains(pe::ImageSectionFlags::CODE)
+            || flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
+        if load_data && data_size > 0 {
             machine.x86.mem[dst..dst + data_size].copy_from_slice(&buf[src..(src + data_size)]);
-        }
-        if skip_loading && data_size > 0 {
-            bail!("TODO: section has data but skip_loading?");
-        } else if !skip_loading && data_size == 0 {
-            bail!("TODO: section has no data but !skip_loading?");
         }
         machine
             .state
