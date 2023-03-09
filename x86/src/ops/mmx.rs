@@ -39,6 +39,18 @@ pub fn movd_rm32_mm(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn punpcklwd_mm_mmm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm32(x86, instr);
+    rm64_x(x86, instr, |_x86, x| {
+        let x = x as u32; // instr only uses low 32 bits of x
+        (((x >> 16) as u16) as u64) << 48
+            | (((y >> 16) as u16) as u64) << 32
+            | (((x >> 0) as u16) as u64) << 16
+            | (((y >> 0) as u16) as u64) << 0
+    });
+    Ok(())
+}
+
 pub fn punpcklbw_mm_mmm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_mmm32(x86, instr);
     rm64_x(x86, instr, |_x86, x| {
