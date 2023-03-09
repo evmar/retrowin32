@@ -550,18 +550,23 @@ pub fn sbb_r8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+fn imul(x: i32, y: i32, _flags: &mut Flags) -> i32 {
+    // TODO: flags.
+    x.wrapping_mul(y)
+}
+
 pub fn imul_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let x = x86.regs.get32(instr.op0_register());
-    let y = op1_rm32(x86, instr);
-    let value = x.wrapping_mul(y);
-    x86.regs.set32(instr.op0_register(), value);
+    let x = x86.regs.get32(instr.op0_register()) as i32;
+    let y = op1_rm32(x86, instr) as i32;
+    let value = imul(x, y, &mut x86.flags);
+    x86.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
 
 pub fn imul_r32_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op1_rm32(x86, instr) as i32;
     let y = instr.immediate32() as i32;
-    let value = x.wrapping_mul(y);
+    let value = imul(x, y, &mut x86.flags);
     x86.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
@@ -569,7 +574,7 @@ pub fn imul_r32_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()>
 pub fn imul_r32_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op1_rm32(x86, instr) as i32;
     let y = instr.immediate8to32();
-    let value = x.wrapping_mul(y);
+    let value = imul(x, y, &mut x86.flags);
     x86.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
