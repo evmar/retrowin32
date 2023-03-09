@@ -1,12 +1,17 @@
 //! The central x86 machine object.
 
+use iced_x86::FlowControl;
+
 use crate::{
     memory::Memory,
     ops,
     registers::{Flags, Registers},
     StepError, StepResult,
 };
-use std::collections::HashMap;
+use std::{
+    collections::{BTreeMap, HashMap},
+    rc::Rc,
+};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -134,15 +139,37 @@ impl X86 {
     }
 }
 
+pub struct BasicBlock {
+    pub len: u32,
+    pub instrs: Vec<iced_x86::Instruction>,
+}
+
+impl BasicBlock {
+    fn disassemble(buf: &[u8], ip: u32) -> Self {
+        let mut instrs = Vec::new();
+        let mut decoder =
+            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
+        while decoder.can_decode() {
+            let instr = decoder.decode();
+            instrs.push(instr);
+            if instr.flow_control() != FlowControl::Next {
+                break;
+            }
+        }
+        BasicBlock {
+            instrs,
+            len: decoder.ip() as u32 - ip,
+        }
+    }
+}
+
 /// Cache of decoded instructions.
 /// This also caches the current instruction index, so that we don't need to map
 /// x86 eip addresses to the instruction cache entry.  Instead, whenever we step
 /// we update index as appropriate.
 pub struct InstrCache {
-    /// (ip, instruction) pairs of cached decoded instructions.
-    pub instrs: Vec<(u32, iced_x86::Instruction)>,
-    /// Current position within instrs.
-    pub index: usize,
+    pub blocks: BTreeMap<u32, Rc<BasicBlock>>,
+
     /// Span of addresses that refer to code, for error checking
     pub span: std::ops::Range<u32>,
 
@@ -154,93 +181,37 @@ pub struct InstrCache {
 impl InstrCache {
     pub fn new() -> Self {
         InstrCache {
-            instrs: Vec::new(),
-            index: 0,
+            blocks: BTreeMap::new(),
             span: 0..0,
             breakpoints: HashMap::new(),
         }
     }
 
-    pub fn disassemble(&mut self, buf: &[u8], ip: u32) {
-        self.instrs.clear();
-        let mut decoder =
-            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
-        while decoder.can_decode() {
-            self.instrs.push((decoder.ip() as u32, decoder.decode()));
-        }
-        self.span = ip..decoder.ip() as u32;
-    }
+    fn update_block(&mut self, mem: &[u8], ip: u32) -> Rc<BasicBlock> {
+        // If there's a block after this location, ensure we don't disassemble over it.
+        let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
+            later_ip as usize
+        } else {
+            mem.len()
+        };
 
-    /// Given an IP that wasn't found in the decoded instructions, re-decode starting at that
-    /// address and patch in the new instructions in place of the previous ones.
-    /// start is the index of where in the instruction table the patch will begin.
-    fn repatch(&mut self, mem: &[u8], addr: u32, start: usize) {
-        let mut decoder = iced_x86::Decoder::with_ip(
-            32,
-            &mem[addr as usize..],
-            addr as u64,
-            iced_x86::DecoderOptions::NONE,
-        );
-        let mut end = start;
-        let mut patch = Vec::new();
-        while decoder.can_decode() {
-            let new_entry = (decoder.ip() as u32, decoder.decode());
-            // Overwrite any instructions with conflicting ips.
-            while new_entry.0 > self.instrs[end].0 {
-                end += 1;
-            }
-            if new_entry == self.instrs[end] {
-                // Resynchronized.
-                // Note: this compares both ip and the decoded instruction, to handle the case
-                // where the IPs line up but the underlying instructions still don't match due
-                // to a change in memory.  This is an incorrect fix to the more general problem
-                // of keeping this cache up to date with writes to memory.
-                break;
-            }
-            patch.push(new_entry);
-        }
-        log::info!(
-            "replacing [{:x}..{:x}] with {} instrs starting at {:x}",
-            self.instrs[start].0,
-            self.instrs[end].0,
-            patch.len(),
-            patch[0].0,
-        );
-        self.instrs.splice(start..end, patch);
-    }
-
-    fn ip_to_instr_index(&mut self, mem: &[u8], target_ip: u32) -> Option<usize> {
-        match self.instrs.binary_search_by_key(&target_ip, |&(ip, _)| ip) {
-            Ok(pos) => Some(pos),
-            Err(pos) => {
-                // We may hit this case if the disassembler gets desynchronized from the instruction
-                // stream.  We need to re-disassemble or something in that case.
-                let nearby = match self.instrs.get(pos) {
-                    Some((ip, instr)) => format!("nearby address {:x} {}", ip, instr),
-                    None => format!("address beyond decoded range"),
-                };
-                log::warn!("unexpected ip {:x} {}", target_ip, nearby);
-                self.repatch(mem, target_ip, pos);
-                self.ip_to_instr_index(mem, target_ip)
+        // If there's a block before this location, ensure we don't overlap it.
+        if let Some((&prev_ip, block)) = self.blocks.range(0..ip).last() {
+            if prev_ip + block.len > ip {
+                self.blocks.remove(&prev_ip); // We'll recreate it when we next need it.
             }
         }
-    }
 
-    pub fn jmp(&mut self, mem: &[u8], target_ip: u32) -> StepResult<()> {
-        if !self.span.contains(&target_ip) {
-            return Err(StepError::Error(format!(
-                "jmp to {target_ip:x} outside of code segment {:x?}",
-                self.span
-            )));
-        }
-        self.index = self.ip_to_instr_index(mem, target_ip).unwrap();
-        Ok(())
+        let block = Rc::new(BasicBlock::disassemble(&mem[ip as usize..end], ip));
+        self.blocks.insert(ip, block.clone());
+        block
     }
 
     /// Replace the instruction found at a given ip, returning the previous instruction.
-    fn patch(&mut self, addr: u32, instr: iced_x86::Instruction) -> iced_x86::Instruction {
-        let index = self.ip_to_instr_index(&[], addr).expect("couldn't map ip");
-        std::mem::replace(&mut self.instrs[index].1, instr)
+    fn patch(&mut self, _addr: u32, _instr: iced_x86::Instruction) -> iced_x86::Instruction {
+        todo!();
+        // let index = self.ip_to_instr_index(&[], addr).expect("couldn't map ip");
+        // std::mem::replace(&mut self.instrs[index].1, instr)
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
@@ -259,32 +230,29 @@ impl InstrCache {
         self.patch(addr, prev);
     }
 
-    /// Executes the current instruction, updating eip.
-    /// Returns Ok(false) if we jumped, Ok(true) if we single-stepped.
-    /// Caller must call self.jmp() in the jump case.
-    pub fn step(&mut self, x86: &mut X86) -> StepResult<bool> {
-        let (prev_ip, ref instr) = self.instrs[self.index];
-        let next_ip = instr.next_ip() as u32;
-        // Need to update eip before executing because instructions like 'call' will push eip onto the stack.
-        x86.regs.eip = next_ip;
-        match x86.run(instr) {
-            Err(err) => {
-                // Point the debugger at the failed instruction.
-                x86.regs.eip = prev_ip;
-                Err(err)
+    /// Executes the current basic block, updating eip.
+    /// Returns the number of instructions executed.
+    pub fn step(&mut self, x86: &mut X86) -> StepResult<usize> {
+        let mut ip = x86.regs.eip;
+        let block = match self.blocks.get(&ip) {
+            Some(b) => b,
+            None => {
+                self.update_block(&x86.mem, ip);
+                self.blocks.get(&ip).unwrap()
             }
-            Ok(_) => {
-                if x86.regs.eip == next_ip {
-                    self.index += 1;
-                    Ok(true)
-                } else {
-                    // if !(0x401000..0x40a600).contains(&x86.regs.eip) && x86.regs.eip < 0xf1a7_000 {
-                    //     x86.regs.eip = prev_ip;
-                    //     return Err(StepError::Error(format!("bad jmp at {:x}", prev_ip)));
-                    // }
-                    Ok(false)
+        };
+        for instr in block.instrs.iter() {
+            x86.regs.eip = instr.next_ip() as u32;
+            match x86.run(instr) {
+                Err(err) => {
+                    // Point the debugger at the failed instruction.
+                    x86.regs.eip = ip;
+                    return Err(err);
                 }
+                Ok(_) => {}
             }
+            ip = x86.regs.eip;
         }
+        Ok(block.instrs.len())
     }
 }

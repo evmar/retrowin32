@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::bail;
 use x86::X86;
 
-use crate::{host, pe::ImageSectionFlags, winapi, windows::load_exe};
+use crate::{host, winapi, windows::load_exe};
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -92,25 +92,7 @@ impl Runner {
         buf: &[u8],
         cmdline: String,
     ) -> anyhow::Result<HashMap<u32, String>> {
-        let labels = load_exe(&mut self.machine, buf, cmdline)?;
-
-        // Disassemble the 'code' section.
-        let mapping = self
-            .machine
-            .state
-            .kernel32
-            .mappings
-            .vec()
-            .iter()
-            .find(|mapping| mapping.flags.contains(ImageSectionFlags::CODE))
-            .ok_or_else(|| anyhow::anyhow!("no code section"))?;
-        let section =
-            &self.machine.x86.mem[mapping.addr as usize..(mapping.addr + mapping.size) as usize];
-        self.icache.disassemble(section, mapping.addr);
-        self.icache
-            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)?;
-
-        Ok(labels)
+        load_exe(&mut self.machine, buf, cmdline)
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) {
@@ -136,37 +118,20 @@ impl Runner {
         x86::ops::x86_jmp(&mut self.machine.x86, ret).map_err(|err| anyhow::anyhow!(err))
     }
 
-    // Single-step execution.  Returns Ok(false) if we stopped.
+    // Execute one basic block.  Returns Ok(false) if we stopped early.
     pub fn step(&mut self) -> anyhow::Result<bool> {
-        self.instr_count += 1;
         match self.icache.step(&mut self.machine.x86) {
             Err(x86::StepError::Interrupt) => Ok(false),
             Err(x86::StepError::Error(err)) => bail!(err),
-            Ok(false) => {
+            Ok(count) => {
+                self.instr_count += count;
                 self.check_shim_call()?;
-                // Instruction changed eip.  Update icache to match.
-                self.icache
-                    .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)?;
                 Ok(true)
             }
-            Ok(true) => Ok(true),
         }
-    }
-
-    // Multi-step execution.  Returns Ok(false) on breakpoint.
-    pub fn step_many(&mut self, count: usize) -> anyhow::Result<usize> {
-        for i in 0..count {
-            if !self.step()? {
-                return Ok(i);
-            }
-        }
-        Ok(count)
     }
 
     pub fn load_snapshot(&mut self, snap: x86::X86) {
         self.machine.x86 = snap;
-        self.icache
-            .jmp(&self.machine.x86.mem, self.machine.x86.regs.eip)
-            .unwrap();
     }
 }

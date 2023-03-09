@@ -256,7 +256,7 @@ class VM implements JsHost {
     }
 
     const delta = end - start;
-    const instrPerMs = this.stepSize / delta;
+    const instrPerMs = steps / delta;
     const alpha = 0.5; // smoothing factor
     this.instrPerMs = alpha * (instrPerMs) + (alpha - 1) * this.instrPerMs;
 

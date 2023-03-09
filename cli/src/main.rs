@@ -255,7 +255,7 @@ fn main() -> anyhow::Result<()> {
                 break;
             }
         }
-        match runner.step_many(10000) {
+        match runner.step() {
             Err(err) => {
                 dump_asm(&runner);
                 log::error!("{:?}", err);

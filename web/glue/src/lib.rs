@@ -272,8 +272,15 @@ impl Emulator {
         self.runner.step().map_err(err_from_anyhow)?;
         Ok(())
     }
+
+    /// Step multiple basic blocks until at least count instructions have run.
+    /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn step_many(&mut self, count: usize) -> JsResult<usize> {
-        self.runner.step_many(count).map_err(err_from_anyhow)
+        let start = self.runner.instr_count;
+        while self.runner.instr_count < start + count {
+            self.runner.step().map_err(err_from_anyhow)?;
+        }
+        Ok(self.runner.instr_count - start)
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
