@@ -255,7 +255,7 @@ fn main() -> anyhow::Result<()> {
                 break;
             }
         }
-        match runner.step() {
+        match runner.execute_block() {
             Err(err) => {
                 dump_asm(&runner);
                 log::error!("{:?}", err);

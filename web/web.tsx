@@ -86,7 +86,7 @@ class Window implements JsWindow {
   constructor(
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) {}
+  ) { }
   title: string = '';
   width: number | undefined;
   height: number | undefined;
@@ -236,7 +236,7 @@ class VM implements JsHost {
 
   /** Returns true if we should keep running after this (no breakpoint). */
   step(): boolean {
-    this.emu.step();
+    this.emu.single_step();
     return !this.checkBreak();
   }
 
@@ -248,7 +248,7 @@ class VM implements JsHost {
   /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
     const start = performance.now();
-    const steps = this.emu.step_many(this.stepSize);
+    const steps = this.emu.execute_many(this.stepSize);
     const end = performance.now();
 
     if (this.checkBreak()) {

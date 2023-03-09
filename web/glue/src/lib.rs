@@ -268,17 +268,17 @@ impl Emulator {
             .unwrap_throw()
     }
 
-    pub fn step(&mut self) -> JsResult<()> {
-        self.runner.step().map_err(err_from_anyhow)?;
+    pub fn single_step(&mut self) -> JsResult<()> {
+        self.runner.single_step().map_err(err_from_anyhow)?;
         Ok(())
     }
 
-    /// Step multiple basic blocks until at least count instructions have run.
+    /// Execute multiple basic blocks until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
-    pub fn step_many(&mut self, count: usize) -> JsResult<usize> {
+    pub fn execute_many(&mut self, count: usize) -> JsResult<usize> {
         let start = self.runner.instr_count;
         while self.runner.instr_count < start + count {
-            self.runner.step().map_err(err_from_anyhow)?;
+            self.runner.execute_block().map_err(err_from_anyhow)?;
         }
         Ok(self.runner.instr_count - start)
     }

@@ -174,8 +174,8 @@ pub struct InstrCache {
     pub span: std::ops::Range<u32>,
 
     /// Places where we've patched out the instruction with an int3.
-    /// The map values are the instruction from before the breakpoint.
-    breakpoints: HashMap<u32, iced_x86::Instruction>,
+    /// The map values are the bytes from before the breakpoint.
+    breakpoints: HashMap<u32, u8>,
 }
 
 impl InstrCache {
@@ -187,6 +187,15 @@ impl InstrCache {
         }
     }
 
+    /// Remove any BasicBlock that covers ip.
+    fn kill_block(&mut self, ip: u32) {
+        if let Some((&prev_ip, block)) = self.blocks.range(0..ip + 1).last() {
+            if prev_ip + block.len > ip {
+                self.blocks.remove(&prev_ip);
+            }
+        }
+    }
+
     fn update_block(&mut self, mem: &[u8], ip: u32) -> Rc<BasicBlock> {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
@@ -195,44 +204,36 @@ impl InstrCache {
             mem.len()
         };
 
-        // If there's a block before this location, ensure we don't overlap it.
-        if let Some((&prev_ip, block)) = self.blocks.range(0..ip).last() {
-            if prev_ip + block.len > ip {
-                self.blocks.remove(&prev_ip); // We'll recreate it when we next need it.
-            }
-        }
+        // Ensure we don't overlap any previous block.
+        self.kill_block(ip);
 
         let block = Rc::new(BasicBlock::disassemble(&mem[ip as usize..end], ip));
         self.blocks.insert(ip, block.clone());
         block
     }
 
-    /// Replace the instruction found at a given ip, returning the previous instruction.
-    fn patch(&mut self, _addr: u32, _instr: iced_x86::Instruction) -> iced_x86::Instruction {
-        todo!();
-        // let index = self.ip_to_instr_index(&[], addr).expect("couldn't map ip");
-        // std::mem::replace(&mut self.instrs[index].1, instr)
-    }
-
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, addr: u32) {
-        let mut int3 = iced_x86::Instruction::with(iced_x86::Code::Int3);
-        // The instruction needs a length/next_ip so the execution machinery doesn't lose its location.
-        int3.set_len(1);
-        int3.set_next_ip(addr as u64 + 1);
-        let prev = self.patch(addr, int3);
-        self.breakpoints.insert(addr, prev);
+    pub fn add_breakpoint(&mut self, mem: &mut [u8], addr: u32) {
+        self.kill_block(addr); // Allow recreating lazily.
+        self.breakpoints.insert(addr, mem[addr as usize]);
+        mem[addr as usize] = 0xcc; // int3
     }
 
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, addr: u32) {
+    pub fn clear_breakpoint(&mut self, mem: &mut [u8], addr: u32) {
+        self.kill_block(addr); // Allow recreating lazily.
+
+        // Allow a subsequent block that might have been split due to the int3
+        // to be recreated.
+        self.kill_block(addr + 1);
+
         let prev = self.breakpoints.remove(&addr).unwrap();
-        self.patch(addr, prev);
+        mem[addr as usize] = prev;
     }
 
     /// Executes the current basic block, updating eip.
     /// Returns the number of instructions executed.
-    pub fn step(&mut self, x86: &mut X86) -> StepResult<usize> {
+    pub fn execute_block(&mut self, x86: &mut X86) -> StepResult<usize> {
         let mut ip = x86.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
@@ -254,5 +255,31 @@ impl InstrCache {
             ip = x86.regs.eip;
         }
         Ok(block.instrs.len())
+    }
+
+    pub fn single_step(&mut self, x86: &mut X86) -> StepResult<()> {
+        let ip = x86.regs.eip;
+        let block = match self.blocks.get(&ip) {
+            Some(b) => b,
+            None => {
+                self.update_block(&x86.mem, ip);
+                self.blocks.get(&ip).unwrap()
+            }
+        };
+
+        let int3_addr = ip + block.instrs[0].len() as u32;
+        self.add_breakpoint(&mut x86.mem, int3_addr);
+        let ret = match self.execute_block(x86) {
+            Err(StepError::Interrupt) => Ok(()),
+            Err(err) => Err(err),
+            Ok(_) => {
+                // Note that if the instruction is a 'jmp' we won't hit the int3,
+                // but any control flow instruction is the end of a basic block anyway
+                // so we still successfully single step.
+                Ok(())
+            }
+        };
+        self.clear_breakpoint(&mut x86.mem, int3_addr);
+        ret
     }
 }

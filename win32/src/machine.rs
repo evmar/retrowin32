@@ -96,11 +96,12 @@ impl Runner {
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) {
-        self.icache.add_breakpoint(addr)
+        self.icache.add_breakpoint(&mut self.machine.x86.mem, addr)
     }
 
     pub fn clear_breakpoint(&mut self, addr: u32) {
-        self.icache.clear_breakpoint(addr)
+        self.icache
+            .clear_breakpoint(&mut self.machine.x86.mem, addr)
     }
 
     /// If eip points at a shim address, call the handler and update eip.
@@ -119,8 +120,8 @@ impl Runner {
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
-    pub fn step(&mut self) -> anyhow::Result<bool> {
-        match self.icache.step(&mut self.machine.x86) {
+    pub fn execute_block(&mut self) -> anyhow::Result<bool> {
+        match self.icache.execute_block(&mut self.machine.x86) {
             Err(x86::StepError::Interrupt) => Ok(false),
             Err(x86::StepError::Error(err)) => bail!(err),
             Ok(count) => {
@@ -129,6 +130,11 @@ impl Runner {
                 Ok(true)
             }
         }
+    }
+
+    pub fn single_step(&mut self) -> anyhow::Result<()> {
+        self.icache.single_step(&mut self.machine.x86)?;
+        Ok(())
     }
 
     pub fn load_snapshot(&mut self, snap: x86::X86) {
