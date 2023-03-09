@@ -437,6 +437,14 @@ pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn adc_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8() as u32;
+    let carry = x86.flags.contains(Flags::CF);
+    let (x, flags) = rm32(x86, instr);
+    *x = addc(*x, y, carry as u32, flags);
+    Ok(())
+}
+
 pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     let carry = x86.flags.contains(Flags::CF);
