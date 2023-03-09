@@ -84,7 +84,7 @@ pub const DLLS: [BuiltinDLL; 8] = [
 
 pub fn resolve(file_name: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
     // TODO: no support for ordinals yet in dll generation machinery.
-    if file_name == dll::ddraw::DLL.file_name {
+    if file_name == dll::dsound::DLL.file_name {
         match *sym {
             ImportSymbol::Ordinal(1) => return Some(dll::dsound::DirectSoundCreate),
             _ => {}
