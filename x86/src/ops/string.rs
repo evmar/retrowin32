@@ -68,27 +68,38 @@ pub fn movsb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     movs(x86, instr, 1)
 }
 
-pub fn scas(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+fn scas(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
     assert!(x86.flags.contains(Flags::DF)); // TODO
-    let src = x86.regs.edi as usize;
-    let value = x86.regs.eax as u8;
-    let count = x86.regs.ecx as usize;
-    if instr.has_repne_prefix() {
-        let pos = x86.mem[src..src + count]
-            .iter()
-            .position(|&c| c == value)
-            .unwrap_or(count);
-        x86.regs.edi += pos as u32;
-        x86.regs.ecx -= pos as u32;
-        sub(
-            x86.regs.get8(iced_x86::Register::AL),
-            x86.regs.get8(iced_x86::Register::DL),
-            &mut x86.flags,
-        );
+
+    let mut c = 1u32; // 1 step if no rep prefix
+    let counter = if instr.has_rep_prefix() || instr.has_repe_prefix() || instr.has_repne_prefix() {
+        &mut x86.regs.ecx
     } else {
-        return Err(StepError::Error("unimpl".into()));
+        &mut c
+    };
+
+    while *counter > 0 {
+        match size {
+            1 => {
+                let src = x86.mem[x86.regs.edi as usize];
+                sub(x86.regs.eax as u8, src, &mut x86.flags);
+            }
+            _ => unimplemented!(),
+        }
+        x86.regs.edi = x86.regs.edi.wrapping_add(size);
+        *counter = counter.wrapping_sub(1);
+        if instr.has_repne_prefix() && x86.flags.contains(Flags::ZF) {
+            break;
+        } else if instr.has_repe_prefix() && !x86.flags.contains(Flags::ZF) {
+            break;
+        }
     }
+
     Ok(())
+}
+
+pub fn scasb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    scas(x86, instr, 1)
 }
 
 pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
