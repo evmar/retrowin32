@@ -219,7 +219,7 @@ impl InstrCache {
                     Some((ip, instr)) => format!("nearby address {:x} {}", ip, instr),
                     None => format!("address beyond decoded range"),
                 };
-                log::error!("invalid ip {:x}, desync? {}", target_ip, nearby);
+                log::warn!("unexpected ip {:x} {}", target_ip, nearby);
                 self.repatch(mem, target_ip, pos);
                 self.ip_to_instr_index(mem, target_ip)
             }
