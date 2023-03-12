@@ -1,10 +1,16 @@
-extern crate sdl2;
 extern crate win32;
-
 mod logging;
+use anyhow::bail;
 use std::{cell::RefCell, io::Write, rc::Rc};
 
-use anyhow::bail;
+#[cfg(feature = "sdl")]
+mod sdl;
+#[cfg(feature = "sdl")]
+use sdl::GUI;
+#[cfg(not(feature = "sdl"))]
+mod headless;
+#[cfg(not(feature = "sdl"))]
+use headless::GUI;
 
 fn dump_asm(runner: &win32::Runner) {
     let instrs = win32::disassemble(&runner.machine.x86.mem, runner.machine.x86.regs.eip);
@@ -15,36 +21,6 @@ fn dump_asm(runner: &win32::Runner) {
             print!("{}", part.text);
         }
         println!();
-    }
-}
-
-struct GUI {
-    video: sdl2::VideoSubsystem,
-    pump: sdl2::EventPump,
-    win: Option<WindowRef>,
-}
-impl GUI {
-    fn new() -> anyhow::Result<Self> {
-        let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
-        let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
-        let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
-
-        Ok(GUI {
-            video,
-            pump: pump,
-            win: None,
-        })
-    }
-
-    fn pump_messages(&mut self) -> bool {
-        for event in self.pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. } => return false,
-                _ => {}
-            }
-            println!("ev {:?}", event);
-        }
-        true
     }
 }
 
@@ -91,146 +67,13 @@ impl win32::Host for EnvRef {
     fn create_window(&mut self) -> Box<dyn win32::Window> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
-        let win = Window::new(&gui.video);
-        let win_ref = WindowRef(Rc::new(RefCell::new(win)));
-        gui.win = Some(win_ref.clone());
-        Box::new(win_ref)
+        gui.create_window()
     }
 
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
-        if opts.primary {
-            Box::new(Surface::Window(gui.win.as_ref().unwrap().clone()))
-        } else {
-            Box::new(Surface::Texture(Texture::new(
-                gui.win.as_ref().unwrap(),
-                opts,
-            )))
-        }
-    }
-}
-
-struct Window {
-    canvas: sdl2::render::WindowCanvas,
-}
-impl Window {
-    fn new(video: &sdl2::VideoSubsystem) -> Self {
-        let win = video.window("retrowin32", 640, 480).build().unwrap();
-        let canvas = win.into_canvas().build().unwrap();
-        Window { canvas }
-    }
-}
-
-#[derive(Clone)]
-struct WindowRef(Rc<RefCell<Window>>);
-impl win32::Window for WindowRef {
-    fn set_title(&mut self, title: &str) {
-        self.0
-            .borrow_mut()
-            .canvas
-            .window_mut()
-            .set_title(title)
-            .unwrap();
-    }
-
-    fn set_size(&mut self, width: u32, height: u32) {
-        self.0
-            .borrow_mut()
-            .canvas
-            .window_mut()
-            .set_size(width, height)
-            .unwrap();
-    }
-}
-
-enum Surface {
-    Window(WindowRef),
-    Texture(Texture),
-}
-impl win32::Surface for Surface {
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        match self {
-            Surface::Window(_) => unimplemented!(),
-            Surface::Texture(t) => t.write_pixels(pixels),
-        }
-    }
-
-    fn get_attached(&self) -> Box<dyn win32::Surface> {
-        match self {
-            Surface::Window(w) => Box::new(Surface::Window(w.clone())),
-            Surface::Texture(_) => unimplemented!(),
-        }
-    }
-
-    fn flip(&mut self) {
-        match self {
-            Surface::Window(w) => w.0.borrow_mut().canvas.present(),
-            Surface::Texture(_) => unimplemented!(),
-        }
-    }
-
-    fn bit_blt(
-        &mut self,
-        dx: u32,
-        dy: u32,
-        src: &dyn win32::Surface,
-        sx: u32,
-        sy: u32,
-        w: u32,
-        h: u32,
-    ) {
-        let src_rect = sdl2::rect::Rect::new(sx as i32, sy as i32, w, h);
-        let src = unsafe { &*(src as *const dyn win32::Surface as *const Surface) };
-        let tex = match src {
-            Surface::Window(_) => unimplemented!(),
-            Surface::Texture(t) => &t.texture,
-        };
-        let dst_rect = sdl2::rect::Rect::new(dx as i32, dy as i32, w, h);
-        match self {
-            Surface::Window(wr) => {
-                wr.0.borrow_mut()
-                    .canvas
-                    .copy(tex, src_rect, dst_rect)
-                    .unwrap()
-            }
-            Surface::Texture(_) => unimplemented!(),
-        };
-    }
-}
-
-struct Texture {
-    texture: sdl2::render::Texture,
-    width: u32,
-    height: u32,
-}
-impl Texture {
-    fn new(win: &WindowRef, opts: &win32::SurfaceOptions) -> Self {
-        let texture = win
-            .0
-            .borrow()
-            .canvas
-            .texture_creator()
-            .create_texture_static(
-                sdl2::pixels::PixelFormatEnum::ABGR8888,
-                opts.width,
-                opts.height,
-            )
-            .unwrap();
-        Texture {
-            texture,
-            width: opts.width,
-            height: opts.height,
-        }
-    }
-
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        let pixels_u8 =
-            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
-        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
-        self.texture
-            .update(rect, pixels_u8, self.width as usize * 4)
-            .unwrap();
+        gui.create_surface(opts)
     }
 }
 
