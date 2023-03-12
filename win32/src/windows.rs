@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::min, collections::HashMap};
 
 use crate::{machine::Machine, pe, winapi};
 
@@ -11,10 +11,11 @@ pub fn load_exe(
 
     let base = file.opt_header.ImageBase;
     machine.state.kernel32.image_base = base;
-    machine
-        .x86
-        .mem
-        .resize((base + file.opt_header.SizeOfImage) as usize, 0);
+    // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
+    // end up using it.  We might need to figure out uncommitted memory to properly
+    // load it.
+    let image_size = min(file.opt_header.SizeOfImage, 10 << 20);
+    machine.x86.mem.resize((base + image_size) as usize, 0);
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
     // I cannot find documentation of this but it is what I observe in a debugger,
@@ -86,27 +87,30 @@ pub fn load_exe(
     machine.x86.regs.esp = stack_end;
     machine.x86.regs.ebp = stack_end;
 
-    const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
-    let imports_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     let mut labels: HashMap<u32, String> = HashMap::new();
-    pe::parse_imports(
-        &mut machine.x86.mem[base as usize..],
-        imports_data.VirtualAddress as usize,
-        |dll, sym, iat_addr| {
-            let name = format!("{}!{}", dll, sym.to_string());
-            labels.insert(base + iat_addr, format!("{}@IAT", name));
+    // Some packed executables don't seem to have the data directory bit.
+    if file.header.SizeOfOptionalHeader > 8 {
+        const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
+        let imports_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+        pe::parse_imports(
+            &mut machine.x86.mem[base as usize..],
+            imports_data.VirtualAddress as usize,
+            |dll, sym, iat_addr| {
+                let name = format!("{}!{}", dll, sym.to_string());
+                labels.insert(base + iat_addr, format!("{}@IAT", name));
 
-            let handler = winapi::resolve(dll, &sym);
-            let addr = machine.shims.add(name.clone(), handler);
-            labels.insert(addr, name);
+                let handler = winapi::resolve(dll, &sym);
+                let addr = machine.shims.add(name.clone(), handler);
+                labels.insert(addr, name);
 
-            addr
-        },
-    )?;
+                addr
+            },
+        )?;
 
-    const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
-    let res_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
-    machine.state.user32.resources_base = res_data.VirtualAddress;
+        const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
+        let res_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+        machine.state.user32.resources_base = res_data.VirtualAddress;
+    }
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     machine.x86.regs.eip = entry_point;
