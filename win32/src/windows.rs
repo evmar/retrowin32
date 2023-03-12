@@ -11,11 +11,17 @@ pub fn load_exe(
 
     let base = file.opt_header.ImageBase;
     machine.state.kernel32.image_base = base;
-    // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
-    // end up using it.  We might need to figure out uncommitted memory to properly
-    // load it.
-    let image_size = min(file.opt_header.SizeOfImage, 10 << 20);
-    machine.x86.mem.resize((base + image_size) as usize, 0);
+    let memory_size = base + file.opt_header.SizeOfImage;
+    if memory_size > 10 << 20 {
+        // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
+        // end up using it.  We might need to figure out uncommitted memory to properly
+        // load it.
+        log::warn!(
+            "file header requests {}mb of memory",
+            memory_size / (1 << 20)
+        );
+    }
+    machine.x86.mem.resize(memory_size as usize, 0);
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
     // I cannot find documentation of this but it is what I observe in a debugger,
