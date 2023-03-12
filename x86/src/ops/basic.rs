@@ -165,6 +165,29 @@ pub fn mov_moffs8_al(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn mov_r32m16_sreg(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    // This weirdly is either a 16-bit or 32-write, so we must match to determine.
+    let y = x86.regs.get16(instr.op1_register());
+    match instr.op0_kind() {
+        iced_x86::OpKind::Register => x86.regs.set32(instr.op0_register(), y as u32),
+        iced_x86::OpKind::Memory => x86.write_u16(x86_addr(x86, instr), y),
+        _ => unimplemented!(),
+    }
+    Ok(())
+}
+
+pub fn mov_sreg_r32m16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    // This weirdly is either a 16-bit or 32-write, so we must match to determine.
+    // TODO: this is supposed to do segment selector validation stuff.
+    let y = match instr.op1_kind() {
+        iced_x86::OpKind::Register => x86.regs.get32(instr.op1_register()) as u16,
+        iced_x86::OpKind::Memory => x86.read_u16(x86_addr(x86, instr)),
+        _ => unimplemented!(),
+    };
+    x86.regs.set16(instr.op0_register(), y);
+    Ok(())
+}
+
 pub fn movsx_r32_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm16(x86, instr) as i16 as u32;
     let (x, _flags) = rm32(x86, instr);
