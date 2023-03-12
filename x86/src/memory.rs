@@ -59,7 +59,13 @@ impl Memory for [u8] {
         if let Some(nul) = self.iter().position(|&c| c == 0) {
             span = &self[0..nul];
         }
-        std::str::from_utf8(span).unwrap()
+        match std::str::from_utf8(span) {
+            Err(err) => {
+                log::error!("invalid utf8 {err:?}, {span:?}");
+                "[err]"
+            }
+            Ok(str) => str,
+        }
     }
 
     fn read_strz_with_nul(&self) -> &str {
