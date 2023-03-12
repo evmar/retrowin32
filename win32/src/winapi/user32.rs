@@ -152,7 +152,11 @@ pub fn DialogBoxParamA(
     dwInitParam: u32,
 ) -> u32 {
     log::warn!("TODO: DialogBoxParamA({hInstance:x}, {lpTemplateName:x}, {hWndParent:x}, {lpDialogFunc:x}, {dwInitParam:x})");
-    1 // success
+    // TODO: this should run a nested message loop that will call back into lpDialogFunc,
+    // which then will call EndDialog to end the nested message loop and return the value
+    // passed to EndDialog.
+    // Unfortunately we don't know what value to return here otherwise; it's application specific.
+    0
 }
 
 #[win32_derive::dllexport]
