@@ -679,6 +679,23 @@ pub mod user32 {
         )
         .to_raw();
     }
+    pub fn GetMessageA(machine: &mut Machine) {
+        let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _wMsgFilterMin: u32 = unsafe { from_x86(&mut machine.x86) };
+        let _wMsgFilterMax: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::user32::GetMessageA(machine, _lpMsg, _hWnd, _wMsgFilterMin, _wMsgFilterMax)
+                .to_raw();
+    }
+    pub fn TranslateMessage(machine: &mut Machine) {
+        let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::user32::TranslateMessage(machine, _lpMsg).to_raw();
+    }
+    pub fn DispatchMessageA(machine: &mut Machine) {
+        let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::user32::DispatchMessageA(machine, _lpMsg).to_raw();
+    }
     pub fn LoadIconA(machine: &mut Machine) {
         let _hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let _lpIconName: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -719,6 +736,9 @@ pub mod user32 {
                 "MessageBoxA" => MessageBoxA,
                 "DialogBoxParamA" => DialogBoxParamA,
                 "PeekMessageA" => PeekMessageA,
+                "GetMessageA" => GetMessageA,
+                "TranslateMessage" => TranslateMessage,
+                "DispatchMessageA" => DispatchMessageA,
                 "LoadIconA" => LoadIconA,
                 "LoadCursorA" => LoadCursorA,
                 "ShowCursor" => ShowCursor,

@@ -175,6 +175,28 @@ pub fn PeekMessageA(
 }
 
 #[win32_derive::dllexport]
+pub fn GetMessageA(
+    _machine: &mut Machine,
+    _lpMsg: u32,
+    _hWnd: u32,
+    _wMsgFilterMin: u32,
+    _wMsgFilterMax: u32,
+) -> bool {
+    true // do not quit
+}
+
+#[win32_derive::dllexport]
+pub fn TranslateMessage(_machine: &mut Machine, _lpMsg: u32) -> bool {
+    // TODO: translate key-related messages into enqueuing a WM_CHAR.
+    false // no message translated
+}
+
+#[win32_derive::dllexport]
+pub fn DispatchMessageA(_machine: &mut Machine, _lpMsg: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
 pub fn LoadIconA(_machine: &mut Machine, _hInstance: u32, _lpIconName: u32) -> u32 {
     0
 }
