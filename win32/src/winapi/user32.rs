@@ -1,12 +1,11 @@
 #![allow(non_snake_case)]
 
+use super::types::{DWORD, WORD};
+use crate::{host, machine::Machine, pe, winapi::gdi32};
 use anyhow::bail;
 use bitflags::bitflags;
+use num_traits::FromPrimitive;
 use x86::Memory;
-
-use crate::{host, machine::Machine, pe, winapi::gdi32};
-
-use super::types::{DWORD, WORD};
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
@@ -356,17 +355,31 @@ pub fn LoadImageA(
     }
 }
 
+#[derive(Debug, FromPrimitive)]
+enum SystemMetric {
+    CXSCREEN = 1,
+    CYSCREEN = 2,
+    CYCAPTION = 4,
+    CYBORDER = 6,
+    CXFRAME = 32,
+    CYFRAME = 33,
+}
+
 #[win32_derive::dllexport]
 pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: u32) -> u32 {
-    const SM_CXSCREEN: u32 = 0;
-    const SM_CYSCREEN: u32 = 1;
-
-    match nIndex {
-        SM_CXSCREEN => 640,
-        SM_CYSCREEN => 480,
-        _ => {
-            log::warn!("GetSystemMetrics({nIndex})");
-            0
+    let metric = match SystemMetric::from_u32(nIndex) {
+        Some(metric) => metric,
+        None => {
+            log::error!("GetSystemMetrics({nIndex})");
+            return 0;
         }
+    };
+    match metric {
+        SystemMetric::CXSCREEN => 640,
+        SystemMetric::CYSCREEN => 480,
+        SystemMetric::CYCAPTION => 3,
+        SystemMetric::CYBORDER => 1,
+        SystemMetric::CXFRAME => 8,
+        SystemMetric::CYFRAME => 8,
     }
 }
