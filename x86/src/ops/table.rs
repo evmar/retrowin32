@@ -49,6 +49,10 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Loop_rel8_32_ECX as usize] = Some(ops::loop_);
 
+    OP_TAB[iced_x86::Code::Pushd_DS as usize] = Some(ops::pushd_r16);
+    OP_TAB[iced_x86::Code::Pushd_ES as usize] = Some(ops::pushd_r16);
+    OP_TAB[iced_x86::Code::Pushd_FS as usize] = Some(ops::pushd_r16);
+    OP_TAB[iced_x86::Code::Pushd_GS as usize] = Some(ops::pushd_r16);
     OP_TAB[iced_x86::Code::Pushd_imm8 as usize] = Some(ops::pushd_imm8);
     OP_TAB[iced_x86::Code::Pushd_imm32 as usize] = Some(ops::pushd_imm32);
     OP_TAB[iced_x86::Code::Push_r32 as usize] = Some(ops::push_r32);
@@ -56,6 +60,10 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Push_rm16 as usize] = Some(ops::push_rm16);
     OP_TAB[iced_x86::Code::Push_r16 as usize] = Some(ops::push_rm16);
 
+    OP_TAB[iced_x86::Code::Popd_DS as usize] = Some(ops::popd_r16);
+    OP_TAB[iced_x86::Code::Popd_ES as usize] = Some(ops::popd_r16);
+    OP_TAB[iced_x86::Code::Popd_FS as usize] = Some(ops::popd_r16);
+    OP_TAB[iced_x86::Code::Popd_GS as usize] = Some(ops::popd_r16);
     OP_TAB[iced_x86::Code::Pop_r32 as usize] = Some(ops::pop_rm32);
     OP_TAB[iced_x86::Code::Pop_rm32 as usize] = Some(ops::pop_rm32);
     OP_TAB[iced_x86::Code::Pop_r16 as usize] = Some(ops::pop_rm16);

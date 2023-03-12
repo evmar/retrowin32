@@ -21,6 +21,19 @@ pub fn leaved(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn pushd_r16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    // Pushing segment registers is subtle:
+    // "If the source operand is a segment register (16 bits) and [...]
+    // the operand size is 32-bits, either a zero-extended value is pushed on
+    // the stack or the segment selector is written on the stack using a 16-bit move.
+    // For the last case, all recent Intel Core and Intel Atom processors perform a
+    // 16-bit move, leaving the upper portion of the stack location unmodified."
+    // tldr it's a 32-bit move in any normal case.
+    let x = x86.regs.get16(instr.op0_register());
+    push(x86, x as u32);
+    Ok(())
+}
+
 pub fn pushd_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     push(x86, instr.immediate8to32() as u32);
     Ok(())
@@ -45,6 +58,13 @@ pub fn push_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 pub fn push_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = op0_rm16(x86, instr);
     push16(x86, value);
+    Ok(())
+}
+
+pub fn popd_r16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    // See discussion in pushd_r16.
+    let value = pop(x86);
+    x86.regs.set16(instr.op0_register(), value as u16);
     Ok(())
 }
 
