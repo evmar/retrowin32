@@ -124,6 +124,41 @@ void shl() {
 #undef shl
 }
 
+void rol() {
+#define rol(x,y) \
+  asm_start("rol " #x "," #y) \
+    __asm mov al,x \
+    __asm rol al,y \
+  asm_end();
+  rol(0x80, 0);
+  rol(0x80, 1);
+  rol(0x80, 2);
+  rol(0xC0, 1);
+  rol(0xC0, 2);
+  rol(0xA0, 1);
+  rol(0xA0, 2);
+  rol(0x6, 1);
+  rol(0x60, 2);
+#undef rol 
+}
+
+void ror() {
+#define ror(x,y) \
+  asm_start("ror " #x "," #y) \
+    __asm mov al,x \
+    __asm ror al,y \
+  asm_end();
+  ror(0x01, 0);
+  ror(0x01, 1);
+  ror(0x01, 2);
+  ror(0x03, 1);
+  ror(0x03, 2);
+  ror(0x02, 1);
+  ror(0x02, 2);
+  ror(0x06, 1);
+  ror(0x06, 2);
+#undef ror
+}
 
 int main(void) {
   add();
@@ -132,5 +167,7 @@ int main(void) {
   shr();
   sar();
   shl();
+  rol();
+  ror();
   return 0;
 }
