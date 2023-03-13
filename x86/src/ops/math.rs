@@ -280,11 +280,45 @@ pub fn sar_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn ror(x: u32, y: u8, flags: &mut Flags) -> u32 {
+fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
+    if y == 0 {
+        return x;
+    }
+    let result = x.rotate_left(y as u32);
+    let carry = (result & I::one()).is_one();
+    flags.set(Flags::CF, carry);
+    // OF only defined for 1-bit rotates.
+    if y == 1 {
+        flags.set(Flags::OF, carry ^ (result >> (I::bits() - 1)).is_one());
+    }
+    result
+}
+
+pub fn rol_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let (x, flags) = rm32(x86, instr);
+    *x = rol(*x, y, flags);
+    Ok(())
+}
+
+pub fn rol_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let (x, flags) = rm8(x86, instr);
+    *x = rol(*x, y, flags);
+    Ok(())
+}
+
+fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
+    if y == 0 {
+        return x;
+    }
     let result = x.rotate_right(y as u32);
-    let msb = (result & 0x8000_0000) != 0;
+    let msb = (result >> (I::bits() - 1)).is_one();
     flags.set(Flags::CF, msb);
-    flags.set(Flags::OF, msb ^ ((result & 04000_0000) != 0));
+    // OF only defined for 1-bit rotates.
+    if y == 1 {
+        flags.set(Flags::OF, msb ^ (result >> (I::bits() - 2)).is_one());
+    }
     result
 }
 
@@ -298,6 +332,13 @@ pub fn ror_rm32_cl(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 pub fn ror_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
     let (x, flags) = rm32(x86, instr);
+    *x = ror(*x, y, flags);
+    Ok(())
+}
+
+pub fn ror_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let (x, flags) = rm8(x86, instr);
     *x = ror(*x, y, flags);
     Ok(())
 }
