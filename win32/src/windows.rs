@@ -1,4 +1,4 @@
-use std::{cmp::min, collections::HashMap};
+use std::collections::HashMap;
 
 use crate::{machine::Machine, pe, winapi};
 
