@@ -40,7 +40,12 @@ pub fn load_exe(
     machine.x86.mem[base as usize..(base as usize + size)].copy_from_slice(&buf[..size]);
 
     for sec in file.sections {
-        let src = sec.PointerToRawData as usize;
+        let mut src = sec.PointerToRawData as usize;
+        if src == 1 {
+            // Graphism (crinkler) hacks this as 1 but gets loaded as if it was zero.
+            // TODO: something about alignment?  Maybe this section gets ignored?
+            src = 0;
+        }
         let dst = (base + sec.VirtualAddress) as usize;
         // sec.SizeOfRawData is the amount of data in the file that should be copied to memory.
         // sec.VirtualSize is the in-memory size of the resulting section, which can be:
