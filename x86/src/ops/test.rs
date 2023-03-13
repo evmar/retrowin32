@@ -115,6 +115,13 @@ pub fn test_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn bt_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let x = op0_rm32(x86, instr);
+    let y = op1_rm32(x86, instr);
+    x86.flags.set(Flags::CF, ((x >> y) & 1) != 0);
+    Ok(())
+}
+
 pub fn bt_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let x = op0_rm32(x86, instr);
     let y = instr.immediate8() % 32;
