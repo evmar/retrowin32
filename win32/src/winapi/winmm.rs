@@ -3,6 +3,8 @@
 
 use crate::machine::Machine;
 
+const TRACE: bool = true;
+
 #[win32_derive::dllexport]
 pub fn timeSetEvent(
     _machine: &mut Machine,

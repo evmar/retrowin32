@@ -9,7 +9,34 @@ pub fn dllexport(
     _attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    item
+    let mut func: syn::ItemFn = syn::parse_macro_input!(item);
+    let mut fmt: String = func.sig.ident.to_string();
+    let mut args: Vec<&syn::Ident> = Vec::new();
+    for arg in func.sig.inputs.iter().skip(1) {
+        match arg {
+            syn::FnArg::Typed(arg) => match &*arg.pat {
+                syn::Pat::Ident(pat) => {
+                    args.push(&pat.ident);
+                }
+                _ => {}
+            },
+            _ => {}
+        };
+    }
+    fmt.push_str("(");
+    fmt.push_str(
+        &args
+            .iter()
+            .map(|arg| format!("{arg}:{{:x?}}"))
+            .collect::<Vec<_>>()
+            .join(", "),
+    );
+    fmt.push_str(")");
+    let stmt = syn::parse_quote! {
+        if TRACE { log::info!(#fmt, #(#args),*); }
+    };
+    func.block.stmts.insert(0, stmt);
+    quote!(#func).into()
 }
 
 /// Generate a `shims` module that contains a wrapper for each function in this module

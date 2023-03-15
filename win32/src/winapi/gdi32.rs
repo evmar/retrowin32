@@ -2,6 +2,8 @@
 
 use crate::{machine::Machine, winapi::user32};
 
+const TRACE: bool = true;
+
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
 pub enum Object {

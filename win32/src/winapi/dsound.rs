@@ -7,6 +7,8 @@ use crate::machine::Machine;
 use crate::winapi::vtable;
 use x86::Memory;
 
+const TRACE: bool = true;
+
 pub const DS_OK: u32 = 0;
 #[allow(unused)]
 const E_FAIL: u32 = 0x80004005;

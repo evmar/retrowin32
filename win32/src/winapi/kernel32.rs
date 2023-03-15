@@ -20,6 +20,8 @@ use super::{
     types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
 };
 
+const TRACE: bool = true;
+
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
 pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
@@ -663,6 +665,7 @@ pub fn QueryPerformanceCounter(_machine: &mut Machine, _ptr: u32) -> bool {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct FILETIME {
     dwLowDateTime: DWORD,
     dwHighDateTime: DWORD,
@@ -1105,6 +1108,7 @@ pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
 // TODO: this has a bunch of synchronization magic that I haven't implemented,
 // but I did at least make this struct the right size (128 bits).
 #[repr(C)]
+#[derive(Debug)]
 pub struct SLIST_HEADER {
     Next: u32,
     todo: [u32; 3],

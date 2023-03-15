@@ -7,6 +7,8 @@ use bitflags::bitflags;
 use num_traits::FromPrimitive;
 use x86::Memory;
 
+const TRACE: bool = true;
+
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }

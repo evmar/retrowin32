@@ -9,6 +9,8 @@ use super::{alloc::Alloc, types::DWORD};
 use bitflags::bitflags;
 use x86::Memory;
 
+const TRACE: bool = true;
+
 #[repr(C)]
 #[derive(Debug)]
 struct RECT {
