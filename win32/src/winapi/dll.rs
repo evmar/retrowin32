@@ -638,6 +638,9 @@ pub mod user32 {
         )
         .to_raw();
     }
+    pub fn GetForegroundWindow(machine: &mut Machine) {
+        machine.x86.regs.eax = winapi::user32::GetForegroundWindow(machine).to_raw();
+    }
     pub fn UpdateWindow(machine: &mut Machine) {
         let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::UpdateWindow(machine, hWnd).to_raw();
@@ -742,6 +745,7 @@ pub mod user32 {
             winapi::ImportSymbol::Name(name) => match name {
                 "RegisterClassA" => RegisterClassA,
                 "CreateWindowExA" => CreateWindowExA,
+                "GetForegroundWindow" => GetForegroundWindow,
                 "UpdateWindow" => UpdateWindow,
                 "ShowWindow" => ShowWindow,
                 "SetFocus" => SetFocus,
