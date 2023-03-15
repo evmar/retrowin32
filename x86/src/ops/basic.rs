@@ -83,27 +83,8 @@ pub fn pop_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn mov_rm32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    // mov dword ptr [x], y
-    // TODO: why is this 'rm32' when there is an r32 variant just below?
     let (x, _flags) = rm32(x86, instr);
     *x = instr.immediate32();
-    Ok(())
-}
-
-pub fn mov_r32_imm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    x86.regs.set32(instr.op0_register(), instr.immediate32());
-    Ok(())
-}
-
-pub fn mov_moffs32_eax(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    // mov [x],eax
-    x86.write_u32(x86_addr(x86, instr), x86.regs.eax);
-    Ok(())
-}
-
-pub fn mov_eax_moffs32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    // mov eax,[x]
-    x86.regs.eax = x86.read_u32(x86_addr(x86, instr));
     Ok(())
 }
 
