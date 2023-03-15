@@ -143,7 +143,8 @@ impl<'a> Alloc for Heap<'a> {
             }
             if node.next == 0 {
                 // Reached last node, try resizing before giving up.
-                node.size += self.mappings.grow(self.info.addr);
+                let space_needed = alloc_size - node.size;
+                node.size += self.mappings.grow(self.info.addr, space_needed);
                 if node.size < alloc_size {
                     panic!("heap OOM allocating {alloc_size:#x}: resized, but still too small");
                 }

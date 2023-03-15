@@ -119,10 +119,15 @@ impl Mappings {
         &self.0
     }
 
-    pub fn grow(&mut self, addr: u32) -> u32 {
+    pub fn grow(&mut self, addr: u32, min_growth: u32) -> u32 {
         let pos = self.0.iter().position(|m| m.addr == addr).unwrap();
         let mapping = &self.0[pos];
-        let new_size = mapping.size * 2;
+        let mut new_size = mapping.size;
+        while new_size - mapping.size < min_growth {
+            new_size *= 2;
+        }
+
+        // Check if we run into a mapping after this one.
         if pos + 1 < self.0.len() {
             let next = &self.0[pos + 1];
             if mapping.addr + new_size > next.addr {
@@ -133,7 +138,13 @@ impl Mappings {
         let mapping = &mut self.0[pos];
         let growth = new_size - mapping.size;
         mapping.size = new_size;
-        log::info!("grew mapping {:?} by {:#x}", mapping.desc, growth);
+        log::info!(
+            "grew mapping {:?} by {:#x}, new size {:#x}",
+            mapping.desc,
+            growth,
+            new_size
+        );
+        log::warn!("might need to grow backing memory after growth");
         growth
     }
 }
