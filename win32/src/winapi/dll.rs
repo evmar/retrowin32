@@ -668,6 +668,10 @@ pub mod user32 {
         let lpWndClass: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::RegisterClassA(machine, lpWndClass).to_raw();
     }
+    pub fn RegisterClassExA(machine: &mut Machine) {
+        let lpWndClassEx: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::user32::RegisterClassExA(machine, lpWndClassEx).to_raw();
+    }
     pub fn CreateWindowExA(machine: &mut Machine) {
         let dwExStyle: u32 = unsafe { from_x86(&mut machine.x86) };
         let className: Option<&str> = unsafe { from_x86(&mut machine.x86) };
@@ -793,6 +797,7 @@ pub mod user32 {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "RegisterClassA" => RegisterClassA,
+                "RegisterClassExA" => RegisterClassExA,
                 "CreateWindowExA" => CreateWindowExA,
                 "GetForegroundWindow" => GetForegroundWindow,
                 "UpdateWindow" => UpdateWindow,

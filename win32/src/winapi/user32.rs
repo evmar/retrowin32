@@ -44,6 +44,12 @@ pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
+pub fn RegisterClassExA(_machine: &mut Machine, lpWndClassEx: u32) -> u32 {
+    log::warn!("todo: RegisterClassExA({:x})", lpWndClassEx);
+    0
+}
+
 bitflags! {
     pub struct WindowStyle: u32 {
         const WS_POPUP           = 0x80000000;
