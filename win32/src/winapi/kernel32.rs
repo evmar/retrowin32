@@ -1239,3 +1239,13 @@ pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
 }
+
+#[win32_derive::dllexport]
+pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
+    let freq = 10_000_000; // as found on Windows machine
+
+    // 64-bit write
+    machine.x86.mem.write_u32(lpFrequency, freq);
+    machine.x86.mem.write_u32(lpFrequency + 4, 0);
+    true
+}

@@ -556,6 +556,11 @@ pub mod kernel32 {
         let ucb: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::kernel32::IsBadWritePtr(machine, lp, ucb).to_raw();
     }
+    pub fn QueryPerformanceFrequency(machine: &mut Machine) {
+        let lpFrequency: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency).to_raw();
+    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
@@ -623,6 +628,7 @@ pub mod kernel32 {
                 "SetThreadPriority" => SetThreadPriority,
                 "IsBadReadPtr" => IsBadReadPtr,
                 "IsBadWritePtr" => IsBadWritePtr,
+                "QueryPerformanceFrequency" => QueryPerformanceFrequency,
                 _ => return None,
             },
             _ => return None,
