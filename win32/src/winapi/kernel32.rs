@@ -862,7 +862,6 @@ pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
         .iter()
         .position(|dll| dll.file_name == filename)
     {
-        // Use pointer value as handle.
         return (index + 1) as u32;
     }
 
