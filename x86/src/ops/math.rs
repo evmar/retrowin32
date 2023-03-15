@@ -133,6 +133,13 @@ pub fn or_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn or_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(x86, instr);
+    let (x, flags) = rm8(x86, instr);
+    *x = or(*x, y, flags);
+    Ok(())
+}
+
 pub fn or_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
     let (x, flags) = rm8(x86, instr);
@@ -221,6 +228,13 @@ pub fn shr_rm32_1(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 pub fn shr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
     let (x, flags) = rm32(x86, instr);
+    *x = shr(*x, y, flags);
+    Ok(())
+}
+
+pub fn shr_rm16_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8();
+    let (x, flags) = rm16(x86, instr);
     *x = shr(*x, y, flags);
     Ok(())
 }
