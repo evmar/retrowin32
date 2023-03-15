@@ -294,7 +294,7 @@ pub mod kernel32 {
             winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes).to_raw();
     }
     pub fn HeapCreate(machine: &mut Machine) {
-        let flOptions: u32 = unsafe { from_x86(&mut machine.x86) };
+        let flOptions: Result<HeapCreateFlags, u32> = unsafe { from_x86(&mut machine.x86) };
         let dwInitialSize: u32 = unsafe { from_x86(&mut machine.x86) };
         let _dwMaximumSize: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =

@@ -816,15 +816,22 @@ bitflags! {
         const HEAP_NO_SERIALIZE = 0x00000001;
     }
 }
+impl TryFrom<u32> for HeapCreateFlags {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        HeapCreateFlags::from_bits(value).ok_or(value)
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn HeapCreate(
     machine: &mut Machine,
-    flOptions: u32,
+    flOptions: Result<HeapCreateFlags, u32>,
     dwInitialSize: u32,
     _dwMaximumSize: u32,
 ) -> u32 {
-    let _flags = HeapCreateFlags::from_bits(flOptions).unwrap();
+    flOptions.unwrap();
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
     //log::info!("HeapCreate({flags:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
