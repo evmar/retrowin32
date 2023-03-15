@@ -36,6 +36,11 @@ macro_rules! declare_handle {
                 *self == Self::invalid()
             }
         }
+        impl std::fmt::LowerHex for $name {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
+                self.0.fmt(f)
+            }
+        }
         impl FromX86 for $name {
             fn from_raw(raw: u32) -> Self {
                 $name(raw)
@@ -51,6 +56,7 @@ macro_rules! declare_handle {
 
 declare_handle!(HFILE);
 declare_handle!(HMODULE);
+declare_handle!(HWND);
 
 /// UTF-16 string view.
 pub struct Str16<'a>(&'a [u16]);

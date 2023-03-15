@@ -1,6 +1,9 @@
 #![allow(non_snake_case)]
 
-use super::types::{DWORD, WORD};
+use super::{
+    shims::ToX86,
+    types::{DWORD, HWND, WORD},
+};
 use crate::{host, machine::Machine, pe, winapi::gdi32};
 use anyhow::bail;
 use bitflags::bitflags;
@@ -22,8 +25,8 @@ pub struct State {
     windows: Vec<Window>,
 }
 impl State {
-    pub fn get_window(&mut self, hwnd: u32) -> &mut Window {
-        &mut self.windows[hwnd as usize - 1]
+    pub fn get_window(&mut self, hwnd: HWND) -> &mut Window {
+        &mut self.windows[hwnd.to_raw() as usize - 1]
     }
 }
 impl Default for State {
@@ -73,11 +76,11 @@ pub fn CreateWindowExA(
     Y: u32,
     nWidth: u32,
     nHeight: u32,
-    hWndParent: u32,
+    hWndParent: HWND,
     hMenu: u32,
     hInstance: u32,
     lpParam: u32,
-) -> u32 {
+) -> HWND {
     let style = WindowStyle::from_bits(dwStyle).unwrap();
     // TODO: there are also CreateWindow flags like CW_USEDEFAULT.
     // Possible value of x/y:
@@ -96,24 +99,26 @@ pub fn CreateWindowExA(
 
     let window = Window { host: host_win };
     machine.state.user32.windows.push(window);
-    machine.state.user32.windows.len() as u32
+    let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
+    hwnd
 }
 
 #[win32_derive::dllexport]
-pub fn UpdateWindow(_machine: &mut Machine, _hWnd: u32) -> u32 {
+pub fn UpdateWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
     // TODO: this should cause a synchronous WM_PAINT.
-    0
+    true // success
 }
 
 #[win32_derive::dllexport]
-pub fn ShowWindow(_machine: &mut Machine, _hWnd: u32, _nCmdShow: u32) -> u32 {
-    0
+pub fn ShowWindow(_machine: &mut Machine, hWnd: HWND, _nCmdShow: u32) -> bool {
+    let previously_visible = true;
+    previously_visible
 }
 
 #[win32_derive::dllexport]
-pub fn SetFocus(_machine: &mut Machine, _hWnd: u32) -> u32 {
-    // TODO: supposed to return previous focused hwnd.
-    0
+pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
+    let prev_focused = HWND::null();
+    prev_focused
 }
 
 bitflags! {
@@ -125,7 +130,7 @@ bitflags! {
 #[win32_derive::dllexport]
 pub fn MessageBoxA(
     machine: &mut Machine,
-    _hWnd: u32,
+    hWnd: HWND,
     lpText: Option<&str>,
     lpCaption: Option<&str>,
     uType: u32,
@@ -164,22 +169,23 @@ pub fn DialogBoxParamA(
 pub fn PeekMessageA(
     _machine: &mut Machine,
     _lpMsg: u32,
-    _hWnd: u32,
+    hWnd: HWND,
     _wMsgFilterMin: u32,
     _wMsgFilterMax: u32,
     _wRemoveMs: u32,
-) -> u32 {
+) -> bool {
     // log::warn!(
     //     "PeekMessageA({lpMsg:x}, {hWnd:x}, {wMsgFilterMin:x}, {wMsgFilterMax:x}, {wRemoveMs:x})"
     // );
-    0 // no messages
+    let messages_available = false;
+    messages_available
 }
 
 #[win32_derive::dllexport]
 pub fn GetMessageA(
     _machine: &mut Machine,
     _lpMsg: u32,
-    _hWnd: u32,
+    hWnd: HWND,
     _wMsgFilterMin: u32,
     _wMsgFilterMax: u32,
 ) -> bool {

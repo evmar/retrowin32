@@ -628,7 +628,7 @@ pub mod user32 {
         let Y: u32 = unsafe { from_x86(&mut machine.x86) };
         let nWidth: u32 = unsafe { from_x86(&mut machine.x86) };
         let nHeight: u32 = unsafe { from_x86(&mut machine.x86) };
-        let hWndParent: u32 = unsafe { from_x86(&mut machine.x86) };
+        let hWndParent: HWND = unsafe { from_x86(&mut machine.x86) };
         let hMenu: u32 = unsafe { from_x86(&mut machine.x86) };
         let hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
         let lpParam: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -639,25 +639,25 @@ pub mod user32 {
         .to_raw();
     }
     pub fn UpdateWindow(machine: &mut Machine) {
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
-        machine.x86.regs.eax = winapi::user32::UpdateWindow(machine, _hWnd).to_raw();
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::user32::UpdateWindow(machine, hWnd).to_raw();
     }
     pub fn ShowWindow(machine: &mut Machine) {
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
         let _nCmdShow: u32 = unsafe { from_x86(&mut machine.x86) };
-        machine.x86.regs.eax = winapi::user32::ShowWindow(machine, _hWnd, _nCmdShow).to_raw();
+        machine.x86.regs.eax = winapi::user32::ShowWindow(machine, hWnd, _nCmdShow).to_raw();
     }
     pub fn SetFocus(machine: &mut Machine) {
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
-        machine.x86.regs.eax = winapi::user32::SetFocus(machine, _hWnd).to_raw();
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::user32::SetFocus(machine, hWnd).to_raw();
     }
     pub fn MessageBoxA(machine: &mut Machine) {
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
         let lpText: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let lpCaption: Option<&str> = unsafe { from_x86(&mut machine.x86) };
         let uType: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
-            winapi::user32::MessageBoxA(machine, _hWnd, lpText, lpCaption, uType).to_raw();
+            winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw();
     }
     pub fn DialogBoxParamA(machine: &mut Machine) {
         let hInstance: u32 = unsafe { from_x86(&mut machine.x86) };
@@ -677,14 +677,14 @@ pub mod user32 {
     }
     pub fn PeekMessageA(machine: &mut Machine) {
         let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
         let _wMsgFilterMin: u32 = unsafe { from_x86(&mut machine.x86) };
         let _wMsgFilterMax: u32 = unsafe { from_x86(&mut machine.x86) };
         let _wRemoveMs: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax = winapi::user32::PeekMessageA(
             machine,
             _lpMsg,
-            _hWnd,
+            hWnd,
             _wMsgFilterMin,
             _wMsgFilterMax,
             _wRemoveMs,
@@ -693,11 +693,11 @@ pub mod user32 {
     }
     pub fn GetMessageA(machine: &mut Machine) {
         let _lpMsg: u32 = unsafe { from_x86(&mut machine.x86) };
-        let _hWnd: u32 = unsafe { from_x86(&mut machine.x86) };
+        let hWnd: HWND = unsafe { from_x86(&mut machine.x86) };
         let _wMsgFilterMin: u32 = unsafe { from_x86(&mut machine.x86) };
         let _wMsgFilterMax: u32 = unsafe { from_x86(&mut machine.x86) };
         machine.x86.regs.eax =
-            winapi::user32::GetMessageA(machine, _lpMsg, _hWnd, _wMsgFilterMin, _wMsgFilterMax)
+            winapi::user32::GetMessageA(machine, _lpMsg, hWnd, _wMsgFilterMin, _wMsgFilterMax)
                 .to_raw();
     }
     pub fn TranslateMessage(machine: &mut Machine) {
