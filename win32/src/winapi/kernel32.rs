@@ -854,7 +854,7 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
+pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> u32 {
     let filename = filename.unwrap();
     let filename = filename.to_ascii_lowercase();
 
@@ -865,7 +865,10 @@ pub fn LoadLibraryA(_machine: &mut Machine, filename: Option<&str>) -> u32 {
         return (index + 1) as u32;
     }
 
-    log::error!("LoadLibrary({filename:?})");
+    log::error!(
+        "LoadLibrary({filename:?}) => {:x}",
+        machine.x86.mem.read_u32(machine.x86.regs.esp - 4)
+    );
     0 // fail
 }
 
