@@ -88,9 +88,7 @@ pub fn CreateWindowExA(
     lpParam: u32,
 ) -> HWND {
     let style = WindowStyle::from_bits(dwStyle).unwrap();
-    // TODO: there are also CreateWindow flags like CW_USEDEFAULT.
-    // Possible value of x/y:
-    //   let CW_USEDEFAULT: u32 = 0x8000_0000;
+    const CW_USEDEFAULT: u32 = 0x8000_0000;
 
     // TODO: we ignore most fields here.
     // hInstance is only relevant when multiple DLLs register classes:
@@ -100,7 +98,13 @@ pub fn CreateWindowExA(
     let mut host_win = machine.host.create_window();
     host_win.set_title(windowName.unwrap());
     if nWidth > 0 && nHeight > 0 {
-        host_win.set_size(nWidth, nHeight);
+        let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
+        let height = if nHeight == CW_USEDEFAULT {
+            480
+        } else {
+            nHeight
+        };
+        host_win.set_size(width, height);
     }
 
     let window = Window { host: host_win };
