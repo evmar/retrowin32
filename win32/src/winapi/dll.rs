@@ -8,6 +8,49 @@ use crate::{
     winapi::types::*,
     winapi::BuiltinDLL,
 };
+pub mod bass {
+    use super::*;
+    use winapi::bass::*;
+    pub fn BASS_Init(machine: &mut Machine) {
+        let arg1: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg2: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg3: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg4: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::bass::BASS_Init(machine, arg1, arg2, arg3, arg4).to_raw();
+    }
+    pub fn BASS_MusicLoad(machine: &mut Machine) {
+        let arg1: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg2: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg3: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg4: u32 = unsafe { from_x86(&mut machine.x86) };
+        let arg5: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax =
+            winapi::bass::BASS_MusicLoad(machine, arg1, arg2, arg3, arg4, arg5).to_raw();
+    }
+    pub fn BASS_Start(machine: &mut Machine) {
+        machine.x86.regs.eax = winapi::bass::BASS_Start(machine).to_raw();
+    }
+    pub fn BASS_MusicPlay(machine: &mut Machine) {
+        let arg1: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::bass::BASS_MusicPlay(machine, arg1).to_raw();
+    }
+    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
+        Some(match *sym {
+            winapi::ImportSymbol::Name(name) => match name {
+                "BASS_Init" => BASS_Init,
+                "BASS_MusicLoad" => BASS_MusicLoad,
+                "BASS_Start" => BASS_Start,
+                "BASS_MusicPlay" => BASS_MusicPlay,
+                _ => return None,
+            },
+            _ => return None,
+        })
+    }
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "bass.dll",
+        resolve,
+    };
+}
 pub mod ddraw {
     use super::*;
     use winapi::ddraw::*;

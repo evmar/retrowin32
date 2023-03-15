@@ -1,6 +1,7 @@
 use crate::machine::Machine;
 
 mod alloc;
+mod bass;
 pub mod ddraw;
 mod dll;
 pub mod dsound;
@@ -71,7 +72,8 @@ pub struct BuiltinDLL {
     resolve: fn(&ImportSymbol) -> Option<fn(&mut Machine)>,
 }
 
-pub const DLLS: [BuiltinDLL; 8] = [
+pub const DLLS: [BuiltinDLL; 9] = [
+    dll::bass::DLL,
     dll::ddraw::DLL,
     dll::dsound::DLL,
     dll::gdi32::DLL,
