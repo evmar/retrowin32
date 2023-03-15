@@ -503,6 +503,16 @@ pub mod kernel32 {
         machine.x86.regs.eax =
             winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw();
     }
+    pub fn IsBadReadPtr(machine: &mut Machine) {
+        let lp: u32 = unsafe { from_x86(&mut machine.x86) };
+        let ucb: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::kernel32::IsBadReadPtr(machine, lp, ucb).to_raw();
+    }
+    pub fn IsBadWritePtr(machine: &mut Machine) {
+        let lp: u32 = unsafe { from_x86(&mut machine.x86) };
+        let ucb: u32 = unsafe { from_x86(&mut machine.x86) };
+        machine.x86.regs.eax = winapi::kernel32::IsBadWritePtr(machine, lp, ucb).to_raw();
+    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
@@ -568,6 +578,8 @@ pub mod kernel32 {
                 "WriteConsoleW" => WriteConsoleW,
                 "CreateThread" => CreateThread,
                 "SetThreadPriority" => SetThreadPriority,
+                "IsBadReadPtr" => IsBadReadPtr,
+                "IsBadWritePtr" => IsBadWritePtr,
                 _ => return None,
             },
             _ => return None,

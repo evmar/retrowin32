@@ -1229,3 +1229,13 @@ pub fn CreateThread(
 pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32) -> bool {
     true // success
 }
+
+#[win32_derive::dllexport]
+pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
+    false // all pointers are valid
+}
+
+#[win32_derive::dllexport]
+pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
+    false // all pointers are valid
+}
