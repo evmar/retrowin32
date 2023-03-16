@@ -439,7 +439,7 @@ mod IDirectDraw7 {
         CreatePalette todo,
         CreateSurface ok,
         DuplicateSurface todo,
-        EnumDisplayModes todo,
+        EnumDisplayModes ok,
         EnumSurfaces todo,
         FlipToGDISurface todo,
         GetCaps todo,
@@ -517,6 +517,19 @@ mod IDirectDraw7 {
             },
         );
 
+        DD_OK
+    }
+
+    fn EnumDisplayModes(
+        _machine: &mut Machine,
+        this: u32,
+        flags: u32,
+        lpSurfaceDesc: u32,
+        data: u32,
+        callback: u32,
+    ) -> u32 {
+        log::warn!("EnumDisplayModes this:{this:x} flags:{flags:x} surf:{lpSurfaceDesc:x} data:{data:x} callback:{callback:x}");
+        // TODO: call back into x86 code, yikes.
         DD_OK
     }
 
