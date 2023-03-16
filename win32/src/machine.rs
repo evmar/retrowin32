@@ -3,54 +3,12 @@ use std::collections::HashMap;
 use anyhow::bail;
 use x86::X86;
 
-use crate::{host, winapi, windows::load_exe};
-
-/// Code that calls from x86 to the host will jump to addresses in this
-/// magic range.
-/// "fake IAT" => "FIAT" => "F1A7"
-pub const SHIM_BASE: u32 = 0xF1A7_0000;
-
-struct Shim {
-    name: String,
-    handler: Option<fn(&mut Machine)>,
-}
-
-/// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
-/// This is how emulated code calls out to hosting code for e.g. DLL imports.
-pub struct Shims(Vec<Shim>);
-impl Shims {
-    fn new() -> Self {
-        Shims(Vec::new())
-    }
-
-    /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, name: String, handler: Option<fn(&mut Machine)>) -> u32 {
-        let id = SHIM_BASE | self.0.len() as u32;
-        self.0.push(Shim { name, handler });
-        id
-    }
-
-    pub fn get(&self, addr: u32) -> Option<&fn(&mut Machine)> {
-        let index = (addr & 0x0000_FFFF) as usize;
-        match self.0.get(index) {
-            Some(shim) => {
-                if let Some(handler) = &shim.handler {
-                    return Some(handler);
-                }
-                log::error!("unimplemented: {}", shim.name);
-            }
-            None => log::error!("unknown import reference at {:x}", addr),
-        };
-        None
-    }
-
-    pub fn lookup(&self, name: &str) -> Option<u32> {
-        if let Some(idx) = self.0.iter().position(|shim| shim.name == name) {
-            return Some(SHIM_BASE | idx as u32);
-        }
-        None
-    }
-}
+use crate::{
+    host,
+    shims::{Shims, SHIM_BASE},
+    winapi,
+    windows::load_exe,
+};
 
 pub struct Machine {
     pub x86: X86,

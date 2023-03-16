@@ -2,6 +2,7 @@ mod host;
 mod machine;
 mod pe;
 mod reader;
+mod shims;
 mod winapi;
 mod windows;
 

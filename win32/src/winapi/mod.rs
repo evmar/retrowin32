@@ -35,7 +35,7 @@ macro_rules! vtable {
         }
         unsafe impl x86::Pod for Vtable {}
         impl Vtable {
-            fn new(shims: &mut crate::machine::Shims) -> Self {
+            fn new(shims: &mut crate::shims::Shims) -> Self {
                 Vtable {
                     $($fn: shims.add(stringify!($fn).into(), $crate::winapi::vtable_entry!($shims $fn $status)).into()),*
                 }
