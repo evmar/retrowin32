@@ -109,14 +109,14 @@ impl Runner {
         if self.machine.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(());
         }
-        let ret = x86::ops::pop(&mut self.machine.x86);
         let handler = self
             .machine
             .shims
             .get(self.machine.x86.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
         handler(&mut self.machine);
-        x86::ops::x86_jmp(&mut self.machine.x86, ret).map_err(|err| anyhow::anyhow!(err))
+        // Handler will have set eip to the return address from the stack.
+        Ok(())
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.

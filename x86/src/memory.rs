@@ -50,6 +50,7 @@ impl Memory for [u8] {
     fn read_u32(&self, addr: u32) -> u32 {
         *self.view::<u32>(addr)
     }
+
     fn write_u32(&mut self, addr: u32, value: u32) {
         *self.view_mut::<u32>(addr) = value;
     }

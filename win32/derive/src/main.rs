@@ -91,7 +91,8 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{winapi, machine::Machine, winapi::BuiltinDLL, winapi::shims::{from_x86, ToX86}, winapi::types::*};
+        use crate::{winapi, machine::Machine, winapi::BuiltinDLL, winapi::shims::{FromX86, ToX86}, winapi::types::*};
+        use x86::Memory;
 
         #(#mods)*
     })
@@ -121,6 +122,7 @@ fn print(tokens: TokenStream) -> anyhow::Result<()> {
     let file = syn::parse2::<syn::File>(tokens)?;
     println!("#![allow(non_snake_case)]"); // parse2 seems to fail if it sees this.
     println!("#![allow(unused_imports)]");
+    println!("#![allow(unused_mut)]");
     let mut text = file.to_token_stream().to_string();
     rustfmt(&mut text)?;
     print!("{}", text);

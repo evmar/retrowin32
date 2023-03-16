@@ -1,12 +1,12 @@
-//! Functions to unsafely grab winapi function arguments from an X86.
+//! Functions to unsafely grab winapi function arguments from an x86 stack.
 
 use super::types::Str16;
-use x86::{Memory, X86};
+use x86::Memory;
 
-unsafe fn smuggle<T: ?Sized>(x: &T) -> &'static T {
+unsafe fn extend_lifetime<'a, T: ?Sized>(x: &T) -> &'a T {
     std::mem::transmute(x)
 }
-unsafe fn smuggle_mut<T: ?Sized>(x: &mut T) -> &'static mut T {
+unsafe fn extend_lifetime_mut<'a, T: ?Sized>(x: &mut T) -> &'a mut T {
     std::mem::transmute(x)
 }
 
@@ -14,116 +14,140 @@ pub trait FromX86: Sized {
     fn from_raw(_raw: u32) -> Self {
         unimplemented!()
     }
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        Self::from_raw(x86::ops::pop(x86))
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        Self::from_raw(*mem.view::<u32>(sp))
+    }
+    fn stack_consumed() -> u32 {
+        4
     }
 }
+
 impl FromX86 for u32 {
     fn from_raw(raw: u32) -> Self {
         raw
     }
 }
+
 impl FromX86 for i32 {
     fn from_raw(raw: u32) -> Self {
         raw as i32
     }
 }
+
 impl FromX86 for bool {
     fn from_raw(raw: u32) -> Self {
         raw != 0
     }
 }
+
 impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
     fn from_raw(raw: u32) -> Self {
         T::try_from(raw)
     }
 }
+
 impl<T: x86::Pod> FromX86 for Option<&T> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let addr = x86::ops::pop(x86);
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp);
         if addr == 0 {
             None
         } else {
-            Some(smuggle(x86.mem.view::<T>(addr)))
+            Some(extend_lifetime(mem.view::<T>(addr)))
         }
     }
 }
+
 impl<T: x86::Pod> FromX86 for Option<&mut T> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let addr = x86::ops::pop(x86);
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp);
         if addr == 0 {
             None
         } else {
-            Some(smuggle_mut(x86.mem.view_mut::<T>(addr)))
+            Some(extend_lifetime_mut(mem.view_mut::<T>(addr)))
         }
     }
 }
+
 impl FromX86 for Option<&[u8]> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        let len = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        let len = mem.read_u32(sp + 4) as usize;
+        if addr == 0 {
             return None;
         }
-        Some(smuggle(&x86.mem[ofs..ofs + len]))
+        Some(extend_lifetime(&mem[addr..addr + len]))
+    }
+    fn stack_consumed() -> u32 {
+        8
     }
 }
+
 impl FromX86 for Option<&mut [u8]> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        let len = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        let len = mem.read_u32(sp + 4) as usize;
+        if addr == 0 {
             return None;
         }
-        Some(smuggle_mut(&mut x86.mem[ofs..ofs + len]))
+        Some(extend_lifetime_mut(&mut mem[addr..addr + len]))
+    }
+    fn stack_consumed() -> u32 {
+        8
     }
 }
+
 impl FromX86 for Option<&[u16]> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        let len = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        let len = mem.read_u32(sp + 4) as usize;
+        if addr == 0 {
             return None;
         }
-        std::mem::transmute(&x86.mem[ofs..ofs + len])
+        std::mem::transmute(&mem[addr..addr + len])
+    }
+    fn stack_consumed() -> u32 {
+        8
     }
 }
+
 impl FromX86 for Option<&mut [u16]> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        let len = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        let len = mem.read_u32(sp + 4) as usize;
+        if addr == 0 {
             return None;
         }
-        std::mem::transmute(&mut x86.mem[ofs..ofs + len])
+        std::mem::transmute(&mut mem[addr..addr + len])
+    }
+    fn stack_consumed() -> u32 {
+        8
     }
 }
+
 impl FromX86 for Option<&str> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        if addr == 0 {
             return None;
         }
-        let strz = x86.mem[ofs..].read_strz();
-        Some(smuggle(strz))
+        let strz = mem[addr as usize..].read_strz();
+        Some(extend_lifetime(strz))
     }
 }
+
 impl<'a> FromX86 for Option<Str16<'a>> {
-    unsafe fn from_x86(x86: &mut X86) -> Self {
-        let ofs = x86::ops::pop(x86) as usize;
-        if ofs == 0 {
+    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+        let addr = mem.read_u32(sp) as usize;
+        if addr == 0 {
             return None;
         }
         let mem16: &[u16] = {
-            let mem = &x86.mem[ofs as usize..];
+            let mem = &mem[addr as usize..];
             let ptr = mem.as_ptr() as *const u16;
             std::slice::from_raw_parts(ptr, mem.len() / 2)
         };
         Some(Str16::from_nul_term(mem16))
     }
-}
-pub unsafe fn from_x86<T: FromX86>(x86: &mut X86) -> T {
-    T::from_x86(x86)
 }
 
 /// Types that can be returned from a winapi function, passed via EAX.

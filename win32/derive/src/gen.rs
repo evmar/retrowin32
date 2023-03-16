@@ -14,28 +14,32 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
     let name = &func.sig.ident;
     let mut args: Vec<TokenStream> = Vec::new();
     let mut body: Vec<TokenStream> = Vec::new();
-    for (i, arg) in func.sig.inputs.iter().enumerate() {
+    // Skip first arg, the &Machine.
+    for arg in func.sig.inputs.iter().skip(1) {
         let arg = match arg {
             syn::FnArg::Typed(arg) => arg,
             _ => unimplemented!(),
         };
-
         let name = match arg.pat.as_ref() {
             syn::Pat::Ident(ident) => &ident.ident,
             _ => unimplemented!(),
         };
-        if i == 0 {
-            // first param, the machine
-            args.push(quote!(machine));
-        } else {
-            args.push(quote!(#name));
-            let ty = &arg.ty;
-            body.push(quote!(let #name: #ty = unsafe { from_x86(&mut machine.x86) };));
-        }
+
+        args.push(quote!(#name));
+        let ty = &arg.ty;
+        body.push(quote! {
+            let #name = unsafe { <#ty>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+            stack_offset += <#ty>::stack_consumed();
+        });
     }
     quote!(pub fn #name(machine: &mut Machine) {
+        // We expect all the stack_offset math to be inlined by the compiler into plain constants.
+        // TODO: reading the args in reverse would produce fewer bounds checks...
+        let mut stack_offset = 4u32;
         #(#body)*
-        machine.x86.regs.eax = #module::#name(#(#args),*).to_raw();
+        machine.x86.regs.eax = #module::#name(machine, #(#args),*).to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
     })
 }
 
