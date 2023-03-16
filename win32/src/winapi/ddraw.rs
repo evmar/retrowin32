@@ -520,6 +520,7 @@ mod IDirectDraw7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn EnumDisplayModes(
         _machine: &mut Machine,
         this: u32,
@@ -528,7 +529,6 @@ mod IDirectDraw7 {
         data: u32,
         callback: u32,
     ) -> u32 {
-        log::warn!("EnumDisplayModes this:{this:x} flags:{flags:x} surf:{lpSurfaceDesc:x} data:{data:x} callback:{callback:x}");
         // TODO: call back into x86 code, yikes.
         DD_OK
     }
