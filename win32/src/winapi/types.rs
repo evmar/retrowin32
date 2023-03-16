@@ -1,6 +1,6 @@
 //! Types exposed by the Windows API.
 
-use super::shims::{FromX86, ToX86};
+use super::stack_args::{FromX86, ToX86};
 
 pub type WORD = u16;
 pub type DWORD = u32;

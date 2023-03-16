@@ -64,7 +64,7 @@ pub fn shims_from_x86(
     let shims_module: syn::ItemMod = syn::parse2(quote! {
         pub mod shims {
             use super::*;
-            use crate::winapi::shims::*;
+            use crate::winapi::stack_args::*;
             #(#shims)*
         }
     })

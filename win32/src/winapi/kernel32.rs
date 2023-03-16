@@ -4,7 +4,7 @@
 use crate::{
     machine::Machine,
     pe::ImageSectionFlags,
-    winapi::{self, shims::ToX86},
+    winapi::{self, stack_args::ToX86},
 };
 use bitflags::bitflags;
 use num_traits::FromPrimitive;

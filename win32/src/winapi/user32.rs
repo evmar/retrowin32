@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::{
-    shims::ToX86,
+    stack_args::ToX86,
     types::{DWORD, HWND, WORD},
 };
 use crate::{host, machine::Machine, pe, winapi::gdi32};

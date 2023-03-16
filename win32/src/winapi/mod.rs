@@ -9,7 +9,7 @@ pub mod gdi32;
 pub mod kernel32;
 mod ole32;
 mod oleaut32;
-mod shims;
+mod stack_args;
 pub mod types;
 pub mod user32;
 mod winmm;

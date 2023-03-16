@@ -4,10 +4,7 @@
 #[doc = r" Generated code, do not edit."]
 use crate::{
     machine::Machine,
-    winapi,
-    winapi::shims::{FromX86, ToX86},
-    winapi::types::*,
-    winapi::BuiltinDLL,
+    winapi::{self, stack_args::*, types::*, BuiltinDLL},
 };
 use x86::Memory;
 pub mod bass {
