@@ -11,9 +11,9 @@ use quote::quote;
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
 pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
-    let name = &func.sig.ident;
-    let mut args: Vec<TokenStream> = Vec::new();
-    let mut body: Vec<TokenStream> = Vec::new();
+    let mut args = Vec::new();
+    let mut tys = Vec::new();
+
     // Skip first arg, the &Machine.
     for arg in func.sig.inputs.iter().skip(1) {
         let arg = match arg {
@@ -24,19 +24,19 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
             syn::Pat::Ident(ident) => &ident.ident,
             _ => unimplemented!(),
         };
-
-        args.push(quote!(#name));
-        let ty = &arg.ty;
-        body.push(quote! {
-            let #name = unsafe { <#ty>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-            stack_offset += <#ty>::stack_consumed();
-        });
+        args.push(name);
+        tys.push(&arg.ty);
     }
+
+    let name = &func.sig.ident;
     quote!(pub fn #name(machine: &mut Machine) {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         let mut stack_offset = 4u32;
-        #(#body)*
+        #(
+            let #args = unsafe { <#tys>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+            stack_offset += <#tys>::stack_consumed();
+        )*
         machine.x86.regs.eax = #module::#name(machine, #(#args),*).to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
