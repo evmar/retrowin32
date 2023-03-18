@@ -178,7 +178,7 @@ struct DDSURFACEDESC {
     ddckCKDestBlt: DDCOLORKEY,
     ddckCKSrcOverlay: DDCOLORKEY,
     ddckCKSrcBlt: DDCOLORKEY,
-    ddpfPixelFormat: [DWORD; 8],
+    ddpfPixelFormat: DDPIXELFORMAT,
     ddsCaps: DDSCAPS,
 }
 unsafe impl x86::Pod for DDSURFACEDESC {}
@@ -220,7 +220,7 @@ struct DDSURFACEDESC2 {
     ddckCKSrcOverlay: DDCOLORKEY,
     ddckCKSrcBlt: DDCOLORKEY,
 
-    ddpfPixelFormat: [DWORD; 8],
+    ddpfPixelFormat: DDPIXELFORMAT,
     // TODO: dwFVF
     ddsCaps: DDSCAPS2,
     dwTextureStage: DWORD,
@@ -250,11 +250,11 @@ struct DDPIXELFORMAT {
     dwSize: DWORD,
     dwFlags: DWORD,
     dwFourCC: DWORD,
-    u1: DWORD,
-    u2: DWORD,
-    u3: DWORD,
-    u4: DWORD,
-    u5: DWORD,
+    dwRGBBitCount: DWORD,
+    dwRBitMask: DWORD,
+    dwGBitMask: DWORD,
+    dwBBitMask: DWORD,
+    dwRGBAlphaBitMask: DWORD,
 }
 unsafe impl x86::Pod for DDPIXELFORMAT {}
 
@@ -533,13 +533,31 @@ mod IDirectDraw7 {
         callback: u32,
     ) -> ShimCallback {
         let mut i = 0;
-        Box::new(move |_machine: &mut Machine| {
+        Box::new(move |machine: &mut Machine| {
             log::info!("EnumDisplayModes step:{i}");
+            let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+            let addr = machine.x86.regs.esp - size;
+            machine.x86.mem.fill_zero(addr, size);
+            let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(addr);
+            desc.dwSize = size;
+            desc.dwHeight = 480;
+            desc.dwWidth = 640;
+            desc.ddpfPixelFormat = DDPIXELFORMAT {
+                dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+                dwFlags: 0,
+                dwFourCC: 0,
+                dwRGBBitCount: 32,
+                dwRBitMask: 0xFF000000,
+                dwGBitMask: 0x00FF0000,
+                dwBBitMask: 0x0000FF00,
+                dwRGBAlphaBitMask: 0x000000FF,
+            };
+            log::warn!("mode {desc:#x?}");
             match i {
                 0 => {
                     i += 1;
-                    let desc = 3;
-                    CallbackStep::Call(callback, vec![desc, data])
+                    log::info!("EnumDisplayModes call:{callback:x} with {desc:x?}");
+                    CallbackStep::Call(callback, vec![addr, data])
                 }
                 1 => CallbackStep::Done(DD_OK),
                 _ => unreachable!(),
