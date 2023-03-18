@@ -63,9 +63,9 @@ impl Runner {
     }
 
     /// If eip points at a shim address, call the handler and update eip.
-    fn check_shim_call(&mut self) -> anyhow::Result<()> {
+    fn check_shim_call(&mut self) -> anyhow::Result<bool> {
         if self.machine.x86.regs.eip & 0xFFFF_0000 != SHIM_BASE {
-            return Ok(());
+            return Ok(false);
         }
         let handler = self
             .machine
@@ -74,7 +74,7 @@ impl Runner {
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
         handler(&mut self.machine);
         // Handler will have set eip to the return address from the stack.
-        Ok(())
+        Ok(true)
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
@@ -84,7 +84,10 @@ impl Runner {
             Err(x86::StepError::Error(err)) => bail!(err),
             Ok(count) => {
                 self.instr_count += count;
-                self.check_shim_call()?;
+                if self.check_shim_call()? {
+                    // The shim may have set up a callback that forwards back into shim-land.
+                    self.check_shim_call()?;
+                }
                 Ok(true)
             }
         }

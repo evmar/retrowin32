@@ -28,6 +28,33 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
         tys.push(&arg.ty);
     }
 
+    // Look at the return type to see if it's ShimCallback.
+    let mut shim_callback = false;
+    match &func.sig.output {
+        syn::ReturnType::Default => unimplemented!(),
+        syn::ReturnType::Type(_, ty) => match ty.as_ref() {
+            syn::Type::Path(ty) => {
+                let ident = ty.path.segments[0].ident.to_string();
+                if ident == "ShimCallback" {
+                    shim_callback = true;
+                }
+            }
+            _ => unimplemented!(),
+        },
+    };
+
+    let use_result = if shim_callback {
+        quote! {
+            push_callback(machine, return_address, result);
+            // push_callback will set up the stack and eip.
+        }
+    } else {
+        quote! {
+            machine.x86.regs.eax = result.to_raw();
+            machine.x86.regs.eip = return_address;
+        }
+    };
+
     let name = &func.sig.ident;
     quote!(pub fn #name(machine: &mut Machine) {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
@@ -37,9 +64,10 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
             let #args = unsafe { <#tys>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
             stack_offset += <#tys>::stack_consumed();
         )*
-        machine.x86.regs.eax = #module::#name(machine, #(#args),*).to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        let result = #module::#name(machine, #(#args),*);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
+        #use_result
     })
 }
 

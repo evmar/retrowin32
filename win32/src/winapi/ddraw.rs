@@ -1,12 +1,15 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use std::collections::HashMap;
-
-use crate::{host, machine::Machine, winapi::vtable};
-
 use super::{alloc::Alloc, types::DWORD};
+use crate::{
+    host,
+    machine::Machine,
+    shims::{push_callback, CallbackStep, ShimCallback},
+    winapi::vtable,
+};
 use bitflags::bitflags;
+use std::collections::HashMap;
 use x86::Memory;
 
 const TRACE: bool = true;
@@ -525,12 +528,23 @@ mod IDirectDraw7 {
         _machine: &mut Machine,
         this: u32,
         flags: u32,
-        lpSurfaceDesc: u32,
+        lpSurfaceDesc: Option<&DDSURFACEDESC2>,
         data: u32,
         callback: u32,
-    ) -> u32 {
-        // TODO: call back into x86 code, yikes.
-        DD_OK
+    ) -> ShimCallback {
+        let mut i = 0;
+        Box::new(move |_machine: &mut Machine| {
+            log::info!("EnumDisplayModes step:{i}");
+            match i {
+                0 => {
+                    i += 1;
+                    let desc = 3;
+                    CallbackStep::Call(callback, vec![desc, data])
+                }
+                1 => CallbackStep::Done(DD_OK),
+                _ => unreachable!(),
+            }
+        })
     }
 
     bitflags! {
