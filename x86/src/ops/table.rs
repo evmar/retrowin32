@@ -109,6 +109,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Scasw_AX_m16 as usize] = Some(ops::scasw);
     OP_TAB[iced_x86::Code::Scasb_AL_m8 as usize] = Some(ops::scasb);
     OP_TAB[iced_x86::Code::Stosd_m32_EAX as usize] = Some(ops::stosd);
+    OP_TAB[iced_x86::Code::Stosw_m16_AX as usize] = Some(ops::stosw);
     OP_TAB[iced_x86::Code::Stosb_m8_AL as usize] = Some(ops::stosb);
     OP_TAB[iced_x86::Code::Lodsd_EAX_m32 as usize] = Some(ops::lodsd);
     OP_TAB[iced_x86::Code::Lodsw_AX_m16 as usize] = Some(ops::lodsw);

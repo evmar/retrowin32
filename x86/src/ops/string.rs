@@ -144,6 +144,10 @@ pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     stos(x86, instr, 4)
 }
 
+pub fn stosw(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    stos(x86, instr, 2)
+}
+
 pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     stos(x86, instr, 1)
 }
