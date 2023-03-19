@@ -538,11 +538,11 @@ mod IDirectDraw7 {
         let async_fn = Box::new(move |machine: &mut Machine| match i {
             0 => {
                 let addr = machine.x86.regs.esp;
-                machine.x86.mem.fill_zero(addr, size);
                 let desc = machine
                     .x86
                     .mem
                     .view_mut::<DDSURFACEDESC2>(machine.x86.regs.esp);
+                x86::Pod::clear(desc);
                 desc.dwSize = size;
                 desc.dwHeight = 480;
                 desc.dwWidth = 640;

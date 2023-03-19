@@ -4,7 +4,13 @@ use std::mem::size_of;
 // I didn't copy the code but it's MIT-licensed anyway.
 
 /// A trait for types where it's safe to reintepret_cast<> from/to random memory blocks.
-pub unsafe trait Pod: 'static {}
+pub unsafe trait Pod: 'static + Sized {
+    fn clear(this: &mut Self) {
+        unsafe {
+            std::ptr::write_bytes(this as *mut Self, 0, 1);
+        }
+    }
+}
 
 // See discussion of endianness in doc/design_notes.md.
 unsafe impl Pod for u8 {}
@@ -15,7 +21,6 @@ unsafe impl Pod for u64 {}
 pub trait Memory {
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
-    fn fill_zero(&mut self, addr: u32, size: u32);
     fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T];
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
@@ -38,11 +43,6 @@ impl Memory for [u8] {
         let buf = &mut self[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
-    }
-    fn fill_zero(&mut self, addr: u32, size: u32) {
-        let ofs = addr as usize;
-        let buf = &mut self[ofs..(ofs + size as usize)];
-        buf.fill(0);
     }
 
     fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T] {
