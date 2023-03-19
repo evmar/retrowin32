@@ -116,54 +116,36 @@ pub fn scasb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     scas(x86, instr, 1)
 }
 
-pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    let mut dst = x86.regs.edi as usize;
-    let value = x86.regs.eax;
+pub fn stos(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
+    assert!(!x86.flags.contains(Flags::DF)); // TODO
 
-    if instr.has_rep_prefix() {
-        let count = x86.regs.ecx as usize;
-        let reverse = x86.flags.contains(Flags::DF);
-        if reverse && count > 1 {
-            dst -= (count - 1) * 4;
-        }
-        let mem: &mut [u32] = unsafe {
-            let mem = &mut x86.mem[dst..];
-            std::slice::from_raw_parts_mut(mem.as_ptr() as *mut u32, count)
-        };
-        mem.fill(value);
-        if reverse {
-            x86.regs.edi -= count as u32 * 4;
-        } else {
-            x86.regs.edi += count as u32 * 4;
-        }
-        x86.regs.ecx = 0;
-    } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(StepError::Error("unimpl".into()));
+    let mut c = 1u32; // 1 step if no rep prefix
+    let counter = if instr.has_rep_prefix() || instr.has_repe_prefix() || instr.has_repne_prefix() {
+        &mut x86.regs.ecx
     } else {
-        *x86.mem.view_mut::<u32>(dst as u32) = value;
-        x86.regs.edi += 4;
+        &mut c
+    };
+
+    while *counter > 0 {
+        match size {
+            1 => x86.mem[x86.regs.edi as usize] = x86.regs.eax as u8,
+            2 => *x86.mem.view_mut::<u16>(x86.regs.edi) = x86.regs.eax as u16,
+            4 => *x86.mem.view_mut::<u32>(x86.regs.edi) = x86.regs.eax,
+            _ => unimplemented!(),
+        }
+        x86.regs.edi += size;
+        *counter -= 1;
     }
     // TODO: does this modify esi?  Sources disagree (!?)
     Ok(())
 }
 
-pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    assert!(!x86.flags.contains(Flags::DF)); // TODO
+pub fn stosd(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    stos(x86, instr, 4)
+}
 
-    let dst = x86.regs.edi as usize;
-    let value = x86.regs.eax as u8;
-    if instr.has_rep_prefix() {
-        let count = x86.regs.ecx as usize;
-        x86.mem[dst..dst + count].fill(value);
-        x86.regs.edi += count as u32;
-        x86.regs.ecx = 0;
-    } else if instr.has_repe_prefix() || instr.has_repne_prefix() {
-        return Err(StepError::Error("unimpl".into()));
-    } else {
-        x86.mem[dst] = value;
-        x86.regs.edi += 1;
-    }
-    Ok(())
+pub fn stosb(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    stos(x86, instr, 1)
 }
 
 pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
