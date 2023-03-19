@@ -97,3 +97,35 @@ pub fn resolve_fn(fn_names: Vec<&syn::Ident>) -> TokenStream {
         }
     }
 }
+
+/// Insert a `log::info!` at the front of a function that logs its name and arguments.
+// TODO: this fn is used by lib.rs, but not main.rs.
+#[allow(dead_code)]
+pub fn add_trace(func: &mut syn::ItemFn) {
+    let mut fmt: String = func.sig.ident.to_string();
+    let mut args: Vec<&syn::Ident> = Vec::new();
+    for arg in func.sig.inputs.iter().skip(1) {
+        match arg {
+            syn::FnArg::Typed(arg) => match &*arg.pat {
+                syn::Pat::Ident(pat) => {
+                    args.push(&pat.ident);
+                }
+                _ => {}
+            },
+            _ => {}
+        };
+    }
+    fmt.push_str("(");
+    fmt.push_str(
+        &args
+            .iter()
+            .map(|arg| format!("{arg}:{{:x?}}"))
+            .collect::<Vec<_>>()
+            .join(", "),
+    );
+    fmt.push_str(")");
+    let stmt = syn::parse_quote! {
+        if TRACE { log::info!(#fmt, #(#args),*); }
+    };
+    func.block.stmts.insert(0, stmt);
+}
