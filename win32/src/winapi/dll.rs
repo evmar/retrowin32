@@ -1473,6 +1473,14 @@ pub mod user32 {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
+    pub fn GetLastActivePopup(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let result = winapi::user32::GetLastActivePopup(machine);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     pub fn UpdateWindow(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let hWnd = unsafe {
@@ -1725,6 +1733,7 @@ pub mod user32 {
                 "CreateWindowExA" => CreateWindowExA,
                 "GetForegroundWindow" => GetForegroundWindow,
                 "GetActiveWindow" => GetActiveWindow,
+                "GetLastActivePopup" => GetLastActivePopup,
                 "UpdateWindow" => UpdateWindow,
                 "ShowWindow" => ShowWindow,
                 "SetFocus" => SetFocus,

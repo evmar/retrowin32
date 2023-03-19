@@ -124,6 +124,11 @@ pub fn GetActiveWindow(machine: &mut Machine) -> HWND {
 }
 
 #[win32_derive::dllexport]
+pub fn GetLastActivePopup(machine: &mut Machine) -> HWND {
+    HWND::from_raw(machine.state.user32.windows.len() as u32)
+}
+
+#[win32_derive::dllexport]
 pub fn UpdateWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
     // TODO: this should cause a synchronous WM_PAINT.
     true // success
