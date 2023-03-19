@@ -537,11 +537,8 @@ mod IDirectDraw7 {
         let stack_space = size;
         let async_fn = Box::new(move |machine: &mut Machine| match i {
             0 => {
-                let addr = machine.x86.regs.esp;
-                let desc = machine
-                    .x86
-                    .mem
-                    .view_mut::<DDSURFACEDESC2>(machine.x86.regs.esp);
+                let desc_addr = machine.x86.regs.esp;
+                let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
                 x86::Pod::clear(desc);
                 desc.dwSize = size;
                 desc.dwHeight = 480;
@@ -559,7 +556,7 @@ mod IDirectDraw7 {
 
                 i += 1;
                 log::info!("EnumDisplayModes call:{callback:x} with {desc:x?}");
-                CallbackStep::Call(callback, vec![addr, data])
+                CallbackStep::Call(callback, vec![desc_addr, data])
             }
             1 => CallbackStep::Done(DD_OK),
             _ => unreachable!(),
