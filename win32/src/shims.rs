@@ -1,4 +1,5 @@
 use crate::machine::Machine;
+use std::collections::HashMap;
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -12,7 +13,7 @@ struct Shim {
 
 /// Shims that want to call back into x86 code return one of these,
 /// which is a closure that carries its state across multiple returns.
-pub type ShimCallback = Box<dyn FnMut(&mut Machine) -> CallbackStep>;
+pub type ShimCallback = (u32, Box<dyn FnMut(&mut Machine) -> CallbackStep>);
 
 /// Steps within a ShimCallback can either call into an x86 address or
 /// return and clean up.
@@ -28,52 +29,41 @@ pub enum CallbackStep {
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims {
     shims: Vec<Shim>,
-    callback_fns: Vec<ShimCallback>,
+    callback_fns: HashMap<u32, ShimCallback>,
     /// Address of callback_helper() shim entry point.
     callback_helper: u32,
 }
 
 fn callback_helper(machine: &mut Machine) {
-    log::info!("in callback_helper esp:{:x}", machine.x86.regs.esp);
-    let fn_id = 0; // TODO: get from stack.
-    let mut callback: ShimCallback = Box::new(|_machine| unreachable!());
-    std::mem::swap(
-        &mut machine.shims.callback_fns[fn_id as usize],
-        &mut callback,
-    );
-    let next = callback(machine);
-    log::info!("next {:x?}", next);
-    match next {
+    let id = machine.x86.regs.esp;
+    let (stack_space, mut callback) = machine.shims.callback_fns.remove(&id).unwrap();
+    match callback(machine) {
         CallbackStep::Call(addr, args) => {
-            // Put the callback back in place.
-            std::mem::swap(
-                &mut callback,
-                &mut machine.shims.callback_fns[fn_id as usize],
-            );
+            // Re-register the callback.
+            machine
+                .shims
+                .callback_fns
+                .insert(id, (stack_space, callback));
 
-            // Set things up so that we call this function next.
+            // Call the provided function next.
             for &arg in args.iter().rev() {
                 x86::ops::push(&mut machine.x86, arg);
             }
-            x86::ops::push(&mut machine.x86, machine.shims.callback_helper);
+            x86::ops::push(&mut machine.x86, machine.shims.callback_helper); // return address
             machine.x86.regs.eip = addr;
         }
         CallbackStep::Done(ret) => {
+            machine.x86.regs.esp += stack_space;
             machine.x86.regs.eax = ret;
-            machine.x86.regs.eip = machine.x86.read_u32(machine.x86.regs.esp);
-            machine.x86.regs.esp -= 8; // return address + id
-            log::warn!("TODO: cleanup shim callback");
+            machine.x86.regs.eip = x86::ops::pop(&mut machine.x86);
         }
     }
 }
 
 pub fn push_callback(machine: &mut Machine, return_address: u32, callback: ShimCallback) {
-    let id = machine.shims.add_callback(callback);
-    if id != 0 {
-        unimplemented!(); // TODO
-    }
-    x86::ops::push(&mut machine.x86, id);
     x86::ops::push(&mut machine.x86, return_address);
+    machine.x86.regs.esp -= callback.0;
+    machine.shims.add_callback(machine.x86.regs.esp, callback);
     machine.x86.regs.eip = machine.shims.callback_helper;
 }
 
@@ -81,7 +71,7 @@ impl Shims {
     pub fn new() -> Self {
         let mut shims = Shims {
             shims: Vec::new(),
-            callback_fns: Vec::new(),
+            callback_fns: HashMap::new(),
             callback_helper: 0,
         };
         shims.callback_helper =
@@ -117,8 +107,7 @@ impl Shims {
         None
     }
 
-    pub fn add_callback(&mut self, callback: ShimCallback) -> u32 {
-        self.callback_fns.push(callback);
-        (self.callback_fns.len() - 1) as u32
+    pub fn add_callback(&mut self, id: u32, callback: ShimCallback) {
+        self.callback_fns.insert(id, callback);
     }
 }

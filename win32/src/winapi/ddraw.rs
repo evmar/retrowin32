@@ -533,36 +533,38 @@ mod IDirectDraw7 {
         callback: u32,
     ) -> ShimCallback {
         let mut i = 0;
-        Box::new(move |machine: &mut Machine| {
-            log::info!("EnumDisplayModes step:{i}");
-            let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
-            let addr = machine.x86.regs.esp - size;
-            machine.x86.mem.fill_zero(addr, size);
-            let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(addr);
-            desc.dwSize = size;
-            desc.dwHeight = 480;
-            desc.dwWidth = 640;
-            desc.ddpfPixelFormat = DDPIXELFORMAT {
-                dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
-                dwFlags: 0,
-                dwFourCC: 0,
-                dwRGBBitCount: 32,
-                dwRBitMask: 0xFF000000,
-                dwGBitMask: 0x00FF0000,
-                dwBBitMask: 0x0000FF00,
-                dwRGBAlphaBitMask: 0x000000FF,
-            };
-            log::warn!("mode {desc:#x?}");
-            match i {
-                0 => {
-                    i += 1;
-                    log::info!("EnumDisplayModes call:{callback:x} with {desc:x?}");
-                    CallbackStep::Call(callback, vec![addr, data])
-                }
-                1 => CallbackStep::Done(DD_OK),
-                _ => unreachable!(),
+        let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+        let stack_space = size;
+        let async_fn = Box::new(move |machine: &mut Machine| match i {
+            0 => {
+                let addr = machine.x86.regs.esp;
+                machine.x86.mem.fill_zero(addr, size);
+                let desc = machine
+                    .x86
+                    .mem
+                    .view_mut::<DDSURFACEDESC2>(machine.x86.regs.esp);
+                desc.dwSize = size;
+                desc.dwHeight = 480;
+                desc.dwWidth = 640;
+                desc.ddpfPixelFormat = DDPIXELFORMAT {
+                    dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+                    dwFlags: 0,
+                    dwFourCC: 0,
+                    dwRGBBitCount: 32,
+                    dwRBitMask: 0xFF000000,
+                    dwGBitMask: 0x00FF0000,
+                    dwBBitMask: 0x0000FF00,
+                    dwRGBAlphaBitMask: 0x000000FF,
+                };
+
+                i += 1;
+                log::info!("EnumDisplayModes call:{callback:x} with {desc:x?}");
+                CallbackStep::Call(callback, vec![addr, data])
             }
-        })
+            1 => CallbackStep::Done(DD_OK),
+            _ => unreachable!(),
+        });
+        (stack_space, async_fn)
     }
 
     bitflags! {
