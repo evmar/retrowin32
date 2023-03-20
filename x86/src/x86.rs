@@ -149,14 +149,14 @@ impl Default for BasicBlock {
     }
 }
 impl BasicBlock {
-    fn disassemble(buf: &[u8], ip: u32) -> Self {
+    fn disassemble(buf: &[u8], ip: u32, single_step: bool) -> Self {
         let mut instrs = Vec::new();
         let mut decoder =
             iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
         while decoder.can_decode() {
             let instr = decoder.decode();
             instrs.push(instr);
-            if instr.flow_control() != FlowControl::Next {
+            if instr.flow_control() != FlowControl::Next || single_step {
                 break;
             }
         }
@@ -185,15 +185,20 @@ impl InstrCache {
     }
 
     /// Remove any BasicBlock that covers ip.
-    fn kill_block(&mut self, ip: u32) {
+    /// Returns the ip after the end of the block, if any.
+    fn kill_block(&mut self, ip: u32) -> Option<u32> {
         if let Some((&prev_ip, block)) = self.blocks.range(0..ip + 1).last() {
-            if prev_ip + block.len > ip {
+            let end = prev_ip + block.len;
+            if end > ip {
+                // log::info!("killed block {:x}..{:x}", prev_ip, end);
                 self.blocks.remove(&prev_ip);
+                return Some(end);
             }
         }
+        None
     }
 
-    fn update_block(&mut self, mem: &[u8], ip: u32) {
+    fn update_block(&mut self, mem: &[u8], ip: u32, single_step: bool) {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
             later_ip as usize
@@ -204,7 +209,8 @@ impl InstrCache {
         // Ensure we don't overlap any previous block.
         self.kill_block(ip);
 
-        let block = BasicBlock::disassemble(&mem[ip as usize..end], ip);
+        let block = BasicBlock::disassemble(&mem[ip as usize..end], ip, single_step);
+        // log::info!("added block {:x}..{:x}", ip, ip + block.len);
         self.blocks.insert(ip, block);
     }
 
@@ -234,7 +240,7 @@ impl InstrCache {
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
             None => {
-                self.update_block(&x86.mem, ip);
+                self.update_block(&x86.mem, ip, false);
                 self.blocks.get(&ip).unwrap()
             }
         };
@@ -253,29 +259,21 @@ impl InstrCache {
         Ok(block.instrs.len())
     }
 
-    pub fn single_step(&mut self, x86: &mut X86) -> StepResult<()> {
-        let ip = x86.regs.eip;
-        let block = match self.blocks.get(&ip) {
-            Some(b) => b,
-            None => {
-                self.update_block(&x86.mem, ip);
-                self.blocks.get(&ip).unwrap()
+    /// Change cache such that there's a single basic block at ip.
+    /// This means executing the next execute_block() will execute a single instruction.
+    pub fn make_single_step(&mut self, x86: &mut X86, ip: u32) {
+        match self.blocks.get(&ip) {
+            Some(b) if b.instrs.len() == 1 => {}
+            _ => {
+                self.update_block(&x86.mem, ip, true);
             }
         };
+    }
 
-        let int3_addr = ip + block.instrs[0].len() as u32;
-        self.add_breakpoint(&mut x86.mem, int3_addr);
-        let ret = match self.execute_block(x86) {
-            Err(StepError::Interrupt) => Ok(()),
-            Err(err) => Err(err),
-            Ok(_) => {
-                // Note that if the instruction is a 'jmp' we won't hit the int3,
-                // but any control flow instruction is the end of a basic block anyway
-                // so we still successfully single step.
-                Ok(())
-            }
-        };
-        self.clear_breakpoint(&mut x86.mem, int3_addr);
-        ret
+    /// Undo the effects of make_single_step().
+    pub fn clear_single_step(&mut self, ip: u32) {
+        if let Some(end) = self.kill_block(ip) {
+            self.kill_block(end);
+        }
     }
 }

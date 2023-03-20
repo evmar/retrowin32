@@ -94,7 +94,10 @@ impl Runner {
     }
 
     pub fn single_step(&mut self) -> anyhow::Result<()> {
-        self.icache.single_step(&mut self.machine.x86)?;
+        let ip = self.machine.x86.regs.eip;
+        self.icache.make_single_step(&mut self.machine.x86, ip);
+        self.execute_block()?;
+        self.icache.clear_single_step(ip);
         Ok(())
     }
 
