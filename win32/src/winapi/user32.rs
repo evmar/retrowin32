@@ -178,7 +178,7 @@ pub fn DialogBoxParamA(
     _machine: &mut Machine,
     hInstance: u32,
     lpTemplateName: u32,
-    hWndParent: u32,
+    hWndParent: HWND,
     lpDialogFunc: u32,
     dwInitParam: u32,
 ) -> u32 {
