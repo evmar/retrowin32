@@ -494,24 +494,40 @@ pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn SetFilePointer(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hFile: HFILE,
     lDistanceToMove: u32,
     lpDistanceToMoveHigh: Option<&mut u32>,
     dwMoveMethod: u32,
 ) -> u32 {
-    0
+    const FILE_BEGIN: u32 = 0;
+    const INVALID_SET_FILE_POINTER: u32 = !0;
+
+    if lpDistanceToMoveHigh.is_some() {
+        unimplemented!();
+    }
+    if dwMoveMethod != FILE_BEGIN {
+        unimplemented!();
+    }
+    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
+    if !file.seek(lDistanceToMove) {
+        // TODO: SetLastError
+        return INVALID_SET_FILE_POINTER;
+    }
+    lDistanceToMove
 }
 
 #[win32_derive::dllexport]
 pub fn ReadFile(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hFile: HFILE,
     lpBuffer: Option<&mut [u8]>,
     lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    true
+    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
+    // TODO: SetLastError
+    file.read(lpBuffer.unwrap(), lpNumberOfBytesRead.unwrap())
 }
 
 #[win32_derive::dllexport]
