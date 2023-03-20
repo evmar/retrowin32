@@ -62,6 +62,12 @@ pub fn fldz(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn fldpi(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    x86.regs.st_top -= 1;
+    *x86.regs.st_top() = std::f64::consts::PI;
+    Ok(())
+}
+
 pub fn fld_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     x86.regs.st_top -= 1;
     *x86.regs.st_top() = read_f64(x86, x86_addr(x86, instr));
