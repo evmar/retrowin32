@@ -8,10 +8,7 @@ use crate::{
     registers::{Flags, Registers},
     StepError, StepResult,
 };
-use std::{
-    collections::{BTreeMap, HashMap},
-    rc::Rc,
-};
+use std::collections::{BTreeMap, HashMap};
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.
@@ -143,7 +140,14 @@ pub struct BasicBlock {
     pub len: u32,
     pub instrs: Vec<iced_x86::Instruction>,
 }
-
+impl Default for BasicBlock {
+    fn default() -> Self {
+        Self {
+            len: Default::default(),
+            instrs: Default::default(),
+        }
+    }
+}
 impl BasicBlock {
     fn disassemble(buf: &[u8], ip: u32) -> Self {
         let mut instrs = Vec::new();
@@ -165,7 +169,7 @@ impl BasicBlock {
 
 /// Cache of decoded instructions.
 pub struct InstrCache {
-    pub blocks: BTreeMap<u32, Rc<BasicBlock>>,
+    pub blocks: BTreeMap<u32, BasicBlock>,
 
     /// Places where we've patched out the instruction with an int3.
     /// The map values are the bytes from before the breakpoint.
@@ -189,7 +193,7 @@ impl InstrCache {
         }
     }
 
-    fn update_block(&mut self, mem: &[u8], ip: u32) -> Rc<BasicBlock> {
+    fn update_block(&mut self, mem: &[u8], ip: u32) {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
             later_ip as usize
@@ -200,9 +204,8 @@ impl InstrCache {
         // Ensure we don't overlap any previous block.
         self.kill_block(ip);
 
-        let block = Rc::new(BasicBlock::disassemble(&mem[ip as usize..end], ip));
-        self.blocks.insert(ip, block.clone());
-        block
+        let block = BasicBlock::disassemble(&mem[ip as usize..end], ip);
+        self.blocks.insert(ip, block);
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
