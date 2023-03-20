@@ -153,6 +153,29 @@ bitflags! {
     }
 }
 
+bitflags! {
+    pub struct DDPCAPS: u32 {
+        const _4BIT = 0x00000001;
+        const _8BITENTRIES = 0x00000002;
+        const _8BIT = 0x00000004;
+        const INITIALIZE = 0x00000008;
+        const PRIMARYSURFACE = 0x00000010;
+        const PRIMARYSURFACELEFT = 0x00000020;
+        const ALLOW256 = 0x00000040;
+        const VSYNC = 0x00000080;
+        const _1BIT = 0x00000100;
+        const _2BIT = 0x00000200;
+        const ALPHA =  0x00000400;
+    }
+}
+impl TryFrom<u32> for DDPCAPS {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        DDPCAPS::from_bits(value).ok_or(value)
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 struct DDCOLORKEY {
@@ -475,7 +498,7 @@ mod IDirectDraw7 {
     fn CreatePalette(
         _machine: &mut Machine,
         this: u32,
-        flags: u32,
+        flags: Result<DDPCAPS, u32>,
         entries: u32,
         palette: u32,
         unused: u32,
