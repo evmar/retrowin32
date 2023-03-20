@@ -439,7 +439,7 @@ mod IDirectDraw7 {
         Release ok,
         Compact todo,
         CreateClipper todo,
-        CreatePalette todo,
+        CreatePalette ok,
         CreateSurface ok,
         DuplicateSurface todo,
         EnumDisplayModes ok,
@@ -469,6 +469,18 @@ mod IDirectDraw7 {
     fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
+    }
+
+    #[win32_derive::dllexport]
+    fn CreatePalette(
+        _machine: &mut Machine,
+        this: u32,
+        flags: u32,
+        entries: u32,
+        palette: u32,
+        unused: u32,
+    ) -> u32 {
+        DDERR_GENERIC
     }
 
     fn CreateSurface(
