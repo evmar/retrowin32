@@ -541,13 +541,13 @@ mod IDirectDraw7 {
                 let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
                 x86::Pod::clear(desc);
                 desc.dwSize = size;
-                desc.dwHeight = 480;
-                desc.dwWidth = 640;
+                desc.dwHeight = 200;
+                desc.dwWidth = 320;
                 desc.ddpfPixelFormat = DDPIXELFORMAT {
                     dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
                     dwFlags: 0,
                     dwFourCC: 0,
-                    dwRGBBitCount: 32,
+                    dwRGBBitCount: 8,
                     dwRBitMask: 0xFF000000,
                     dwGBitMask: 0x00FF0000,
                     dwBBitMask: 0x0000FF00,
