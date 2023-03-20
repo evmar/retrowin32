@@ -496,14 +496,16 @@ mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     fn CreatePalette(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         flags: Result<DDPCAPS, u32>,
         entries: u32,
         palette: u32,
         unused: u32,
     ) -> u32 {
-        DDERR_GENERIC
+        log::error!("CreatePalette stub returning null palette");
+        machine.x86.mem.write_u32(palette, 0);
+        DD_OK
     }
 
     fn CreateSurface(
