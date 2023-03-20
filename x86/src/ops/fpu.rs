@@ -3,7 +3,7 @@ use iced_x86::Instruction;
 use crate::{
     registers::FPUStatus,
     x86::{NULL_POINTER_REGION_SIZE, X86},
-    StepResult,
+    Memory, StepResult,
 };
 
 use super::helpers::*;
@@ -65,6 +65,13 @@ pub fn fldz(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 pub fn fldpi(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     x86.regs.st_top -= 1;
     *x86.regs.st_top() = std::f64::consts::PI;
+    Ok(())
+}
+
+pub fn fld_sti(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = *x86.regs.getst(instr.op0_register());
+    x86.regs.st_top -= 1;
+    *x86.regs.st_top() = y;
     Ok(())
 }
 
@@ -215,6 +222,12 @@ pub fn fmul_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn fimul_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.mem.read_u32(x86_addr(x86, instr)) as f64;
+    *x86.regs.st_top() *= y;
+    Ok(())
+}
+
 pub fn fmul_sti_sti(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = *x86.regs.getst(instr.op1_register());
     let x = x86.regs.getst(instr.op0_register());
@@ -240,6 +253,24 @@ pub fn fdivrp_sti_st0(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 pub fn fdiv_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = read_f64(x86, x86_addr(x86, instr));
     *x86.regs.st_top() /= y;
+    Ok(())
+}
+
+pub fn fdiv_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = read_f32(x86, x86_addr(x86, instr)) as f64;
+    *x86.regs.st_top() /= y;
+    Ok(())
+}
+
+pub fn fidiv_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.mem.read_u32(x86_addr(x86, instr)) as f64;
+    *x86.regs.st_top() /= y;
+    Ok(())
+}
+
+pub fn fidivr_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = x86.mem.read_u32(x86_addr(x86, instr)) as f64;
+    *x86.regs.st_top() = y / *x86.regs.st_top();
     Ok(())
 }
 
