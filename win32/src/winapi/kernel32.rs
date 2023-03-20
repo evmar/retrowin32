@@ -8,8 +8,8 @@ use crate::{
 };
 use bitflags::bitflags;
 use num_traits::FromPrimitive;
-use std::collections::HashMap;
 use std::io::Write;
+use std::{cmp::max, collections::HashMap};
 use tsify::Tsify;
 use x86::Memory;
 
@@ -882,17 +882,16 @@ pub fn HeapCreate(
     machine: &mut Machine,
     flOptions: Result<HeapCreateFlags, u32>,
     dwInitialSize: u32,
-    _dwMaximumSize: u32,
+    dwMaximumSize: u32,
 ) -> u32 {
     flOptions.unwrap();
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
-    //log::info!("HeapCreate({flags:x}, {dwInitialSize:x}, {dwMaximumSize:x})");
-    machine.state.kernel32.new_heap(
-        &mut machine.x86.mem,
-        dwInitialSize as usize,
-        "HeapCreate".into(),
-    )
+    let size = max(dwInitialSize as usize, 1 << 20);
+    machine
+        .state
+        .kernel32
+        .new_heap(&mut machine.x86.mem, size, "HeapCreate".into())
 }
 
 #[win32_derive::dllexport]
