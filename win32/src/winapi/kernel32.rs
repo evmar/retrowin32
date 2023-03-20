@@ -489,6 +489,28 @@ pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn SetFilePointer(
+    _machine: &mut Machine,
+    hFile: HFILE,
+    lDistanceToMove: u32,
+    lpDistanceToMoveHigh: Option<&mut u32>,
+    dwMoveMethod: u32,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn ReadFile(
+    _machine: &mut Machine,
+    hFile: HFILE,
+    lpBuffer: Option<&mut [u8]>,
+    lpNumberOfBytesRead: Option<&mut u32>,
+    lpOverlapped: u32,
+) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,

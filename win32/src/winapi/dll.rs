@@ -483,6 +483,67 @@ pub mod kernel32 {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
+    pub fn SetFilePointer(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let lDistanceToMove =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpDistanceToMoveHigh = unsafe {
+            <Option<&mut u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut u32>>::stack_consumed();
+        let dwMoveMethod =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::SetFilePointer(
+            machine,
+            hFile,
+            lDistanceToMove,
+            lpDistanceToMoveHigh,
+            dwMoveMethod,
+        );
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
+    pub fn ReadFile(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let lpBuffer = unsafe {
+            <Option<&mut [u8]>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut [u8]>>::stack_consumed();
+        let lpNumberOfBytesRead = unsafe {
+            <Option<&mut u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut u32>>::stack_consumed();
+        let lpOverlapped =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result =
+            winapi::kernel32::ReadFile(machine, hFile, lpBuffer, lpNumberOfBytesRead, lpOverlapped);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     pub fn GetModuleFileNameA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let hModule = unsafe {
@@ -1342,6 +1403,8 @@ pub mod kernel32 {
                 "GetEnvironmentStringsW" => GetEnvironmentStringsW,
                 "GetEnvironmentVariableA" => GetEnvironmentVariableA,
                 "GetFileType" => GetFileType,
+                "SetFilePointer" => SetFilePointer,
+                "ReadFile" => ReadFile,
                 "GetModuleFileNameA" => GetModuleFileNameA,
                 "GetModuleFileNameW" => GetModuleFileNameW,
                 "GetModuleHandleA" => GetModuleHandleA,
