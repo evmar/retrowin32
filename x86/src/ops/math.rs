@@ -402,6 +402,13 @@ pub fn xor_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn xor_r16_rm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm16(x86, instr);
+    let (x, flags) = rm16(x86, instr);
+    *x = xor(*x, y, flags);
+    Ok(())
+}
+
 pub fn xor_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     let (x, flags) = rm8(x86, instr);
