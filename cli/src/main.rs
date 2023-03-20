@@ -53,15 +53,19 @@ impl win32::Host for EnvRef {
         self.0.borrow_mut().exit_code = Some(code);
     }
 
-    fn write(&self, buf: &[u8]) -> usize {
-        std::io::stdout().lock().write(buf).unwrap()
-    }
-
     fn time(&self) -> u32 {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_millis() as u32
+    }
+
+    fn open(&self, _path: &str) -> Box<dyn win32::File> {
+        unimplemented!();
+    }
+
+    fn write(&self, buf: &[u8]) -> usize {
+        std::io::stdout().lock().write(buf).unwrap()
     }
 
     fn create_window(&mut self) -> Box<dyn win32::Window> {

@@ -161,6 +161,9 @@ pub struct State {
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, HeapInfo>,
 
+    #[serde(skip)] // TODO
+    files: HashMap<HFILE, Box<dyn crate::host::File>>,
+
     env: u32,
 
     /// Command line, ASCII.
@@ -176,6 +179,7 @@ impl State {
             teb: 0,
             mappings: Mappings::new(),
             heaps: HashMap::new(),
+            files: HashMap::new(),
             env: 0,
             cmdline: 0,
             cmdline16: 0,
@@ -973,7 +977,7 @@ pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
 
 #[win32_derive::dllexport]
 pub fn CreateFileA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     lpFileName: Option<&str>,
     dwDesiredAccess: u32,
     dwShareMode: u32,
@@ -982,6 +986,7 @@ pub fn CreateFileA(
     dwFlagsAndAttributes: u32,
     hTemplateFile: HFILE,
 ) -> HFILE {
+    let file_name = lpFileName.unwrap();
     if dwDesiredAccess != GENERIC_READ {
         unimplemented!("CreateFile access {:x}", dwDesiredAccess);
     }
@@ -992,8 +997,11 @@ pub fn CreateFileA(
     if !hTemplateFile.is_null() {
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
-    log::error!("CreateFile unimplemented");
-    HFILE::invalid()
+
+    let file = machine.host.open(file_name);
+    let hfile = HFILE::from_raw(0xF11E_0001);
+    machine.state.kernel32.files.insert(hfile, file);
+    hfile
 }
 
 #[win32_derive::dllexport]

@@ -142,12 +142,17 @@ impl win32::Host for JsHost {
     fn exit(&mut self, exit_code: u32) {
         JsHost::exit(self, exit_code)
     }
-    fn write(&self, buf: &[u8]) -> usize {
-        JsHost::write(self, buf)
-    }
     fn time(&self) -> u32 {
         JsHost::time(self)
     }
+
+    fn open(&self, _path: &str) -> Box<dyn win32::File> {
+        unimplemented!();
+    }
+    fn write(&self, buf: &[u8]) -> usize {
+        JsHost::write(self, buf)
+    }
+
     fn create_window(&mut self) -> Box<dyn win32::Window> {
         let window = JsHost::create_window(self);
         window.set_title("test");

@@ -41,10 +41,17 @@ pub trait Window {
     fn set_size(&mut self, width: u32, height: u32);
 }
 
+pub trait File {
+    fn seek(&mut self, ofs: u32) -> bool;
+    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool;
+}
+
 pub trait Host {
     fn exit(&mut self, code: u32);
-    fn write(&self, buf: &[u8]) -> usize;
     fn time(&self) -> u32;
+
+    fn open(&self, path: &str) -> Box<dyn File>;
+    fn write(&self, buf: &[u8]) -> usize;
 
     fn create_window(&mut self) -> Box<dyn Window>;
     fn create_surface(&mut self, opts: &SurfaceOptions) -> Box<dyn Surface>;

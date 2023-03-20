@@ -6,7 +6,7 @@ mod shims;
 mod winapi;
 mod windows;
 
-pub use host::{Host, Surface, SurfaceOptions, Window};
+pub use host::*;
 pub use machine::Runner;
 pub use x86::debug::disassemble;
 
