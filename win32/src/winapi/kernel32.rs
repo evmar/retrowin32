@@ -950,31 +950,54 @@ impl TryFrom<u32> for CreationDisposition {
 pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
 
 #[win32_derive::dllexport]
-pub fn CreateFileW(
+pub fn CreateFileA(
     _machine: &mut Machine,
-    lpFileName: Option<Str16>,
+    lpFileName: Option<&str>,
     dwDesiredAccess: u32,
-    _dwShareMode: u32,
-    _lpSecurityAttributes: u32,
+    dwShareMode: u32,
+    lpSecurityAttributes: u32,
     dwCreationDisposition: Result<CreationDisposition, u32>,
     dwFlagsAndAttributes: u32,
     hTemplateFile: HFILE,
 ) -> HFILE {
     if dwDesiredAccess != GENERIC_READ {
-        unimplemented!("CreateFileW access {:x}", dwDesiredAccess);
+        unimplemented!("CreateFile access {:x}", dwDesiredAccess);
     }
-    let dwCreationDisposition = match dwCreationDisposition {
-        Err(x) => unimplemented!("dwCreationDisposition {x:?}"),
-        Ok(disp) => disp,
-    };
+    let _dwCreationDisposition = dwCreationDisposition.unwrap();
     if dwFlagsAndAttributes != FILE_ATTRIBUTE_NORMAL {
         unimplemented!("dwFlagsAndAttributes {dwFlagsAndAttributes:x}");
     }
     if !hTemplateFile.is_null() {
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
-    log::error!("CreateFileW {lpFileName:?} {dwDesiredAccess:x} {dwCreationDisposition:x?} {dwFlagsAndAttributes:x} {hTemplateFile:?}");
+    log::error!("CreateFile unimplemented");
     HFILE::invalid()
+}
+
+#[win32_derive::dllexport]
+pub fn CreateFileW(
+    machine: &mut Machine,
+    lpFileName: Option<Str16>,
+    dwDesiredAccess: u32,
+    dwShareMode: u32,
+    lpSecurityAttributes: u32,
+    dwCreationDisposition: Result<CreationDisposition, u32>,
+    dwFlagsAndAttributes: u32,
+    hTemplateFile: HFILE,
+) -> HFILE {
+    CreateFileA(
+        machine,
+        lpFileName
+            .map(|f| f.to_string())
+            .as_ref()
+            .map(|f| f.as_str()),
+        dwDesiredAccess,
+        dwShareMode,
+        lpSecurityAttributes,
+        dwCreationDisposition,
+        dwFlagsAndAttributes,
+        hTemplateFile,
+    )
 }
 
 #[win32_derive::dllexport]
