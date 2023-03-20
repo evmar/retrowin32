@@ -30,12 +30,22 @@ interface JsWindow {
   set_size(width: number, height: number): void;
 }
 
+// Matches 'pub type JsFile' in lib.rs.
+interface JsFile {
+  seek(ofs: number): boolean;
+  read(buf: number): number;
+}
+
 // Matches 'pub type JsHost' in lib.rs.
 interface JsHost {
   log(level: number, msg: string): void;
+
   exit(code: number): void;
-  write(buf: Uint8Array): number;
   time(): number;
+
+  open(path: string): JsFile;
+  write(buf: Uint8Array): number;
+
   create_window(): JsWindow;
   create_surface(opts: wasm.SurfaceOptions): JsSurface;
 }
@@ -280,13 +290,17 @@ class VM implements JsHost {
     console.warn('exited with code', code);
     this.exitCode = code;
   }
+  time(): number {
+    return Math.floor(performance.now());
+  }
+
+  open(path: string): JsFile {
+    return null!;
+  }
   write(buf: Uint8Array): number {
     this.stdout += this.decoder.decode(buf);
     this.page.setState({ stdout: this.stdout });
     return buf.length;
-  }
-  time(): number {
-    return Math.floor(performance.now());
   }
 
   windows: Window[] = [];

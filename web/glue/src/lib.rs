@@ -121,6 +121,27 @@ impl win32::Window for JsWindow {
 
 #[wasm_bindgen]
 extern "C" {
+    pub type JsFile;
+    #[wasm_bindgen(method)]
+    fn seek(this: &JsFile, ofs: u32) -> bool;
+    #[wasm_bindgen(method)]
+    fn read(this: &JsFile, buf: &mut [u8]) -> u32;
+}
+
+impl win32::File for JsFile {
+    fn seek(&mut self, ofs: u32) -> bool {
+        JsFile::seek(self, ofs)
+    }
+
+    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
+        let n = JsFile::read(self, buf);
+        *len = n;
+        true
+    }
+}
+
+#[wasm_bindgen]
+extern "C" {
     pub type JsHost;
 
     #[wasm_bindgen(method)]
@@ -129,9 +150,13 @@ extern "C" {
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
     #[wasm_bindgen(method)]
-    fn write(this: &JsHost, buf: &[u8]) -> usize;
-    #[wasm_bindgen(method)]
     fn time(this: &JsHost) -> u32;
+
+    #[wasm_bindgen(method)]
+    fn open(this: &JsHost, path: &str) -> JsFile;
+    #[wasm_bindgen(method)]
+    fn write(this: &JsHost, buf: &[u8]) -> usize;
+
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost) -> JsWindow;
     #[wasm_bindgen(method)]
@@ -146,8 +171,9 @@ impl win32::Host for JsHost {
         JsHost::time(self)
     }
 
-    fn open(&self, _path: &str) -> Box<dyn win32::File> {
-        unimplemented!();
+    fn open(&self, path: &str) -> Box<dyn win32::File> {
+        let file = JsHost::open(self, path);
+        Box::new(file)
     }
     fn write(&self, buf: &[u8]) -> usize {
         JsHost::write(self, buf)
