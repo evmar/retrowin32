@@ -33,7 +33,7 @@ interface JsWindow {
 // Matches 'pub type JsFile' in lib.rs.
 interface JsFile {
   seek(ofs: number): boolean;
-  read(buf: number): number;
+  read(buf: Uint8Array): number;
 }
 
 // Matches 'pub type JsHost' in lib.rs.
@@ -104,6 +104,32 @@ class Window implements JsWindow {
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
+  }
+}
+
+let monolifeDatHack: Uint8Array | undefined;
+
+class File implements JsFile {
+  ofs = 0;
+  data?: Uint8Array;
+
+  constructor(readonly path: string) {
+    if (path === 'monolife.dat') {
+      this.data = monolifeDatHack;
+    } else {
+      throw new Error('unimplemented: async file loading');
+    }
+  }
+  seek(ofs: number): boolean {
+    this.ofs = ofs;
+    return true;
+  }
+  read(buf: Uint8Array): number {
+    let i = 0;
+    for (i = 0; i < buf.length && this.ofs < this.data!.length; i++, this.ofs++) {
+      buf[i] = this.data![this.ofs];
+    }
+    return i;
   }
 }
 
@@ -295,7 +321,7 @@ class VM implements JsHost {
   }
 
   open(path: string): JsFile {
-    return null!;
+    return new File(path);
   }
   write(buf: Uint8Array): number {
     this.stdout += this.decoder.decode(buf);
@@ -606,6 +632,9 @@ async function main() {
   const loader = new LabelsLoader();
   await loader.fetchCSV(path);
   await wasm.default(new URL('wasm.wasm', document.location.href));
+  if (path.endsWith('monolife.exe')) {
+    monolifeDatHack = new Uint8Array(await (await fetch(path.replace(/.exe/, '.dat'))).arrayBuffer());
+  }
 
   const vm = new VM(path, exe, loader);
   preact.render(<Page vm={vm} />, document.body);
