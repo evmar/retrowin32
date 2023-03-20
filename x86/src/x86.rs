@@ -164,14 +164,8 @@ impl BasicBlock {
 }
 
 /// Cache of decoded instructions.
-/// This also caches the current instruction index, so that we don't need to map
-/// x86 eip addresses to the instruction cache entry.  Instead, whenever we step
-/// we update index as appropriate.
 pub struct InstrCache {
     pub blocks: BTreeMap<u32, Rc<BasicBlock>>,
-
-    /// Span of addresses that refer to code, for error checking
-    pub span: std::ops::Range<u32>,
 
     /// Places where we've patched out the instruction with an int3.
     /// The map values are the bytes from before the breakpoint.
@@ -182,7 +176,6 @@ impl InstrCache {
     pub fn new() -> Self {
         InstrCache {
             blocks: BTreeMap::new(),
-            span: 0..0,
             breakpoints: HashMap::new(),
         }
     }
