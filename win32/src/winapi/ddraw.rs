@@ -722,7 +722,7 @@ mod IDirectDrawSurface7 {
         x: u32,
         y: u32,
         lpSurf: u32,
-        lpRect: u32,
+        lpRect: Option<&RECT>,
         flags: u32,
     ) -> u32 {
         if flags != 0 {
@@ -734,7 +734,7 @@ mod IDirectDrawSurface7 {
             assert_ne!(dst as *const Surface, src);
             (&mut *dst, &*src)
         };
-        let rect = machine.x86.mem.view::<RECT>(lpRect);
+        let rect = lpRect.unwrap();
         let sx = rect.left;
         let w = rect.right - sx;
         let sy = rect.top;
@@ -782,9 +782,13 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    fn GetSurfaceDesc(machine: &mut Machine, this: u32, lpDesc: u32) -> u32 {
+    fn GetSurfaceDesc(
+        machine: &mut Machine,
+        this: u32,
+        lpDesc: Option<&mut DDSURFACEDESC2>,
+    ) -> u32 {
         let surf = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(lpDesc);
+        let desc = lpDesc.unwrap();
         assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
         let mut flags = desc.flags();
         if flags.contains(DDSD::WIDTH) {
@@ -797,7 +801,7 @@ mod IDirectDrawSurface7 {
         }
         if !flags.is_empty() {
             log::warn!(
-                "unimp: {:?} for {this:x}->GetSurfaceDesc({lpDesc:x})",
+                "unimp: {:?} for {this:x}->GetSurfaceDesc({desc:?})",
                 desc.flags()
             );
         }
@@ -808,12 +812,17 @@ mod IDirectDrawSurface7 {
     fn Lock(
         _machine: &mut Machine,
         this: u32,
-        rect: u32,
+        rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC2>,
         flags: u32,
         unused: u32,
     ) -> u32 {
-        DDERR_GENERIC
+        if rect.is_some() {
+            todo!();
+        }
+        let desc = desc.unwrap();
+        desc.lpSurface = 0; // TODO
+        DD_OK
     }
 
     fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
@@ -826,8 +835,12 @@ mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn Unlock(_machine: &mut Machine, this: u32, rect: u32) -> u32 {
-        DDERR_GENERIC
+    fn Unlock(_machine: &mut Machine, this: u32, rect: Option<&RECT>) -> u32 {
+        if rect.is_some() {
+            // Needs to match the rect passed in Lock.
+            todo!();
+        }
+        DD_OK
     }
 }
 
