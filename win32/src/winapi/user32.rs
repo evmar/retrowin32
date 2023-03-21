@@ -223,6 +223,11 @@ pub fn GetMessageA(
 }
 
 #[win32_derive::dllexport]
+pub fn WaitMessage(_machine: &mut Machine) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn TranslateMessage(_machine: &mut Machine, _lpMsg: u32) -> bool {
     // TODO: translate key-related messages into enqueuing a WM_CHAR.
     false // no message translated

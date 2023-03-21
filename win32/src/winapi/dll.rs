@@ -1745,6 +1745,14 @@ pub mod user32 {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
+    pub fn WaitMessage(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let result = winapi::user32::WaitMessage(machine);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     pub fn TranslateMessage(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let _lpMsg =
@@ -1861,6 +1869,7 @@ pub mod user32 {
                 "DialogBoxParamA" => DialogBoxParamA,
                 "PeekMessageA" => PeekMessageA,
                 "GetMessageA" => GetMessageA,
+                "WaitMessage" => WaitMessage,
                 "TranslateMessage" => TranslateMessage,
                 "DispatchMessageA" => DispatchMessageA,
                 "LoadIconA" => LoadIconA,
