@@ -146,6 +146,11 @@ pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
     prev_focused
 }
 
+#[win32_derive::dllexport]
+pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
+    0 // previous: null
+}
+
 bitflags! {
     pub struct MessageBoxFlags: u32 {
         // None implemented yet.

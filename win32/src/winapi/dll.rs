@@ -831,11 +831,10 @@ pub mod kernel32 {
         let dwInitialSize =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _dwMaximumSize =
+        let dwMaximumSize =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let result =
-            winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, _dwMaximumSize);
+        let result = winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
         machine.x86.regs.eax = result.to_raw();
@@ -1628,6 +1627,17 @@ pub mod user32 {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
+    pub fn SetCursor(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hCursor =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::user32::SetCursor(machine, hCursor);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     pub fn MessageBoxA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let hWnd = unsafe {
@@ -1846,6 +1856,7 @@ pub mod user32 {
                 "UpdateWindow" => UpdateWindow,
                 "ShowWindow" => ShowWindow,
                 "SetFocus" => SetFocus,
+                "SetCursor" => SetCursor,
                 "MessageBoxA" => MessageBoxA,
                 "DialogBoxParamA" => DialogBoxParamA,
                 "PeekMessageA" => PeekMessageA,
