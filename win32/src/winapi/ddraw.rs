@@ -36,6 +36,7 @@ pub struct State {
     vtable_IDirectDrawSurface: u32,
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
+    vtable_IDirectDrawPalette: u32,
 
     // TODO: this is per-IDirectDraw state.
     hwnd: u32,
@@ -57,6 +58,7 @@ impl State {
         ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
         ddraw
     }
 }
@@ -69,6 +71,7 @@ impl Default for State {
             vtable_IDirectDrawSurface: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
+            vtable_IDirectDrawPalette: 0,
             hwnd: 0,
             width: 0,
             height: 0,
@@ -500,11 +503,11 @@ mod IDirectDraw7 {
         this: u32,
         flags: Result<DDPCAPS, u32>,
         entries: u32,
-        palette: u32,
+        lplpPalette: u32,
         unused: u32,
     ) -> u32 {
-        log::error!("CreatePalette stub returning null palette");
-        machine.x86.mem.write_u32(palette, 0);
+        let palette = IDirectDrawPalette::new(machine);
+        machine.x86.mem.write_u32(lplpPalette, palette);
         DD_OK
     }
 
@@ -841,6 +844,34 @@ mod IDirectDrawSurface7 {
             todo!();
         }
         DD_OK
+    }
+}
+
+#[win32_derive::shims_from_x86]
+mod IDirectDrawPalette {
+    use super::*;
+
+    vtable![IDirectDrawPalette shims
+        QueryInterface todo,
+        AddRef todo,
+        Release todo,
+        GetCaps todo,
+        GetEntries todo,
+        Initialize todo,
+        SetEntries todo,
+    ];
+
+    pub fn new(machine: &mut Machine) -> u32 {
+        let ddraw = &machine.state.ddraw;
+        let lpDirectDrawPalette = machine
+            .state
+            .kernel32
+            .get_heap(&mut machine.x86.mem, ddraw.hheap)
+            .unwrap()
+            .alloc(4);
+        let vtable = ddraw.vtable_IDirectDrawPalette;
+        machine.x86.mem.write_u32(lpDirectDrawPalette, vtable);
+        lpDirectDrawPalette
     }
 }
 
