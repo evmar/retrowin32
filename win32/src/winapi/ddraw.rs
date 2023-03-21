@@ -47,6 +47,7 @@ pub struct State {
     height: u32,
     pub surfaces: HashMap<u32, Surface>,
     palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
+    palette_hack: u32,
 }
 
 impl State {
@@ -81,6 +82,7 @@ impl Default for State {
             height: 0,
             surfaces: HashMap::new(),
             palettes: HashMap::new(),
+            palette_hack: 0,
         }
     }
 }
@@ -442,8 +444,8 @@ mod IDirectDrawSurface {
             host,
             width: this_surface.width,
             height: this_surface.height,
-            palette: 0,
-            pixels: 0,
+            palette: this_surface.palette,
+            pixels: this_surface.pixels,
         };
         let x86_surface = new(machine);
 
@@ -779,6 +781,7 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
@@ -794,8 +797,8 @@ mod IDirectDrawSurface7 {
             host,
             width: this_surface.width,
             height: this_surface.height,
-            palette: 0,
-            pixels: 0,
+            palette: this_surface.palette,
+            pixels: this_surface.pixels,
         };
         let x86_surface = new(machine);
 
@@ -861,6 +864,7 @@ mod IDirectDrawSurface7 {
         }
         desc.dwFlags = DDSD::LPSURFACE.bits();
         desc.lpSurface = surf.pixels;
+        desc.lPitch_dwLinearSize = 320;
         DD_OK
     }
 
@@ -876,6 +880,7 @@ mod IDirectDrawSurface7 {
     #[win32_derive::dllexport]
     fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> u32 {
         machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
+        machine.state.ddraw.palette_hack = palette;
         DD_OK
     }
 
@@ -886,13 +891,21 @@ mod IDirectDrawSurface7 {
             todo!();
         }
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        if surf.pixels != 0 {
+        let phack = machine.state.ddraw.palette_hack;
+        if surf.pixels != 0 && phack != 0 {
             let pixels = machine
                 .x86
                 .mem
                 .view_n::<u8>(surf.pixels as usize, 320 * 200);
-            // XXX temporary just trying to get something on screen.
-            let pixels32: Vec<_> = pixels.iter().map(|&p| [p, p, p, 255]).collect();
+            let palette = machine.state.ddraw.palettes.get(&phack).unwrap();
+            // XXX very inefficient
+            let pixels32: Vec<_> = pixels
+                .iter()
+                .map(|&i| {
+                    let p = &palette[i as usize];
+                    [p.peRed, p.peGreen, p.peBlue, 255]
+                })
+                .collect();
             surf.host.write_pixels(&pixels32);
         }
         DD_OK
