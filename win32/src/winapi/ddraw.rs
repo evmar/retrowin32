@@ -28,6 +28,9 @@ pub struct Surface {
     pub host: Box<dyn host::Surface>,
     pub width: u32,
     pub height: u32,
+    pub palette: u32, // same as key in palettes
+    /// x86 address to pixel buffer, or 0 if unused.
+    pixels: u32,
 }
 
 pub struct State {
@@ -43,6 +46,7 @@ pub struct State {
     width: u32,
     height: u32,
     pub surfaces: HashMap<u32, Surface>,
+    palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
 }
 
 impl State {
@@ -76,6 +80,7 @@ impl Default for State {
             width: 0,
             height: 0,
             surfaces: HashMap::new(),
+            palettes: HashMap::new(),
         }
     }
 }
@@ -350,6 +355,8 @@ mod IDirectDraw {
                 host: surface,
                 width: opts.width,
                 height: opts.height,
+                palette: 0,
+                pixels: 0,
             },
         );
 
@@ -435,6 +442,8 @@ mod IDirectDrawSurface {
             host,
             width: this_surface.width,
             height: this_surface.height,
+            palette: 0,
+            pixels: 0,
         };
         let x86_surface = new(machine);
 
@@ -506,7 +515,20 @@ mod IDirectDraw7 {
         lplpPalette: u32,
         unused: u32,
     ) -> u32 {
+        let flags = flags.unwrap();
+        if !flags.contains(DDPCAPS::_8BIT) {
+            todo!();
+        }
+        // TODO: if palette is DDPCAPS_8BITENTRIES then SetEntries needs change too.
+
         let palette = IDirectDrawPalette::new(machine);
+        let entries = machine
+            .x86
+            .mem
+            .view_n::<PALETTEENTRY>(entries as usize, 256)
+            .to_vec()
+            .into_boxed_slice();
+        machine.state.ddraw.palettes.insert(palette, entries);
         machine.x86.mem.write_u32(lplpPalette, palette);
         DD_OK
     }
@@ -557,6 +579,8 @@ mod IDirectDraw7 {
                 host: surface,
                 width: opts.width,
                 height: opts.height,
+                palette: 0,
+                pixels: 0,
             },
         );
 
@@ -770,6 +794,8 @@ mod IDirectDrawSurface7 {
             host,
             width: this_surface.width,
             height: this_surface.height,
+            palette: 0,
+            pixels: 0,
         };
         let x86_surface = new(machine);
 
@@ -813,7 +839,7 @@ mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     fn Lock(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC2>,
@@ -824,7 +850,17 @@ mod IDirectDrawSurface7 {
             todo!();
         }
         let desc = desc.unwrap();
-        desc.lpSurface = 0; // TODO
+        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        if surf.pixels == 0 {
+            surf.pixels = machine
+                .state
+                .kernel32
+                .get_heap(&mut machine.x86.mem, machine.state.ddraw.hheap)
+                .unwrap()
+                .alloc(320 * 200);
+        }
+        desc.dwFlags = DDSD::LPSURFACE.bits();
+        desc.lpSurface = surf.pixels;
         DD_OK
     }
 
@@ -838,19 +874,40 @@ mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn SetPalette(_machine: &mut Machine, this: u32, palette: u32) -> u32 {
+    fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> u32 {
+        machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
         DD_OK
     }
 
     #[win32_derive::dllexport]
-    fn Unlock(_machine: &mut Machine, this: u32, rect: Option<&RECT>) -> u32 {
+    fn Unlock(machine: &mut Machine, this: u32, rect: Option<&RECT>) -> u32 {
         if rect.is_some() {
             // Needs to match the rect passed in Lock.
             todo!();
         }
+        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        if surf.pixels != 0 {
+            let pixels = machine
+                .x86
+                .mem
+                .view_n::<u8>(surf.pixels as usize, 320 * 200);
+            // XXX temporary just trying to get something on screen.
+            let pixels32: Vec<_> = pixels.iter().map(|&p| [p, p, p, 255]).collect();
+            surf.host.write_pixels(&pixels32);
+        }
         DD_OK
     }
 }
+
+#[repr(C)]
+#[derive(Clone, Debug)]
+struct PALETTEENTRY {
+    peRed: u8,
+    peGreen: u8,
+    peBlue: u8,
+    peFlags: u8,
+}
+unsafe impl x86::Pod for PALETTEENTRY {}
 
 #[win32_derive::shims_from_x86]
 mod IDirectDrawPalette {
@@ -881,13 +938,20 @@ mod IDirectDrawPalette {
 
     #[win32_derive::dllexport]
     fn SetEntries(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         unused: u32,
         start: u32,
         count: u32,
         entries: u32,
     ) -> u32 {
+        let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
+        // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
+        let entries = machine
+            .x86
+            .mem
+            .view_n::<PALETTEENTRY>(entries as usize, count as usize);
+        palette[start as usize..][..count as usize].clone_from_slice(entries);
         DD_OK
     }
 }

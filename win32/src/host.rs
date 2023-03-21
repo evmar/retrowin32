@@ -4,7 +4,8 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 /// DirectDraw surface.
 pub trait Surface {
-    /// Used for copying an image to the surface via GDI calls.
+    /// Write RGBA pixel data directly.
+    /// Used for copying an image to the surface via GDI calls, and for Lock/Unlock pixel writes.
     fn write_pixels(&mut self, pixels: &[[u8; 4]]);
 
     /// Get the back Surface from a primary Surface.
