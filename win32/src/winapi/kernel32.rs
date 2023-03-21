@@ -712,9 +712,30 @@ pub fn GetTickCount(machine: &mut Machine) -> u32 {
     machine.host.time()
 }
 
+// The number of "counts" per second, where counts are the units returned by
+// QueryPerformanceCounter.  On my Windows machine this value was 10m, which
+// is to say a count is 0.1us.
+const QUERY_PERFORMANCE_FREQ: u32 = 10_000_000;
+
 #[win32_derive::dllexport]
-pub fn QueryPerformanceCounter(_machine: &mut Machine, _ptr: u32) -> bool {
+pub fn QueryPerformanceCounter(
+    machine: &mut Machine,
+    lpPerformanceCount: Option<&mut u32>,
+) -> bool {
+    let ms = machine.host.time();
+    *lpPerformanceCount.unwrap() = ms * (QUERY_PERFORMANCE_FREQ / 1000);
     true // success
+}
+
+#[win32_derive::dllexport]
+pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
+    // 64-bit write
+    machine
+        .x86
+        .mem
+        .write_u32(lpFrequency, QUERY_PERFORMANCE_FREQ);
+    machine.x86.mem.write_u32(lpFrequency + 4, 0);
+    true
 }
 
 #[repr(C)]
@@ -1306,14 +1327,4 @@ pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 #[win32_derive::dllexport]
 pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
-}
-
-#[win32_derive::dllexport]
-pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
-    let freq = 10_000_000; // as found on Windows machine
-
-    // 64-bit write
-    machine.x86.mem.write_u32(lpFrequency, freq);
-    machine.x86.mem.write_u32(lpFrequency + 4, 0);
-    true
 }

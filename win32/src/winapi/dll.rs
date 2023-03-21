@@ -705,10 +705,25 @@ pub mod kernel32 {
     }
     pub fn QueryPerformanceCounter(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let _ptr =
+        let lpPerformanceCount = unsafe {
+            <Option<&mut u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut u32>>::stack_consumed();
+        let result = winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
+    pub fn QueryPerformanceFrequency(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpFrequency =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::QueryPerformanceCounter(machine, _ptr);
+        let result = winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
         machine.x86.regs.eax = result.to_raw();
@@ -1375,17 +1390,6 @@ pub mod kernel32 {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
-    pub fn QueryPerformanceFrequency(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpFrequency =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency);
-        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = return_address;
-    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
@@ -1418,6 +1422,7 @@ pub mod kernel32 {
                 "GetStdHandle" => GetStdHandle,
                 "GetTickCount" => GetTickCount,
                 "QueryPerformanceCounter" => QueryPerformanceCounter,
+                "QueryPerformanceFrequency" => QueryPerformanceFrequency,
                 "GetSystemTimeAsFileTime" => GetSystemTimeAsFileTime,
                 "GetVersion" => GetVersion,
                 "GetVersionExA" => GetVersionExA,
@@ -1456,7 +1461,6 @@ pub mod kernel32 {
                 "SetThreadPriority" => SetThreadPriority,
                 "IsBadReadPtr" => IsBadReadPtr,
                 "IsBadWritePtr" => IsBadWritePtr,
-                "QueryPerformanceFrequency" => QueryPerformanceFrequency,
                 _ => return None,
             },
             _ => return None,
