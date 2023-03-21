@@ -125,6 +125,13 @@ pub fn fstp_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn fstp_sti(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let f = *x86.regs.st_top();
+    *x86.regs.getst(instr.op0_register()) = f;
+    x86.regs.st_top += 1;
+    Ok(())
+}
+
 pub fn fistp_m64int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
     let addr = x86_addr(x86, instr) as usize;
@@ -193,6 +200,13 @@ pub fn fsub_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = read_f32(x86, x86_addr(x86, instr)) as f64;
     let x = x86.regs.st_top();
     *x = *x - y;
+    Ok(())
+}
+
+pub fn fsub_st0_sti(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = *x86.regs.getst(instr.op1_register());
+    let x = x86.regs.getst(instr.op0_register());
+    *x *= y;
     Ok(())
 }
 

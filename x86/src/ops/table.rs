@@ -265,6 +265,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fst_m32fp as usize] = Some(ops::fst_m32fp);
     OP_TAB[iced_x86::Code::Fstp_m64fp as usize] = Some(ops::fstp_m64fp);
     OP_TAB[iced_x86::Code::Fstp_m32fp as usize] = Some(ops::fstp_m32fp);
+    OP_TAB[iced_x86::Code::Fstp_sti as usize] = Some(ops::fstp_sti);
     OP_TAB[iced_x86::Code::Fistp_m64int as usize] = Some(ops::fistp_m64int);
     OP_TAB[iced_x86::Code::Fistp_m32int as usize] = Some(ops::fistp_m32int);
     OP_TAB[iced_x86::Code::Fchs as usize] = Some(ops::fchs);
@@ -276,6 +277,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fadd_m32fp as usize] = Some(ops::fadd_m32fp);
     OP_TAB[iced_x86::Code::Faddp_sti_st0 as usize] = Some(ops::faddp_sti_st0);
     OP_TAB[iced_x86::Code::Fsub_m32fp as usize] = Some(ops::fsub_m32fp);
+    OP_TAB[iced_x86::Code::Fsub_st0_sti as usize] = Some(ops::fsub_st0_sti);
     OP_TAB[iced_x86::Code::Fsubr_m64fp as usize] = Some(ops::fsubr_m64fp);
     OP_TAB[iced_x86::Code::Fsubr_m32fp as usize] = Some(ops::fsubr_m32fp);
     OP_TAB[iced_x86::Code::Fmul_m64fp as usize] = Some(ops::fmul_m64fp);
