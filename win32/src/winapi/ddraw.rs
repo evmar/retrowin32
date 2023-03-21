@@ -672,14 +672,14 @@ mod IDirectDrawSurface7 {
         GetSurfaceDesc ok,
         Initialize todo,
         IsLost todo,
-        Lock todo,
+        Lock ok,
         ReleaseDC ok,
         Restore ok,
         SetClipper todo,
         SetColorKey todo,
         SetOverlayPosition todo,
         SetPalette todo,
-        Unlock todo,
+        Unlock ok,
         UpdateOverlay todo,
         UpdateOverlayDisplay todo,
         UpdateOverlayZOrder todo,
@@ -804,6 +804,18 @@ mod IDirectDrawSurface7 {
         DDERR_GENERIC
     }
 
+    #[win32_derive::dllexport]
+    fn Lock(
+        _machine: &mut Machine,
+        this: u32,
+        rect: u32,
+        desc: Option<&mut DDSURFACEDESC2>,
+        flags: u32,
+        unused: u32,
+    ) -> u32 {
+        DDERR_GENERIC
+    }
+
     fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
         // leak
         DD_OK
@@ -811,6 +823,11 @@ mod IDirectDrawSurface7 {
 
     fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
         DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn Unlock(_machine: &mut Machine, this: u32, rect: u32) -> u32 {
+        DDERR_GENERIC
     }
 }
 
