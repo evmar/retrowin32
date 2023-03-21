@@ -28,7 +28,7 @@ macro_rules! vtable_entry {
 pub(crate) use vtable_entry;
 
 macro_rules! vtable {
-    ($shims:ident $($fn:ident $status:tt,)*) => {
+    ($iface:ident $shims:ident $($fn:ident $status:tt,)*) => {
         #[repr(C)]
         struct Vtable {
             $($fn: DWORD),*
@@ -37,7 +37,7 @@ macro_rules! vtable {
         impl Vtable {
             fn new(shims: &mut crate::shims::Shims) -> Self {
                 Vtable {
-                    $($fn: shims.add(stringify!($fn).into(), $crate::winapi::vtable_entry!($shims $fn $status)).into()),*
+                    $($fn: shims.add(format!("{}::{}", stringify!($iface), stringify!($fn)), $crate::winapi::vtable_entry!($shims $fn $status)).into()),*
                 }
             }
         }

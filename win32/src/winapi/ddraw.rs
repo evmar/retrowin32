@@ -285,7 +285,7 @@ unsafe impl x86::Pod for DDPIXELFORMAT {}
 mod IDirectDraw {
     use super::*;
 
-    vtable![shims
+    vtable![IDirectDraw shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
@@ -365,7 +365,7 @@ mod IDirectDraw {
 mod IDirectDrawSurface {
     use super::*;
 
-    vtable![shims
+    vtable![IDirectDrawSurface shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
@@ -456,7 +456,7 @@ const IID_IDirectDraw7: [u8; 16] = [
 mod IDirectDraw7 {
     use super::*;
 
-    vtable![shims
+    vtable![IDirectDraw7 shims
         QueryInterface todo,
         AddRef todo,
         Release ok,
@@ -646,7 +646,7 @@ mod IDirectDraw7 {
 mod IDirectDrawSurface7 {
     use super::*;
 
-    vtable![shims
+    vtable![IDirectDrawSurface7 shims
         QueryInterface todo,
         AddRef todo,
         Release ok,

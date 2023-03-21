@@ -71,7 +71,7 @@ mod IDirectSound {
         DS_OK
     }
 
-    vtable![shims
+    vtable![IDirectSound shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
@@ -142,7 +142,7 @@ mod IDirectSoundBuffer {
         DS_OK
     }
 
-    vtable![shims
+    vtable![IDirectSound shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
