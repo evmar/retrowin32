@@ -681,7 +681,7 @@ mod IDirectDrawSurface7 {
         SetClipper todo,
         SetColorKey todo,
         SetOverlayPosition todo,
-        SetPalette todo,
+        SetPalette ok,
         Unlock ok,
         UpdateOverlay todo,
         UpdateOverlayDisplay todo,
@@ -838,6 +838,11 @@ mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
+    fn SetPalette(_machine: &mut Machine, this: u32, palette: u32) -> u32 {
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
     fn Unlock(_machine: &mut Machine, this: u32, rect: Option<&RECT>) -> u32 {
         if rect.is_some() {
             // Needs to match the rect passed in Lock.
@@ -858,7 +863,7 @@ mod IDirectDrawPalette {
         GetCaps todo,
         GetEntries todo,
         Initialize todo,
-        SetEntries todo,
+        SetEntries ok,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
@@ -872,6 +877,18 @@ mod IDirectDrawPalette {
         let vtable = ddraw.vtable_IDirectDrawPalette;
         machine.x86.mem.write_u32(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
+    }
+
+    #[win32_derive::dllexport]
+    fn SetEntries(
+        _machine: &mut Machine,
+        this: u32,
+        unused: u32,
+        start: u32,
+        count: u32,
+        entries: u32,
+    ) -> u32 {
+        DD_OK
     }
 }
 
