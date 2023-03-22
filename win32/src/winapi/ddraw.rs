@@ -790,10 +790,29 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: u32) -> u32 {
-        if lpSurf != 0 || flags != 0 {
-            log::warn!("{this:x}->Flip({lpSurf:x}, {flags:x})");
+    bitflags! {
+        pub struct DDFLIP: u32 {
+            const DDFLIP_WAIT = 0x00000001;
+            const DDFLIP_EVEN = 0x00000002;
+            const DDFLIP_ODD = 0x00000004;
+            const DDFLIP_NOVSYNC = 0x00000008;
+            const DDFLIP_STEREO = 0x00000010;
+            const DDFLIP_DONOTWAIT= 0x00000020;
+            const DDFLIP_INTERVAL2= 0x02000000;
+            const DDFLIP_INTERVAL3= 0x03000000;
+            const DDFLIP_INTERVAL4= 0x04000000;
         }
+    }
+    impl TryFrom<u32> for DDFLIP {
+        type Error = u32;
+
+        fn try_from(value: u32) -> Result<Self, Self::Error> {
+            DDFLIP::from_bits(value).ok_or(value)
+        }
+    }
+
+    #[win32_derive::dllexport]
+    fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> u32 {
         let surface = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         surface.host.flip();
         DD_OK
