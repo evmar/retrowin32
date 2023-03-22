@@ -535,20 +535,17 @@ mod IDirectDraw7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn CreateSurface(
         machine: &mut Machine,
         this: u32,
         desc: Option<&DDSURFACEDESC2>,
-        lpDirectDrawSurface7: u32,
+        lpDirectDrawSurface7: Option<&mut u32>,
         _unused: u32,
     ) -> u32 {
         let desc = desc.unwrap();
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
-
-        log::warn!(
-            "{this:x}->CreateSurface({:?}, {desc:?}, {lpDirectDrawSurface7:x})",
-            desc.flags()
-        );
+        let lpDirectDrawSurface7 = lpDirectDrawSurface7.unwrap();
 
         let mut opts = host::SurfaceOptions::default();
         if desc.flags().contains(DDSD::WIDTH) {
@@ -574,7 +571,7 @@ mod IDirectDraw7 {
         let surface = machine.host.create_surface(&opts);
 
         let x86_surface = IDirectDrawSurface7::new(machine);
-        machine.x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
+        *lpDirectDrawSurface7 = x86_surface;
         machine.state.ddraw.surfaces.insert(
             x86_surface,
             Surface {
@@ -606,9 +603,10 @@ mod IDirectDraw7 {
                 let desc_addr = machine.x86.regs.esp;
                 let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
                 x86::Pod::clear(desc);
+                // TODO: offer multiple display modes rather than hardcoding this one.
                 desc.dwSize = size;
-                desc.dwHeight = 200;
                 desc.dwWidth = 320;
+                desc.dwHeight = 200;
                 desc.ddpfPixelFormat = DDPIXELFORMAT {
                     dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
                     dwFlags: 0,
@@ -621,7 +619,6 @@ mod IDirectDraw7 {
                 };
 
                 i += 1;
-                log::info!("EnumDisplayModes call:{callback:x} with {desc:x?}");
                 CallbackStep::Call(callback, vec![desc_addr, data])
             }
             1 => CallbackStep::Done(DD_OK),
