@@ -870,17 +870,18 @@ mod IDirectDrawSurface7 {
         }
         let desc = desc.unwrap();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        let bytes_per_pixel = 1; // TODO: where does this come from?
         if surf.pixels == 0 {
             surf.pixels = machine
                 .state
                 .kernel32
                 .get_heap(&mut machine.x86.mem, machine.state.ddraw.hheap)
                 .unwrap()
-                .alloc(320 * 200);
+                .alloc(surf.width * surf.height * bytes_per_pixel);
         }
         desc.dwFlags = DDSD::LPSURFACE.bits();
         desc.lpSurface = surf.pixels;
-        desc.lPitch_dwLinearSize = 320;
+        desc.lPitch_dwLinearSize = surf.width * bytes_per_pixel;
         DD_OK
     }
 
@@ -909,10 +910,11 @@ mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         let phack = machine.state.ddraw.palette_hack;
         if surf.pixels != 0 && phack != 0 {
-            let pixels = machine
-                .x86
-                .mem
-                .view_n::<u8>(surf.pixels as usize, 320 * 200);
+            let bytes_per_pixel = 1; // TODO: where does this come from?
+            let pixels = machine.x86.mem.view_n::<u8>(
+                surf.pixels as usize,
+                (surf.width * surf.height * bytes_per_pixel) as usize,
+            );
             let palette = machine.state.ddraw.palettes.get(&phack).unwrap();
             // XXX very inefficient
             let pixels32: Vec<_> = pixels
