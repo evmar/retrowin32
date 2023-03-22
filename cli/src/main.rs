@@ -1,7 +1,12 @@
 extern crate win32;
 mod logging;
 use anyhow::bail;
-use std::{cell::RefCell, io::Write, rc::Rc};
+use std::{
+    cell::RefCell,
+    io::{Read, Seek, Write},
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 #[cfg(feature = "sdl")]
 mod sdl;
@@ -24,16 +29,41 @@ fn dump_asm(runner: &win32::Runner) {
     }
 }
 
+struct File {
+    f: std::fs::File,
+}
+impl File {
+    fn open(path: &Path) -> Self {
+        File {
+            f: std::fs::File::open(path).unwrap(),
+        }
+    }
+}
+impl win32::File for File {
+    fn seek(&mut self, ofs: u32) -> bool {
+        self.f.seek(std::io::SeekFrom::Start(ofs as u64)).unwrap();
+        true
+    }
+
+    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
+        let n = self.f.read(buf).unwrap();
+        *len = n as u32;
+        true
+    }
+}
+
 struct Env {
     gui: Option<GUI>,
     exit_code: Option<u32>,
+    cwd: PathBuf,
 }
 
 impl Env {
-    pub fn new() -> Self {
+    pub fn new(cwd: PathBuf) -> Self {
         Env {
             gui: None,
             exit_code: None,
+            cwd,
         }
     }
 
@@ -60,8 +90,9 @@ impl win32::Host for EnvRef {
             .as_millis() as u32
     }
 
-    fn open(&self, _path: &str) -> Box<dyn win32::File> {
-        unimplemented!();
+    fn open(&self, path: &str) -> Box<dyn win32::File> {
+        let env = self.0.borrow();
+        Box::new(File::open(&env.cwd.join(path)))
     }
 
     fn write(&self, buf: &[u8]) -> usize {
@@ -91,7 +122,8 @@ fn main() -> anyhow::Result<()> {
     let cmdline = args[1..].join(" ");
 
     let buf = std::fs::read(exe)?;
-    let host = EnvRef(Rc::new(RefCell::new(Env::new())));
+    let cwd = Path::parent(Path::new(exe)).unwrap();
+    let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut runner = win32::Runner::new(Box::new(host.clone()));
     runner.load_exe(&buf, cmdline)?;
 
