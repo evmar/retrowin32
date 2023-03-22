@@ -49,6 +49,8 @@ pub struct State {
     height: u32,
     pub surfaces: HashMap<u32, Surface>,
     palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
+    /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
+    /// how surface flipping works for the palettes to work out, so this is hacked for now.
     palette_hack: u32,
 }
 
