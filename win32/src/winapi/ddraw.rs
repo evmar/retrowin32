@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use super::{alloc::Alloc, types::DWORD};
+use super::{alloc::Alloc, types::*};
 use crate::{
     host,
     machine::Machine,
@@ -42,8 +42,10 @@ pub struct State {
     vtable_IDirectDrawPalette: u32,
 
     // TODO: this is per-IDirectDraw state.
-    hwnd: u32,
+    hwnd: HWND,
+    /// Display width, after SetDisplayMode.
     width: u32,
+    /// Display height, after SetDisplayMode.
     height: u32,
     pub surfaces: HashMap<u32, Surface>,
     palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
@@ -77,7 +79,7 @@ impl Default for State {
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
             vtable_IDirectDrawPalette: 0,
-            hwnd: 0,
+            hwnd: HWND::null(),
             width: 0,
             height: 0,
             surfaces: HashMap::new(),
@@ -365,11 +367,9 @@ mod IDirectDraw {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn SetDisplayMode(machine: &mut Machine, this: u32, width: u32, height: u32, bpp: u32) -> u32 {
-        log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp})");
-        machine.state.ddraw.width = width;
-        machine.state.ddraw.height = height;
-        DD_OK
+        IDirectDraw7::SetDisplayMode(machine, 0, width, height, bpp, 0, 0)
     }
 }
 
@@ -646,16 +646,28 @@ mod IDirectDraw7 {
             const DDSCL_FPUPRESERVE =  0x1000;
         }
     }
+    impl TryFrom<u32> for DDSCL {
+        type Error = u32;
 
-    pub fn SetCooperativeLevel(machine: &mut Machine, _this: u32, hwnd: u32, _flags: u32) -> u32 {
+        fn try_from(value: u32) -> Result<Self, Self::Error> {
+            DDSCL::from_bits(value).ok_or(value)
+        }
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetCooperativeLevel(
+        machine: &mut Machine,
+        this: u32,
+        hwnd: HWND,
+        flags: Result<DDSCL, u32>,
+    ) -> u32 {
         // TODO: this triggers behaviors like fullscreen.
-        // let flags = DDSCL::from_bits(flags).unwrap();
-        // log::warn!("{this:x}->SetCooperativeLevel({hwnd:x}, {flags:?})");
         machine.state.ddraw.hwnd = hwnd;
         DD_OK
     }
 
-    fn SetDisplayMode(
+    #[win32_derive::dllexport]
+    pub fn SetDisplayMode(
         machine: &mut Machine,
         this: u32,
         width: u32,
@@ -664,9 +676,16 @@ mod IDirectDraw7 {
         refresh: u32,
         flags: u32,
     ) -> u32 {
-        log::warn!("{this:x}->SetDisplayMode({width}x{height}x{bpp}@{refresh}hz, {flags:x})");
         machine.state.ddraw.width = width;
         machine.state.ddraw.height = height;
+        if !machine.state.ddraw.hwnd.is_null() {
+            machine
+                .state
+                .user32
+                .get_window(machine.state.ddraw.hwnd)
+                .host
+                .set_size(width, height);
+        }
         DD_OK
     }
 }

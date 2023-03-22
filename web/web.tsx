@@ -94,6 +94,7 @@ class Surface implements JsSurface {
 
 class Window implements JsWindow {
   constructor(
+    readonly vm: VM,
     /** Unique ID for React purposes. */
     readonly key: number,
   ) {}
@@ -104,6 +105,7 @@ class Window implements JsWindow {
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
+    this.vm.forceUpdate();
   }
 }
 
@@ -329,11 +331,15 @@ class VM implements JsHost {
     return buf.length;
   }
 
+  forceUpdate() {
+    this.page.forceUpdate();
+  }
+
   windows: Window[] = [];
   create_window(): JsWindow {
     let id = this.windows.length + 1;
-    this.windows.push(new Window(id));
-    this.page.forceUpdate();
+    this.windows.push(new Window(this, id));
+    this.forceUpdate();
     return this.windows[id - 1];
   }
 
