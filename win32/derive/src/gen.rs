@@ -28,25 +28,11 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
         tys.push(&arg.ty);
     }
 
-    // Look at the return type to see if it's ShimCallback.
-    let mut shim_callback = false;
-    match &func.sig.output {
-        syn::ReturnType::Default => unimplemented!(),
-        syn::ReturnType::Type(_, ty) => match ty.as_ref() {
-            syn::Type::Path(ty) => {
-                let ident = ty.path.segments[0].ident.to_string();
-                if ident == "ShimCallback" {
-                    shim_callback = true;
-                }
-            }
-            _ => unimplemented!(),
-        },
-    };
-
-    let use_result = if shim_callback {
+    // If the function is async, we need to handle the return value a bit differently.
+    let use_result = if func.sig.asyncness.is_some() {
         quote! {
-            push_callback(machine, return_address, result);
-            // push_callback will set up the stack and eip.
+            crate::shims::push_async(machine, return_address, Box::pin(result));
+            // push_async will set up the stack and eip.
         }
     } else {
         quote! {

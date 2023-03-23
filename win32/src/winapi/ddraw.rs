@@ -2,12 +2,7 @@
 #![allow(non_upper_case_globals)]
 
 use super::{alloc::Alloc, types::*};
-use crate::{
-    host,
-    machine::Machine,
-    shims::{push_callback, CallbackStep, ShimCallback},
-    winapi::vtable,
-};
+use crate::{host, machine::Machine, winapi::vtable};
 use bitflags::bitflags;
 use std::collections::HashMap;
 use x86::Memory;
@@ -589,44 +584,42 @@ mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    fn EnumDisplayModes(
-        _machine: &mut Machine,
+    async fn EnumDisplayModes(
+        m: *mut Machine,
         this: u32,
         flags: u32,
         lpSurfaceDesc: Option<&DDSURFACEDESC2>,
         data: u32,
         callback: u32,
-    ) -> ShimCallback {
-        let mut i = 0;
-        let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
-        let stack_space = size;
-        let async_fn = Box::new(move |machine: &mut Machine| match i {
-            0 => {
-                let desc_addr = machine.x86.regs.esp;
-                let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-                x86::Pod::clear(desc);
-                // TODO: offer multiple display modes rather than hardcoding this one.
-                desc.dwSize = size;
-                desc.dwWidth = 320;
-                desc.dwHeight = 200;
-                desc.ddpfPixelFormat = DDPIXELFORMAT {
-                    dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
-                    dwFlags: 0,
-                    dwFourCC: 0,
-                    dwRGBBitCount: 8,
-                    dwRBitMask: 0xFF000000,
-                    dwGBitMask: 0x00FF0000,
-                    dwBBitMask: 0x0000FF00,
-                    dwRGBAlphaBitMask: 0x000000FF,
-                };
+    ) -> u32 {
+        let machine = unsafe { &mut *m };
 
-                i += 1;
-                CallbackStep::Call(callback, vec![desc_addr, data])
-            }
-            1 => CallbackStep::Done(DD_OK),
-            _ => unreachable!(),
-        });
-        (stack_space, async_fn)
+        let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+        machine.x86.regs.esp -= size;
+
+        let desc_addr = machine.x86.regs.esp;
+        let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
+        x86::Pod::clear(desc);
+        // TODO: offer multiple display modes rather than hardcoding this one.
+        desc.dwSize = size;
+        desc.dwWidth = 320;
+        desc.dwHeight = 200;
+        desc.ddpfPixelFormat = DDPIXELFORMAT {
+            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+            dwFlags: 0,
+            dwFourCC: 0,
+            dwRGBBitCount: 8,
+            dwRBitMask: 0xFF000000,
+            dwGBitMask: 0x00FF0000,
+            dwBBitMask: 0x0000FF00,
+            dwRGBAlphaBitMask: 0x000000FF,
+        };
+
+        crate::shims::async_call(machine, callback, vec![desc_addr, data]).await;
+
+        machine.x86.regs.esp += size;
+
+        DD_OK
     }
 
     bitflags! {

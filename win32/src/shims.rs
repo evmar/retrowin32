@@ -14,43 +14,33 @@
 //! our Rust shim functions execute to completion synchronously, so the latter
 //! cannot directly call the former.
 //!
-//! To reconcile these, we hand-transform functions that call back into x86
-//! into coroutines that use a closure for state.  The high-level mechanism is:
+//! To reconcile these, we make functions that call back into x86 into "async"
+//! Rust functions, that return a Future.
 //!
 //! 1) A given shim winapi function like IDirectDraw7::EnumDisplayModes needs
 //!    to call back to x86 with each available display mode.
-//! 2) To do so, we change its return type to the type `ShimCallback`, and its
-//!    body to the form:
+//! 2) To do so, we change its body to the form:
 //!
 //!    #[win32_derive::dllexport]
-//!    fn EnumDisplayModes(...) -> ShimCallback {
-//!      let mut state = ...;
-//!      let async_fn = Box::new(move || {
-//!         ...do some work based on "state", potentially update state, and
-//!         return either:
-//!         1) CallbackStep::Call(addr, vec![args])
-//!            to mean "call the x86 code addr with given arguments and return here"
-//!         2) CallbackStep::Done(ret)
-//!            to mean "return to the x86 caller"
-//!      });
-//!      return async_fn;
+//!    async fn EnumDisplayModes(...) -> u32 {
+//!      ...setup code...
+//!      // Call into x86 function and await its result.
+//!      shims::async_call(some_ptr, vec![args]).await;
+//!      // Return to x86 caller, as before.
+//!      0
 //!    }
-//! 3) The dllexport transform notices that ShimCallback return type and forwards
-//!    to push_callback in this module, which redirects the x86 to call
-//!    callback_helper next.
-//! 4) callback_helper picks up the closure returned in step #2 and runs it.
+//! 3) The dllexport transform notices that async type and forwards
+//!    to push_async in this module, which redirects the x86 to call
+//!    async_executor next.
+//! 4) async_executor picks up the Future returned in step #2 and runs it.
 //!
 //! Concretely when EnumDisplayModes is called, the "simple case" shim logic as
 //! described above runs as before, but rather than returning to the caller
-//! we instead push a call to callback_helper, which adds itself to the call stack
-//! and runs the state machine.  In the case of CallbackStep::Call that means the
-//! x86 code eventually invoked there will return control back to callback_helper.
-//!
-//! The above omits some detail, e.g. we also allow the Rust code to put some locals
-//! onto the x86 stack.
+//! we instead also push a call to async_executor, which adds itself to the call stack
+//! and runs the async state machine.  In the case of async_call that means the
+//! x86 code eventually invoked there will return control back to async_executor.
 
 use crate::machine::Machine;
-use std::collections::HashMap;
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -62,84 +52,37 @@ struct Shim {
     handler: Option<fn(&mut Machine)>,
 }
 
-/// Shims that want to call back into x86 code return one of these,
-/// which is a closure that carries its state across multiple returns.
-pub type ShimCallback = (u32, Box<dyn FnMut(&mut Machine) -> CallbackStep>);
-
-/// Steps within a ShimCallback can either call into an x86 address or
-/// return and clean up.
-#[derive(Debug)]
-pub enum CallbackStep {
-    /// Call first arg with arguments on stack.
-    Call(u32, Vec<u32>),
-    /// Done, and return argument via eax.
-    Done(u32),
-}
-
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims {
     shims: Vec<Shim>,
-    /// Asynchronous callbacks, as described in the module documentation.
-    /// Hash key is the value of esp when entering callback_helper.
-    callback_fns: HashMap<u32, ShimCallback>,
-    /// Address of callback_helper() shim entry point.
-    callback_helper: u32,
+    /// Address of async_executor() shim entry point.
+    async_executor: u32,
+    /// Pending future for code being ran by async_executor().
+    /// TODO: we will need a stack of these to handle multiple nested callbacks.
+    future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>>,
 }
 
-// Drives the async state machine forward.  Note this is registered as a shim but it
-// does its own management of the stack, including esp.
-fn callback_helper(machine: &mut Machine) {
-    let id = machine.x86.regs.esp;
-    // We must remove the callback from the list of callback fns for lifetime reasons.
-    let (stack_space, mut callback) = machine.shims.callback_fns.remove(&id).unwrap();
-    match callback(machine) {
-        CallbackStep::Call(addr, args) => {
-            // Re-register the callback.
-            machine
-                .shims
-                .callback_fns
-                .insert(id, (stack_space, callback));
-
-            // Call the provided function next.
-            for &arg in args.iter().rev() {
-                x86::ops::push(&mut machine.x86, arg);
-            }
-            x86::ops::push(&mut machine.x86, machine.shims.callback_helper); // return address
-            machine.x86.regs.eip = addr;
-        }
-        CallbackStep::Done(ret) => {
-            machine.x86.regs.esp += stack_space;
-            machine.x86.regs.eax = ret;
-            machine.x86.regs.eip = x86::ops::pop(&mut machine.x86);
-        }
-    }
-}
-
-/// Redirect x86 control to callback_helper.  Note this has particular requirements on the
-/// state of the stack, and is called when a dllexport function returns a ShimCallback.
-pub fn push_callback(
+/// Redirect x86 control to async_executor.  Note this has particular requirements on the
+/// state of the stack, and is called when a dllexport function is async.
+pub fn push_async(
     machine: &mut Machine,
     return_address: u32,
-    (stack_space, callback): ShimCallback,
+    future: std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>,
 ) {
     x86::ops::push(&mut machine.x86, return_address); // where to go when we're done
-    machine.x86.regs.esp -= stack_space;
-    machine
-        .shims
-        .add_callback(machine.x86.regs.esp, (stack_space, callback));
-    machine.x86.regs.eip = machine.shims.callback_helper;
+    machine.x86.regs.eip = machine.shims.async_executor;
+    machine.shims.future = Some(future);
 }
 
 impl Shims {
     pub fn new() -> Self {
         let mut shims = Shims {
             shims: Vec::new(),
-            callback_fns: HashMap::new(),
-            callback_helper: 0,
+            async_executor: 0,
+            future: None,
         };
-        shims.callback_helper =
-            shims.add("retrowin32 callback helper".into(), Some(callback_helper));
+        shims.async_executor = shims.add("retrowin32 async helper".into(), Some(async_executor));
         shims
     }
 
@@ -170,8 +113,63 @@ impl Shims {
         }
         None
     }
+}
 
-    pub fn add_callback(&mut self, id: u32, callback: ShimCallback) {
-        self.callback_fns.insert(id, callback);
+pub struct X86Future {
+    // We know the Machine is around for the duration of the future execution.
+    // https://github.com/rust-lang/futures-rs/issues/316
+    m: *const Machine,
+    esp: u32,
+}
+impl std::future::Future for X86Future {
+    type Output = ();
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let machine = unsafe { &*self.m };
+        // log::info!("poll esp:{:x} want:{:x}", machine.x86.regs.esp, self.esp);
+        if machine.x86.regs.esp == self.esp {
+            std::task::Poll::Ready(())
+        } else {
+            std::task::Poll::Pending
+        }
+    }
+}
+
+pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
+    // Save original esp, as that's the marker that we use to know when the call is done.
+    let esp = machine.x86.regs.esp;
+    // Push the args in reverse order.
+    for &arg in args.iter().rev() {
+        x86::ops::push(&mut machine.x86, arg);
+    }
+    x86::ops::push(&mut machine.x86, machine.shims.async_executor); // return address
+    machine.x86.regs.eip = func;
+    X86Future { m: machine, esp }
+}
+
+#[allow(deref_nullptr)]
+fn async_executor(machine: &mut Machine) {
+    if let Some(mut future) = machine.shims.future.take() {
+        // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
+        // here but it seems like nothing accesses it(?).
+        //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
+        let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
+        match future.as_mut().poll(context) {
+            std::task::Poll::Ready(ret) => {
+                // We only get here when the outer future is done, which means it's time
+                // to return to the x86 caller of the async function.
+                machine.x86.regs.eax = ret;
+                machine.x86.regs.eip = x86::ops::pop(&mut machine.x86);
+            }
+            std::task::Poll::Pending => {
+                if machine.shims.future.is_some() {
+                    panic!("multiple pending futures");
+                }
+                machine.shims.future = Some(future);
+            }
+        }
     }
 }
