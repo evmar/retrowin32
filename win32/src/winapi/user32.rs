@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::VecDeque;
+
 use super::{
     stack_args::ToX86,
     types::{DWORD, HWND, WORD},
@@ -16,6 +18,21 @@ fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
+#[repr(C)]
+#[derive(Clone, Debug)]
+pub struct MSG {
+    hwnd: HWND,
+    message: WM,
+    wParam: u32,
+    lParam: u32,
+    time: u32,
+    // TODO: struct POINT
+    pt_x: u32,
+    pt_y: u32,
+    lPrivate: u32,
+}
+unsafe impl x86::Pod for MSG {}
+
 pub struct Window {
     pub host: Box<dyn host::Window>,
 }
@@ -23,6 +40,7 @@ pub struct Window {
 pub struct State {
     pub resources_base: u32,
     windows: Vec<Window>,
+    messages: VecDeque<MSG>,
 }
 impl State {
     pub fn get_window(&mut self, hwnd: HWND) -> &mut Window {
@@ -34,6 +52,7 @@ impl Default for State {
         State {
             resources_base: 0,
             windows: Vec::new(),
+            messages: VecDeque::new(),
         }
     }
 }
@@ -69,6 +88,12 @@ bitflags! {
         const WS_GROUP           = 0x00020000;
         const WS_TABSTOP         = 0x00010000;
     }
+}
+
+#[derive(Clone, Debug)]
+#[repr(u32)]
+enum WM {
+    ACTIVATEAPP = 0x001C,
 }
 
 #[win32_derive::dllexport]
@@ -110,6 +135,16 @@ pub fn CreateWindowExA(
     let window = Window { host: host_win };
     machine.state.user32.windows.push(window);
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
+    machine.state.user32.messages.push_back(MSG {
+        hwnd,
+        message: WM::ACTIVATEAPP,
+        wParam: true as u32, // activating
+        lParam: 0,           // TODO: thread id
+        time: 0,             // TODO
+        pt_x: 0,             // TODO
+        pt_y: 0,             // TODO
+        lPrivate: 0,
+    });
     hwnd
 }
 
@@ -197,29 +232,35 @@ pub fn DialogBoxParamA(
 
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
-    _machine: &mut Machine,
-    _lpMsg: u32,
+    machine: &mut Machine,
+    lpMsg: Option<&mut MSG>,
     hWnd: HWND,
-    _wMsgFilterMin: u32,
-    _wMsgFilterMax: u32,
-    _wRemoveMs: u32,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
+    wRemoveMsg: u32,
 ) -> bool {
-    // log::warn!(
-    //     "PeekMessageA({lpMsg:x}, {hWnd:x}, {wMsgFilterMin:x}, {wMsgFilterMax:x}, {wRemoveMs:x})"
-    // );
-    let messages_available = false;
-    messages_available
+    // TODO: obey HWND.
+    let msg = match machine.state.user32.messages.front() {
+        Some(msg) => msg,
+        None => return false,
+    };
+    *lpMsg.unwrap() = msg.clone();
+    true
 }
 
 #[win32_derive::dllexport]
 pub fn GetMessageA(
-    _machine: &mut Machine,
-    _lpMsg: u32,
+    machine: &mut Machine,
+    lpMsg: Option<&mut MSG>,
     hWnd: HWND,
-    _wMsgFilterMin: u32,
-    _wMsgFilterMax: u32,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
 ) -> bool {
-    true // do not quit
+    if !PeekMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, 0) {
+        todo!();
+    }
+    machine.state.user32.messages.pop_front();
+    return true;
 }
 
 #[win32_derive::dllexport]
@@ -228,13 +269,13 @@ pub fn WaitMessage(_machine: &mut Machine) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn TranslateMessage(_machine: &mut Machine, _lpMsg: u32) -> bool {
+pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
     // TODO: translate key-related messages into enqueuing a WM_CHAR.
     false // no message translated
 }
 
 #[win32_derive::dllexport]
-pub fn DispatchMessageA(_machine: &mut Machine, _lpMsg: u32) -> u32 {
+pub fn DispatchMessageA(_machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
     0
 }
 

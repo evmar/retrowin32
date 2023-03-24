@@ -1698,29 +1698,33 @@ pub mod user32 {
     }
     pub fn PeekMessageA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let _lpMsg =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpMsg = unsafe {
+            <Option<&mut MSG>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut MSG>>::stack_consumed();
         let hWnd = unsafe {
             <HWND>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
         };
         stack_offset += <HWND>::stack_consumed();
-        let _wMsgFilterMin =
+        let wMsgFilterMin =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _wMsgFilterMax =
+        let wMsgFilterMax =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _wRemoveMs =
+        let wRemoveMsg =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::PeekMessageA(
             machine,
-            _lpMsg,
+            lpMsg,
             hWnd,
-            _wMsgFilterMin,
-            _wMsgFilterMax,
-            _wRemoveMs,
+            wMsgFilterMin,
+            wMsgFilterMax,
+            wRemoveMsg,
         );
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1729,21 +1733,25 @@ pub mod user32 {
     }
     pub fn GetMessageA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let _lpMsg =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpMsg = unsafe {
+            <Option<&mut MSG>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut MSG>>::stack_consumed();
         let hWnd = unsafe {
             <HWND>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
         };
         stack_offset += <HWND>::stack_consumed();
-        let _wMsgFilterMin =
+        let wMsgFilterMin =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _wMsgFilterMax =
+        let wMsgFilterMax =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result =
-            winapi::user32::GetMessageA(machine, _lpMsg, hWnd, _wMsgFilterMin, _wMsgFilterMax);
+            winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
         machine.x86.regs.eax = result.to_raw();
@@ -1759,10 +1767,11 @@ pub mod user32 {
     }
     pub fn TranslateMessage(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let _lpMsg =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::user32::TranslateMessage(machine, _lpMsg);
+        let lpMsg = unsafe {
+            <Option<&MSG>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&MSG>>::stack_consumed();
+        let result = winapi::user32::TranslateMessage(machine, lpMsg);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
         machine.x86.regs.eax = result.to_raw();
@@ -1770,10 +1779,11 @@ pub mod user32 {
     }
     pub fn DispatchMessageA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let _lpMsg =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::user32::DispatchMessageA(machine, _lpMsg);
+        let lpMsg = unsafe {
+            <Option<&MSG>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&MSG>>::stack_consumed();
+        let result = winapi::user32::DispatchMessageA(machine, lpMsg);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
         machine.x86.regs.eax = result.to_raw();
