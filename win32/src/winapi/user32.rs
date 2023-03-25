@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::VecDeque;
-
 use super::{
     stack_args::ToX86,
     types::{DWORD, HWND, WORD},
@@ -10,6 +8,8 @@ use crate::{host, machine::Machine, pe, winapi::gdi32};
 use anyhow::bail;
 use bitflags::bitflags;
 use num_traits::FromPrimitive;
+use std::collections::VecDeque;
+use std::rc::Rc;
 use x86::Memory;
 
 const TRACE: bool = true;
@@ -35,10 +35,18 @@ unsafe impl x86::Pod for MSG {}
 
 pub struct Window {
     pub host: Box<dyn host::Window>,
+    /// Index into State::wndclasses.
+    wndclass: Rc<WndClass>,
+}
+
+struct WndClass {
+    name: String,
+    wndproc: u32,
 }
 
 pub struct State {
     pub resources_base: u32,
+    wndclasses: Vec<Rc<WndClass>>,
     windows: Vec<Window>,
     messages: VecDeque<MSG>,
 }
@@ -51,11 +59,35 @@ impl Default for State {
     fn default() -> Self {
         State {
             resources_base: 0,
+            wndclasses: Vec::new(),
             windows: Vec::new(),
             messages: VecDeque::new(),
         }
     }
 }
+
+type HICON = u32;
+type HINSTANCE = u32;
+type HCURSOR = u32;
+type HBRUSH = u32;
+
+#[repr(C)]
+#[derive(Clone, Debug)]
+pub struct WNDCLASSEXA {
+    cbSize: u32,
+    style: u32,
+    lpfnWndProc: u32,
+    cbClsExtra: u32,
+    cbWndExtra: u32,
+    hInstance: HINSTANCE,
+    hIcon: HICON,
+    hCursor: HCURSOR,
+    hbrBackground: HBRUSH,
+    lpszMenuName: u32,
+    lpszClassName: u32,
+    hIconSm: HICON,
+}
+unsafe impl x86::Pod for WNDCLASSEXA {}
 
 #[win32_derive::dllexport]
 pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
@@ -64,9 +96,19 @@ pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterClassExA(_machine: &mut Machine, lpWndClassEx: u32) -> u32 {
-    log::warn!("todo: RegisterClassExA({:x})", lpWndClassEx);
-    0
+pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
+    let lpWndClassEx = lpWndClassEx.unwrap();
+    let atom = machine.state.user32.wndclasses.len() as u32 + 1;
+    let name = machine.x86.mem[lpWndClassEx.lpszClassName as usize..]
+        .read_strz()
+        .to_string();
+    let wndclass = WndClass {
+        // atom,
+        name,
+        wndproc: lpWndClassEx.lpfnWndProc,
+    };
+    machine.state.user32.wndclasses.push(Rc::new(wndclass));
+    atom
 }
 
 bitflags! {
@@ -89,8 +131,15 @@ bitflags! {
         const WS_TABSTOP         = 0x00010000;
     }
 }
+impl TryFrom<u32> for WindowStyle {
+    type Error = u32;
 
-#[derive(Clone, Debug)]
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        WindowStyle::from_bits(value).ok_or(value)
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 enum WM {
     ACTIVATEAPP = 0x001C,
@@ -100,9 +149,9 @@ enum WM {
 pub fn CreateWindowExA(
     machine: &mut Machine,
     dwExStyle: u32,
-    className: Option<&str>,
-    windowName: Option<&str>,
-    dwStyle: u32,
+    lpClassName: u32,
+    lpWindowName: Option<&str>,
+    dwStyle: Result<WindowStyle, u32>,
     X: u32,
     Y: u32,
     nWidth: u32,
@@ -112,16 +161,27 @@ pub fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> HWND {
-    let style = WindowStyle::from_bits(dwStyle).unwrap();
+    if lpClassName < 1 << 16 {
+        todo!("numeric wndclass reference");
+    }
+    let class_name = machine.x86.mem[lpClassName as usize..].read_strz();
+    let wndclass = machine
+        .state
+        .user32
+        .wndclasses
+        .iter()
+        .find(|c| c.name == class_name)
+        .unwrap()
+        .clone();
+
+    let _style = dwStyle.unwrap();
     const CW_USEDEFAULT: u32 = 0x8000_0000;
 
-    // TODO: we ignore most fields here.
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
-    log::warn!("CreateWindowExA({dwExStyle:x}, {className:?}, {windowName:?}, {style:?}, {X:x}, {Y:x}, {nWidth:x}, {nHeight:x}, {hWndParent:x}, {hMenu:x}, {hInstance:x}, {lpParam:x})");
 
     let mut host_win = machine.host.create_window();
-    host_win.set_title(windowName.unwrap());
+    host_win.set_title(lpWindowName.unwrap());
     if nWidth > 0 && nHeight > 0 {
         let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
         let height = if nHeight == CW_USEDEFAULT {
@@ -132,9 +192,14 @@ pub fn CreateWindowExA(
         host_win.set_size(width, height);
     }
 
-    let window = Window { host: host_win };
+    let window = Window {
+        host: host_win,
+        wndclass,
+    };
     machine.state.user32.windows.push(window);
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
+
+    // Enqueue WM_ACTIVATEAPP message.
     machine.state.user32.messages.push_back(MSG {
         hwnd,
         message: WM::ACTIVATEAPP,
@@ -145,6 +210,7 @@ pub fn CreateWindowExA(
         pt_y: 0,             // TODO
         lPrivate: 0,
     });
+
     hwnd
 }
 
@@ -275,7 +341,22 @@ pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn DispatchMessageA(_machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
+pub async fn DispatchMessageA(m: *mut Machine, lpMsg: Option<&MSG>) -> u32 {
+    let machine = unsafe { &mut *m };
+    let msg = lpMsg.unwrap();
+    let window = &machine.state.user32.windows[msg.hwnd.to_raw() as usize - 1];
+    // TODO: SetWindowLong can change the wndproc.
+    crate::shims::async_call(
+        machine,
+        window.wndclass.wndproc,
+        vec![
+            msg.hwnd.to_raw(),
+            msg.message as u32,
+            msg.wParam,
+            msg.lParam,
+        ],
+    )
+    .await;
     0
 }
 

@@ -1509,9 +1509,13 @@ pub mod user32 {
     }
     pub fn RegisterClassExA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let lpWndClassEx =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpWndClassEx = unsafe {
+            <Option<&WNDCLASSEXA>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&WNDCLASSEXA>>::stack_consumed();
         let result = winapi::user32::RegisterClassExA(machine, lpWndClassEx);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1523,17 +1527,20 @@ pub mod user32 {
         let dwExStyle =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let className = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let windowName = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let dwStyle =
+        let lpClassName =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
+        let lpWindowName = unsafe {
+            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&str>>::stack_consumed();
+        let dwStyle = unsafe {
+            <Result<WindowStyle, u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Result<WindowStyle, u32>>::stack_consumed();
         let X =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
@@ -1560,8 +1567,19 @@ pub mod user32 {
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::CreateWindowExA(
-            machine, dwExStyle, className, windowName, dwStyle, X, Y, nWidth, nHeight, hWndParent,
-            hMenu, hInstance, lpParam,
+            machine,
+            dwExStyle,
+            lpClassName,
+            lpWindowName,
+            dwStyle,
+            X,
+            Y,
+            nWidth,
+            nHeight,
+            hWndParent,
+            hMenu,
+            hInstance,
+            lpParam,
         );
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1786,8 +1804,7 @@ pub mod user32 {
         let result = winapi::user32::DispatchMessageA(machine, lpMsg);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = return_address;
+        crate::shims::push_async(machine, return_address, Box::pin(result));
     }
     pub fn LoadIconA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
