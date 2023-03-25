@@ -1806,6 +1806,28 @@ pub mod user32 {
         machine.x86.regs.esp += stack_offset;
         crate::shims::push_async(machine, return_address, Box::pin(result));
     }
+    pub fn DefWindowProcA(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hWnd = unsafe {
+            <HWND>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HWND>::stack_consumed();
+        let msg = unsafe {
+            <Result<WM, u32>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Result<WM, u32>>::stack_consumed();
+        let wParam =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lParam =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     pub fn LoadIconA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let _hInstance =
@@ -1903,6 +1925,7 @@ pub mod user32 {
                 "WaitMessage" => WaitMessage,
                 "TranslateMessage" => TranslateMessage,
                 "DispatchMessageA" => DispatchMessageA,
+                "DefWindowProcA" => DefWindowProcA,
                 "LoadIconA" => LoadIconA,
                 "LoadCursorA" => LoadCursorA,
                 "ShowCursor" => ShowCursor,

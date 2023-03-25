@@ -141,8 +141,18 @@ impl TryFrom<u32> for WindowStyle {
 
 #[derive(Copy, Clone, Debug)]
 #[repr(u32)]
-enum WM {
+pub enum WM {
     ACTIVATEAPP = 0x001C,
+}
+impl TryFrom<u32> for WM {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            x if x == WM::ACTIVATEAPP as u32 => WM::ACTIVATEAPP,
+            x => return Err(x),
+        })
+    }
 }
 
 #[win32_derive::dllexport]
@@ -357,6 +367,17 @@ pub async fn DispatchMessageA(m: *mut Machine, lpMsg: Option<&MSG>) -> u32 {
         ],
     )
     .await;
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn DefWindowProcA(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    msg: Result<WM, u32>,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
     0
 }
 
