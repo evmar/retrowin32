@@ -73,6 +73,42 @@ type HBRUSH = u32;
 
 #[repr(C)]
 #[derive(Clone, Debug)]
+pub struct WNDCLASSA {
+    style: u32,
+    lpfnWndProc: u32,
+    cbClsExtra: u32,
+    cbWndExtra: u32,
+    hInstance: HINSTANCE,
+    hIcon: HICON,
+    hCursor: HCURSOR,
+    hbrBackground: HBRUSH,
+    lpszMenuName: u32,
+    lpszClassName: u32,
+}
+unsafe impl x86::Pod for WNDCLASSA {}
+
+#[win32_derive::dllexport]
+pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
+    let wndclass = lpWndClass.unwrap();
+    let ex = WNDCLASSEXA {
+        cbSize: std::mem::size_of::<WNDCLASSEXA>() as u32,
+        style: wndclass.style,
+        lpfnWndProc: wndclass.lpfnWndProc,
+        cbClsExtra: wndclass.cbClsExtra,
+        cbWndExtra: wndclass.cbWndExtra,
+        hInstance: wndclass.hInstance,
+        hIcon: wndclass.hIcon,
+        hCursor: wndclass.hCursor,
+        hbrBackground: wndclass.hbrBackground,
+        lpszMenuName: wndclass.lpszMenuName,
+        lpszClassName: wndclass.lpszClassName,
+        hIconSm: 0,
+    };
+    RegisterClassExA(machine, Some(&ex))
+}
+
+#[repr(C)]
+#[derive(Clone, Debug)]
 pub struct WNDCLASSEXA {
     cbSize: u32,
     style: u32,
@@ -88,12 +124,6 @@ pub struct WNDCLASSEXA {
     hIconSm: HICON,
 }
 unsafe impl x86::Pod for WNDCLASSEXA {}
-
-#[win32_derive::dllexport]
-pub fn RegisterClassA(_machine: &mut Machine, lpWndClass: u32) -> u32 {
-    log::warn!("todo: RegisterClassA({:x})", lpWndClass);
-    0
-}
 
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {

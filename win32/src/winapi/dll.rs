@@ -1510,9 +1510,13 @@ pub mod user32 {
     use winapi::user32::*;
     pub fn RegisterClassA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let lpWndClass =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpWndClass = unsafe {
+            <Option<&WNDCLASSA>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&WNDCLASSA>>::stack_consumed();
         let result = winapi::user32::RegisterClassA(machine, lpWndClass);
         let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
