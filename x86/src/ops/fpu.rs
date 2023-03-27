@@ -263,10 +263,19 @@ pub fn fmulp_sti_st0(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-pub fn fdivrp_sti_st0(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
-    let x = *x86.regs.st_top();
+pub fn fdivp_sti_st0(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = *x86.regs.st_top();
+    let x = x86.regs.getst(instr.op0_register());
+    *x = *x / y;
     x86.regs.st_top += 1;
-    *x86.regs.st_top() /= x;
+    Ok(())
+}
+
+pub fn fdivrp_sti_st0(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = *x86.regs.st_top();
+    let x = x86.regs.getst(instr.op0_register());
+    *x = y / *x;
+    x86.regs.st_top += 1;
     Ok(())
 }
 
