@@ -172,6 +172,7 @@ impl TryFrom<u32> for WindowStyle {
 #[derive(Copy, Clone, Debug)]
 #[repr(u32)]
 pub enum WM {
+    CREATE = 0x0001,
     ACTIVATEAPP = 0x001C,
 }
 impl TryFrom<u32> for WM {
@@ -179,6 +180,7 @@ impl TryFrom<u32> for WM {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         Ok(match value {
+            x if x == WM::CREATE as u32 => WM::CREATE,
             x if x == WM::ACTIVATEAPP as u32 => WM::ACTIVATEAPP,
             x => return Err(x),
         })
@@ -238,6 +240,19 @@ pub fn CreateWindowExA(
     };
     machine.state.user32.windows.push(window);
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
+
+    // Synchronously dispatch WM_CREATE.
+    let msg = MSG {
+        hwnd,
+        message: WM::CREATE,
+        wParam: 0,
+        lParam: 0, // TODO: CREATESTRUCT
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    };
+    // DispatchMessageA(machine, Some(&msg)).await;
 
     // Enqueue WM_ACTIVATEAPP message.
     machine.state.user32.messages.push_back(MSG {
