@@ -188,7 +188,7 @@ impl TryFrom<u32> for WM {
 }
 
 #[win32_derive::dllexport]
-pub fn CreateWindowExA(
+pub async fn CreateWindowExA(
     machine: &mut Machine,
     dwExStyle: u32,
     lpClassName: u32,
@@ -242,7 +242,7 @@ pub fn CreateWindowExA(
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
 
     // Synchronously dispatch WM_CREATE.
-    let _msg = MSG {
+    let msg = MSG {
         hwnd,
         message: WM::CREATE,
         wParam: 0,
@@ -252,7 +252,7 @@ pub fn CreateWindowExA(
         pt_y: 0,
         lPrivate: 0,
     };
-    // DispatchMessageA(machine, Some(&msg)).await;
+    DispatchMessageA(machine, Some(&msg)).await;
 
     // Enqueue WM_ACTIVATEAPP message.
     machine.state.user32.messages.push_back(MSG {

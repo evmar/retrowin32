@@ -1497,24 +1497,30 @@ pub mod user32 {
         let lpParam =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let result = winapi::user32::CreateWindowExA(
-            machine,
-            dwExStyle,
-            lpClassName,
-            lpWindowName,
-            dwStyle,
-            X,
-            Y,
-            nWidth,
-            nHeight,
-            hWndParent,
-            hMenu,
-            hInstance,
-            lpParam,
-        );
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
+        let m: *mut Machine = machine;
+        let result = async move {
+            let machine = unsafe { &mut *m };
+            let result = winapi::user32::CreateWindowExA(
+                machine,
+                dwExStyle,
+                lpClassName,
+                lpWindowName,
+                dwStyle,
+                X,
+                Y,
+                nWidth,
+                nHeight,
+                hWndParent,
+                hMenu,
+                hInstance,
+                lpParam,
+            )
+            .await;
+            machine.x86.regs.eax = result.to_raw();
+            machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+            machine.x86.regs.esp += stack_offset;
+        };
+        crate::shims::become_async(machine, Box::pin(result));
     }
     pub fn GetForegroundWindow(machine: &mut Machine) {
         let mut stack_offset = 4u32;
