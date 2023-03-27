@@ -72,6 +72,17 @@ pub mod bass {
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = return_address;
     }
+    pub fn BASS_ChannelGetPosition(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let arg1 =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::bass::BASS_ChannelGetPosition(machine, arg1);
+        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = return_address;
+    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
@@ -79,6 +90,7 @@ pub mod bass {
                 "BASS_MusicLoad" => BASS_MusicLoad,
                 "BASS_Start" => BASS_Start,
                 "BASS_MusicPlay" => BASS_MusicPlay,
+                "BASS_ChannelGetPosition" => BASS_ChannelGetPosition,
                 _ => return None,
             },
             _ => return None,

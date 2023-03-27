@@ -33,3 +33,8 @@ pub fn BASS_Start(_machine: &mut Machine) -> u32 {
 pub fn BASS_MusicPlay(_machine: &mut Machine, arg1: u32) -> u32 {
     1
 }
+
+#[win32_derive::dllexport]
+pub fn BASS_ChannelGetPosition(_machine: &mut Machine, arg1: u32) -> u32 {
+    1
+}
