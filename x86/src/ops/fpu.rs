@@ -324,6 +324,12 @@ pub fn fcomp_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn frndint(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
+    let x = x86.regs.st_top();
+    *x = x.round();
+    Ok(())
+}
+
 pub fn fnstsw_ax(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
     // TODO: does this need stack top in it?
     x86.regs.eax = x86.regs.fpu_status.bits() as u32;
