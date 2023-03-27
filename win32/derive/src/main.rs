@@ -101,6 +101,8 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
 fn rustfmt(tokens: &mut String) -> anyhow::Result<()> {
     // Stolen from https://github.com/microsoft/windows-rs/blob/master/crates/tools/lib/src/lib.rs
     let mut child = std::process::Command::new("rustfmt")
+        .arg("--edition")
+        .arg("2018")
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
