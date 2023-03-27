@@ -87,6 +87,12 @@ pub fn fld_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn fild_m64int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    x86.regs.st_top -= 1;
+    *x86.regs.st_top() = read_f64(x86, x86_addr(x86, instr));
+    Ok(())
+}
+
 pub fn fild_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     x86.regs.st_top -= 1;
     *x86.regs.st_top() = x86.read_u32(x86_addr(x86, instr)) as i32 as f64;

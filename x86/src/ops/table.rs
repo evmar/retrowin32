@@ -259,6 +259,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fld_sti as usize] = Some(ops::fld_sti);
     OP_TAB[iced_x86::Code::Fld_m64fp as usize] = Some(ops::fld_m64fp);
     OP_TAB[iced_x86::Code::Fld_m32fp as usize] = Some(ops::fld_m32fp);
+    OP_TAB[iced_x86::Code::Fild_m64int as usize] = Some(ops::fild_m64int);
     OP_TAB[iced_x86::Code::Fild_m32int as usize] = Some(ops::fild_m32int);
     OP_TAB[iced_x86::Code::Fild_m16int as usize] = Some(ops::fild_m16int);
     OP_TAB[iced_x86::Code::Fst_m64fp as usize] = Some(ops::fst_m64fp);
