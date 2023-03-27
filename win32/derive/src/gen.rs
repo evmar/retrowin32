@@ -28,21 +28,9 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
         tys.push(&arg.ty);
     }
 
-    // If the function is async, we need to handle the return value a bit differently.
-    let use_result = if func.sig.asyncness.is_some() {
-        quote! {
-            crate::shims::push_async(machine, return_address, Box::pin(result));
-            // push_async will set up the stack and eip.
-        }
-    } else {
-        quote! {
-            machine.x86.regs.eax = result.to_raw();
-            machine.x86.regs.eip = return_address;
-        }
-    };
-
     let name = &func.sig.ident;
-    quote!(pub fn #name(machine: &mut Machine) {
+
+    let fetch_args = quote! {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         let mut stack_offset = 4u32;
@@ -50,10 +38,38 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
             let #args = unsafe { <#tys>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
             stack_offset += <#tys>::stack_consumed();
         )*
-        let result = #module::#name(machine, #(#args),*);
-        let return_address = machine.x86.mem.read_u32(machine.x86.regs.esp);
+    };
+    let ret = quote! {
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
-        #use_result
+    };
+
+    // If the function is async, we need to handle the return value a bit differently.
+    let body = if func.sig.asyncness.is_some() {
+        quote! {
+            #fetch_args
+            // Yuck: we know Machine will outlive the future, but Rust doesn't.
+            // At least we managed to isolate the yuck to this point.
+            let m: *mut Machine = machine;
+            let result = async move {
+                let machine = unsafe { &mut *m };
+                let result = #module::#name(machine, #(#args),*).await;
+                #ret
+            };
+            crate::shims::become_async(machine, Box::pin(result));
+            // push_async will set up the stack and eip.
+        }
+    } else {
+        quote! {
+            #fetch_args
+            let result = #module::#name(machine, #(#args),*);
+            #ret
+        }
+    };
+
+    quote!(pub fn #name(machine: &mut Machine) {
+        #body
     })
 }
 

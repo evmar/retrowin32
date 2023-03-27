@@ -242,7 +242,7 @@ pub fn CreateWindowExA(
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
 
     // Synchronously dispatch WM_CREATE.
-    let msg = MSG {
+    let _msg = MSG {
         hwnd,
         message: WM::CREATE,
         wParam: 0,

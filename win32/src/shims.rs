@@ -60,17 +60,15 @@ pub struct Shims {
     async_executor: u32,
     /// Pending future for code being ran by async_executor().
     /// TODO: we will need a stack of these to handle multiple nested callbacks.
-    future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>>,
+    future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
 /// Redirect x86 control to async_executor.  Note this has particular requirements on the
 /// state of the stack, and is called when a dllexport function is async.
-pub fn push_async(
+pub fn become_async(
     machine: &mut Machine,
-    return_address: u32,
-    future: std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>,
+    future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    x86::ops::push(&mut machine.x86, return_address); // where to go when we're done
     machine.x86.regs.eip = machine.shims.async_executor;
     machine.shims.future = Some(future);
 }
@@ -158,12 +156,7 @@ fn async_executor(machine: &mut Machine) {
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
         match future.as_mut().poll(context) {
-            std::task::Poll::Ready(ret) => {
-                // We only get here when the outer future is done, which means it's time
-                // to return to the x86 caller of the async function.
-                machine.x86.regs.eax = ret;
-                machine.x86.regs.eip = x86::ops::pop(&mut machine.x86);
-            }
+            std::task::Poll::Ready(()) => {}
             std::task::Poll::Pending => {
                 if machine.shims.future.is_some() {
                     panic!("multiple pending futures");

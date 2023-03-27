@@ -585,15 +585,13 @@ mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     async fn EnumDisplayModes(
-        m: *mut Machine,
+        machine: &mut Machine,
         this: u32,
         flags: u32,
         lpSurfaceDesc: Option<&DDSURFACEDESC2>,
         data: u32,
         callback: u32,
     ) -> u32 {
-        let machine = unsafe { &mut *m };
-
         let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         machine.x86.regs.esp -= size;
 
