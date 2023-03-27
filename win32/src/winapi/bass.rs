@@ -5,6 +5,11 @@
 
 use crate::machine::Machine;
 
+use super::kernel32;
+
+/// Hack: time since BASS_Start etc. was called.
+static mut T: u32 = 0;
+
 const TRACE: bool = true;
 
 #[win32_derive::dllexport]
@@ -25,16 +30,24 @@ pub fn BASS_MusicLoad(
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_Start(_machine: &mut Machine) -> u32 {
+pub fn BASS_Start(machine: &mut Machine) -> u32 {
+    unsafe {
+        T = kernel32::GetTickCount(machine);
+    }
     1
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_MusicPlay(_machine: &mut Machine, arg1: u32) -> u32 {
+pub fn BASS_MusicPlay(machine: &mut Machine, arg1: u32) -> u32 {
+    unsafe {
+        T = kernel32::GetTickCount(machine);
+    }
     1
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_ChannelGetPosition(_machine: &mut Machine, arg1: u32) -> u32 {
-    1
+pub fn BASS_ChannelGetPosition(machine: &mut Machine, arg1: u32) -> u32 {
+    let dur = kernel32::GetTickCount(machine) - unsafe { T };
+    // 44.1khz
+    (dur as f32 * 44.1) as u32
 }
