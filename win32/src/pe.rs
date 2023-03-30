@@ -96,6 +96,25 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 
+#[allow(dead_code)]
+pub enum IMAGE_DIRECTORY_ENTRY {
+    EXPORT = 0,
+    IMPORT = 1,
+    RESOURCE = 2,
+    EXCEPTION = 3,
+    SECURITY = 4,
+    BASERELOC = 5,
+    DEBUG = 6,
+    COPYRIGHT = 7,
+    GLOBALPTR = 8,
+    TLS = 9,
+    LOAD_CONFIG = 10,
+    BOUND_IMPORT = 11,
+    IAT = 12,
+    DELAY_IMPORT = 13,
+    COM_DESCRIPTOR = 14,
+}
+
 fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 

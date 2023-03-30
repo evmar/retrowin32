@@ -101,8 +101,7 @@ pub fn load_exe(
     let mut labels: HashMap<u32, String> = HashMap::new();
     // Some packed executables don't seem to have the data directory bit.
     if file.header.SizeOfOptionalHeader > 8 {
-        const IMAGE_DIRECTORY_ENTRY_IMPORT: usize = 1;
-        let imports_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_IMPORT];
+        let imports_data = &file.data_directory[pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize];
         pe::parse_imports(
             &mut machine.x86.mem[base as usize..],
             imports_data.VirtualAddress as usize,
@@ -118,8 +117,7 @@ pub fn load_exe(
             },
         )?;
 
-        const IMAGE_DIRECTORY_ENTRY_RESOURCE: usize = 2;
-        let res_data = &file.data_directory[IMAGE_DIRECTORY_ENTRY_RESOURCE];
+        let res_data = &file.data_directory[pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize];
         machine.state.user32.resources_base = res_data.VirtualAddress;
     }
 
