@@ -54,7 +54,7 @@ impl Mappings {
         }])
     }
 
-    pub fn add(&mut self, mut mapping: Mapping) {
+    pub fn add(&mut self, mut mapping: Mapping, truncate_previous: bool) -> &Mapping {
         mapping.size = round_up_to_page_granularity(mapping.size);
         let pos = self
             .0
@@ -62,14 +62,21 @@ impl Mappings {
             .position(|m| m.addr > mapping.addr)
             .unwrap_or(self.0.len());
         if pos > 0 {
-            let prev = &self.0[pos - 1];
-            assert!(prev.addr + prev.size <= mapping.addr);
+            let prev = &mut self.0[pos - 1];
+            if prev.addr + prev.size >= mapping.addr {
+                if truncate_previous {
+                    prev.size = mapping.addr - prev.addr;
+                } else {
+                    panic!("mapping conflict");
+                }
+            }
         }
         if pos < self.0.len() {
             let next = &self.0[pos];
             assert!(mapping.addr + mapping.size <= next.addr);
         }
         self.0.insert(pos, mapping);
+        &self.0[pos]
     }
 
     pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {

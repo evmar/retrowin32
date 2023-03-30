@@ -4,25 +4,33 @@ fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
     file: &pe::File,
-    base: Option<u32>,
+    relocate: bool,
 ) -> anyhow::Result<()> {
-    let base = base.unwrap_or(file.opt_header.ImageBase);
+    let mapping = if relocate {
+        machine.state.kernel32.mappings.alloc(
+            file.opt_header.SizeOfImage,
+            "load_pe".into(),
+            &mut machine.x86.mem,
+        )
+    } else {
+        machine.state.kernel32.mappings.add(
+            winapi::kernel32::Mapping {
+                addr: file.opt_header.ImageBase,
+                size: file.opt_header.SizeOfImage as u32,
+                desc: "load_pe".into(),
+                flags: pe::ImageSectionFlags::MEM_READ,
+            },
+            false,
+        )
+    };
+    let base = mapping.addr;
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
     // I cannot find documentation of this but it is what I observe in a debugger,
     // and kkrunchy relies on file data found after the PE header but outside of any section.
+    // TODO: possibly the whole file is loaded at this address and then sections are copied around?
     let size = 0x1000 as usize;
-    machine
-        .state
-        .kernel32
-        .mappings
-        .add(winapi::kernel32::Mapping {
-            addr: base,
-            size: size as u32,
-            desc: format!("PE header"),
-            flags: pe::ImageSectionFlags::MEM_READ,
-        });
-    machine.x86.mem[base as usize..(base as usize + size)].copy_from_slice(&buf[..size]);
+    machine.x86.mem[base as usize..][..size].copy_from_slice(&buf[..size]);
 
     for sec in file.sections {
         let mut src = sec.PointerToRawData as usize;
@@ -49,16 +57,15 @@ fn load_pe(
         if load_data && data_size > 0 {
             machine.x86.mem[dst..dst + data_size].copy_from_slice(&buf[src..(src + data_size)]);
         }
-        machine
-            .state
-            .kernel32
-            .mappings
-            .add(winapi::kernel32::Mapping {
+        machine.state.kernel32.mappings.add(
+            winapi::kernel32::Mapping {
                 addr: dst as u32,
                 size: sec.VirtualSize as u32,
                 desc: format!("{:?} ({:?})", sec.name(), flags),
                 flags,
-            });
+            },
+            true,
+        );
     }
 
     if let Some(imports_data) = file
@@ -103,7 +110,7 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
     }
     machine.x86.mem.resize(memory_size as usize, 0);
 
-    load_pe(machine, buf, &file, Some(base))?;
+    load_pe(machine, buf, &file, false)?;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
