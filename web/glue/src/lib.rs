@@ -197,12 +197,16 @@ pub struct Emulator {
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
-    pub fn load_exe(&mut self, buf: &[u8]) -> JsResult<String> {
-        let imports = self
-            .runner
+    pub fn load_exe(&mut self, buf: &[u8]) -> JsResult<()> {
+        self.runner
             .load_exe(buf, "".into())
             .map_err(err_from_anyhow)?;
-        let str = serde_json::to_string(&imports)?;
+        Ok(())
+    }
+
+    #[wasm_bindgen]
+    pub fn labels(&self) -> JsResult<String> {
+        let str = serde_json::to_string(&self.runner.machine.labels)?;
         Ok(str)
     }
 

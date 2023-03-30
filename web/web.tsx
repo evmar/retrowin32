@@ -146,9 +146,11 @@ class VM implements JsHost {
   page!: Page;
 
   constructor(private readonly path: string, exe: ArrayBuffer, labelsLoader: LabelsLoader) {
+    this.emu.load_exe(new Uint8Array(exe));
+
     // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
     // But then passing the buffer to Rust must copy the array into the WASM heap...
-    const importsJSON = JSON.parse(this.emu.load_exe(new Uint8Array(exe)));
+    const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName as string;

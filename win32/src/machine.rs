@@ -15,6 +15,7 @@ pub struct Machine {
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub shims: Shims,
+    pub labels: HashMap<u32, String>,
 }
 
 impl Machine {
@@ -24,6 +25,7 @@ impl Machine {
             host,
             state: winapi::State::new(),
             shims: Shims::new(),
+            labels: HashMap::new(),
         }
     }
 }
@@ -45,11 +47,7 @@ impl Runner {
         }
     }
 
-    pub fn load_exe(
-        &mut self,
-        buf: &[u8],
-        cmdline: String,
-    ) -> anyhow::Result<HashMap<u32, String>> {
+    pub fn load_exe(&mut self, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
         load_exe(&mut self.machine, buf, cmdline)
     }
 

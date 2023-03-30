@@ -1,12 +1,6 @@
-use std::collections::HashMap;
-
 use crate::{machine::Machine, pe, winapi};
 
-fn load_pe(
-    machine: &mut Machine,
-    buf: &[u8],
-    base: Option<u32>,
-) -> anyhow::Result<HashMap<u32, String>> {
+fn load_pe(machine: &mut Machine, buf: &[u8], base: Option<u32>) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
     let base = base.unwrap_or(file.opt_header.ImageBase);
@@ -64,7 +58,6 @@ fn load_pe(
             });
     }
 
-    let mut labels: HashMap<u32, String> = HashMap::new();
     if let Some(imports_data) = file
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
@@ -74,25 +67,23 @@ fn load_pe(
             imports_data.VirtualAddress as usize,
             |dll, sym, iat_addr| {
                 let name = format!("{}!{}", dll, sym.to_string());
-                labels.insert(base + iat_addr, format!("{}@IAT", name));
+                machine
+                    .labels
+                    .insert(base + iat_addr, format!("{}@IAT", name));
 
                 let handler = winapi::resolve(dll, &sym);
                 let addr = machine.shims.add(name.clone(), handler);
-                labels.insert(addr, name);
+                machine.labels.insert(addr, name);
 
                 addr
             },
         )?;
     }
 
-    Ok(labels)
+    Ok(())
 }
 
-pub fn load_exe(
-    machine: &mut Machine,
-    buf: &[u8],
-    cmdline: String,
-) -> anyhow::Result<HashMap<u32, String>> {
+pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
     let base = file.opt_header.ImageBase;
@@ -109,7 +100,7 @@ pub fn load_exe(
     }
     machine.x86.mem.resize(memory_size as usize, 0);
 
-    let labels = load_pe(machine, buf, Some(base))?;
+    load_pe(machine, buf, Some(base))?;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
@@ -143,5 +134,5 @@ pub fn load_exe(
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     machine.x86.regs.eip = entry_point;
 
-    Ok(labels)
+    Ok(())
 }
