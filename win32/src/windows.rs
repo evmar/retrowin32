@@ -1,8 +1,11 @@
 use crate::{machine::Machine, pe, winapi};
 
-fn load_pe(machine: &mut Machine, buf: &[u8], base: Option<u32>) -> anyhow::Result<()> {
-    let file = pe::parse(&buf)?;
-
+fn load_pe(
+    machine: &mut Machine,
+    buf: &[u8],
+    file: &pe::File,
+    base: Option<u32>,
+) -> anyhow::Result<()> {
     let base = base.unwrap_or(file.opt_header.ImageBase);
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
@@ -100,7 +103,7 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
     }
     machine.x86.mem.resize(memory_size as usize, 0);
 
-    load_pe(machine, buf, Some(base))?;
+    load_pe(machine, buf, &file, Some(base))?;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
