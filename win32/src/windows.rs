@@ -2,26 +2,14 @@ use std::collections::HashMap;
 
 use crate::{machine::Machine, pe, winapi};
 
-pub fn load_exe(
+fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
-    cmdline: String,
+    base: Option<u32>,
 ) -> anyhow::Result<HashMap<u32, String>> {
     let file = pe::parse(&buf)?;
 
-    let base = file.opt_header.ImageBase;
-    machine.state.kernel32.image_base = base;
-    let memory_size = base + file.opt_header.SizeOfImage;
-    if memory_size > 10 << 20 {
-        // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
-        // end up using it.  We might need to figure out uncommitted memory to properly
-        // load it.
-        log::warn!(
-            "file header requests {}mb of memory",
-            memory_size / (1 << 20)
-        );
-    }
-    machine.x86.mem.resize(memory_size as usize, 0);
+    let base = base.unwrap_or(file.opt_header.ImageBase);
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
     // I cannot find documentation of this but it is what I observe in a debugger,
@@ -76,6 +64,53 @@ pub fn load_exe(
             });
     }
 
+    let mut labels: HashMap<u32, String> = HashMap::new();
+    if let Some(imports_data) = file
+        .data_directory
+        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
+    {
+        pe::parse_imports(
+            &mut machine.x86.mem[base as usize..],
+            imports_data.VirtualAddress as usize,
+            |dll, sym, iat_addr| {
+                let name = format!("{}!{}", dll, sym.to_string());
+                labels.insert(base + iat_addr, format!("{}@IAT", name));
+
+                let handler = winapi::resolve(dll, &sym);
+                let addr = machine.shims.add(name.clone(), handler);
+                labels.insert(addr, name);
+
+                addr
+            },
+        )?;
+    }
+
+    Ok(labels)
+}
+
+pub fn load_exe(
+    machine: &mut Machine,
+    buf: &[u8],
+    cmdline: String,
+) -> anyhow::Result<HashMap<u32, String>> {
+    let file = pe::parse(&buf)?;
+
+    let base = file.opt_header.ImageBase;
+    machine.state.kernel32.image_base = base;
+    let memory_size = base + file.opt_header.SizeOfImage;
+    if memory_size > 10 << 20 {
+        // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
+        // end up using it.  We might need to figure out uncommitted memory to properly
+        // load it.
+        log::warn!(
+            "file header requests {}mb of memory",
+            memory_size / (1 << 20)
+        );
+    }
+    machine.x86.mem.resize(memory_size as usize, 0);
+
+    let labels = load_pe(machine, buf, Some(base))?;
+
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
 
@@ -97,27 +132,6 @@ pub fn load_exe(
     let stack_end = stack.addr + stack.size - 4;
     machine.x86.regs.esp = stack_end;
     machine.x86.regs.ebp = stack_end;
-
-    let mut labels: HashMap<u32, String> = HashMap::new();
-    if let Some(imports_data) = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
-    {
-        pe::parse_imports(
-            &mut machine.x86.mem[base as usize..],
-            imports_data.VirtualAddress as usize,
-            |dll, sym, iat_addr| {
-                let name = format!("{}!{}", dll, sym.to_string());
-                labels.insert(base + iat_addr, format!("{}@IAT", name));
-
-                let handler = winapi::resolve(dll, &sym);
-                let addr = machine.shims.add(name.clone(), handler);
-                labels.insert(addr, name);
-
-                addr
-            },
-        )?;
-    }
 
     if let Some(res_data) = file
         .data_directory
