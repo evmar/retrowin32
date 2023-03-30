@@ -4,10 +4,9 @@ use anyhow::bail;
 use x86::X86;
 
 use crate::{
-    host,
+    host, pe,
     shims::{Shims, SHIM_BASE},
     winapi,
-    windows::load_exe,
 };
 
 pub struct Machine {
@@ -48,7 +47,7 @@ impl Runner {
     }
 
     pub fn load_exe(&mut self, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
-        load_exe(&mut self.machine, buf, cmdline)
+        pe::load_exe(&mut self.machine, buf, cmdline)
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) {

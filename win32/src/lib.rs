@@ -4,7 +4,6 @@ mod pe;
 mod reader;
 mod shims;
 mod winapi;
-mod windows;
 
 pub use host::*;
 pub use machine::Runner;
