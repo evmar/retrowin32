@@ -5,24 +5,41 @@ fn load_pe(
     buf: &[u8],
     file: &pe::File,
     relocate: bool,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<u32> {
+    let memory_size = file.opt_header.SizeOfImage;
+    if memory_size > 20 << 20 {
+        // TODO: 5k_run.exe specifies SizeOfImage as like 1000mb, but then doesn't
+        // end up using it.  We might need to figure out uncommitted memory to properly
+        // load it.
+        log::warn!(
+            "file header requests {}mb of memory",
+            memory_size / (1 << 20)
+        );
+    }
+
     let mapping = if relocate {
-        machine.state.kernel32.mappings.alloc(
-            file.opt_header.SizeOfImage,
-            "load_pe".into(),
-            &mut machine.x86.mem,
-        )
+        machine
+            .state
+            .kernel32
+            .mappings
+            .alloc(memory_size, "load_pe".into(), &mut machine.x86.mem)
     } else {
         machine.state.kernel32.mappings.add(
             winapi::kernel32::Mapping {
                 addr: file.opt_header.ImageBase,
-                size: file.opt_header.SizeOfImage as u32,
+                size: memory_size,
                 desc: "load_pe".into(),
                 flags: pe::ImageSectionFlags::MEM_READ,
             },
             false,
         )
     };
+
+    // TODO: .alloc() ensures the memory exists, .add() doesn't.
+    let memory_end = (mapping.addr + mapping.size) as usize;
+    if memory_end > machine.x86.mem.len() {
+        machine.x86.mem.resize(memory_end, 0);
+    }
     let base = mapping.addr;
 
     // The first 0x1000 of the PE file itself is loaded at the base address.
@@ -90,27 +107,14 @@ fn load_pe(
         )?;
     }
 
-    Ok(())
+    Ok(base)
 }
 
 pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
-    let base = file.opt_header.ImageBase;
+    let base = load_pe(machine, buf, &file, false)?;
     machine.state.kernel32.image_base = base;
-    let memory_size = base + file.opt_header.SizeOfImage;
-    if memory_size > 10 << 20 {
-        // TODO: 5k_run.exe specifies SizeOfImage as like 700mb, but then doesn't
-        // end up using it.  We might need to figure out uncommitted memory to properly
-        // load it.
-        log::warn!(
-            "file header requests {}mb of memory",
-            memory_size / (1 << 20)
-        );
-    }
-    machine.x86.mem.resize(memory_size as usize, 0);
-
-    load_pe(machine, buf, &file, false)?;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
