@@ -343,6 +343,93 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
+    pub fn GetModuleHandleA(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpModuleName = unsafe {
+            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&str>>::stack_consumed();
+        let result = winapi::kernel32::GetModuleHandleA(machine, lpModuleName);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn GetModuleHandleW(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpModuleName = unsafe {
+            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<Str16>>::stack_consumed();
+        let result = winapi::kernel32::GetModuleHandleW(machine, lpModuleName);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn GetModuleHandleExW(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpModuleName = unsafe {
+            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<Str16>>::stack_consumed();
+        let hModule = unsafe {
+            <Option<&mut HMODULE>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut HMODULE>>::stack_consumed();
+        let result = winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn LoadLibraryA(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let filename = unsafe {
+            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&str>>::stack_consumed();
+        let result = winapi::kernel32::LoadLibraryA(machine, filename);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn LoadLibraryExW(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpLibFileName = unsafe {
+            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<Str16>>::stack_consumed();
+        let hFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn GetProcAddress(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hModule = unsafe {
+            <HMODULE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HMODULE>::stack_consumed();
+        let lpProcName = unsafe {
+            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&str>>::stack_consumed();
+        let result = winapi::kernel32::GetProcAddress(machine, hModule, lpProcName);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
     pub fn GetStdHandle(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let nStdHandle =
@@ -852,49 +939,6 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
-    pub fn GetModuleHandleA(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpModuleName = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let result = winapi::kernel32::GetModuleHandleA(machine, lpModuleName);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn GetModuleHandleW(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpModuleName = unsafe {
-            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<Str16>>::stack_consumed();
-        let result = winapi::kernel32::GetModuleHandleW(machine, lpModuleName);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn GetModuleHandleExW(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpModuleName = unsafe {
-            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<Str16>>::stack_consumed();
-        let hModule = unsafe {
-            <Option<&mut HMODULE>>::from_stack(
-                &mut machine.x86.mem,
-                machine.x86.regs.esp + stack_offset,
-            )
-        };
-        stack_offset += <Option<&mut HMODULE>>::stack_consumed();
-        let result = winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
     pub fn GetStartupInfoA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let lpStartupInfo =
@@ -928,13 +972,6 @@ pub mod kernel32 {
     pub fn IsDebuggerPresent(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::IsDebuggerPresent(machine);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn GetCurrentThreadId(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let result = winapi::kernel32::GetCurrentThreadId(machine);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1011,50 +1048,6 @@ pub mod kernel32 {
     pub fn GetProcessHeap(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetProcessHeap(machine);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn LoadLibraryA(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let filename = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let result = winapi::kernel32::LoadLibraryA(machine, filename);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn LoadLibraryExW(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpLibFileName = unsafe {
-            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<Str16>>::stack_consumed();
-        let hFile = unsafe {
-            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <HFILE>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn GetProcAddress(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hModule = unsafe {
-            <HMODULE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <HMODULE>::stack_consumed();
-        let lpProcName = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let result = winapi::kernel32::GetProcAddress(machine, hModule, lpProcName);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1155,46 +1148,6 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
-    pub fn TlsAlloc(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let result = winapi::kernel32::TlsAlloc(machine);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn TlsFree(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::TlsFree(machine, dwTlsIndex);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn TlsSetValue(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpTlsValue =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn TlsGetValue(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::TlsGetValue(machine, dwTlsIndex);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
     pub fn InitializeSListHead(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let ListHead = unsafe {
@@ -1273,6 +1226,53 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
+    pub fn GetCurrentThreadId(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let result = winapi::kernel32::GetCurrentThreadId(machine);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn TlsAlloc(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let result = winapi::kernel32::TlsAlloc(machine);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn TlsFree(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let dwTlsIndex =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::TlsFree(machine, dwTlsIndex);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn TlsSetValue(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let dwTlsIndex =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpTlsValue =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn TlsGetValue(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let dwTlsIndex =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::TlsGetValue(machine, dwTlsIndex);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
     pub fn CreateThread(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let lpThreadAttributes =
@@ -1322,6 +1322,12 @@ pub mod kernel32 {
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
+                "GetModuleHandleA" => GetModuleHandleA,
+                "GetModuleHandleW" => GetModuleHandleW,
+                "GetModuleHandleExW" => GetModuleHandleExW,
+                "LoadLibraryA" => LoadLibraryA,
+                "LoadLibraryExW" => LoadLibraryExW,
+                "GetProcAddress" => GetProcAddress,
                 "GetStdHandle" => GetStdHandle,
                 "CreateFileA" => CreateFileA,
                 "CreateFileW" => CreateFileW,
@@ -1353,14 +1359,10 @@ pub mod kernel32 {
                 "GetEnvironmentVariableA" => GetEnvironmentVariableA,
                 "GetModuleFileNameA" => GetModuleFileNameA,
                 "GetModuleFileNameW" => GetModuleFileNameW,
-                "GetModuleHandleA" => GetModuleHandleA,
-                "GetModuleHandleW" => GetModuleHandleW,
-                "GetModuleHandleExW" => GetModuleHandleExW,
                 "GetStartupInfoA" => GetStartupInfoA,
                 "GetStartupInfoW" => GetStartupInfoW,
                 "IsProcessorFeaturePresent" => IsProcessorFeaturePresent,
                 "IsDebuggerPresent" => IsDebuggerPresent,
-                "GetCurrentThreadId" => GetCurrentThreadId,
                 "GetCurrentProcessId" => GetCurrentProcessId,
                 "GetTickCount" => GetTickCount,
                 "QueryPerformanceCounter" => QueryPerformanceCounter,
@@ -1369,9 +1371,6 @@ pub mod kernel32 {
                 "GetVersion" => GetVersion,
                 "GetVersionExA" => GetVersionExA,
                 "GetProcessHeap" => GetProcessHeap,
-                "LoadLibraryA" => LoadLibraryA,
-                "LoadLibraryExW" => LoadLibraryExW,
-                "GetProcAddress" => GetProcAddress,
                 "SetHandleCount" => SetHandleCount,
                 "OutputDebugStringA" => OutputDebugStringA,
                 "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
@@ -1381,13 +1380,14 @@ pub mod kernel32 {
                 "SetUnhandledExceptionFilter" => SetUnhandledExceptionFilter,
                 "UnhandledExceptionFilter" => UnhandledExceptionFilter,
                 "NtCurrentTeb" => NtCurrentTeb,
+                "InitializeSListHead" => InitializeSListHead,
+                "MultiByteToWideChar" => MultiByteToWideChar,
+                "WriteConsoleW" => WriteConsoleW,
+                "GetCurrentThreadId" => GetCurrentThreadId,
                 "TlsAlloc" => TlsAlloc,
                 "TlsFree" => TlsFree,
                 "TlsSetValue" => TlsSetValue,
                 "TlsGetValue" => TlsGetValue,
-                "InitializeSListHead" => InitializeSListHead,
-                "MultiByteToWideChar" => MultiByteToWideChar,
-                "WriteConsoleW" => WriteConsoleW,
                 "CreateThread" => CreateThread,
                 "SetThreadPriority" => SetThreadPriority,
                 _ => return None,

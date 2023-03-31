@@ -1,8 +1,10 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod dll;
 mod file;
 mod memory;
+mod thread;
 
 use super::{
     alloc::Alloc,
@@ -10,16 +12,15 @@ use super::{
     alloc::{Heap, HeapInfo},
     types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
 };
-use crate::{
-    machine::Machine,
-    winapi::{self, stack_args::ToX86},
-};
+use crate::machine::Machine;
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
 use x86::Memory;
 
+pub use dll::*;
 pub use file::*;
 pub use memory::*;
+pub use thread::*;
 
 const TRACE: bool = true;
 
@@ -377,42 +378,9 @@ pub fn GetModuleFileNameW(
     _nSize: u32,
 ) -> u32 {
     if !hModule.is_null() {
-        log::error!("unimplemented: GetModuleHandleW(non-null)")
+        log::error!("unimplemented: GetModuleFileNameW(non-null)")
     }
     0 // fail
-}
-
-#[win32_derive::dllexport]
-pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
-    if let Some(name) = lpModuleName {
-        log::error!("unimplemented: GetModuleHandle({name:?})");
-        return HMODULE::null();
-    }
-    // HMODULE is base address of current module.
-    HMODULE::from_raw(machine.state.kernel32.image_base)
-}
-
-#[win32_derive::dllexport]
-pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<Str16>) -> HMODULE {
-    let ascii = lpModuleName.map(|str| str.to_string());
-    GetModuleHandleA(machine, ascii.as_deref())
-}
-
-#[win32_derive::dllexport]
-pub fn GetModuleHandleExW(
-    machine: &mut Machine,
-    dwFlags: u32,
-    lpModuleName: Option<Str16>,
-    hModule: Option<&mut HMODULE>,
-) -> bool {
-    if dwFlags != 0 {
-        unimplemented!("GetModuleHandleExW flags {dwFlags:x}");
-    }
-    let hMod = GetModuleHandleW(machine, lpModuleName);
-    if let Some(out) = hModule {
-        *out = hMod;
-    }
-    return !hMod.is_null();
 }
 
 #[repr(C)]
@@ -508,11 +476,6 @@ pub fn IsProcessorFeaturePresent(_machine: &mut Machine, feature: u32) -> bool {
 #[win32_derive::dllexport]
 pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
     true // Might cause a binary to log info via the debug API? Not sure.
-}
-
-#[win32_derive::dllexport]
-pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
-    1
 }
 
 #[win32_derive::dllexport]
@@ -616,54 +579,6 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    let filename = filename.unwrap();
-    let filename = filename.to_ascii_lowercase();
-
-    if let Some(index) = crate::winapi::DLLS
-        .iter()
-        .position(|dll| dll.file_name == filename)
-    {
-        return HMODULE::from_raw((index + 1) as u32);
-    }
-
-    log::error!(
-        "LoadLibrary({filename:?}) => {:x}",
-        machine.x86.mem.read_u32(machine.x86.regs.esp - 4)
-    );
-    HMODULE::null() // fail
-}
-
-#[win32_derive::dllexport]
-pub fn LoadLibraryExW(
-    machine: &mut Machine,
-    lpLibFileName: Option<Str16>,
-    hFile: HFILE,
-    dwFlags: u32,
-) -> HMODULE {
-    let filename = lpLibFileName.map(|f| f.to_string());
-    LoadLibraryA(machine, filename.as_deref())
-}
-
-#[win32_derive::dllexport]
-pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
-    let proc_name = lpProcName.unwrap();
-    if let Some(dll) = winapi::DLLS.get(hModule.to_raw() as usize - 1) {
-        // See if the symbol was already imported.
-        let full_name = format!("{}!{}", dll.file_name, proc_name);
-        if let Some(addr) = machine.shims.lookup(&full_name) {
-            return addr;
-        }
-
-        let handler = (dll.resolve)(&winapi::ImportSymbol::Name(proc_name));
-        let addr = machine.shims.add(full_name, handler);
-        return addr;
-    }
-    log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
-    0 // fail
-}
-
-#[win32_derive::dllexport]
 pub fn SetHandleCount(_machine: &mut Machine, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
@@ -715,38 +630,6 @@ pub fn UnhandledExceptionFilter(_machine: &mut Machine, _exceptionInfo: u32) -> 
 #[win32_derive::dllexport]
 pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
     machine.state.kernel32.teb
-}
-
-#[win32_derive::dllexport]
-pub fn TlsAlloc(machine: &mut Machine) -> u32 {
-    let peb = peb_mut(machine);
-    let slot = peb.TlsCount;
-    peb.TlsCount = slot + 1;
-    slot
-}
-
-#[win32_derive::dllexport]
-pub fn TlsFree(machine: &mut Machine, dwTlsIndex: u32) -> bool {
-    let peb = peb_mut(machine);
-    if dwTlsIndex >= peb.TlsCount {
-        log::warn!("TlsFree of unknown slot {dwTlsIndex}");
-        return false;
-    }
-    // TODO
-    true
-}
-
-#[win32_derive::dllexport]
-pub fn TlsSetValue(machine: &mut Machine, dwTlsIndex: u32, lpTlsValue: u32) -> bool {
-    let teb = teb_mut(machine);
-    teb.TlsSlots[dwTlsIndex as usize] = lpTlsValue;
-    true
-}
-
-#[win32_derive::dllexport]
-pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
-    let teb = teb_mut(machine);
-    teb.TlsSlots[dwTlsIndex as usize]
 }
 
 // TODO: this has a bunch of synchronization magic that I haven't implemented,
@@ -835,23 +718,4 @@ pub fn WriteConsoleW(
         *chars_written = bytes_written;
     }
     return bytes_written == buf.len() as u32;
-}
-
-#[win32_derive::dllexport]
-pub fn CreateThread(
-    _machine: &mut Machine,
-    lpThreadAttributes: u32,
-    dwStackSize: u32,
-    lpStartAddress: u32,
-    lpParameter: u32,
-    dwCreationFlags: u32,
-    lpThreadId: u32,
-) -> u32 {
-    log::warn!("CreateThread {lpThreadAttributes:x} {dwStackSize:x} {lpStartAddress:x} {lpParameter:x} {dwCreationFlags:x} {lpThreadId:x}");
-    0
-}
-
-#[win32_derive::dllexport]
-pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32) -> bool {
-    true // success
 }
