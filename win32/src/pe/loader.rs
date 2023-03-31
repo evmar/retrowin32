@@ -31,15 +31,7 @@ fn find_relocs(file: &pe::File) -> Option<IMAGE_DATA_DIRECTORY> {
     None
 }
 
-fn patch_iat(machine: &mut Machine, base: u32, file: &pe::File) {
-    let imports_data = match file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
-    {
-        Some(imports) => imports,
-        None => return,
-    };
-
+fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the relevant DLLs shims.
     let mut patches = Vec::new();
@@ -191,7 +183,12 @@ fn load_pe(
         );
     }
 
-    patch_iat(machine, base, file);
+    if let Some(imports) = file
+        .data_directory
+        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
+    {
+        patch_iat(machine, base, imports);
+    }
 
     Ok(base)
 }
