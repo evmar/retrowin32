@@ -460,6 +460,170 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
+    pub fn HeapAlloc(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hHeap =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwBytes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn HeapFree(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hHeap =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpMem =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn HeapSize(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hHeap =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpMem =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn HeapReAlloc(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hHeap =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwFlags =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpMem =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwBytes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn HeapCreate(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let flOptions = unsafe {
+            <Result<HeapCreateFlags, u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Result<HeapCreateFlags, u32>>::stack_consumed();
+        let dwInitialSize =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwMaximumSize =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn HeapDestroy(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hHeap =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::HeapDestroy(machine, hHeap);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn VirtualAlloc(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpAddress =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwSize =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let _flAllocationType =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let _flProtec =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::VirtualAlloc(
+            machine,
+            lpAddress,
+            dwSize,
+            _flAllocationType,
+            _flProtec,
+        );
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn VirtualFree(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpAddress =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwSize =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwFreeType =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn IsBadReadPtr(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lp =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let ucb =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::IsBadReadPtr(machine, lp, ucb);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn IsBadWritePtr(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lp =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let ucb =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::IsBadWritePtr(machine, lp, ucb);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
     pub fn SetLastError(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let dwErrCode =
@@ -844,103 +1008,6 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
-    pub fn HeapAlloc(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwBytes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn HeapFree(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn HeapSize(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn HeapReAlloc(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwBytes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn HeapCreate(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let flOptions = unsafe {
-            <Result<HeapCreateFlags, u32>>::from_stack(
-                &mut machine.x86.mem,
-                machine.x86.regs.esp + stack_offset,
-            )
-        };
-        stack_offset += <Result<HeapCreateFlags, u32>>::stack_consumed();
-        let dwInitialSize =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwMaximumSize =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn HeapDestroy(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::HeapDestroy(machine, hHeap);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
     pub fn GetProcessHeap(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetProcessHeap(machine);
@@ -998,47 +1065,6 @@ pub mod kernel32 {
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::SetHandleCount(machine, uNumber);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn VirtualAlloc(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpAddress =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwSize =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let _flAllocationType =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let _flProtec =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::VirtualAlloc(
-            machine,
-            lpAddress,
-            dwSize,
-            _flAllocationType,
-            _flProtec,
-        );
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn VirtualFree(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpAddress =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwSize =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwFreeType =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
@@ -1293,38 +1319,22 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
-    pub fn IsBadReadPtr(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lp =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let ucb =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::IsBadReadPtr(machine, lp, ucb);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn IsBadWritePtr(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lp =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let ucb =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::IsBadWritePtr(machine, lp, ucb);
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
                 "CreateFileA" => CreateFileA,
                 "CreateFileW" => CreateFileW,
                 "WriteFile" => WriteFile,
+                "HeapAlloc" => HeapAlloc,
+                "HeapFree" => HeapFree,
+                "HeapSize" => HeapSize,
+                "HeapReAlloc" => HeapReAlloc,
+                "HeapCreate" => HeapCreate,
+                "HeapDestroy" => HeapDestroy,
+                "VirtualAlloc" => VirtualAlloc,
+                "VirtualFree" => VirtualFree,
+                "IsBadReadPtr" => IsBadReadPtr,
+                "IsBadWritePtr" => IsBadWritePtr,
                 "SetLastError" => SetLastError,
                 "GetLastError" => GetLastError,
                 "ExitProcess" => ExitProcess,
@@ -1358,19 +1368,11 @@ pub mod kernel32 {
                 "GetSystemTimeAsFileTime" => GetSystemTimeAsFileTime,
                 "GetVersion" => GetVersion,
                 "GetVersionExA" => GetVersionExA,
-                "HeapAlloc" => HeapAlloc,
-                "HeapFree" => HeapFree,
-                "HeapSize" => HeapSize,
-                "HeapReAlloc" => HeapReAlloc,
-                "HeapCreate" => HeapCreate,
-                "HeapDestroy" => HeapDestroy,
                 "GetProcessHeap" => GetProcessHeap,
                 "LoadLibraryA" => LoadLibraryA,
                 "LoadLibraryExW" => LoadLibraryExW,
                 "GetProcAddress" => GetProcAddress,
                 "SetHandleCount" => SetHandleCount,
-                "VirtualAlloc" => VirtualAlloc,
-                "VirtualFree" => VirtualFree,
                 "OutputDebugStringA" => OutputDebugStringA,
                 "InitializeCriticalSectionAndSpinCount" => InitializeCriticalSectionAndSpinCount,
                 "DeleteCriticalSection" => DeleteCriticalSection,
@@ -1388,8 +1390,6 @@ pub mod kernel32 {
                 "WriteConsoleW" => WriteConsoleW,
                 "CreateThread" => CreateThread,
                 "SetThreadPriority" => SetThreadPriority,
-                "IsBadReadPtr" => IsBadReadPtr,
-                "IsBadWritePtr" => IsBadWritePtr,
                 _ => return None,
             },
             _ => return None,
