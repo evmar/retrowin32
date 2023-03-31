@@ -54,6 +54,7 @@ macro_rules! vtable {
 }
 pub(crate) use vtable;
 
+#[derive(Debug)]
 pub enum ImportSymbol<'a> {
     Name(&'a str),
     Ordinal(u32),
@@ -85,6 +86,8 @@ pub const DLLS: [BuiltinDLL; 9] = [
 ];
 
 pub fn resolve(file_name: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
+    let file_name = file_name.to_ascii_lowercase();
+
     // TODO: no support for ordinals yet in dll generation machinery.
     if file_name == dll::dsound::DLL.file_name {
         match *sym {

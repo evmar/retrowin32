@@ -124,11 +124,8 @@ fn load_pe(
     if let Some(relocs) = &relocs {
         // XXX want to iterate relocations in memory while writing updated relocations,
         // which requires two references to memory.
-        let relocs = unsafe {
-            std::mem::transmute(
-                &machine.x86.mem[(base + relocs.VirtualAddress) as usize..][..relocs.Size as usize],
-            )
-        };
+        let relocs =
+            unsafe { std::mem::transmute(relocs.as_slice(&machine.x86.mem[base as usize..])) };
         let mut r = Reader::new(relocs);
         while !r.done() {
             let addr = *r.read::<u32>();
@@ -155,22 +152,30 @@ fn load_pe(
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
     {
-        pe::parse_imports(
-            &mut machine.x86.mem[base as usize..],
-            imports_data.VirtualAddress as usize,
-            |dll, sym, iat_addr| {
-                let name = format!("{}!{}", dll, sym.to_string());
+        // Traverse the ILT, gathering up addresses that need to be fixed up to point at
+        // the relevant DLLs shims.
+        let mut patches = Vec::new();
+
+        let image = &machine.x86.mem[base as usize..];
+        for dll in pe::parse_dlls(imports_data.as_slice(image)) {
+            let dll_name = dll.name(image);
+            for (sym, iat_addr) in dll.entries(image) {
+                let name = format!("{}!{}", dll_name, sym.to_string());
                 machine
                     .labels
                     .insert(base + iat_addr, format!("{}@IAT", name));
 
-                let handler = winapi::resolve(dll, &sym);
-                let addr = machine.shims.add(name.clone(), handler);
-                machine.labels.insert(addr, name);
+                let handler = winapi::resolve(dll_name, &sym);
+                let resolved_addr = machine.shims.add(name.clone(), handler);
+                machine.labels.insert(resolved_addr, name);
 
-                addr
-            },
-        )?;
+                patches.push((base + iat_addr, resolved_addr));
+            }
+        }
+
+        for (addr, target) in patches {
+            machine.x86.mem.write_u32(addr, target);
+        }
     }
 
     Ok(base)

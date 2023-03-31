@@ -90,6 +90,11 @@ pub struct IMAGE_DATA_DIRECTORY {
     pub Size: DWORD,
 }
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
+impl IMAGE_DATA_DIRECTORY {
+    pub fn as_slice<'a>(&self, image: &'a [u8]) -> &'a [u8] {
+        &image[self.VirtualAddress as usize..][..self.Size as usize]
+    }
+}
 
 #[allow(dead_code)]
 pub enum IMAGE_DIRECTORY_ENTRY {

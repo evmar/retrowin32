@@ -7,9 +7,21 @@ use crate::{
 };
 use x86::Memory;
 
+// http://sandsprite.com/CodeStuff/Understanding_imports.html
+//
+// Code calling a DLL looks like:
+//   call [XXX]
+// where XXX is the address of an entry in the IAT:
+//   IAT: [
+//      AAA,
+//      BBB,  <- XXX might point here
+//   ]
+// On load, each IAT entry points to the function name (as parsed below).
+// The loader overwrites the IAT with the addresses to the loaded DLL.
+
 #[derive(Debug)]
 #[repr(C)]
-struct IMAGE_IMPORT_DESCRIPTOR {
+pub struct IMAGE_IMPORT_DESCRIPTOR {
     OriginalFirstThunk: DWORD,
     TimeDateStamp: DWORD,
     ForwarderChain: DWORD,
@@ -18,65 +30,67 @@ struct IMAGE_IMPORT_DESCRIPTOR {
 }
 unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
-/// mem: memory starting at image base
-/// addr: address of imports table relative to mem start
-/// resolve: map an import name to the address we will jump to for it
-pub fn parse_imports(
-    mem: &mut [u8],
-    addr: usize,
-    mut resolve: impl FnMut(&str, ImportSymbol, u32) -> u32,
-) -> anyhow::Result<()> {
-    // http://sandsprite.com/CodeStuff/Understanding_imports.html
-    let mut r = Reader::new(mem);
-    r.seek(addr)?;
-    let mut patches = Vec::new();
-    loop {
-        let descriptor = r.read::<IMAGE_IMPORT_DESCRIPTOR>();
-        if descriptor.Name == 0 {
-            break;
-        }
-        let dll_name = mem[descriptor.Name as usize..]
-            .read_strz()
-            .to_ascii_lowercase();
+impl IMAGE_IMPORT_DESCRIPTOR {
+    pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
+        image[self.Name as usize..].read_strz()
+    }
 
-        // Officially original_first_thunk should be an array that contains pointers to
+    pub fn entries<'a>(&self, image: &'a [u8]) -> ILTITer<'a> {
+        let mut r = Reader::new(image);
+        // Officially OriginalFirstThunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
+        // FirstThunk has the same pointer though.
         // Peering Inside the PE claims this is some difference between compilers, yikes.
+        // I guess one is the IAT and one the ILT (?).
+        r.seek(self.FirstThunk as usize).unwrap();
+        ILTITer { r }
+    }
+}
 
-        // Code calling a DLL looks like:
-        //   call [XXX]
-        // where XXX is the address of an entry in the IAT:
-        //   IAT: [
-        //      AAA,
-        //      BBB,  <- XXX might point here
-        //   ]
-        // On load, each IAT entry points to the function name (as parsed below).
-        // The loader is supposed to overwrite the IAT with the addresses to the loaded DLL,
-        // but we instead just record the IAT addresses to remap them.
-        let mut iat_reader = Reader::new(&mem[descriptor.FirstThunk as usize..]);
-        loop {
-            let addr = descriptor.FirstThunk + iat_reader.pos as u32;
-            let entry = *iat_reader.read::<DWORD>();
-            if entry == 0 {
-                break;
-            }
-            let symbol = if entry & (1 << 31) != 0 {
-                let ordinal = entry & 0xFFFF;
-                ImportSymbol::Ordinal(ordinal)
-            } else {
-                // First two bytes at offset are hint/name table index, used to look up
-                // the name faster in the DLL; we just skip them.
-                let sym_name = mem[(entry + 2) as usize..].read_strz();
-                ImportSymbol::Name(sym_name)
-            };
-            let target = resolve(&dll_name, symbol, addr);
-            patches.push((addr, target));
+pub struct IDTIter<'a> {
+    /// r.buf points at IDT
+    r: Reader<'a>,
+}
+impl<'a> Iterator for IDTIter<'a> {
+    type Item = &'a IMAGE_IMPORT_DESCRIPTOR;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let descriptor = self.r.read::<IMAGE_IMPORT_DESCRIPTOR>();
+        if descriptor.Name == 0 {
+            return None;
         }
+        Some(descriptor)
     }
+}
 
-    for (addr, target) in patches {
-        mem.write_u32(addr, target);
+pub fn parse_dlls(buf: &[u8]) -> IDTIter {
+    IDTIter {
+        r: Reader::new(buf),
     }
+}
 
-    Ok(())
+pub struct ILTITer<'a> {
+    /// r.buf points at image
+    r: Reader<'a>,
+}
+impl<'a> Iterator for ILTITer<'a> {
+    type Item = (ImportSymbol<'a>, u32);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let addr = self.r.pos as u32;
+        let entry = *self.r.read::<DWORD>();
+        if entry == 0 {
+            return None;
+        }
+        let symbol = if entry & (1 << 31) != 0 {
+            let ordinal = entry & 0xFFFF;
+            ImportSymbol::Ordinal(ordinal)
+        } else {
+            // First two bytes at offset are hint/name table index, used to look up
+            // the name faster in the DLL; we just skip them.
+            let sym_name = self.r.buf[(entry + 2) as usize..].read_strz();
+            ImportSymbol::Name(sym_name)
+        };
+        Some((symbol, addr))
+    }
 }
