@@ -66,6 +66,32 @@ fn patch_iat(machine: &mut Machine, base: u32, file: &pe::File) {
     }
 }
 
+fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
+    // XXX want to iterate relocations in memory while writing updated relocations,
+    // which requires two references to memory.
+    let relocs = unsafe { std::mem::transmute(relocs.as_slice(image)) };
+    let mut r = Reader::new(relocs);
+    while !r.done() {
+        let addr = *r.read::<u32>();
+        let size = *r.read::<u32>() - 8; // -8 because size includes these two fields
+        for _ in 0..(size / 2) {
+            let entry = *r.read::<u16>();
+            let etype = entry >> 12;
+            let ofs = entry & 0x0FFF;
+            match etype {
+                0 => {} // skip
+                3 => {
+                    // 32-bit
+                    let reloc = image.view_mut::<u32>(addr + ofs as u32);
+                    *reloc -= prev_base;
+                    *reloc += base;
+                }
+                _ => panic!("unhandled relocation type {etype}"),
+            }
+        }
+    }
+}
+
 fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
@@ -157,30 +183,12 @@ fn load_pe(
     }
 
     if let Some(relocs) = &relocs {
-        // XXX want to iterate relocations in memory while writing updated relocations,
-        // which requires two references to memory.
-        let relocs =
-            unsafe { std::mem::transmute(relocs.as_slice(&machine.x86.mem[base as usize..])) };
-        let mut r = Reader::new(relocs);
-        while !r.done() {
-            let addr = *r.read::<u32>();
-            let size = *r.read::<u32>() - 8; // -8 because size includes these two fields
-            for _ in 0..(size / 2) {
-                let entry = *r.read::<u16>();
-                let etype = entry >> 12;
-                let ofs = entry & 0x0FFF;
-                match etype {
-                    0 => {} // skip
-                    3 => {
-                        // 32-bit
-                        let reloc = machine.x86.mem.view_mut::<u32>(base + addr + ofs as u32);
-                        *reloc -= file.opt_header.ImageBase;
-                        *reloc += base;
-                    }
-                    _ => panic!("unhandled relocation type {etype}"),
-                }
-            }
-        }
+        apply_relocs(
+            &mut machine.x86.mem[base as usize..],
+            file.opt_header.ImageBase,
+            base,
+            relocs,
+        );
     }
 
     patch_iat(machine, base, file);
