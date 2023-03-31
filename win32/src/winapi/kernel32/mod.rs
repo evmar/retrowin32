@@ -10,7 +10,7 @@ use super::{
     alloc::Alloc,
     alloc::ArenaInfo,
     alloc::{Heap, HeapInfo},
-    types::{Str16, String16, DWORD, HFILE, HMODULE, WORD},
+    types::*,
 };
 use crate::machine::Machine;
 use num_traits::FromPrimitive;

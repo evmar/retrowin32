@@ -1,7 +1,5 @@
 //! Types exposed by the Windows API.
 
-use super::stack_args::{FromX86, ToX86};
-
 pub type WORD = u16;
 pub type DWORD = u32;
 
@@ -41,12 +39,12 @@ macro_rules! declare_handle {
                 self.0.fmt(f)
             }
         }
-        impl FromX86 for $name {
+        impl crate::winapi::stack_args::FromX86 for $name {
             fn from_raw(raw: u32) -> Self {
                 $name(raw)
             }
         }
-        impl ToX86 for $name {
+        impl crate::winapi::stack_args::ToX86 for $name {
             fn to_raw(&self) -> u32 {
                 self.0
             }
@@ -54,8 +52,9 @@ macro_rules! declare_handle {
     };
 }
 
+pub(crate) use declare_handle;
+
 declare_handle!(HFILE);
-declare_handle!(HMODULE);
 declare_handle!(HWND);
 
 /// UTF-16 string view.

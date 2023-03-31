@@ -1,10 +1,29 @@
 use crate::{
     machine::Machine,
-    winapi::{self, stack_args::ToX86, types::*},
+    winapi::{self, types::*},
 };
 use x86::Memory;
 
 const TRACE: bool = false;
+
+// HMODULE is currently an index into the list of preallocated DLLs.
+declare_handle!(HMODULE);
+
+impl HMODULE {
+    fn find_by_name(filename: &str) -> Option<Self> {
+        if let Some(index) = crate::winapi::DLLS
+            .iter()
+            .position(|dll| dll.file_name == filename)
+        {
+            return Some(HMODULE::from_raw((index + 1) as u32));
+        }
+        None
+    }
+
+    fn to_dll(&self) -> Option<&winapi::BuiltinDLL> {
+        winapi::DLLS.get(self.0 as usize - 1)
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
@@ -44,11 +63,8 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     let filename = filename.unwrap();
     let filename = filename.to_ascii_lowercase();
 
-    if let Some(index) = crate::winapi::DLLS
-        .iter()
-        .position(|dll| dll.file_name == filename)
-    {
-        return HMODULE::from_raw((index + 1) as u32);
+    if let Some(hmodule) = HMODULE::find_by_name(&filename) {
+        return hmodule;
     }
 
     log::error!(
@@ -72,7 +88,7 @@ pub fn LoadLibraryExW(
 #[win32_derive::dllexport]
 pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
     let proc_name = lpProcName.unwrap();
-    if let Some(dll) = winapi::DLLS.get(hModule.to_raw() as usize - 1) {
+    if let Some(dll) = hModule.to_dll() {
         // See if the symbol was already imported.
         let full_name = format!("{}!{}", dll.file_name, proc_name);
         if let Some(addr) = machine.shims.lookup(&full_name) {
