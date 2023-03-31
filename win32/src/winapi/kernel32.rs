@@ -81,9 +81,8 @@ impl Mappings {
 
     pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
         let size = round_up_to_page_granularity(size);
-        if size > 1 << 20 {
-            log::error!("new mapping {:?} {size:x} bytes", desc);
-            assert!(size <= 1 << 20);
+        if size > 20 << 20 {
+            panic!("new mapping {:?} {size:x} bytes", desc);
         }
         let mut prev_end = 0;
         let pos = self

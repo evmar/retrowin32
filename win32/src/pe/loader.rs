@@ -1,11 +1,41 @@
+use super::IMAGE_DATA_DIRECTORY;
 use crate::{machine::Machine, pe, reader::Reader, winapi};
 use x86::Memory;
+
+fn find_relocs(file: &pe::File) -> Option<IMAGE_DATA_DIRECTORY> {
+    if let Some(dir) = file
+        .data_directory
+        .get(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize)
+    {
+        if dir.Size > 0 {
+            return Some(IMAGE_DATA_DIRECTORY {
+                VirtualAddress: dir.VirtualAddress,
+                Size: dir.Size,
+            });
+        }
+    }
+
+    // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
+    // have a .reloc section that is invalid (?).
+    // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
+    // that appear to only apply to object files (?).
+    // for sec in file.sections {
+    //     if sec.name() == ".reloc" {
+    //         return Some(IMAGE_DATA_DIRECTORY {
+    //             VirtualAddress: sec.VirtualAddress,
+    //             Size: sec.VirtualSize,
+    //         });
+    //     }
+    // }
+
+    None
+}
 
 fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
     file: &pe::File,
-    mut relocate: bool,
+    relocate: bool,
 ) -> anyhow::Result<u32> {
     let memory_size = file.opt_header.SizeOfImage;
     if memory_size > 20 << 20 {
@@ -18,14 +48,9 @@ fn load_pe(
         );
     }
 
-    if relocate
-        && file
-            .data_directory
-            .get(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize)
-            .is_none()
-    {
+    let relocs = if relocate { find_relocs(file) } else { None };
+    if relocate && relocs.is_none() {
         log::error!("relocation requested, but file lacks relocation info");
-        relocate = false;
     }
 
     let mapping = if relocate {
@@ -96,13 +121,12 @@ fn load_pe(
         );
     }
 
-    if relocate {
-        let dir = &file.data_directory[pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize];
+    if let Some(relocs) = &relocs {
         // XXX want to iterate relocations in memory while writing updated relocations,
         // which requires two references to memory.
         let relocs = unsafe {
             std::mem::transmute(
-                &machine.x86.mem[(base + dir.VirtualAddress) as usize..][..dir.Size as usize],
+                &machine.x86.mem[(base + relocs.VirtualAddress) as usize..][..relocs.Size as usize],
             )
         };
         let mut r = Reader::new(relocs);
@@ -155,7 +179,7 @@ fn load_pe(
 pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, buf, &file, true)?;
+    let base = load_pe(machine, buf, &file, false)?;
     machine.state.kernel32.image_base = base;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
