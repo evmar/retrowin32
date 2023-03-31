@@ -7,3 +7,4 @@
 *.lock*
 
 zig-cache
+/demo
