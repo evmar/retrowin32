@@ -28,32 +28,44 @@ fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
 }
 
 /// Process one module, generating the wrapper functions and resolve helper.
-fn process_mod(module: &syn::Ident, path: &str) -> anyhow::Result<TokenStream> {
+fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<TokenStream> {
     let dll_name = format!("{}.dll", module);
     eprintln!("{}", dll_name);
-    let buf = std::fs::read_to_string(path)?;
-    let file = syn::parse_file(&buf)?;
+
+    // path may be a .rs file or a directory (module).
+    let paths: Vec<std::path::PathBuf> = if path.extension().is_none() {
+        std::fs::read_dir(path)?
+            .map(|e| e.unwrap().path())
+            .collect()
+    } else {
+        vec![path.to_path_buf()]
+    };
+
     let mut fns = Vec::new();
     let mut fn_names = Vec::new();
-    for item in &file.items {
-        match item {
-            syn::Item::Fn(func) => {
-                let mut dllexport = false;
-                for attr in func.attrs.iter() {
-                    if let Some(attr) = parse_attr(attr)? {
-                        match attr {
-                            Attribute::DllExport => dllexport = true,
+    for path in paths {
+        let buf = std::fs::read_to_string(path)?;
+        let file = syn::parse_file(&buf)?;
+        for item in &file.items {
+            match item {
+                syn::Item::Fn(func) => {
+                    let mut dllexport = false;
+                    for attr in func.attrs.iter() {
+                        if let Some(attr) = parse_attr(attr)? {
+                            match attr {
+                                Attribute::DllExport => dllexport = true,
+                            }
                         }
                     }
-                }
 
-                if dllexport {
-                    fn_names.push(&func.sig.ident);
-                    fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
+                    if dllexport {
+                        fn_names.push(func.sig.ident.clone());
+                        fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
+                    }
                 }
+                // syn::Item::Struct(_) => todo!(),
+                _ => {}
             }
-            // syn::Item::Struct(_) => todo!(),
-            _ => {}
         }
     }
 
@@ -79,12 +91,9 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     let mut names = Vec::new();
     let mut mods = Vec::new();
     for path in args {
-        let module = std::path::Path::new(&path)
-            .file_stem()
-            .unwrap()
-            .to_str()
-            .unwrap();
-        let module = quote::format_ident!("{}", module);
+        let path = std::path::Path::new(&path);
+        let module_name = path.file_stem().unwrap().to_string_lossy();
+        let module = quote::format_ident!("{}", module_name);
         mods.push(process_mod(&module, &path)?);
         names.push(module);
     }

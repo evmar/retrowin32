@@ -75,7 +75,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
 
 // TODO: this fn is used by main.rs, but not lib.rs.
 #[allow(dead_code)]
-pub fn resolve_fn(fn_names: Vec<&syn::Ident>) -> TokenStream {
+pub fn resolve_fn(fn_names: Vec<syn::Ident>) -> TokenStream {
     if fn_names.is_empty() {
         return quote! {
             fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
