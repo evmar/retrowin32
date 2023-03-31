@@ -354,57 +354,6 @@ pub fn GetEnvironmentVariableA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
-    let FILE_TYPE_CHAR = 0x2;
-    let FILE_TYPE_UNKNOWN = 0x8;
-    match hFile {
-        STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => FILE_TYPE_CHAR,
-        _ => {
-            log::error!("GetFileType({hFile:?}) unknown handle");
-            FILE_TYPE_UNKNOWN
-        }
-    }
-}
-
-#[win32_derive::dllexport]
-pub fn SetFilePointer(
-    machine: &mut Machine,
-    hFile: HFILE,
-    lDistanceToMove: u32,
-    lpDistanceToMoveHigh: Option<&mut u32>,
-    dwMoveMethod: u32,
-) -> u32 {
-    const FILE_BEGIN: u32 = 0;
-    const INVALID_SET_FILE_POINTER: u32 = !0;
-
-    if lpDistanceToMoveHigh.is_some() {
-        unimplemented!();
-    }
-    if dwMoveMethod != FILE_BEGIN {
-        unimplemented!();
-    }
-    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
-    if !file.seek(lDistanceToMove) {
-        // TODO: SetLastError
-        return INVALID_SET_FILE_POINTER;
-    }
-    lDistanceToMove
-}
-
-#[win32_derive::dllexport]
-pub fn ReadFile(
-    machine: &mut Machine,
-    hFile: HFILE,
-    lpBuffer: Option<&mut [u8]>,
-    lpNumberOfBytesRead: Option<&mut u32>,
-    lpOverlapped: u32,
-) -> bool {
-    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
-    // TODO: SetLastError
-    file.read(lpBuffer.unwrap(), lpNumberOfBytesRead.unwrap())
-}
-
-#[win32_derive::dllexport]
 pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,
@@ -569,16 +518,6 @@ pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn GetCurrentProcessId(_machine: &mut Machine) -> u32 {
     1
-}
-
-#[win32_derive::dllexport]
-pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: u32) -> HFILE {
-    match nStdHandle as i32 {
-        -10 => STDIN_HFILE,
-        -11 => STDOUT_HFILE,
-        -12 => STDERR_HFILE,
-        _ => HFILE::invalid(),
-    }
 }
 
 #[win32_derive::dllexport]
