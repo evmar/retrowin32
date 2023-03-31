@@ -1,10 +1,11 @@
-use crate::{machine::Machine, pe, winapi};
+use crate::{machine::Machine, pe, reader::Reader, winapi};
+use x86::Memory;
 
 fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
     file: &pe::File,
-    relocate: bool,
+    mut relocate: bool,
 ) -> anyhow::Result<u32> {
     let memory_size = file.opt_header.SizeOfImage;
     if memory_size > 20 << 20 {
@@ -15,6 +16,16 @@ fn load_pe(
             "file header requests {}mb of memory",
             memory_size / (1 << 20)
         );
+    }
+
+    if relocate
+        && file
+            .data_directory
+            .get(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize)
+            .is_none()
+    {
+        log::error!("relocation requested, but file lacks relocation info");
+        relocate = false;
     }
 
     let mapping = if relocate {
@@ -85,6 +96,37 @@ fn load_pe(
         );
     }
 
+    if relocate {
+        let dir = &file.data_directory[pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize];
+        // XXX want to iterate relocations in memory while writing updated relocations,
+        // which requires two references to memory.
+        let relocs = unsafe {
+            std::mem::transmute(
+                &machine.x86.mem[(base + dir.VirtualAddress) as usize..][..dir.Size as usize],
+            )
+        };
+        let mut r = Reader::new(relocs);
+        while !r.done() {
+            let addr = *r.read::<u32>();
+            let size = *r.read::<u32>() - 8; // -8 because size includes these two fields
+            for _ in 0..(size / 2) {
+                let entry = *r.read::<u16>();
+                let etype = entry >> 12;
+                let ofs = entry & 0x0FFF;
+                match etype {
+                    0 => {} // skip
+                    3 => {
+                        // 32-bit
+                        let reloc = machine.x86.mem.view_mut::<u32>(base + addr + ofs as u32);
+                        *reloc -= file.opt_header.ImageBase;
+                        *reloc += base;
+                    }
+                    _ => panic!("unhandled relocation type {etype}"),
+                }
+            }
+        }
+    }
+
     if let Some(imports_data) = file
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
@@ -113,7 +155,7 @@ fn load_pe(
 pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, buf, &file, false)?;
+    let base = load_pe(machine, buf, &file, true)?;
     machine.state.kernel32.image_base = base;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
