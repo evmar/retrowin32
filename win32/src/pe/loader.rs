@@ -31,6 +31,41 @@ fn find_relocs(file: &pe::File) -> Option<IMAGE_DATA_DIRECTORY> {
     None
 }
 
+fn patch_iat(machine: &mut Machine, base: u32, file: &pe::File) {
+    let imports_data = match file
+        .data_directory
+        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
+    {
+        Some(imports) => imports,
+        None => return,
+    };
+
+    // Traverse the ILT, gathering up addresses that need to be fixed up to point at
+    // the relevant DLLs shims.
+    let mut patches = Vec::new();
+
+    let image = &machine.x86.mem[base as usize..];
+    for dll in pe::parse_dlls(imports_data.as_slice(image)) {
+        let dll_name = dll.name(image);
+        for (sym, iat_addr) in dll.entries(image) {
+            let name = format!("{}!{}", dll_name, sym.to_string());
+            machine
+                .labels
+                .insert(base + iat_addr, format!("{}@IAT", name));
+
+            let handler = winapi::resolve(dll_name, &sym);
+            let resolved_addr = machine.shims.add(name.clone(), handler);
+            machine.labels.insert(resolved_addr, name);
+
+            patches.push((base + iat_addr, resolved_addr));
+        }
+    }
+
+    for (addr, target) in patches {
+        machine.x86.mem.write_u32(addr, target);
+    }
+}
+
 fn load_pe(
     machine: &mut Machine,
     buf: &[u8],
@@ -148,35 +183,7 @@ fn load_pe(
         }
     }
 
-    if let Some(imports_data) = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
-    {
-        // Traverse the ILT, gathering up addresses that need to be fixed up to point at
-        // the relevant DLLs shims.
-        let mut patches = Vec::new();
-
-        let image = &machine.x86.mem[base as usize..];
-        for dll in pe::parse_dlls(imports_data.as_slice(image)) {
-            let dll_name = dll.name(image);
-            for (sym, iat_addr) in dll.entries(image) {
-                let name = format!("{}!{}", dll_name, sym.to_string());
-                machine
-                    .labels
-                    .insert(base + iat_addr, format!("{}@IAT", name));
-
-                let handler = winapi::resolve(dll_name, &sym);
-                let resolved_addr = machine.shims.add(name.clone(), handler);
-                machine.labels.insert(resolved_addr, name);
-
-                patches.push((base + iat_addr, resolved_addr));
-            }
-        }
-
-        for (addr, target) in patches {
-            machine.x86.mem.write_u32(addr, target);
-        }
-    }
+    patch_iat(machine, base, file);
 
     Ok(base)
 }
