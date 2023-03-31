@@ -943,7 +943,7 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> u32 {
+pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     let filename = filename.unwrap();
     let filename = filename.to_ascii_lowercase();
 
@@ -951,25 +951,25 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> u32 {
         .iter()
         .position(|dll| dll.file_name == filename)
     {
-        return (index + 1) as u32;
+        return HMODULE::from_raw((index + 1) as u32);
     }
 
     log::error!(
         "LoadLibrary({filename:?}) => {:x}",
         machine.x86.mem.read_u32(machine.x86.regs.esp - 4)
     );
-    0 // fail
+    HMODULE::null() // fail
 }
 
 #[win32_derive::dllexport]
 pub fn LoadLibraryExW(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     lpLibFileName: Option<Str16>,
     hFile: HFILE,
     dwFlags: u32,
-) -> u32 {
-    log::error!("LoadLibraryExW({lpLibFileName:?}, {hFile:x?}, {dwFlags:x})");
-    0 // fail
+) -> HMODULE {
+    let filename = lpLibFileName.map(|f| f.to_string());
+    LoadLibraryA(machine, filename.as_deref())
 }
 
 #[win32_derive::dllexport]
