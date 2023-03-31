@@ -33,13 +33,14 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     eprintln!("{}", dll_name);
 
     // path may be a .rs file or a directory (module).
-    let paths: Vec<std::path::PathBuf> = if path.extension().is_none() {
+    let mut paths: Vec<std::path::PathBuf> = if path.extension().is_none() {
         std::fs::read_dir(path)?
             .map(|e| e.unwrap().path())
             .collect()
     } else {
         vec![path.to_path_buf()]
     };
+    paths.sort();
 
     let mut fns = Vec::new();
     let mut fn_names = Vec::new();

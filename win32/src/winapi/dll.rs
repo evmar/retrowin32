@@ -343,6 +343,123 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
+    pub fn CreateFileA(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpFileName = unsafe {
+            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&str>>::stack_consumed();
+        let dwDesiredAccess =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwShareMode =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpSecurityAttributes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwCreationDisposition = unsafe {
+            <Result<CreationDisposition, u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
+        let dwFlagsAndAttributes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let hTemplateFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let result = winapi::kernel32::CreateFileA(
+            machine,
+            lpFileName,
+            dwDesiredAccess,
+            dwShareMode,
+            lpSecurityAttributes,
+            dwCreationDisposition,
+            dwFlagsAndAttributes,
+            hTemplateFile,
+        );
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn CreateFileW(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let lpFileName = unsafe {
+            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<Str16>>::stack_consumed();
+        let dwDesiredAccess =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwShareMode =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let lpSecurityAttributes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let dwCreationDisposition = unsafe {
+            <Result<CreationDisposition, u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
+        let dwFlagsAndAttributes =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let hTemplateFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let result = winapi::kernel32::CreateFileW(
+            machine,
+            lpFileName,
+            dwDesiredAccess,
+            dwShareMode,
+            lpSecurityAttributes,
+            dwCreationDisposition,
+            dwFlagsAndAttributes,
+            hTemplateFile,
+        );
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
+    pub fn WriteFile(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let hFile = unsafe {
+            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <HFILE>::stack_consumed();
+        let lpBuffer = unsafe {
+            <Option<&[u8]>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
+        };
+        stack_offset += <Option<&[u8]>>::stack_consumed();
+        let lpNumberOfBytesWritten = unsafe {
+            <Option<&mut u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut u32>>::stack_consumed();
+        let lpOverlapped =
+            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
+        stack_offset += <u32>::stack_consumed();
+        let result = winapi::kernel32::WriteFile(
+            machine,
+            hFile,
+            lpBuffer,
+            lpNumberOfBytesWritten,
+            lpOverlapped,
+        );
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
     pub fn SetLastError(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let dwErrCode =
@@ -885,123 +1002,6 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
-    pub fn CreateFileA(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpFileName = unsafe {
-            <Option<&str>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&str>>::stack_consumed();
-        let dwDesiredAccess =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwShareMode =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpSecurityAttributes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwCreationDisposition = unsafe {
-            <Result<CreationDisposition, u32>>::from_stack(
-                &mut machine.x86.mem,
-                machine.x86.regs.esp + stack_offset,
-            )
-        };
-        stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
-        let dwFlagsAndAttributes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let hTemplateFile = unsafe {
-            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <HFILE>::stack_consumed();
-        let result = winapi::kernel32::CreateFileA(
-            machine,
-            lpFileName,
-            dwDesiredAccess,
-            dwShareMode,
-            lpSecurityAttributes,
-            dwCreationDisposition,
-            dwFlagsAndAttributes,
-            hTemplateFile,
-        );
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn CreateFileW(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let lpFileName = unsafe {
-            <Option<Str16>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<Str16>>::stack_consumed();
-        let dwDesiredAccess =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwShareMode =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let lpSecurityAttributes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let dwCreationDisposition = unsafe {
-            <Result<CreationDisposition, u32>>::from_stack(
-                &mut machine.x86.mem,
-                machine.x86.regs.esp + stack_offset,
-            )
-        };
-        stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
-        let dwFlagsAndAttributes =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let hTemplateFile = unsafe {
-            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <HFILE>::stack_consumed();
-        let result = winapi::kernel32::CreateFileW(
-            machine,
-            lpFileName,
-            dwDesiredAccess,
-            dwShareMode,
-            lpSecurityAttributes,
-            dwCreationDisposition,
-            dwFlagsAndAttributes,
-            hTemplateFile,
-        );
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
-    pub fn WriteFile(machine: &mut Machine) {
-        let mut stack_offset = 4u32;
-        let hFile = unsafe {
-            <HFILE>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <HFILE>::stack_consumed();
-        let lpBuffer = unsafe {
-            <Option<&[u8]>>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset)
-        };
-        stack_offset += <Option<&[u8]>>::stack_consumed();
-        let lpNumberOfBytesWritten = unsafe {
-            <Option<&mut u32>>::from_stack(
-                &mut machine.x86.mem,
-                machine.x86.regs.esp + stack_offset,
-            )
-        };
-        stack_offset += <Option<&mut u32>>::stack_consumed();
-        let lpOverlapped =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
-        let result = winapi::kernel32::WriteFile(
-            machine,
-            hFile,
-            lpBuffer,
-            lpNumberOfBytesWritten,
-            lpOverlapped,
-        );
-        machine.x86.regs.eax = result.to_raw();
-        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
-        machine.x86.regs.esp += stack_offset;
-    }
     pub fn VirtualAlloc(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let lpAddress =
@@ -1322,6 +1322,9 @@ pub mod kernel32 {
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name(name) => match name {
+                "CreateFileA" => CreateFileA,
+                "CreateFileW" => CreateFileW,
+                "WriteFile" => WriteFile,
                 "SetLastError" => SetLastError,
                 "GetLastError" => GetLastError,
                 "ExitProcess" => ExitProcess,
@@ -1366,9 +1369,6 @@ pub mod kernel32 {
                 "LoadLibraryExW" => LoadLibraryExW,
                 "GetProcAddress" => GetProcAddress,
                 "SetHandleCount" => SetHandleCount,
-                "CreateFileA" => CreateFileA,
-                "CreateFileW" => CreateFileW,
-                "WriteFile" => WriteFile,
                 "VirtualAlloc" => VirtualAlloc,
                 "VirtualFree" => VirtualFree,
                 "OutputDebugStringA" => OutputDebugStringA,
