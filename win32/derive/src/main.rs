@@ -9,19 +9,36 @@ use quote::{quote, ToTokens};
 mod gen;
 
 enum Attribute {
-    DllExport,
+    DllExport(Option<usize>),
 }
 
 fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
-    if attr.path.leading_colon.is_some()
-        || attr.path.segments.len() != 2
-        || attr.path.segments[0].ident != "win32_derive"
+    let (path, nested) = match attr.parse_meta() {
+        Ok(syn::Meta::Path(path)) => (path, None),
+        Ok(syn::Meta::List(list)) => (list.path, Some(list.nested)),
+        _ => return Ok(None), // ignore unexpected attrs
+    };
+    if path.leading_colon.is_some()
+        || path.segments.len() != 2
+        || path.segments[0].ident != "win32_derive"
     {
         return Ok(None);
     }
     let seg = &attr.path.segments[1];
     if seg.ident == "dllexport" {
-        Ok(Some(Attribute::DllExport))
+        let ordinal = match nested {
+            None => None,
+            Some(n) => {
+                if n.len() != 1 {
+                    anyhow::bail!("bad dllexport");
+                }
+                match n.first().unwrap() {
+                    syn::NestedMeta::Lit(syn::Lit::Int(i)) => Some(i.base10_parse::<usize>()?),
+                    _ => anyhow::bail!("bad dllexport"),
+                }
+            }
+        };
+        Ok(Some(Attribute::DllExport(ordinal)))
     } else {
         anyhow::bail!("bad win32_derive attribute")
     }
@@ -50,17 +67,17 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
         for item in &file.items {
             match item {
                 syn::Item::Fn(func) => {
-                    let mut dllexport = false;
+                    let mut dllexport = None;
                     for attr in func.attrs.iter() {
                         if let Some(attr) = parse_attr(attr)? {
                             match attr {
-                                Attribute::DllExport => dllexport = true,
+                                Attribute::DllExport(n) => dllexport = Some(n),
                             }
                         }
                     }
 
-                    if dllexport {
-                        fn_names.push(func.sig.ident.clone());
+                    if let Some(ordinal) = dllexport {
+                        fn_names.push((func.sig.ident.clone(), ordinal));
                         fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
                     }
                 }
