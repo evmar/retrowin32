@@ -26,6 +26,12 @@ pub fn pxor_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn movq_mm_mmm64(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm64(x86, instr);
+    rm64_x(x86, instr, |_x86, _x| y);
+    Ok(())
+}
+
 pub fn movd_mm_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm32(x86, instr) as u64;
     rm64_x(x86, instr, |_x86, _x| y);
