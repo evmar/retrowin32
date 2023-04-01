@@ -2,35 +2,6 @@ use super::IMAGE_DATA_DIRECTORY;
 use crate::{machine::Machine, pe, reader::Reader, winapi};
 use x86::Memory;
 
-fn find_relocs(file: &pe::File) -> Option<IMAGE_DATA_DIRECTORY> {
-    if let Some(dir) = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC as usize)
-    {
-        if dir.Size > 0 {
-            return Some(IMAGE_DATA_DIRECTORY {
-                VirtualAddress: dir.VirtualAddress,
-                Size: dir.Size,
-            });
-        }
-    }
-
-    // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
-    // have a .reloc section that is invalid (?).
-    // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
-    // that appear to only apply to object files (?).
-    // for sec in file.sections {
-    //     if sec.name() == ".reloc" {
-    //         return Some(IMAGE_DATA_DIRECTORY {
-    //             VirtualAddress: sec.VirtualAddress,
-    //             Size: sec.VirtualSize,
-    //         });
-    //     }
-    // }
-
-    None
-}
-
 fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the relevant DLLs shims.
@@ -59,6 +30,11 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 }
 
 fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
+    // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
+    // have a .reloc section that is invalid (?).
+    // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
+    // that appear to only apply to object files (?).
+
     // XXX want to iterate relocations in memory while writing updated relocations,
     // which requires two references to memory.
     let relocs = unsafe { std::mem::transmute(relocs.as_slice(image)) };
@@ -99,11 +75,6 @@ fn load_pe(
             "file header requests {}mb of memory",
             memory_size / (1 << 20)
         );
-    }
-
-    let relocs = if relocate { find_relocs(file) } else { None };
-    if relocate && relocs.is_none() {
-        log::error!("relocation requested, but file lacks relocation info");
     }
 
     let mapping = if relocate {
@@ -174,19 +145,18 @@ fn load_pe(
         );
     }
 
-    if let Some(relocs) = &relocs {
-        apply_relocs(
-            &mut machine.x86.mem[base as usize..],
-            file.opt_header.ImageBase,
-            base,
-            relocs,
-        );
+    if relocate {
+        if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
+            apply_relocs(
+                &mut machine.x86.mem[base as usize..],
+                file.opt_header.ImageBase,
+                base,
+                relocs,
+            );
+        }
     }
 
-    if let Some(imports) = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::IMPORT as usize)
-    {
+    if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
         patch_iat(machine, base, imports);
     }
 
