@@ -982,12 +982,12 @@ pub mod kernel32 {
     pub fn QueryPerformanceCounter(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let lpPerformanceCount = unsafe {
-            <Option<&mut u32>>::from_stack(
+            <Option<&mut u64>>::from_stack(
                 &mut machine.x86.mem,
                 machine.x86.regs.esp + stack_offset,
             )
         };
-        stack_offset += <Option<&mut u32>>::stack_consumed();
+        stack_offset += <Option<&mut u64>>::stack_consumed();
         let result = winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);

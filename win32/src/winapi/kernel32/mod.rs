@@ -496,10 +496,10 @@ const QUERY_PERFORMANCE_FREQ: u32 = 10_000_000;
 #[win32_derive::dllexport]
 pub fn QueryPerformanceCounter(
     machine: &mut Machine,
-    lpPerformanceCount: Option<&mut u32>,
+    lpPerformanceCount: Option<&mut u64>,
 ) -> bool {
     let ms = machine.host.time();
-    *lpPerformanceCount.unwrap() = ms * (QUERY_PERFORMANCE_FREQ / 1000);
+    *lpPerformanceCount.unwrap() = ms as u64 * (QUERY_PERFORMANCE_FREQ as u64 / 1000);
     true // success
 }
 
