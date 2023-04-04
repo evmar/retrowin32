@@ -8,10 +8,13 @@ Doesn't really work for much yet, but I'm still tinkering!
 
 Some sample programs:
 
-- [Zig "hello world"](https://evmar.github.io/retrowin32/?zig.exe).
-- [A basic DirectDraw demo](https://evmar.github.io/retrowin32/?BasicDD.exe),
+- [Zig "hello world"](https://evmar.github.io/retrowin32/?exe=zig.exe).
+- [A basic DirectDraw demo](https://evmar.github.io/retrowin32/?exe=BasicDD.exe),
   which came from
   [this intro site](https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting)
+- [Monolife](https://evmar.github.io/retrowin32/?exe=monolife/monolife.exe&file=monolife/monolife.dat)
+  by Hatha (see it [on pouet.net](https://www.pouet.net/prod.php?which=7698))
+  [Note: still buggy, but the opening sorta works!]
 
 Click the "run" button in the corner to run these.
 
