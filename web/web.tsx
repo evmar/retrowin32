@@ -12,8 +12,10 @@ import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { hex } from './util';
 
-async function loadExe(path: string): Promise<ArrayBuffer> {
-  return await (await fetch(path)).arrayBuffer();
+async function fetchBytes(path: string): Promise<Uint8Array> {
+  const resp = await fetch(path);
+  if (!resp.ok) throw new Error(`failed to load ${path}`);
+  return new Uint8Array(await resp.arrayBuffer());
 }
 
 // Matches 'pub type JsSurface' in lib.rs.
@@ -109,29 +111,19 @@ class Window implements JsWindow {
   }
 }
 
-let monolifeDatHack: Uint8Array | undefined;
-
 class File implements JsFile {
   ofs = 0;
-  data?: Uint8Array;
 
-  constructor(readonly path: string) {
-    if (path === 'monolife.dat') {
-      this.data = monolifeDatHack;
-    } else {
-      throw new Error('unimplemented: async file loading');
-    }
+  constructor(readonly path: string, readonly bytes: Uint8Array) {
   }
   seek(ofs: number): boolean {
     this.ofs = ofs;
     return true;
   }
   read(buf: Uint8Array): number {
-    let i = 0;
-    for (i = 0; i < buf.length && this.ofs < this.data!.length; i++, this.ofs++) {
-      buf[i] = this.data![this.ofs];
-    }
-    return i;
+    const n = Math.min(buf.length, this.bytes.length - this.ofs);
+    buf.set(this.bytes.subarray(this.ofs, this.ofs + n));
+    return n;
   }
 }
 
@@ -145,11 +137,9 @@ class VM implements JsHost {
   stdout = '';
   page!: Page;
 
-  constructor(private readonly path: string, exe: ArrayBuffer, labelsLoader: LabelsLoader) {
-    this.emu.load_exe(new Uint8Array(exe));
+  constructor(private readonly exePath: string, readonly files: Map<string, Uint8Array>, labelsLoader: LabelsLoader) {
+    this.emu.load_exe(files.get(exePath)!);
 
-    // new Uint8Array(exe: TypedArray) creates a uint8 view onto the buffer, no copies.
-    // But then passing the buffer to Rust must copy the array into the WASM heap...
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
@@ -192,7 +182,7 @@ class VM implements JsHost {
   }
 
   private loadBreakpoints() {
-    const json = window.localStorage.getItem(this.path);
+    const json = window.localStorage.getItem(this.exePath);
     if (!json) return;
     const bps = JSON.parse(json) as Breakpoint[];
     for (const bp of bps) {
@@ -201,7 +191,7 @@ class VM implements JsHost {
   }
 
   private saveBreakpoints() {
-    window.localStorage.setItem(this.path, JSON.stringify(Array.from(this.breakpoints.values())));
+    window.localStorage.setItem(this.exePath, JSON.stringify(Array.from(this.breakpoints.values())));
   }
 
   addBreak(bp: Breakpoint, save = true) {
@@ -325,7 +315,11 @@ class VM implements JsHost {
   }
 
   open(path: string): JsFile {
-    return new File(path);
+    // TODO: async file loading.
+    const cwd = this.exePath.replace(/\/([^\/]+)$/, '/');
+    const bytes = this.files.get(cwd + path);
+    if (!bytes) throw new Error(`unknown file ${path}`);
+    return new File(path, bytes);
   }
   write(buf: Uint8Array): number {
     this.stdout += this.decoder.decode(buf);
@@ -633,18 +627,33 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 }
 
+interface URLParams {
+  exe: string;
+  files: string[];
+}
+
+function parseURL(): URLParams {
+  const query = new URLSearchParams(document.location.search);
+  const exe = query.get('exe');
+  if (!exe) throw new Error('missing exe param');
+  const files = query.getAll('file');
+  const params: URLParams = { exe, files };
+  return params;
+}
+
 async function main() {
-  const path = document.location.search.substring(1);
-  if (!path) throw new Error('expected ?path in URL');
-  const exe = await loadExe(path);
-  const loader = new LabelsLoader();
-  await loader.fetchCSV(path);
-  await wasm.default(new URL('wasm.wasm', document.location.href));
-  if (path.endsWith('monolife.exe')) {
-    monolifeDatHack = new Uint8Array(await (await fetch(path.replace(/.exe/, '.dat'))).arrayBuffer());
+  const params = parseURL();
+
+  const files = new Map<string, Uint8Array>();
+  for (const file of [params.exe, ...params.files]) {
+    files.set(file, await fetchBytes(file));
   }
 
-  const vm = new VM(path, exe, loader);
+  const loader = new LabelsLoader();
+  await loader.fetchCSV(params.exe);
+  await wasm.default(new URL('wasm.wasm', document.location.href));
+
+  const vm = new VM(params.exe, files, loader);
   preact.render(<Page vm={vm} />, document.body);
 }
 
