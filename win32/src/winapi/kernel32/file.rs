@@ -97,16 +97,19 @@ pub fn CreateFileW(
 }
 
 #[win32_derive::dllexport]
-pub fn GetFileType(_machine: &mut Machine, hFile: HFILE) -> u32 {
+pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
     let FILE_TYPE_CHAR = 0x2;
     let FILE_TYPE_UNKNOWN = 0x8;
     match hFile {
-        STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => FILE_TYPE_CHAR,
-        _ => {
-            log::error!("GetFileType({hFile:?}) unknown handle");
-            FILE_TYPE_UNKNOWN
-        }
+        STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => return FILE_TYPE_CHAR,
+        _ => {}
     }
+    if machine.state.kernel32.files.get(&hFile).is_some() {
+        return FILE_TYPE_CHAR;
+    }
+
+    log::error!("GetFileType({hFile:?}) unknown handle");
+    FILE_TYPE_UNKNOWN
 }
 
 #[win32_derive::dllexport]
