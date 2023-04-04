@@ -123,6 +123,7 @@ class File implements JsFile {
   read(buf: Uint8Array): number {
     const n = Math.min(buf.length, this.bytes.length - this.ofs);
     buf.set(this.bytes.subarray(this.ofs, this.ofs + n));
+    this.ofs += n;
     return n;
   }
 }
