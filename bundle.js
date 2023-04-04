@@ -321,6 +321,21 @@ var Memory = class extends d {
       const addr = form.elements.namedItem("addr").value;
       this.props.jumpTo(parseInt(addr, 16));
     });
+    __publicField(this, "onJumpForward", (e2) => {
+      this.jump(e2, 1);
+    });
+    __publicField(this, "onJumpBack", (e2) => {
+      this.jump(e2, -1);
+    });
+  }
+  jump(e2, direction) {
+    let step = 256;
+    if (e2.shiftKey)
+      step *= 16;
+    if (e2.altKey)
+      step *= 256;
+    step *= direction;
+    this.props.jumpTo(this.props.base + step);
   }
   render() {
     let rows = [];
@@ -355,14 +370,14 @@ var Memory = class extends d {
       onSubmit: this.onSubmit
     }, /* @__PURE__ */ h("button", {
       type: "button",
-      onClick: () => this.props.jumpTo(this.props.base - 256)
+      onClick: this.onJumpBack
     }, "<"), /* @__PURE__ */ h("input", {
       name: "addr",
       size: 8,
       value: hex(this.props.base, 8)
     }), /* @__PURE__ */ h("button", {
       type: "button",
-      onClick: () => this.props.jumpTo(this.props.base + 256)
+      onClick: this.onJumpForward
     }, ">")), /* @__PURE__ */ h("code", null, rows));
   }
 };
@@ -569,19 +584,32 @@ var Emulator = class {
       wasm.emulator_load_exe(retptr, this.ptr, ptr0, len0);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
-      var r2 = getInt32Memory0()[retptr / 4 + 2];
-      var r3 = getInt32Memory0()[retptr / 4 + 3];
-      var ptr1 = r0;
-      var len1 = r1;
-      if (r3) {
-        ptr1 = 0;
-        len1 = 0;
-        throw takeObject(r2);
+      if (r1) {
+        throw takeObject(r0);
       }
-      return getStringFromWasm0(ptr1, len1);
     } finally {
       wasm.__wbindgen_add_to_stack_pointer(16);
-      wasm.__wbindgen_free(ptr1, len1);
+    }
+  }
+  labels() {
+    try {
+      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+      wasm.emulator_labels(retptr, this.ptr);
+      var r0 = getInt32Memory0()[retptr / 4 + 0];
+      var r1 = getInt32Memory0()[retptr / 4 + 1];
+      var r2 = getInt32Memory0()[retptr / 4 + 2];
+      var r3 = getInt32Memory0()[retptr / 4 + 3];
+      var ptr0 = r0;
+      var len0 = r1;
+      if (r3) {
+        ptr0 = 0;
+        len0 = 0;
+        throw takeObject(r2);
+      }
+      return getStringFromWasm0(ptr0, len0);
+    } finally {
+      wasm.__wbindgen_add_to_stack_pointer(16);
+      wasm.__wbindgen_free(ptr0, len0);
     }
   }
   memory() {
@@ -693,10 +721,10 @@ var Emulator = class {
       wasm.__wbindgen_free(r0, r1);
     }
   }
-  step() {
+  single_step() {
     try {
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      wasm.emulator_step(retptr, this.ptr);
+      wasm.emulator_single_step(retptr, this.ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       if (r1) {
@@ -706,10 +734,10 @@ var Emulator = class {
       wasm.__wbindgen_add_to_stack_pointer(16);
     }
   }
-  step_many(count) {
+  execute_many(count) {
     try {
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      wasm.emulator_step_many(retptr, this.ptr, count);
+      wasm.emulator_execute_many(retptr, this.ptr, count);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -828,6 +856,13 @@ function getImports() {
   imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
     takeObject(arg0);
   };
+  imports.wbg.__wbg_log_0c3ed3115d947071 = function(arg0, arg1, arg2, arg3) {
+    try {
+      getObject(arg0).log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(arg2, arg3);
+    }
+  };
   imports.wbg.__wbg_writepixels_491c49a49cdeb8c6 = function(arg0, arg1, arg2) {
     const ret = getObject(arg0).write_pixels(getArrayU8FromWasm0(arg1, arg2));
     return addHeapObject(ret);
@@ -848,15 +883,27 @@ function getImports() {
   imports.wbg.__wbg_setsize_7bcb3132fd38238f = function(arg0, arg1, arg2) {
     getObject(arg0).set_size(arg1 >>> 0, arg2 >>> 0);
   };
+  imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function(arg0, arg1) {
+    const ret = getObject(arg0).seek(arg1 >>> 0);
+    return ret;
+  };
+  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).read(getArrayU8FromWasm0(arg1, arg2));
+    return ret;
+  };
   imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
     getObject(arg0).exit(arg1 >>> 0);
   };
-  imports.wbg.__wbg_write_61e5d5b79d83ffda = function(arg0, arg1, arg2) {
-    const ret = getObject(arg0).write(getArrayU8FromWasm0(arg1, arg2));
-    return ret;
-  };
   imports.wbg.__wbg_time_2cd9973903af2ef8 = function(arg0) {
     const ret = getObject(arg0).time();
+    return ret;
+  };
+  imports.wbg.__wbg_open_61490d64358619c7 = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).open(getStringFromWasm0(arg1, arg2));
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_write_61e5d5b79d83ffda = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).write(getArrayU8FromWasm0(arg1, arg2));
     return ret;
   };
   imports.wbg.__wbg_createwindow_79bbfe483866ee8c = function(arg0) {
@@ -867,8 +914,8 @@ function getImports() {
     const ret = getObject(arg0).create_surface(SurfaceOptions.__wrap(arg1));
     return addHeapObject(ret);
   };
-  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
+  imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
   };
   imports.wbg.__wbindgen_memory = function() {
@@ -879,26 +926,12 @@ function getImports() {
     const ret = mem(takeObject(arg0), arg1 >>> 0);
     return addHeapObject(ret);
   };
+  imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
+    const ret = getObject(arg0);
+    return addHeapObject(ret);
+  };
   imports.wbg.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
-  };
-  imports.wbg.__wbindgen_rethrow = function(arg0) {
-    throw takeObject(arg0);
-  };
-  imports.wbg.__wbg_debug_f15cb542ea509609 = function(arg0) {
-    console.debug(getObject(arg0));
-  };
-  imports.wbg.__wbg_error_ef9a0be47931175f = function(arg0) {
-    console.error(getObject(arg0));
-  };
-  imports.wbg.__wbg_info_2874fdd5393f35ce = function(arg0) {
-    console.info(getObject(arg0));
-  };
-  imports.wbg.__wbg_log_4b5638ad60bdc54a = function(arg0) {
-    console.log(getObject(arg0));
-  };
-  imports.wbg.__wbg_warn_58110c4a199df084 = function(arg0) {
-    console.warn(getObject(arg0));
   };
   return imports;
 }
@@ -910,7 +943,6 @@ function finalizeInit(instance, module) {
   cachedFloat64Memory0 = new Float64Array();
   cachedInt32Memory0 = new Int32Array();
   cachedUint8Memory0 = new Uint8Array();
-  wasm.__wbindgen_start();
   return wasm;
 }
 async function init(input) {
@@ -1223,8 +1255,11 @@ var Tabs = class extends d {
 };
 
 // web.tsx
-async function loadExe(path) {
-  return await (await fetch(path)).arrayBuffer();
+async function fetchBytes(path) {
+  const resp = await fetch(path);
+  if (!resp.ok)
+    throw new Error(`failed to load ${path}`);
+  return new Uint8Array(await resp.arrayBuffer());
 }
 var Surface = class {
   constructor(width, height, primary) {
@@ -1262,7 +1297,8 @@ var Surface = class {
   }
 };
 var Window = class {
-  constructor(key) {
+  constructor(vm, key) {
+    this.vm = vm;
     this.key = key;
     __publicField(this, "title", "");
     __publicField(this, "width");
@@ -1272,11 +1308,30 @@ var Window = class {
   set_size(w2, h2) {
     this.width = w2;
     this.height = h2;
+    this.vm.forceUpdate();
+  }
+};
+var File = class {
+  constructor(path, bytes) {
+    this.path = path;
+    this.bytes = bytes;
+    __publicField(this, "ofs", 0);
+  }
+  seek(ofs) {
+    this.ofs = ofs;
+    return true;
+  }
+  read(buf) {
+    const n2 = Math.min(buf.length, this.bytes.length - this.ofs);
+    buf.set(this.bytes.subarray(this.ofs, this.ofs + n2));
+    this.ofs += n2;
+    return n2;
   }
 };
 var VM = class {
-  constructor(path, exe, labelsLoader) {
-    this.path = path;
+  constructor(exePath, files, labelsLoader) {
+    this.exePath = exePath;
+    this.files = files;
     __publicField(this, "emu", new_emulator(this));
     __publicField(this, "decoder", new TextDecoder());
     __publicField(this, "breakpoints", /* @__PURE__ */ new Map());
@@ -1288,7 +1343,8 @@ var VM = class {
     __publicField(this, "stepSize", 5e3);
     __publicField(this, "instrPerMs", 0);
     __publicField(this, "windows", []);
-    const importsJSON = JSON.parse(this.emu.load_exe(new Uint8Array(exe)));
+    this.emu.load_exe(files.get(exePath));
+    const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName;
@@ -1298,8 +1354,32 @@ var VM = class {
     this.labels = new Labels(labelsLoader);
     this.loadBreakpoints();
   }
+  log(level, msg) {
+    switch (level) {
+      case 5:
+        console.error(msg);
+        if (this.page) {
+          this.page.setState({ error: msg });
+        }
+        break;
+      case 4:
+        console.warn(msg);
+        break;
+      case 3:
+        console.info(msg);
+        break;
+      case 2:
+        console.log(msg);
+        break;
+      case 1:
+        console.debug(msg);
+        break;
+      default:
+        throw new Error(`unexpected log level #{level}`);
+    }
+  }
   loadBreakpoints() {
-    const json = window.localStorage.getItem(this.path);
+    const json = window.localStorage.getItem(this.exePath);
     if (!json)
       return;
     const bps = JSON.parse(json);
@@ -1308,7 +1388,7 @@ var VM = class {
     }
   }
   saveBreakpoints() {
-    window.localStorage.setItem(this.path, JSON.stringify(Array.from(this.breakpoints.values())));
+    window.localStorage.setItem(this.exePath, JSON.stringify(Array.from(this.breakpoints.values())));
   }
   addBreak(bp, save = true) {
     this.breakpoints.set(bp.addr, bp);
@@ -1375,18 +1455,18 @@ var VM = class {
     }
   }
   step() {
-    this.emu.step();
+    this.emu.single_step();
     return !this.checkBreak();
   }
   stepMany() {
     const start = performance.now();
-    const steps = this.emu.step_many(this.stepSize);
+    const steps = this.emu.execute_many(this.stepSize);
     const end = performance.now();
     if (this.checkBreak()) {
       return false;
     }
     const delta = end - start;
-    const instrPerMs = this.stepSize / delta;
+    const instrPerMs = steps / delta;
     const alpha = 0.5;
     this.instrPerMs = alpha * instrPerMs + (alpha - 1) * this.instrPerMs;
     if (delta < 10) {
@@ -1405,18 +1485,28 @@ var VM = class {
     console.warn("exited with code", code);
     this.exitCode = code;
   }
+  time() {
+    return Math.floor(performance.now());
+  }
+  open(path) {
+    const cwd = this.exePath.replace(/\/([^\/]+)$/, "/");
+    const bytes = this.files.get(cwd + path);
+    if (!bytes)
+      throw new Error(`unknown file ${path}`);
+    return new File(path, bytes);
+  }
   write(buf) {
     this.stdout += this.decoder.decode(buf);
     this.page.setState({ stdout: this.stdout });
     return buf.length;
   }
-  time() {
-    return Math.floor(performance.now());
+  forceUpdate() {
+    this.page.forceUpdate();
   }
   create_window() {
     let id = this.windows.length + 1;
-    this.windows.push(new Window(id));
-    this.page.forceUpdate();
+    this.windows.push(new Window(this, id));
+    this.forceUpdate();
     return this.windows[id - 1];
   }
   create_surface(opts) {
@@ -1489,7 +1579,7 @@ var WindowComponent = class extends d {
 var Page = class extends d {
   constructor(props) {
     super(props);
-    __publicField(this, "state", { stdout: "", memBase: 4198400, selectedTab: "output" });
+    __publicField(this, "state", { stdout: "", error: "", memBase: 4198400, selectedTab: "output" });
     __publicField(this, "highlightMemory", (addr) => this.setState({ memHighlight: addr }));
     __publicField(this, "showMemory", (memBase) => {
       this.setState({ selectedTab: "memory", memBase });
@@ -1527,7 +1617,9 @@ var Page = class extends d {
     try {
       stop = !this.props.vm.stepMany();
     } catch (e2) {
-      console.error(e2);
+      const err = e2;
+      console.error(err);
+      this.setState({ error: err.message });
       stop = true;
     }
     if (stop) {
@@ -1577,7 +1669,9 @@ var Page = class extends d {
     }, /* @__PURE__ */ h(Tabs, {
       style: { width: "80ex" },
       tabs: {
-        output: /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, this.state.stdout)),
+        output: /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, this.state.stdout, this.state.error ? /* @__PURE__ */ h("div", {
+          class: "error"
+        }, "ERROR: ", this.state.error) : null)),
         memory: /* @__PURE__ */ h(Memory, {
           mem: this.props.vm.emu.memory(),
           base: this.state.memBase,
@@ -1623,15 +1717,25 @@ var Page = class extends d {
     })));
   }
 };
+function parseURL() {
+  const query = new URLSearchParams(document.location.search);
+  const exe = query.get("exe");
+  if (!exe)
+    throw new Error("missing exe param");
+  const files = query.getAll("file");
+  const params = { exe, files };
+  return params;
+}
 async function main() {
-  const path = document.location.search.substring(1);
-  if (!path)
-    throw new Error("expected ?path in URL");
-  const exe = await loadExe(path);
+  const params = parseURL();
+  const files = /* @__PURE__ */ new Map();
+  for (const file of [params.exe, ...params.files]) {
+    files.set(file, await fetchBytes(file));
+  }
   const loader = new Loader();
-  await loader.fetchCSV(path);
+  await loader.fetchCSV(params.exe);
   await glue_default(new URL("wasm.wasm", document.location.href));
-  const vm = new VM(path, exe, loader);
+  const vm = new VM(params.exe, files, loader);
   P(/* @__PURE__ */ h(Page, {
     vm
   }), document.body);

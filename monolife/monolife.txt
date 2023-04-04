@@ -1,0 +1,36 @@
+
+m o n o l i f e 
+by hatha
+
+the win32 version
+
+The best intro ever made by hatha now for the current pc-gaming platform.
+To run this you need a pc running win95/98/2000 with directX 7.0
+Since this intro is anno 1997 it is 100% software rendering so no 3dhardware is needed.
+
+Everything is calculated in real-time.
+
+The intro competed at takeover'97 in the intro competition where it received the third price.
+The original version was a DOS executable with a filesize of 61,814 bytes. 
+It used a Gravis Ultrasound for the music. (Data,music,code and soundsystem were all 
+incorporated in the single executable file)
+After the release of this intro, democoding for the pc platform changed rapidly. Vesa2.0,
+Windows,Linux,Direct3D,DirectDraw,Directsound and OpenGL became main standards. 
+Yes, DOS is realy dead now. (Drop a tear now please)
+
+Nevertheless, have fun.
+
+HATHAdesign
+www.hatha.nl
+
+
+
+
+
+
+
+
+
+
+
+
