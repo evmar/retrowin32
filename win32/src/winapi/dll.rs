@@ -1308,6 +1308,20 @@ pub mod kernel32 {
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
         machine.x86.regs.esp += stack_offset;
     }
+    pub fn InterlockedIncrement(machine: &mut Machine) {
+        let mut stack_offset = 4u32;
+        let addend = unsafe {
+            <Option<&mut u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut u32>>::stack_consumed();
+        let result = winapi::kernel32::InterlockedIncrement(machine, addend);
+        machine.x86.regs.eax = result.to_raw();
+        machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
+        machine.x86.regs.esp += stack_offset;
+    }
     fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
         Some(match *sym {
             winapi::ImportSymbol::Name("GetModuleHandleA") => GetModuleHandleA,
@@ -1382,6 +1396,7 @@ pub mod kernel32 {
             winapi::ImportSymbol::Name("TlsGetValue") => TlsGetValue,
             winapi::ImportSymbol::Name("CreateThread") => CreateThread,
             winapi::ImportSymbol::Name("SetThreadPriority") => SetThreadPriority,
+            winapi::ImportSymbol::Name("InterlockedIncrement") => InterlockedIncrement,
             _ => return None,
         })
     }
