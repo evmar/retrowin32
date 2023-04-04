@@ -9,14 +9,14 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 
     let image = &machine.x86.mem[base as usize..];
     for dll in pe::parse_dlls(imports_data.as_slice(image)) {
-        let dll_name = dll.name(image);
+        let dll_name = dll.name(image).to_ascii_lowercase();
         for (sym, iat_addr) in dll.entries(image) {
             let name = format!("{}!{}", dll_name, sym.to_string());
             machine
                 .labels
                 .insert(base + iat_addr, format!("{}@IAT", name));
 
-            let handler = winapi::resolve(dll_name, &sym);
+            let handler = winapi::resolve(&dll_name, &sym);
             let resolved_addr = machine.shims.add(name.clone(), handler);
             machine.labels.insert(resolved_addr, name);
 

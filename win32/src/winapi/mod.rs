@@ -86,7 +86,6 @@ pub const DLLS: [BuiltinDLL; 9] = [
 ];
 
 pub fn resolve(file_name: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
-    let file_name = file_name.to_ascii_lowercase();
     let dll = DLLS.iter().find(|&dll| dll.file_name == file_name)?;
     (dll.resolve)(sym)
 }
