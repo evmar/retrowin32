@@ -146,7 +146,7 @@ fn load_pe(
     }
 
     if relocate {
-        if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
+        if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             apply_relocs(
                 &mut machine.x86.mem[base as usize..],
                 file.opt_header.ImageBase,
