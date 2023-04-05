@@ -1022,6 +1022,291 @@ var Labels = class {
   }
 };
 
+// emulator.ts
+var Emulator2 = class {
+  constructor(host, storageKey, bytes, labelsLoader) {
+    this.host = host;
+    this.storageKey = storageKey;
+    __publicField(this, "emu");
+    __publicField(this, "breakpoints", /* @__PURE__ */ new Map());
+    __publicField(this, "imports", []);
+    __publicField(this, "labels");
+    __publicField(this, "exitCode");
+    __publicField(this, "stepSize", 5e3);
+    __publicField(this, "instrPerMs", 0);
+    host.emulator = this;
+    this.emu = new_emulator(host);
+    this.emu.load_exe(bytes);
+    const importsJSON = JSON.parse(this.emu.labels());
+    for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
+      const addr = parseInt(jsAddr);
+      const name = jsName;
+      this.imports.push(`${hex(addr, 8)}: ${name}`);
+      labelsLoader.add(addr, name);
+    }
+    this.labels = new Labels(labelsLoader);
+    this.loadBreakpoints();
+  }
+  loadBreakpoints() {
+    const json = window.localStorage.getItem(this.storageKey);
+    if (!json)
+      return;
+    const bps = JSON.parse(json);
+    for (const bp of bps) {
+      this.addBreak(bp, false);
+    }
+  }
+  saveBreakpoints() {
+    window.localStorage.setItem(this.storageKey, JSON.stringify(Array.from(this.breakpoints.values())));
+  }
+  addBreak(bp, save = true) {
+    this.breakpoints.set(bp.addr, bp);
+    if (!bp.disabled) {
+      this.emu.breakpoint_add(bp.addr);
+    }
+    if (save)
+      this.saveBreakpoints();
+  }
+  addBreakByName(name) {
+    for (const [addr, label] of this.labels.byAddr) {
+      if (label === name) {
+        this.addBreak({ addr });
+        return true;
+      }
+    }
+    if (name.match(/^[0-9a-fA-F]+$/)) {
+      const addr = parseInt(name, 16);
+      this.addBreak({ addr });
+      return true;
+    }
+    return false;
+  }
+  delBreak(addr) {
+    this.breakpoints.delete(addr);
+    this.emu.breakpoint_clear(addr);
+    this.saveBreakpoints();
+  }
+  toggleBreak(addr) {
+    const bp = this.breakpoints.get(addr);
+    bp.disabled = !bp.disabled;
+    if (bp.disabled) {
+      this.emu.breakpoint_clear(addr);
+    } else {
+      this.emu.breakpoint_add(addr);
+    }
+    this.saveBreakpoints();
+  }
+  checkBreak() {
+    if (this.exitCode !== void 0)
+      return true;
+    const ip = this.emu.eip;
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
+      if (bp.oneShot) {
+        this.delBreak(bp.addr);
+      } else {
+        this.host.showTab("breakpoints");
+      }
+      return true;
+    }
+    return false;
+  }
+  stepPastBreak() {
+    const ip = this.emu.eip;
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
+      this.emu.breakpoint_clear(ip);
+      const ret = this.step();
+      this.emu.breakpoint_add(ip);
+      return ret;
+    } else {
+      return this.step();
+    }
+  }
+  step() {
+    this.emu.single_step();
+    return !this.checkBreak();
+  }
+  stepMany() {
+    const start = performance.now();
+    const steps = this.emu.execute_many(this.stepSize);
+    const end = performance.now();
+    if (this.checkBreak()) {
+      return false;
+    }
+    const delta = end - start;
+    const instrPerMs = steps / delta;
+    const alpha = 0.5;
+    this.instrPerMs = alpha * instrPerMs + (alpha - 1) * this.instrPerMs;
+    if (delta < 10) {
+      this.stepSize *= 2;
+      console.log("adjusted step rate", this.stepSize);
+    }
+    return true;
+  }
+  mappings() {
+    return JSON.parse(this.emu.mappings_json());
+  }
+  disassemble(addr) {
+    return JSON.parse(this.emu.disassemble_json(addr));
+  }
+};
+
+// host.ts
+async function fetchBytes(path) {
+  const resp = await fetch(path);
+  if (!resp.ok)
+    throw new Error(`failed to load ${path}`);
+  return new Uint8Array(await resp.arrayBuffer());
+}
+var Surface = class {
+  constructor(width, height, primary) {
+    __publicField(this, "canvas");
+    __publicField(this, "ctx");
+    __publicField(this, "back");
+    this.canvas = document.createElement("canvas");
+    if (primary) {
+      this.back = new Surface(width, height, false);
+    }
+    this.canvas.width = width;
+    this.canvas.height = height;
+    this.ctx = this.canvas.getContext("2d");
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, 640, 480);
+    this.ctx.fill();
+  }
+  write_pixels(pixels) {
+    const data = new ImageData(this.canvas.width, this.canvas.height);
+    data.data.set(pixels);
+    this.ctx.putImageData(data, 0, 0);
+  }
+  get_attached() {
+    if (!this.back)
+      throw new Error("no back for attached");
+    return this.back;
+  }
+  flip() {
+    if (!this.back)
+      throw new Error("no back for flip");
+    this.ctx.drawImage(this.back.canvas, 0, 0);
+  }
+  bit_blt(dx, dy, other, sx, sy, w2, h2) {
+    this.ctx.drawImage(other.canvas, sx, sy, w2, h2, dx, dy, w2, h2);
+  }
+};
+var Window = class {
+  constructor(host, key) {
+    this.host = host;
+    this.key = key;
+    __publicField(this, "title", "");
+    __publicField(this, "width");
+    __publicField(this, "height");
+    __publicField(this, "surface");
+  }
+  set_size(w2, h2) {
+    this.width = w2;
+    this.height = h2;
+    this.host.page.forceUpdate();
+  }
+};
+var File = class {
+  constructor(path, bytes) {
+    this.path = path;
+    this.bytes = bytes;
+    __publicField(this, "ofs", 0);
+  }
+  seek(ofs) {
+    this.ofs = ofs;
+    return true;
+  }
+  read(buf) {
+    const n2 = Math.min(buf.length, this.bytes.length - this.ofs);
+    buf.set(this.bytes.subarray(this.ofs, this.ofs + n2));
+    this.ofs += n2;
+    return n2;
+  }
+};
+var Host = class {
+  constructor() {
+    __publicField(this, "page");
+    __publicField(this, "emulator");
+    __publicField(this, "files", /* @__PURE__ */ new Map());
+    __publicField(this, "stdout", "");
+    __publicField(this, "decoder", new TextDecoder());
+    __publicField(this, "windows", []);
+  }
+  async fetch(files, dir = "") {
+    for (const file of files) {
+      const path = dir + file;
+      this.files.set(file, await fetchBytes(path));
+    }
+  }
+  showTab(name) {
+    this.page.setState({ selectedTab: "breakpoints" });
+  }
+  log(level, msg) {
+    switch (level) {
+      case 5:
+        console.error(msg);
+        if (this.page) {
+          this.page.setState({ error: msg });
+        }
+        break;
+      case 4:
+        console.warn(msg);
+        break;
+      case 3:
+        console.info(msg);
+        break;
+      case 2:
+        console.log(msg);
+        break;
+      case 1:
+        console.debug(msg);
+        break;
+      default:
+        throw new Error(`unexpected log level #{level}`);
+    }
+  }
+  exit(code) {
+    console.warn("exited with code", code);
+    this.emulator.exitCode = code;
+  }
+  time() {
+    return Math.floor(performance.now());
+  }
+  open(path) {
+    let bytes = this.files.get(path);
+    if (!bytes) {
+      console.error(`unknown file ${path}, returning empty file`);
+      bytes = new Uint8Array();
+    }
+    return new File(path, bytes);
+  }
+  write(buf) {
+    this.stdout += this.decoder.decode(buf);
+    this.page.setState({ stdout: this.stdout });
+    return buf.length;
+  }
+  create_window() {
+    let id = this.windows.length + 1;
+    this.windows.push(new Window(this, id));
+    this.page.forceUpdate();
+    return this.windows[id - 1];
+  }
+  create_surface(opts) {
+    const { width, height, primary } = opts;
+    opts.free();
+    const surface = new Surface(width, height, primary);
+    if (primary) {
+      this.windows[this.windows.length - 1].surface = surface;
+      console.warn("hack: attached surface to window");
+      this.page.forceUpdate();
+    }
+    return surface;
+  }
+};
+
 // mappings.tsx
 var Mappings = class extends d {
   render() {
@@ -1255,272 +1540,6 @@ var Tabs = class extends d {
 };
 
 // web.tsx
-async function fetchBytes(path) {
-  const resp = await fetch(path);
-  if (!resp.ok)
-    throw new Error(`failed to load ${path}`);
-  return new Uint8Array(await resp.arrayBuffer());
-}
-var Surface = class {
-  constructor(width, height, primary) {
-    __publicField(this, "canvas");
-    __publicField(this, "ctx");
-    __publicField(this, "back");
-    this.canvas = document.createElement("canvas");
-    if (primary) {
-      this.back = new Surface(width, height, false);
-    }
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.ctx = this.canvas.getContext("2d");
-    this.ctx.fillStyle = "black";
-    this.ctx.fillRect(0, 0, 640, 480);
-    this.ctx.fill();
-  }
-  write_pixels(pixels) {
-    const data = new ImageData(this.canvas.width, this.canvas.height);
-    data.data.set(pixels);
-    this.ctx.putImageData(data, 0, 0);
-  }
-  get_attached() {
-    if (!this.back)
-      throw new Error("no back for attached");
-    return this.back;
-  }
-  flip() {
-    if (!this.back)
-      throw new Error("no back for flip");
-    this.ctx.drawImage(this.back.canvas, 0, 0);
-  }
-  bit_blt(dx, dy, other, sx, sy, w2, h2) {
-    this.ctx.drawImage(other.canvas, sx, sy, w2, h2, dx, dy, w2, h2);
-  }
-};
-var Window = class {
-  constructor(vm, key) {
-    this.vm = vm;
-    this.key = key;
-    __publicField(this, "title", "");
-    __publicField(this, "width");
-    __publicField(this, "height");
-    __publicField(this, "surface");
-  }
-  set_size(w2, h2) {
-    this.width = w2;
-    this.height = h2;
-    this.vm.forceUpdate();
-  }
-};
-var File = class {
-  constructor(path, bytes) {
-    this.path = path;
-    this.bytes = bytes;
-    __publicField(this, "ofs", 0);
-  }
-  seek(ofs) {
-    this.ofs = ofs;
-    return true;
-  }
-  read(buf) {
-    const n2 = Math.min(buf.length, this.bytes.length - this.ofs);
-    buf.set(this.bytes.subarray(this.ofs, this.ofs + n2));
-    this.ofs += n2;
-    return n2;
-  }
-};
-var VM = class {
-  constructor(exePath, files, labelsLoader) {
-    this.exePath = exePath;
-    this.files = files;
-    __publicField(this, "emu", new_emulator(this));
-    __publicField(this, "decoder", new TextDecoder());
-    __publicField(this, "breakpoints", /* @__PURE__ */ new Map());
-    __publicField(this, "imports", []);
-    __publicField(this, "labels");
-    __publicField(this, "exitCode");
-    __publicField(this, "stdout", "");
-    __publicField(this, "page");
-    __publicField(this, "stepSize", 5e3);
-    __publicField(this, "instrPerMs", 0);
-    __publicField(this, "windows", []);
-    this.emu.load_exe(files.get(exePath));
-    const importsJSON = JSON.parse(this.emu.labels());
-    for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
-      const addr = parseInt(jsAddr);
-      const name = jsName;
-      this.imports.push(`${hex(addr, 8)}: ${name}`);
-      labelsLoader.add(addr, name);
-    }
-    this.labels = new Labels(labelsLoader);
-    this.loadBreakpoints();
-  }
-  log(level, msg) {
-    switch (level) {
-      case 5:
-        console.error(msg);
-        if (this.page) {
-          this.page.setState({ error: msg });
-        }
-        break;
-      case 4:
-        console.warn(msg);
-        break;
-      case 3:
-        console.info(msg);
-        break;
-      case 2:
-        console.log(msg);
-        break;
-      case 1:
-        console.debug(msg);
-        break;
-      default:
-        throw new Error(`unexpected log level #{level}`);
-    }
-  }
-  loadBreakpoints() {
-    const json = window.localStorage.getItem(this.exePath);
-    if (!json)
-      return;
-    const bps = JSON.parse(json);
-    for (const bp of bps) {
-      this.addBreak(bp, false);
-    }
-  }
-  saveBreakpoints() {
-    window.localStorage.setItem(this.exePath, JSON.stringify(Array.from(this.breakpoints.values())));
-  }
-  addBreak(bp, save = true) {
-    this.breakpoints.set(bp.addr, bp);
-    if (!bp.disabled) {
-      this.emu.breakpoint_add(bp.addr);
-    }
-    if (save)
-      this.saveBreakpoints();
-  }
-  addBreakByName(name) {
-    for (const [addr, label] of this.labels.byAddr) {
-      if (label === name) {
-        this.addBreak({ addr });
-        return true;
-      }
-    }
-    if (name.match(/^[0-9a-fA-F]+$/)) {
-      const addr = parseInt(name, 16);
-      this.addBreak({ addr });
-      return true;
-    }
-    return false;
-  }
-  delBreak(addr) {
-    this.breakpoints.delete(addr);
-    this.emu.breakpoint_clear(addr);
-    this.saveBreakpoints();
-  }
-  toggleBreak(addr) {
-    const bp = this.breakpoints.get(addr);
-    bp.disabled = !bp.disabled;
-    if (bp.disabled) {
-      this.emu.breakpoint_clear(addr);
-    } else {
-      this.emu.breakpoint_add(addr);
-    }
-    this.saveBreakpoints();
-  }
-  checkBreak() {
-    if (this.exitCode !== void 0)
-      return true;
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      if (bp.oneShot) {
-        this.delBreak(bp.addr);
-      } else {
-        this.page.setState({ selectedTab: "breakpoints" });
-      }
-      return true;
-    }
-    return false;
-  }
-  stepPastBreak() {
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      this.emu.breakpoint_clear(ip);
-      const ret = this.step();
-      this.emu.breakpoint_add(ip);
-      return ret;
-    } else {
-      return this.step();
-    }
-  }
-  step() {
-    this.emu.single_step();
-    return !this.checkBreak();
-  }
-  stepMany() {
-    const start = performance.now();
-    const steps = this.emu.execute_many(this.stepSize);
-    const end = performance.now();
-    if (this.checkBreak()) {
-      return false;
-    }
-    const delta = end - start;
-    const instrPerMs = steps / delta;
-    const alpha = 0.5;
-    this.instrPerMs = alpha * instrPerMs + (alpha - 1) * this.instrPerMs;
-    if (delta < 10) {
-      this.stepSize *= 2;
-      console.log("adjusted step rate", this.stepSize);
-    }
-    return true;
-  }
-  mappings() {
-    return JSON.parse(this.emu.mappings_json());
-  }
-  disassemble(addr) {
-    return JSON.parse(this.emu.disassemble_json(addr));
-  }
-  exit(code) {
-    console.warn("exited with code", code);
-    this.exitCode = code;
-  }
-  time() {
-    return Math.floor(performance.now());
-  }
-  open(path) {
-    const cwd = this.exePath.replace(/\/([^\/]+)$/, "/");
-    const bytes = this.files.get(cwd + path);
-    if (!bytes)
-      throw new Error(`unknown file ${path}`);
-    return new File(path, bytes);
-  }
-  write(buf) {
-    this.stdout += this.decoder.decode(buf);
-    this.page.setState({ stdout: this.stdout });
-    return buf.length;
-  }
-  forceUpdate() {
-    this.page.forceUpdate();
-  }
-  create_window() {
-    let id = this.windows.length + 1;
-    this.windows.push(new Window(this, id));
-    this.forceUpdate();
-    return this.windows[id - 1];
-  }
-  create_surface(opts) {
-    const { width, height, primary } = opts;
-    opts.free();
-    const surface = new Surface(width, height, primary);
-    if (primary) {
-      this.windows[this.windows.length - 1].surface = surface;
-      console.warn("hack: attached surface to window");
-      this.page.forceUpdate();
-    }
-    return surface;
-  }
-};
 var WindowComponent = class extends d {
   constructor() {
     super(...arguments);
@@ -1584,11 +1603,11 @@ var Page = class extends d {
     __publicField(this, "showMemory", (memBase) => {
       this.setState({ selectedTab: "memory", memBase });
     });
-    this.props.vm.page = this;
+    this.props.host.page = this;
   }
   step() {
     try {
-      return this.props.vm.stepPastBreak();
+      return this.props.emulator.stepPastBreak();
     } finally {
       this.forceUpdate();
     }
@@ -1615,7 +1634,7 @@ var Page = class extends d {
       return;
     let stop;
     try {
-      stop = !this.props.vm.stepMany();
+      stop = !this.props.emulator.stepMany();
     } catch (e2) {
       const err = e2;
       console.error(err);
@@ -1629,11 +1648,11 @@ var Page = class extends d {
     requestAnimationFrame(() => this.runFrame());
   }
   runTo(addr) {
-    this.props.vm.addBreak({ addr, oneShot: true });
+    this.props.emulator.addBreak({ addr, oneShot: true });
     this.start();
   }
   render() {
-    let windows = this.props.vm.windows.map((window2) => {
+    let windows = this.props.host.windows.map((window2) => {
       return /* @__PURE__ */ h(WindowComponent, {
         key: window2.key,
         title: window2.title,
@@ -1641,7 +1660,7 @@ var Page = class extends d {
         canvas: window2.surface?.canvas
       });
     });
-    const instrs = this.props.vm.disassemble(this.props.vm.emu.eip);
+    const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
     return /* @__PURE__ */ h(p, null, windows, /* @__PURE__ */ h("div", {
       style: { margin: "1ex", display: "flex", alignItems: "baseline" }
     }, /* @__PURE__ */ h("button", {
@@ -1650,11 +1669,11 @@ var Page = class extends d {
       onClick: () => this.step()
     }, "step"), "\xA0", /* @__PURE__ */ h("button", {
       onClick: () => this.runTo(instrs[1].addr)
-    }, "step over"), "\xA0", /* @__PURE__ */ h("div", null, this.props.vm.emu.instr_count, " instrs executed | ", Math.floor(this.props.vm.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
+    }, "step over"), "\xA0", /* @__PURE__ */ h("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
       style: { display: "flex" }
     }, /* @__PURE__ */ h(Code, {
       instrs,
-      labels: this.props.vm.labels,
+      labels: this.props.emulator.labels,
       highlightMemory: this.highlightMemory,
       showMemory: this.showMemory,
       runTo: (addr) => this.runTo(addr)
@@ -1663,7 +1682,7 @@ var Page = class extends d {
     }), /* @__PURE__ */ h(RegistersComponent, {
       highlightMemory: this.highlightMemory,
       showMemory: this.showMemory,
-      regs: this.props.vm.emu
+      regs: this.props.emulator.emu
     })), /* @__PURE__ */ h("div", {
       style: { display: "flex" }
     }, /* @__PURE__ */ h(Tabs, {
@@ -1673,36 +1692,36 @@ var Page = class extends d {
           class: "error"
         }, "ERROR: ", this.state.error) : null)),
         memory: /* @__PURE__ */ h(Memory, {
-          mem: this.props.vm.emu.memory(),
+          mem: this.props.emulator.emu.memory(),
           base: this.state.memBase,
           highlight: this.state.memHighlight,
           jumpTo: (addr) => this.setState({ memBase: addr })
         }),
         mappings: /* @__PURE__ */ h(Mappings, {
-          mappings: this.props.vm.mappings(),
+          mappings: this.props.emulator.mappings(),
           highlight: this.state.memHighlight
         }),
-        imports: /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, this.props.vm.imports.map((imp) => /* @__PURE__ */ h("div", null, imp)))),
+        imports: /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, this.props.emulator.imports.map((imp) => /* @__PURE__ */ h("div", null, imp)))),
         breakpoints: /* @__PURE__ */ h(BreakpointsComponent, {
-          breakpoints: Array.from(this.props.vm.breakpoints.values()),
-          labels: this.props.vm.labels,
-          highlight: this.props.vm.emu.eip,
+          breakpoints: Array.from(this.props.emulator.breakpoints.values()),
+          labels: this.props.emulator.labels,
+          highlight: this.props.emulator.emu.eip,
           highlightMemory: this.highlightMemory,
           showMemory: this.showMemory,
           toggle: (addr) => {
-            this.props.vm.toggleBreak(addr);
+            this.props.emulator.toggleBreak(addr);
             this.forceUpdate();
           },
           add: (text) => {
-            const ret = this.props.vm.addBreakByName(text);
+            const ret = this.props.emulator.addBreakByName(text);
             this.forceUpdate();
             return ret;
           }
         }),
         snapshots: /* @__PURE__ */ h(SnapshotsComponent, {
-          take: () => this.props.vm.emu.snapshot(),
+          take: () => this.props.emulator.emu.snapshot(),
           load: (snap) => {
-            this.props.vm.emu.load_snapshot(snap);
+            this.props.emulator.emu.load_snapshot(snap);
             this.forceUpdate();
           }
         })
@@ -1712,8 +1731,8 @@ var Page = class extends d {
     }), /* @__PURE__ */ h(Stack, {
       highlightMemory: this.highlightMemory,
       showMemory: this.showMemory,
-      labels: this.props.vm.labels,
-      emu: this.props.vm.emu
+      labels: this.props.emulator.labels,
+      emu: this.props.emulator.emu
     })));
   }
 };
@@ -1722,23 +1741,27 @@ function parseURL() {
   const exe = query.get("exe");
   if (!exe)
     throw new Error("missing exe param");
+  const dir = query.get("dir") || void 0;
   const files = query.getAll("file");
-  const params = { exe, files };
+  const params = { dir, exe, files };
   return params;
 }
 async function main() {
   const params = parseURL();
-  const files = /* @__PURE__ */ new Map();
-  for (const file of [params.exe, ...params.files]) {
-    files.set(file, await fetchBytes(file));
-  }
-  const loader = new Loader();
-  await loader.fetchCSV(params.exe);
+  const host = new Host();
+  host.fetch([params.exe, ...params.files], params.dir);
   await glue_default(new URL("wasm.wasm", document.location.href));
-  const vm = new VM(params.exe, files, loader);
+  const loader = new Loader();
+  const storageKey = (params.dir ?? "") + params.exe;
+  const emulator = new Emulator2(host, storageKey, host.files.get(params.exe), loader);
+  await loader.fetchCSV(params.exe);
   P(/* @__PURE__ */ h(Page, {
-    vm
+    host,
+    emulator
   }), document.body);
 }
 main();
+export {
+  Page
+};
 //# sourceMappingURL=bundle.js.map
