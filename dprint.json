@@ -11,6 +11,7 @@
     "**/*.{ts,tsx,js,jsx,cjs,mjs,json,md,toml}"
   ],
   "excludes": [
+    "deploy/**",
     "target/**",
     "**/node_modules",
     "**/*-lock.json"
