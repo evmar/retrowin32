@@ -523,6 +523,47 @@ function getArrayU8FromWasm0(ptr, len) {
   return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 var WASM_VECTOR_LEN = 0;
+var cachedTextEncoder = new TextEncoder("utf-8");
+var encodeString = typeof cachedTextEncoder.encodeInto === "function" ? function(arg, view) {
+  return cachedTextEncoder.encodeInto(arg, view);
+} : function(arg, view) {
+  const buf = cachedTextEncoder.encode(arg);
+  view.set(buf);
+  return {
+    read: arg.length,
+    written: buf.length
+  };
+};
+function passStringToWasm0(arg, malloc, realloc) {
+  if (realloc === void 0) {
+    const buf = cachedTextEncoder.encode(arg);
+    const ptr2 = malloc(buf.length);
+    getUint8Memory0().subarray(ptr2, ptr2 + buf.length).set(buf);
+    WASM_VECTOR_LEN = buf.length;
+    return ptr2;
+  }
+  let len = arg.length;
+  let ptr = malloc(len);
+  const mem2 = getUint8Memory0();
+  let offset = 0;
+  for (; offset < len; offset++) {
+    const code = arg.charCodeAt(offset);
+    if (code > 127)
+      break;
+    mem2[ptr + offset] = code;
+  }
+  if (offset !== len) {
+    if (offset !== 0) {
+      arg = arg.slice(offset);
+    }
+    ptr = realloc(ptr, len, len = offset + arg.length * 3);
+    const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
+    const ret = encodeString(arg, view);
+    offset += ret.written;
+  }
+  WASM_VECTOR_LEN = offset;
+  return ptr;
+}
 function passArray8ToWasm0(arg, malloc) {
   const ptr = malloc(arg.length * 1);
   getUint8Memory0().set(arg, ptr / 1);
@@ -576,12 +617,14 @@ var Emulator = class {
     const ptr = this.__destroy_into_raw();
     wasm.__wbg_emulator_free(ptr);
   }
-  load_exe(buf) {
+  load_exe(name, buf) {
     try {
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      const ptr0 = passArray8ToWasm0(buf, wasm.__wbindgen_malloc);
+      const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
       const len0 = WASM_VECTOR_LEN;
-      wasm.emulator_load_exe(retptr, this.ptr, ptr0, len0);
+      const ptr1 = passArray8ToWasm0(buf, wasm.__wbindgen_malloc);
+      const len1 = WASM_VECTOR_LEN;
+      wasm.emulator_load_exe(retptr, this.ptr, ptr0, len0, ptr1, len1);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       if (r1) {
@@ -960,31 +1003,17 @@ async function init(input) {
 var glue_default = init;
 
 // labels.ts
-var Loader = class {
-  constructor() {
-    __publicField(this, "labels", /* @__PURE__ */ new Map());
+function* parseCSV(text) {
+  for (const line of text.split("\n")) {
+    const [name, addr] = line.split("	");
+    yield [parseInt(addr, 16), name];
   }
-  async fetchCSV(path) {
-    const resp = await fetch(path + ".csv");
-    if (!resp.ok)
-      return;
-    const text = await resp.text();
-    for (const line of text.split("\n")) {
-      const [name, addr] = line.split("	");
-      this.add(parseInt(addr, 16), name);
-    }
-  }
-  add(addr, name) {
-    if (addr < 65536) {
-      return;
-    }
-    this.labels.set(addr, name);
-  }
-};
+}
 var Labels = class {
-  constructor(loader) {
+  constructor(labels) {
     __publicField(this, "byAddr");
-    this.byAddr = Array.from(loader.labels.entries());
+    this.byAddr = Array.from(labels.entries());
+    this.byAddr = this.byAddr.filter(([addr, _2]) => addr > 4096);
     this.byAddr.sort(([a2, _2], [b2, __]) => a2 - b2);
   }
   find(target) {
@@ -1024,7 +1053,7 @@ var Labels = class {
 
 // emulator.ts
 var Emulator2 = class {
-  constructor(host, storageKey, bytes, labelsLoader) {
+  constructor(host, storageKey, bytes, labels) {
     this.host = host;
     this.storageKey = storageKey;
     __publicField(this, "emu");
@@ -1036,15 +1065,15 @@ var Emulator2 = class {
     __publicField(this, "instrPerMs", 0);
     host.emulator = this;
     this.emu = new_emulator(host);
-    this.emu.load_exe(bytes);
+    this.emu.load_exe(storageKey, bytes);
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
       const name = jsName;
       this.imports.push(`${hex(addr, 8)}: ${name}`);
-      labelsLoader.add(addr, name);
+      labels.set(addr, name);
     }
-    this.labels = new Labels(labelsLoader);
+    this.labels = new Labels(labels);
     this.loadBreakpoints();
   }
   loadBreakpoints() {
@@ -1749,12 +1778,17 @@ function parseURL() {
 async function main() {
   const params = parseURL();
   const host = new Host();
-  host.fetch([params.exe, ...params.files], params.dir);
+  await host.fetch([params.exe, ...params.files], params.dir);
   await glue_default(new URL("wasm.wasm", document.location.href));
-  const loader = new Loader();
+  const csvLabels = /* @__PURE__ */ new Map();
+  const resp = await fetch(params.exe + ".csv");
+  if (resp.ok) {
+    for (const [addr, name] of parseCSV(await resp.text())) {
+      csvLabels.set(addr, name);
+    }
+  }
   const storageKey = (params.dir ?? "") + params.exe;
-  const emulator = new Emulator2(host, storageKey, host.files.get(params.exe), loader);
-  await loader.fetchCSV(params.exe);
+  const emulator = new Emulator2(host, storageKey, host.files.get(params.exe), csvLabels);
   P(/* @__PURE__ */ h(Page, {
     host,
     emulator
