@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use x86::Memory;
 
 /// Copy the file itself into memory, choosing a base address.
-fn load_image(machine: &mut Machine, file: &pe::File, relocate: bool) -> u32 {
+fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool) -> u32 {
     let memory_size = file.opt_header.SizeOfImage;
     if memory_size > 20 << 20 {
         // TODO: 5k_run.exe specifies SizeOfImage as like 1000mb, but then doesn't
@@ -21,13 +21,13 @@ fn load_image(machine: &mut Machine, file: &pe::File, relocate: bool) -> u32 {
             .state
             .kernel32
             .mappings
-            .alloc(memory_size, "load_pe".into(), &mut machine.x86.mem)
+            .alloc(memory_size, name.into(), &mut machine.x86.mem)
     } else {
         machine.state.kernel32.mappings.add(
             winapi::kernel32::Mapping {
                 addr: file.opt_header.ImageBase,
                 size: memory_size,
-                desc: "load_pe".into(),
+                desc: name.into(),
                 flags: pe::ImageSectionFlags::MEM_READ,
             },
             false,
@@ -147,11 +147,12 @@ fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA
 
 fn load_pe(
     machine: &mut Machine,
+    name: &str,
     buf: &[u8],
     file: &pe::File,
     relocate: bool,
 ) -> anyhow::Result<u32> {
-    let base = load_image(machine, file, relocate);
+    let base = load_image(machine, name, file, relocate);
 
     for sec in file.sections {
         load_section(machine, base, buf, sec);
@@ -178,7 +179,7 @@ fn load_pe(
 pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, buf, &file, false)?;
+    let base = load_pe(machine, &cmdline, buf, &file, false)?;
     machine.state.kernel32.image_base = base;
 
     machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
@@ -232,10 +233,10 @@ impl Exports {
     }
 }
 
-pub fn load_dll(machine: &mut Machine, buf: &[u8]) -> anyhow::Result<Exports> {
+pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result<Exports> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, buf, &file, true)?;
+    let base = load_pe(machine, name, buf, &file, true)?;
     let image = &machine.x86.mem[base as usize..];
 
     let mut exports = Exports::new();

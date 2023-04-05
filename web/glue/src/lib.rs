@@ -197,10 +197,8 @@ pub struct Emulator {
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
-    pub fn load_exe(&mut self, buf: &[u8]) -> JsResult<()> {
-        self.runner
-            .load_exe(buf, "".into())
-            .map_err(err_from_anyhow)?;
+    pub fn load_exe(&mut self, name: String, buf: &[u8]) -> JsResult<()> {
+        self.runner.load_exe(buf, name).map_err(err_from_anyhow)?;
         Ok(())
     }
 

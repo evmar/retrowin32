@@ -160,7 +160,7 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         return HMODULE::null();
     }
 
-    let exports = pe::load_dll(machine, &contents).unwrap();
+    let exports = pe::load_dll(machine, &filename, &contents).unwrap();
     let dll = DLL {
         name: filename,
         names: exports.names,

@@ -18,7 +18,7 @@ export class Emulator {
   constructor(readonly host: Host, readonly storageKey: string, bytes: Uint8Array, labels: Map<number, string>) {
     host.emulator = this;
     this.emu = wasm.new_emulator(host);
-    this.emu.load_exe(bytes);
+    this.emu.load_exe(storageKey, bytes);
 
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
