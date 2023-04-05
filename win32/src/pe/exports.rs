@@ -13,7 +13,8 @@ pub struct IMAGE_EXPORT_DIRECTORY {
     MajorVersion: u16,
     MinorVersion: u16,
     Name: u32,
-    Base: u32,
+    /// Ordinal offset. Symbol DLL@x => functions[Base + x].
+    pub Base: u32,
     NumberOfFunctions: u32,
     NumberOfNames: u32,
     AddressOfFunctions: u32,

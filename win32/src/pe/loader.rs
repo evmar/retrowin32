@@ -1,5 +1,6 @@
 use super::{IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, reader::Reader, winapi};
+use std::collections::HashMap;
 use x86::Memory;
 
 /// Copy the file itself into memory, choosing a base address.
@@ -164,14 +165,6 @@ fn load_pe(
         patch_iat(machine, base, imports);
     }
 
-    if let Some(exports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        let image = &machine.x86.mem[base as usize..];
-        let exports = pe::read_exports(machine, base, exports);
-        log::info!("{:x?}", exports.name(image));
-        log::info!("{:x?}", exports.fns(image));
-        log::info!("{:x?}", exports.names(image).collect::<Vec<_>>());
-    }
-
     Ok(base)
 }
 
@@ -214,4 +207,43 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
     machine.x86.regs.eip = entry_point;
 
     Ok(())
+}
+
+#[derive(Debug)]
+pub struct Exports {
+    names: HashMap<String, u32>,
+    // TODO: ords could be a flat array once we have ordinals for all the builtin DLLs.
+    ords: HashMap<u32, u32>,
+}
+
+impl Exports {
+    fn new() -> Self {
+        Exports {
+            names: HashMap::new(),
+            ords: HashMap::new(),
+        }
+    }
+}
+
+pub fn load_dll(machine: &mut Machine, buf: &[u8]) -> anyhow::Result<Exports> {
+    let file = pe::parse(&buf)?;
+
+    let base = load_pe(machine, buf, &file, true)?;
+    let image = &machine.x86.mem[base as usize..];
+
+    let mut exports = Exports::new();
+    if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
+        let dir = pe::read_exports(machine, base, dir);
+        for (i, &addr) in dir.fns(image).iter().enumerate() {
+            let ord = dir.Base + i as u32;
+            exports.ords.insert(ord, addr);
+        }
+        for (name, i) in dir.names(image) {
+            let ord = dir.Base + i as u32;
+            let addr = *exports.ords.get(&ord).unwrap();
+            exports.names.insert(name.to_string(), addr);
+        }
+    }
+
+    Ok(exports)
 }

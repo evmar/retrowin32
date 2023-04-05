@@ -47,6 +47,10 @@ impl Runner {
     }
 
     pub fn load_exe(&mut self, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
+        if false {
+            pe::load_dll(&mut self.machine, buf)?;
+            return Ok(());
+        }
         pe::load_exe(&mut self.machine, buf, cmdline)
     }
 
