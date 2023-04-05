@@ -85,17 +85,18 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     // the relevant DLLs shims.
     let mut patches = Vec::new();
 
-    let image = &machine.x86.mem[base as usize..];
-    for dll in pe::read_imports(imports_data.as_slice(image)) {
-        let dll_name = dll.name(image).to_ascii_lowercase();
-        for (sym, iat_addr) in dll.entries(image) {
+    let image = unsafe { std::mem::transmute(&machine.x86.mem[base as usize..]) };
+    for dll_imports in pe::read_imports(imports_data.as_slice(image)) {
+        let dll_name = dll_imports.name(image).to_ascii_lowercase();
+        let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
+        let dll = &mut machine.state.kernel32.dlls[hmodule.to_dll_index()];
+        for (sym, iat_addr) in dll_imports.entries(image) {
             let name = format!("{}!{}", dll_name, sym.to_string());
             machine
                 .labels
                 .insert(base + iat_addr, format!("{}@IAT", name));
 
-            let handler = winapi::resolve(&dll_name, &sym);
-            let resolved_addr = machine.shims.add(name.clone(), handler);
+            let resolved_addr = dll.resolve(&mut machine.shims, sym);
             machine.labels.insert(resolved_addr, name);
 
             patches.push((base + iat_addr, resolved_addr));

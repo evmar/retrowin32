@@ -85,11 +85,6 @@ pub const DLLS: [BuiltinDLL; 9] = [
     dll::winmm::DLL,
 ];
 
-pub fn resolve(file_name: &str, sym: &ImportSymbol) -> Option<fn(&mut Machine)> {
-    let dll = DLLS.iter().find(|&dll| dll.file_name == file_name)?;
-    (dll.resolve)(sym)
-}
-
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     #[serde(skip)] // TODO

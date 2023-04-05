@@ -37,6 +37,9 @@ pub struct State {
     heaps: HashMap<u32, HeapInfo>,
 
     #[serde(skip)] // TODO
+    pub dlls: Vec<DLL>,
+
+    #[serde(skip)] // TODO
     files: HashMap<HFILE, Box<dyn crate::host::File>>,
 
     env: u32,
@@ -46,6 +49,7 @@ pub struct State {
     /// Command line, UTF16.
     cmdline16: u32,
 }
+
 impl State {
     pub fn new() -> Self {
         State {
@@ -54,6 +58,7 @@ impl State {
             teb: 0,
             mappings: Mappings::new(),
             heaps: HashMap::new(),
+            dlls: Vec::new(),
             files: HashMap::new(),
             env: 0,
             cmdline: 0,

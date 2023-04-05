@@ -1,38 +1,77 @@
 use crate::{
     machine::Machine,
-    winapi::{self, types::*},
+    shims::Shims,
+    winapi::{self, types::*, BuiltinDLL, ImportSymbol},
 };
-use x86::Memory;
+use std::collections::HashMap;
 
 const TRACE: bool = false;
 
-// HMODULE is currently an index into the list of preallocated DLLs.
+// HMODULE is index+1 into kernel32::State::dlls.
 declare_handle!(HMODULE);
 
 impl HMODULE {
-    fn find_by_name(filename: &str) -> Option<Self> {
-        if let Some(index) = crate::winapi::DLLS
-            .iter()
-            .position(|dll| dll.file_name == filename)
-        {
-            return Some(HMODULE::from_raw((index + 1) as u32));
-        }
-        None
+    fn from_dll_index(index: usize) -> Self {
+        return HMODULE::from_raw((index + 1) as u32);
     }
 
-    fn to_dll(&self) -> Option<&winapi::BuiltinDLL> {
-        winapi::DLLS.get(self.0 as usize - 1)
+    pub fn to_dll_index(&self) -> usize {
+        self.0 as usize - 1
+    }
+}
+
+pub struct DLL {
+    name: String,
+
+    /// Function name => resolved address.
+    names: HashMap<String, u32>,
+
+    /// If present, DLL is one defined in winapi/...
+    builtin: Option<&'static BuiltinDLL>,
+}
+
+impl DLL {
+    pub fn resolve(&mut self, shims: &mut Shims, sym: ImportSymbol) -> u32 {
+        match sym {
+            ImportSymbol::Name(name) => {
+                if let Some(&addr) = self.names.get(name) {
+                    return addr;
+                }
+            }
+            _ => todo!(),
+        }
+
+        if let Some(builtin) = self.builtin {
+            let handler = (builtin.resolve)(&sym);
+            let name = format!("{}!{}", self.name, sym.to_string());
+            let addr = shims.add(name, handler);
+            return addr;
+        }
+
+        todo!()
     }
 }
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
-    if let Some(name) = lpModuleName {
-        log::error!("unimplemented: GetModuleHandle({name:?})");
-        return HMODULE::null();
+    let name = match lpModuleName {
+        None => return HMODULE::from_raw(machine.state.kernel32.image_base),
+        Some(name) => name,
+    };
+
+    let name = name.to_ascii_lowercase();
+
+    if let Some(index) = machine
+        .state
+        .kernel32
+        .dlls
+        .iter()
+        .position(|dll| dll.name == name)
+    {
+        return HMODULE::from_dll_index(index);
     }
-    // HMODULE is base address of current module.
-    HMODULE::from_raw(machine.state.kernel32.image_base)
+
+    return HMODULE::null();
 }
 
 #[win32_derive::dllexport]
@@ -60,17 +99,32 @@ pub fn GetModuleHandleExW(
 
 #[win32_derive::dllexport]
 pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    let filename = filename.unwrap();
-    let filename = filename.to_ascii_lowercase();
+    let filename = filename.unwrap().to_ascii_lowercase();
 
-    if let Some(hmodule) = HMODULE::find_by_name(&filename) {
-        return hmodule;
+    // See if already loaded.
+    if let Some(index) = machine
+        .state
+        .kernel32
+        .dlls
+        .iter()
+        .position(|dll| dll.name == filename)
+    {
+        return HMODULE::from_dll_index(index);
     }
 
-    log::error!(
-        "LoadLibrary({filename:?}) => {:x}",
-        machine.x86.mem.read_u32(machine.x86.regs.esp - 4)
-    );
+    // Check if builtin.
+    if let Some(builtin) = winapi::DLLS.iter().find(|&dll| dll.file_name == filename) {
+        machine.state.kernel32.dlls.push(DLL {
+            name: filename,
+            names: HashMap::new(),
+            builtin: Some(builtin),
+        });
+        return HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1);
+    }
+
+    // TODO: load dll from disk using pe::load_dll.
+    log::error!("LoadLibrary({filename:?}) unimplemented");
+
     HMODULE::null() // fail
 }
 
@@ -88,16 +142,8 @@ pub fn LoadLibraryExW(
 #[win32_derive::dllexport]
 pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
     let proc_name = lpProcName.unwrap();
-    if let Some(dll) = hModule.to_dll() {
-        // See if the symbol was already imported.
-        let full_name = format!("{}!{}", dll.file_name, proc_name);
-        if let Some(addr) = machine.shims.lookup(&full_name) {
-            return addr;
-        }
-
-        let handler = (dll.resolve)(&winapi::ImportSymbol::Name(proc_name));
-        let addr = machine.shims.add(full_name, handler);
-        return addr;
+    if let Some(dll) = machine.state.kernel32.dlls.get_mut(hModule.to_dll_index()) {
+        return dll.resolve(&mut machine.shims, ImportSymbol::Name(proc_name));
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail
