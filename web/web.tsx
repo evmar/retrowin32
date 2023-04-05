@@ -309,7 +309,7 @@ async function main() {
   const params = parseURL();
 
   const host = new Host();
-  host.fetch([params.exe, ...params.files], params.dir);
+  await host.fetch([params.exe, ...params.files], params.dir);
 
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
