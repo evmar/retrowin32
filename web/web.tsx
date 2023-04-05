@@ -1,363 +1,17 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Breakpoint, BreakpointsComponent } from './break';
+import { BreakpointsComponent } from './break';
 import { Code } from './code';
+import { Emulator } from './emulator';
 import * as wasm from './glue/pkg';
-import { Labels, Loader as LabelsLoader } from './labels';
+import { Host } from './host';
+import { Loader as LabelsLoader } from './labels';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
 import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
-import { hex } from './util';
-
-async function fetchBytes(path: string): Promise<Uint8Array> {
-  const resp = await fetch(path);
-  if (!resp.ok) throw new Error(`failed to load ${path}`);
-  return new Uint8Array(await resp.arrayBuffer());
-}
-
-// Matches 'pub type JsSurface' in lib.rs.
-interface JsSurface {
-  write_pixels(pixels: Uint8Array): void;
-  get_attached(): JsSurface;
-  flip(): void;
-  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
-}
-
-// Matches 'pub type JsWindow' in lib.rs.
-interface JsWindow {
-  title: string;
-  set_size(width: number, height: number): void;
-}
-
-// Matches 'pub type JsFile' in lib.rs.
-interface JsFile {
-  seek(ofs: number): boolean;
-  read(buf: Uint8Array): number;
-}
-
-// Matches 'pub type JsHost' in lib.rs.
-interface JsHost {
-  log(level: number, msg: string): void;
-
-  exit(code: number): void;
-  time(): number;
-
-  open(path: string): JsFile;
-  write(buf: Uint8Array): number;
-
-  create_window(): JsWindow;
-  create_surface(opts: wasm.SurfaceOptions): JsSurface;
-}
-
-class Surface implements JsSurface {
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
-  back?: Surface;
-
-  constructor(width: number, height: number, primary: boolean) {
-    this.canvas = document.createElement('canvas');
-    if (primary) {
-      this.back = new Surface(width, height, false);
-    }
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.ctx = this.canvas.getContext('2d')!;
-    this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(0, 0, 640, 480);
-    this.ctx.fill();
-  }
-
-  write_pixels(pixels: Uint8Array): void {
-    const data = new ImageData(this.canvas.width, this.canvas.height);
-    // XXX Ew copy.  Docs suggest the ImageData ctor accepts pixel data as a param
-    // but I couldn't see it working.
-    data.data.set(pixels);
-    this.ctx.putImageData(data, 0, 0);
-  }
-
-  get_attached(): JsSurface {
-    if (!this.back) throw new Error('no back for attached');
-    return this.back!;
-  }
-
-  flip() {
-    if (!this.back) throw new Error('no back for flip');
-    this.ctx.drawImage(this.back.canvas, 0, 0);
-    // TODO: do we need to swap canvases or something?
-  }
-
-  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void {
-    this.ctx.drawImage((other as unknown as Surface).canvas, sx, sy, w, h, dx, dy, w, h);
-  }
-}
-
-class Window implements JsWindow {
-  constructor(
-    readonly vm: VM,
-    /** Unique ID for React purposes. */
-    readonly key: number,
-  ) {}
-  title: string = '';
-  width: number | undefined;
-  height: number | undefined;
-  surface?: Surface;
-  set_size(w: number, h: number) {
-    this.width = w;
-    this.height = h;
-    this.vm.forceUpdate();
-  }
-}
-
-class File implements JsFile {
-  ofs = 0;
-
-  constructor(readonly path: string, readonly bytes: Uint8Array) {
-  }
-  seek(ofs: number): boolean {
-    this.ofs = ofs;
-    return true;
-  }
-  read(buf: Uint8Array): number {
-    const n = Math.min(buf.length, this.bytes.length - this.ofs);
-    buf.set(this.bytes.subarray(this.ofs, this.ofs + n));
-    this.ofs += n;
-    return n;
-  }
-}
-
-class VM implements JsHost {
-  emu: wasm.Emulator = wasm.new_emulator(this);
-  decoder = new TextDecoder();
-  breakpoints = new Map<number, Breakpoint>();
-  imports: string[] = [];
-  labels: Labels;
-  exitCode: number | undefined = undefined;
-  stdout = '';
-  page!: Page;
-
-  constructor(private readonly exePath: string, readonly files: Map<string, Uint8Array>, labelsLoader: LabelsLoader) {
-    this.emu.load_exe(files.get(exePath)!);
-
-    const importsJSON = JSON.parse(this.emu.labels());
-    for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
-      const addr = parseInt(jsAddr);
-      const name = jsName as string;
-      this.imports.push(`${hex(addr, 8)}: ${name}`);
-      labelsLoader.add(addr, name);
-    }
-    this.labels = new Labels(labelsLoader);
-
-    // // Hack: twiddle msvcrt output mode to use console.
-    // this.x86.poke(0x004095a4, 1);
-
-    this.loadBreakpoints();
-  }
-
-  log(level: number, msg: string) {
-    // TODO: surface this in the UI.
-    switch (level) {
-      case 5:
-        console.error(msg);
-        if (this.page) {
-          this.page.setState({ error: msg });
-        }
-        break;
-      case 4:
-        console.warn(msg);
-        break;
-      case 3:
-        console.info(msg);
-        break;
-      case 2:
-        console.log(msg);
-        break;
-      case 1:
-        console.debug(msg);
-        break;
-      default:
-        throw new Error(`unexpected log level #{level}`);
-    }
-  }
-
-  private loadBreakpoints() {
-    const json = window.localStorage.getItem(this.exePath);
-    if (!json) return;
-    const bps = JSON.parse(json) as Breakpoint[];
-    for (const bp of bps) {
-      this.addBreak(bp, /* save= */ false);
-    }
-  }
-
-  private saveBreakpoints() {
-    window.localStorage.setItem(this.exePath, JSON.stringify(Array.from(this.breakpoints.values())));
-  }
-
-  addBreak(bp: Breakpoint, save = true) {
-    this.breakpoints.set(bp.addr, bp);
-    if (!bp.disabled) {
-      this.emu.breakpoint_add(bp.addr);
-    }
-    if (save) this.saveBreakpoints();
-  }
-
-  addBreakByName(name: string): boolean {
-    for (const [addr, label] of this.labels.byAddr) {
-      if (label === name) {
-        this.addBreak({ addr });
-        return true;
-      }
-    }
-    if (name.match(/^[0-9a-fA-F]+$/)) {
-      const addr = parseInt(name, 16);
-      this.addBreak({ addr });
-      return true;
-    }
-    return false;
-  }
-
-  delBreak(addr: number) {
-    this.breakpoints.delete(addr);
-    this.emu.breakpoint_clear(addr);
-    this.saveBreakpoints();
-  }
-
-  toggleBreak(addr: number) {
-    const bp = this.breakpoints.get(addr)!;
-    bp.disabled = !bp.disabled;
-    if (bp.disabled) {
-      this.emu.breakpoint_clear(addr);
-    } else {
-      this.emu.breakpoint_add(addr);
-    }
-    this.saveBreakpoints();
-  }
-
-  /** Check if the current address is a break/exit point, returning true if so. */
-  checkBreak(): boolean {
-    if (this.exitCode !== undefined) return true;
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      if (bp.oneShot) {
-        this.delBreak(bp.addr);
-      } else {
-        this.page.setState({ selectedTab: 'breakpoints' });
-      }
-      return true;
-    }
-    return false;
-  }
-
-  /** Returns true if we should keep running after this (no breakpoint). */
-  stepPastBreak(): boolean {
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      this.emu.breakpoint_clear(ip);
-      const ret = this.step();
-      this.emu.breakpoint_add(ip);
-      return ret;
-    } else {
-      return this.step();
-    }
-  }
-
-  /** Returns true if we should keep running after this (no breakpoint). */
-  step(): boolean {
-    this.emu.single_step();
-    return !this.checkBreak();
-  }
-
-  /** Number of instructions to execute per stepMany, adjusted dynamically. */
-  stepSize = 5000;
-  /** Moving average of instructions executed per millisecond. */
-  instrPerMs = 0;
-
-  /** Runs a batch of instructions.  Returns false if we should stop. */
-  stepMany(): boolean {
-    const start = performance.now();
-    const steps = this.emu.execute_many(this.stepSize);
-    const end = performance.now();
-
-    if (this.checkBreak()) {
-      return false;
-    }
-
-    const delta = end - start;
-    const instrPerMs = steps / delta;
-    const alpha = 0.5; // smoothing factor
-    this.instrPerMs = alpha * (instrPerMs) + (alpha - 1) * this.instrPerMs;
-
-    if (delta < 10) {
-      this.stepSize *= 2;
-      console.log('adjusted step rate', this.stepSize);
-    }
-
-    return true;
-  }
-
-  mappings(): wasm.Mapping[] {
-    return JSON.parse(this.emu.mappings_json()) as wasm.Mapping[];
-  }
-  disassemble(addr: number): wasm.Instruction[] {
-    // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    return JSON.parse(this.emu.disassemble_json(addr)) as wasm.Instruction[];
-  }
-
-  exit(code: number) {
-    console.warn('exited with code', code);
-    this.exitCode = code;
-  }
-  time(): number {
-    return Math.floor(performance.now());
-  }
-
-  open(path: string): JsFile {
-    // TODO: async file loading.
-    const cwd = this.exePath.replace(/\/([^\/]+)$/, '/');
-    let bytes = this.files.get(cwd + path);
-    if (!bytes) {
-      console.error(`unknown file ${path}, returning empty file`);
-      bytes = new Uint8Array();
-    }
-    return new File(path, bytes);
-  }
-  write(buf: Uint8Array): number {
-    this.stdout += this.decoder.decode(buf);
-    this.page.setState({ stdout: this.stdout });
-    return buf.length;
-  }
-
-  forceUpdate() {
-    this.page.forceUpdate();
-  }
-
-  windows: Window[] = [];
-  create_window(): JsWindow {
-    let id = this.windows.length + 1;
-    this.windows.push(new Window(this, id));
-    this.forceUpdate();
-    return this.windows[id - 1];
-  }
-
-  create_surface(opts: wasm.SurfaceOptions): JsSurface {
-    const { width, height, primary } = opts;
-    opts.free();
-    const surface = new Surface(width, height, primary);
-    // XXX how to tie surface and window together?
-    // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
-    // but how to plumb that info across JS boundary?
-    if (primary) {
-      this.windows[this.windows.length - 1].surface = surface;
-      console.warn('hack: attached surface to window');
-      this.page.forceUpdate();
-    }
-    return surface;
-  }
-}
 
 namespace WindowComponent {
   export interface Props {
@@ -428,7 +82,8 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
 
 namespace Page {
   export interface Props {
-    vm: VM;
+    host: Host;
+    emulator: Emulator;
   }
   export interface State {
     stdout: string;
@@ -440,17 +95,17 @@ namespace Page {
     selectedTab: string;
   }
 }
-class Page extends preact.Component<Page.Props, Page.State> {
+export class Page extends preact.Component<Page.Props, Page.State> {
   state: Page.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
   constructor(props: Page.Props) {
     super(props);
-    this.props.vm.page = this;
+    this.props.host.page = this;
   }
 
   step(): boolean {
     try {
-      return this.props.vm.stepPastBreak();
+      return this.props.emulator.stepPastBreak();
     } finally {
       this.forceUpdate();
     }
@@ -478,7 +133,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
     if (!this.state.running) return;
     let stop;
     try {
-      stop = !this.props.vm.stepMany();
+      stop = !this.props.emulator.stepMany();
     } catch (e) {
       const err = e as Error;
       console.error(err);
@@ -493,7 +148,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
   }
 
   runTo(addr: number) {
-    this.props.vm.addBreak({ addr, oneShot: true });
+    this.props.emulator.addBreak({ addr, oneShot: true });
     this.start();
   }
 
@@ -503,7 +158,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
   };
 
   render() {
-    let windows = this.props.vm.windows.map((window) => {
+    let windows = this.props.host.windows.map((window) => {
       return (
         <WindowComponent
           key={window.key}
@@ -514,7 +169,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
       );
     });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const instrs = this.props.vm.disassemble(this.props.vm.emu.eip);
+    const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
     return (
       <>
         {windows}
@@ -538,13 +193,13 @@ class Page extends preact.Component<Page.Props, Page.State> {
           </button>
           &nbsp;
           <div>
-            {this.props.vm.emu.instr_count} instrs executed | {Math.floor(this.props.vm.instrPerMs)}/ms
+            {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
           </div>
         </div>
         <div style={{ display: 'flex' }}>
           <Code
             instrs={instrs}
-            labels={this.props.vm.labels}
+            labels={this.props.emulator.labels}
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
             runTo={(addr: number) => this.runTo(addr)}
@@ -553,7 +208,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <RegistersComponent
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            regs={this.props.vm.emu}
+            regs={this.props.emulator.emu}
           />
         </div>
         <div style={{ display: 'flex' }}>
@@ -571,35 +226,35 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
               memory: (
                 <Memory
-                  mem={this.props.vm.emu.memory()}
+                  mem={this.props.emulator.emu.memory()}
                   base={this.state.memBase}
                   highlight={this.state.memHighlight}
                   jumpTo={(addr) => this.setState({ memBase: addr })}
                 />
               ),
-              mappings: <Mappings mappings={this.props.vm.mappings()} highlight={this.state.memHighlight} />,
+              mappings: <Mappings mappings={this.props.emulator.mappings()} highlight={this.state.memHighlight} />,
 
               imports: (
                 <section>
                   <code>
-                    {this.props.vm.imports.map(imp => <div>{imp}</div>)}
+                    {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
                   </code>
                 </section>
               ),
 
               breakpoints: (
                 <BreakpointsComponent
-                  breakpoints={Array.from(this.props.vm.breakpoints.values())}
-                  labels={this.props.vm.labels}
-                  highlight={this.props.vm.emu.eip}
+                  breakpoints={Array.from(this.props.emulator.breakpoints.values())}
+                  labels={this.props.emulator.labels}
+                  highlight={this.props.emulator.emu.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                   toggle={(addr) => {
-                    this.props.vm.toggleBreak(addr);
+                    this.props.emulator.toggleBreak(addr);
                     this.forceUpdate();
                   }}
                   add={(text) => {
-                    const ret = this.props.vm.addBreakByName(text);
+                    const ret = this.props.emulator.addBreakByName(text);
                     this.forceUpdate();
                     return ret;
                   }}
@@ -608,9 +263,9 @@ class Page extends preact.Component<Page.Props, Page.State> {
 
               snapshots: (
                 <SnapshotsComponent
-                  take={() => this.props.vm.emu.snapshot()}
+                  take={() => this.props.emulator.emu.snapshot()}
                   load={(snap) => {
-                    this.props.vm.emu.load_snapshot(snap);
+                    this.props.emulator.emu.load_snapshot(snap);
                     this.forceUpdate();
                   }}
                 />
@@ -622,8 +277,8 @@ class Page extends preact.Component<Page.Props, Page.State> {
           <Stack
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            labels={this.props.vm.labels}
-            emu={this.props.vm.emu}
+            labels={this.props.emulator.labels}
+            emu={this.props.emulator.emu}
           />
         </div>
       </>
@@ -632,6 +287,7 @@ class Page extends preact.Component<Page.Props, Page.State> {
 }
 
 interface URLParams {
+  dir?: string;
   exe: string;
   files: string[];
 }
@@ -640,25 +296,27 @@ function parseURL(): URLParams {
   const query = new URLSearchParams(document.location.search);
   const exe = query.get('exe');
   if (!exe) throw new Error('missing exe param');
+  const dir = query.get('dir') || undefined;
   const files = query.getAll('file');
-  const params: URLParams = { exe, files };
+  const params: URLParams = { dir, exe, files };
   return params;
 }
 
 async function main() {
   const params = parseURL();
 
-  const files = new Map<string, Uint8Array>();
-  for (const file of [params.exe, ...params.files]) {
-    files.set(file, await fetchBytes(file));
-  }
+  const host = new Host();
+  host.fetch([params.exe, ...params.files], params.dir);
 
-  const loader = new LabelsLoader();
-  await loader.fetchCSV(params.exe);
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
-  const vm = new VM(params.exe, files, loader);
-  preact.render(<Page vm={vm} />, document.body);
+  const loader = new LabelsLoader();
+  const storageKey = (params.dir ?? '') + params.exe;
+  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, loader);
+
+  await loader.fetchCSV(params.exe);
+
+  preact.render(<Page host={host} emulator={emulator} />, document.body);
 }
 
 main();
