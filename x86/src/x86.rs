@@ -64,7 +64,8 @@ impl X86 {
             self.crash(format!("crash: null pointer at {addr:#x}"));
             return true;
         }
-        if addr as usize + std::mem::size_of::<T>() > self.mem.len() {
+        let end = addr.wrapping_add(std::mem::size_of::<T>() as u32);
+        if end > self.mem.len() as u32 || end < addr {
             self.crash(format!("crash: oob pointer at {addr:#x}"));
             return true;
         }
