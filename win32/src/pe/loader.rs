@@ -89,16 +89,22 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     for dll_imports in pe::read_imports(imports_data.as_slice(image)) {
         let dll_name = dll_imports.name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
-        let dll = &mut machine.state.kernel32.dlls[hmodule.to_dll_index()];
+        let mut dll = match hmodule.to_dll_index() {
+            Some(index) => Some(&mut machine.state.kernel32.dlls[index]),
+            None => None,
+        };
         for (sym, iat_addr) in dll_imports.entries(image) {
             let name = format!("{}!{}", dll_name, sym.to_string());
             machine
                 .labels
                 .insert(base + iat_addr, format!("{}@IAT", name));
 
-            let resolved_addr = dll.resolve(&mut machine.shims, sym);
+            let resolved_addr = if let Some(dll) = dll.as_mut() {
+                dll.resolve(&mut machine.shims, sym)
+            } else {
+                machine.shims.add(name.clone(), None)
+            };
             machine.labels.insert(resolved_addr, name);
-
             patches.push((base + iat_addr, resolved_addr));
         }
     }
@@ -212,16 +218,16 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
 
 #[derive(Debug)]
 pub struct Exports {
-    names: HashMap<String, u32>,
+    pub names: HashMap<String, u32>,
     // TODO: ords could be a flat array once we have ordinals for all the builtin DLLs.
-    ords: HashMap<u32, u32>,
+    pub ordinals: HashMap<u32, u32>,
 }
 
 impl Exports {
     fn new() -> Self {
         Exports {
             names: HashMap::new(),
-            ords: HashMap::new(),
+            ordinals: HashMap::new(),
         }
     }
 }
@@ -237,11 +243,11 @@ pub fn load_dll(machine: &mut Machine, buf: &[u8]) -> anyhow::Result<Exports> {
         let dir = pe::read_exports(machine, base, dir);
         for (i, &addr) in dir.fns(image).iter().enumerate() {
             let ord = dir.Base + i as u32;
-            exports.ords.insert(ord, addr);
+            exports.ordinals.insert(ord, addr);
         }
         for (name, i) in dir.names(image) {
             let ord = dir.Base + i as u32;
-            let addr = *exports.ords.get(&ord).unwrap();
+            let addr = *exports.ordinals.get(&ord).unwrap();
             exports.names.insert(name.to_string(), addr);
         }
     }

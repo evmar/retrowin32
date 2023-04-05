@@ -1,11 +1,12 @@
 use crate::{
     machine::Machine,
+    pe,
     shims::Shims,
     winapi::{self, types::*, BuiltinDLL, ImportSymbol},
 };
 use std::collections::HashMap;
 
-const TRACE: bool = false;
+const TRACE: bool = true;
 
 // HMODULE is index+1 into kernel32::State::dlls.
 declare_handle!(HMODULE);
@@ -15,8 +16,11 @@ impl HMODULE {
         return HMODULE::from_raw((index + 1) as u32);
     }
 
-    pub fn to_dll_index(&self) -> usize {
-        self.0 as usize - 1
+    pub fn to_dll_index(&self) -> Option<usize> {
+        if self.is_null() {
+            return None;
+        }
+        Some(self.0 as usize - 1)
     }
 }
 
@@ -25,6 +29,9 @@ pub struct DLL {
 
     /// Function name => resolved address.
     names: HashMap<String, u32>,
+
+    /// Function ordinal => resolved address.
+    ordinals: HashMap<u32, u32>,
 
     /// If present, DLL is one defined in winapi/...
     builtin: Option<&'static BuiltinDLL>,
@@ -38,13 +45,26 @@ impl DLL {
                     return addr;
                 }
             }
-            _ => todo!(),
+            ImportSymbol::Ordinal(ord) => {
+                if let Some(&addr) = self.ordinals.get(&ord) {
+                    return addr;
+                }
+            }
         }
 
         if let Some(builtin) = self.builtin {
             let handler = (builtin.resolve)(&sym);
-            let name = format!("{}!{}", self.name, sym.to_string());
-            let addr = shims.add(name, handler);
+            let addr = shims.add(format!("{}!{}", self.name, sym.to_string()), handler);
+
+            match sym {
+                ImportSymbol::Name(name) => {
+                    self.names.insert(name.to_string(), addr);
+                }
+                ImportSymbol::Ordinal(ord) => {
+                    self.ordinals.insert(ord, addr);
+                }
+            }
+
             return addr;
         }
 
@@ -117,15 +137,38 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         machine.state.kernel32.dlls.push(DLL {
             name: filename,
             names: HashMap::new(),
+            ordinals: HashMap::new(),
             builtin: Some(builtin),
         });
         return HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1);
     }
 
-    // TODO: load dll from disk using pe::load_dll.
-    log::error!("LoadLibrary({filename:?}) unimplemented");
+    let mut file = machine.host.open(&filename);
+    let mut contents = Vec::new();
+    let mut buf: [u8; 16 << 10] = [0; 16 << 10];
+    loop {
+        let mut len = 0u32;
+        assert!(file.read(&mut buf, &mut len));
+        if len == 0 {
+            break;
+        }
+        contents.extend_from_slice(&buf[..len as usize]);
+    }
+    // TODO: close file.
+    if contents.len() == 0 {
+        // HACK: zero-length indicates not found.
+        return HMODULE::null();
+    }
 
-    HMODULE::null() // fail
+    let exports = pe::load_dll(machine, &contents).unwrap();
+    let dll = DLL {
+        name: filename,
+        names: exports.names,
+        ordinals: exports.ordinals,
+        builtin: None,
+    };
+    machine.state.kernel32.dlls.push(dll);
+    HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1)
 }
 
 #[win32_derive::dllexport]
@@ -142,7 +185,8 @@ pub fn LoadLibraryExW(
 #[win32_derive::dllexport]
 pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
     let proc_name = lpProcName.unwrap();
-    if let Some(dll) = machine.state.kernel32.dlls.get_mut(hModule.to_dll_index()) {
+    let index = hModule.to_dll_index().unwrap();
+    if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
         return dll.resolve(&mut machine.shims, ImportSymbol::Name(proc_name));
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);

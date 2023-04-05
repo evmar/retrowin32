@@ -318,8 +318,11 @@ class VM implements JsHost {
   open(path: string): JsFile {
     // TODO: async file loading.
     const cwd = this.exePath.replace(/\/([^\/]+)$/, '/');
-    const bytes = this.files.get(cwd + path);
-    if (!bytes) throw new Error(`unknown file ${path}`);
+    let bytes = this.files.get(cwd + path);
+    if (!bytes) {
+      console.error(`unknown file ${path}, returning empty file`);
+      bytes = new Uint8Array();
+    }
     return new File(path, bytes);
   }
   write(buf: Uint8Array): number {
