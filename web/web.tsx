@@ -287,8 +287,11 @@ export class Page extends preact.Component<Page.Props, Page.State> {
 }
 
 interface URLParams {
+  /** URL directory that all other paths are resolved relative to. */
   dir?: string;
+  /** Executable to run. */
   exe: string;
+  /** Other data files to load.  TODO: we should fetch these dynamically instead. */
   files: string[];
 }
 

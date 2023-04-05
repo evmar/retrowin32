@@ -3,7 +3,7 @@ import * as wasm from './glue/pkg';
 import { Labels, Loader as LabelsLoader } from './labels';
 import { hex } from './util';
 
-interface Host {
+export interface Host {
   emulator: Emulator;
   showTab(name: string): void;
 }

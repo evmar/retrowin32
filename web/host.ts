@@ -1,4 +1,4 @@
-import { Emulator } from './emulator';
+import * as emulator from './emulator';
 import * as wasm from './glue/pkg';
 import { Page } from './web';
 
@@ -118,9 +118,10 @@ class File implements JsFile {
   }
 }
 
-export class Host implements JsHost {
+/** Emulator host, providing the emulation=>web API. */
+export class Host implements JsHost, emulator.Host {
   page!: Page;
-  emulator!: Emulator;
+  emulator!: emulator.Emulator;
   files = new Map<string, Uint8Array>();
 
   stdout = '';
