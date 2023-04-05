@@ -12,7 +12,7 @@ Some sample programs:
 - [A basic DirectDraw demo](https://evmar.github.io/retrowin32/?exe=BasicDD.exe),
   which came from
   [this intro site](https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting)
-- [Monolife](https://evmar.github.io/retrowin32/?exe=monolife/monolife.exe&file=monolife/monolife.dat)
+- [Monolife](https://evmar.github.io/retrowin32/?dir=monolife/&exe=monolife.exe&file=monolife.dat)
   by Hatha (see it [on pouet.net](https://www.pouet.net/prod.php?which=7698))
   [Note: still buggy, but the opening sorta works!]
 
