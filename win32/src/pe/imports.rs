@@ -63,7 +63,7 @@ impl<'a> Iterator for IDTIter<'a> {
     }
 }
 
-pub fn parse_dlls(buf: &[u8]) -> IDTIter {
+pub fn read_imports(buf: &[u8]) -> IDTIter {
     IDTIter {
         r: Reader::new(buf),
     }
