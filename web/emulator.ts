@@ -1,6 +1,6 @@
 import { Breakpoint } from './break';
 import * as wasm from './glue/pkg';
-import { Labels, Loader as LabelsLoader } from './labels';
+import { Labels } from './labels';
 import { hex } from './util';
 
 export interface Host {
@@ -15,7 +15,7 @@ export class Emulator {
   labels: Labels;
   exitCode: number | undefined = undefined;
 
-  constructor(readonly host: Host, readonly storageKey: string, bytes: Uint8Array, labelsLoader: LabelsLoader) {
+  constructor(readonly host: Host, readonly storageKey: string, bytes: Uint8Array, labels: Map<number, string>) {
     host.emulator = this;
     this.emu = wasm.new_emulator(host);
     this.emu.load_exe(bytes);
@@ -25,9 +25,9 @@ export class Emulator {
       const addr = parseInt(jsAddr);
       const name = jsName as string;
       this.imports.push(`${hex(addr, 8)}: ${name}`);
-      labelsLoader.add(addr, name);
+      labels.set(addr, name);
     }
-    this.labels = new Labels(labelsLoader);
+    this.labels = new Labels(labels);
 
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);

@@ -5,7 +5,7 @@ import { Code } from './code';
 import { Emulator } from './emulator';
 import * as wasm from './glue/pkg';
 import { Host } from './host';
-import { Loader as LabelsLoader } from './labels';
+import { parseCSV } from './labels';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
@@ -313,11 +313,16 @@ async function main() {
 
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
-  const loader = new LabelsLoader();
-  const storageKey = (params.dir ?? '') + params.exe;
-  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, loader);
+  const csvLabels = new Map<number, string>();
+  const resp = await fetch(params.exe + '.csv');
+  if (resp.ok) {
+    for (const [addr, name] of parseCSV(await resp.text())) {
+      csvLabels.set(addr, name);
+    }
+  }
 
-  await loader.fetchCSV(params.exe);
+  const storageKey = (params.dir ?? '') + params.exe;
+  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels);
 
   preact.render(<Page host={host} emulator={emulator} />, document.body);
 }
