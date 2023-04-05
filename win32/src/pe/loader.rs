@@ -165,9 +165,11 @@ fn load_pe(
     }
 
     if let Some(exports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        for export in pe::read_exports(machine, base, exports) {
-            log::info!("export: {:x?}", export);
-        }
+        let image = &machine.x86.mem[base as usize..];
+        let exports = pe::read_exports(machine, base, exports);
+        log::info!("{:x?}", exports.name(image));
+        log::info!("{:x?}", exports.fns(image));
+        log::info!("{:x?}", exports.names(image).collect::<Vec<_>>());
     }
 
     Ok(base)

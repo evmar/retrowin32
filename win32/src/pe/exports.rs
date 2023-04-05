@@ -27,42 +27,24 @@ impl IMAGE_EXPORT_DIRECTORY {
     pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
         image[self.Name as usize..].read_strz()
     }
-}
 
-pub struct ExportIter<'a> {
-    image: &'a [u8],
-    ordinal_base: u32,
-    fns: &'a [u32],
-    names: &'a [u32],
-    ords: &'a [u16],
-    i: usize,
-}
+    pub fn fns<'a>(&self, image: &'a [u8]) -> &'a [u32] {
+        image.view_n::<u32>(
+            self.AddressOfFunctions as usize,
+            self.NumberOfFunctions as usize,
+        )
+    }
 
-#[derive(Debug)]
-pub struct Export<'a> {
-    pub ordinal: u32,
-    pub name: &'a str,
-    pub addr: u32,
-}
+    pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
+        let names = image.view_n::<u32>(self.AddressOfNames as usize, self.NumberOfNames as usize);
+        let ords = image.view_n::<u16>(
+            self.AddressOfNameOrdinals as usize,
+            self.NumberOfNames as usize,
+        );
 
-impl<'a> Iterator for ExportIter<'a> {
-    type Item = Export<'a>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.i == self.ords.len() {
-            return None;
-        }
-
-        let ordinal = self.ords[self.i];
-        let name = self.image[self.names[self.i] as usize..].read_strz();
-        let addr = self.fns[ordinal as usize];
-        self.i += 1;
-
-        Some(Export {
-            ordinal: self.ordinal_base + ordinal as u32,
-            name,
-            addr,
-        })
+        let ni = names.iter().map(|&addr| image[addr as usize..].read_strz());
+        let oi = ords.iter().copied();
+        ni.zip(oi)
     }
 }
 
@@ -70,24 +52,7 @@ pub fn read_exports<'a>(
     machine: &'a Machine,
     base: u32,
     exports: &'a IMAGE_DATA_DIRECTORY,
-) -> ExportIter<'a> {
+) -> &'a IMAGE_EXPORT_DIRECTORY {
     let image = &machine.x86.mem[base as usize..];
-    let dir = exports.as_slice(image).view::<IMAGE_EXPORT_DIRECTORY>(0);
-    let fns = image.view_n::<u32>(
-        dir.AddressOfFunctions as usize,
-        dir.NumberOfFunctions as usize,
-    );
-    let names = image.view_n::<u32>(dir.AddressOfNames as usize, dir.NumberOfNames as usize);
-    let ords = image.view_n::<u16>(
-        dir.AddressOfNameOrdinals as usize,
-        dir.NumberOfNames as usize,
-    );
-    ExportIter {
-        image,
-        ordinal_base: dir.Base,
-        fns,
-        names,
-        ords,
-        i: 0,
-    }
+    exports.as_slice(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
 }
