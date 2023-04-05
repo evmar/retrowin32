@@ -160,6 +160,12 @@ fn load_pe(
         patch_iat(machine, base, imports);
     }
 
+    if let Some(exports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
+        for export in pe::read_exports(machine, base, exports) {
+            log::info!("export: {:x?}", export);
+        }
+    }
+
     Ok(base)
 }
 
