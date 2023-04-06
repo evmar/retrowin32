@@ -1,22 +1,21 @@
 # retrowin32
 
-A not-yet-working Windows emulator for the web (and maybe non-web?).
+A still-early Windows emulator for web (and non-Windows native platforms).
+
+Take a win32 `.exe` file and run it in a web browser or a Mac.
 
 ## Status
 
 Doesn't really work for much yet, but I'm still tinkering!
 
-Some sample programs:
+- 2023/04: "monolife" demo now can sorta render first scene.
+- 2023/02: can now run natively via SDL.
+  [See blog post](https://neugierig.org/software/blog/2023/02/retrowin32-progress.html).
+- 2022/10: released. Barely runs a few console programs and one DirectDraw
+  program.
+  [See blog post](https://neugierig.org/software/blog/2022/10/retrowin32.html).
 
-- [Zig "hello world"](https://evmar.github.io/retrowin32/?exe=zig.exe).
-- [A basic DirectDraw demo](https://evmar.github.io/retrowin32/?exe=BasicDD.exe),
-  which came from
-  [this intro site](https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting)
-- [Monolife](https://evmar.github.io/retrowin32/?dir=monolife/&exe=monolife.exe&file=monolife.dat)
-  by Hatha (see it [on pouet.net](https://www.pouet.net/prod.php?which=7698))
-  [Note: still buggy, but the opening sorta works!]
-
-Click the "run" button in the corner to run these.
+See [some demos](https://evmar.github.io/retrowin32/).
 
 ## The idea
 
