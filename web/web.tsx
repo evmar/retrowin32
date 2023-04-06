@@ -295,18 +295,21 @@ interface URLParams {
   files: string[];
 }
 
-function parseURL(): URLParams {
+function parseURL(): URLParams | undefined {
   const query = new URLSearchParams(document.location.search);
   const exe = query.get('exe');
-  if (!exe) throw new Error('missing exe param');
+  if (!exe) return undefined;
   const dir = query.get('dir') || undefined;
   const files = query.getAll('file');
   const params: URLParams = { dir, exe, files };
   return params;
 }
 
-async function main() {
+async function debuggerPage() {
   const params = parseURL();
+  if (!params) {
+    return <p>invalid URL params</p>;
+  }
 
   const host = new Host();
   await host.fetch([params.exe, ...params.files], params.dir);
@@ -324,7 +327,11 @@ async function main() {
   const storageKey = (params.dir ?? '') + params.exe;
   const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels);
 
-  preact.render(<Page host={host} emulator={emulator} />, document.body);
+  return <Page host={host} emulator={emulator} />;
+}
+
+async function main() {
+  preact.render(await debuggerPage(), document.body);
 }
 
 main();

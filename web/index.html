@@ -1,73 +1,44 @@
 <!doctype html>
 <style>
-body {
-    font-family: sans-serif;
-    font-size: 13px;
-}
-button {
-    font-family: inherit;
-    font-size: inherit;
-}
-a.stealth {
-    color: inherit;
-    text-decoration: none;
-}
-code {
-    white-space: pre-wrap;
-}
+    body {
+        font-family: sans-serif;
+        font-size: 13px;
+        width: 60ex;
+        margin: 2ex auto;
+    }
 
-section {
-    margin: 1ex;
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-}
-
-.clicky {
-    cursor: pointer;
-}
-.highlight {
-    background: #ddd;
-}
-.error {
-    color: red;
-}
-
-.code {
-    width: 80ex;
-}
-
-table {
-    border-spacing: 0;
-}
-td {
-    vertical-align: top;
-    padding: 0;
-}
-
-.tabs-strip {
-    margin: 1ex;
-}
-
-.window {
-    font-size: 11px;
-    position: absolute;
-    min-width: 32px;
-    min-height: 32px;
-    box-shadow: 2px 2px 16px 4px rgba(0,0,0,0.3);
-    border: 2px outset;
-    cursor: default;
-    background: #c3c3c3;
-}
-.window .titlebar {
-    background: #000082;
-    color: white;
-    padding: 2px 16px;
-}
-
+    h1 {
+        font-weight: normal;
+    }
 </style>
+
 <body>
+    <h1>retrowin32</h1>
+
+    <p><a href='https://github.com/evmar/retrowin32'>project and documentation</a></p>
+
+    <p>demos (click 'run'):</p>
 </body>
-<script type='module' src='bundle.js'></script>
+
+<script>
+    const demos = [
+        { desc: 'zig hello world', params: 'exe=zig.exe' },
+        { desc: 'zip/unzip round trip test', params: 'exe=zip.exe' },
+        { desc: 'basic DirectDraw', params: 'exe=BasicDD.exe' },
+        { desc: 'monolife', params: 'dir=exe/demo/monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll' },
+    ];
+
+    const table = document.createElement('table');
+    for (const demo of demos) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        const a = document.createElement('a');
+        let url = `debugger.html?${demo.params}`;
+        a.href = url;
+        a.innerText = demo.desc;
+        td.appendChild(a);
+        tr.appendChild(td);
+        table.appendChild(tr);
+    }
+    document.body.appendChild(table);
+</script>
