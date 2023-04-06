@@ -1,0 +1,10 @@
+[
+    {
+        "desc": "basic DirectDraw demo",
+        "params": "exe=BasicDD.exe"
+    },
+    {
+        "desc": "monolife",
+        "params": "dir=monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll"
+    }
+]

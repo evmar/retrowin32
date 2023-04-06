@@ -1769,14 +1769,17 @@ function parseURL() {
   const query = new URLSearchParams(document.location.search);
   const exe = query.get("exe");
   if (!exe)
-    throw new Error("missing exe param");
+    return void 0;
   const dir = query.get("dir") || void 0;
   const files = query.getAll("file");
   const params = { dir, exe, files };
   return params;
 }
-async function main() {
+async function debuggerPage() {
   const params = parseURL();
+  if (!params) {
+    return /* @__PURE__ */ h("p", null, "invalid URL params");
+  }
   const host = new Host();
   await host.fetch([params.exe, ...params.files], params.dir);
   await glue_default(new URL("wasm.wasm", document.location.href));
@@ -1789,10 +1792,13 @@ async function main() {
   }
   const storageKey = (params.dir ?? "") + params.exe;
   const emulator = new Emulator2(host, storageKey, host.files.get(params.exe), csvLabels);
-  P(/* @__PURE__ */ h(Page, {
+  return /* @__PURE__ */ h(Page, {
     host,
     emulator
-  }), document.body);
+  });
+}
+async function main() {
+  P(await debuggerPage(), document.body);
 }
 main();
 export {
