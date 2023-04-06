@@ -1,10 +1,12 @@
 [
     {
         "desc": "basic DirectDraw demo",
-        "params": "exe=BasicDD.exe"
+        "params": "exe=BasicDD.exe",
+        "notes": "currently broken :("
     },
     {
         "desc": "monolife",
-        "params": "dir=monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll"
+        "params": "dir=monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll",
+        "notes": "by Hatha (see it on <a href='https://www.pouet.net/prod.php?which=7698'>pouet.net</a>) [Note: still buggy, but the opening sorta works!]"
     }
 ]

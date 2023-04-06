@@ -26,13 +26,19 @@
         const table = document.createElement('table');
         for (const demo of demos) {
             const tr = document.createElement('tr');
-            const td = document.createElement('td');
+
+            let td = document.createElement('td');
             const a = document.createElement('a');
             let url = `debugger.html?${demo.params}`;
             a.href = url;
             a.innerText = demo.desc;
             td.appendChild(a);
             tr.appendChild(td);
+
+            td = document.createElement('td');
+            td.innerHTML = demo.notes ?? '';
+            tr.appendChild(td);
+
             table.appendChild(tr);
         }
         document.body.appendChild(table);
