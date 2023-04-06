@@ -1,0 +1,18 @@
+[
+  {
+    "desc": "zig hello world",
+    "params": "exe=exe/zig_hello/hello.exe"
+  },
+  {
+    "desc": "zip/unzip round trip test",
+    "params": "exe=exe/zip/zip.exe"
+  },
+  {
+    "desc": "basic DirectDraw",
+    "params": "exe=exe/BasicDD.exe"
+  },
+  {
+    "desc": "monolife",
+    "params": "dir=exe/demo/monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll"
+  }
+]

@@ -21,24 +21,21 @@
 </body>
 
 <script>
-    const demos = [
-        { desc: 'zig hello world', params: 'exe=zig.exe' },
-        { desc: 'zip/unzip round trip test', params: 'exe=zip.exe' },
-        { desc: 'basic DirectDraw', params: 'exe=BasicDD.exe' },
-        { desc: 'monolife', params: 'dir=exe/demo/monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll' },
-    ];
-
-    const table = document.createElement('table');
-    for (const demo of demos) {
-        const tr = document.createElement('tr');
-        const td = document.createElement('td');
-        const a = document.createElement('a');
-        let url = `debugger.html?${demo.params}`;
-        a.href = url;
-        a.innerText = demo.desc;
-        td.appendChild(a);
-        tr.appendChild(td);
-        table.appendChild(tr);
+    async function main() {
+        const demos = await (await fetch('index.json')).json();
+        const table = document.createElement('table');
+        for (const demo of demos) {
+            const tr = document.createElement('tr');
+            const td = document.createElement('td');
+            const a = document.createElement('a');
+            let url = `debugger.html?${demo.params}`;
+            a.href = url;
+            a.innerText = demo.desc;
+            td.appendChild(a);
+            tr.appendChild(td);
+            table.appendChild(tr);
+        }
+        document.body.appendChild(table);
     }
-    document.body.appendChild(table);
+    main();
 </script>
