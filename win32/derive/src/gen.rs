@@ -108,7 +108,8 @@ pub fn resolve_fn(fn_names: Vec<(syn::Ident, Option<usize>)>) -> TokenStream {
 // TODO: this fn is used by lib.rs, but not main.rs.
 #[allow(dead_code)]
 pub fn add_trace(func: &mut syn::ItemFn) {
-    let mut fmt: String = func.sig.ident.to_string();
+    let mut fmt: String = "{}/".into(); // TRACE_CONTEXT prefix
+    fmt.push_str(&func.sig.ident.to_string());
     let mut args: Vec<&syn::Ident> = Vec::new();
     for arg in func.sig.inputs.iter().skip(1) {
         match arg {
@@ -131,7 +132,7 @@ pub fn add_trace(func: &mut syn::ItemFn) {
     );
     fmt.push_str(")");
     let stmt = syn::parse_quote! {
-        if TRACE { log::info!(#fmt, #(#args),*); }
+        if crate::trace::enabled(TRACE_CONTEXT) { log::info!(#fmt, TRACE_CONTEXT, #(#args),*); }
     };
     func.block.stmts.insert(0, stmt);
 }

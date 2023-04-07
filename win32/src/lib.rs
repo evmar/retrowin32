@@ -3,6 +3,7 @@ mod machine;
 mod pe;
 mod reader;
 mod shims;
+pub mod trace;
 mod winapi;
 
 pub use host::*;

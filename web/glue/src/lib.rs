@@ -345,6 +345,7 @@ impl Emulator {
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost) -> JsResult<Emulator> {
     init_logging(JsHost::from(host.clone()))?;
+    win32::trace::set_scheme("-kernel32");
     let runner = win32::Runner::new(Box::new(host));
     Ok(Emulator { runner })
 }

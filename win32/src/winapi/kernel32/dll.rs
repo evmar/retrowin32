@@ -6,7 +6,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
 // HMODULE is index+1 into kernel32::State::dlls.
 declare_handle!(HMODULE);

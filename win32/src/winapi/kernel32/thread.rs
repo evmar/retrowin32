@@ -2,7 +2,7 @@ use crate::machine::Machine;
 
 use super::{peb_mut, teb_mut};
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "kernel32/thread";
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {

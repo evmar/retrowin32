@@ -7,7 +7,7 @@ use crate::machine::Machine;
 use crate::winapi::vtable;
 use x86::Memory;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "dsound";
 
 pub const DS_OK: u32 = 0;
 #[allow(unused)]

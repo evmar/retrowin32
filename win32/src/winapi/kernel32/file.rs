@@ -3,7 +3,7 @@ use crate::{
     winapi::types::{Str16, HFILE},
 };
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "kernel32/file";
 
 // For now, a magic variable that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);

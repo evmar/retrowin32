@@ -3,7 +3,7 @@ use bitflags::bitflags;
 use std::cmp::max;
 use tsify::Tsify;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "kernel32/memory";
 
 pub fn round_up_to_page_granularity(size: u32) -> u32 {
     size + (0x1000 - 1) & !(0x1000 - 1)

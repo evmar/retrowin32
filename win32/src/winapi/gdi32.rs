@@ -2,7 +2,7 @@
 
 use crate::{machine::Machine, winapi::user32};
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "gdi32";
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]

@@ -12,7 +12,7 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 use x86::Memory;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "user32";
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0

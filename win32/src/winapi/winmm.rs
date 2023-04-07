@@ -3,7 +3,7 @@
 
 use crate::machine::Machine;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "winmm";
 
 #[win32_derive::dllexport]
 pub fn timeSetEvent(

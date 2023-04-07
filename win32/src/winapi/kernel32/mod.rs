@@ -22,7 +22,7 @@ pub use file::*;
 pub use memory::*;
 pub use thread::*;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "kernel32";
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {

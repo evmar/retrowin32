@@ -7,7 +7,7 @@ use bitflags::bitflags;
 use std::collections::HashMap;
 use x86::Memory;
 
-const TRACE: bool = true;
+const TRACE_CONTEXT: &'static str = "ddraw";
 
 #[repr(C)]
 #[derive(Debug)]
