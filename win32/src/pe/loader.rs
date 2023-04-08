@@ -179,10 +179,15 @@ fn load_pe(
 pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::Result<()> {
     let file = pe::parse(&buf)?;
 
+    machine.state.kernel32.init(&mut machine.x86.mem);
+
     let base = load_pe(machine, &cmdline, buf, &file, false)?;
     machine.state.kernel32.image_base = base;
 
-    machine.state.kernel32.init(&mut machine.x86.mem, cmdline);
+    machine
+        .state
+        .kernel32
+        .init_process(&mut machine.x86.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;

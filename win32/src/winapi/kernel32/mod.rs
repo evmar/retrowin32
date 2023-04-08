@@ -66,13 +66,9 @@ impl State {
         }
     }
 
-    pub fn init(&mut self, mem: &mut Vec<u8>, cmdline: String) {
+    pub fn init(&mut self, mem: &mut Vec<u8>) {
         let mapping = self.mappings.alloc(0x1000, "kernel32 data".into(), mem);
         self.arena = ArenaInfo::new(mapping.addr, mapping.size);
-
-        let cmdline_len = cmdline.len();
-        self.init_cmdline(mem, cmdline);
-        self.init_teb_peb(mem, cmdline_len);
 
         let env = "\0\0".as_bytes();
         let env_addr = self.arena.get(mem).alloc(env.len() as u32);
@@ -102,7 +98,11 @@ impl State {
 
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    fn init_teb_peb(&mut self, mem: &mut [u8], cmdline_len: usize) {
+    pub fn init_process(&mut self, mem: &mut [u8], cmdline: String) {
+        let cmdline_len = cmdline.len();
+
+        self.init_cmdline(mem, cmdline);
+
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.get(mem).alloc(std::cmp::max(
             std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
