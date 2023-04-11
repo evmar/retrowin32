@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use super::{IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, reader::Reader, winapi};
 use std::collections::HashMap;
@@ -114,6 +116,13 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 }
 
+#[repr(C)]
+struct IMAGE_BASE_RELOCATION {
+    VirtualAddress: u32,
+    SizeOfBlock: u32,
+}
+unsafe impl x86::Pod for IMAGE_BASE_RELOCATION {}
+
 fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
     // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
     // have a .reloc section that is invalid (?).
@@ -125,8 +134,8 @@ fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA
     let relocs = unsafe { std::mem::transmute(relocs.as_slice(image)) };
     let mut r = Reader::new(relocs);
     while !r.done() {
-        let addr = *r.read::<u32>();
-        let size = *r.read::<u32>() - 8; // -8 because size includes these two fields
+        let reloc = r.read::<IMAGE_BASE_RELOCATION>();
+        let size = reloc.SizeOfBlock - std::mem::size_of::<IMAGE_BASE_RELOCATION>() as u32;
         for _ in 0..(size / 2) {
             let entry = *r.read::<u16>();
             let etype = entry >> 12;
@@ -135,7 +144,7 @@ fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA
                 0 => {} // skip
                 3 => {
                     // 32-bit
-                    let reloc = image.view_mut::<u32>(addr + ofs as u32);
+                    let reloc = image.view_mut::<u32>(reloc.VirtualAddress + ofs as u32);
                     *reloc -= prev_base;
                     *reloc += base;
                 }
