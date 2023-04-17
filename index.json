@@ -2,7 +2,7 @@
     {
         "desc": "basic DirectDraw demo",
         "params": "exe=BasicDD.exe",
-        "notes": "currently broken :("
+        "notes": "from <a href='https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting'>this tutorial</a>"
     },
     {
         "desc": "monolife",
