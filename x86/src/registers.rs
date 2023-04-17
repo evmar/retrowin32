@@ -1,5 +1,4 @@
 use bitflags::bitflags;
-use tsify::Tsify;
 
 bitflags! {
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -28,7 +27,7 @@ bitflags! {
 }
 
 #[repr(C)]
-#[derive(serde::Serialize, serde::Deserialize, Tsify)]
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Registers {
     // Warning: get32 assumes the registers start with eax and are in a particular order.
     pub eax: u32,

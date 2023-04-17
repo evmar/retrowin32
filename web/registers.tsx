@@ -1,29 +1,8 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import { Registers } from './glue/pkg';
 import { Number } from './memory';
 import { hex } from './util';
-
-interface Registers {
-  eax: number;
-  ebx: number;
-  ecx: number;
-  edx: number;
-  esp: number;
-  ebp: number;
-  esi: number;
-  edi: number;
-  eip: number;
-  cs: number;
-  ds: number;
-  es: number;
-  fs: number;
-  gs: number;
-  ss: number;
-  flags: number;
-
-  flags_str(): string;
-  st(): Float64Array;
-}
 
 namespace RegistersComponent {
   export interface Props extends Number.Interactions {
@@ -33,7 +12,7 @@ namespace RegistersComponent {
 export class RegistersComponent extends preact.Component<RegistersComponent.Props> {
   render() {
     const { regs } = this.props;
-    const st = Array.from(regs.st());
+    const st = regs.st;
     return (
       <section>
         <code>
@@ -74,14 +53,14 @@ export class RegistersComponent extends preact.Component<RegistersComponent.Prop
           </div>
           <br />
           <div>
-            flags&nbsp;{hex(regs.flags)} {regs.flags_str()}
+            flags&nbsp;{hex(regs.flags)} {regs.flags_str}
           </div>
           <br />
           {st.length > 0
             ? (
               <div>
                 fpu<br />
-                {Array.from(regs.st()).map(n => (
+                {Array.from(regs.st).map(n => (
                   <span>
                     {n}
                     <br />

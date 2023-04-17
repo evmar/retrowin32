@@ -103,10 +103,13 @@ dependencies = [
  "bincode",
  "js-sys",
  "log",
+ "serde",
  "serde_json",
+ "tsify",
  "wasm-bindgen",
  "web-sys",
  "win32",
+ "x86",
 ]
 
 [[package]]

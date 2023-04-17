@@ -208,7 +208,7 @@ export class Page extends preact.Component<Page.Props, Page.State> {
           <RegistersComponent
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            regs={this.props.emulator.emu}
+            regs={this.props.emulator.emu.regs()}
           />
         </div>
         <div style={{ display: 'flex' }}>

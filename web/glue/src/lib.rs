@@ -1,3 +1,4 @@
+mod debugger;
 mod host;
 mod log;
 
@@ -37,37 +38,8 @@ impl Emulator {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn eax(&self) -> u32 {
-        self.runner.machine.x86.regs.eax
-    }
-    #[wasm_bindgen(getter)]
-    pub fn ebx(&self) -> u32 {
-        self.runner.machine.x86.regs.ebx
-    }
-    #[wasm_bindgen(getter)]
-    pub fn ecx(&self) -> u32 {
-        self.runner.machine.x86.regs.ecx
-    }
-    #[wasm_bindgen(getter)]
-    pub fn edx(&self) -> u32 {
-        self.runner.machine.x86.regs.edx
-    }
-
-    #[wasm_bindgen(getter)]
     pub fn esp(&self) -> u32 {
         self.runner.machine.x86.regs.esp
-    }
-    #[wasm_bindgen(getter)]
-    pub fn ebp(&self) -> u32 {
-        self.runner.machine.x86.regs.ebp
-    }
-    #[wasm_bindgen(getter)]
-    pub fn esi(&self) -> u32 {
-        self.runner.machine.x86.regs.esi
-    }
-    #[wasm_bindgen(getter)]
-    pub fn edi(&self) -> u32 {
-        self.runner.machine.x86.regs.edi
     }
 
     #[wasm_bindgen(getter)]
@@ -75,41 +47,8 @@ impl Emulator {
         self.runner.machine.x86.regs.eip
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn cs(&self) -> u16 {
-        self.runner.machine.x86.regs.cs
-    }
-    #[wasm_bindgen(getter)]
-    pub fn ds(&self) -> u16 {
-        self.runner.machine.x86.regs.ds
-    }
-    #[wasm_bindgen(getter)]
-    pub fn es(&self) -> u16 {
-        self.runner.machine.x86.regs.es
-    }
-    #[wasm_bindgen(getter)]
-    pub fn fs(&self) -> u16 {
-        self.runner.machine.x86.regs.fs
-    }
-    #[wasm_bindgen(getter)]
-    pub fn gs(&self) -> u16 {
-        self.runner.machine.x86.regs.gs
-    }
-    #[wasm_bindgen(getter)]
-    pub fn ss(&self) -> u16 {
-        self.runner.machine.x86.regs.ss
-    }
-    #[wasm_bindgen(getter)]
-    pub fn flags(&self) -> u32 {
-        self.runner.machine.x86.flags.bits()
-    }
-    pub fn flags_str(&self) -> String {
-        format!("{:?}", self.runner.machine.x86.flags)
-    }
-
-    pub fn st(&self) -> Box<[f64]> {
-        let s = &self.runner.machine.x86.regs.st[self.runner.machine.x86.regs.st_top..];
-        s.into()
+    pub fn regs(&self) -> debugger::Registers {
+        debugger::Registers::from_x86(&self.runner.machine.x86)
     }
 
     #[wasm_bindgen(getter)]
