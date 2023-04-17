@@ -5,13 +5,6 @@ use wasm_bindgen::prelude::*;
 
 use crate::host::JsHost;
 
-#[wasm_bindgen(
-    inline_js = "export function mem(memory, offset) { return new DataView(memory.buffer, offset); }"
-)]
-extern "C" {
-    fn mem(mem: JsValue, offset: u32) -> JsValue;
-}
-
 pub type JsResult<T> = Result<T, JsError>;
 fn err_from_anyhow(err: anyhow::Error) -> JsError {
     JsError::new(&err.to_string())
@@ -37,10 +30,10 @@ impl Emulator {
     }
 
     pub fn memory(&self) -> js_sys::DataView {
-        js_sys::DataView::from(mem(
-            wasm_bindgen::memory(),
-            self.runner.machine.x86.mem.as_ptr() as u32,
-        ))
+        let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
+        let buf = js_sys::ArrayBuffer::from(mem.buffer());
+        let ofs = self.runner.machine.x86.mem.as_ptr() as usize;
+        js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
     #[wasm_bindgen(getter)]
