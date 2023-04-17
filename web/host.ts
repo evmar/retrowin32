@@ -8,7 +8,7 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
   return new Uint8Array(await resp.arrayBuffer());
 }
 
-// Matches 'pub type JsSurface' in glue/lib.rs.
+// Matches 'pub type JsSurface' in glue/host.rs.
 interface JsSurface {
   write_pixels(pixels: Uint8Array): void;
   get_attached(): JsSurface;
@@ -16,13 +16,13 @@ interface JsSurface {
   bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
 }
 
-// Matches 'pub type JsWindow' in glue/lib.rs.
+// Matches 'pub type JsWindow' in glue/host.rs.
 interface JsWindow {
   title: string;
   set_size(width: number, height: number): void;
 }
 
-// Matches 'pub type JsFile' in glue/lib.rs.
+// Matches 'pub type JsFile' in glue/host.rs.
 interface JsFile {
   seek(ofs: number): boolean;
   read(buf: Uint8Array): number;
@@ -33,7 +33,7 @@ interface JsLogger {
   log(level: number, msg: string): void;
 }
 
-// Matches 'pub type JsHost' in glue/lib.rs.
+// Matches 'pub type JsHost' in glue/host.rs.
 interface JsHost {
   exit(code: number): void;
 
@@ -91,7 +91,7 @@ class Window implements JsWindow {
     readonly host: Host,
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) { }
+  ) {}
   title: string = '';
   width: number | undefined;
   height: number | undefined;
