@@ -1,5 +1,5 @@
 import * as emulator from './emulator';
-import * as wasm from './glue/pkg';
+import * as glue from './glue';
 import { Page } from './web';
 
 async function fetchBytes(path: string): Promise<Uint8Array> {
@@ -8,43 +8,7 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
   return new Uint8Array(await resp.arrayBuffer());
 }
 
-// Matches 'pub type JsSurface' in glue/host.rs.
-interface JsSurface {
-  write_pixels(pixels: Uint8Array): void;
-  get_attached(): JsSurface;
-  flip(): void;
-  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
-}
-
-// Matches 'pub type JsWindow' in glue/host.rs.
-interface JsWindow {
-  title: string;
-  set_size(width: number, height: number): void;
-}
-
-// Matches 'pub type JsFile' in glue/host.rs.
-interface JsFile {
-  seek(ofs: number): boolean;
-  read(buf: Uint8Array): number;
-}
-
-// Matches 'pub type JsLogger' in glue/log.rs.
-interface JsLogger {
-  log(level: number, msg: string): void;
-}
-
-// Matches 'pub type JsHost' in glue/host.rs.
-interface JsHost {
-  exit(code: number): void;
-
-  open(path: string): JsFile;
-  write(buf: Uint8Array): number;
-
-  create_window(): JsWindow;
-  create_surface(opts: wasm.SurfaceOptions): JsSurface;
-}
-
-class Surface implements JsSurface {
+class Surface implements glue.JsSurface {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   back?: Surface;
@@ -70,7 +34,7 @@ class Surface implements JsSurface {
     this.ctx.putImageData(data, 0, 0);
   }
 
-  get_attached(): JsSurface {
+  get_attached(): glue.JsSurface {
     if (!this.back) throw new Error('no back for attached');
     return this.back!;
   }
@@ -81,12 +45,12 @@ class Surface implements JsSurface {
     // TODO: do we need to swap canvases or something?
   }
 
-  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void {
+  bit_blt(dx: number, dy: number, other: glue.JsSurface, sx: number, sy: number, w: number, h: number): void {
     this.ctx.drawImage((other as unknown as Surface).canvas, sx, sy, w, h, dx, dy, w, h);
   }
 }
 
-class Window implements JsWindow {
+class Window implements glue.JsWindow {
   constructor(
     readonly host: Host,
     /** Unique ID for React purposes. */
@@ -103,7 +67,7 @@ class Window implements JsWindow {
   }
 }
 
-class File implements JsFile {
+class File implements glue.JsFile {
   ofs = 0;
 
   constructor(readonly path: string, readonly bytes: Uint8Array) {
@@ -121,7 +85,7 @@ class File implements JsFile {
 }
 
 /** Emulator host, providing the emulation=>web API. */
-export class Host implements JsHost, JsLogger, emulator.Host {
+export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   page!: Page;
   emulator!: emulator.Emulator;
   files = new Map<string, Uint8Array>();
@@ -171,7 +135,7 @@ export class Host implements JsHost, JsLogger, emulator.Host {
     this.emulator.exitCode = code;
   }
 
-  open(path: string): JsFile {
+  open(path: string): glue.JsFile {
     // TODO: async file loading.
     let bytes = this.files.get(path);
     if (!bytes) {
@@ -187,14 +151,14 @@ export class Host implements JsHost, JsLogger, emulator.Host {
   }
 
   windows: Window[] = [];
-  create_window(): JsWindow {
+  create_window(): glue.JsWindow {
     let id = this.windows.length + 1;
     this.windows.push(new Window(this, id));
     this.page.forceUpdate();
     return this.windows[id - 1];
   }
 
-  create_surface(opts: wasm.SurfaceOptions): JsSurface {
+  create_surface(opts: glue.SurfaceOptions): glue.JsSurface {
     const { width, height, primary } = opts;
     opts.free();
     const surface = new Surface(width, height, primary);
