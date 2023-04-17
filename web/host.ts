@@ -8,7 +8,7 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
   return new Uint8Array(await resp.arrayBuffer());
 }
 
-// Matches 'pub type JsSurface' in lib.rs.
+// Matches 'pub type JsSurface' in glue/lib.rs.
 interface JsSurface {
   write_pixels(pixels: Uint8Array): void;
   get_attached(): JsSurface;
@@ -16,22 +16,25 @@ interface JsSurface {
   bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
 }
 
-// Matches 'pub type JsWindow' in lib.rs.
+// Matches 'pub type JsWindow' in glue/lib.rs.
 interface JsWindow {
   title: string;
   set_size(width: number, height: number): void;
 }
 
-// Matches 'pub type JsFile' in lib.rs.
+// Matches 'pub type JsFile' in glue/lib.rs.
 interface JsFile {
   seek(ofs: number): boolean;
   read(buf: Uint8Array): number;
 }
 
-// Matches 'pub type JsHost' in lib.rs.
-interface JsHost {
+// Matches 'pub type JsLogger' in glue/log.rs.
+interface JsLogger {
   log(level: number, msg: string): void;
+}
 
+// Matches 'pub type JsHost' in glue/lib.rs.
+interface JsHost {
   exit(code: number): void;
 
   open(path: string): JsFile;
@@ -88,7 +91,7 @@ class Window implements JsWindow {
     readonly host: Host,
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) {}
+  ) { }
   title: string = '';
   width: number | undefined;
   height: number | undefined;
@@ -118,7 +121,7 @@ class File implements JsFile {
 }
 
 /** Emulator host, providing the emulation=>web API. */
-export class Host implements JsHost, emulator.Host {
+export class Host implements JsHost, JsLogger, emulator.Host {
   page!: Page;
   emulator!: emulator.Emulator;
   files = new Map<string, Uint8Array>();
