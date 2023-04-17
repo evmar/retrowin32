@@ -351,6 +351,21 @@ pub fn DialogBoxParamA(
     0
 }
 
+bitflags! {
+    pub struct RemoveMsg: u32 {
+        const PM_NOREMOVE = 0x0000;
+        const PM_REMOVE = 0x0001;
+        const PM_NOYIELD = 0x0002;
+    }
+}
+impl TryFrom<u32> for RemoveMsg {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        RemoveMsg::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
     machine: &mut Machine,
@@ -358,14 +373,20 @@ pub fn PeekMessageA(
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
-    wRemoveMsg: u32,
+    wRemoveMsg: Result<RemoveMsg, u32>,
 ) -> bool {
     // TODO: obey HWND.
+    let remove = wRemoveMsg.unwrap();
     let msg = match machine.state.user32.messages.front() {
         Some(msg) => msg,
         None => return false,
     };
     *lpMsg.unwrap() = msg.clone();
+
+    if remove.contains(RemoveMsg::PM_REMOVE) {
+        machine.state.user32.messages.pop_front();
+    }
+
     true
 }
 
@@ -377,10 +398,16 @@ pub fn GetMessageA(
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> bool {
-    if !PeekMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, 0) {
+    if !PeekMessageA(
+        machine,
+        lpMsg,
+        hWnd,
+        wMsgFilterMin,
+        wMsgFilterMax,
+        Ok(RemoveMsg::PM_REMOVE),
+    ) {
         todo!();
     }
-    machine.state.user32.messages.pop_front();
     return true;
 }
 

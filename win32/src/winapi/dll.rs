@@ -1665,9 +1665,13 @@ pub mod user32 {
         let wMsgFilterMax =
             unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wRemoveMsg =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let wRemoveMsg = unsafe {
+            <Result<RemoveMsg, u32>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Result<RemoveMsg, u32>>::stack_consumed();
         let result = winapi::user32::PeekMessageA(
             machine,
             lpMsg,
