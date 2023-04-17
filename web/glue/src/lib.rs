@@ -149,8 +149,6 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
-    #[wasm_bindgen(method)]
-    fn time(this: &JsHost) -> u32;
 
     #[wasm_bindgen(method)]
     fn open(this: &JsHost, path: &str) -> JsFile;
@@ -168,7 +166,7 @@ impl win32::Host for JsHost {
         JsHost::exit(self, exit_code)
     }
     fn time(&self) -> u32 {
-        JsHost::time(self)
+        web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {

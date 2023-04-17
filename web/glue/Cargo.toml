@@ -17,6 +17,10 @@ serde_json = "1.0"
 version = "0.2.83"
 # features = ["xxx_debug_only_print_generated_code"]
 
+[dependencies.web-sys]
+version = "0.3.61"
+features = ["Performance"]
+
 [dependencies.win32]
 path = "../../win32"
 version = "0.1.0"

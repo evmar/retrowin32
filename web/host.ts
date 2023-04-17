@@ -33,7 +33,6 @@ interface JsHost {
   log(level: number, msg: string): void;
 
   exit(code: number): void;
-  time(): number;
 
   open(path: string): JsFile;
   write(buf: Uint8Array): number;
@@ -167,9 +166,6 @@ export class Host implements JsHost, emulator.Host {
   exit(code: number) {
     console.warn('exited with code', code);
     this.emulator.exitCode = code;
-  }
-  time(): number {
-    return Math.floor(performance.now());
   }
 
   open(path: string): JsFile {
