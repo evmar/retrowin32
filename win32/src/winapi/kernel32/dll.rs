@@ -27,47 +27,46 @@ impl HMODULE {
 pub struct DLL {
     name: String,
 
-    /// Function name => resolved address.
-    names: HashMap<String, u32>,
-
-    /// Function ordinal => resolved address.
-    ordinals: HashMap<u32, u32>,
+    dll: pe::DLL,
 
     /// If present, DLL is one defined in winapi/...
     builtin: Option<&'static BuiltinDLL>,
 }
 
 impl DLL {
-    pub fn resolve(&mut self, shims: &mut Shims, sym: ImportSymbol) -> u32 {
-        match sym {
-            ImportSymbol::Name(name) => {
-                if let Some(&addr) = self.names.get(name) {
-                    return addr;
-                }
-            }
-            ImportSymbol::Ordinal(ord) => {
-                if let Some(&addr) = self.ordinals.get(&ord) {
-                    return addr;
-                }
-            }
+    fn resolve_from_pe(&self, sym: &ImportSymbol) -> Option<u32> {
+        match *sym {
+            ImportSymbol::Name(name) => self.dll.names.get(name).copied(),
+            ImportSymbol::Ordinal(ord) => self.dll.ordinals.get(&ord).copied(),
         }
+    }
 
+    pub fn resolve_from_builtin(&mut self, shims: &mut Shims, sym: &ImportSymbol) -> Option<u32> {
         if let Some(builtin) = self.builtin {
             let handler = (builtin.resolve)(&sym);
             let addr = shims.add(format!("{}!{}", self.name, sym.to_string()), handler);
 
-            match sym {
+            match *sym {
                 ImportSymbol::Name(name) => {
-                    self.names.insert(name.to_string(), addr);
+                    self.dll.names.insert(name.to_string(), addr);
                 }
                 ImportSymbol::Ordinal(ord) => {
-                    self.ordinals.insert(ord, addr);
+                    self.dll.ordinals.insert(ord, addr);
                 }
             }
 
+            return Some(addr);
+        }
+        return None;
+    }
+
+    pub fn resolve(&mut self, shims: &mut Shims, sym: ImportSymbol) -> u32 {
+        if let Some(addr) = self.resolve_from_pe(&sym) {
             return addr;
         }
-
+        if let Some(addr) = self.resolve_from_builtin(shims, &sym) {
+            return addr;
+        }
         todo!()
     }
 }
@@ -136,8 +135,11 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     if let Some(builtin) = winapi::DLLS.iter().find(|&dll| dll.file_name == filename) {
         machine.state.kernel32.dlls.push(DLL {
             name: filename,
-            names: HashMap::new(),
-            ordinals: HashMap::new(),
+            dll: pe::DLL {
+                names: HashMap::new(),
+                ordinals: HashMap::new(),
+                entry_point: 0,
+            },
             builtin: Some(builtin),
         });
         return HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1);
@@ -160,14 +162,12 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         return HMODULE::null();
     }
 
-    let exports = pe::load_dll(machine, &filename, &contents).unwrap();
-    let dll = DLL {
+    let dll = pe::load_dll(machine, &filename, &contents).unwrap();
+    machine.state.kernel32.dlls.push(DLL {
         name: filename,
-        names: exports.names,
-        ordinals: exports.ordinals,
+        dll,
         builtin: None,
-    };
-    machine.state.kernel32.dlls.push(dll);
+    });
     HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1)
 }
 

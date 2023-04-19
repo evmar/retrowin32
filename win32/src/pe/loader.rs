@@ -232,41 +232,38 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
     Ok(())
 }
 
-#[derive(Debug)]
-pub struct Exports {
+#[derive(Debug, Default)]
+pub struct DLL {
+    /// Function name => resolved address.
     pub names: HashMap<String, u32>,
+
+    /// Function ordinal => resolved address.
     // TODO: ords could be a flat array once we have ordinals for all the builtin DLLs.
     pub ordinals: HashMap<u32, u32>,
+
+    /// Address of DllMain() entry point.
+    pub entry_point: u32,
 }
 
-impl Exports {
-    fn new() -> Self {
-        Exports {
-            names: HashMap::new(),
-            ordinals: HashMap::new(),
-        }
-    }
-}
-
-pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result<Exports> {
+pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result<DLL> {
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, name, buf, &file, true)?;
     let image = &machine.x86.mem[base as usize..];
 
-    let mut exports = Exports::new();
+    let mut dll = DLL::default();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let dir = pe::read_exports(machine, base, dir);
         for (i, &addr) in dir.fns(image).iter().enumerate() {
             let ord = dir.Base + i as u32;
-            exports.ordinals.insert(ord, addr);
+            dll.ordinals.insert(ord, addr);
         }
         for (name, i) in dir.names(image) {
             let ord = dir.Base + i as u32;
-            let addr = *exports.ordinals.get(&ord).unwrap();
-            exports.names.insert(name.to_string(), addr);
+            let addr = *dll.ordinals.get(&ord).unwrap();
+            dll.names.insert(name.to_string(), addr);
         }
     }
 
-    Ok(exports)
+    Ok(dll)
 }
