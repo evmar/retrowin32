@@ -80,21 +80,27 @@ impl Runner {
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
     pub fn execute_block(&mut self) -> anyhow::Result<bool> {
+        if self.check_shim_call()? {
+            // Treat any shim call as a single block.
+            return Ok(true);
+        }
+
         match self.icache.execute_block(&mut self.machine.x86) {
             Err(x86::StepError::Interrupt) => Ok(false),
             Err(x86::StepError::Error(err)) => bail!(err),
             Ok(count) => {
                 self.instr_count += count;
-                if self.check_shim_call()? {
-                    // The shim may have set up a callback that forwards back into shim-land.
-                    self.check_shim_call()?;
-                }
                 Ok(true)
             }
         }
     }
 
     pub fn single_step(&mut self) -> anyhow::Result<()> {
+        if self.check_shim_call()? {
+            // Treat any shim call as a single block.
+            return Ok(());
+        }
+
         let ip = self.machine.x86.regs.eip;
         self.icache.make_single_step(&mut self.machine.x86, ip);
         self.execute_block()?;
