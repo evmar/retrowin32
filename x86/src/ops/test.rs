@@ -128,3 +128,11 @@ pub fn bt_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     x86.flags.set(Flags::CF, ((x >> y) & 1) != 0);
     Ok(())
 }
+
+pub fn btr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate8() % 32;
+    let (x, flags) = rm32(x86, instr);
+    flags.set(Flags::CF, ((*x >> y) & 1) != 0);
+    *x = *x & !(1 << y);
+    Ok(())
+}
