@@ -478,6 +478,13 @@ pub fn add_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn add_rm16_imm16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = instr.immediate16();
+    let (x, flags) = rm16(x86, instr);
+    *x = add(*x, y, flags);
+    Ok(())
+}
+
 pub fn add_rm16_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to16() as u16;
     let (x, flags) = rm16(x86, instr);

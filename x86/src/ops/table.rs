@@ -177,6 +177,8 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Add_rm32_imm32 as usize] = Some(ops::add_rm32_imm32);
     OP_TAB[iced_x86::Code::Add_EAX_imm32 as usize] = Some(ops::add_rm32_imm32);
     OP_TAB[iced_x86::Code::Add_rm32_imm8 as usize] = Some(ops::add_rm32_imm8);
+    OP_TAB[iced_x86::Code::Add_rm16_imm16 as usize] = Some(ops::add_rm16_imm16);
+    OP_TAB[iced_x86::Code::Add_AX_imm16 as usize] = Some(ops::add_rm16_imm16);
     OP_TAB[iced_x86::Code::Add_rm16_imm8 as usize] = Some(ops::add_rm16_imm8);
     OP_TAB[iced_x86::Code::Add_r16_rm16 as usize] = Some(ops::add_r16_rm16);
     OP_TAB[iced_x86::Code::Add_rm8_r8 as usize] = Some(ops::add_rm8_r8);
