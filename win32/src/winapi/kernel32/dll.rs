@@ -25,9 +25,9 @@ impl HMODULE {
 }
 
 pub struct DLL {
-    name: String,
+    pub name: String,
 
-    dll: pe::DLL,
+    pub dll: pe::DLL,
 
     /// If present, DLL is one defined in winapi/...
     builtin: Option<&'static BuiltinDLL>,

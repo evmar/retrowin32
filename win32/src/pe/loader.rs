@@ -226,13 +226,44 @@ pub fn load_exe(machine: &mut Machine, buf: &[u8], cmdline: String) -> anyhow::R
         machine.state.user32.resources_base = res_data.VirtualAddress;
     }
 
+    let mut dll_mains = Vec::new();
+    for dll in &machine.state.kernel32.dlls {
+        if dll.dll.entry_point != 0 {
+            dll_mains.push(dll.dll.entry_point);
+        }
+    }
+
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
-    machine.x86.regs.eip = entry_point;
+    if dll_mains.is_empty() {
+        machine.x86.regs.eip = entry_point;
+    } else {
+        // Invoke any DllMains then jump to the entry point.
+        let m = machine as *mut Machine;
+        crate::shims::become_async(
+            machine,
+            Box::pin(async move {
+                let machine = unsafe { &mut *m };
+                for dll_main in dll_mains {
+                    log::info!("invoking dllmain {:x}", dll_main);
+                    let hInstance = 0u32; // TODO
+                    let fdwReason = 1u32; // DLL_PROCESS_ATTACH
+                    let lpvReserved = 0u32;
+                    crate::shims::async_call(
+                        machine,
+                        dll_main,
+                        vec![hInstance, fdwReason, lpvReserved],
+                    )
+                    .await;
+                }
+                machine.x86.regs.eip = entry_point;
+            }),
+        );
+    };
 
     Ok(())
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct DLL {
     /// Function name => resolved address.
     pub names: HashMap<String, u32>,
@@ -251,19 +282,25 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let base = load_pe(machine, name, buf, &file, true)?;
     let image = &machine.x86.mem[base as usize..];
 
-    let mut dll = DLL::default();
+    let entry_point = base + file.opt_header.AddressOfEntryPoint;
+    let mut ordinals = HashMap::new();
+    let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let dir = pe::read_exports(machine, base, dir);
         for (i, &addr) in dir.fns(image).iter().enumerate() {
             let ord = dir.Base + i as u32;
-            dll.ordinals.insert(ord, addr);
+            ordinals.insert(ord, addr);
         }
         for (name, i) in dir.names(image) {
             let ord = dir.Base + i as u32;
-            let addr = *dll.ordinals.get(&ord).unwrap();
-            dll.names.insert(name.to_string(), addr);
+            let addr = *ordinals.get(&ord).unwrap();
+            names.insert(name.to_string(), addr);
         }
     }
 
-    Ok(dll)
+    Ok(DLL {
+        ordinals,
+        names,
+        entry_point,
+    })
 }
