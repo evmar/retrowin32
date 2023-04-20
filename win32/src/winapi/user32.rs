@@ -307,11 +307,42 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
-bitflags! {
-    pub struct MessageBoxFlags: u32 {
-        // None implemented yet.
-    }
+/*
+pub mod MessageBoxFlags {
+    pub const ABORTRETRYIGNORE: u32 = 0x00000002;
+    pub const CANCELTRYCONTINUE: u32 = 0x00000006;
+    pub const HELP: u32 = 0x00004000;
+    pub const OK: u32 = 0x00000000;
+    pub const OKCANCEL: u32 = 0x00000001;
+    pub const RETRYCANCEL: u32 = 0x00000005;
+    pub const YESNO: u32 = 0x00000004;
+    pub const YESNOCANCEL: u32 = 0x00000003;
+
+    pub const ICONEXCLAMATION: u32 = 0x00000030;
+    pub const ICONWARNING: u32 = 0x00000030;
+    pub const ICONINFORMATION: u32 = 0x00000040;
+    pub const ICONASTERISK: u32 = 0x00000040;
+    pub const ICONQUESTION: u32 = 0x00000020;
+    pub const ICONSTOP: u32 = 0x00000010;
+    pub const ICONERROR: u32 = 0x00000010;
+    pub const ICONHAND: u32 = 0x00000010;
+
+    pub const DEFBUTTON1: u32 = 0x00000000;
+    pub const DEFBUTTON2: u32 = 0x00000100;
+    pub const DEFBUTTON3: u32 = 0x00000200;
+    pub const DEFBUTTON4: u32 = 0x00000300;
+
+    pub const APPLMODAL: u32 = 0x00000000;
+    pub const SYSTEMMODAL: u32 = 0x00001000;
+    pub const TASKMODAL: u32 = 0x00002000;
+    pub const DEFAULT_DESKTOP_ONLY: u32 = 0x00020000;
+    pub const RIGHT: u32 = 0x00080000;
+    pub const RTLREADING: u32 = 0x00100000;
+    pub const SETFOREGROUND: u32 = 0x00010000;
+    pub const TOPMOST: u32 = 0x00040000;
+    pub const SERVICE_NOTIFICATION: u32 = 0x00200000;
 }
+*/
 
 #[win32_derive::dllexport]
 pub fn MessageBoxA(
@@ -321,8 +352,6 @@ pub fn MessageBoxA(
     lpCaption: Option<&str>,
     uType: u32,
 ) -> u32 {
-    // Check flags here to panic on any unexpected flags.
-    let _flags = MessageBoxFlags::from_bits(uType).unwrap();
     machine.host.write(
         format!(
             "MessageBox: {}\n{}",
