@@ -513,7 +513,7 @@ pub fn add_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-pub fn adc_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+pub fn adc_rm32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm32(x86, instr);
     let carry = x86.flags.contains(Flags::CF);
     let (x, flags) = rm32(x86, instr);
@@ -529,7 +529,7 @@ pub fn adc_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-pub fn adc_rm8_r8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+pub fn adc_rm8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     let carry = x86.flags.contains(Flags::CF);
     let (x, flags) = rm8(x86, instr);
