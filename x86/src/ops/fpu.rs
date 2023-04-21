@@ -16,17 +16,14 @@ pub fn read_f64(x86: &X86, addr: u32) -> f64 {
     if addr < NULL_POINTER_REGION_SIZE {
         panic!("null pointer read at {addr:#x}");
     }
-    let addr = addr as usize;
-    let n = u64::from_le_bytes(x86.mem[addr..addr + 8].try_into().unwrap());
-    f64::from_bits(n)
+    *x86.mem.view::<f64>(addr)
 }
 
 pub fn write_f64(x86: &mut X86, addr: u32, value: f64) {
     if addr < NULL_POINTER_REGION_SIZE {
         panic!("null pointer read at {addr:#x}");
     }
-    let addr = addr as usize;
-    x86.mem[addr..addr + 8].copy_from_slice(&f64::to_le_bytes(value));
+    *x86.mem.view_mut::<f64>(addr) = value;
 }
 
 /// Compare two values and set floating-point comparison flags.
@@ -140,8 +137,8 @@ pub fn fstp_sti(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn fistp_m64int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
-    let addr = x86_addr(x86, instr) as usize;
-    x86.mem[addr..addr + 8].copy_from_slice(&(f as i64).to_le_bytes());
+    let addr = x86_addr(x86, instr);
+    *x86.mem.view_mut::<u64>(addr) = f.round() as i64 as u64;
     x86.regs.st_top += 1;
     Ok(())
 }
