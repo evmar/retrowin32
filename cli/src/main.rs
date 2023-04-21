@@ -125,7 +125,7 @@ fn main() -> anyhow::Result<()> {
     let cwd = Path::parent(Path::new(exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut runner = win32::Runner::new(Box::new(host.clone()));
-    runner.load_exe(&buf, cmdline)?;
+    runner.load_exe(&buf, cmdline, false)?;
 
     let start = std::time::Instant::now();
     loop {

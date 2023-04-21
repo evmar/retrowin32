@@ -15,10 +15,16 @@ export class Emulator {
   labels: Labels;
   exitCode: number | undefined = undefined;
 
-  constructor(readonly host: Host, readonly storageKey: string, bytes: Uint8Array, labels: Map<number, string>) {
+  constructor(
+    readonly host: Host,
+    readonly storageKey: string,
+    bytes: Uint8Array,
+    labels: Map<number, string>,
+    relocate: boolean,
+  ) {
     host.emulator = this;
     this.emu = wasm.new_emulator(host);
-    this.emu.load_exe(storageKey, bytes);
+    this.emu.load_exe(storageKey, bytes, relocate);
 
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {

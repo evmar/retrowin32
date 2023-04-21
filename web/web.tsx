@@ -293,6 +293,8 @@ interface URLParams {
   exe: string;
   /** Other data files to load.  TODO: we should fetch these dynamically instead. */
   files: string[];
+  /** If true, relocate the exe on load. */
+  relocate?: boolean;
 }
 
 function parseURL(): URLParams | undefined {
@@ -301,7 +303,8 @@ function parseURL(): URLParams | undefined {
   if (!exe) return undefined;
   const dir = query.get('dir') || undefined;
   const files = query.getAll('file');
-  const params: URLParams = { dir, exe, files };
+  const relocate = query.has('relocate');
+  const params: URLParams = { dir, exe, files, relocate };
   return params;
 }
 
@@ -325,7 +328,7 @@ async function debuggerPage() {
   }
 
   const storageKey = (params.dir ?? '') + params.exe;
-  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels);
+  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels, params.relocate ?? false);
 
   return <Page host={host} emulator={emulator} />;
 }

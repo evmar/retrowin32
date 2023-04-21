@@ -14,5 +14,9 @@
   {
     "desc": "monolife",
     "params": "dir=exe/demo/monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll"
+  },
+  {
+    "desc": "bass.dll debug",
+    "params": "dir=exe/demo/monolife/&exe=bass.dll&relocate"
   }
 ]
