@@ -82,19 +82,13 @@ impl X86 {
         if self.check_oob::<u16>(addr) {
             return;
         }
-        let addr = addr as usize;
-        // Safety: check_oob checked bounds.
-        unsafe {
-            *self.mem.get_unchecked_mut(addr) = value as u8;
-            *self.mem.get_unchecked_mut(addr + 1) = (value >> 8) as u8;
-        }
+        *self.mem.view_mut::<u16>(addr) = value;
     }
     pub fn write_u8(&mut self, addr: u32, value: u8) {
         if self.check_oob::<u8>(addr) {
             return;
         }
-        // Safety: check_oob checked bounds.
-        unsafe { *self.mem.get_unchecked_mut(addr as usize) = value }
+        self.mem[addr as usize] = value;
     }
 
     pub fn read_u32(&mut self, addr: u32) -> u32 {
@@ -107,19 +101,13 @@ impl X86 {
         if self.check_oob::<u16>(addr) {
             return 0;
         }
-        let offset = addr as usize;
-        // Safety: check_oob checked bounds.
-        unsafe {
-            (*self.mem.get_unchecked(offset) as u16) << 0
-                | (*self.mem.get_unchecked(offset + 1) as u16) << 8
-        }
+        *self.mem.view::<u16>(addr)
     }
     pub fn read_u8(&mut self, addr: u32) -> u8 {
         if self.check_oob::<u8>(addr) {
             return 0;
         }
-        // Safety: check_oob checked bounds.
-        unsafe { *self.mem.get_unchecked(addr as usize) }
+        *self.mem.view_mut::<u8>(addr)
     }
 
     /// Executes an instruction, leaving eip alone.
