@@ -5,7 +5,7 @@ use crate::{
     reader::Reader,
     winapi::{types::DWORD, ImportSymbol},
 };
-use x86::Memory;
+use x86::{Mem, Memory};
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
 //
@@ -31,11 +31,11 @@ pub struct IMAGE_IMPORT_DESCRIPTOR {
 unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
-    pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
+    pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
         image[self.Name as usize..].read_strz()
     }
 
-    pub fn entries<'a>(&self, image: &'a [u8]) -> ILTITer<'a> {
+    pub fn entries<'a>(&self, image: &'a Mem) -> ILTITer<'a> {
         let mut r = Reader::new(image);
         // Officially OriginalFirstThunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
@@ -63,7 +63,7 @@ impl<'a> Iterator for IDTIter<'a> {
     }
 }
 
-pub fn read_imports(buf: &[u8]) -> IDTIter {
+pub fn read_imports(buf: &Mem) -> IDTIter {
     IDTIter {
         r: Reader::new(buf),
     }

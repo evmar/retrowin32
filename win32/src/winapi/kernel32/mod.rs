@@ -15,7 +15,9 @@ use super::{
 use crate::machine::Machine;
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
-use x86::{Memory, Pod};
+use x86::{
+    Mem, Pod, {Memory, VecMem},
+};
 
 pub use dll::*;
 pub use file::*;
@@ -66,17 +68,19 @@ impl State {
         }
     }
 
-    pub fn init(&mut self, mem: &mut Vec<u8>) {
+    pub fn init(&mut self, mem: &mut VecMem) {
         let mapping = self.mappings.alloc(0x1000, "kernel32 data".into(), mem);
         self.arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let env = "\0\0".as_bytes();
         let env_addr = self.arena.get(mem).alloc(env.len() as u32);
-        mem[env_addr as usize..env_addr as usize + env.len()].copy_from_slice(env);
+        mem[env_addr as usize..env_addr as usize + env.len()]
+            .as_mut_slice_todo()
+            .copy_from_slice(env);
         self.env = env_addr;
     }
 
-    fn init_cmdline(&mut self, mem: &mut [u8], mut cmdline: String) {
+    fn init_cmdline(&mut self, mem: &mut Mem, mut cmdline: String) {
         // Gross: GetCommandLineA() needs to return a pointer that's never freed,
         // so we need to hang on to both versions of the command line.
 
@@ -84,6 +88,7 @@ impl State {
 
         self.cmdline = self.arena.get(mem).alloc(cmdline.len() as u32);
         mem[self.cmdline as usize..self.cmdline as usize + cmdline.len()]
+            .as_mut_slice_todo()
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
@@ -98,7 +103,7 @@ impl State {
 
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    pub fn init_process(&mut self, mem: &mut [u8], cmdline: String) {
+    pub fn init_process(&mut self, mem: &mut Mem, cmdline: String) {
         let cmdline_len = cmdline.len();
 
         self.init_cmdline(mem, cmdline);
@@ -154,19 +159,19 @@ impl State {
         // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
     }
 
-    pub fn new_private_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> HeapInfo {
+    pub fn new_private_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> HeapInfo {
         let mapping = self.mappings.alloc(size as u32, desc, mem);
         HeapInfo::new(mem, mapping.addr, mapping.size)
     }
 
-    pub fn new_heap(&mut self, mem: &mut Vec<u8>, size: usize, desc: String) -> u32 {
+    pub fn new_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> u32 {
         let heap = self.new_private_heap(mem, size, desc);
         let addr = heap.addr;
         self.heaps.insert(addr, heap);
         addr
     }
 
-    pub fn get_heap<'a>(&'a mut self, mem: &'a mut [u8], addr: u32) -> Option<Heap<'a>> {
+    pub fn get_heap<'a>(&'a mut self, mem: &'a mut Mem, addr: u32) -> Option<Heap<'a>> {
         self.heaps
             .get_mut(&addr)
             .map(|h| h.get_heap(mem, &mut self.mappings))
@@ -664,7 +669,8 @@ pub fn MultiByteToWideChar(
         0 => return 0, // TODO: invalid param
         -1 => machine.x86.mem[lpMultiByteStr as usize..].read_strz_with_nul(),
         len => std::str::from_utf8(
-            &machine.x86.mem[lpMultiByteStr as usize..lpMultiByteStr as usize + len as usize],
+            &machine.x86.mem[lpMultiByteStr as usize..lpMultiByteStr as usize + len as usize]
+                .as_slice_todo(),
         )
         .unwrap(),
     };

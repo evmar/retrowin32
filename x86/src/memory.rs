@@ -21,10 +21,19 @@ unsafe impl Pod for u32 {}
 unsafe impl Pod for u64 {}
 unsafe impl Pod for f64 {}
 
+/// A trait for access into the x86 memory.  Distinct from a slice to better catch
+/// accesses and also to expose casts to/from Pod types.
 pub trait Memory {
+    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
+    fn as_slice_todo(&self) -> &[u8];
+    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
+    fn as_mut_slice_todo(&mut self) -> &mut [u8];
+    fn len(&self) -> usize;
+
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T];
+
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
     /// Read a nul-terminated string.
@@ -33,27 +42,70 @@ pub trait Memory {
     fn read_strz_with_nul(&self) -> &str;
 }
 
-// TODO: wrap the x86 memory with a newtype and use that here instead.
-impl Memory for [u8] {
+fn read_strz(buf: &[u8]) -> &str {
+    let str = read_strz_with_nul(buf);
+    &str[..str.len() - 1]
+}
+
+fn read_strz_with_nul(buf: &[u8]) -> &str {
+    let mut span = buf;
+    if let Some(nul) = buf.iter().position(|&c| c == 0) {
+        span = &buf[0..nul + 1];
+    }
+    match std::str::from_utf8(span) {
+        Err(err) => {
+            log::error!("invalid utf8 {err:?}, {span:?}");
+            "[err]"
+        }
+        Ok(str) => str,
+    }
+}
+
+pub struct Mem(pub [u8]);
+
+impl Mem {
+    pub fn from_slice(s: &[u8]) -> &Mem {
+        // Safety: this is how OsStr does it, shruggie.
+        unsafe { &*(s as *const [u8] as *const Mem) }
+    }
+    pub fn from_slice_mut(s: &mut [u8]) -> &mut Mem {
+        // Safety: this is how OsStr does it, shruggie.
+        unsafe { &mut *(s as *mut [u8] as *mut Mem) }
+    }
+}
+
+impl Memory for Mem {
+    fn as_slice_todo(&self) -> &[u8] {
+        &self.0
+    }
+
+    fn as_mut_slice_todo(&mut self) -> &mut [u8] {
+        &mut self.0
+    }
+
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+
     fn view<T: Pod>(&self, addr: u32) -> &T {
         let ofs = addr as usize;
-        let buf = &self[ofs..(ofs + size_of::<T>())];
+        let buf = &self.0[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &*(buf.as_ptr() as *const T) }
     }
     fn view_mut<T: Pod>(&mut self, addr: u32) -> &mut T {
         let ofs = addr as usize;
-        let buf = &mut self[ofs..(ofs + size_of::<T>())];
+        let buf = &mut self.0[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
     }
 
     fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T] {
         let size = size_of::<T>() * count;
-        if ofs + size > self.len() {
+        if ofs + size > self.0.len() {
             panic!("out of bounds");
         }
-        unsafe { std::slice::from_raw_parts(&self[ofs] as *const u8 as *const T, count) }
+        unsafe { std::slice::from_raw_parts(&self.0[ofs] as *const u8 as *const T, count) }
     }
 
     fn read_u32(&self, addr: u32) -> u32 {
@@ -65,24 +117,83 @@ impl Memory for [u8] {
     }
 
     fn read_strz(&self) -> &str {
-        let mut span = self;
-        if let Some(nul) = self.iter().position(|&c| c == 0) {
-            span = &self[0..nul];
-        }
-        match std::str::from_utf8(span) {
-            Err(err) => {
-                log::error!("invalid utf8 {err:?}, {span:?}");
-                "[err]"
-            }
-            Ok(str) => str,
-        }
+        read_strz(&self.0)
     }
 
     fn read_strz_with_nul(&self) -> &str {
-        let mut span = self;
-        if let Some(nul) = self.iter().position(|&c| c == 0) {
-            span = &self[0..nul + 1];
-        }
-        std::str::from_utf8(span).unwrap()
+        read_strz_with_nul(&self.0)
+    }
+}
+
+impl std::ops::Index<usize> for Mem {
+    type Output = u8;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl std::ops::IndexMut<usize> for Mem {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.0[index]
+    }
+}
+
+impl std::ops::Index<std::ops::Range<usize>> for Mem {
+    type Output = Mem;
+
+    fn index(&self, index: std::ops::Range<usize>) -> &Self::Output {
+        Mem::from_slice(&self.0[index])
+    }
+}
+
+impl std::ops::IndexMut<std::ops::Range<usize>> for Mem {
+    fn index_mut(&mut self, index: std::ops::Range<usize>) -> &mut Self::Output {
+        Mem::from_slice_mut(&mut self.0[index])
+    }
+}
+
+impl std::ops::Index<std::ops::RangeFrom<usize>> for Mem {
+    type Output = Mem;
+
+    fn index(&self, index: std::ops::RangeFrom<usize>) -> &Self::Output {
+        Mem::from_slice(&self.0[index])
+    }
+}
+
+impl std::ops::IndexMut<std::ops::RangeFrom<usize>> for Mem {
+    fn index_mut(&mut self, index: std::ops::RangeFrom<usize>) -> &mut Self::Output {
+        Mem::from_slice_mut(&mut self.0[index])
+    }
+}
+
+impl std::ops::Index<std::ops::RangeTo<usize>> for Mem {
+    type Output = Mem;
+
+    fn index(&self, index: std::ops::RangeTo<usize>) -> &Self::Output {
+        Mem::from_slice(&self.0[index])
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
+
+impl VecMem {
+    pub fn resize(&mut self, size: usize, value: u8) {
+        self.0.resize(size, value);
+    }
+}
+
+impl std::ops::Deref for VecMem {
+    type Target = Mem;
+
+    fn deref(&self) -> &Self::Target {
+        Mem::from_slice(&self.0)
+    }
+}
+
+impl std::ops::DerefMut for VecMem {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        Mem::from_slice_mut(&mut self.0)
     }
 }

@@ -7,7 +7,7 @@ use crate::{
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
-use x86::Memory;
+use x86::{Mem, Memory};
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
@@ -91,7 +91,7 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
-    pub fn as_slice<'a>(&self, image: &'a [u8]) -> &'a [u8] {
+    pub fn as_mem<'a>(&self, image: &'a Mem) -> &'a Mem {
         &image[self.VirtualAddress as usize..][..self.Size as usize]
     }
 }
@@ -142,7 +142,7 @@ pub struct IMAGE_SECTION_HEADER {
 unsafe impl x86::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
     pub fn name(&self) -> &str {
-        self.Name.read_strz()
+        Mem::from_slice(&self.Name[..]).read_strz()
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
         ImageSectionFlags::from_bits(self.Characteristics)
@@ -186,7 +186,7 @@ impl<'a> File<'a> {
 }
 
 pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
-    let mut r = Reader::new(buf);
+    let mut r = Reader::new(Mem::from_slice(buf));
 
     let ofs = dos_header(&mut r)?;
     r.seek(ofs as usize)?;

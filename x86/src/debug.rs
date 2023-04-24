@@ -1,5 +1,6 @@
 //! Disassembler producing serde/JSON for use in displaying code in the debugger.
 
+use crate::{Mem, Memory};
 use iced_x86::{Formatter, IntelFormatter};
 use std::fmt::Write;
 use tsify::Tsify;
@@ -30,13 +31,13 @@ impl iced_x86::FormatterOutput for FormatterOutput {
     }
 }
 
-pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
+pub fn disassemble(mem: &Mem, addr: u32) -> Vec<Instruction> {
     if addr as usize >= mem.len() {
         return Vec::new();
     }
     let decoder = iced_x86::Decoder::with_ip(
         32,
-        &mem[addr as usize..],
+        &mem[addr as usize..].as_slice_todo(),
         addr as u64,
         iced_x86::DecoderOptions::NONE,
     );
@@ -48,7 +49,7 @@ pub fn disassemble(mem: &[u8], addr: u32) -> Vec<Instruction> {
         let start_index = instruction.ip() as usize;
         let instr_bytes = &mem[start_index..start_index + instruction.len()];
         let mut bytes = String::new();
-        for &b in instr_bytes.iter() {
+        for &b in instr_bytes.as_slice_todo().iter() {
             write!(&mut bytes, "{:02x}", b).unwrap();
         }
 

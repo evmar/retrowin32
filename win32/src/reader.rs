@@ -1,15 +1,15 @@
 use std::mem::size_of;
 
 use anyhow::{anyhow, bail};
-use x86::Memory;
+use x86::{Mem, Memory};
 
 pub struct Reader<'a> {
-    pub buf: &'a [u8],
+    pub buf: &'a Mem,
     pub pos: usize,
 }
 
 impl<'a> Reader<'a> {
-    pub fn new(buf: &'a [u8]) -> Self {
+    pub fn new(buf: &'a Mem) -> Self {
         Reader { buf, pos: 0 }
     }
 
@@ -35,7 +35,7 @@ impl<'a> Reader<'a> {
     }
 
     fn peek(&self, n: usize) -> Option<&'a [u8]> {
-        self.buf.get(self.pos..self.pos + n)
+        self.buf.0.get(self.pos..self.pos + n)
     }
 
     pub fn expect(&mut self, s: &str) -> anyhow::Result<()> {

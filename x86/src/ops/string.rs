@@ -10,8 +10,9 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let count = x86.regs.ecx as usize;
     if instr.has_repe_prefix() {
         let pos = x86.mem[p1..p1 + count]
+            .as_slice_todo()
             .iter()
-            .zip(x86.mem[p2..p2 + count].iter())
+            .zip(x86.mem[p2..p2 + count].as_slice_todo().iter())
             .position(|(&x, &y)| x == y)
             .unwrap_or(count);
         x86.regs.esi += pos as u32;
@@ -42,7 +43,7 @@ fn movs(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
             return Err(StepError::Error("movs overflow".into()));
         }
 
-        x86.mem.copy_within(
+        x86.mem.as_mut_slice_todo().copy_within(
             x86.regs.esi as usize..(x86.regs.esi + size) as usize,
             x86.regs.edi as usize,
         );

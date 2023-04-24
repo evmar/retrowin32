@@ -2,9 +2,9 @@ mod debugger;
 mod host;
 mod log;
 
-use wasm_bindgen::prelude::*;
-
 use crate::host::JsHost;
+use wasm_bindgen::prelude::*;
+use x86::Memory;
 
 pub type JsResult<T> = Result<T, JsError>;
 fn err_from_anyhow(err: anyhow::Error) -> JsError {
@@ -34,7 +34,7 @@ impl Emulator {
     pub fn memory(&self) -> js_sys::DataView {
         let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
         let buf = js_sys::ArrayBuffer::from(mem.buffer());
-        let ofs = self.runner.machine.x86.mem.as_ptr() as usize;
+        let ofs = self.runner.machine.x86.mem.as_slice_todo().as_ptr() as usize;
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 

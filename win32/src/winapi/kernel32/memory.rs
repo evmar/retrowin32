@@ -2,6 +2,7 @@ use crate::{machine::Machine, pe::ImageSectionFlags, winapi::alloc::Alloc};
 use bitflags::bitflags;
 use std::cmp::max;
 use tsify::Tsify;
+use x86::{Memory, VecMem};
 
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
 
@@ -57,7 +58,7 @@ impl Mappings {
         &self.0[pos]
     }
 
-    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut Vec<u8>) -> &Mapping {
+    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut VecMem) -> &Mapping {
         let size = round_up_to_page_granularity(size);
         if size > 20 << 20 {
             panic!("new mapping {:?} {size:x} bytes", desc);
@@ -161,7 +162,9 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        machine.x86.mem[addr as usize..(addr + dwBytes) as usize].fill(0);
+        machine.x86.mem[addr as usize..(addr + dwBytes) as usize]
+            .as_mut_slice_todo()
+            .fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
     }
     if !flags.is_empty() {
@@ -222,7 +225,7 @@ pub fn HeapReAlloc(
     let old_size = heap.size(lpMem);
     let new_addr = heap.alloc(dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
-    machine.x86.mem.copy_within(
+    machine.x86.mem.as_mut_slice_todo().copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
         new_addr as usize,
     );

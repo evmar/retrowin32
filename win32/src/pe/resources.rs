@@ -3,7 +3,7 @@
 
 use crate::winapi::types::{DWORD, WORD};
 use std::mem::size_of;
-use x86::Memory;
+use x86::{Mem, Memory};
 
 #[repr(C)]
 #[derive(Debug)]
@@ -23,7 +23,7 @@ struct ImageResourceDirectory<'a> {
 }
 
 impl<'a> ImageResourceDirectory<'a> {
-    fn read(mem: &'a [u8], ofs: u32) -> ImageResourceDirectory<'a> {
+    fn read(mem: &'a Mem, ofs: u32) -> ImageResourceDirectory<'a> {
         let header = mem.view::<IMAGE_RESOURCE_DIRECTORY>(ofs);
         let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as usize;
         // Entries are in memory immediately after the directory.
@@ -81,12 +81,7 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
 }
 unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
-pub fn get_resource(
-    mem: &[u8],
-    section_base: u32,
-    query_type: u32,
-    query_id: u32,
-) -> Option<&[u8]> {
+pub fn get_resource(mem: &Mem, section_base: u32, query_type: u32, query_id: u32) -> Option<&Mem> {
     let section = &mem[section_base as usize..];
 
     // Resources are structured as generic nested directories, but in practice there

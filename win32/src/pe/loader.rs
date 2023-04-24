@@ -3,7 +3,7 @@
 use super::{IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, reader::Reader, winapi};
 use std::collections::HashMap;
-use x86::Memory;
+use x86::{Mem, Memory};
 
 /// Copy the file itself into memory, choosing a base address.
 fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool) -> u32 {
@@ -69,7 +69,9 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
     let load_data = flags.contains(pe::ImageSectionFlags::CODE)
         || flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
     if load_data && data_size > 0 {
-        machine.x86.mem[dst..dst + data_size].copy_from_slice(&buf[src..(src + data_size)]);
+        machine.x86.mem[dst..dst + data_size]
+            .as_mut_slice_todo()
+            .copy_from_slice(&buf[src..(src + data_size)]);
     }
     machine.state.kernel32.mappings.add(
         winapi::kernel32::Mapping {
@@ -88,7 +90,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     let mut patches = Vec::new();
 
     let image = unsafe { std::mem::transmute(&machine.x86.mem[base as usize..]) };
-    for dll_imports in pe::read_imports(imports_data.as_slice(image)) {
+    for dll_imports in pe::read_imports(imports_data.as_mem(image)) {
         let dll_name = dll_imports.name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
@@ -124,7 +126,7 @@ struct IMAGE_BASE_RELOCATION {
 }
 unsafe impl x86::Pod for IMAGE_BASE_RELOCATION {}
 
-fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
+fn apply_relocs(image: &mut Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
     // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
     // have a .reloc section that is invalid (?).
     // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
@@ -132,7 +134,7 @@ fn apply_relocs(image: &mut [u8], prev_base: u32, base: u32, relocs: &IMAGE_DATA
 
     // XXX want to iterate relocations in memory while writing updated relocations,
     // which requires two references to memory.
-    let relocs = unsafe { std::mem::transmute(relocs.as_slice(image)) };
+    let relocs = unsafe { std::mem::transmute(relocs.as_mem(image).as_slice_todo()) };
     let mut r = Reader::new(relocs);
     while !r.done() {
         let reloc = r.read::<IMAGE_BASE_RELOCATION>();
@@ -192,7 +194,7 @@ pub fn load_exe(
     cmdline: String,
     relocate: bool,
 ) -> anyhow::Result<()> {
-    let file = pe::parse(&buf)?;
+    let file = pe::parse(buf)?;
 
     machine.state.kernel32.init(&mut machine.x86.mem);
 

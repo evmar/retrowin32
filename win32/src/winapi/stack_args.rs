@@ -1,7 +1,7 @@
 //! Functions to unsafely grab winapi function arguments from an x86 stack.
 
 use super::types::Str16;
-use x86::Memory;
+use x86::{Mem, Memory};
 
 unsafe fn extend_lifetime<'a, T: ?Sized>(x: &T) -> &'a T {
     std::mem::transmute(x)
@@ -14,7 +14,7 @@ pub trait FromX86: Sized {
     fn from_raw(_raw: u32) -> Self {
         unimplemented!()
     }
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         Self::from_raw(*mem.view::<u32>(sp))
     }
     fn stack_consumed() -> u32 {
@@ -47,7 +47,7 @@ impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
 }
 
 impl<T: x86::Pod> FromX86 for Option<&T> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp);
         if addr == 0 {
             None
@@ -58,7 +58,7 @@ impl<T: x86::Pod> FromX86 for Option<&T> {
 }
 
 impl<T: x86::Pod> FromX86 for Option<&mut T> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp);
         if addr == 0 {
             None
@@ -69,13 +69,13 @@ impl<T: x86::Pod> FromX86 for Option<&mut T> {
 }
 
 impl FromX86 for Option<&[u8]> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         let len = mem.read_u32(sp + 4) as usize;
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime(&mem[addr..addr + len]))
+        Some(extend_lifetime(&mem[addr..addr + len].as_slice_todo()))
     }
     fn stack_consumed() -> u32 {
         8
@@ -83,13 +83,15 @@ impl FromX86 for Option<&[u8]> {
 }
 
 impl FromX86 for Option<&mut [u8]> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         let len = mem.read_u32(sp + 4) as usize;
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime_mut(&mut mem[addr..addr + len]))
+        Some(extend_lifetime_mut(
+            mem[addr..addr + len].as_mut_slice_todo(),
+        ))
     }
     fn stack_consumed() -> u32 {
         8
@@ -97,7 +99,7 @@ impl FromX86 for Option<&mut [u8]> {
 }
 
 impl FromX86 for Option<&[u16]> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         let len = mem.read_u32(sp + 4) as usize;
         if addr == 0 {
@@ -111,7 +113,7 @@ impl FromX86 for Option<&[u16]> {
 }
 
 impl FromX86 for Option<&mut [u16]> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         let len = mem.read_u32(sp + 4) as usize;
         if addr == 0 {
@@ -125,7 +127,7 @@ impl FromX86 for Option<&mut [u16]> {
 }
 
 impl FromX86 for Option<&str> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         if addr == 0 {
             return None;
@@ -136,14 +138,14 @@ impl FromX86 for Option<&str> {
 }
 
 impl<'a> FromX86 for Option<Str16<'a>> {
-    unsafe fn from_stack(mem: &mut [u8], sp: u32) -> Self {
+    unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
         let addr = mem.read_u32(sp) as usize;
         if addr == 0 {
             return None;
         }
         let mem16: &[u16] = {
             let mem = &mem[addr as usize..];
-            let ptr = mem.as_ptr() as *const u16;
+            let ptr = mem.as_slice_todo().as_ptr() as *const u16;
             std::slice::from_raw_parts(ptr, mem.len() / 2)
         };
         Some(Str16::from_nul_term(mem16))

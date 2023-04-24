@@ -3,7 +3,7 @@
 
 use super::IMAGE_DATA_DIRECTORY;
 use crate::machine::Machine;
-use x86::Memory;
+use x86::{Mem, Memory};
 
 #[derive(Debug)]
 #[repr(C)]
@@ -25,18 +25,18 @@ unsafe impl x86::Pod for IMAGE_EXPORT_DIRECTORY {}
 
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
-    pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
+    pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
         image[self.Name as usize..].read_strz()
     }
 
-    pub fn fns<'a>(&self, image: &'a [u8]) -> &'a [u32] {
+    pub fn fns<'a>(&self, image: &'a Mem) -> &'a [u32] {
         image.view_n::<u32>(
             self.AddressOfFunctions as usize,
             self.NumberOfFunctions as usize,
         )
     }
 
-    pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
+    pub fn names<'a>(&self, image: &'a Mem) -> impl Iterator<Item = (&'a str, u16)> {
         let names = image.view_n::<u32>(self.AddressOfNames as usize, self.NumberOfNames as usize);
         let ords = image.view_n::<u16>(
             self.AddressOfNameOrdinals as usize,
@@ -55,5 +55,5 @@ pub fn read_exports<'a>(
     exports: &'a IMAGE_DATA_DIRECTORY,
 ) -> &'a IMAGE_EXPORT_DIRECTORY {
     let image = &machine.x86.mem[base as usize..];
-    exports.as_slice(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
+    exports.as_mem(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
 }

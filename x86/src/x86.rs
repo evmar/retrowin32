@@ -3,10 +3,10 @@
 use iced_x86::FlowControl;
 
 use crate::{
-    memory::Memory,
+    memory::{Memory, VecMem},
     ops,
     registers::{Flags, Registers},
-    StepError, StepResult,
+    Mem, StepError, StepResult,
 };
 use std::collections::{BTreeMap, HashMap};
 
@@ -16,8 +16,7 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
-    #[serde(with = "serde_bytes")]
-    pub mem: Vec<u8>,
+    pub mem: VecMem,
     pub regs: Registers,
     // Flags are in principle a register but we hold it outside of regs for lifetime reasons,
     // because there are operations we want to do over mut regs and flags at the same time.
@@ -41,7 +40,7 @@ impl X86 {
         regs.esi = 0xdeadbe51;
         regs.edi = 0xdeadbed1;
         X86 {
-            mem: Vec::new(),
+            mem: VecMem::default(),
             regs,
             flags: Flags::empty(),
             stopped: false,
@@ -138,10 +137,14 @@ impl Default for BasicBlock {
     }
 }
 impl BasicBlock {
-    fn disassemble(buf: &[u8], ip: u32, single_step: bool) -> Self {
+    fn disassemble(buf: &Mem, ip: u32, single_step: bool) -> Self {
         let mut instrs = Vec::new();
-        let mut decoder =
-            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
+        let mut decoder = iced_x86::Decoder::with_ip(
+            32,
+            buf.as_slice_todo(),
+            ip as u64,
+            iced_x86::DecoderOptions::NONE,
+        );
         while decoder.can_decode() {
             let instr = decoder.decode();
             instrs.push(instr);
@@ -187,7 +190,7 @@ impl InstrCache {
         None
     }
 
-    fn update_block(&mut self, mem: &[u8], ip: u32, single_step: bool) {
+    fn update_block(&mut self, mem: &Mem, ip: u32, single_step: bool) {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
             later_ip as usize
@@ -204,14 +207,14 @@ impl InstrCache {
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, mem: &mut [u8], addr: u32) {
+    pub fn add_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
         self.breakpoints.insert(addr, mem[addr as usize]);
         mem[addr as usize] = 0xcc; // int3
     }
 
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, mem: &mut [u8], addr: u32) {
+    pub fn clear_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
 
         // Allow a subsequent block that might have been split due to the int3

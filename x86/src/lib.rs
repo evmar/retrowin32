@@ -4,7 +4,7 @@ pub mod ops;
 mod registers;
 mod x86;
 
-pub use memory::{Memory, Pod};
+pub use memory::{Mem, Memory, Pod, VecMem};
 pub use x86::{InstrCache, NULL_POINTER_REGION_SIZE, X86};
 
 #[derive(Debug)]
