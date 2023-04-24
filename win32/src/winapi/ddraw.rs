@@ -5,7 +5,7 @@ use super::{alloc::Alloc, types::*};
 use crate::{host, machine::Machine, winapi::vtable};
 use bitflags::bitflags;
 use std::collections::HashMap;
-use x86::Memory;
+use x86::{Memory, Pod};
 
 const TRACE_CONTEXT: &'static str = "ddraw";
 
@@ -597,7 +597,7 @@ mod IDirectDraw7 {
 
         let desc_addr = machine.x86.regs.esp;
         let desc = machine.x86.mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-        x86::Pod::clear(desc);
+        unsafe { desc.clear_struct() };
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = size;
         desc.dwWidth = 320;

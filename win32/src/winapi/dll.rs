@@ -930,9 +930,13 @@ pub mod kernel32 {
     }
     pub fn GetStartupInfoA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let lpStartupInfo =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpStartupInfo = unsafe {
+            <Option<&mut STARTUPINFOA>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut STARTUPINFOA>>::stack_consumed();
         let result = winapi::kernel32::GetStartupInfoA(machine, lpStartupInfo);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
@@ -940,9 +944,13 @@ pub mod kernel32 {
     }
     pub fn GetStartupInfoW(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let lpStartupInfo =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpStartupInfo = unsafe {
+            <Option<&mut STARTUPINFOA>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut STARTUPINFOA>>::stack_consumed();
         let result = winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);
@@ -1026,9 +1034,13 @@ pub mod kernel32 {
     }
     pub fn GetVersionExA(machine: &mut Machine) {
         let mut stack_offset = 4u32;
-        let lpVersionInformation =
-            unsafe { <u32>::from_stack(&mut machine.x86.mem, machine.x86.regs.esp + stack_offset) };
-        stack_offset += <u32>::stack_consumed();
+        let lpVersionInformation = unsafe {
+            <Option<&mut OSVERSIONINFO>>::from_stack(
+                &mut machine.x86.mem,
+                machine.x86.regs.esp + stack_offset,
+            )
+        };
+        stack_offset += <Option<&mut OSVERSIONINFO>>::stack_consumed();
         let result = winapi::kernel32::GetVersionExA(machine, lpVersionInformation);
         machine.x86.regs.eax = result.to_raw();
         machine.x86.regs.eip = machine.x86.mem.read_u32(machine.x86.regs.esp);

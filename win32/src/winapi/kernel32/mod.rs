@@ -15,7 +15,7 @@ use super::{
 use crate::machine::Machine;
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
-use x86::Memory;
+use x86::{Memory, Pod};
 
 pub use dll::*;
 pub use file::*;
@@ -389,7 +389,8 @@ pub fn GetModuleFileNameW(
 }
 
 #[repr(C)]
-struct STARTUPINFOA {
+#[derive(Debug)]
+pub struct STARTUPINFOA {
     cb: DWORD,
     lpReserved: DWORD,
     lpDesktop: DWORD,
@@ -412,26 +413,16 @@ struct STARTUPINFOA {
 unsafe impl x86::Pod for STARTUPINFOA {}
 
 #[win32_derive::dllexport]
-pub fn GetStartupInfoA(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
-    let ofs = lpStartupInfo as usize;
-    let size = std::mem::size_of::<STARTUPINFOA>();
-    machine.x86.mem[ofs..ofs + size].fill(0);
-
-    let info = machine.x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
-    info.cb = size as u32;
+pub fn GetStartupInfoA(_machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+    let info = lpStartupInfo.unwrap();
+    unsafe { info.clear_memory(info.cb) };
     0
 }
 
 #[win32_derive::dllexport]
-pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: u32) -> u32 {
-    let ofs = lpStartupInfo as usize;
+pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
-    let size = std::mem::size_of::<STARTUPINFOA>();
-    machine.x86.mem[ofs..ofs + size].fill(0);
-
-    let info = machine.x86.mem.view_mut::<STARTUPINFOA>(ofs as u32);
-    info.cb = size as u32;
-    0
+    GetStartupInfoA(machine, lpStartupInfo)
 }
 
 #[derive(Debug, FromPrimitive)]
@@ -538,7 +529,8 @@ pub fn GetVersion(_machine: &mut Machine) -> u32 {
 }
 
 #[repr(C)]
-struct OSVERSIONINFO {
+#[derive(Debug)]
+pub struct OSVERSIONINFO {
     dwOSVersionInfoSize: DWORD,
     dwMajorVersion: DWORD,
     dwMinorVersion: DWORD,
@@ -546,22 +538,20 @@ struct OSVERSIONINFO {
     dwPlatformId: DWORD,
     //szCSDVersion: [u8; 128],
 }
+unsafe impl Pod for OSVERSIONINFO {}
 
 #[win32_derive::dllexport]
-pub fn GetVersionExA(machine: &mut Machine, lpVersionInformation: u32) -> u32 {
-    let ofs = lpVersionInformation as usize;
-    let size = machine.x86.read_u32(lpVersionInformation) as usize;
-    if size < std::mem::size_of::<OSVERSIONINFO>() {
+pub fn GetVersionExA(
+    _machine: &mut Machine,
+    lpVersionInformation: Option<&mut OSVERSIONINFO>,
+) -> u32 {
+    let info = lpVersionInformation.unwrap();
+    if info.dwOSVersionInfoSize < std::mem::size_of::<OSVERSIONINFO>() as u32 {
         log::error!("GetVersionExA undersized buffer");
         return 0;
     }
-    machine.x86.mem[ofs..ofs + size].fill(0);
+    unsafe { info.clear_memory(info.dwOSVersionInfoSize) };
 
-    let buf = &mut machine.x86.mem[ofs..ofs + std::mem::size_of::<OSVERSIONINFO>()];
-    let info: &mut OSVERSIONINFO =
-        unsafe { (buf.as_mut_ptr() as *mut OSVERSIONINFO).as_mut().unwrap() };
-
-    info.dwOSVersionInfoSize = size as u32;
     info.dwMajorVersion = 6; // ? pulled from debugger
     info.dwPlatformId = 2 /* VER_PLATFORM_WIN32_NT */;
 

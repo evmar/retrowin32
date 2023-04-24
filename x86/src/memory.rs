@@ -5,10 +5,12 @@ use std::mem::size_of;
 
 /// A trait for types where it's safe to reintepret_cast<> from/to random memory blocks.
 pub unsafe trait Pod: 'static + Sized {
-    fn clear(this: &mut Self) {
-        unsafe {
-            std::ptr::write_bytes(this as *mut Self, 0, 1);
-        }
+    unsafe fn clear_memory(&mut self, count: u32) {
+        std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
+    }
+
+    unsafe fn clear_struct(&mut self) {
+        std::ptr::write_bytes(self as *mut Self, 0, 1);
     }
 }
 
