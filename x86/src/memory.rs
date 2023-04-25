@@ -30,6 +30,9 @@ pub trait Memory {
     fn as_mut_slice_todo(&mut self) -> &mut [u8];
     fn len(&self) -> usize;
 
+    fn slice(&self, b: impl std::ops::RangeBounds<usize>) -> &Mem;
+    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<usize>) -> &mut Mem;
+
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T];
@@ -74,6 +77,22 @@ impl Mem {
     }
 }
 
+fn start_from_bound(b: std::ops::Bound<&usize>) -> usize {
+    match b {
+        std::ops::Bound::Included(&n) => n,
+        std::ops::Bound::Excluded(&n) => n + 1,
+        std::ops::Bound::Unbounded => 0,
+    }
+}
+
+fn end_from_bound(m: &Mem, b: std::ops::Bound<&usize>) -> usize {
+    match b {
+        std::ops::Bound::Included(&n) => n + 1,
+        std::ops::Bound::Excluded(&n) => n,
+        std::ops::Bound::Unbounded => m.0.len(),
+    }
+}
+
 impl Memory for Mem {
     fn as_slice_todo(&self) -> &[u8] {
         &self.0
@@ -85,6 +104,17 @@ impl Memory for Mem {
 
     fn len(&self) -> usize {
         self.0.len()
+    }
+
+    fn slice(&self, b: impl std::ops::RangeBounds<usize>) -> &Mem {
+        let start = start_from_bound(b.start_bound());
+        let end = end_from_bound(self, b.end_bound());
+        Mem::from_slice(&self.0[start..end])
+    }
+    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<usize>) -> &mut Mem {
+        let start = start_from_bound(b.start_bound());
+        let end = end_from_bound(self, b.end_bound());
+        Mem::from_slice_mut(&mut self.0[start..end])
     }
 
     fn view<T: Pod>(&self, addr: u32) -> &T {
@@ -136,42 +166,6 @@ impl std::ops::Index<usize> for Mem {
 impl std::ops::IndexMut<usize> for Mem {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         &mut self.0[index]
-    }
-}
-
-impl std::ops::Index<std::ops::Range<usize>> for Mem {
-    type Output = Mem;
-
-    fn index(&self, index: std::ops::Range<usize>) -> &Self::Output {
-        Mem::from_slice(&self.0[index])
-    }
-}
-
-impl std::ops::IndexMut<std::ops::Range<usize>> for Mem {
-    fn index_mut(&mut self, index: std::ops::Range<usize>) -> &mut Self::Output {
-        Mem::from_slice_mut(&mut self.0[index])
-    }
-}
-
-impl std::ops::Index<std::ops::RangeFrom<usize>> for Mem {
-    type Output = Mem;
-
-    fn index(&self, index: std::ops::RangeFrom<usize>) -> &Self::Output {
-        Mem::from_slice(&self.0[index])
-    }
-}
-
-impl std::ops::IndexMut<std::ops::RangeFrom<usize>> for Mem {
-    fn index_mut(&mut self, index: std::ops::RangeFrom<usize>) -> &mut Self::Output {
-        Mem::from_slice_mut(&mut self.0[index])
-    }
-}
-
-impl std::ops::Index<std::ops::RangeTo<usize>> for Mem {
-    type Output = Mem;
-
-    fn index(&self, index: std::ops::RangeTo<usize>) -> &Self::Output {
-        Mem::from_slice(&self.0[index])
     }
 }
 

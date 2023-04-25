@@ -82,7 +82,7 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
 unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 pub fn get_resource(mem: &Mem, section_base: u32, query_type: u32, query_id: u32) -> Option<&Mem> {
-    let section = &mem[section_base as usize..];
+    let section = &mem.slice(section_base as usize..);
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
@@ -109,7 +109,7 @@ pub fn get_resource(mem: &Mem, section_base: u32, query_type: u32, query_id: u32
                 let data = section.view::<IMAGE_RESOURCE_DATA_ENTRY>(lang_entry.offset());
                 let ofs = data.OffsetToData as usize;
                 let len = data.Size as usize;
-                let buf = &mem[ofs..ofs + len];
+                let buf = &mem.slice(ofs..).slice(..len);
                 return Some(buf);
             }
         }

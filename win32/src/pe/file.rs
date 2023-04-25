@@ -92,7 +92,9 @@ pub struct IMAGE_DATA_DIRECTORY {
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
     pub fn as_mem<'a>(&self, image: &'a Mem) -> &'a Mem {
-        &image[self.VirtualAddress as usize..][..self.Size as usize]
+        &image
+            .slice(self.VirtualAddress as usize..)
+            .slice(..self.Size as usize)
     }
 }
 

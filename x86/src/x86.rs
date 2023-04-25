@@ -201,7 +201,7 @@ impl InstrCache {
         // Ensure we don't overlap any previous block.
         self.kill_block(ip);
 
-        let block = BasicBlock::disassemble(&mem[ip as usize..end], ip, single_step);
+        let block = BasicBlock::disassemble(&mem.slice(ip as usize..end), ip, single_step);
         // log::info!("added block {:x}..{:x}", ip, ip + block.len);
         self.blocks.insert(ip, block);
     }

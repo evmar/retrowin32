@@ -1034,7 +1034,12 @@ pub fn DirectDrawCreateEx(
         return DD_OK;
     }
 
-    let iid_slice = machine.x86.mem[iid as usize..(iid + 16) as usize].as_slice_todo();
+    let iid_slice = machine
+        .x86
+        .mem
+        .slice(iid as usize..)
+        .slice(..16)
+        .as_slice_todo();
     if iid_slice == IID_IDirectDraw7 {
         // Caller gives us:
         //   pointer (lplpDD) that they want us to fill in to point to ->

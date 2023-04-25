@@ -9,10 +9,13 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let p2 = x86.regs.edi as usize;
     let count = x86.regs.ecx as usize;
     if instr.has_repe_prefix() {
-        let pos = x86.mem[p1..p1 + count]
+        let pos = x86
+            .mem
+            .slice(p1..)
+            .slice(..count)
             .as_slice_todo()
             .iter()
-            .zip(x86.mem[p2..p2 + count].as_slice_todo().iter())
+            .zip(x86.mem.slice(p2..).slice(..count).as_slice_todo().iter())
             .position(|(&x, &y)| x == y)
             .unwrap_or(count);
         x86.regs.esi += pos as u32;

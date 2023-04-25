@@ -129,7 +129,10 @@ unsafe impl x86::Pod for WNDCLASSEXA {}
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
     let atom = machine.state.user32.wndclasses.len() as u32 + 1;
-    let name = machine.x86.mem[lpWndClassEx.lpszClassName as usize..]
+    let name = machine
+        .x86
+        .mem
+        .slice(lpWndClassEx.lpszClassName as usize..)
         .read_strz()
         .to_string();
     let wndclass = WndClass {
@@ -206,7 +209,7 @@ pub async fn CreateWindowExA(
     if lpClassName < 1 << 16 {
         todo!("numeric wndclass reference");
     }
-    let class_name = machine.x86.mem[lpClassName as usize..].read_strz();
+    let class_name = machine.x86.mem.slice(lpClassName as usize..).read_strz();
     let wndclass = machine
         .state
         .user32
@@ -556,14 +559,14 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
         },
         _ => unimplemented!(),
     };
-    let palette_buf = &buf[header_size..(header_size + palette_count * 4)];
+    let palette_buf = buf.slice(header_size..).slice(..palette_count * 4);
     let palette = unsafe {
         std::slice::from_raw_parts(
             palette_buf.as_slice_todo().as_ptr() as *const [u8; 4],
             palette_count,
         )
     };
-    let pixels = &buf[header_size + (palette_count * 4)..];
+    let pixels = buf.slice(header_size + (palette_count * 4)..);
 
     let width = header.width();
     let height = header.height();
@@ -591,7 +594,9 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
     } else {
         let mut v = Vec::with_capacity(pixels.len());
         for y in (0..height as usize).rev() {
-            for &p in pixels[y * width as usize..(y + 1) * width as usize]
+            for &p in pixels
+                .slice(y * width as usize..)
+                .slice(..width as usize)
                 .as_slice_todo()
                 .iter()
             {
@@ -635,7 +640,10 @@ pub fn LoadImageA(
     match typ {
         IMAGE_BITMAP => {
             let buf = pe::get_resource(
-                &machine.x86.mem[machine.state.kernel32.image_base as usize..],
+                &machine
+                    .x86
+                    .mem
+                    .slice(machine.state.kernel32.image_base as usize..),
                 machine.state.user32.resources_base,
                 pe::RT_BITMAP,
                 name,

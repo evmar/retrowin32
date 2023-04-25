@@ -162,7 +162,11 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        machine.x86.mem[addr as usize..(addr + dwBytes) as usize]
+        machine
+            .x86
+            .mem
+            .slice_mut(addr as usize..)
+            .slice_mut(..dwBytes as usize)
             .as_mut_slice_todo()
             .fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);

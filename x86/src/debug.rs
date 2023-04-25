@@ -37,7 +37,7 @@ pub fn disassemble(mem: &Mem, addr: u32) -> Vec<Instruction> {
     }
     let decoder = iced_x86::Decoder::with_ip(
         32,
-        &mem[addr as usize..].as_slice_todo(),
+        &mem.slice(addr as usize..).as_slice_todo(),
         addr as u64,
         iced_x86::DecoderOptions::NONE,
     );
@@ -47,7 +47,7 @@ pub fn disassemble(mem: &Mem, addr: u32) -> Vec<Instruction> {
     let mut i = 0;
     for instruction in decoder {
         let start_index = instruction.ip() as usize;
-        let instr_bytes = &mem[start_index..start_index + instruction.len()];
+        let instr_bytes = &mem.slice(start_index..).slice(..instruction.len());
         let mut bytes = String::new();
         for &b in instr_bytes.as_slice_todo().iter() {
             write!(&mut bytes, "{:02x}", b).unwrap();
