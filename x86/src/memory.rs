@@ -30,8 +30,8 @@ pub trait Memory {
     fn as_mut_slice_todo(&mut self) -> &mut [u8];
     fn len(&self) -> usize;
 
-    fn slice(&self, b: impl std::ops::RangeBounds<usize>) -> &Mem;
-    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<usize>) -> &mut Mem;
+    fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem;
+    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem;
 
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
@@ -77,18 +77,18 @@ impl Mem {
     }
 }
 
-fn start_from_bound(b: std::ops::Bound<&usize>) -> usize {
+fn start_from_bound(b: std::ops::Bound<&u32>) -> usize {
     match b {
-        std::ops::Bound::Included(&n) => n,
-        std::ops::Bound::Excluded(&n) => n + 1,
+        std::ops::Bound::Included(&n) => n as usize,
+        std::ops::Bound::Excluded(&n) => n as usize + 1,
         std::ops::Bound::Unbounded => 0,
     }
 }
 
-fn end_from_bound(m: &Mem, b: std::ops::Bound<&usize>) -> usize {
+fn end_from_bound(m: &Mem, b: std::ops::Bound<&u32>) -> usize {
     match b {
-        std::ops::Bound::Included(&n) => n + 1,
-        std::ops::Bound::Excluded(&n) => n,
+        std::ops::Bound::Included(&n) => n as usize + 1,
+        std::ops::Bound::Excluded(&n) => n as usize,
         std::ops::Bound::Unbounded => m.0.len(),
     }
 }
@@ -106,12 +106,12 @@ impl Memory for Mem {
         self.0.len()
     }
 
-    fn slice(&self, b: impl std::ops::RangeBounds<usize>) -> &Mem {
+    fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem {
         let start = start_from_bound(b.start_bound());
         let end = end_from_bound(self, b.end_bound());
         Mem::from_slice(&self.0[start..end])
     }
-    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<usize>) -> &mut Mem {
+    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem {
         let start = start_from_bound(b.start_bound());
         let end = end_from_bound(self, b.end_bound());
         Mem::from_slice_mut(&mut self.0[start..end])

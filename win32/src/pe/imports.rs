@@ -32,7 +32,7 @@ unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
-        image.slice(self.Name as usize..).read_strz()
+        image.slice(self.Name..).read_strz()
     }
 
     pub fn entries<'a>(&self, image: &'a Mem) -> ILTITer<'a> {
@@ -88,7 +88,7 @@ impl<'a> Iterator for ILTITer<'a> {
         } else {
             // First two bytes at offset are hint/name table index, used to look up
             // the name faster in the DLL; we just skip them.
-            let sym_name = self.r.buf.slice((entry + 2) as usize..).read_strz();
+            let sym_name = self.r.buf.slice((entry + 2)..).read_strz();
             ImportSymbol::Name(sym_name)
         };
         Some((symbol, addr))

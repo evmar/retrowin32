@@ -193,15 +193,15 @@ impl InstrCache {
     fn update_block(&mut self, mem: &Mem, ip: u32, single_step: bool) {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
-            later_ip as usize
+            later_ip
         } else {
-            mem.len()
+            mem.len() as u32
         };
 
         // Ensure we don't overlap any previous block.
         self.kill_block(ip);
 
-        let block = BasicBlock::disassemble(&mem.slice(ip as usize..end), ip, single_step);
+        let block = BasicBlock::disassemble(&mem.slice(ip..end), ip, single_step);
         // log::info!("added block {:x}..{:x}", ip, ip + block.len);
         self.blocks.insert(ip, block);
     }

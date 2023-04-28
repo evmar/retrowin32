@@ -70,8 +70,8 @@ impl<T: x86::Pod> FromX86 for Option<&mut T> {
 
 impl FromX86 for Option<&[u8]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
-        let len = mem.read_u32(sp + 4) as usize;
+        let addr = mem.read_u32(sp);
+        let len = mem.read_u32(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -86,8 +86,8 @@ impl FromX86 for Option<&[u8]> {
 
 impl FromX86 for Option<&mut [u8]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
-        let len = mem.read_u32(sp + 4) as usize;
+        let addr = mem.read_u32(sp);
+        let len = mem.read_u32(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -102,8 +102,8 @@ impl FromX86 for Option<&mut [u8]> {
 
 impl FromX86 for Option<&[u16]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
-        let len = mem.read_u32(sp + 4) as usize;
+        let addr = mem.read_u32(sp);
+        let len = mem.read_u32(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -116,8 +116,8 @@ impl FromX86 for Option<&[u16]> {
 
 impl FromX86 for Option<&mut [u16]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
-        let len = mem.read_u32(sp + 4) as usize;
+        let addr = mem.read_u32(sp);
+        let len = mem.read_u32(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -130,23 +130,23 @@ impl FromX86 for Option<&mut [u16]> {
 
 impl FromX86 for Option<&str> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
+        let addr = mem.read_u32(sp);
         if addr == 0 {
             return None;
         }
-        let strz = mem.slice(addr as usize..).read_strz();
+        let strz = mem.slice(addr..).read_strz();
         Some(extend_lifetime(strz))
     }
 }
 
 impl<'a> FromX86 for Option<Str16<'a>> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp) as usize;
+        let addr = mem.read_u32(sp);
         if addr == 0 {
             return None;
         }
         let mem16: &[u16] = {
-            let mem = mem.slice(addr as usize..);
+            let mem = mem.slice(addr..);
             let ptr = mem.as_slice_todo().as_ptr() as *const u16;
             std::slice::from_raw_parts(ptr, mem.len() / 2)
         };

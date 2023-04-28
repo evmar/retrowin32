@@ -74,8 +74,8 @@ impl State {
 
         let env = "\0\0".as_bytes();
         let env_addr = self.arena.get(mem).alloc(env.len() as u32);
-        mem.slice_mut(env_addr as usize..)
-            .slice_mut(..env.len())
+        mem.slice_mut(env_addr..)
+            .slice_mut(..env.len() as u32)
             .as_mut_slice_todo()
             .copy_from_slice(env);
         self.env = env_addr;
@@ -88,8 +88,8 @@ impl State {
         cmdline.push(0 as char); // nul terminator
 
         self.cmdline = self.arena.get(mem).alloc(cmdline.len() as u32);
-        mem.slice_mut(self.cmdline as usize..)
-            .slice_mut(..cmdline.len())
+        mem.slice_mut(self.cmdline..)
+            .slice_mut(..cmdline.len() as u32)
             .as_mut_slice_todo()
             .copy_from_slice(cmdline.as_bytes());
 
@@ -97,8 +97,8 @@ impl State {
         self.cmdline16 = self.arena.get(mem).alloc(cmdline16.byte_size() as u32);
         let mem16: &mut [u16] = unsafe {
             std::mem::transmute(
-                mem.slice_mut(self.cmdline16 as usize..)
-                    .slice_mut(..cmdline16.0.len())
+                mem.slice_mut(self.cmdline16..)
+                    .slice_mut(..cmdline16.0.len() as u32)
                     .as_mut_slice_todo(),
             )
         };
@@ -671,17 +671,13 @@ pub fn MultiByteToWideChar(
 
     let input = match cbMultiByte {
         0 => return 0, // TODO: invalid param
-        -1 => machine
-            .x86
-            .mem
-            .slice(lpMultiByteStr as usize..)
-            .read_strz_with_nul(),
+        -1 => machine.x86.mem.slice(lpMultiByteStr..).read_strz_with_nul(),
         len => std::str::from_utf8(
             &machine
                 .x86
                 .mem
-                .slice(lpMultiByteStr as usize..)
-                .slice(..len as usize)
+                .slice(lpMultiByteStr..)
+                .slice(..len as u32)
                 .as_slice_todo(),
         )
         .unwrap(),

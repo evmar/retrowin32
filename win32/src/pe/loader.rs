@@ -53,13 +53,13 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
         // TODO: something about alignment?  Maybe this section gets ignored?
         src = 0;
     }
-    let dst = (base + sec.VirtualAddress) as usize;
+    let dst = base + sec.VirtualAddress;
     // sec.SizeOfRawData is the amount of data in the file that should be copied to memory.
     // sec.VirtualSize is the in-memory size of the resulting section, which can be:
     // - greater than SizeOfRawData for sections that should be zero-filled (like uninitialized data),
     // - less than SizeOfRawData because SizeOfRawData is padded up to FileAlignment(!).
 
-    let data_size = sec.SizeOfRawData as usize;
+    let data_size = sec.SizeOfRawData;
     let flags = sec.characteristics().unwrap();
 
     // Load the section contents from the file.
@@ -75,7 +75,7 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
             .slice_mut(dst..)
             .slice_mut(..data_size)
             .as_mut_slice_todo()
-            .copy_from_slice(&buf[src..(src + data_size)]);
+            .copy_from_slice(&buf[src..][..data_size as usize]);
     }
     machine.state.kernel32.mappings.add(
         winapi::kernel32::Mapping {
@@ -93,7 +93,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     // the relevant DLLs shims.
     let mut patches = Vec::new();
 
-    let image = unsafe { std::mem::transmute(machine.x86.mem.slice(base as usize..)) };
+    let image = unsafe { std::mem::transmute(machine.x86.mem.slice(base..)) };
     for dll_imports in pe::read_imports(imports_data.as_mem(image)) {
         let dll_name = dll_imports.name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
@@ -177,7 +177,7 @@ fn load_pe(
     if relocate {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             apply_relocs(
-                &mut machine.x86.mem.slice_mut(base as usize..),
+                &mut machine.x86.mem.slice_mut(base..),
                 file.opt_header.ImageBase,
                 base,
                 relocs,
@@ -291,7 +291,7 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, name, buf, &file, true)?;
-    let image = &machine.x86.mem.slice(base as usize..);
+    let image = &machine.x86.mem.slice(base..);
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     let mut ordinals = HashMap::new();

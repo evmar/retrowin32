@@ -5,9 +5,9 @@ use crate::{memory::Memory, registers::Flags, x86::X86, StepError, StepResult};
 
 pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     assert!(x86.flags.contains(Flags::DF)); // TODO
-    let p1 = x86.regs.esi as usize;
-    let p2 = x86.regs.edi as usize;
-    let count = x86.regs.ecx as usize;
+    let p1 = x86.regs.esi;
+    let p2 = x86.regs.edi;
+    let count = x86.regs.ecx;
     if instr.has_repe_prefix() {
         let pos = x86
             .mem
@@ -17,10 +17,11 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
             .iter()
             .zip(x86.mem.slice(p2..).slice(..count).as_slice_todo().iter())
             .position(|(&x, &y)| x == y)
+            .map(|pos| pos as u32)
             .unwrap_or(count);
-        x86.regs.esi += pos as u32;
-        x86.regs.edi += pos as u32;
-        x86.regs.ecx -= pos as u32;
+        x86.regs.esi += pos;
+        x86.regs.edi += pos;
+        x86.regs.ecx -= pos;
         let x = x86.read_u8(x86.regs.esi);
         let y = x86.read_u8(x86.regs.edi);
         sub(x, y, &mut x86.flags);

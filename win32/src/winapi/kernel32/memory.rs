@@ -165,8 +165,8 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
         machine
             .x86
             .mem
-            .slice_mut(addr as usize..)
-            .slice_mut(..dwBytes as usize)
+            .slice_mut(addr..)
+            .slice_mut(..dwBytes)
             .as_mut_slice_todo()
             .fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
