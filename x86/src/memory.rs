@@ -163,12 +163,6 @@ impl std::ops::Index<usize> for Mem {
     }
 }
 
-impl std::ops::IndexMut<usize> for Mem {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
-    }
-}
-
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
 

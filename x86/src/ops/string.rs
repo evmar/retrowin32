@@ -132,7 +132,7 @@ pub fn stos(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
 
     while *counter > 0 {
         match size {
-            1 => x86.mem[x86.regs.edi as usize] = x86.regs.eax as u8,
+            1 => *x86.mem.view_mut::<u8>(x86.regs.edi) = x86.regs.eax as u8,
             2 => *x86.mem.view_mut::<u16>(x86.regs.edi) = x86.regs.eax as u16,
             4 => *x86.mem.view_mut::<u32>(x86.regs.edi) = x86.regs.eax,
             _ => unimplemented!(),

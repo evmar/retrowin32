@@ -87,7 +87,7 @@ impl X86 {
         if self.check_oob::<u8>(addr) {
             return;
         }
-        self.mem[addr as usize] = value;
+        *self.mem.view_mut::<u8>(addr) = value;
     }
 
     pub fn read_u32(&mut self, addr: u32) -> u32 {
@@ -210,7 +210,7 @@ impl InstrCache {
     pub fn add_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
         self.breakpoints.insert(addr, mem[addr as usize]);
-        mem[addr as usize] = 0xcc; // int3
+        *mem.view_mut::<u8>(addr) = 0xcc; // int3
     }
 
     /// Undo an add_breakpoint().
@@ -222,7 +222,7 @@ impl InstrCache {
         self.kill_block(addr + 1);
 
         let prev = self.breakpoints.remove(&addr).unwrap();
-        mem[addr as usize] = prev;
+        *mem.view_mut::<u8>(addr) = prev;
     }
 
     /// Executes the current basic block, updating eip.

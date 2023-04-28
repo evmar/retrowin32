@@ -91,7 +91,7 @@ impl Emulator {
     }
 
     pub fn poke(&mut self, addr: u32, value: u8) {
-        self.runner.machine.x86.mem[addr as usize] = value;
+        *self.runner.machine.x86.mem.view_mut::<u8>(addr) = value;
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
