@@ -155,14 +155,6 @@ impl Memory for Mem {
     }
 }
 
-impl std::ops::Index<usize> for Mem {
-    type Output = u8;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
 
