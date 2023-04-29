@@ -37,7 +37,7 @@ fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool
     };
 
     // TODO: .alloc() ensures the memory exists, .add() doesn't.
-    let memory_end = (mapping.addr + mapping.size) as usize;
+    let memory_end = mapping.addr + mapping.size;
     if memory_end > machine.x86.mem.len() {
         machine.x86.mem.resize(memory_end, 0);
     }

@@ -592,7 +592,7 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
             .map(|&p| get_pixel(palette, p))
             .collect()
     } else {
-        let mut v = Vec::with_capacity(pixels.len());
+        let mut v = Vec::with_capacity(pixels.len() as usize);
         for y in (0..height).rev() {
             for &p in pixels
                 .slice(y * width..)

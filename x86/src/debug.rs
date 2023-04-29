@@ -32,7 +32,7 @@ impl iced_x86::FormatterOutput for FormatterOutput {
 }
 
 pub fn disassemble(mem: &Mem, addr: u32) -> Vec<Instruction> {
-    if addr as usize >= mem.len() {
+    if addr >= mem.len() {
         return Vec::new();
     }
     let decoder = iced_x86::Decoder::with_ip(

@@ -148,7 +148,7 @@ impl<'a> FromX86 for Option<Str16<'a>> {
         let mem16: &[u16] = {
             let mem = mem.slice(addr..);
             let ptr = mem.as_slice_todo().as_ptr() as *const u16;
-            std::slice::from_raw_parts(ptr, mem.len() / 2)
+            std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
         };
         Some(Str16::from_nul_term(mem16))
     }

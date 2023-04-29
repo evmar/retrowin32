@@ -82,7 +82,7 @@ impl Mappings {
                     0
                 };
                 if space < size {
-                    let new_size = (prev_end + size) as usize;
+                    let new_size = prev_end + size;
                     mem.resize(new_size, 0);
                 }
                 self.0.len()

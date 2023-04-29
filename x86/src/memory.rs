@@ -28,7 +28,7 @@ pub trait Memory {
     fn as_slice_todo(&self) -> &[u8];
     /// TODO: don't expose slices of memory, as we might not have contiguous pages.
     fn as_mut_slice_todo(&mut self) -> &mut [u8];
-    fn len(&self) -> usize;
+    fn len(&self) -> u32;
 
     fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem;
     fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem;
@@ -102,8 +102,8 @@ impl Memory for Mem {
         &mut self.0
     }
 
-    fn len(&self) -> usize {
-        self.0.len()
+    fn len(&self) -> u32 {
+        self.0.len() as u32
     }
 
     fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem {
@@ -159,8 +159,8 @@ impl Memory for Mem {
 pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
 
 impl VecMem {
-    pub fn resize(&mut self, size: usize, value: u8) {
-        self.0.resize(size, value);
+    pub fn resize(&mut self, size: u32, value: u8) {
+        self.0.resize(size as usize, value);
     }
 }
 

@@ -43,7 +43,7 @@ fn movs(x86: &mut X86, instr: &Instruction, size: u32) -> StepResult<()> {
     while *counter > 0 {
         *counter -= 1;
 
-        if x86.regs.edi as usize >= x86.mem.len() - 8 {
+        if x86.regs.edi >= x86.mem.len() - 8 {
             return Err(StepError::Error("movs overflow".into()));
         }
 
