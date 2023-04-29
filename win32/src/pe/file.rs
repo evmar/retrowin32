@@ -189,12 +189,12 @@ pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
     let mut r = Reader::new(Mem::from_slice(buf));
 
     let ofs = dos_header(&mut r)?;
-    r.seek(ofs as usize)?;
+    r.seek(ofs)?;
 
     let header = pe_header(&mut r)?;
     let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
-    let data_directory = r.read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes as usize);
-    let sections = r.read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as usize);
+    let data_directory = r.read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes);
+    let sections = r.read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as u32);
 
     Ok(File {
         header,

@@ -42,7 +42,7 @@ impl IMAGE_IMPORT_DESCRIPTOR {
         // FirstThunk has the same pointer though.
         // Peering Inside the PE claims this is some difference between compilers, yikes.
         // I guess one is the IAT and one the ILT (?).
-        r.seek(self.FirstThunk as usize).unwrap();
+        r.seek(self.FirstThunk).unwrap();
         ILTITer { r }
     }
 }
