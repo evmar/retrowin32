@@ -54,7 +54,7 @@ impl<'a> Reader<'a> {
     }
 
     pub fn read_n<T: x86::Pod>(&mut self, count: usize) -> &'a [T] {
-        let slice = self.buf.view_n::<T>(self.pos, count);
+        let slice = self.buf.view_n::<T>(self.pos as u32, count as u32);
         self.pos += size_of::<T>() * count;
         slice
     }

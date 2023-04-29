@@ -30,18 +30,12 @@ impl IMAGE_EXPORT_DIRECTORY {
     }
 
     pub fn fns<'a>(&self, image: &'a Mem) -> &'a [u32] {
-        image.view_n::<u32>(
-            self.AddressOfFunctions as usize,
-            self.NumberOfFunctions as usize,
-        )
+        image.view_n::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
     }
 
     pub fn names<'a>(&self, image: &'a Mem) -> impl Iterator<Item = (&'a str, u16)> {
-        let names = image.view_n::<u32>(self.AddressOfNames as usize, self.NumberOfNames as usize);
-        let ords = image.view_n::<u16>(
-            self.AddressOfNameOrdinals as usize,
-            self.NumberOfNames as usize,
-        );
+        let names = image.view_n::<u32>(self.AddressOfNames, self.NumberOfNames);
+        let ords = image.view_n::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
         let ni = names.iter().map(|&addr| image.slice(addr..).read_strz());
         let oi = ords.iter().copied();

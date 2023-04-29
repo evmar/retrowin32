@@ -25,10 +25,10 @@ struct ImageResourceDirectory<'a> {
 impl<'a> ImageResourceDirectory<'a> {
     fn read(mem: &'a Mem, ofs: u32) -> ImageResourceDirectory<'a> {
         let header = mem.view::<IMAGE_RESOURCE_DIRECTORY>(ofs);
-        let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as usize;
+        let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as u32;
         // Entries are in memory immediately after the directory.
         let entries = mem.view_n::<IMAGE_RESOURCE_DIRECTORY_ENTRY>(
-            ofs as usize + size_of::<IMAGE_RESOURCE_DIRECTORY>(),
+            ofs + size_of::<IMAGE_RESOURCE_DIRECTORY>() as u32,
             count,
         );
         ImageResourceDirectory {

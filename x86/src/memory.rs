@@ -35,7 +35,7 @@ pub trait Memory {
 
     fn view<T: Pod>(&self, ofs: u32) -> &T;
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
-    fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T];
+    fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T];
 
     fn read_u32(&self, ofs: u32) -> u32;
     fn write_u32(&mut self, ofs: u32, value: u32);
@@ -130,12 +130,17 @@ impl Memory for Mem {
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
     }
 
-    fn view_n<T: Pod>(&self, ofs: usize, count: usize) -> &[T] {
-        let size = size_of::<T>() * count;
-        if ofs + size > self.0.len() {
+    fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T] {
+        let size = size_of::<T>() as u32 * count;
+        if ofs + size > self.0.len() as u32 {
             panic!("out of bounds");
         }
-        unsafe { std::slice::from_raw_parts(&self.0[ofs] as *const u8 as *const T, count) }
+        unsafe {
+            std::slice::from_raw_parts(
+                &self.0[ofs as usize] as *const u8 as *const T,
+                count as usize,
+            )
+        }
     }
 
     fn read_u32(&self, addr: u32) -> u32 {

@@ -524,7 +524,7 @@ mod IDirectDraw7 {
         let entries = machine
             .x86
             .mem
-            .view_n::<PALETTEENTRY>(entries as usize, 256)
+            .view_n::<PALETTEENTRY>(entries, 256)
             .to_vec()
             .into_boxed_slice();
         machine.state.ddraw.palettes.insert(palette, entries);
@@ -923,10 +923,10 @@ mod IDirectDrawSurface7 {
         let phack = machine.state.ddraw.palette_hack;
         if surf.pixels != 0 && phack != 0 {
             let bytes_per_pixel = 1; // TODO: where does this come from?
-            let pixels = machine.x86.mem.view_n::<u8>(
-                surf.pixels as usize,
-                (surf.width * surf.height * bytes_per_pixel) as usize,
-            );
+            let pixels = machine
+                .x86
+                .mem
+                .view_n::<u8>(surf.pixels, surf.width * surf.height * bytes_per_pixel);
             let palette = machine.state.ddraw.palettes.get(&phack).unwrap();
             // XXX very inefficient
             let pixels32: Vec<_> = pixels
@@ -990,10 +990,7 @@ mod IDirectDrawPalette {
     ) -> u32 {
         let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
-        let entries = machine
-            .x86
-            .mem
-            .view_n::<PALETTEENTRY>(entries as usize, count as usize);
+        let entries = machine.x86.mem.view_n::<PALETTEENTRY>(entries, count);
         palette[start as usize..][..count as usize].clone_from_slice(entries);
         DD_OK
     }
