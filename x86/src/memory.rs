@@ -37,12 +37,23 @@ pub trait Memory {
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T];
 
-    fn read_u32(&self, ofs: u32) -> u32;
-    fn write_u32(&mut self, ofs: u32, value: u32);
+    fn read_u32(&self, addr: u32) -> u32 {
+        *self.view::<u32>(addr)
+    }
+
+    fn write_u32(&mut self, addr: u32, value: u32) {
+        *self.view_mut::<u32>(addr) = value;
+    }
+
     /// Read a nul-terminated string.
-    fn read_strz(&self) -> &str;
+    fn read_strz(&self) -> &str {
+        read_strz(&self.as_slice_todo())
+    }
+
     /// Read a nul-terminated string, including the trailing nul.
-    fn read_strz_with_nul(&self) -> &str;
+    fn read_strz_with_nul(&self) -> &str {
+        read_strz_with_nul(&self.as_slice_todo())
+    }
 }
 
 fn read_strz(buf: &[u8]) -> &str {
@@ -141,22 +152,6 @@ impl Memory for Mem {
                 count as usize,
             )
         }
-    }
-
-    fn read_u32(&self, addr: u32) -> u32 {
-        *self.view::<u32>(addr)
-    }
-
-    fn write_u32(&mut self, addr: u32, value: u32) {
-        *self.view_mut::<u32>(addr) = value;
-    }
-
-    fn read_strz(&self) -> &str {
-        read_strz(&self.0)
-    }
-
-    fn read_strz_with_nul(&self) -> &str {
-        read_strz_with_nul(&self.0)
     }
 }
 
