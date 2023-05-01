@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec zig build-exe hello.zig -O ReleaseSmall --strip -target i386-windows -fsingle-threaded
+exec zig build-exe hello.zig -O ReleaseSmall -target x86-windows-msvc -fsingle-threaded
