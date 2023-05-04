@@ -3,6 +3,7 @@ extern crate win32;
 mod logging;
 use std::{
     cell::RefCell,
+    collections::HashSet,
     io::{Read, Seek, Write},
     path::{Path, PathBuf},
     rc::Rc,
@@ -117,9 +118,17 @@ impl win32::Host for EnvRef {
     }
 }
 
+fn hex_arg(arg: &str) -> Result<u32, String> {
+    u32::from_str_radix(arg, 16).map_err(|err| err.to_string())
+}
+
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
+    #[argh(option, from_str_fn(hex_arg))]
+    /// addresses to dump emulator state
+    trace_points: Vec<u32>,
+
     /// exe to run
     #[argh(positional)]
     exe: String,
@@ -140,6 +149,12 @@ fn main() -> anyhow::Result<()> {
     let mut runner = win32::Runner::new(Box::new(host.clone()));
     runner.load_exe(&buf, cmdline.clone(), false)?;
 
+    let mut trace_points = HashSet::new();
+    for &tp in &args.trace_points {
+        trace_points.insert(tp);
+        runner.add_breakpoint(tp);
+    }
+
     let start = std::time::Instant::now();
     loop {
         if let Some(gui) = &mut host.0.borrow_mut().gui {
@@ -153,9 +168,21 @@ fn main() -> anyhow::Result<()> {
                 log::error!("{:?}", err);
                 break;
             }
-            Ok(_) => {
+            Ok(done) => {
                 if host.0.borrow().exit_code.is_some() {
                     break;
+                }
+
+                let ip = runner.machine.x86.regs.eip;
+                if !done && trace_points.contains(&ip) {
+                    let regs = &runner.machine.x86.regs;
+                    eprintln!(
+                        "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
+                        regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
+                    );
+                    runner.clear_breakpoint(ip);
+                    runner.single_step().unwrap();
+                    runner.add_breakpoint(ip);
                 }
             }
         }

@@ -203,6 +203,17 @@ impl InstrCache {
 
         let block = BasicBlock::disassemble(&mem.slice(ip..end), ip, single_step);
         // log::info!("added block {:x}..{:x}", ip, ip + block.len);
+        // if block.len == 1 {
+        //     log::info!(
+        //         "{}",
+        //         block
+        //             .instrs
+        //             .iter()
+        //             .map(|i| i.to_string())
+        //             .collect::<Vec<_>>()
+        //             .join("; ")
+        //     );
+        // }
         self.blocks.insert(ip, block);
     }
 
