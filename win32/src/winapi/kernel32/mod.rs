@@ -423,8 +423,10 @@ unsafe impl x86::Pod for STARTUPINFOA {}
 
 #[win32_derive::dllexport]
 pub fn GetStartupInfoA(_machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+    // MSVC runtime library passes in uninitialized memory for lpStartupInfo, so don't trust info.cb.
     let info = lpStartupInfo.unwrap();
-    unsafe { info.clear_memory(info.cb) };
+    let len = std::cmp::min(info.cb, std::mem::size_of::<STARTUPINFOA>() as u32);
+    unsafe { info.clear_memory(len) };
     0
 }
 
