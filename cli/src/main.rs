@@ -34,9 +34,14 @@ struct File {
 }
 impl File {
     fn open(path: &Path) -> Self {
-        File {
-            f: std::fs::File::open(path).unwrap(),
-        }
+        let f = match std::fs::File::open(path) {
+            Ok(f) => f,
+            Err(err) => {
+                log::error!("opening {:?}: {}", path, err);
+                std::fs::File::open("/dev/null").unwrap()
+            }
+        };
+        File { f }
     }
 }
 impl win32::File for File {
