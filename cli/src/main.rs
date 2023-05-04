@@ -1,6 +1,6 @@
+extern crate argh;
 extern crate win32;
 mod logging;
-use anyhow::bail;
 use std::{
     cell::RefCell,
     io::{Read, Seek, Write},
@@ -117,20 +117,28 @@ impl win32::Host for EnvRef {
     }
 }
 
+#[derive(argh::FromArgs)]
+/// win32 emulator.
+struct Args {
+    /// exe to run
+    #[argh(positional)]
+    exe: String,
+
+    /// cmdline to pass to exe
+    #[argh(positional)]
+    cmdline: Option<String>,
+}
+
 fn main() -> anyhow::Result<()> {
     logging::init()?;
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() < 2 {
-        bail!("specify path to exe");
-    }
-    let exe = &args[1];
-    let cmdline = args[1..].join(" ");
+    let args: Args = argh::from_env();
+    let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
-    let buf = std::fs::read(exe)?;
-    let cwd = Path::parent(Path::new(exe)).unwrap();
+    let buf = std::fs::read(&args.exe)?;
+    let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut runner = win32::Runner::new(Box::new(host.clone()));
-    runner.load_exe(&buf, cmdline, false)?;
+    runner.load_exe(&buf, cmdline.clone(), false)?;
 
     let start = std::time::Instant::now();
     loop {

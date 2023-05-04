@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
+argh = "0.1.10"
 iced-x86 = "1.17.0"
 log = "0.4.17"
 
