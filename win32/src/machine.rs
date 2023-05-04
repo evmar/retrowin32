@@ -100,7 +100,9 @@ impl Runner {
         let ip = self.machine.x86.regs.eip;
         self.icache.make_single_step(&mut self.machine.x86, ip);
         self.execute_block()?;
-        self.icache.clear_single_step(ip);
+        // TODO: clear_single_step doesn't help here, because ip now points into the middle
+        // of some block and the next time we execute we'll just recreate the partial block anyway.
+        // self.icache.clear_single_step(ip);
         Ok(())
     }
 
