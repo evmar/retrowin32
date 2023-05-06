@@ -20,7 +20,7 @@ pub fn main() void {
     while (true) {
         var ev = std.mem.zeroes(winapi.DEBUG_EVENT);
         ev.dwProcessId = 1;
-        if (winapi.WaitForDebugEvent(&ev, 0xffff_ffff) == 0) {
+        if (winapi.WaitForDebugEvent(&ev, windows.INFINITE) == 0) {
             logWindowsErr("WaitForDebugEvent");
         }
 
