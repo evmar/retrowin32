@@ -34,12 +34,8 @@ pub fn main() void {
                 if (winapi.ReadProcessMemory(proc.hProcess, ev.u.DebugString.lpDebugStringData, &buf, len, &n) == 0) {
                     logWindowsErr("ReadProcessMemory");
                 }
-                // Trim any trailing \r\n\0.
-                while (n > 0) {
-                    if (buf[n - 1] != 0 and buf[n - 1] != '\r' and buf[n - 1] != '\n') break;
-                    n -= 1;
-                }
-                std.log.info("{s}\n", .{buf[0..n]});
+                const msg = std.mem.trimRight(u8, buf[0..n], "\r\n\x00");
+                std.log.info("{s}\n", .{msg});
             },
             .LOAD_DLL_DEBUG_EVENT => {
                 // Ignore.
