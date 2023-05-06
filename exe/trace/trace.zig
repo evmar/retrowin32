@@ -9,11 +9,23 @@ fn logWindowsErr(call: []const u8) void {
     std.log.err("{s}: {}", .{ call, code });
 }
 
-pub fn main() void {
+pub fn main() !void {
+    // parse command line
+    const cmdlinep = windows.kernel32.GetCommandLineA();
+    const cmdline = cmdlinep[0..std.mem.len(cmdlinep)];
+    var args = std.mem.split(u8, cmdline, " ");
+    const exename = args.first();
+    while (args.next()) |arg| {
+        std.log.info("arg {}", arg);
+    }
+
+    // invoke subprocess
+    var exebuf: [128:0]u8 = undefined;
+    const exe = try std.fmt.bufPrintZ(&exebuf, "{s}", .{exename});
     var startup = std.mem.zeroes(winapi.STARTUPINFOA);
     startup.cb = @sizeOf(winapi.STARTUPINFOA);
     var proc = std.mem.zeroes(winapi.PROCESS_INFORMATION);
-    if (winapi.CreateProcessA(null, "bass", null, null, @boolToInt(false), winapi.PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, null, null, &startup, &proc) == 0) {
+    if (winapi.CreateProcessA(null, exe.ptr, null, null, @boolToInt(false), winapi.PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, null, null, &startup, &proc) == 0) {
         logWindowsErr("CreateProcessA");
     }
 
