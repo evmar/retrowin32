@@ -1,6 +1,7 @@
 extern crate argh;
 extern crate win32;
 mod logging;
+use anyhow::anyhow;
 use std::{
     cell::RefCell,
     collections::HashSet,
@@ -143,7 +144,7 @@ fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
-    let buf = std::fs::read(&args.exe)?;
+    let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut runner = win32::Runner::new(Box::new(host.clone()));
