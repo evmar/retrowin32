@@ -15,13 +15,23 @@ fn logWindowsErr(call: []const u8) void {
 }
 
 pub fn main() !void {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var trace_points = std.AutoHashMap(u32, void).init(allocator);
+
     // parse command line
     const cmdlinep = windows.kernel32.GetCommandLineA();
     const cmdline = cmdlinep[0..std.mem.len(cmdlinep)];
     var args = std.mem.split(u8, cmdline, " ");
     const exename = args.first();
     while (args.next()) |arg| {
-        std.log.info("arg: {s}", .{arg});
+        const addr = std.fmt.parseInt(u32, arg, 16) catch |err| {
+            std.log.err("parsing '{s}'': {}", .{ arg, err });
+            return;
+        };
+        try trace_points.put(addr, {});
     }
 
     // invoke subprocess
