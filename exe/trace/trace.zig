@@ -3,6 +3,11 @@ const std = @import("std");
 const windows = std.os.windows;
 const winapi = @import("./winapi.zig");
 
+// Declaring this struct affects the default log level(!)
+pub const std_options = struct {
+    pub const log_level = .info;
+};
+
 fn logWindowsErr(call: []const u8) void {
     // Logging GetLastError as an enum adds 100kb(!) to the binary size.
     const code = @enumToInt(windows.kernel32.GetLastError());
@@ -16,7 +21,7 @@ pub fn main() !void {
     var args = std.mem.split(u8, cmdline, " ");
     const exename = args.first();
     while (args.next()) |arg| {
-        std.log.info("arg {}", arg);
+        std.log.info("arg: {s}", .{arg});
     }
 
     // invoke subprocess
