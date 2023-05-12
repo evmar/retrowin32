@@ -18,5 +18,9 @@
   {
     "desc": "bass.dll debug",
     "params": "dir=exe/demo/monolife/&exe=bass.dll&relocate"
+  },
+  {
+    "desc": "win32 tracer",
+    "params": "dir=exe/trace/&exe=trace.exe"
   }
 ]
