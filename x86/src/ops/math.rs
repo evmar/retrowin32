@@ -154,10 +154,12 @@ pub fn or_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
+fn shl<I: Int + num_traits::WrappingShl>(x: I, mut y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x;
     }
+    y = y & 0x1f;
+
     // Carry is the highest bit that will be shifted out.
     let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
     let val = x.wrapping_shl(y.as_usize() as u32);
