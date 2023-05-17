@@ -126,6 +126,10 @@ fn hex_arg(arg: &str) -> Result<u32, String> {
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
+    /// win32 modules to trace calls into
+    #[argh(option)]
+    win32_trace: Option<String>,
+
     #[argh(option, from_str_fn(hex_arg))]
     /// addresses to dump emulator state
     trace_points: Vec<u32>,
@@ -142,6 +146,7 @@ struct Args {
 fn main() -> anyhow::Result<()> {
     logging::init()?;
     let args: Args = argh::from_env();
+    win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
     let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
