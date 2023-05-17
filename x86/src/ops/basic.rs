@@ -280,6 +280,13 @@ pub fn seta_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn setb_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let value = x86.flags.contains(Flags::CF) as u8;
+    let (x, _flags) = rm8(x86, instr);
+    *x = value;
+    Ok(())
+}
+
 pub fn sete_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let value = x86.flags.contains(Flags::ZF) as u8;
     let (x, _flags) = rm8(x86, instr);
