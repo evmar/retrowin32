@@ -211,6 +211,24 @@ pub fn movzx_r16_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
+pub fn cmovb_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(x86, instr);
+    let (x, flags) = rm32(x86, instr);
+    if flags.contains(Flags::CF) {
+        *x = y;
+    }
+    Ok(())
+}
+
+pub fn cmovne_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(x86, instr);
+    let (x, flags) = rm32(x86, instr);
+    if !flags.contains(Flags::ZF) {
+        *x = y;
+    }
+    Ok(())
+}
+
 pub fn xchg_rm32_r32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let r1 = instr.op1_register();
     let y = x86.regs.get32(r1);
