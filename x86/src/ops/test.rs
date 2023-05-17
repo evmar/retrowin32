@@ -136,3 +136,15 @@ pub fn btr_rm32_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     *x = *x & !(1 << y);
     Ok(())
 }
+
+pub fn bsr_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(x86, instr);
+    let (x, flags) = rm32(x86, instr);
+    flags.set(Flags::ZF, y == 0);
+    for i in 31..0 {
+        if y & (1 << i) != 0 {
+            *x = i;
+        }
+    }
+    Ok(())
+}
