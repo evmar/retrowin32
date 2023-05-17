@@ -34,6 +34,11 @@ pub fn main() !void {
         try trace_points.put(addr, {});
     }
 
+    var iter = trace_points.keyIterator();
+    while (iter.next()) |entry| {
+        std.log.warn("tp {s}", .{entry});
+    }
+
     // invoke subprocess
     var exebuf: [128:0]u8 = undefined;
     const exe = try std.fmt.bufPrintZ(&exebuf, "{s}", .{exename});
