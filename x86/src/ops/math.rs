@@ -615,7 +615,7 @@ pub fn sub_r32_rm32(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     Ok(())
 }
 
-pub fn sub_r8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
+pub fn sub_rm8_rm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = op1_rm8(x86, instr);
     let (x, flags) = rm8(x86, instr);
     *x = sub(*x, y, flags);
