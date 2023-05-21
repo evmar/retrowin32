@@ -32,20 +32,66 @@ fn startProcess(cmd: []const u8) !HANDLE {
 fn installBreakPoint(proc: HANDLE, addr: u32) !u8 {
     std.log.info("installing breakpoint at {x}", .{addr});
 
-    var byte: u8 = undefined;
-    var buf: *[1]u8 = &byte;
-    if (winapi.ReadProcessMemory(proc, addr, buf, 1, null) == 0) {
+    var prev: u8 = undefined;
+    if (winapi.ReadProcessMemory(proc, addr, @ptrCast([*]u8, &prev), 1, null) == 0) {
         logWindowsErr("ReadProcessMemory");
         return error.WindowsFailure;
     }
-    const prev = byte;
 
-    buf[0] = 0xcc;
-    if (winapi.WriteProcessMemory(proc, addr, buf, 1, null) == 0) {
+    const int3: u8 = 0xcc;
+    if (winapi.WriteProcessMemory(proc, addr, @ptrCast([*]const u8, &int3), 1, null) == 0) {
         logWindowsErr("WriteProcessMemory");
         return error.WindowsFailure;
     }
+
+    if (winapi.FlushInstructionCache(proc, addr, 1) == 0) {
+        logWindowsErr("FlushInstructionCache");
+        return error.WindowsFailure;
+    }
+
     return prev;
+}
+
+/// Read a nul-terminated string from a process's memory.
+fn readString(proc: HANDLE, addr: u32, unicode: bool, buf: []u8) ![]u8 {
+    var len: u32 = 0;
+    var ch: u16 = undefined;
+    const size: u32 = if (unicode) 2 else 1;
+    while (len < buf.len) {
+        if (winapi.ReadProcessMemory(proc, addr + (len * size), @ptrCast([*]u8, &ch), size, null) == 0) {
+            logWindowsErr("ReadProcessMemory");
+            return error.WindowsFailure;
+        }
+        if (ch == 0) {
+            return buf[0..len];
+        }
+        if (ch > 0xFF) {
+            return error.UnicodeString;
+        }
+        buf[len] = @intCast(u8, ch);
+        len += 1;
+    }
+    return buf;
+}
+
+fn processDllLoad(proc: HANDLE, load: *winapi.LOAD_DLL_DEBUG_INFO) !void {
+    // Note: getting the name of the DLL from this event is a trainwreck.
+    // There's an lpImageName attribute but people online say it's not usable,
+    // and instead suggest a mess of calls to get the file name from the handle:
+    //   https://learn.microsoft.com/en-us/windows/win32/memory/obtaining-a-file-name-from-a-file-handle
+
+    if (load.lpImageName == 0) return;
+
+    var addr: u32 = 0;
+    if (winapi.ReadProcessMemory(proc, load.lpImageName, @ptrCast([*]u8, &addr), 4, null) == 0) {
+        // Fails for some dlls like kernel32.
+        return;
+    }
+    if (addr == 0) return;
+
+    var buf: [128]u8 = undefined;
+    const name = try readString(proc, addr, load.fUnicode != 0, &buf);
+    std.log.info("load dll '{s}'", .{name});
 }
 
 pub fn main() !void {
@@ -70,7 +116,6 @@ pub fn main() !void {
     };
 
     while (args.next()) |arg| {
-        std.log.info("parsing {s}", .{arg});
         const addr = std.fmt.parseInt(u32, arg, 16) catch |err| {
             std.log.err("parsing '{s}': {}", .{ arg, err });
             return;
@@ -80,11 +125,7 @@ pub fn main() !void {
 
     const proc = try startProcess(cmd);
 
-    var iter = trace_points.iterator();
-    while (iter.next()) |entry| {
-        const addr = entry.key_ptr.*;
-        entry.value_ptr.* = try installBreakPoint(proc, addr);
-    }
+    var installedTracePoints = false;
 
     while (true) {
         var ev = std.mem.zeroes(winapi.DEBUG_EVENT);
@@ -106,17 +147,51 @@ pub fn main() !void {
                 std.log.info("{s}", .{msg});
             },
             .LOAD_DLL_DEBUG_EVENT => {
-                // Ignore.
-                // Note: getting the name of the DLL from this event is a trainwreck.
-                // There's an lpImageName attribute but people online say it's not usable,
-                // and instead suggest a mess of calls to get the file name from the handle:
-                //   https://learn.microsoft.com/en-us/windows/win32/memory/obtaining-a-file-name-from-a-file-handle
+                try processDllLoad(proc, &ev.u.LoadDll);
             },
             .UNLOAD_DLL_DEBUG_EVENT => {},
             .CREATE_THREAD_DEBUG_EVENT => {},
             .EXIT_THREAD_DEBUG_EVENT => {},
             .EXIT_PROCESS_DEBUG_EVENT => {
                 break;
+            },
+
+            .EXCEPTION_DEBUG_EVENT => {
+                const ex = &ev.u.Exception.ExceptionRecord;
+                switch (ex.ExceptionCode) {
+                    .EXCEPTION_BREAKPOINT => {
+                        std.log.info("bp at {x}", .{ex.ExceptionAddress});
+
+                        if (!installedTracePoints) {
+                            var iter = trace_points.iterator();
+                            while (iter.next()) |entry| {
+                                const addr = entry.key_ptr.*;
+                                entry.value_ptr.* = try installBreakPoint(proc, addr);
+                            }
+                            installedTracePoints = true;
+                        }
+
+                        if (trace_points.getPtr(ex.ExceptionAddress)) |prev| {
+                            std.log.info("bp match at {x} {}", .{ ex.ExceptionAddress, prev.* });
+                            if (winapi.WriteProcessMemory(proc, ex.ExceptionAddress, @ptrCast([*]const u8, prev), 1, null) == 0) {
+                                logWindowsErr("WriteProcessMemory");
+                                return error.WindowsFailure;
+                            }
+
+                            if (winapi.FlushInstructionCache(proc, ex.ExceptionAddress, 1) == 0) {
+                                logWindowsErr("FlushInstructionCache");
+                                return error.WindowsFailure;
+                            }
+
+                            // TODO: move EIP back
+
+                            prev.* = 0;
+                        }
+                    },
+                    else => {
+                        std.log.info("exception {}", .{ev.u.Exception});
+                    },
+                }
             },
 
             else => {

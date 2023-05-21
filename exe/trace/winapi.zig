@@ -46,12 +46,28 @@ pub const OUTPUT_DEBUG_STRING_INFO = extern struct {
     nDebugStringLength: u16,
 };
 
+pub const EXCEPTION_CODE = enum(DWORD) { EXCEPTION_BREAKPOINT = 0x80000003, _ };
+
+pub const EXCEPTION_RECORD = extern struct {
+    ExceptionCode: EXCEPTION_CODE,
+    ExceptionFlags: u32,
+    ExceptionRecord: u32,
+    ExceptionAddress: u32,
+    NumberParameters: u32,
+    ExceptionInformation: [15]u32,
+};
+
+pub const EXCEPTION_DEBUG_INFO = extern struct {
+    ExceptionRecord: EXCEPTION_RECORD,
+    dwFirstChance: u32,
+};
+
 pub const DEBUG_EVENT = extern struct {
     dwDebugEventCode: DEBUG_EVENT_CODE,
     dwProcessId: DWORD,
     dwThreadId: DWORD,
     u: extern union {
-        // EXCEPTION_DEBUG_INFO      Exception;
+        Exception: EXCEPTION_DEBUG_INFO,
         // CREATE_THREAD_DEBUG_INFO  CreateThread;
         CreateProcessInfo: CREATE_PROCESS_DEBUG_INFO,
         // CREATE_PROCESS_DEBUG_INFO CreateProcessInfo;
@@ -138,7 +154,13 @@ pub extern "kernel32" fn ReadProcessMemory(
 pub extern "kernel32" fn WriteProcessMemory(
     hProcess: HANDLE,
     lpBaseAddress: u32,
-    lpBuffer: [*]u8,
+    lpBuffer: [*]const u8,
     nSize: u32,
     lpNumberOfBytesWritten: ?*u32,
+) callconv(windows.WINAPI) BOOL;
+
+pub extern "kernel32" fn FlushInstructionCache(
+    hProcess: HANDLE,
+    lpBaseAddress: u32,
+    dwSize: u32,
 ) callconv(windows.WINAPI) BOOL;
