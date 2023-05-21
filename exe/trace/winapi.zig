@@ -134,3 +134,11 @@ pub extern "kernel32" fn ReadProcessMemory(
     nSize: u32,
     lpNumberOfBytesRead: ?*u32,
 ) callconv(windows.WINAPI) BOOL;
+
+pub extern "kernel32" fn WriteProcessMemory(
+    hProcess: HANDLE,
+    lpBaseAddress: u32,
+    lpBuffer: [*]u8,
+    nSize: u32,
+    lpNumberOfBytesWritten: ?*u32,
+) callconv(windows.WINAPI) BOOL;

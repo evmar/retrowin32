@@ -2,6 +2,7 @@ const std = @import("std");
 
 const windows = std.os.windows;
 const winapi = @import("./winapi.zig");
+const HANDLE = windows.HANDLE;
 
 // Declaring this struct affects the default log level(!)
 pub const std_options = struct {
@@ -14,39 +15,75 @@ fn logWindowsErr(call: []const u8) void {
     std.log.err("{s}: {}", .{ call, code });
 }
 
+fn startProcess(cmd: []const u8) !HANDLE {
+    std.log.info("starting {s}", .{cmd});
+    var cmdbuf: [128:0]u8 = undefined;
+    const cmdz = try std.fmt.bufPrintZ(&cmdbuf, "{s}", .{cmd});
+    var startup = std.mem.zeroes(winapi.STARTUPINFOA);
+    startup.cb = @sizeOf(winapi.STARTUPINFOA);
+    var proc = std.mem.zeroes(winapi.PROCESS_INFORMATION);
+    if (winapi.CreateProcessA(null, cmdz.ptr, null, null, @boolToInt(false), winapi.PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, null, null, &startup, &proc) == 0) {
+        logWindowsErr("CreateProcessA");
+        return error.WindowsFailure;
+    }
+    return proc.hProcess;
+}
+
+fn installBreakPoint(proc: HANDLE, addr: u32) !u8 {
+    std.log.info("installing breakpoint at {x}", .{addr});
+
+    var byte: u8 = undefined;
+    var buf: *[1]u8 = &byte;
+    if (winapi.ReadProcessMemory(proc, addr, buf, 1, null) == 0) {
+        logWindowsErr("ReadProcessMemory");
+        return error.WindowsFailure;
+    }
+    const prev = byte;
+
+    buf[0] = 0xcc;
+    if (winapi.WriteProcessMemory(proc, addr, buf, 1, null) == 0) {
+        logWindowsErr("WriteProcessMemory");
+        return error.WindowsFailure;
+    }
+    return prev;
+}
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var trace_points = std.AutoHashMap(u32, void).init(allocator);
+    var trace_points = std.AutoHashMap(u32, u8).init(allocator);
 
     // parse command line
+    // note: running "trace bass" from my Windows machine causes this to return the string
+    // "trace  bass" (note double space).  This appears to be dependent on Windows version!
     const cmdlinep = windows.kernel32.GetCommandLineA();
     const cmdline = cmdlinep[0..std.mem.len(cmdlinep)];
-    var args = std.mem.split(u8, cmdline, " ");
-    const exename = args.first();
+    var args = std.mem.tokenize(u8, cmdline, " ");
+    // first arg is the exe itself
+    _ = args.next();
+
+    const cmd = args.next() orelse {
+        std.log.err("specify command to run", .{});
+        return;
+    };
+
     while (args.next()) |arg| {
+        std.log.info("parsing {s}", .{arg});
         const addr = std.fmt.parseInt(u32, arg, 16) catch |err| {
-            std.log.err("parsing '{s}'': {}", .{ arg, err });
+            std.log.err("parsing '{s}': {}", .{ arg, err });
             return;
         };
-        try trace_points.put(addr, {});
+        try trace_points.put(addr, 0);
     }
 
-    var iter = trace_points.keyIterator();
+    const proc = try startProcess(cmd);
+
+    var iter = trace_points.iterator();
     while (iter.next()) |entry| {
-        std.log.warn("tp {s}", .{entry});
-    }
-
-    // invoke subprocess
-    var exebuf: [128:0]u8 = undefined;
-    const exe = try std.fmt.bufPrintZ(&exebuf, "{s}", .{exename});
-    var startup = std.mem.zeroes(winapi.STARTUPINFOA);
-    startup.cb = @sizeOf(winapi.STARTUPINFOA);
-    var proc = std.mem.zeroes(winapi.PROCESS_INFORMATION);
-    if (winapi.CreateProcessA(null, exe.ptr, null, null, @boolToInt(false), winapi.PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS, null, null, &startup, &proc) == 0) {
-        logWindowsErr("CreateProcessA");
+        const addr = entry.key_ptr.*;
+        entry.value_ptr.* = try installBreakPoint(proc, addr);
     }
 
     while (true) {
@@ -59,15 +96,14 @@ pub fn main() !void {
         switch (ev.dwDebugEventCode) {
             .CREATE_PROCESS_DEBUG_EVENT => {},
             .OUTPUT_DEBUG_STRING_EVENT => {
-                std.log.info("debug {}\n", .{ev.u.DebugString});
                 var buf: [1 << 10]u8 = undefined;
                 const len = @min(buf.len, ev.u.DebugString.nDebugStringLength);
                 var n: u32 = 0;
-                if (winapi.ReadProcessMemory(proc.hProcess, ev.u.DebugString.lpDebugStringData, &buf, len, &n) == 0) {
+                if (winapi.ReadProcessMemory(proc, ev.u.DebugString.lpDebugStringData, &buf, len, &n) == 0) {
                     logWindowsErr("ReadProcessMemory");
                 }
                 const msg = std.mem.trimRight(u8, buf[0..n], "\r\n\x00");
-                std.log.info("{s}\n", .{msg});
+                std.log.info("{s}", .{msg});
             },
             .LOAD_DLL_DEBUG_EVENT => {
                 // Ignore.
@@ -84,7 +120,7 @@ pub fn main() !void {
             },
 
             else => {
-                std.log.info("event {}\n", .{ev.dwDebugEventCode});
+                std.log.info("event {}", .{ev.dwDebugEventCode});
             },
         }
 
