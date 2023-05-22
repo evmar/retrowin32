@@ -11,6 +11,8 @@ pub const std_options = struct {
 
 const TracePointsMap = std.AutoHashMap(u32, u8);
 
+var stdout: @TypeOf(std.io.getStdOut().writer()) = undefined;
+
 fn logWindowsErr(call: []const u8) void {
     // Logging GetLastError as an enum adds 100kb(!) to the binary size.
     const code = @enumToInt(windows.kernel32.GetLastError());
@@ -37,8 +39,6 @@ fn startProcess(cmd: []const u8) !ProcInfo {
 }
 
 fn installBreakPoint(proc: HANDLE, addr: u32) !u8 {
-    std.log.info("installing breakpoint at {x}", .{addr});
-
     var prev: u8 = undefined;
     if (winapi.ReadProcessMemory(proc, addr, @ptrCast([*]u8, &prev), 1, null) == 0) {
         logWindowsErr("ReadProcessMemory");
@@ -113,30 +113,34 @@ fn processBreakpoint(proc: HANDLE, thread: HANDLE, addr: u32, trace_points: Trac
         return error.WindowsFailure;
     }
 
-    // reset EIP
     var context: winapi.CONTEXT = std.mem.zeroes(winapi.CONTEXT);
     context.ContextFlags = winapi.CONTEXT_FULL;
     if (winapi.GetThreadContext(thread, &context) == 0) {
         logWindowsErr("GetThreadContext");
         return error.WindowsFailure;
     }
-    context.Eip -= 1;
+
+    try std.fmt.format(stdout, "{x}: eax:{x} ebx:{x} ecx:{x} edx:{x} ebp:{x} esp:{x} esi:{x} edi:{x}\n", .{
+        addr,
+        context.Eax,
+        context.Ebx,
+        context.Ecx,
+        context.Edx,
+        context.Ebp,
+        context.Esp,
+        context.Esi,
+        context.Edi,
+    });
+
+    context.Eip -= 1; // retry instruction
+    context.EFlags |= 0x100; // trap flag for single-step
     if (winapi.SetThreadContext(thread, &context) == 0) {
         logWindowsErr("GetThreadContext");
         return error.WindowsFailure;
     }
-
-    std.log.info("{x}: eax:{x} ebx:{x}", .{ addr, context.Eax, context.Ebx });
 }
 
-pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-
-    var trace_points = TracePointsMap.init(allocator);
-
-    // parse command line
+fn parseArgs(trace_points: *TracePointsMap) ![]const u8 {
     // note: running "trace bass" from my Windows machine causes this to return the string
     // "trace  bass" (note double space).  This appears to be dependent on Windows version!
     const cmdlinep = windows.kernel32.GetCommandLineA();
@@ -147,26 +151,36 @@ pub fn main() !void {
 
     const cmd = args.next() orelse {
         std.log.err("specify command to run", .{});
-        return;
+        return error.Args;
     };
 
     while (args.next()) |arg| {
         const addr = std.fmt.parseInt(u32, arg, 16) catch |err| {
             std.log.err("parsing '{s}': {}", .{ arg, err });
-            return;
+            return error.Args;
         };
         try trace_points.put(addr, 0);
     }
+    return cmd;
+}
 
+pub fn main() !void {
+    stdout = std.io.getStdOut().writer();
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var trace_points = TracePointsMap.init(allocator);
+    var installed_trace_points = false;
+    var last_breakpoint: u32 = 0;
+    const cmd = try parseArgs(&trace_points);
     const proc = try startProcess(cmd);
-
-    var installedTracePoints = false;
 
     while (true) {
         var ev = std.mem.zeroes(winapi.DEBUG_EVENT);
-        ev.dwProcessId = 1;
         if (winapi.WaitForDebugEvent(&ev, windows.INFINITE) == 0) {
             logWindowsErr("WaitForDebugEvent");
+            return error.Win32Error;
         }
 
         switch (ev.dwDebugEventCode) {
@@ -195,15 +209,31 @@ pub fn main() !void {
                 const ex = &ev.u.Exception.ExceptionRecord;
                 switch (ex.ExceptionCode) {
                     .EXCEPTION_BREAKPOINT => {
-                        if (!installedTracePoints) {
+                        if (!installed_trace_points) {
                             var iter = trace_points.iterator();
                             while (iter.next()) |entry| {
                                 const addr = entry.key_ptr.*;
+                                std.log.info("installing breakpoint at {x}", .{addr});
                                 entry.value_ptr.* = try installBreakPoint(proc.proc, addr);
                             }
-                            installedTracePoints = true;
+                            installed_trace_points = true;
                         }
                         try processBreakpoint(proc.proc, proc.thread, ex.ExceptionAddress, trace_points);
+                        last_breakpoint = ex.ExceptionAddress;
+                    },
+                    .EXCEPTION_SINGLE_STEP => {
+                        // reinstall breakpoint
+                        if (last_breakpoint == 0) {
+                            std.debug.panic("unexpected single step without last breakpoint", .{});
+                        }
+                        var prev = trace_points.getPtr(last_breakpoint) orelse {
+                            std.debug.panic("unexpected single step {x}", .{last_breakpoint});
+                        };
+                        if (prev.* != 0) {
+                            std.debug.panic("double-install breakpoint? {x}", .{last_breakpoint});
+                        }
+                        prev.* = try installBreakPoint(proc.proc, last_breakpoint);
+                        last_breakpoint = 0;
                     },
                     else => {
                         std.log.info("exception {}", .{ev.u.Exception});

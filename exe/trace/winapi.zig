@@ -46,7 +46,11 @@ pub const OUTPUT_DEBUG_STRING_INFO = extern struct {
     nDebugStringLength: u16,
 };
 
-pub const EXCEPTION_CODE = enum(DWORD) { EXCEPTION_BREAKPOINT = 0x80000003, _ };
+pub const EXCEPTION_CODE = enum(DWORD) {
+    EXCEPTION_BREAKPOINT = 0x80000003,
+    EXCEPTION_SINGLE_STEP = 0x80000004,
+    _,
+};
 
 pub const EXCEPTION_RECORD = extern struct {
     ExceptionCode: EXCEPTION_CODE,
