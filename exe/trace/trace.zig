@@ -9,13 +9,20 @@ pub const std_options = struct {
     pub const log_level = .info;
 };
 
+const TracePointsMap = std.AutoHashMap(u32, u8);
+
 fn logWindowsErr(call: []const u8) void {
     // Logging GetLastError as an enum adds 100kb(!) to the binary size.
     const code = @enumToInt(windows.kernel32.GetLastError());
     std.log.err("{s}: {}", .{ call, code });
 }
 
-fn startProcess(cmd: []const u8) !HANDLE {
+const ProcInfo = struct {
+    proc: HANDLE,
+    thread: HANDLE,
+};
+
+fn startProcess(cmd: []const u8) !ProcInfo {
     std.log.info("starting {s}", .{cmd});
     var cmdbuf: [128:0]u8 = undefined;
     const cmdz = try std.fmt.bufPrintZ(&cmdbuf, "{s}", .{cmd});
@@ -26,7 +33,7 @@ fn startProcess(cmd: []const u8) !HANDLE {
         logWindowsErr("CreateProcessA");
         return error.WindowsFailure;
     }
-    return proc.hProcess;
+    return ProcInfo{ .proc = proc.hProcess, .thread = proc.hThread };
 }
 
 fn installBreakPoint(proc: HANDLE, addr: u32) !u8 {
@@ -94,12 +101,40 @@ fn processDllLoad(proc: HANDLE, load: *winapi.LOAD_DLL_DEBUG_INFO) !void {
     std.log.info("load dll '{s}'", .{name});
 }
 
+fn processBreakpoint(proc: HANDLE, thread: HANDLE, addr: u32, trace_points: TracePointsMap) !void {
+    const prev = trace_points.getPtr(addr) orelse return;
+    if (winapi.WriteProcessMemory(proc, addr, @ptrCast([*]const u8, prev), 1, null) == 0) {
+        logWindowsErr("WriteProcessMemory");
+        return error.WindowsFailure;
+    }
+    prev.* = 0;
+    if (winapi.FlushInstructionCache(proc, addr, 1) == 0) {
+        logWindowsErr("FlushInstructionCache");
+        return error.WindowsFailure;
+    }
+
+    // reset EIP
+    var context: winapi.CONTEXT = std.mem.zeroes(winapi.CONTEXT);
+    context.ContextFlags = winapi.CONTEXT_FULL;
+    if (winapi.GetThreadContext(thread, &context) == 0) {
+        logWindowsErr("GetThreadContext");
+        return error.WindowsFailure;
+    }
+    context.Eip -= 1;
+    if (winapi.SetThreadContext(thread, &context) == 0) {
+        logWindowsErr("GetThreadContext");
+        return error.WindowsFailure;
+    }
+
+    std.log.info("{x}: eax:{x} ebx:{x}", .{ addr, context.Eax, context.Ebx });
+}
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var trace_points = std.AutoHashMap(u32, u8).init(allocator);
+    var trace_points = TracePointsMap.init(allocator);
 
     // parse command line
     // note: running "trace bass" from my Windows machine causes this to return the string
@@ -140,14 +175,14 @@ pub fn main() !void {
                 var buf: [1 << 10]u8 = undefined;
                 const len = @min(buf.len, ev.u.DebugString.nDebugStringLength);
                 var n: u32 = 0;
-                if (winapi.ReadProcessMemory(proc, ev.u.DebugString.lpDebugStringData, &buf, len, &n) == 0) {
+                if (winapi.ReadProcessMemory(proc.proc, ev.u.DebugString.lpDebugStringData, &buf, len, &n) == 0) {
                     logWindowsErr("ReadProcessMemory");
                 }
                 const msg = std.mem.trimRight(u8, buf[0..n], "\r\n\x00");
                 std.log.info("{s}", .{msg});
             },
             .LOAD_DLL_DEBUG_EVENT => {
-                try processDllLoad(proc, &ev.u.LoadDll);
+                try processDllLoad(proc.proc, &ev.u.LoadDll);
             },
             .UNLOAD_DLL_DEBUG_EVENT => {},
             .CREATE_THREAD_DEBUG_EVENT => {},
@@ -160,33 +195,15 @@ pub fn main() !void {
                 const ex = &ev.u.Exception.ExceptionRecord;
                 switch (ex.ExceptionCode) {
                     .EXCEPTION_BREAKPOINT => {
-                        std.log.info("bp at {x}", .{ex.ExceptionAddress});
-
                         if (!installedTracePoints) {
                             var iter = trace_points.iterator();
                             while (iter.next()) |entry| {
                                 const addr = entry.key_ptr.*;
-                                entry.value_ptr.* = try installBreakPoint(proc, addr);
+                                entry.value_ptr.* = try installBreakPoint(proc.proc, addr);
                             }
                             installedTracePoints = true;
                         }
-
-                        if (trace_points.getPtr(ex.ExceptionAddress)) |prev| {
-                            std.log.info("bp match at {x} {}", .{ ex.ExceptionAddress, prev.* });
-                            if (winapi.WriteProcessMemory(proc, ex.ExceptionAddress, @ptrCast([*]const u8, prev), 1, null) == 0) {
-                                logWindowsErr("WriteProcessMemory");
-                                return error.WindowsFailure;
-                            }
-
-                            if (winapi.FlushInstructionCache(proc, ex.ExceptionAddress, 1) == 0) {
-                                logWindowsErr("FlushInstructionCache");
-                                return error.WindowsFailure;
-                            }
-
-                            // TODO: move EIP back
-
-                            prev.* = 0;
-                        }
+                        try processBreakpoint(proc.proc, proc.thread, ex.ExceptionAddress, trace_points);
                     },
                     else => {
                         std.log.info("exception {}", .{ev.u.Exception});
