@@ -8,6 +8,8 @@ Take a win32 `.exe` file and run it in a web browser or a Mac.
 
 Doesn't really work for much yet, but I'm still tinkering!
 
+- 2023/05:
+  [new blog post](https://neugierig.org/software/blog/2023/05/retrowin32-async-dll-tracing-zig.html).
 - 2023/04: "monolife" demo now can sorta render first scene.
 - 2023/02: can now run natively via SDL.
   [See blog post](https://neugierig.org/software/blog/2023/02/retrowin32-progress.html).
@@ -48,12 +50,6 @@ See a
 [comparison against other Windows emulator approaches (WINE, qemu, v86)](doc/comparison.md)
 for how this is similar but different.
 
-# Code layout
+## Running it
 
-- `x86/` -- the x86 emulator
-- `win32/` -- the win32 emulator
-  - `win32/src/winapi/` -- the Windows API implementation
-- `cli/` -- a command-line emulator runner
-- `web/` -- a webapp that runs the emulator in a browser
-  - `web/glue/` -- wasm glue for the `win32/` API
-- `exe/` -- some sample Windows executables
+See [HACKING.md](HACKING.md) to get started on the code.
