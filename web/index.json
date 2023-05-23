@@ -17,7 +17,7 @@
   },
   {
     "desc": "bass.dll debug",
-    "params": "dir=exe/demo/monolife/&exe=bass.dll&relocate"
+    "params": "dir=exe/bass/&exe=bass.exe&file=bass.dll"
   },
   {
     "desc": "win32 tracer",
