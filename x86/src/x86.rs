@@ -6,7 +6,7 @@ use crate::{
     memory::Memory,
     ops,
     registers::{Flags, Registers},
-    Mem, StepError, StepResult,
+    Mem, StepError, StepResult, VecMem,
 };
 use std::collections::{BTreeMap, HashMap};
 
@@ -120,22 +120,24 @@ impl BasicBlock {
 }
 
 /// Cache of decoded instructions.
-pub struct InstrCache {
-    pub blocks: BTreeMap<u32, BasicBlock>,
+struct InstrCache {
+    blocks: BTreeMap<u32, BasicBlock>,
 
     /// Places where we've patched out the instruction with an int3.
     /// The map values are the bytes from before the breakpoint.
     breakpoints: HashMap<u32, u8>,
 }
 
-impl InstrCache {
-    pub fn new() -> Self {
+impl Default for InstrCache {
+    fn default() -> Self {
         InstrCache {
             blocks: BTreeMap::new(),
             breakpoints: HashMap::new(),
         }
     }
+}
 
+impl InstrCache {
     /// Remove any BasicBlock that covers ip.
     /// Returns the ip after the end of the block, if any.
     fn kill_block(&mut self, ip: u32) -> Option<u32> {
@@ -232,11 +234,61 @@ impl InstrCache {
             }
         };
     }
+}
 
-    /// Undo the effects of make_single_step().
-    pub fn clear_single_step(&mut self, ip: u32) {
-        if let Some(end) = self.kill_block(ip) {
-            self.kill_block(end);
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct X86 {
+    pub cpu: CPU,
+    pub mem: VecMem,
+
+    /// Total number of instructions executed.
+    pub instr_count: usize,
+
+    #[serde(skip)]
+    icache: InstrCache,
+}
+
+impl X86 {
+    pub fn new() -> Self {
+        X86 {
+            cpu: CPU::new(),
+            mem: VecMem::default(),
+            instr_count: 0,
+            icache: InstrCache::default(),
         }
+    }
+
+    pub fn add_breakpoint(&mut self, addr: u32) {
+        self.icache.add_breakpoint(&mut self.mem, addr)
+    }
+
+    pub fn clear_breakpoint(&mut self, addr: u32) {
+        self.icache.clear_breakpoint(&mut self.mem, addr)
+    }
+
+    // Execute one basic block.  Returns Ok(false) if we stopped early.
+    pub fn execute_block(&mut self) -> Result<bool, String> {
+        match self.icache.execute_block(&mut self.cpu, &mut self.mem) {
+            Err(StepError::Interrupt) => Ok(false),
+            Err(StepError::Error(err)) => Err(err),
+            Ok(count) => {
+                self.instr_count += count;
+                Ok(true)
+            }
+        }
+    }
+
+    pub fn single_step(&mut self) -> Result<(), String> {
+        let ip = self.cpu.regs.eip;
+        self.icache.make_single_step(&mut self.mem, ip);
+        self.execute_block()?;
+        // TODO: clear_single_step doesn't help here, because ip now points into the middle
+        // of some block and the next time we execute we'll just recreate the partial block anyway.
+        // self.icache.clear_single_step(ip);
+        Ok(())
+    }
+
+    pub fn load_snapshot(&mut self, snap: X86) {
+        *self = snap;
     }
 }

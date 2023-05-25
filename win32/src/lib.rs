@@ -7,7 +7,7 @@ pub mod trace;
 mod winapi;
 
 pub use host::*;
-pub use machine::Runner;
+pub use machine::Machine;
 pub use x86::debug::disassemble;
 
 #[macro_use]

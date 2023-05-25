@@ -48,6 +48,6 @@ pub fn read_exports<'a>(
     base: u32,
     exports: &'a IMAGE_DATA_DIRECTORY,
 ) -> &'a IMAGE_EXPORT_DIRECTORY {
-    let image = &machine.mem.slice(base..);
+    let image = &machine.x86.mem.slice(base..);
     exports.as_mem(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
 }

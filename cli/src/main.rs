@@ -19,8 +19,8 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
-fn dump_asm(runner: &win32::Runner) {
-    let instrs = win32::disassemble(&runner.machine.mem, runner.machine.x86.regs.eip);
+fn dump_asm(machine: &win32::Machine) {
+    let instrs = win32::disassemble(&machine.x86.mem, machine.x86.cpu.regs.eip);
 
     for instr in &instrs[..std::cmp::min(instrs.len(), 5)] {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
@@ -152,13 +152,13 @@ fn main() -> anyhow::Result<()> {
     let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
-    let mut runner = win32::Runner::new(Box::new(host.clone()));
-    runner.load_exe(&buf, cmdline.clone(), false)?;
+    let mut machine = win32::Machine::new(Box::new(host.clone()));
+    machine.load_exe(&buf, cmdline.clone(), false)?;
 
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {
         trace_points.insert(tp);
-        runner.add_breakpoint(tp);
+        machine.x86.add_breakpoint(tp);
     }
 
     let start = std::time::Instant::now();
@@ -168,9 +168,9 @@ fn main() -> anyhow::Result<()> {
                 break;
             }
         }
-        match runner.execute_block() {
+        match machine.execute_block() {
             Err(err) => {
-                dump_asm(&runner);
+                dump_asm(&machine);
                 log::error!("{:?}", err);
                 break;
             }
@@ -179,16 +179,16 @@ fn main() -> anyhow::Result<()> {
                     break;
                 }
 
-                let ip = runner.machine.x86.regs.eip;
+                let ip = machine.x86.cpu.regs.eip;
                 if !done && trace_points.contains(&ip) {
-                    let regs = &runner.machine.x86.regs;
+                    let regs = &machine.x86.cpu.regs;
                     eprintln!(
                         "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
                         regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
                     );
-                    runner.clear_breakpoint(ip);
-                    runner.single_step().unwrap();
-                    runner.add_breakpoint(ip);
+                    machine.x86.clear_breakpoint(ip);
+                    machine.single_step().unwrap();
+                    machine.x86.add_breakpoint(ip);
                 }
             }
         }
@@ -197,9 +197,9 @@ fn main() -> anyhow::Result<()> {
     if millis > 0 {
         eprintln!(
             "{} instrs in {} ms: {}m/s",
-            runner.instr_count,
+            machine.x86.instr_count,
             millis,
-            (runner.instr_count / millis) / 1000
+            (machine.x86.instr_count / millis) / 1000
         );
     }
 

@@ -13,92 +13,92 @@ fn err_from_anyhow(err: anyhow::Error) -> JsError {
 
 #[wasm_bindgen]
 pub struct Emulator {
-    runner: win32::Runner,
+    machine: win32::Machine,
 }
 
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
     pub fn load_exe(&mut self, name: String, buf: &[u8], relocate: bool) -> JsResult<()> {
-        self.runner
+        self.machine
             .load_exe(buf, name, relocate)
             .map_err(err_from_anyhow)
     }
 
     #[wasm_bindgen]
     pub fn labels(&self) -> JsResult<String> {
-        let str = serde_json::to_string(&self.runner.machine.labels)?;
+        let str = serde_json::to_string(&self.machine.labels)?;
         Ok(str)
     }
 
     pub fn memory(&self) -> js_sys::DataView {
         let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
         let buf = js_sys::ArrayBuffer::from(mem.buffer());
-        let ofs = self.runner.machine.mem.as_slice_todo().as_ptr() as usize;
+        let ofs = self.machine.x86.mem.as_slice_todo().as_ptr() as usize;
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
     #[wasm_bindgen(getter)]
     pub fn esp(&self) -> u32 {
-        self.runner.machine.x86.regs.esp
+        self.machine.x86.cpu.regs.esp
     }
 
     #[wasm_bindgen(getter)]
     pub fn eip(&self) -> u32 {
-        self.runner.machine.x86.regs.eip
+        self.machine.x86.cpu.regs.eip
     }
 
     pub fn regs(&self) -> debugger::Registers {
-        debugger::Registers::from_x86(&self.runner.machine.x86)
+        debugger::Registers::from_x86(&self.machine.x86.cpu)
     }
 
     #[wasm_bindgen(getter)]
     pub fn instr_count(&self) -> usize {
-        self.runner.instr_count
+        self.machine.x86.instr_count
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
-        serde_json::to_string(&win32::disassemble(&self.runner.machine.mem, addr)).unwrap_throw()
+        serde_json::to_string(&win32::disassemble(&self.machine.x86.mem, addr)).unwrap_throw()
     }
 
     pub fn single_step(&mut self) -> JsResult<()> {
-        self.runner.single_step().map_err(err_from_anyhow)?;
+        self.machine.single_step().map_err(err_from_anyhow)?;
         Ok(())
     }
 
     /// Execute multiple basic blocks until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn execute_many(&mut self, count: usize) -> JsResult<usize> {
-        let start = self.runner.instr_count;
-        while self.runner.instr_count < start + count {
-            if !self.runner.execute_block().map_err(err_from_anyhow)? {
+        let start = self.machine.x86.instr_count;
+        while self.machine.x86.instr_count < start + count {
+            if !self.machine.execute_block().map_err(err_from_anyhow)? {
                 break;
             }
         }
-        Ok(self.runner.instr_count - start)
+        Ok(self.machine.x86.instr_count - start)
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
-        self.runner.add_breakpoint(addr)
+        self.machine.x86.add_breakpoint(addr)
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
-        self.runner.clear_breakpoint(addr)
+        self.machine.x86.clear_breakpoint(addr)
     }
 
     pub fn mappings_json(&self) -> String {
-        serde_json::to_string(&self.runner.machine.state.kernel32.mappings.vec()).unwrap_throw()
+        serde_json::to_string(&self.machine.state.kernel32.mappings.vec()).unwrap_throw()
     }
 
     pub fn poke(&mut self, addr: u32, value: u8) {
-        *self.runner.machine.mem.view_mut::<u8>(addr) = value;
+        *self.machine.x86.mem.view_mut::<u8>(addr) = value;
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
-        bincode::serialize(&self.runner.machine.x86).unwrap().into()
+        bincode::serialize(&self.machine.x86).unwrap().into()
     }
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         let snap = bincode::deserialize(bytes).unwrap();
-        self.runner.load_snapshot(snap);
+        self.machine.x86.load_snapshot(snap);
     }
 }
 
@@ -106,6 +106,6 @@ impl Emulator {
 pub fn new_emulator(host: JsHost) -> JsResult<Emulator> {
     log::init(log::JsLogger::unchecked_from_js(host.clone()))?;
     win32::trace::set_scheme("-kernel32");
-    let runner = win32::Runner::new(Box::new(host));
-    Ok(Emulator { runner })
+    let machine = win32::Machine::new(Box::new(host));
+    Ok(Emulator { machine })
 }

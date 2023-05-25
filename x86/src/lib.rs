@@ -5,7 +5,7 @@ mod registers;
 mod x86;
 
 pub use memory::{Mem, Memory, Pod, VecMem};
-pub use x86::{InstrCache, CPU, NULL_POINTER_REGION_SIZE};
+pub use x86::{CPU, NULL_POINTER_REGION_SIZE, X86};
 
 #[derive(Debug)]
 pub enum StepError {

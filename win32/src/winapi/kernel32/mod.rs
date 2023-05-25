@@ -183,14 +183,14 @@ impl State {
 }
 
 fn teb(machine: &Machine) -> &TEB {
-    machine.mem.view::<TEB>(machine.state.kernel32.teb)
+    machine.x86.mem.view::<TEB>(machine.state.kernel32.teb)
 }
 fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    machine.mem.view_mut::<TEB>(machine.state.kernel32.teb)
+    machine.x86.mem.view_mut::<TEB>(machine.state.kernel32.teb)
 }
 fn peb_mut(machine: &mut Machine) -> &mut PEB {
     let peb_addr = teb(machine).Peb;
-    machine.mem.view_mut::<PEB>(peb_addr)
+    machine.x86.mem.view_mut::<PEB>(peb_addr)
 }
 
 #[repr(C)]
@@ -313,7 +313,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     machine.host.exit(uExitCode);
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
-    machine.x86.stop();
+    machine.x86.cpu.stop();
     0
 }
 
@@ -513,8 +513,11 @@ pub fn QueryPerformanceCounter(
 #[win32_derive::dllexport]
 pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
     // 64-bit write
-    machine.mem.write_u32(lpFrequency, QUERY_PERFORMANCE_FREQ);
-    machine.mem.write_u32(lpFrequency + 4, 0);
+    machine
+        .x86
+        .mem
+        .write_u32(lpFrequency, QUERY_PERFORMANCE_FREQ);
+    machine.x86.mem.write_u32(lpFrequency + 4, 0);
     true
 }
 
@@ -576,7 +579,7 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
     let heap = machine
         .state
         .kernel32
-        .new_heap(&mut machine.mem, size, "process heap".into());
+        .new_heap(&mut machine.x86.mem, size, "process heap".into());
     peb_mut(machine).ProcessHeap = heap;
     heap
 }
@@ -670,9 +673,10 @@ pub fn MultiByteToWideChar(
 
     let input = match cbMultiByte {
         0 => return 0, // TODO: invalid param
-        -1 => machine.mem.slice(lpMultiByteStr..).read_strz_with_nul(),
+        -1 => machine.x86.mem.slice(lpMultiByteStr..).read_strz_with_nul(),
         len => std::str::from_utf8(
             &machine
+                .x86
                 .mem
                 .slice(lpMultiByteStr..)
                 .slice(..len as u32)
