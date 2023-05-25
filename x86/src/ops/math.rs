@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::{registers::Flags, x86::X86, Mem, StepResult};
+use crate::{registers::Flags, x86::CPU, Mem, StepResult};
 
 use super::helpers::*;
 
@@ -49,51 +49,51 @@ pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn and_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn and_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn and_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_rm32_r32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn and_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get32(instr.op1_register());
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_r32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn and_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_rm16_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn and_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to16() as u16;
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_rm16_imm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn and_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
 
-pub fn and_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn and_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = and(*x, y, flags);
     Ok(())
 }
@@ -105,51 +105,51 @@ fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn or_rm32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn or_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn or_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn or_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_rm16_imm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn or_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_rm8_r8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn or_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn or_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
 
-pub fn or_r8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn or_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = or(*x, y, flags);
     Ok(())
 }
@@ -178,30 +178,30 @@ fn shl<I: Int + num_traits::WrappingShl>(x: I, mut y: u8, flags: &mut Flags) -> 
     val
 }
 
-pub fn shl_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shl_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = shl(*x, y, flags);
     Ok(())
 }
 
-pub fn shl_rm32_cl(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.ecx as u8;
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn shl_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.ecx as u8;
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = shl(*x, y, flags);
     Ok(())
 }
 
-pub fn shl_rm8_cl(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.ecx as u8;
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn shl_rm8_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.ecx as u8;
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = shl(*x, y, flags);
     Ok(())
 }
 
-pub fn shl_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shl_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = shl(*x, y, flags);
     Ok(())
 }
@@ -221,47 +221,47 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     val
 }
 
-pub fn shr_rm32_cl(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.ecx as u8;
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn shr_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.ecx as u8;
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = shr(*x, y, flags);
     Ok(())
 }
 
-pub fn shr_rm32_1(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn shr_rm32_1(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = shr(*x, 1, flags);
     Ok(())
 }
 
-pub fn shr_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shr_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = shr(*x, y, flags);
     Ok(())
 }
 
-pub fn shr_rm16_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shr_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = shr(*x, y, flags);
     Ok(())
 }
 
-pub fn shr_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shr_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = shr(*x, y, flags);
     Ok(())
 }
 
-pub fn shrd_rm32_r32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let count = instr.immediate8();
     if count == 0 {
         return Ok(());
     }
-    let y = op1_rm32(x86, mem, instr);
-    let (x, _flags) = rm32(x86, mem, instr);
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, _flags) = rm32(cpu, mem, instr);
     let src = ((y as u64) << 32) | (*x as u64);
     *x = (src >> count) as u32;
     // TODO: flags.
@@ -282,23 +282,23 @@ fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn sar_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn sar_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sar(*x, y, flags);
     Ok(())
 }
 
-pub fn sar_rm32_cl(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.ecx as u8 as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn sar_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.ecx as u8 as u32;
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sar(*x, y, flags);
     Ok(())
 }
 
-pub fn sar_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn sar_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8() as u8;
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sar(*x, y, flags);
     Ok(())
 }
@@ -317,16 +317,16 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     result
 }
 
-pub fn rol_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn rol_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = rol(*x, y, flags);
     Ok(())
 }
 
-pub fn rol_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn rol_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = rol(*x, y, flags);
     Ok(())
 }
@@ -345,23 +345,23 @@ fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     result
 }
 
-pub fn ror_rm32_cl(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.ecx as u8;
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn ror_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.ecx as u8;
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = ror(*x, y, flags);
     Ok(())
 }
 
-pub fn ror_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn ror_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = ror(*x, y, flags);
     Ok(())
 }
 
-pub fn ror_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn ror_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = ror(*x, y, flags);
     Ok(())
 }
@@ -376,51 +376,51 @@ fn xor<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn xor_rm32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn xor_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn xor_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn xor_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn xor_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_r16_rm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm16(x86, mem, instr);
-    let (x, flags) = rm16(x86, mem, instr);
+pub fn xor_r16_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm16(cpu, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_r8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn xor_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
 
-pub fn xor_rm8_r8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get8(instr.op1_register());
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn xor_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get8(instr.op1_register());
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = xor(*x, y, flags);
     Ok(())
 }
@@ -445,111 +445,111 @@ fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, z: I, flags
     result
 }
 
-pub fn add_r32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn add_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm32_r32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn add_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get32(instr.op1_register());
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm32_r32_2(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn add_rm32_r32_2(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get32(instr.op1_register());
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn add_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn add_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm16_imm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn add_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate16();
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm16_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn add_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to16() as u16;
-    let (x, flags) = rm16(x86, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_r16_rm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm16(x86, mem, instr);
-    let (x, flags) = rm16(x86, mem, instr);
+pub fn add_r16_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm16(cpu, mem, instr);
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm8_r8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get8(instr.op1_register());
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn add_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get8(instr.op1_register());
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn add_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn add_r8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn add_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = add(*x, y, flags);
     Ok(())
 }
 
-pub fn adc_rm32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let carry = x86.flags.contains(Flags::CF);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn adc_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let carry = cpu.flags.contains(Flags::CF);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = addc(*x, y, carry as u32, flags);
     Ok(())
 }
 
-pub fn adc_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn adc_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8() as u32;
-    let carry = x86.flags.contains(Flags::CF);
-    let (x, flags) = rm32(x86, mem, instr);
+    let carry = cpu.flags.contains(Flags::CF);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = addc(*x, y, carry as u32, flags);
     Ok(())
 }
 
-pub fn adc_rm8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let carry = x86.flags.contains(Flags::CF);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn adc_rm8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let carry = cpu.flags.contains(Flags::CF);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = addc(*x, y, carry as u8, flags);
     Ok(())
 }
 
-pub fn adc_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn adc_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let carry = x86.flags.contains(Flags::CF);
-    let (x, flags) = rm8(x86, mem, instr);
+    let carry = cpu.flags.contains(Flags::CF);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = addc(*x, y, carry as u8, flags);
     Ok(())
 }
@@ -589,105 +589,105 @@ pub(crate) fn sub<
     sbb(x, y, false, flags)
 }
 
-pub fn sub_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn sub_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sub_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn sub_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate32();
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sub_rm32_r32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn sub_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get32(instr.op1_register());
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sub_r32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn sub_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sub_rm8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn sub_rm8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sub_rm8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn sub_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sub(*x, y, flags);
     Ok(())
 }
 
-pub fn sbb_r32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.flags.contains(Flags::CF);
-    let y = op1_rm32(x86, mem, instr);
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn sbb_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let carry = cpu.flags.contains(Flags::CF);
+    let y = op1_rm32(cpu, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
-pub fn sbb_rm32_r32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.flags.contains(Flags::CF);
-    let y = x86.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn sbb_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let carry = cpu.flags.contains(Flags::CF);
+    let y = cpu.regs.get32(instr.op1_register());
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
-pub fn sbb_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.flags.contains(Flags::CF);
+pub fn sbb_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8to32() as u32;
-    let (x, flags) = rm32(x86, mem, instr);
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
-pub fn sbb_r8_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.flags.contains(Flags::CF);
-    let y = op1_rm8(x86, mem, instr);
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn sbb_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let carry = cpu.flags.contains(Flags::CF);
+    let y = op1_rm8(cpu, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
-pub fn sbb_r8_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let carry = x86.flags.contains(Flags::CF);
+pub fn sbb_r8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8();
-    let (x, flags) = rm8(x86, mem, instr);
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sbb(*x, y, carry, flags);
     Ok(())
 }
 
-pub fn mul_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = op0_rm32(x86, mem, instr);
-    let y = x86.regs.eax;
+pub fn mul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = op0_rm32(cpu, mem, instr);
+    let y = cpu.regs.eax;
     let res = (x as u64).wrapping_mul(y as u64);
     // TODO: flags.
-    x86.regs.edx = (res >> 32) as u32;
-    x86.regs.eax = res as u32;
+    cpu.regs.edx = (res >> 32) as u32;
+    cpu.regs.eax = res as u32;
     Ok(())
 }
 
-pub fn imul_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = op0_rm32(x86, mem, instr) as i32;
-    let y = x86.regs.eax as i32;
+pub fn imul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = op0_rm32(cpu, mem, instr) as i32;
+    let y = cpu.regs.eax as i32;
     let res = (x as i64).wrapping_mul(y as i64) as u64;
     // TODO: flags.
-    x86.regs.edx = (res >> 32) as u32;
-    x86.regs.eax = res as u32;
+    cpu.regs.edx = (res >> 32) as u32;
+    cpu.regs.eax = res as u32;
     Ok(())
 }
 
@@ -696,56 +696,56 @@ fn imul_trunc(x: i32, y: i32, _flags: &mut Flags) -> i32 {
     x.wrapping_mul(y)
 }
 
-pub fn imul_r32_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = x86.regs.get32(instr.op0_register()) as i32;
-    let y = op1_rm32(x86, mem, instr) as i32;
-    let value = imul_trunc(x, y, &mut x86.flags);
-    x86.regs.set32(instr.op0_register(), value as u32);
+pub fn imul_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = cpu.regs.get32(instr.op0_register()) as i32;
+    let y = op1_rm32(cpu, mem, instr) as i32;
+    let value = imul_trunc(x, y, &mut cpu.flags);
+    cpu.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
 
-pub fn imul_r32_rm32_imm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = op1_rm32(x86, mem, instr) as i32;
+pub fn imul_r32_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = op1_rm32(cpu, mem, instr) as i32;
     let y = instr.immediate32() as i32;
-    let value = imul_trunc(x, y, &mut x86.flags);
-    x86.regs.set32(instr.op0_register(), value as u32);
+    let value = imul_trunc(x, y, &mut cpu.flags);
+    cpu.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
 
-pub fn imul_r32_rm32_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = op1_rm32(x86, mem, instr) as i32;
+pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = op1_rm32(cpu, mem, instr) as i32;
     let y = instr.immediate8to32();
-    let value = imul_trunc(x, y, &mut x86.flags);
-    x86.regs.set32(instr.op0_register(), value as u32);
+    let value = imul_trunc(x, y, &mut cpu.flags);
+    cpu.regs.set32(instr.op0_register(), value as u32);
     Ok(())
 }
 
-pub fn idiv_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = (((x86.regs.edx as u64) << 32) | (x86.regs.eax as u64)) as i64;
-    let y = op0_rm32(x86, mem, instr) as i32 as i64;
-    x86.regs.eax = (x / y) as i32 as u32;
-    x86.regs.edx = (x % y) as i32 as u32;
+pub fn idiv_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = (((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64)) as i64;
+    let y = op0_rm32(cpu, mem, instr) as i32 as i64;
+    cpu.regs.eax = (x / y) as i32 as u32;
+    cpu.regs.edx = (x % y) as i32 as u32;
     // TODO: flags.
     Ok(())
 }
 
-pub fn div_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let x = ((x86.regs.edx as u64) << 32) | (x86.regs.eax as u64);
-    let y = op0_rm32(x86, mem, instr) as u64;
-    x86.regs.eax = (x / y) as u32;
-    x86.regs.edx = (x % y) as u32;
+pub fn div_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let x = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
+    let y = op0_rm32(cpu, mem, instr) as u64;
+    cpu.regs.eax = (x / y) as u32;
+    cpu.regs.edx = (x % y) as u32;
     // TODO: flags.
     Ok(())
 }
 
-pub fn dec_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn dec_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = sub(*x, 1, flags);
     Ok(())
 }
 
-pub fn dec_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn dec_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = sub(*x, 1, flags);
     Ok(())
 }
@@ -759,42 +759,42 @@ fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn inc_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn inc_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm32(cpu, mem, instr);
     *x = inc(*x, flags);
     Ok(())
 }
 
-pub fn inc_rm16(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm16(x86, mem, instr);
+pub fn inc_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm16(cpu, mem, instr);
     *x = inc(*x, flags);
     Ok(())
 }
 
-pub fn inc_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn inc_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm8(cpu, mem, instr);
     *x = inc(*x, flags);
     Ok(())
 }
 
-pub fn neg_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm32(x86, mem, instr);
+pub fn neg_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm32(cpu, mem, instr);
     flags.set(Flags::CF, *x != 0);
     // TODO: other flags registers.
     *x = -(*x as i32) as u32;
     Ok(())
 }
 
-pub fn neg_rm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, flags) = rm8(x86, mem, instr);
+pub fn neg_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, flags) = rm8(cpu, mem, instr);
     flags.set(Flags::CF, *x != 0);
     // TODO: other flags registers.
     *x = -(*x as i8) as u8;
     Ok(())
 }
 
-pub fn not_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let (x, _flags) = rm32(x86, mem, instr);
+pub fn not_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let (x, _flags) = rm32(cpu, mem, instr);
     *x = !*x;
     Ok(())
 }

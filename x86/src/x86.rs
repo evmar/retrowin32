@@ -15,7 +15,7 @@ use std::collections::{BTreeMap, HashMap};
 pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 
 #[derive(serde::Serialize, serde::Deserialize)]
-pub struct X86 {
+pub struct CPU {
     pub regs: Registers,
     // Flags are in principle a register but we hold it outside of regs for lifetime reasons,
     // because there are operations we want to do over mut regs and flags at the same time.
@@ -26,7 +26,7 @@ pub struct X86 {
     stopped: bool,
     crashed: Option<String>,
 }
-impl X86 {
+impl CPU {
     pub fn new() -> Self {
         unsafe {
             ops::init_op_tab();
@@ -38,7 +38,7 @@ impl X86 {
         regs.edx = 0xdeadbeed;
         regs.esi = 0xdeadbe51;
         regs.edi = 0xdeadbed1;
-        X86 {
+        CPU {
             regs,
             flags: Flags::empty(),
             stopped: false,
@@ -198,8 +198,8 @@ impl InstrCache {
 
     /// Executes the current basic block, updating eip.
     /// Returns the number of instructions executed.
-    pub fn execute_block(&mut self, x86: &mut X86, mem: &mut Mem) -> StepResult<usize> {
-        let mut ip = x86.regs.eip;
+    pub fn execute_block(&mut self, cpu: &mut CPU, mem: &mut Mem) -> StepResult<usize> {
+        let mut ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
             None => {
@@ -208,16 +208,16 @@ impl InstrCache {
             }
         };
         for instr in block.instrs.iter() {
-            x86.regs.eip = instr.next_ip() as u32;
-            match x86.run(mem, instr) {
+            cpu.regs.eip = instr.next_ip() as u32;
+            match cpu.run(mem, instr) {
                 Err(err) => {
                     // Point the debugger at the failed instruction.
-                    x86.regs.eip = ip;
+                    cpu.regs.eip = ip;
                     return Err(err);
                 }
                 Ok(_) => {}
             }
-            ip = x86.regs.eip;
+            ip = cpu.regs.eip;
         }
         Ok(block.instrs.len())
     }

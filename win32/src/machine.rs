@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::bail;
-use x86::{VecMem, X86};
+use x86::{VecMem, CPU};
 
 use crate::{
     host, pe,
@@ -10,7 +10,7 @@ use crate::{
 };
 
 pub struct Machine {
-    pub x86: X86,
+    pub x86: CPU,
     pub mem: VecMem,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
@@ -21,7 +21,7 @@ pub struct Machine {
 impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         Machine {
-            x86: X86::new(),
+            x86: CPU::new(),
             mem: VecMem::default(),
             host,
             state: winapi::State::new(),
@@ -110,7 +110,7 @@ impl Runner {
         Ok(())
     }
 
-    pub fn load_snapshot(&mut self, snap: x86::X86) {
+    pub fn load_snapshot(&mut self, snap: x86::CPU) {
         self.machine.x86 = snap;
     }
 }

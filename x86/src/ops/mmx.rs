@@ -1,53 +1,53 @@
 use iced_x86::Instruction;
 
-use crate::{Mem, Memory, StepResult, X86};
+use crate::{Mem, Memory, StepResult, CPU};
 
 use super::helpers::*;
 
-fn op1_mmm64(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u64 {
+fn op1_mmm64(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u64 {
     match instr.op1_kind() {
-        iced_x86::OpKind::Register => x86.regs.get64(instr.op1_register()),
-        iced_x86::OpKind::Memory => read_u64(mem, x86_addr(x86, instr)),
+        iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()),
+        iced_x86::OpKind::Memory => read_u64(mem, x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }
 
-fn op1_mmm32(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
+fn op1_mmm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
-        iced_x86::OpKind::Register => x86.regs.get64(instr.op1_register()) as u32,
-        iced_x86::OpKind::Memory => mem.read_u32(x86_addr(x86, instr)),
+        iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()) as u32,
+        iced_x86::OpKind::Memory => mem.read_u32(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn pxor_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| x ^ y);
+pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| x ^ y);
     Ok(())
 }
 
-pub fn movq_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, _x| y);
+pub fn movq_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, _x| y);
     Ok(())
 }
 
-pub fn movd_mm_rm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_rm32(x86, mem, instr) as u64;
-    rm64_x(x86, mem, instr, |_x86, _x| y);
+pub fn movd_mm_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_rm32(cpu, mem, instr) as u64;
+    rm64_x(cpu, mem, instr, |_cpu, _x| y);
     Ok(())
 }
 
-pub fn movd_rm32_mm(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = x86.regs.get64(instr.op1_register()) as u32;
-    let (x, _flags) = rm32(x86, mem, instr);
+pub fn movd_rm32_mm(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = cpu.regs.get64(instr.op1_register()) as u32;
+    let (x, _flags) = rm32(cpu, mem, instr);
     *x = y;
     Ok(())
 }
 
-pub fn punpcklwd_mm_mmm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_mmm32(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm32(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         let x = x as u32; // instr only uses low 32 bits of x
         (((x >> 16) as u16) as u64) << 48
             | (((y >> 16) as u16) as u64) << 32
@@ -57,9 +57,9 @@ pub fn punpcklwd_mm_mmm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> 
     Ok(())
 }
 
-pub fn punpcklbw_mm_mmm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_mmm32(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm32(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         let x = x as u32; // instr only uses low 32 bits of x
         (((y >> 24) & 0xFF) as u64) << 56
             | (((x >> 24) & 0xFF) as u64) << 48
@@ -73,9 +73,9 @@ pub fn punpcklbw_mm_mmm32(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> 
     Ok(())
 }
 
-pub fn pmullw_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         let t0 = (((x >> 0) & 0xFFFF) as i16 as u32) * (((y >> 0) & 0xFFFF) as i16 as u32);
         let t1 = (((x >> 16) & 0xFFFF) as i16 as u32) * (((y >> 16) & 0xFFFF) as i16 as u32);
         let t2 = (((x >> 32) & 0xFFFF) as i16 as u32) * (((y >> 32) & 0xFFFF) as i16 as u32);
@@ -85,9 +85,9 @@ pub fn pmullw_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> Ste
     Ok(())
 }
 
-pub fn psrlw_mm_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     let y = instr.immediate8();
-    rm64_x(x86, mem, instr, |_x86, x| {
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         (((x >> 0) & 0xFFFF) >> y) << 0
             | (((x >> 16) & 0xFFFF) >> y) << 16
             | (((x >> 32) & 0xFFFF) >> y) << 32
@@ -96,7 +96,7 @@ pub fn psrlw_mm_imm8(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepR
     Ok(())
 }
 
-pub fn packuswb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     fn saturate(x: i16) -> u8 {
         if x < 0 {
             0
@@ -106,8 +106,8 @@ pub fn packuswb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> S
             x as u8
         }
     }
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         (saturate(((x >> 0) & 0xFFFF) as i16) as u64) << 0
             | (saturate(((x >> 16) & 0xFFFF) as i16) as u64) << 8
             | (saturate(((x >> 32) & 0xFFFF) as i16) as u64) << 16
@@ -120,19 +120,19 @@ pub fn packuswb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> S
     Ok(())
 }
 
-pub fn emms(_x86: &mut X86, _mem: &mut Mem, _instr: &Instruction) -> StepResult<()> {
+pub fn emms(_cpu: &mut CPU, _mem: &mut Mem, _instr: &Instruction) -> StepResult<()> {
     // This is supposed to reset the FPU tag word, but I don't have one of those
     // because I'm not yet clear on what it's actually used for...
     Ok(())
 }
 
-pub fn psubusb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     fn op(x: u8, y: u8) -> u8 {
         y.saturating_sub(x)
     }
 
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         ((op((x >> 0) as u8, (y >> 0) as u8) as u64) << 0)
             | ((op((x >> 8) as u8, (y >> 8) as u8) as u64) << 8)
             | ((op((x >> 16) as u8, (y >> 16) as u8) as u64) << 16)
@@ -145,13 +145,13 @@ pub fn psubusb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> St
     Ok(())
 }
 
-pub fn paddusb_mm_mmm64(x86: &mut X86, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
     fn op(x: u8, y: u8) -> u8 {
         x.saturating_add(y)
     }
 
-    let y = op1_mmm64(x86, mem, instr);
-    rm64_x(x86, mem, instr, |_x86, x| {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
         ((op((x >> 0) as u8, (y >> 0) as u8) as u64) << 0)
             | ((op((x >> 8) as u8, (y >> 8) as u8) as u64) << 8)
             | ((op((x >> 16) as u8, (y >> 16) as u8) as u64) << 16)

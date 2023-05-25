@@ -28,7 +28,7 @@ pub struct Registers {
 }
 
 impl Registers {
-    pub fn from_x86(x86: &x86::X86) -> Registers {
+    pub fn from_x86(x86: &x86::CPU) -> Registers {
         Registers {
             eax: x86.regs.eax,
             ebx: x86.regs.ebx,
