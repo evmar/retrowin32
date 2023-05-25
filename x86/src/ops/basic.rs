@@ -142,7 +142,8 @@ pub fn mov_rm8_imm8(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 }
 
 pub fn mov_moffs8_al(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
-    x86.write_u8(x86_addr(x86, instr), x86.regs.eax as u8);
+    let addr = x86_addr(x86, instr);
+    x86.mem.write_u8(addr, x86.regs.eax as u8);
     Ok(())
 }
 
@@ -151,7 +152,10 @@ pub fn mov_r32m16_sreg(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let y = x86.regs.get16(instr.op1_register());
     match instr.op0_kind() {
         iced_x86::OpKind::Register => x86.regs.set32(instr.op0_register(), y as u32),
-        iced_x86::OpKind::Memory => x86.write_u16(x86_addr(x86, instr), y),
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(x86, instr);
+            x86.mem.write_u16(addr, y)
+        }
         _ => unimplemented!(),
     }
     Ok(())
@@ -162,7 +166,7 @@ pub fn mov_sreg_r32m16(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     // TODO: this is supposed to do segment selector validation stuff.
     let y = match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get32(instr.op1_register()) as u16,
-        iced_x86::OpKind::Memory => x86.read_u16(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => x86.mem.read_u16(x86_addr(x86, instr)),
         _ => unimplemented!(),
     };
     x86.regs.set16(instr.op0_register(), y);

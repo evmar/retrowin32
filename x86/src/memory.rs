@@ -40,9 +40,21 @@ pub trait Memory {
     fn read_u32(&self, addr: u32) -> u32 {
         *self.view::<u32>(addr)
     }
+    fn read_u16(&self, addr: u32) -> u16 {
+        *self.view::<u16>(addr)
+    }
+    fn read_u8(&self, addr: u32) -> u8 {
+        *self.view::<u8>(addr)
+    }
 
     fn write_u32(&mut self, addr: u32, value: u32) {
         *self.view_mut::<u32>(addr) = value;
+    }
+    fn write_u16(&mut self, addr: u32, value: u16) {
+        *self.view_mut::<u16>(addr) = value;
+    }
+    fn write_u8(&mut self, addr: u32, value: u8) {
+        *self.view_mut::<u8>(addr) = value;
     }
 
     /// Read a nul-terminated string.

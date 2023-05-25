@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::{StepResult, X86};
+use crate::{Memory, StepResult, X86};
 
 use super::helpers::*;
 
@@ -15,7 +15,7 @@ fn op1_mmm64(x86: &mut X86, instr: &iced_x86::Instruction) -> u64 {
 fn op1_mmm32(x86: &mut X86, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get64(instr.op1_register()) as u32,
-        iced_x86::OpKind::Memory => x86.read_u32(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => x86.mem.read_u32(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }

@@ -9,7 +9,7 @@ use crate::{
 use super::helpers::*;
 
 fn read_f32(x86: &mut X86, addr: u32) -> f32 {
-    f32::from_bits(x86.read_u32(addr))
+    f32::from_bits(x86.mem.read_u32(addr))
 }
 
 pub fn read_f64(x86: &X86, addr: u32) -> f64 {
@@ -92,13 +92,13 @@ pub fn fild_m64int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn fild_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     x86.regs.st_top -= 1;
-    *x86.regs.st_top() = x86.read_u32(x86_addr(x86, instr)) as i32 as f64;
+    *x86.regs.st_top() = x86.mem.read_u32(x86_addr(x86, instr)) as i32 as f64;
     Ok(())
 }
 
 pub fn fild_m16int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     x86.regs.st_top -= 1;
-    *x86.regs.st_top() = x86.read_u16(x86_addr(x86, instr)) as i16 as f64;
+    *x86.regs.st_top() = x86.mem.read_u16(x86_addr(x86, instr)) as i16 as f64;
     Ok(())
 }
 
@@ -110,7 +110,8 @@ pub fn fst_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn fst_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
-    x86.write_u32(x86_addr(x86, instr), (f as f32).to_bits());
+    let addr = x86_addr(x86, instr);
+    x86.mem.write_u32(addr, (f as f32).to_bits());
     Ok(())
 }
 
@@ -123,7 +124,8 @@ pub fn fstp_m64fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn fstp_m32fp(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
-    x86.write_u32(x86_addr(x86, instr), (f as f32).to_bits());
+    let addr = x86_addr(x86, instr);
+    x86.mem.write_u32(addr, (f as f32).to_bits());
     x86.regs.st_top += 1;
     Ok(())
 }
@@ -145,7 +147,8 @@ pub fn fistp_m64int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
 
 pub fn fistp_m32int(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     let f = *x86.regs.st_top();
-    x86.write_u32(x86_addr(x86, instr), f as i32 as u32);
+    let addr = x86_addr(x86, instr);
+    x86.mem.write_u32(addr, f as i32 as u32);
     x86.regs.st_top += 1;
     Ok(())
 }
@@ -336,12 +339,13 @@ pub fn fnstsw_ax(x86: &mut X86, _instr: &Instruction) -> StepResult<()> {
 pub fn fnstcw_m2byte(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     // TODO: control word
     let cw = 0x37u16; // default value
-    x86.write_u16(x86_addr(x86, instr), cw);
+    let addr = x86_addr(x86, instr);
+    x86.mem.write_u16(addr, cw);
     Ok(())
 }
 
 pub fn fldcw_m2byte(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
     // TODO: control word
-    x86.read_u16(x86_addr(x86, instr));
+    x86.mem.read_u16(x86_addr(x86, instr));
     Ok(())
 }

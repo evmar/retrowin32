@@ -181,7 +181,7 @@ pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOu
         .unwrap()
         .alloc(4);
     let vtable = dsound.vtable_IDirectSound;
-    machine.x86.write_u32(lpDirectSound, vtable);
-    machine.x86.write_u32(ppDS, lpDirectSound);
+    machine.x86.mem.write_u32(lpDirectSound, vtable);
+    machine.x86.mem.write_u32(ppDS, lpDirectSound);
     DS_OK
 }

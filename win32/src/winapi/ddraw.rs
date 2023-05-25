@@ -1026,8 +1026,8 @@ pub fn DirectDrawCreateEx(
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
-        machine.x86.write_u32(lpDirectDraw, vtable);
-        machine.x86.write_u32(lplpDD, lpDirectDraw);
+        machine.x86.mem.write_u32(lpDirectDraw, vtable);
+        machine.x86.mem.write_u32(lplpDD, lpDirectDraw);
         return DD_OK;
     }
 
@@ -1044,8 +1044,8 @@ pub fn DirectDrawCreateEx(
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;
-        machine.x86.write_u32(lpDirectDraw7, vtable);
-        machine.x86.write_u32(lplpDD, lpDirectDraw7);
+        machine.x86.mem.write_u32(lpDirectDraw7, vtable);
+        machine.x86.mem.write_u32(lplpDD, lpDirectDraw7);
         DD_OK
     } else {
         log::error!("DirectDrawCreateEx: unknown IID {iid_slice:x?}");

@@ -22,8 +22,8 @@ pub fn cmps(x86: &mut X86, instr: &Instruction) -> StepResult<()> {
         x86.regs.esi += pos;
         x86.regs.edi += pos;
         x86.regs.ecx -= pos;
-        let x = x86.read_u8(x86.regs.esi);
-        let y = x86.read_u8(x86.regs.edi);
+        let x = x86.mem.read_u8(x86.regs.esi);
+        let y = x86.mem.read_u8(x86.regs.edi);
         sub(x, y, &mut x86.flags);
     } else {
         return Err(StepError::Error("unimpl".into()));
@@ -165,14 +165,14 @@ pub fn lods(x86: &mut X86, instr: &Instruction, size: usize) -> StepResult<()> {
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
     match size {
         4 => {
-            x86.regs.eax = x86.read_u32(x86.regs.esi);
+            x86.regs.eax = x86.mem.read_u32(x86.regs.esi);
         }
         2 => {
-            let value = x86.read_u16(x86.regs.esi);
+            let value = x86.mem.read_u16(x86.regs.esi);
             x86.regs.set16(iced_x86::Register::AX, value);
         }
         1 => {
-            let value = x86.read_u8(x86.regs.esi);
+            let value = x86.mem.read_u8(x86.regs.esi);
             x86.regs.set8(iced_x86::Register::AL, value);
         }
         _ => unimplemented!("lods size {}", size),

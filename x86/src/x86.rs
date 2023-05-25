@@ -58,6 +58,7 @@ impl X86 {
     }
 
     /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
+    #[allow(dead_code)]
     fn check_oob<T>(&mut self, addr: u32) -> bool {
         if addr < NULL_POINTER_REGION_SIZE {
             self.crash(format!("crash: null pointer at {addr:#x}"));
@@ -69,44 +70,6 @@ impl X86 {
             return true;
         }
         false
-    }
-
-    pub fn write_u32(&mut self, addr: u32, value: u32) {
-        if self.check_oob::<u32>(addr) {
-            return;
-        }
-        self.mem.write_u32(addr, value);
-    }
-    pub fn write_u16(&mut self, addr: u32, value: u16) {
-        if self.check_oob::<u16>(addr) {
-            return;
-        }
-        *self.mem.view_mut::<u16>(addr) = value;
-    }
-    pub fn write_u8(&mut self, addr: u32, value: u8) {
-        if self.check_oob::<u8>(addr) {
-            return;
-        }
-        *self.mem.view_mut::<u8>(addr) = value;
-    }
-
-    pub fn read_u32(&mut self, addr: u32) -> u32 {
-        if self.check_oob::<u32>(addr) {
-            return 0;
-        }
-        self.mem.read_u32(addr)
-    }
-    pub fn read_u16(&mut self, addr: u32) -> u16 {
-        if self.check_oob::<u16>(addr) {
-            return 0;
-        }
-        *self.mem.view::<u16>(addr)
-    }
-    pub fn read_u8(&mut self, addr: u32) -> u8 {
-        if self.check_oob::<u8>(addr) {
-            return 0;
-        }
-        *self.mem.view_mut::<u8>(addr)
     }
 
     /// Executes an instruction, leaving eip alone.
