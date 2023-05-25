@@ -51,18 +51,14 @@ impl Machine {
             // Treat any shim call as a single block.
             return Ok(true);
         }
-        self.x86
-            .execute_block()
-            .map_err(|err| anyhow::anyhow!(err))?;
-        Ok(true)
+        self.x86.execute_block().map_err(|err| anyhow::anyhow!(err))
     }
 
-    pub fn single_step(&mut self) -> anyhow::Result<bool> {
+    pub fn single_step(&mut self) -> anyhow::Result<()> {
         if self.check_shim_call()? {
             // Treat any shim call as a single block.
-            return Ok(true);
+            return Ok(());
         }
-        self.x86.single_step().map_err(|err| anyhow::anyhow!(err))?;
-        Ok(true)
+        self.x86.single_step().map_err(|err| anyhow::anyhow!(err))
     }
 }

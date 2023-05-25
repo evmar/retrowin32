@@ -1,8 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{
-    registers::Flags, x86::CPU, Mem, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE,
-};
+use crate::{registers::Flags, x86::CPU, Mem, Memory, NULL_POINTER_REGION_SIZE};
 
 pub fn read_u64(mem: &Mem, addr: u32) -> u64 {
     *mem.view::<u64>(addr)
@@ -199,10 +197,10 @@ pub fn x86_addr(cpu: &CPU, instr: &iced_x86::Instruction) -> u32 {
         .wrapping_add(instr.memory_displacement32())
 }
 
-pub fn x86_jmp(cpu: &mut CPU, addr: u32) -> StepResult<()> {
+pub fn x86_jmp(cpu: &mut CPU, addr: u32) {
     if addr < 0x1000 {
-        return Err(StepError::Error("jmp to null page".into()));
+        cpu.state = Err("jmp to null page".into());
+        return;
     }
     cpu.regs.eip = addr;
-    Ok(())
 }

@@ -9,7 +9,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use crate::{Mem, Memory, StepResult, CPU};
+use crate::{Mem, Memory, CPU};
 
 struct BasicBlock {
     /// Number of x86 instruction bytes covered by this block.
@@ -131,7 +131,7 @@ impl InstrCache {
 
     /// Executes the current basic block, updating eip.
     /// Returns the number of instructions executed.
-    pub fn execute_block(&mut self, cpu: &mut CPU, mem: &mut Mem) -> StepResult<usize> {
+    pub fn execute_block(&mut self, cpu: &mut CPU, mem: &mut Mem) -> usize {
         let mut ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
@@ -140,19 +140,20 @@ impl InstrCache {
                 self.blocks.get(&ip).unwrap()
             }
         };
-        for instr in block.instrs.iter() {
+        for (i, instr) in block.instrs.iter().enumerate() {
             cpu.regs.eip = instr.next_ip() as u32;
             match cpu.run(mem, instr) {
-                Err(err) => {
+                Err(_) => {
                     // Point the debugger at the failed instruction.
                     cpu.regs.eip = ip;
-                    return Err(err);
+                    return i;
                 }
-                Ok(_) => {}
+                Ok(false) => return i,
+                Ok(true) => {}
             }
             ip = cpu.regs.eip;
         }
-        Ok(block.instrs.len())
+        block.instrs.len()
     }
 
     /// Change cache such that there's a single basic block at ip.

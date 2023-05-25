@@ -5,10 +5,9 @@ use crate::{
     memory::{Mem, Memory},
     registers::Flags,
     x86::CPU,
-    StepError, StepResult,
 };
 
-pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     assert!(cpu.flags.contains(Flags::DF)); // TODO
     let p1 = cpu.regs.esi;
     let p2 = cpu.regs.edi;
@@ -30,12 +29,12 @@ pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()>
         let y = mem.read_u8(cpu.regs.edi);
         sub(x, y, &mut cpu.flags);
     } else {
-        return Err(StepError::Error("unimpl".into()));
+        cpu.state = Err("unimpl".into());
+        return;
     }
-    Ok(())
 }
 
-fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) -> StepResult<()> {
+fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
     let reverse = cpu.flags.contains(Flags::DF);
     let step = if reverse { -(size as i32) as u32 } else { size };
     let mut c = 1u32; // 1 step if no rep prefix
@@ -48,7 +47,8 @@ fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) -> StepRes
         *counter -= 1;
 
         if cpu.regs.edi >= mem.len() - 8 {
-            return Err(StepError::Error("movs overflow".into()));
+            cpu.state = Err("movs overflow".into());
+            return;
         }
 
         mem.as_mut_slice_todo().copy_within(
@@ -62,22 +62,21 @@ fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) -> StepRes
             // return Err(StepError::Error("movs: unimplemented prefix".into()));
         }
     }
-    Ok(())
 }
 
-pub fn movsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn movsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 4)
 }
 
-pub fn movsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn movsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 2)
 }
 
-pub fn movsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn movsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 1)
 }
 
-fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) -> StepResult<()> {
+fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) {
     assert!(!cpu.flags.contains(Flags::DF)); // TODO
 
     let mut c = 1u32; // 1 step if no rep prefix
@@ -111,21 +110,19 @@ fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) -> StepResult<
             break;
         }
     }
-
-    Ok(())
 }
 
-pub fn scasd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn scasd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 4)
 }
-pub fn scasw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn scasw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 2)
 }
-pub fn scasb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn scasb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 1)
 }
 
-pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) -> StepResult<()> {
+pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
     assert!(!cpu.flags.contains(Flags::DF)); // TODO
 
     let mut c = 1u32; // 1 step if no rep prefix
@@ -146,24 +143,24 @@ pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) -> Ste
         *counter -= 1;
     }
     // TODO: does this modify esi?  Sources disagree (!?)
-    Ok(())
 }
 
-pub fn stosd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn stosd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 4)
 }
 
-pub fn stosw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn stosw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 2)
 }
 
-pub fn stosb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn stosb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 1)
 }
 
-pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) -> StepResult<()> {
+pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) {
     if cpu.flags.contains(Flags::DF) {
-        return Err(StepError::Error("TODO DF".into()));
+        cpu.state = Err("TODO DF".into());
+        return;
     }
 
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
@@ -182,17 +179,16 @@ pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) -> StepR
         _ => unimplemented!("lods size {}", size),
     }
     cpu.regs.esi += size as u32;
-    Ok(())
 }
 
-pub fn lodsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn lodsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 4)
 }
 
-pub fn lodsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn lodsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 2)
 }
 
-pub fn lodsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) -> StepResult<()> {
+pub fn lodsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 1)
 }
