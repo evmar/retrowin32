@@ -1,4 +1,5 @@
 pub mod debug;
+mod icache;
 mod memory;
 pub mod ops;
 mod registers;
