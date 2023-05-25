@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use anyhow::bail;
-use x86::X86;
+use x86::{VecMem, X86};
 
 use crate::{
     host, pe,
@@ -11,6 +11,7 @@ use crate::{
 
 pub struct Machine {
     pub x86: X86,
+    pub mem: VecMem,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub shims: Shims,
@@ -21,6 +22,7 @@ impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         Machine {
             x86: X86::new(),
+            mem: VecMem::default(),
             host,
             state: winapi::State::new(),
             shims: Shims::new(),
@@ -51,12 +53,11 @@ impl Runner {
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) {
-        self.icache.add_breakpoint(&mut self.machine.x86.mem, addr)
+        self.icache.add_breakpoint(&mut self.machine.mem, addr)
     }
 
     pub fn clear_breakpoint(&mut self, addr: u32) {
-        self.icache
-            .clear_breakpoint(&mut self.machine.x86.mem, addr)
+        self.icache.clear_breakpoint(&mut self.machine.mem, addr)
     }
 
     /// If eip points at a shim address, call the handler and update eip.
@@ -81,7 +82,10 @@ impl Runner {
             return Ok(true);
         }
 
-        match self.icache.execute_block(&mut self.machine.x86) {
+        match self
+            .icache
+            .execute_block(&mut self.machine.x86, &mut self.machine.mem)
+        {
             Err(x86::StepError::Interrupt) => Ok(false),
             Err(x86::StepError::Error(err)) => bail!(err),
             Ok(count) => {
@@ -98,7 +102,7 @@ impl Runner {
         }
 
         let ip = self.machine.x86.regs.eip;
-        self.icache.make_single_step(&mut self.machine.x86, ip);
+        self.icache.make_single_step(&mut self.machine.mem, ip);
         self.execute_block()?;
         // TODO: clear_single_step doesn't help here, because ip now points into the middle
         // of some block and the next time we execute we'll just recreate the partial block anyway.

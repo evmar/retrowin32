@@ -20,7 +20,7 @@ mod headless;
 use headless::GUI;
 
 fn dump_asm(runner: &win32::Runner) {
-    let instrs = win32::disassemble(&runner.machine.x86.mem, runner.machine.x86.regs.eip);
+    let instrs = win32::disassemble(&runner.machine.mem, runner.machine.x86.regs.eip);
 
     for instr in &instrs[..std::cmp::min(instrs.len(), 5)] {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);

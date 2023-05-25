@@ -1,23 +1,27 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{registers::Flags, x86::X86, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE};
+use crate::{
+    registers::Flags, x86::X86, Mem, Memory, StepError, StepResult, NULL_POINTER_REGION_SIZE,
+};
 
-pub fn read_u64(x86: &X86, addr: u32) -> u64 {
-    if addr < NULL_POINTER_REGION_SIZE {
-        panic!("null pointer read at {addr:#x}");
-    }
-    *x86.mem.view::<u64>(addr)
+pub fn read_u64(mem: &Mem, addr: u32) -> u64 {
+    *mem.view::<u64>(addr)
 }
 
-pub fn write_u64(x86: &mut X86, addr: u32, value: u64) {
+pub fn write_u64(mem: &mut Mem, addr: u32, value: u64) {
     if addr < NULL_POINTER_REGION_SIZE {
         panic!("null pointer read at {addr:#x}");
     }
-    *x86.mem.view_mut::<u64>(addr) = value;
+    *mem.view_mut::<u64>(addr) = value;
 }
 
 // TODO: maybe there are no 64-bit memory reads needed (?)
-pub fn rm64_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut X86, u64) -> u64) {
+pub fn rm64_x(
+    x86: &mut X86,
+    mem: &mut Mem,
+    instr: &iced_x86::Instruction,
+    op: impl FnOnce(&mut X86, u64) -> u64,
+) {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -27,15 +31,19 @@ pub fn rm64_x(x86: &mut X86, instr: &iced_x86::Instruction, op: impl FnOnce(&mut
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(x86, instr);
-            let x = read_u64(x86, addr);
+            let x = read_u64(mem, addr);
             let value = op(x86, x);
-            write_u64(x86, addr, value);
+            write_u64(mem, addr, value);
         }
         _ => unimplemented!(),
     }
 }
 
-pub fn rm32<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u32, &'a mut Flags) {
+pub fn rm32<'a>(
+    x86: &'a mut X86,
+    mem: &'a mut Mem,
+    instr: &iced_x86::Instruction,
+) -> (&'a mut u32, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -43,14 +51,18 @@ pub fn rm32<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u32
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(x86, instr);
-            x86.mem.view_mut::<u32>(addr)
+            mem.view_mut::<u32>(addr)
         }
         _ => unimplemented!(),
     };
     (dest, &mut x86.flags)
 }
 
-pub fn rm16<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u16, &'a mut Flags) {
+pub fn rm16<'a>(
+    x86: &'a mut X86,
+    mem: &'a mut Mem,
+    instr: &iced_x86::Instruction,
+) -> (&'a mut u16, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -58,14 +70,18 @@ pub fn rm16<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u16
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(x86, instr);
-            x86.mem.view_mut::<u16>(addr)
+            mem.view_mut::<u16>(addr)
         }
         _ => unimplemented!(),
     };
     (dest, &mut x86.flags)
 }
 
-pub fn rm8<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u8, &'a mut Flags) {
+pub fn rm8<'a>(
+    x86: &'a mut X86,
+    mem: &'a mut Mem,
+    instr: &iced_x86::Instruction,
+) -> (&'a mut u8, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -73,83 +89,83 @@ pub fn rm8<'a>(x86: &'a mut X86, instr: &iced_x86::Instruction) -> (&'a mut u8, 
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(x86, instr);
-            x86.mem.view_mut::<u8>(addr)
+            mem.view_mut::<u8>(addr)
         }
         _ => unimplemented!(),
     };
     (dest, &mut x86.flags)
 }
 
-pub fn op0_rm32(x86: &mut X86, instr: &iced_x86::Instruction) -> u32 {
+pub fn op0_rm32(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => x86.regs.get32(instr.op0_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u32(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u32(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn op0_rm16(x86: &mut X86, instr: &iced_x86::Instruction) -> u16 {
+pub fn op0_rm16(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u16 {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => x86.regs.get16(instr.op0_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u16(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u16(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn op0_rm8(x86: &mut X86, instr: &iced_x86::Instruction) -> u8 {
+pub fn op0_rm8(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => x86.regs.get8(instr.op0_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u8(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u8(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn op1_rm32(x86: &mut X86, instr: &iced_x86::Instruction) -> u32 {
+pub fn op1_rm32(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get32(instr.op1_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u32(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u32(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn op1_rm16(x86: &mut X86, instr: &iced_x86::Instruction) -> u16 {
+pub fn op1_rm16(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u16 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get16(instr.op1_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u16(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u16(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
-pub fn op1_rm8(x86: &mut X86, instr: &iced_x86::Instruction) -> u8 {
+pub fn op1_rm8(x86: &mut X86, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => x86.regs.get8(instr.op1_register()),
-        iced_x86::OpKind::Memory => x86.mem.read_u8(x86_addr(x86, instr)),
+        iced_x86::OpKind::Memory => mem.read_u8(x86_addr(x86, instr)),
         _ => unreachable!(),
     }
 }
 
 /// Push a u32 on the x86 stack.
-pub fn push(x86: &mut X86, value: u32) {
+pub fn push(x86: &mut X86, mem: &mut Mem, value: u32) {
     x86.regs.esp -= 4;
-    x86.mem.write_u32(x86.regs.esp, value);
+    mem.write_u32(x86.regs.esp, value);
 }
 
 /// Push a u16 on the x86 stack.
-pub fn push16(x86: &mut X86, value: u16) {
+pub fn push16(x86: &mut X86, mem: &mut Mem, value: u16) {
     x86.regs.esp -= 2;
-    x86.mem.write_u16(x86.regs.esp, value);
+    mem.write_u16(x86.regs.esp, value);
 }
 
 /// Pop a u32 from the x86 stack.
-pub fn pop(x86: &mut X86) -> u32 {
-    let value = x86.mem.read_u32(x86.regs.esp);
+pub fn pop(x86: &mut X86, mem: &mut Mem) -> u32 {
+    let value = mem.read_u32(x86.regs.esp);
     x86.regs.esp += 4;
     value
 }
 
 /// Pop a u16 from the x86 stack.
-pub fn pop16(x86: &mut X86) -> u16 {
-    let value = x86.mem.read_u16(x86.regs.esp);
+pub fn pop16(x86: &mut X86, mem: &mut Mem) -> u16 {
+    let value = mem.read_u16(x86.regs.esp);
     x86.regs.esp += 2;
     value
 }

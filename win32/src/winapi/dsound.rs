@@ -28,7 +28,7 @@ impl State {
             machine
                 .state
                 .kernel32
-                .new_heap(&mut machine.x86.mem, 0x1000, "dsound.dll heap".into());
+                .new_heap(&mut machine.mem, 0x1000, "dsound.dll heap".into());
 
         dsound.vtable_IDirectSound = IDirectSound::vtable(&mut dsound, machine);
         dsound.vtable_IDirectSoundBuffer = IDirectSoundBuffer::vtable(&mut dsound, machine);
@@ -58,7 +58,7 @@ mod IDirectSound {
         _pUnkOuter: u32,
     ) -> u32 {
         let x86_buffer = IDirectSoundBuffer::new(machine);
-        machine.x86.mem.write_u32(lplpDirectSoundBuffer, x86_buffer);
+        machine.mem.write_u32(lplpDirectSoundBuffer, x86_buffer);
         DS_OK
     }
 
@@ -95,11 +95,11 @@ mod IDirectSoundBuffer {
         let lpDirectSoundBuffer = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem, dsound.hheap)
+            .get_heap(&mut machine.mem, dsound.hheap)
             .unwrap()
             .alloc(4);
         let vtable = dsound.vtable_IDirectSoundBuffer;
-        machine.x86.mem.write_u32(lpDirectSoundBuffer, vtable);
+        machine.mem.write_u32(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }
 
@@ -177,11 +177,11 @@ pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOu
     let lpDirectSound = machine
         .state
         .kernel32
-        .get_heap(&mut machine.x86.mem, dsound.hheap)
+        .get_heap(&mut machine.mem, dsound.hheap)
         .unwrap()
         .alloc(4);
     let vtable = dsound.vtable_IDirectSound;
-    machine.x86.mem.write_u32(lpDirectSound, vtable);
-    machine.x86.mem.write_u32(ppDS, lpDirectSound);
+    machine.mem.write_u32(lpDirectSound, vtable);
+    machine.mem.write_u32(ppDS, lpDirectSound);
     DS_OK
 }

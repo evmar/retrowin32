@@ -141,9 +141,13 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
     let esp = machine.x86.regs.esp;
     // Push the args in reverse order.
     for &arg in args.iter().rev() {
-        x86::ops::push(&mut machine.x86, arg);
+        x86::ops::push(&mut machine.x86, &mut machine.mem, arg);
     }
-    x86::ops::push(&mut machine.x86, machine.shims.async_executor); // return address
+    x86::ops::push(
+        &mut machine.x86,
+        &mut machine.mem,
+        machine.shims.async_executor,
+    ); // return address
     machine.x86.regs.eip = func;
     X86Future { m: machine, esp }
 }

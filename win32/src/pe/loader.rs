@@ -23,7 +23,7 @@ fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool
             .state
             .kernel32
             .mappings
-            .alloc(memory_size, name.into(), &mut machine.x86.mem)
+            .alloc(memory_size, name.into(), &mut machine.mem)
     } else {
         machine.state.kernel32.mappings.add(
             winapi::kernel32::Mapping {
@@ -38,8 +38,8 @@ fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool
 
     // TODO: .alloc() ensures the memory exists, .add() doesn't.
     let memory_end = mapping.addr + mapping.size;
-    if memory_end > machine.x86.mem.len() {
-        machine.x86.mem.resize(memory_end, 0);
+    if memory_end > machine.mem.len() {
+        machine.mem.resize(memory_end, 0);
     }
 
     mapping.addr
@@ -70,7 +70,6 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
         || flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
     if load_data && data_size > 0 {
         machine
-            .x86
             .mem
             .slice_mut(dst..)
             .slice_mut(..data_size)
@@ -93,7 +92,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     // the relevant DLLs shims.
     let mut patches = Vec::new();
 
-    let image = unsafe { std::mem::transmute(machine.x86.mem.slice(base..)) };
+    let image = unsafe { std::mem::transmute(machine.mem.slice(base..)) };
     for dll_imports in pe::read_imports(imports_data.as_mem(image)) {
         let dll_name = dll_imports.name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
@@ -119,7 +118,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 
     for (addr, target) in patches {
-        machine.x86.mem.write_u32(addr, target);
+        machine.mem.write_u32(addr, target);
     }
 }
 
@@ -177,7 +176,7 @@ fn load_pe(
     if relocate {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             apply_relocs(
-                &mut machine.x86.mem.slice_mut(base..),
+                &mut machine.mem.slice_mut(base..),
                 file.opt_header.ImageBase,
                 base,
                 relocs,
@@ -200,7 +199,7 @@ pub fn load_exe(
 ) -> anyhow::Result<()> {
     let file = pe::parse(buf)?;
 
-    machine.state.kernel32.init(&mut machine.x86.mem);
+    machine.state.kernel32.init(&mut machine.mem);
 
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
@@ -208,7 +207,7 @@ pub fn load_exe(
     machine
         .state
         .kernel32
-        .init_process(&mut machine.x86.mem, cmdline);
+        .init_process(&mut machine.mem, cmdline);
     machine.x86.regs.fs_addr = machine.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
@@ -220,12 +219,11 @@ pub fn load_exe(
         );
         stack_size = 32 << 10;
     }
-    let stack =
-        machine
-            .state
-            .kernel32
-            .mappings
-            .alloc(stack_size, "stack".into(), &mut machine.x86.mem);
+    let stack = machine
+        .state
+        .kernel32
+        .mappings
+        .alloc(stack_size, "stack".into(), &mut machine.mem);
     let stack_end = stack.addr + stack.size - 4;
     machine.x86.regs.esp = stack_end;
     machine.x86.regs.ebp = stack_end;
@@ -291,7 +289,7 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, name, buf, &file, true)?;
-    let image = &machine.x86.mem.slice(base..);
+    let image = &machine.mem.slice(base..);
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     let mut ordinals = HashMap::new();
