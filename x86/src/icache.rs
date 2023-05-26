@@ -132,7 +132,7 @@ impl InstrCache {
     /// Executes the current basic block, updating eip.
     /// Returns the number of instructions executed.
     pub fn execute_block(&mut self, cpu: &mut CPU, mem: &mut Mem) -> usize {
-        let mut ip = cpu.regs.eip;
+        let ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
             None => {
@@ -151,7 +151,6 @@ impl InstrCache {
                 Ok(false) => return i,
                 Ok(true) => {}
             }
-            ip = cpu.regs.eip;
         }
         block.instrs.len()
     }
