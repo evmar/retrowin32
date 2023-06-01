@@ -84,7 +84,7 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
 unsafe impl x86::Pod for IMAGE_OPTIONAL_HEADER32 {}
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct IMAGE_DATA_DIRECTORY {
     pub VirtualAddress: DWORD,
     pub Size: DWORD,

@@ -45,7 +45,7 @@ struct WndClass {
 }
 
 pub struct State {
-    pub resources_base: u32,
+    pub resources: pe::IMAGE_DATA_DIRECTORY,
     wndclasses: Vec<Rc<WndClass>>,
     windows: Vec<Window>,
     messages: VecDeque<MSG>,
@@ -58,7 +58,7 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            resources_base: 0,
+            resources: pe::IMAGE_DATA_DIRECTORY::default(),
             wndclasses: Vec::new(),
             windows: Vec::new(),
             messages: VecDeque::new(),
@@ -619,8 +619,8 @@ pub fn LoadImageA(
     hInstance: u32,
     name: u32,
     typ: u32,
-    _cx: u32,
-    _cy: u32,
+    cx: u32,
+    cy: u32,
     fuLoad: u32,
 ) -> u32 {
     assert!(hInstance == machine.state.kernel32.image_base);
@@ -641,7 +641,7 @@ pub fn LoadImageA(
         IMAGE_BITMAP => {
             let buf = pe::get_resource(
                 &machine.x86.mem.slice(machine.state.kernel32.image_base..),
-                machine.state.user32.resources_base,
+                &machine.state.user32.resources,
                 pe::RT_BITMAP,
                 name,
             )

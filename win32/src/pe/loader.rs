@@ -234,7 +234,7 @@ pub fn load_exe(
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
     {
-        machine.state.user32.resources_base = res_data.VirtualAddress;
+        machine.state.user32.resources = res_data.clone();
     }
 
     let mut dll_mains = Vec::new();
