@@ -31,9 +31,13 @@ pub struct Arena<'a> {
     mem: &'a mut Mem,
 }
 
+fn align32(n: u32) -> u32 {
+    (n + 3) & !3
+}
+
 impl<'a> Alloc for Arena<'a> {
     fn alloc(&mut self, size: u32) -> u32 {
-        let alloc_size = size + 4; // TODO: align?
+        let alloc_size = align32(size + 4);
         if self.info.next + alloc_size > self.info.size {
             log::error!(
                 "Arena::alloc cannot allocate {:x}, using {:x}/{:x}",
@@ -128,7 +132,7 @@ impl FreeNode {
 
 impl<'a> Alloc for Heap<'a> {
     fn alloc(&mut self, size: u32) -> u32 {
-        let alloc_size = size + 4;
+        let alloc_size = align32(size + 4);
 
         // Find a FreeNode large enough to accommodate alloc_size.
         // To use it, update the previous node to point past it.
