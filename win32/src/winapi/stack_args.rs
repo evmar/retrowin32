@@ -75,9 +75,7 @@ impl FromX86 for Option<&[u8]> {
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime(
-            &mem.slice(addr..).slice(..len).as_slice_todo(),
-        ))
+        Some(extend_lifetime(&mem.sub(addr, len).as_slice_todo()))
     }
     fn stack_consumed() -> u32 {
         8
@@ -91,9 +89,7 @@ impl FromX86 for Option<&mut [u8]> {
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime_mut(
-            mem.slice_mut(addr..).slice_mut(..len).as_mut_slice_todo(),
-        ))
+        Some(extend_lifetime_mut(mem.sub(addr, len).as_mut_slice_todo()))
     }
     fn stack_consumed() -> u32 {
         8
@@ -107,7 +103,7 @@ impl FromX86 for Option<&[u16]> {
         if addr == 0 {
             return None;
         }
-        std::mem::transmute(mem.slice(addr..).slice(..len).as_slice_todo())
+        std::mem::transmute(mem.sub(addr, len).as_slice_todo())
     }
     fn stack_consumed() -> u32 {
         8
@@ -121,7 +117,7 @@ impl FromX86 for Option<&mut [u16]> {
         if addr == 0 {
             return None;
         }
-        std::mem::transmute(mem.slice(addr..).slice(..len).as_slice_todo())
+        std::mem::transmute(mem.sub(addr, len).as_slice_todo())
     }
     fn stack_consumed() -> u32 {
         8
@@ -134,7 +130,7 @@ impl FromX86 for Option<&str> {
         if addr == 0 {
             return None;
         }
-        let strz = mem.slice(addr..).read_strz();
+        let strz = mem.slicez(addr).unwrap().to_ascii();
         Some(extend_lifetime(strz))
     }
 }

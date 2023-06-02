@@ -10,11 +10,10 @@ pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let count = cpu.regs.ecx;
     if instr.has_repe_prefix() {
         let pos = mem
-            .slice(p1..)
-            .slice(..count)
+            .sub(p1, count)
             .as_slice_todo()
             .iter()
-            .zip(mem.slice(p2..).slice(..count).as_slice_todo().iter())
+            .zip(mem.sub(p2, count).as_slice_todo().iter())
             .position(|(&x, &y)| x == y)
             .map(|pos| pos as u32)
             .unwrap_or(count);

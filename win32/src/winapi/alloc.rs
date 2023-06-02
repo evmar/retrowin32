@@ -21,21 +21,21 @@ impl ArenaInfo {
             next: 0,
         }
     }
-    pub fn get<'a>(&'a mut self, mem: &'a mut Mem) -> Arena<'a> {
+    pub fn get<'a, 'm>(&'a mut self, mem: &'a mut Mem<'m>) -> Arena<'a, 'm> {
         Arena { info: self, mem }
     }
 }
 
-pub struct Arena<'a> {
+pub struct Arena<'a, 'm> {
     info: &'a mut ArenaInfo,
-    mem: &'a mut Mem,
+    mem: &'a mut Mem<'m>,
 }
 
 fn align32(n: u32) -> u32 {
     (n + 3) & !3
 }
 
-impl<'a> Alloc for Arena<'a> {
+impl<'a, 'm> Alloc for Arena<'a, 'm> {
     fn alloc(&mut self, size: u32) -> u32 {
         let alloc_size = align32(size + 4);
         if self.info.next + alloc_size > self.info.size {
@@ -99,7 +99,7 @@ impl HeapInfo {
 
     pub fn get_heap<'a>(
         &'a mut self,
-        mem: &'a mut Mem,
+        mem: &'a mut Mem<'a>,
         mappings: &'a mut kernel32::Mappings,
     ) -> Heap<'a> {
         Heap {
@@ -112,7 +112,7 @@ impl HeapInfo {
 
 pub struct Heap<'a> {
     info: &'a mut HeapInfo,
-    mem: &'a mut Mem,
+    mem: &'a mut Mem<'a>,
     mappings: &'a mut kernel32::Mappings,
 }
 
@@ -125,7 +125,7 @@ struct FreeNode {
 }
 unsafe impl x86::Pod for FreeNode {}
 impl FreeNode {
-    fn get(mem: &mut Mem, addr: u32) -> &mut Self {
+    fn get<'a>(mem: &'a mut Mem, addr: u32) -> &'a mut Self {
         mem.view_mut::<FreeNode>(addr)
     }
 }

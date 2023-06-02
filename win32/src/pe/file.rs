@@ -12,13 +12,13 @@ use x86::Mem;
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 
-fn dos_header(r: &mut Reader) -> anyhow::Result<u32> {
+fn dos_header<'a, 'm>(r: &mut Reader<'a, 'm>) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
     Ok(*r.read::<DWORD>())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 #[repr(C)]
 pub struct IMAGE_FILE_HEADER {
     pub Machine: WORD,
@@ -91,8 +91,8 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
-    pub fn as_mem<'a>(&self, image: &'a Mem) -> &'a Mem {
-        &image.slice(self.VirtualAddress..).slice(..self.Size)
+    pub fn as_mem<'m>(&self, image: &Mem<'m>) -> Mem<'m> {
+        image.sub(self.VirtualAddress, self.Size)
     }
 }
 
@@ -115,10 +115,10 @@ pub enum IMAGE_DIRECTORY_ENTRY {
     COM_DESCRIPTOR = 14,
 }
 
-fn pe_header<'a>(r: &mut Reader<'a>) -> anyhow::Result<&'a IMAGE_FILE_HEADER> {
+fn pe_header<'a, 'm>(r: &mut Reader<'a, 'm>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
-    let header: &'a IMAGE_FILE_HEADER = r.read::<IMAGE_FILE_HEADER>();
+    let header: &'m IMAGE_FILE_HEADER = r.read::<IMAGE_FILE_HEADER>();
     if header.Machine != 0x14c {
         bail!("bad machine {:?}", header.Machine);
     }
@@ -142,7 +142,10 @@ pub struct IMAGE_SECTION_HEADER {
 unsafe impl x86::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
     pub fn name(&self) -> &str {
-        Mem::from_slice(&self.Name[..]).read_strz()
+        Mem::from_slice(&self.Name[..])
+            .slicez(0)
+            .unwrap()
+            .to_ascii()
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
         ImageSectionFlags::from_bits(self.Characteristics)
@@ -185,8 +188,9 @@ impl<'a> File<'a> {
     }
 }
 
-pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
-    let mut r = Reader::new(Mem::from_slice(buf));
+pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
+    let mem = Mem::from_slice(buf);
+    let mut r = Reader::new(&mem);
 
     let ofs = dos_header(&mut r)?;
     r.seek(ofs)?;

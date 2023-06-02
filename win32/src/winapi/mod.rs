@@ -43,10 +43,10 @@ macro_rules! vtable {
         }
 
         pub fn vtable(state: &mut State, machine: &mut Machine) -> u32 {
-            let addr = machine.state.kernel32.get_heap(&mut machine.x86.mem, state.hheap).unwrap().alloc(
+            let addr = machine.state.kernel32.get_heap(&mut machine.x86.mem(), state.hheap).unwrap().alloc(
                 std::mem::size_of::<Vtable>() as u32,
             );
-            let vtable = machine.x86.mem.view_mut::<Vtable>(addr);
+            let vtable = machine.x86.mem().view_mut::<Vtable>(addr);
             *vtable = Vtable::new(&mut machine.shims);
             addr
         }

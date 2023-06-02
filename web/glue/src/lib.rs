@@ -33,7 +33,7 @@ impl Emulator {
     pub fn memory(&self) -> js_sys::DataView {
         let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
         let buf = js_sys::ArrayBuffer::from(mem.buffer());
-        let ofs = self.machine.x86.mem.as_slice_todo().as_ptr() as usize;
+        let ofs = self.machine.x86.mem().as_slice_todo().as_ptr() as usize;
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
@@ -57,7 +57,7 @@ impl Emulator {
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
-        serde_json::to_string(&win32::disassemble(&self.machine.x86.mem, addr)).unwrap_throw()
+        serde_json::to_string(&win32::disassemble(&self.machine.x86.mem(), addr)).unwrap_throw()
     }
 
     pub fn single_step(&mut self) -> JsResult<()> {
@@ -89,7 +89,7 @@ impl Emulator {
     }
 
     pub fn poke(&mut self, addr: u32, value: u8) {
-        *self.machine.x86.mem.view_mut::<u8>(addr) = value;
+        *self.machine.x86.mem().view_mut::<u8>(addr) = value;
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {

@@ -99,25 +99,25 @@ unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
 pub fn get_resource<'a>(
-    mem: &'a Mem,
+    mem: &'a Mem<'a>,
     section: &IMAGE_DATA_DIRECTORY,
     query_type: u32,
     query_id: u32,
-) -> Option<&'a Mem> {
-    let section = mem.slice(section.VirtualAddress..).slice(..section.Size);
+) -> Option<Mem<'a>> {
+    let section = mem.sub(section.VirtualAddress, section.Size);
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
-    let dir = ImageResourceDirectory::read(section, 0);
+    let dir = ImageResourceDirectory::read(&section, 0);
 
     let etype = dir.entries.iter().find(|entry| entry.has_id(query_type))?;
-    let dir = match etype.value(section) {
+    let dir = match etype.value(&section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
 
     let eid = dir.entries.iter().find(|entry| entry.has_id(query_id))?;
-    let dir = match eid.value(section) {
+    let dir = match eid.value(&section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
@@ -125,10 +125,10 @@ pub fn get_resource<'a>(
     if dir.entries.len() > 1 {
         log::warn!("multiple res entries, picking first");
     }
-    let data = match dir.entries.first()?.value(section) {
+    let data = match dir.entries.first()?.value(&section) {
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };
-    let buf = mem.slice(data.OffsetToData..).slice(..data.Size);
+    let buf = mem.sub(data.OffsetToData, data.Size);
     return Some(buf);
 }

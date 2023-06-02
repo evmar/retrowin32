@@ -131,9 +131,10 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
     let atom = machine.state.user32.wndclasses.len() as u32 + 1;
     let name = machine
         .x86
-        .mem
-        .slice(lpWndClassEx.lpszClassName..)
-        .read_strz()
+        .mem()
+        .slicez(lpWndClassEx.lpszClassName)
+        .unwrap()
+        .to_ascii()
         .to_string();
     let wndclass = WndClass {
         // atom,
@@ -209,7 +210,8 @@ pub async fn CreateWindowExA(
     if lpClassName < 1 << 16 {
         todo!("numeric wndclass reference");
     }
-    let class_name = machine.x86.mem.slice(lpClassName..).read_strz();
+    let mem = machine.x86.mem();
+    let class_name = mem.slicez(lpClassName).unwrap().to_ascii();
     let wndclass = machine
         .state
         .user32
@@ -630,14 +632,10 @@ pub fn LoadImageA(
     const IMAGE_BITMAP: u32 = 0;
     match typ {
         IMAGE_BITMAP => {
-            let buf = pe::get_resource(
-                &machine.x86.mem.slice(machine.state.kernel32.image_base..),
-                &machine.state.user32.resources,
-                pe::RT_BITMAP,
-                name,
-            )
-            .unwrap();
-            let bmp = parse_bitmap(buf).unwrap();
+            let mem = machine.x86.mem().slice(machine.state.kernel32.image_base..);
+            let buf = pe::get_resource(&mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
+                .unwrap();
+            let bmp = parse_bitmap(&buf).unwrap();
             machine.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
             machine.state.gdi32.objects.len() as u32
         }

@@ -32,10 +32,10 @@ unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
-        image.slice(self.Name..).read_strz()
+        image.slicez(self.Name).unwrap().to_ascii()
     }
 
-    pub fn entries<'a>(&self, image: &'a Mem) -> ILTITer<'a> {
+    pub fn entries<'a, 'm>(&self, image: &'a Mem<'m>) -> ILTITer<'a, 'm> {
         let mut r = Reader::new(image);
         // Officially OriginalFirstThunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
@@ -47,12 +47,12 @@ impl IMAGE_IMPORT_DESCRIPTOR {
     }
 }
 
-pub struct IDTIter<'a> {
+pub struct IDTIter<'a, 'm> {
     /// r.buf points at IDT
-    r: Reader<'a>,
+    r: Reader<'a, 'm>,
 }
-impl<'a> Iterator for IDTIter<'a> {
-    type Item = &'a IMAGE_IMPORT_DESCRIPTOR;
+impl<'a, 'm> Iterator for IDTIter<'a, 'm> {
+    type Item = &'m IMAGE_IMPORT_DESCRIPTOR;
 
     fn next(&mut self) -> Option<Self::Item> {
         let descriptor = self.r.read::<IMAGE_IMPORT_DESCRIPTOR>();
@@ -63,18 +63,18 @@ impl<'a> Iterator for IDTIter<'a> {
     }
 }
 
-pub fn read_imports(buf: &Mem) -> IDTIter {
+pub fn read_imports<'a, 'm>(buf: &'a Mem<'m>) -> IDTIter<'a, 'm> {
     IDTIter {
         r: Reader::new(buf),
     }
 }
 
-pub struct ILTITer<'a> {
+pub struct ILTITer<'a, 'm> {
     /// r.buf points at image
-    r: Reader<'a>,
+    r: Reader<'a, 'm>,
 }
-impl<'a> Iterator for ILTITer<'a> {
-    type Item = (ImportSymbol<'a>, u32);
+impl<'a, 'm> Iterator for ILTITer<'a, 'm> {
+    type Item = (ImportSymbol<'m>, u32);
 
     fn next(&mut self) -> Option<Self::Item> {
         let addr = self.r.pos as u32;
@@ -88,7 +88,7 @@ impl<'a> Iterator for ILTITer<'a> {
         } else {
             // First two bytes at offset are hint/name table index, used to look up
             // the name faster in the DLL; we just skip them.
-            let sym_name = self.r.buf.slice((entry + 2)..).read_strz();
+            let sym_name = self.r.buf.slicez(entry + 2).unwrap().to_ascii();
             ImportSymbol::Name(sym_name)
         };
         Some((symbol, addr))

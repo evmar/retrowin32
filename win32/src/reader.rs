@@ -3,13 +3,13 @@ use std::mem::size_of;
 use anyhow::bail;
 use x86::Mem;
 
-pub struct Reader<'a> {
-    pub buf: &'a Mem,
+pub struct Reader<'a, 'm> {
+    pub buf: &'a Mem<'m>,
     pub pos: u32,
 }
 
-impl<'a> Reader<'a> {
-    pub fn new(buf: &'a Mem) -> Self {
+impl<'a, 'm> Reader<'a, 'm> {
+    pub fn new(buf: &'a Mem<'m>) -> Self {
         Reader { buf, pos: 0 }
     }
 
@@ -46,13 +46,13 @@ impl<'a> Reader<'a> {
         Ok(())
     }
 
-    pub fn read<T: x86::Pod>(&mut self) -> &'a T {
+    pub fn read<T: x86::Pod>(&mut self) -> &'m T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
 
-    pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> &'a [T] {
+    pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> &'m [T] {
         let slice = self.buf.view_n::<T>(self.pos as u32, count as u32);
         self.pos += size_of::<T>() as u32 * count;
         slice
