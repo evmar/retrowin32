@@ -5,7 +5,7 @@ use super::{alloc::Alloc, types::*};
 use crate::{host, machine::Machine, winapi::vtable};
 use bitflags::bitflags;
 use std::collections::HashMap;
-use x86::{Memory, Pod};
+use x86::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw";
 

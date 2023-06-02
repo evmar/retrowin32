@@ -4,7 +4,6 @@ mod log;
 
 use crate::host::JsHost;
 use wasm_bindgen::prelude::*;
-use x86::Memory;
 
 pub type JsResult<T> = Result<T, JsError>;
 fn err_from_anyhow(err: anyhow::Error) -> JsError {

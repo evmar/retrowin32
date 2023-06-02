@@ -6,7 +6,6 @@ use crate::{
     machine::Machine,
     winapi::{self, stack_args::*, types::*, BuiltinDLL},
 };
-use x86::Memory;
 pub mod bass {
     use super::*;
     use winapi::bass::*;
@@ -2561,14 +2560,14 @@ pub mod user32 {
             )
         };
         stack_offset += <u32>::stack_consumed();
-        let _cx = unsafe {
+        let cx = unsafe {
             <u32>::from_stack(
                 &mut machine.x86.mem,
                 machine.x86.cpu.regs.esp + stack_offset,
             )
         };
         stack_offset += <u32>::stack_consumed();
-        let _cy = unsafe {
+        let cy = unsafe {
             <u32>::from_stack(
                 &mut machine.x86.mem,
                 machine.x86.cpu.regs.esp + stack_offset,
@@ -2582,7 +2581,7 @@ pub mod user32 {
             )
         };
         stack_offset += <u32>::stack_consumed();
-        let result = winapi::user32::LoadImageA(machine, hInstance, name, typ, _cx, _cy, fuLoad);
+        let result = winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad);
         machine.x86.cpu.regs.eax = result.to_raw();
         machine.x86.cpu.regs.eip = machine.x86.mem.get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;

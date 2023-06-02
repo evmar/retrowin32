@@ -6,7 +6,7 @@
 
 use crate::winapi::types::{DWORD, WORD};
 use std::mem::size_of;
-use x86::{Mem, Memory};
+use x86::Mem;
 
 use super::IMAGE_DATA_DIRECTORY;
 

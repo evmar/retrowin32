@@ -1,7 +1,7 @@
 //! Functions to unsafely grab winapi function arguments from an x86 stack.
 
 use super::types::Str16;
-use x86::{Mem, Memory};
+use x86::Mem;
 
 unsafe fn extend_lifetime<'a, T: ?Sized>(x: &T) -> &'a T {
     std::mem::transmute(x)

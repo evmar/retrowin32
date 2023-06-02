@@ -21,41 +21,6 @@ unsafe impl Pod for u32 {}
 unsafe impl Pod for u64 {}
 unsafe impl Pod for f64 {}
 
-/// A trait for access into the x86 memory.  Distinct from a slice to better catch
-/// accesses and also to expose casts to/from Pod types.
-pub trait Memory {
-    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
-    fn as_slice_todo(&self) -> &[u8];
-    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
-    fn as_mut_slice_todo(&mut self) -> &mut [u8];
-    fn len(&self) -> u32;
-
-    fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem;
-    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem;
-
-    fn view<T: Pod>(&self, ofs: u32) -> &T;
-    fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
-    fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T];
-
-    fn get<T: Copy + Pod>(&self, ofs: u32) -> T {
-        *self.view(ofs)
-    }
-
-    fn put<T: Copy + Pod>(&mut self, ofs: u32, val: T) {
-        *self.view_mut(ofs) = val;
-    }
-
-    /// Read a nul-terminated string.
-    fn read_strz(&self) -> &str {
-        read_strz(&self.as_slice_todo())
-    }
-
-    /// Read a nul-terminated string, including the trailing nul.
-    fn read_strz_with_nul(&self) -> &str {
-        read_strz_with_nul(&self.as_slice_todo())
-    }
-}
-
 fn read_strz(buf: &[u8]) -> &str {
     let str = read_strz_with_nul(buf);
     &str[..str.len() - 1]
@@ -75,19 +40,6 @@ fn read_strz_with_nul(buf: &[u8]) -> &str {
     }
 }
 
-pub struct Mem([u8]);
-
-impl Mem {
-    pub fn from_slice(s: &[u8]) -> &Mem {
-        // Safety: this is how OsStr does it, shruggie.
-        unsafe { &*(s as *const [u8] as *const Mem) }
-    }
-    pub fn from_slice_mut(s: &mut [u8]) -> &mut Mem {
-        // Safety: this is how OsStr does it, shruggie.
-        unsafe { &mut *(s as *mut [u8] as *mut Mem) }
-    }
-}
-
 fn start_from_bound(b: std::ops::Bound<&u32>) -> usize {
     match b {
         std::ops::Bound::Included(&n) => n as usize,
@@ -104,44 +56,79 @@ fn end_from_bound(m: &Mem, b: std::ops::Bound<&u32>) -> usize {
     }
 }
 
-impl Memory for Mem {
-    fn as_slice_todo(&self) -> &[u8] {
+/// A view into the x86 memory.  Distinct from a slice to better catch
+/// accesses and also to expose casts to/from Pod types.
+
+pub struct Mem([u8]);
+
+impl Mem {
+    pub fn from_slice(s: &[u8]) -> &Mem {
+        // Safety: this is how OsStr does it, shruggie.
+        unsafe { &*(s as *const [u8] as *const Mem) }
+    }
+    pub fn from_slice_mut(s: &mut [u8]) -> &mut Mem {
+        // Safety: this is how OsStr does it, shruggie.
+        unsafe { &mut *(s as *mut [u8] as *mut Mem) }
+    }
+
+    pub fn get<T: Copy + Pod>(&self, ofs: u32) -> T {
+        *self.view(ofs)
+    }
+
+    pub fn put<T: Copy + Pod>(&mut self, ofs: u32, val: T) {
+        *self.view_mut(ofs) = val;
+    }
+
+    /// Read a nul-terminated string.
+    pub fn read_strz(&self) -> &str {
+        read_strz(&self.as_slice_todo())
+    }
+
+    /// Read a nul-terminated string, including the trailing nul.
+    pub fn read_strz_with_nul(&self) -> &str {
+        read_strz_with_nul(&self.as_slice_todo())
+    }
+
+    /// TODO: don't expose slices of memory, as we might not have contiguous pages.  
+    pub fn as_slice_todo(&self) -> &[u8] {
         &self.0
     }
 
-    fn as_mut_slice_todo(&mut self) -> &mut [u8] {
+    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
+    pub fn as_mut_slice_todo(&mut self) -> &mut [u8] {
         &mut self.0
     }
 
-    fn len(&self) -> u32 {
+    pub fn len(&self) -> u32 {
         self.0.len() as u32
     }
 
-    fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem {
+    pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &Mem {
         let start = start_from_bound(b.start_bound());
         let end = end_from_bound(self, b.end_bound());
         Mem::from_slice(&self.0[start..end])
     }
-    fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem {
+
+    pub fn slice_mut(&mut self, b: impl std::ops::RangeBounds<u32>) -> &mut Mem {
         let start = start_from_bound(b.start_bound());
         let end = end_from_bound(self, b.end_bound());
         Mem::from_slice_mut(&mut self.0[start..end])
     }
 
-    fn view<T: Pod>(&self, addr: u32) -> &T {
+    pub fn view<T: Pod>(&self, addr: u32) -> &T {
         let ofs = addr as usize;
         let buf = &self.0[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &*(buf.as_ptr() as *const T) }
     }
-    fn view_mut<T: Pod>(&mut self, addr: u32) -> &mut T {
+    pub fn view_mut<T: Pod>(&mut self, addr: u32) -> &mut T {
         let ofs = addr as usize;
         let buf = &mut self.0[ofs..(ofs + size_of::<T>())];
         // Safety: the above slice has already verified bounds.
         unsafe { &mut *(buf.as_mut_ptr() as *mut T) }
     }
 
-    fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T] {
+    pub fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T] {
         let size = size_of::<T>() as u32 * count;
         if ofs + size > self.0.len() as u32 {
             panic!("out of bounds");

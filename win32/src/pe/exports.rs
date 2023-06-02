@@ -3,7 +3,7 @@
 
 use super::IMAGE_DATA_DIRECTORY;
 use crate::machine::Machine;
-use x86::{Mem, Memory};
+use x86::Mem;
 
 #[derive(Debug)]
 #[repr(C)]

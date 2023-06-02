@@ -15,9 +15,7 @@ use super::{
 use crate::machine::Machine;
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
-use x86::{
-    Mem, Pod, {Memory, VecMem},
-};
+use x86::{Mem, Pod, VecMem};
 
 pub use dll::*;
 pub use file::*;

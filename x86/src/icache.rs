@@ -9,7 +9,7 @@
 
 use std::collections::{BTreeMap, HashMap};
 
-use crate::{Mem, Memory, CPU};
+use crate::{Mem, CPU};
 
 struct BasicBlock {
     /// Number of x86 instruction bytes covered by this block.

@@ -1,11 +1,7 @@
 use super::math::sub;
 use iced_x86::Instruction;
 
-use crate::{
-    memory::{Mem, Memory},
-    registers::Flags,
-    x86::CPU,
-};
+use crate::{memory::Mem, registers::Flags, x86::CPU};
 
 pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     assert!(cpu.flags.contains(Flags::DF)); // TODO

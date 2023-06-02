@@ -1,6 +1,6 @@
 //! Disassembler producing serde/JSON for use in displaying code in the debugger.
 
-use crate::{Mem, Memory};
+use crate::Mem;
 use iced_x86::{Formatter, IntelFormatter};
 use std::fmt::Write;
 use tsify::Tsify;

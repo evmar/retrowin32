@@ -5,7 +5,6 @@ use super::alloc::Alloc;
 use super::types::DWORD;
 use crate::machine::Machine;
 use crate::winapi::vtable;
-use x86::Memory;
 
 const TRACE_CONTEXT: &'static str = "dsound";
 

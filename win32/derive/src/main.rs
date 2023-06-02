@@ -119,7 +119,6 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
         /// Generated code, do not edit.
 
         use crate::{machine::Machine, winapi::{self, BuiltinDLL, stack_args::*, types::*}};
-        use x86::Memory;
 
         #(#mods)*
     })

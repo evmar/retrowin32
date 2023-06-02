@@ -10,7 +10,7 @@ use bitflags::bitflags;
 use num_traits::FromPrimitive;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use x86::{Mem, Memory};
+use x86::Mem;
 
 const TRACE_CONTEXT: &'static str = "user32";
 

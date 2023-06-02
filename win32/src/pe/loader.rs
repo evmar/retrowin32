@@ -3,7 +3,7 @@
 use super::{IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, reader::Reader, winapi};
 use std::collections::HashMap;
-use x86::{Mem, Memory};
+use x86::Mem;
 
 /// Copy the file itself into memory, choosing a base address.
 fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool) -> u32 {

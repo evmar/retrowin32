@@ -1,7 +1,7 @@
 use iced_x86::Instruction;
 
+use crate::Mem;
 use crate::{registers::Flags, x86::CPU};
-use crate::{Mem, Memory};
 
 use super::math::{and, sub};
 
