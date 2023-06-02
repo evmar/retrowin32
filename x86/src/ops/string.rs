@@ -134,9 +134,9 @@ pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
 
     while *counter > 0 {
         match size {
-            1 => *mem.view_mut::<u8>(cpu.regs.edi) = cpu.regs.eax as u8,
-            2 => *mem.view_mut::<u16>(cpu.regs.edi) = cpu.regs.eax as u16,
-            4 => *mem.view_mut::<u32>(cpu.regs.edi) = cpu.regs.eax,
+            1 => mem.write_u8(cpu.regs.edi, cpu.regs.eax as u8),
+            2 => mem.write_u16(cpu.regs.edi, cpu.regs.eax as u16),
+            4 => mem.write_u32(cpu.regs.edi, cpu.regs.eax),
             _ => unimplemented!(),
         }
         cpu.regs.edi += size;

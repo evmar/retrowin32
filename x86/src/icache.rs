@@ -114,7 +114,7 @@ impl InstrCache {
     pub fn add_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
         self.breakpoints.insert(addr, mem.get::<u8>(addr));
-        *mem.view_mut::<u8>(addr) = 0xcc; // int3
+        mem.write_u8(addr, 0xcc); // int3
     }
 
     /// Undo an add_breakpoint().
@@ -126,7 +126,7 @@ impl InstrCache {
         self.kill_block(addr + 1);
 
         let prev = self.breakpoints.remove(&addr).unwrap();
-        *mem.view_mut::<u8>(addr) = prev;
+        mem.write_u8(addr, prev);
     }
 
     /// Executes the current basic block, updating eip.
