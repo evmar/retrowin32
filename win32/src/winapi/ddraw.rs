@@ -349,7 +349,7 @@ mod IDirectDraw {
         let surface = machine.host.create_surface(&opts);
 
         let x86_surface = IDirectDrawSurface::new(machine);
-        machine.x86.mem.write_u32(lplpDDSurface, x86_surface);
+        machine.x86.mem.put::<u32>(lplpDDSurface, x86_surface);
         machine.state.ddraw.surfaces.insert(
             x86_surface,
             Surface {
@@ -422,7 +422,7 @@ mod IDirectDrawSurface {
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
-        machine.x86.mem.write_u32(lpDirectDrawSurface, vtable);
+        machine.x86.mem.put::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }
 
@@ -446,7 +446,7 @@ mod IDirectDrawSurface {
         };
         let x86_surface = new(machine);
 
-        machine.x86.mem.write_u32(lpDirectDrawSurface, x86_surface);
+        machine.x86.mem.put::<u32>(lpDirectDrawSurface, x86_surface);
         machine.state.ddraw.surfaces.insert(x86_surface, surface);
         DD_OK
     }
@@ -528,7 +528,7 @@ mod IDirectDraw7 {
             .to_vec()
             .into_boxed_slice();
         machine.state.ddraw.palettes.insert(palette, entries);
-        machine.x86.mem.write_u32(lplpPalette, palette);
+        machine.x86.mem.put::<u32>(lplpPalette, palette);
         DD_OK
     }
 
@@ -745,7 +745,7 @@ mod IDirectDrawSurface7 {
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
-        machine.x86.mem.write_u32(lpDirectDrawSurface7, vtable);
+        machine.x86.mem.put::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }
 
@@ -830,7 +830,10 @@ mod IDirectDrawSurface7 {
         };
         let x86_surface = new(machine);
 
-        machine.x86.mem.write_u32(lpDirectDrawSurface7, x86_surface);
+        machine
+            .x86
+            .mem
+            .put::<u32>(lpDirectDrawSurface7, x86_surface);
         machine.state.ddraw.surfaces.insert(x86_surface, surface);
         DD_OK
     }
@@ -838,7 +841,7 @@ mod IDirectDrawSurface7 {
     fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> u32 {
         let (handle, dc) = machine.state.gdi32.new_dc();
         dc.ddraw_surface = this;
-        machine.x86.mem.write_u32(lpHDC, handle);
+        machine.x86.mem.put::<u32>(lpHDC, handle);
         DD_OK
     }
 
@@ -975,7 +978,7 @@ mod IDirectDrawPalette {
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawPalette;
-        machine.x86.mem.write_u32(lpDirectDrawPalette, vtable);
+        machine.x86.mem.put::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
     }
 
@@ -1026,8 +1029,8 @@ pub fn DirectDrawCreateEx(
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
-        machine.x86.mem.write_u32(lpDirectDraw, vtable);
-        machine.x86.mem.write_u32(lplpDD, lpDirectDraw);
+        machine.x86.mem.put::<u32>(lpDirectDraw, vtable);
+        machine.x86.mem.put::<u32>(lplpDD, lpDirectDraw);
         return DD_OK;
     }
 
@@ -1044,8 +1047,8 @@ pub fn DirectDrawCreateEx(
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;
-        machine.x86.mem.write_u32(lpDirectDraw7, vtable);
-        machine.x86.mem.write_u32(lplpDD, lpDirectDraw7);
+        machine.x86.mem.put::<u32>(lpDirectDraw7, vtable);
+        machine.x86.mem.put::<u32>(lplpDD, lpDirectDraw7);
         DD_OK
     } else {
         log::error!("DirectDrawCreateEx: unknown IID {iid_slice:x?}");

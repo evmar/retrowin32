@@ -121,7 +121,7 @@ pub fn mov_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn mov_moffs8_al(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
-    mem.write_u8(addr, cpu.regs.eax as u8);
+    mem.put::<u8>(addr, cpu.regs.eax as u8);
 }
 
 pub fn mov_r32m16_sreg(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
@@ -131,7 +131,7 @@ pub fn mov_r32m16_sreg(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
         iced_x86::OpKind::Register => cpu.regs.set32(instr.op0_register(), y as u32),
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            mem.write_u16(addr, y)
+            mem.put::<u16>(addr, y)
         }
         _ => unimplemented!(),
     }
@@ -226,7 +226,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
             let addr = x86_addr(cpu, instr);
             let x = mem.get::<u32>(addr);
             if cpu.regs.eax == x {
-                mem.write_u32(addr, y);
+                mem.put::<u32>(addr, y);
             } else {
                 cpu.regs.eax = y;
             }

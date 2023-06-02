@@ -119,7 +119,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 
     for (addr, target) in patches {
-        machine.x86.mem.write_u32(addr, target);
+        machine.x86.mem.put::<u32>(addr, target);
     }
 }
 

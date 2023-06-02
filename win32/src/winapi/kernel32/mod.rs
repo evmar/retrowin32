@@ -118,9 +118,9 @@ impl State {
             0x100,
         ));
         let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
-        // x86.write_u32(params_addr + 0x10, console_handle);
-        // x86.write_u32(params_addr + 0x14, console_flags);
-        // x86.write_u32(params_addr + 0x18, stdin);
+        // x86.put::<u32>(params_addr + 0x10, console_handle);
+        // x86.put::<u32>(params_addr + 0x14, console_flags);
+        // x86.put::<u32>(params_addr + 0x18, stdin);
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
         params.ImagePathName.clear();
@@ -516,8 +516,8 @@ pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> boo
     machine
         .x86
         .mem
-        .write_u32(lpFrequency, QUERY_PERFORMANCE_FREQ);
-    machine.x86.mem.write_u32(lpFrequency + 4, 0);
+        .put::<u32>(lpFrequency, QUERY_PERFORMANCE_FREQ);
+    machine.x86.mem.put::<u32>(lpFrequency + 4, 0);
     true
 }
 

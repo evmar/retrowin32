@@ -91,7 +91,7 @@ pub fn fst_m64fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 pub fn fst_m32fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let f = *cpu.regs.st_top();
     let addr = x86_addr(cpu, instr);
-    mem.write_u32(addr, (f as f32).to_bits());
+    mem.put::<u32>(addr, (f as f32).to_bits());
 }
 
 pub fn fstp_m64fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
@@ -103,7 +103,7 @@ pub fn fstp_m64fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 pub fn fstp_m32fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let f = *cpu.regs.st_top();
     let addr = x86_addr(cpu, instr);
-    mem.write_u32(addr, (f as f32).to_bits());
+    mem.put::<u32>(addr, (f as f32).to_bits());
     cpu.regs.st_top += 1;
 }
 
@@ -123,7 +123,7 @@ pub fn fistp_m64int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 pub fn fistp_m32int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let f = *cpu.regs.st_top();
     let addr = x86_addr(cpu, instr);
-    mem.write_u32(addr, f as i32 as u32);
+    mem.put::<u32>(addr, f as i32 as u32);
     cpu.regs.st_top += 1;
 }
 
@@ -286,7 +286,7 @@ pub fn fnstcw_m2byte(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // TODO: control word
     let cw = 0x37u16; // default value
     let addr = x86_addr(cpu, instr);
-    mem.write_u16(addr, cw);
+    mem.put::<u16>(addr, cw);
 }
 
 pub fn fldcw_m2byte(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {

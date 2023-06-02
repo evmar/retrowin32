@@ -41,14 +41,8 @@ pub trait Memory {
         *self.view(ofs)
     }
 
-    fn write_u32(&mut self, addr: u32, value: u32) {
-        *self.view_mut::<u32>(addr) = value;
-    }
-    fn write_u16(&mut self, addr: u32, value: u16) {
-        *self.view_mut::<u16>(addr) = value;
-    }
-    fn write_u8(&mut self, addr: u32, value: u8) {
-        *self.view_mut::<u8>(addr) = value;
+    fn put<T: Copy + Pod>(&mut self, ofs: u32, val: T) {
+        *self.view_mut(ofs) = val;
     }
 
     /// Read a nul-terminated string.

@@ -145,13 +145,13 @@ pub fn op1_rm8(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
 /// Push a u32 on the x86 stack.
 pub fn push(cpu: &mut CPU, mem: &mut Mem, value: u32) {
     cpu.regs.esp -= 4;
-    mem.write_u32(cpu.regs.esp, value);
+    mem.put::<u32>(cpu.regs.esp, value);
 }
 
 /// Push a u16 on the x86 stack.
 pub fn push16(cpu: &mut CPU, mem: &mut Mem, value: u16) {
     cpu.regs.esp -= 2;
-    mem.write_u16(cpu.regs.esp, value);
+    mem.put::<u16>(cpu.regs.esp, value);
 }
 
 /// Pop a u32 from the x86 stack.

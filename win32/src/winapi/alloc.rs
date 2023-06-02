@@ -48,7 +48,7 @@ impl<'a> Alloc for Arena<'a> {
             return 0;
         }
         let addr = self.info.addr + self.info.next;
-        self.mem.write_u32(addr, size);
+        self.mem.put::<u32>(addr, size);
         self.info.next += alloc_size;
         addr + 4
     }
@@ -183,7 +183,7 @@ impl<'a> Alloc for Heap<'a> {
             FreeNode::get(self.mem, prev).next = next;
         }
 
-        self.mem.write_u32(cur, size);
+        self.mem.put::<u32>(cur, size);
         cur + 4
     }
 
