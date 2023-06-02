@@ -76,8 +76,8 @@ impl Mappings {
                 false
             })
             .unwrap_or_else(|| {
-                let space = if mem.len() as u32 > prev_end {
-                    mem.len() as u32 - prev_end
+                let space = if mem.len() > prev_end {
+                    mem.len() - prev_end
                 } else {
                     0
                 };

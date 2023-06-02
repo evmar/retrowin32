@@ -570,7 +570,7 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
 
     let width = header.width();
     let height = header.height();
-    assert!(pixels.len() as u32 == width * height);
+    assert!(pixels.len() == width * height);
 
     // Bitmap pixel data is tricky.
     // - Likely bottom-up (first row of data is bottom row of pixels)

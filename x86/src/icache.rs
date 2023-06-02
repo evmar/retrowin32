@@ -88,7 +88,7 @@ impl InstrCache {
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
             later_ip
         } else {
-            mem.len() as u32
+            mem.len()
         };
 
         // Ensure we don't overlap any previous block.
