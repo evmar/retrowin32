@@ -4,7 +4,7 @@ use super::{
     stack_args::ToX86,
     types::{DWORD, HWND, WORD},
 };
-use crate::{host, machine::Machine, pe, winapi::gdi32};
+use crate::{host, machine::Machine, pe, reader::Reader, winapi::gdi32};
 use anyhow::bail;
 use bitflags::bitflags;
 use num_traits::FromPrimitive;
@@ -546,7 +546,8 @@ impl std::fmt::Debug for Bitmap {
 }
 
 fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
-    let header = buf.view::<BITMAPINFOHEADER>(0);
+    let mut r = Reader::new(buf);
+    let header = r.read::<BITMAPINFOHEADER>();
     let header_size = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
     if header.biSize != header_size {
         bail!("bad bitmap header");
@@ -559,18 +560,17 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
         },
         _ => unimplemented!(),
     };
-    let palette_buf = buf.slice(header_size..).slice(..palette_count * 4);
+    let palette_buf = r.read_n::<u32>(palette_count);
     let palette = unsafe {
         std::slice::from_raw_parts(
-            palette_buf.as_slice_todo().as_ptr() as *const [u8; 4],
+            palette_buf.as_ptr() as *const [u8; 4],
             palette_count as usize,
         )
     };
-    let pixels = buf.slice(header_size + (palette_count * 4)..);
-
     let width = header.width();
     let height = header.height();
-    assert!(pixels.len() == width * height);
+    let pixels = r.read_n::<u8>(width * height);
+    assert!(r.done());
 
     // Bitmap pixel data is tricky.
     // - Likely bottom-up (first row of data is bottom row of pixels)
@@ -586,20 +586,11 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
     }
 
     let pixels = if header.is_top_down() {
-        pixels
-            .as_slice_todo()
-            .iter()
-            .map(|&p| get_pixel(palette, p))
-            .collect()
+        pixels.iter().map(|&p| get_pixel(palette, p)).collect()
     } else {
         let mut v = Vec::with_capacity(pixels.len() as usize);
         for y in (0..height).rev() {
-            for &p in pixels
-                .slice(y * width..)
-                .slice(..width)
-                .as_slice_todo()
-                .iter()
-            {
+            for &p in pixels[(y * width) as usize..][..width as usize].iter() {
                 v.push(get_pixel(palette, p));
             }
         }
