@@ -65,7 +65,7 @@ pub fn cmp_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let x = cpu.regs.get8(instr.op0_register());
     let y = match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get8(instr.op1_register()),
-        iced_x86::OpKind::Memory => mem.read_u8(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get::<u8>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     };
     sub(x, y, &mut cpu.flags);

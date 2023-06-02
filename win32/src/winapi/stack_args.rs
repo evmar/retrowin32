@@ -48,7 +48,7 @@ impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
 
 impl<T: x86::Pod> FromX86 for Option<&T> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
+        let addr = mem.get::<u32>(sp);
         if addr == 0 {
             None
         } else {
@@ -59,7 +59,7 @@ impl<T: x86::Pod> FromX86 for Option<&T> {
 
 impl<T: x86::Pod> FromX86 for Option<&mut T> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
+        let addr = mem.get::<u32>(sp);
         if addr == 0 {
             None
         } else {
@@ -70,8 +70,8 @@ impl<T: x86::Pod> FromX86 for Option<&mut T> {
 
 impl FromX86 for Option<&[u8]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
-        let len = mem.read_u32(sp + 4);
+        let addr = mem.get::<u32>(sp);
+        let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -86,8 +86,8 @@ impl FromX86 for Option<&[u8]> {
 
 impl FromX86 for Option<&mut [u8]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
-        let len = mem.read_u32(sp + 4);
+        let addr = mem.get::<u32>(sp);
+        let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -102,8 +102,8 @@ impl FromX86 for Option<&mut [u8]> {
 
 impl FromX86 for Option<&[u16]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
-        let len = mem.read_u32(sp + 4);
+        let addr = mem.get::<u32>(sp);
+        let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -116,8 +116,8 @@ impl FromX86 for Option<&[u16]> {
 
 impl FromX86 for Option<&mut [u16]> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
-        let len = mem.read_u32(sp + 4);
+        let addr = mem.get::<u32>(sp);
+        let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -130,7 +130,7 @@ impl FromX86 for Option<&mut [u16]> {
 
 impl FromX86 for Option<&str> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
+        let addr = mem.get::<u32>(sp);
         if addr == 0 {
             return None;
         }
@@ -141,7 +141,7 @@ impl FromX86 for Option<&str> {
 
 impl<'a> FromX86 for Option<Str16<'a>> {
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        let addr = mem.read_u32(sp);
+        let addr = mem.get::<u32>(sp);
         if addr == 0 {
             return None;
         }

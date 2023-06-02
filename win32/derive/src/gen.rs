@@ -41,7 +41,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
     };
     let ret = quote! {
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.x86.mem.read_u32(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.x86.mem.get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     };
 

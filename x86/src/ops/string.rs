@@ -25,8 +25,8 @@ pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
         cpu.regs.esi += pos;
         cpu.regs.edi += pos;
         cpu.regs.ecx -= pos;
-        let x = mem.read_u8(cpu.regs.esi);
-        let y = mem.read_u8(cpu.regs.edi);
+        let x = mem.get::<u8>(cpu.regs.esi);
+        let y = mem.get::<u8>(cpu.regs.edi);
         sub(x, y, &mut cpu.flags);
     } else {
         cpu.state = Err("unimpl".into());
@@ -166,14 +166,14 @@ pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) {
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
     match size {
         4 => {
-            cpu.regs.eax = mem.read_u32(cpu.regs.esi);
+            cpu.regs.eax = mem.get::<u32>(cpu.regs.esi);
         }
         2 => {
-            let value = mem.read_u16(cpu.regs.esi);
+            let value = mem.get::<u16>(cpu.regs.esi);
             cpu.regs.set16(iced_x86::Register::AX, value);
         }
         1 => {
-            let value = mem.read_u8(cpu.regs.esi);
+            let value = mem.get::<u8>(cpu.regs.esi);
             cpu.regs.set8(iced_x86::Register::AL, value);
         }
         _ => unimplemented!("lods size {}", size),

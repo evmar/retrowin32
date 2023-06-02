@@ -5,7 +5,7 @@ use crate::{registers::FPUStatus, x86::CPU, Mem, Memory};
 use super::helpers::*;
 
 fn read_f32(mem: &mut Mem, addr: u32) -> f32 {
-    f32::from_bits(mem.read_u32(addr))
+    f32::from_bits(mem.get::<u32>(addr))
 }
 
 pub fn read_f64(mem: &Mem, addr: u32) -> f64 {
@@ -75,12 +75,12 @@ pub fn fild_m64int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn fild_m32int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.read_u32(x86_addr(cpu, instr)) as i32 as f64;
+    *cpu.regs.st_top() = mem.get::<u32>(x86_addr(cpu, instr)) as i32 as f64;
 }
 
 pub fn fild_m16int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.read_u16(x86_addr(cpu, instr)) as i16 as f64;
+    *cpu.regs.st_top() = mem.get::<u16>(x86_addr(cpu, instr)) as i16 as f64;
 }
 
 pub fn fst_m64fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
@@ -203,7 +203,7 @@ pub fn fmul_m32fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn fimul_m32int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let y = mem.read_u32(x86_addr(cpu, instr)) as f64;
+    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() *= y;
 }
 
@@ -245,12 +245,12 @@ pub fn fdiv_m32fp(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let y = mem.read_u32(x86_addr(cpu, instr)) as f64;
+    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() /= y;
 }
 
 pub fn fidivr_m32int(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let y = mem.read_u32(x86_addr(cpu, instr)) as f64;
+    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() = y / *cpu.regs.st_top();
 }
 
@@ -291,5 +291,5 @@ pub fn fnstcw_m2byte(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn fldcw_m2byte(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // TODO: control word
-    mem.read_u16(x86_addr(cpu, instr));
+    mem.get::<u16>(x86_addr(cpu, instr));
 }

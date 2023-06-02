@@ -15,7 +15,7 @@ fn op1_mmm64(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u64 {
 fn op1_mmm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()) as u32,
-        iced_x86::OpKind::Memory => mem.read_u32(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get::<u32>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }

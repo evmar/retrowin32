@@ -142,7 +142,7 @@ pub fn mov_sreg_r32m16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // TODO: this is supposed to do segment selector validation stuff.
     let y = match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()) as u16,
-        iced_x86::OpKind::Memory => mem.read_u16(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get::<u16>(x86_addr(cpu, instr)),
         _ => unimplemented!(),
     };
     cpu.regs.set16(instr.op0_register(), y);
@@ -224,7 +224,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
         iced_x86::OpKind::Register => todo!(),
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            let x = mem.read_u32(addr);
+            let x = mem.get::<u32>(addr);
             if cpu.regs.eax == x {
                 mem.write_u32(addr, y);
             } else {

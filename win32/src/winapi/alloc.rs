@@ -55,7 +55,7 @@ impl<'a> Alloc for Arena<'a> {
 
     fn size(&self, addr: u32) -> u32 {
         assert!(addr >= self.info.addr + 4 && addr < self.info.addr + self.info.size);
-        self.mem.read_u32(addr - 4)
+        self.mem.get::<u32>(addr - 4)
     }
 
     fn free(&mut self, _addr: u32) {
@@ -188,7 +188,7 @@ impl<'a> Alloc for Heap<'a> {
     }
 
     fn size(&self, addr: u32) -> u32 {
-        self.mem.read_u32(addr - 4)
+        self.mem.get::<u32>(addr - 4)
     }
 
     fn free(&mut self, addr: u32) {
