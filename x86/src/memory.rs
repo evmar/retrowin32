@@ -37,6 +37,10 @@ pub trait Memory {
     fn view_mut<T: Pod>(&mut self, ofs: u32) -> &mut T;
     fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &[T];
 
+    fn get<T: Copy + Pod>(&self, ofs: u32) -> T {
+        *self.view(ofs)
+    }
+
     fn read_u32(&self, addr: u32) -> u32 {
         *self.view::<u32>(addr)
     }

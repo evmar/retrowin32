@@ -9,7 +9,7 @@ fn read_f32(mem: &mut Mem, addr: u32) -> f32 {
 }
 
 pub fn read_f64(mem: &Mem, addr: u32) -> f64 {
-    *mem.view::<f64>(addr)
+    mem.get::<f64>(addr)
 }
 
 pub fn write_f64(mem: &mut Mem, addr: u32, value: f64) {

@@ -89,15 +89,15 @@ fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) {
     while *counter > 0 {
         match size {
             4 => {
-                let src = *mem.view::<u32>(cpu.regs.edi);
+                let src = mem.get::<u32>(cpu.regs.edi);
                 sub(cpu.regs.eax, src, &mut cpu.flags);
             }
             2 => {
-                let src = *mem.view::<u16>(cpu.regs.edi);
+                let src = mem.get::<u16>(cpu.regs.edi);
                 sub(cpu.regs.eax as u16, src, &mut cpu.flags);
             }
             1 => {
-                let src = *mem.view::<u8>(cpu.regs.edi);
+                let src = mem.get::<u8>(cpu.regs.edi);
                 sub(cpu.regs.eax as u8, src, &mut cpu.flags);
             }
             _ => unimplemented!(),

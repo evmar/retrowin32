@@ -113,7 +113,7 @@ impl InstrCache {
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
-        self.breakpoints.insert(addr, *mem.view::<u8>(addr));
+        self.breakpoints.insert(addr, mem.get::<u8>(addr));
         *mem.view_mut::<u8>(addr) = 0xcc; // int3
     }
 

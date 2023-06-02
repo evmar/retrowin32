@@ -3,7 +3,7 @@
 use crate::{registers::Flags, x86::CPU, Mem, Memory, NULL_POINTER_REGION_SIZE};
 
 pub fn read_u64(mem: &Mem, addr: u32) -> u64 {
-    *mem.view::<u64>(addr)
+    mem.get::<u64>(addr)
 }
 
 pub fn write_u64(mem: &mut Mem, addr: u32, value: u64) {

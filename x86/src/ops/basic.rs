@@ -375,5 +375,5 @@ pub fn bswap_r32(cpu: &mut CPU, _mem: &mut Mem, instr: &Instruction) {
 
 pub fn xlat_m8(cpu: &mut CPU, mem: &mut Mem, _instr: &Instruction) {
     let addr = cpu.regs.ebx + (cpu.regs.eax & 0xFF);
-    cpu.regs.set8(iced_x86::Register::AL, *mem.view::<u8>(addr));
+    cpu.regs.set8(iced_x86::Register::AL, mem.get::<u8>(addr));
 }

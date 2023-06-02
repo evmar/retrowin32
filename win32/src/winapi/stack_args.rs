@@ -15,7 +15,7 @@ pub trait FromX86: Sized {
         unimplemented!()
     }
     unsafe fn from_stack(mem: &mut Mem, sp: u32) -> Self {
-        Self::from_raw(*mem.view::<u32>(sp))
+        Self::from_raw(mem.get::<u32>(sp))
     }
     fn stack_consumed() -> u32 {
         4
