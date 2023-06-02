@@ -1,6 +1,6 @@
 use std::mem::size_of;
 
-use anyhow::{anyhow, bail};
+use anyhow::bail;
 use x86::{Mem, Memory};
 
 pub struct Reader<'a> {
@@ -34,14 +34,13 @@ impl<'a> Reader<'a> {
         self.check_eof()
     }
 
-    fn peek(&self, n: u32) -> Option<&'a [u8]> {
-        self.buf.0.get(self.pos as usize..(self.pos + n) as usize)
-    }
-
     pub fn expect(&mut self, s: &str) -> anyhow::Result<()> {
-        let p = self.peek(s.len() as u32).ok_or(anyhow!("EOF"))?;
-        if p != s.as_bytes() {
-            bail!("expected {:?}, got {:?}", s, p);
+        if self.pos + s.len() as u32 > self.buf.len() {
+            bail!("EOF");
+        }
+        let got = self.read_n::<u8>(s.len() as u32);
+        if got != s.as_bytes() {
+            bail!("expected {:?}, got {:?}", s, got);
         }
         self.pos += s.len() as u32;
         Ok(())

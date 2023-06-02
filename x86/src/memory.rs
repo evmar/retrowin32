@@ -75,7 +75,7 @@ fn read_strz_with_nul(buf: &[u8]) -> &str {
     }
 }
 
-pub struct Mem(pub [u8]);
+pub struct Mem([u8]);
 
 impl Mem {
     pub fn from_slice(s: &[u8]) -> &Mem {
