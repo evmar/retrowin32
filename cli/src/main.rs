@@ -153,7 +153,9 @@ fn main() -> anyhow::Result<()> {
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut machine = win32::Machine::new(Box::new(host.clone()));
-    machine.load_exe(&buf, cmdline.clone(), false)?;
+    machine
+        .load_exe(&buf, cmdline.clone(), false)
+        .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {

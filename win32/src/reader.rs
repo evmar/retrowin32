@@ -35,26 +35,27 @@ impl<'a, 'm> Reader<'a, 'm> {
     }
 
     pub fn expect(&mut self, s: &str) -> anyhow::Result<()> {
-        if self.pos + s.len() as u32 > self.buf.len() {
-            bail!("EOF");
-        }
-        let got = self.read_n::<u8>(s.len() as u32);
+        let got = self.read_n::<u8>(s.len() as u32)?;
         if got != s.as_bytes() {
             bail!("expected {:?}, got {:?}", s, got);
         }
-        self.pos += s.len() as u32;
         Ok(())
     }
 
+    // TODO: Result<> here.
     pub fn read<T: x86::Pod>(&mut self) -> &'m T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
 
-    pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> &'m [T] {
+    pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> anyhow::Result<&'m [T]> {
+        let len = size_of::<T>() as u32 * count;
+        if self.pos + len > self.buf.len() {
+            bail!("EOF");
+        }
         let slice = self.buf.view_n::<T>(self.pos as u32, count as u32);
-        self.pos += size_of::<T>() as u32 * count;
-        slice
+        self.pos += len;
+        Ok(slice)
     }
 }

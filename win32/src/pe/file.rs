@@ -192,13 +192,18 @@ pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
     let mem = Mem::from_slice(buf);
     let mut r = Reader::new(&mem);
 
-    let ofs = dos_header(&mut r)?;
-    r.seek(ofs)?;
+    let ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
+    r.seek(ofs)
+        .map_err(|err| anyhow!("seeking PE header {ofs:x}: {}", err))?;
 
-    let header = pe_header(&mut r)?;
+    let header = pe_header(&mut r).map_err(|err| anyhow!("reading PE header: {}", err))?;
     let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
-    let data_directory = r.read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes);
-    let sections = r.read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as u32);
+    let data_directory = r
+        .read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes)
+        .unwrap();
+    let sections = r
+        .read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as u32)
+        .unwrap();
 
     Ok(File {
         header,

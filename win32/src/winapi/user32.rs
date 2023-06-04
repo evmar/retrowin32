@@ -562,7 +562,7 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
         },
         _ => unimplemented!(),
     };
-    let palette_buf = r.read_n::<u32>(palette_count);
+    let palette_buf = r.read_n::<u32>(palette_count)?;
     let palette = unsafe {
         std::slice::from_raw_parts(
             palette_buf.as_ptr() as *const [u8; 4],
@@ -571,7 +571,7 @@ fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
     };
     let width = header.width();
     let height = header.height();
-    let pixels = r.read_n::<u8>(width * height);
+    let pixels = r.read_n::<u8>(width * height)?;
     assert!(r.done());
 
     // Bitmap pixel data is tricky.
