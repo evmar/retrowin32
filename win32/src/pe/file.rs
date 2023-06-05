@@ -12,7 +12,7 @@ use x86::Mem;
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 
-fn dos_header<'a, 'm>(r: &mut Reader<'a, 'm>) -> anyhow::Result<u32> {
+fn dos_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
     Ok(*r.read::<DWORD>())
@@ -115,7 +115,7 @@ pub enum IMAGE_DIRECTORY_ENTRY {
     COM_DESCRIPTOR = 14,
 }
 
-fn pe_header<'a, 'm>(r: &mut Reader<'a, 'm>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
+fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
     let header: &'m IMAGE_FILE_HEADER = r.read::<IMAGE_FILE_HEADER>();
@@ -190,7 +190,7 @@ impl<'a> File<'a> {
 
 pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
     let mem = Mem::from_slice(buf);
-    let mut r = Reader::new(&mem);
+    let mut r = Reader::new(mem);
 
     let ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
     r.seek(ofs)

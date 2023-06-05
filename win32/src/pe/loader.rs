@@ -93,15 +93,15 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     let mut patches = Vec::new();
 
     let image = unsafe { std::mem::transmute(machine.x86.mem().slice(base..)) };
-    for dll_imports in pe::read_imports(&imports_data.as_mem(&image)) {
-        let dll_name = dll_imports.name(&image).to_ascii_lowercase();
+    for dll_imports in pe::read_imports(imports_data.as_mem(&image)) {
+        let dll_name = dll_imports.image_name(&image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
         let mut dll = match hmodule.to_dll_index() {
             Some(index) => Some(&mut machine.state.kernel32.dlls[index]),
             None => None,
         };
-        for (sym, iat_addr) in dll_imports.entries(&image) {
+        for (sym, iat_addr) in dll_imports.entries(image.clone()) {
             let name = format!("{}!{}", dll_name, sym.to_string());
             machine
                 .labels
@@ -136,7 +136,7 @@ fn apply_relocs(image: &mut Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_
     // that appear to only apply to object files (?).
 
     let relocs = relocs.as_mem(image);
-    let mut r = Reader::new(&relocs);
+    let mut r = Reader::new(relocs);
     while !r.done() {
         let reloc = r.read::<IMAGE_BASE_RELOCATION>();
         let size = reloc.SizeOfBlock - std::mem::size_of::<IMAGE_BASE_RELOCATION>() as u32;

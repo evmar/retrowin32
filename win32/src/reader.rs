@@ -3,13 +3,13 @@ use std::mem::size_of;
 use anyhow::bail;
 use x86::Mem;
 
-pub struct Reader<'a, 'm> {
-    pub buf: &'a Mem<'m>,
+pub struct Reader<'m> {
+    pub buf: Mem<'m>,
     pub pos: u32,
 }
 
-impl<'a, 'm> Reader<'a, 'm> {
-    pub fn new(buf: &'a Mem<'m>) -> Self {
+impl<'m> Reader<'m> {
+    pub fn new(buf: Mem<'m>) -> Self {
         Reader { buf, pos: 0 }
     }
 

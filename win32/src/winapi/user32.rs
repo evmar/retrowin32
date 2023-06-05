@@ -547,7 +547,7 @@ impl std::fmt::Debug for Bitmap {
     }
 }
 
-fn parse_bitmap(buf: &Mem) -> anyhow::Result<Bitmap> {
+fn parse_bitmap(buf: Mem) -> anyhow::Result<Bitmap> {
     let mut r = Reader::new(buf);
     let header = r.read::<BITMAPINFOHEADER>();
     let header_size = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
@@ -635,7 +635,7 @@ pub fn LoadImageA(
             let mem = machine.x86.mem().slice(machine.state.kernel32.image_base..);
             let buf = pe::get_resource(&mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
                 .unwrap();
-            let bmp = parse_bitmap(&buf).unwrap();
+            let bmp = parse_bitmap(buf).unwrap();
             machine.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
             machine.state.gdi32.objects.len() as u32
         }

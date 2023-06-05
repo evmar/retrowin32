@@ -31,11 +31,11 @@ pub struct IMAGE_IMPORT_DESCRIPTOR {
 unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
-    pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
+    pub fn image_name<'a>(&self, image: &'a Mem) -> &'a str {
         image.slicez(self.Name).unwrap().to_ascii()
     }
 
-    pub fn entries<'a, 'm>(&self, image: &'a Mem<'m>) -> ILTITer<'a, 'm> {
+    pub fn entries<'m>(&self, image: Mem<'m>) -> ILTITer<'m> {
         let mut r = Reader::new(image);
         // Officially OriginalFirstThunk should be an array that contains pointers to
         // IMAGE_IMPORT_BY_NAME entries, but in my sample executable they're all 0.
@@ -47,11 +47,11 @@ impl IMAGE_IMPORT_DESCRIPTOR {
     }
 }
 
-pub struct IDTIter<'a, 'm> {
+pub struct IDTIter<'m> {
     /// r.buf points at IDT
-    r: Reader<'a, 'm>,
+    r: Reader<'m>,
 }
-impl<'a, 'm> Iterator for IDTIter<'a, 'm> {
+impl<'m> Iterator for IDTIter<'m> {
     type Item = &'m IMAGE_IMPORT_DESCRIPTOR;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -63,17 +63,17 @@ impl<'a, 'm> Iterator for IDTIter<'a, 'm> {
     }
 }
 
-pub fn read_imports<'a, 'm>(buf: &'a Mem<'m>) -> IDTIter<'a, 'm> {
+pub fn read_imports<'m>(buf: Mem<'m>) -> IDTIter<'m> {
     IDTIter {
         r: Reader::new(buf),
     }
 }
 
-pub struct ILTITer<'a, 'm> {
-    /// r.buf points at image
-    r: Reader<'a, 'm>,
+pub struct ILTITer<'m> {
+    /// r.buf must point at image, not ILT, because entries can refer to image-relative addresses.
+    r: Reader<'m>,
 }
-impl<'a, 'm> Iterator for ILTITer<'a, 'm> {
+impl<'m> Iterator for ILTITer<'m> {
     type Item = (ImportSymbol<'m>, u32);
 
     fn next(&mut self) -> Option<Self::Item> {

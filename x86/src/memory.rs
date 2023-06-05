@@ -23,6 +23,7 @@ unsafe impl Pod for f64 {}
 
 /// A view into the x86 memory.  Distinct from a slice to better catch
 /// accesses and also to expose casts to/from Pod types.
+#[derive(Clone)]
 pub struct Mem<'m>(&'m [u8]);
 
 impl<'m> Mem<'m> {
