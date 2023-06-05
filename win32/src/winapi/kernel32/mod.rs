@@ -499,13 +499,27 @@ pub fn GetTickCount(machine: &mut Machine) -> u32 {
 // is to say a count is 0.1us.
 const QUERY_PERFORMANCE_FREQ: u32 = 10_000_000;
 
+// In principle we could just use an i64 here, but when Windows passes one of these via
+// the stack it may align it on a 4-byte address when Rust requires 8-byte alignment for
+// 64-bit addresses.  So instead we more closely match the Windows behavior.
+#[repr(C)]
+#[derive(Debug)]
+pub struct LARGE_INTEGER {
+    LowPart: u32,
+    HighPart: i32,
+}
+unsafe impl Pod for LARGE_INTEGER {}
+
 #[win32_derive::dllexport]
 pub fn QueryPerformanceCounter(
     machine: &mut Machine,
-    lpPerformanceCount: Option<&mut u64>,
+    lpPerformanceCount: Option<&mut LARGE_INTEGER>,
 ) -> bool {
+    let counter = lpPerformanceCount.unwrap();
     let ms = machine.host.time();
-    *lpPerformanceCount.unwrap() = ms as u64 * (QUERY_PERFORMANCE_FREQ as u64 / 1000);
+    let counts = ms as u64 * (QUERY_PERFORMANCE_FREQ as u64 / 1000);
+    counter.LowPart = counts as u32;
+    counter.HighPart = (counts >> 32) as u32 as i32;
     true // success
 }
 

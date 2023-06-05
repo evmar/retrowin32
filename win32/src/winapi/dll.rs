@@ -1449,12 +1449,12 @@ pub mod kernel32 {
     pub fn QueryPerformanceCounter(machine: &mut Machine) {
         let mut stack_offset = 4u32;
         let lpPerformanceCount = unsafe {
-            <Option<&mut u64>>::from_stack(
+            <Option<&mut LARGE_INTEGER>>::from_stack(
                 &mut machine.x86.mem(),
                 machine.x86.cpu.regs.esp + stack_offset,
             )
         };
-        stack_offset += <Option<&mut u64>>::stack_consumed();
+        stack_offset += <Option<&mut LARGE_INTEGER>>::stack_consumed();
         let result = winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount);
         machine.x86.cpu.regs.eax = result.to_raw();
         machine.x86.cpu.regs.eip = machine.x86.mem().get::<u32>(machine.x86.cpu.regs.esp);
@@ -1670,7 +1670,7 @@ pub mod kernel32 {
             )
         };
         stack_offset += <u32>::stack_consumed();
-        let _dwFlags = unsafe {
+        let dwFlags = unsafe {
             <u32>::from_stack(
                 &mut machine.x86.mem(),
                 machine.x86.cpu.regs.esp + stack_offset,
@@ -1701,7 +1701,7 @@ pub mod kernel32 {
         let result = winapi::kernel32::MultiByteToWideChar(
             machine,
             CodePage,
-            _dwFlags,
+            dwFlags,
             lpMultiByteStr,
             cbMultiByte,
             lpWideCharStr,
