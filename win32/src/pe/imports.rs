@@ -19,7 +19,7 @@ use x86::Mem;
 // On load, each IAT entry points to the function name (as parsed below).
 // The loader overwrites the IAT with the addresses to the loaded DLL.
 
-#[derive(Debug)]
+#[derive(Clone, Debug, Default)]
 #[repr(C)]
 pub struct IMAGE_IMPORT_DESCRIPTOR {
     OriginalFirstThunk: DWORD,
@@ -52,10 +52,12 @@ pub struct IDTIter<'m> {
     r: Reader<'m>,
 }
 impl<'m> Iterator for IDTIter<'m> {
-    type Item = &'m IMAGE_IMPORT_DESCRIPTOR;
+    type Item = IMAGE_IMPORT_DESCRIPTOR;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let descriptor = self.r.read::<IMAGE_IMPORT_DESCRIPTOR>();
+        // On some executables the IDT is unaligned (at offset 0x200f!) so we must
+        // clone here rather than just taking a view on the existing bytes.
+        let descriptor = self.r.read_unaligned::<IMAGE_IMPORT_DESCRIPTOR>();
         if descriptor.Name == 0 {
             return None;
         }

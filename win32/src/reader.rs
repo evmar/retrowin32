@@ -49,6 +49,12 @@ impl<'m> Reader<'m> {
         t
     }
 
+    pub fn read_unaligned<T: x86::Pod + Clone>(&mut self) -> T {
+        let t = self.buf.get::<T>(self.pos as u32);
+        self.pos += size_of::<T>() as u32;
+        t
+    }
+
     pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> anyhow::Result<&'m [T]> {
         let len = size_of::<T>() as u32 * count;
         if self.pos + len > self.buf.len() {

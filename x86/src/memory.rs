@@ -31,11 +31,17 @@ impl<'m> Mem<'m> {
         Mem(s)
     }
 
-    pub fn get<T: Copy + Pod>(&self, ofs: u32) -> T {
-        *self.view(ofs)
+    pub fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
+        let ofs = ofs as usize;
+        let buf = &self.0[ofs..(ofs + size_of::<T>())];
+        // Safety: the above slice has already verified bounds.
+        // Sketchy: https://doc.rust-lang.org/std/ptr/fn.read.html#ownership-of-the-returned-value
+        // The impl seems to just clone the bytes, so maybe we don't .clone() here?
+        unsafe { std::ptr::read_unaligned(buf.as_ptr() as *const T) }
     }
 
     pub fn put<T: Copy + Pod>(&mut self, ofs: u32, val: T) {
+        // TODO: alignment?
         *self.view_mut(ofs) = val;
     }
 
