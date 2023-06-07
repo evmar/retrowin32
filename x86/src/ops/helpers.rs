@@ -66,7 +66,7 @@ pub fn rm32<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instructio
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            Arg(mem.view_mut::<u32>(addr))
+            Arg(mem.ptr_mut::<u32>(addr))
         }
         _ => unimplemented!(),
     }
@@ -80,7 +80,7 @@ pub fn rm16<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instructio
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            Arg(mem.view_mut::<u16>(addr))
+            Arg(mem.ptr_mut::<u16>(addr))
         }
         _ => unimplemented!(),
     }
@@ -94,7 +94,7 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            Arg(mem.view_mut::<u8>(addr))
+            Arg(mem.ptr_mut::<u8>(addr))
         }
         _ => unimplemented!(),
     }

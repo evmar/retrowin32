@@ -94,6 +94,8 @@ impl<'m> Mem<'m> {
         self.slice(ofs..(ofs + len))
     }
 
+    // TODO: this fails if addr isn't appropriately aligned.
+    // We need to revisit this whole "view" API...
     pub fn view<T: Pod>(&self, addr: u32) -> &'m T {
         let ofs = addr as usize;
         let buf = &self.0[ofs..(ofs + size_of::<T>())];
@@ -101,6 +103,8 @@ impl<'m> Mem<'m> {
         unsafe { &*(buf.as_ptr() as *const T) }
     }
 
+    // TODO: this fails if addr isn't appropriately aligned.
+    // We need to revisit this whole "view" API...
     pub fn view_mut<T: Pod>(&mut self, addr: u32) -> &'m mut T {
         let ofs = addr as usize;
         let s = self.as_mut_slice_todo();
@@ -120,6 +124,15 @@ impl<'m> Mem<'m> {
                 count as usize,
             )
         }
+    }
+
+    /// Note: can returned unaligned pointers depending on addr.
+    pub fn ptr_mut<T: Pod + Copy>(&mut self, addr: u32) -> *mut T {
+        let ofs = addr as usize;
+        let s = self.as_mut_slice_todo();
+        let buf = &mut s[ofs..(ofs + size_of::<T>())];
+        // Safety: the above slice has already verified bounds.
+        buf.as_mut_ptr() as *mut T
     }
 }
 
