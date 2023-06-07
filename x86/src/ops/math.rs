@@ -607,7 +607,7 @@ pub fn sbb_r8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn mul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let x = op0_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr).get();
     let y = cpu.regs.eax;
     let res = (x as u64).wrapping_mul(y as u64);
     // TODO: flags.
@@ -616,7 +616,7 @@ pub fn mul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn imul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let x = op0_rm32(cpu, mem, instr) as i32;
+    let x = rm32(cpu, mem, instr).get() as i32;
     let y = cpu.regs.eax as i32;
     let res = (x as i64).wrapping_mul(y as i64) as u64;
     // TODO: flags.
@@ -652,7 +652,7 @@ pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn idiv_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let x = (((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64)) as i64;
-    let y = op0_rm32(cpu, mem, instr) as i32 as i64;
+    let y = rm32(cpu, mem, instr).get() as i32 as i64;
     cpu.regs.eax = (x / y) as i32 as u32;
     cpu.regs.edx = (x % y) as i32 as u32;
     // TODO: flags.
@@ -660,7 +660,7 @@ pub fn idiv_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn div_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let x = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
-    let y = op0_rm32(cpu, mem, instr) as u64;
+    let y = rm32(cpu, mem, instr).get() as u64;
     cpu.regs.eax = (x / y) as u32;
     cpu.regs.edx = (x % y) as u32;
     // TODO: flags.

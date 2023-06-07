@@ -11,7 +11,7 @@ pub fn call(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn call_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // call dword ptr [addr]
-    let target = op0_rm32(cpu, mem, instr);
+    let target = rm32(cpu, mem, instr).get();
     push(cpu, mem, cpu.regs.eip);
     x86_jmp(cpu, target)
 }
@@ -32,7 +32,7 @@ pub fn jmp(cpu: &mut CPU, _mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn jmp_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let target = op0_rm32(cpu, mem, instr);
+    let target = rm32(cpu, mem, instr).get();
     x86_jmp(cpu, target)
 }
 

@@ -42,12 +42,12 @@ pub fn push_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 }
 
 pub fn push_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let value = op0_rm32(cpu, mem, instr);
+    let value = rm32(cpu, mem, instr).get();
     push(cpu, mem, value);
 }
 
 pub fn push_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let value = op0_rm16(cpu, mem, instr);
+    let value = rm16(cpu, mem, instr).get();
     push16(cpu, mem, value);
 }
 

@@ -100,30 +100,6 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction
     }
 }
 
-pub fn op0_rm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
-    match instr.op0_kind() {
-        iced_x86::OpKind::Register => cpu.regs.get32(instr.op0_register()),
-        iced_x86::OpKind::Memory => mem.get::<u32>(x86_addr(cpu, instr)),
-        _ => unreachable!(),
-    }
-}
-
-pub fn op0_rm16(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u16 {
-    match instr.op0_kind() {
-        iced_x86::OpKind::Register => cpu.regs.get16(instr.op0_register()),
-        iced_x86::OpKind::Memory => mem.get::<u16>(x86_addr(cpu, instr)),
-        _ => unreachable!(),
-    }
-}
-
-pub fn op0_rm8(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
-    match instr.op0_kind() {
-        iced_x86::OpKind::Register => cpu.regs.get8(instr.op0_register()),
-        iced_x86::OpKind::Memory => mem.get::<u8>(x86_addr(cpu, instr)),
-        _ => unreachable!(),
-    }
-}
-
 pub fn op1_rm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()),
