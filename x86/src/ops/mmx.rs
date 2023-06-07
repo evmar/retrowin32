@@ -37,7 +37,7 @@ pub fn movd_mm_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn movd_rm32_mm(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = cpu.regs.get64(instr.op1_register()) as u32;
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 

@@ -59,24 +59,24 @@ pub fn popd_r16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn pop_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = pop(cpu, mem);
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn pop_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = pop16(cpu, mem);
-    let (x, _flags) = rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn mov_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(instr.immediate32());
 }
 
 pub fn mov_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = cpu.regs.get32(instr.op1_register());
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(value);
 }
 
@@ -92,13 +92,13 @@ pub fn mov_r16_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn mov_rm16_r16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = cpu.regs.get16(instr.op1_register());
-    let (x, _flags) = rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn mov_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = instr.immediate16();
-    let (x, _flags) = rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(y);
 }
 
@@ -109,13 +109,13 @@ pub fn mov_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn mov_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = cpu.regs.get8(instr.op1_register());
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn mov_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = instr.immediate8();
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(y);
 }
 
@@ -150,52 +150,52 @@ pub fn mov_sreg_r32m16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn movsx_r32_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr) as i16 as u32;
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn movsx_r32_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr) as i8 as u32;
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn movsx_r16_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr) as i8 as u16;
-    let (x, _flags) = rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn movzx_r32_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr) as u32;
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn movzx_r32_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr) as u32;
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn movzx_r16_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr) as u16;
-    let (x, _flags) = rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(y);
 }
 
 pub fn cmovb_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
-    let (x, flags) = rm32(cpu, mem, instr);
-    if flags.contains(Flags::CF) {
+    let x = rm32(cpu, mem, instr);
+    if cpu.flags.contains(Flags::CF) {
         x.set(y);
     }
 }
 
 pub fn cmovne_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
-    let (x, flags) = rm32(cpu, mem, instr);
-    if !flags.contains(Flags::ZF) {
+    let x = rm32(cpu, mem, instr);
+    if !cpu.flags.contains(Flags::ZF) {
         x.set(y);
     }
 }
@@ -203,7 +203,7 @@ pub fn cmovne_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 pub fn xchg_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let r1 = instr.op1_register();
     let y = cpu.regs.get32(r1);
-    let (x, _flags) = rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
     let tmp = x.get();
     x.set(y);
     cpu.regs.set32(r1, tmp);
@@ -212,7 +212,7 @@ pub fn xchg_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 pub fn xchg_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let r1 = instr.op1_register();
     let y = cpu.regs.get8(r1);
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     let tmp = x.get();
     x.set(y);
     cpu.regs.set8(r1, tmp);
@@ -242,31 +242,31 @@ pub fn lea_r32_m(cpu: &mut CPU, _mem: &mut Mem, instr: &Instruction) {
 
 pub fn seta_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = (!cpu.flags.contains(Flags::CF) && !cpu.flags.contains(Flags::ZF)) as u8;
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn setb_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = cpu.flags.contains(Flags::CF) as u8;
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn sete_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = cpu.flags.contains(Flags::ZF) as u8;
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn setne_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = !cpu.flags.contains(Flags::ZF) as u8;
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(value);
 }
 
 pub fn setge_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let value = (cpu.flags.contains(Flags::ZF) == cpu.flags.contains(Flags::OF)) as u8;
-    let (x, _flags) = rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
     x.set(value);
 }
 

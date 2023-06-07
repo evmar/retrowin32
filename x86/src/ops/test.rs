@@ -73,14 +73,14 @@ pub fn cmp_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn test_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = cpu.regs.get32(instr.op1_register());
-    let (x, flags) = rm32(cpu, mem, instr);
-    and(x.get(), y, flags);
+    let x = rm32(cpu, mem, instr);
+    and(x.get(), y, &mut cpu.flags);
 }
 
 pub fn test_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = instr.immediate32();
-    let (x, flags) = rm32(cpu, mem, instr);
-    and(x.get(), y, flags);
+    let x = rm32(cpu, mem, instr);
+    and(x.get(), y, &mut cpu.flags);
 }
 
 pub fn test_rm16_r16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
@@ -115,15 +115,15 @@ pub fn bt_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
 
 pub fn btr_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = instr.immediate8() % 32;
-    let (x, flags) = rm32(cpu, mem, instr);
-    flags.set(Flags::CF, ((x.get() >> y) & 1) != 0);
+    let x = rm32(cpu, mem, instr);
+    cpu.flags.set(Flags::CF, ((x.get() >> y) & 1) != 0);
     x.set(x.get() & !(1 << y))
 }
 
 pub fn bsr_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
-    let (x, flags) = rm32(cpu, mem, instr);
-    flags.set(Flags::ZF, y == 0);
+    let x = rm32(cpu, mem, instr);
+    cpu.flags.set(Flags::ZF, y == 0);
     for i in 31..0 {
         if y & (1 << i) != 0 {
             x.set(i)

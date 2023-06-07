@@ -14,8 +14,9 @@ pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CPU {
     pub regs: Registers,
-    // Flags are in principle a register but we hold it outside of regs for lifetime reasons,
+    // Flags are in principle a register but we moved it outside of regs for lifetime reasons,
     // because there are operations we want to do over mut regs and flags at the same time.
+    // TODO: this may no longer be necessary (?)
     pub flags: Flags,
 
     /// True when running, false when stopped, Err when in error state.

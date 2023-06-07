@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{registers::Flags, x86::CPU, Mem, NULL_POINTER_REGION_SIZE};
+use crate::{x86::CPU, Mem, NULL_POINTER_REGION_SIZE};
 
 pub fn read_u64(mem: &Mem, addr: u32) -> u64 {
     mem.get::<u64>(addr)
@@ -37,22 +37,29 @@ pub fn rm64_x(
     }
 }
 
+/// Many x86 operations take an argument that is both read from and written to,
+/// and which can refer to either a register or memory, e.g.
+///   mov [...],3
+///   and eax,4
+/// This 'Arg' type wraps that left argument using a pointer internally.
+/// This code was previously instead carefully using a (safe) mut reference instead,
+/// but it turns out that memory accesses can be unaligned and Rust does not allow
+/// references to unaligned memory.  It turns out a lot easier to not need to worry
+/// about lifetimes anyway.
 pub struct Arg<T>(*mut T);
+
 impl<T> Arg<T> {
     pub fn get(&self) -> T {
         unsafe { std::ptr::read_unaligned(self.0) }
     }
+
     pub fn set(&self, val: T) {
         unsafe { std::ptr::write_unaligned(self.0, val) }
     }
 }
 
-pub fn rm32<'a>(
-    cpu: &'a mut CPU,
-    mem: &'a mut Mem,
-    instr: &iced_x86::Instruction,
-) -> (Arg<u32>, &'a mut Flags) {
-    let dest = match instr.op0_kind() {
+pub fn rm32<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u32> {
+    match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
             Arg(cpu.regs.get32_mut(reg))
@@ -62,16 +69,11 @@ pub fn rm32<'a>(
             Arg(mem.view_mut::<u32>(addr))
         }
         _ => unimplemented!(),
-    };
-    (dest, &mut cpu.flags)
+    }
 }
 
-pub fn rm16<'a>(
-    cpu: &'a mut CPU,
-    mem: &'a mut Mem,
-    instr: &iced_x86::Instruction,
-) -> (Arg<u16>, &'a mut Flags) {
-    let dest = match instr.op0_kind() {
+pub fn rm16<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u16> {
+    match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
             Arg(cpu.regs.get16_mut(reg))
@@ -81,16 +83,11 @@ pub fn rm16<'a>(
             Arg(mem.view_mut::<u16>(addr))
         }
         _ => unimplemented!(),
-    };
-    (dest, &mut cpu.flags)
+    }
 }
 
-pub fn rm8<'a>(
-    cpu: &'a mut CPU,
-    mem: &'a mut Mem,
-    instr: &iced_x86::Instruction,
-) -> (Arg<u8>, &'a mut Flags) {
-    let dest = match instr.op0_kind() {
+pub fn rm8<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u8> {
+    match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
             Arg(cpu.regs.get8_mut(reg))
@@ -100,8 +97,7 @@ pub fn rm8<'a>(
             Arg(mem.view_mut::<u8>(addr))
         }
         _ => unimplemented!(),
-    };
-    (dest, &mut cpu.flags)
+    }
 }
 
 pub fn op0_rm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
