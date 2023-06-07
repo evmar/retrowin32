@@ -37,19 +37,29 @@ pub fn rm64_x(
     }
 }
 
+pub struct Arg<T>(*mut T);
+impl<T> Arg<T> {
+    pub fn get(&self) -> T {
+        unsafe { std::ptr::read_unaligned(self.0) }
+    }
+    pub fn set(&self, val: T) {
+        unsafe { std::ptr::write_unaligned(self.0, val) }
+    }
+}
+
 pub fn rm32<'a>(
     cpu: &'a mut CPU,
     mem: &'a mut Mem,
     instr: &iced_x86::Instruction,
-) -> (&'a mut u32, &'a mut Flags) {
+) -> (Arg<u32>, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
-            cpu.regs.get32_mut(reg)
+            Arg(cpu.regs.get32_mut(reg))
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            mem.view_mut::<u32>(addr)
+            Arg(mem.view_mut::<u32>(addr))
         }
         _ => unimplemented!(),
     };
@@ -60,15 +70,15 @@ pub fn rm16<'a>(
     cpu: &'a mut CPU,
     mem: &'a mut Mem,
     instr: &iced_x86::Instruction,
-) -> (&'a mut u16, &'a mut Flags) {
+) -> (Arg<u16>, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
-            cpu.regs.get16_mut(reg)
+            Arg(cpu.regs.get16_mut(reg))
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            mem.view_mut::<u16>(addr)
+            Arg(mem.view_mut::<u16>(addr))
         }
         _ => unimplemented!(),
     };
@@ -79,15 +89,15 @@ pub fn rm8<'a>(
     cpu: &'a mut CPU,
     mem: &'a mut Mem,
     instr: &iced_x86::Instruction,
-) -> (&'a mut u8, &'a mut Flags) {
+) -> (Arg<u8>, &'a mut Flags) {
     let dest = match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
-            cpu.regs.get8_mut(reg)
+            Arg(cpu.regs.get8_mut(reg))
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            mem.view_mut::<u8>(addr)
+            Arg(mem.view_mut::<u8>(addr))
         }
         _ => unimplemented!(),
     };
