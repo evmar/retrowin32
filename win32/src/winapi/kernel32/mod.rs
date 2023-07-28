@@ -585,11 +585,10 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
         return heap;
     }
     let size = 1 << 20;
-    let heap =
-        machine
-            .state
-            .kernel32
-            .new_heap(&mut machine.x86.memory, size, "process heap".into());
+    let heap = machine
+        .state
+        .kernel32
+        .new_heap(&mut machine.memory, size, "process heap".into());
     peb_mut(machine).ProcessHeap = heap;
     heap
 }

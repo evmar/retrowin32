@@ -23,7 +23,7 @@ fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool
             .state
             .kernel32
             .mappings
-            .alloc(memory_size, name.into(), &mut machine.x86.memory)
+            .alloc(memory_size, name.into(), &mut machine.memory)
     } else {
         machine.state.kernel32.mappings.add(
             winapi::kernel32::Mapping {
@@ -38,8 +38,8 @@ fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool
 
     // TODO: .alloc() ensures the memory exists, .add() doesn't.
     let memory_end = mapping.addr + mapping.size;
-    if memory_end > machine.x86.memory.len() {
-        machine.x86.memory.resize(memory_end, 0);
+    if memory_end > machine.memory.len() {
+        machine.memory.resize(memory_end, 0);
     }
 
     mapping.addr
@@ -196,7 +196,7 @@ pub fn load_exe(
 ) -> anyhow::Result<()> {
     let file = pe::parse(buf)?;
 
-    machine.state.kernel32.init(&mut machine.x86.memory);
+    machine.state.kernel32.init(&mut machine.memory);
 
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
@@ -204,7 +204,7 @@ pub fn load_exe(
     machine
         .state
         .kernel32
-        .init_process(machine.x86.memory.mem(), cmdline);
+        .init_process(machine.memory.mem(), cmdline);
     machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
@@ -221,7 +221,7 @@ pub fn load_exe(
             .state
             .kernel32
             .mappings
-            .alloc(stack_size, "stack".into(), &mut machine.x86.memory);
+            .alloc(stack_size, "stack".into(), &mut machine.memory);
     let stack_end = stack.addr + stack.size - 4;
     machine.x86.cpu.regs.esp = stack_end;
     machine.x86.cpu.regs.ebp = stack_end;

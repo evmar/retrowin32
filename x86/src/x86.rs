@@ -4,7 +4,7 @@ use crate::{
     icache::InstrCache,
     ops,
     registers::{Flags, Registers},
-    Mem, VecMem,
+    Mem,
 };
 
 /// Addresses from 0 up to this point cause panics if we access them.
@@ -77,7 +77,6 @@ impl CPU {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
     pub cpu: CPU,
-    pub memory: VecMem,
 
     /// Total number of instructions executed.
     pub instr_count: usize,
@@ -90,31 +89,30 @@ impl X86 {
     pub fn new() -> Self {
         X86 {
             cpu: CPU::new(),
-            memory: VecMem::default(),
             instr_count: 0,
             icache: InstrCache::default(),
         }
     }
 
-    pub fn add_breakpoint(&mut self, addr: u32) {
-        self.icache.add_breakpoint(self.memory.mem(), addr)
+    pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
+        self.icache.add_breakpoint(mem, addr)
     }
 
-    pub fn clear_breakpoint(&mut self, addr: u32) {
-        self.icache.clear_breakpoint(self.memory.mem(), addr)
+    pub fn clear_breakpoint(&mut self, mem: Mem, addr: u32) {
+        self.icache.clear_breakpoint(mem, addr)
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
-    pub fn execute_block(&mut self) -> Result<bool, String> {
-        let count = self.icache.execute_block(&mut self.cpu, self.memory.mem());
+    pub fn execute_block(&mut self, mem: Mem) -> Result<bool, String> {
+        let count = self.icache.execute_block(&mut self.cpu, mem);
         self.instr_count += count;
         self.cpu.state.clone()
     }
 
-    pub fn single_step(&mut self) -> Result<(), String> {
+    pub fn single_step(&mut self, mem: Mem) -> Result<(), String> {
         let ip = self.cpu.regs.eip;
-        self.icache.make_single_step(self.memory.mem(), ip);
-        self.execute_block()?;
+        self.icache.make_single_step(mem, ip);
+        self.execute_block(mem)?;
         // TODO: clear_single_step doesn't help here, because ip now points into the middle
         // of some block and the next time we execute we'll just recreate the partial block anyway.
         // self.icache.clear_single_step(ip);

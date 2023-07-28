@@ -78,10 +78,14 @@ impl Emulator {
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
-        self.machine.x86.add_breakpoint(addr)
+        self.machine
+            .x86
+            .add_breakpoint(self.machine.memory.mem(), addr)
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
-        self.machine.x86.clear_breakpoint(addr)
+        self.machine
+            .x86
+            .clear_breakpoint(self.machine.memory.mem(), addr)
     }
 
     pub fn mappings_json(&self) -> String {

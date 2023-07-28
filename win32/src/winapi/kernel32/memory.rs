@@ -150,11 +150,7 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let mut heap = match machine
-        .state
-        .kernel32
-        .get_heap(machine.x86.memory.mem(), hHeap)
-    {
+    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
@@ -180,11 +176,7 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let mut heap = match machine
-        .state
-        .kernel32
-        .get_heap(machine.x86.memory.mem(), hHeap)
-    {
+    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
             return 0;
@@ -200,11 +192,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match machine
-        .state
-        .kernel32
-        .get_heap(machine.x86.memory.mem(), hHeap)
-    {
+    let heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -225,11 +213,7 @@ pub fn HeapReAlloc(
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let mut heap = match machine
-        .state
-        .kernel32
-        .get_heap(machine.x86.memory.mem(), hHeap)
-    {
+    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -275,7 +259,7 @@ pub fn HeapCreate(
     machine
         .state
         .kernel32
-        .new_heap(&mut machine.x86.memory, size, "HeapCreate".into())
+        .new_heap(&mut machine.memory, size, "HeapCreate".into())
 }
 
 #[win32_derive::dllexport]
@@ -314,11 +298,12 @@ pub fn VirtualAlloc(
     }
     // TODO round dwSize to page boundary
 
-    let mapping = machine.state.kernel32.mappings.alloc(
-        dwSize,
-        "VirtualAlloc".into(),
-        &mut machine.x86.memory,
-    );
+    let mapping =
+        machine
+            .state
+            .kernel32
+            .mappings
+            .alloc(dwSize, "VirtualAlloc".into(), &mut machine.memory);
     mapping.addr
 }
 

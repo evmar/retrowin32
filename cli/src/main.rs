@@ -160,7 +160,7 @@ fn main() -> anyhow::Result<()> {
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {
         trace_points.insert(tp);
-        machine.x86.add_breakpoint(tp);
+        machine.x86.add_breakpoint(machine.memory.mem(), tp);
     }
 
     let start = std::time::Instant::now();
@@ -188,9 +188,9 @@ fn main() -> anyhow::Result<()> {
                         "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
                         regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
                     );
-                    machine.x86.clear_breakpoint(ip);
+                    machine.x86.clear_breakpoint(machine.memory.mem(), ip);
                     machine.single_step().unwrap();
-                    machine.x86.add_breakpoint(ip);
+                    machine.x86.add_breakpoint(machine.memory.mem(), ip);
                 }
             }
         }

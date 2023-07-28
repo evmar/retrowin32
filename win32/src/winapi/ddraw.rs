@@ -52,11 +52,11 @@ pub struct State {
 impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut ddraw = State::default();
-        ddraw.hheap = machine.state.kernel32.new_heap(
-            &mut machine.x86.memory,
-            0x1000,
-            "ddraw.dll heap".into(),
-        );
+        ddraw.hheap =
+            machine
+                .state
+                .kernel32
+                .new_heap(&mut machine.memory, 0x1000, "ddraw.dll heap".into());
 
         ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, machine);
@@ -418,7 +418,7 @@ mod IDirectDrawSurface {
         let lpDirectDrawSurface = machine
             .state
             .kernel32
-            .get_heap(machine.x86.memory.mem(), ddraw.hheap)
+            .get_heap(machine.memory.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
@@ -741,7 +741,7 @@ mod IDirectDrawSurface7 {
         let lpDirectDrawSurface7 = machine
             .state
             .kernel32
-            .get_heap(machine.x86.memory.mem(), ddraw.hheap)
+            .get_heap(machine.memory.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
@@ -887,7 +887,7 @@ mod IDirectDrawSurface7 {
             surf.pixels = machine
                 .state
                 .kernel32
-                .get_heap(machine.x86.memory.mem(), machine.state.ddraw.hheap)
+                .get_heap(machine.memory.mem(), machine.state.ddraw.hheap)
                 .unwrap()
                 .alloc(surf.width * surf.height * bytes_per_pixel);
         }
@@ -924,7 +924,6 @@ mod IDirectDrawSurface7 {
         if surf.pixels != 0 && phack != 0 {
             let bytes_per_pixel = 1; // TODO: where does this come from?
             let pixels = machine
-                .x86
                 .memory
                 .mem()
                 .view_n::<u8>(surf.pixels, surf.width * surf.height * bytes_per_pixel);
@@ -972,7 +971,7 @@ mod IDirectDrawPalette {
         let lpDirectDrawPalette = machine
             .state
             .kernel32
-            .get_heap(machine.x86.memory.mem(), ddraw.hheap)
+            .get_heap(machine.memory.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawPalette;
@@ -991,11 +990,7 @@ mod IDirectDrawPalette {
     ) -> u32 {
         let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
-        let entries = machine
-            .x86
-            .memory
-            .mem()
-            .view_n::<PALETTEENTRY>(entries, count);
+        let entries = machine.memory.mem().view_n::<PALETTEENTRY>(entries, count);
         palette[start as usize..][..count as usize].clone_from_slice(entries);
         DD_OK
     }
@@ -1027,7 +1022,7 @@ pub fn DirectDrawCreateEx(
         let lpDirectDraw = machine
             .state
             .kernel32
-            .get_heap(machine.x86.memory.mem(), ddraw.hheap)
+            .get_heap(machine.memory.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
@@ -1036,7 +1031,7 @@ pub fn DirectDrawCreateEx(
         return DD_OK;
     }
 
-    let iid_slice = machine.x86.memory.mem().sub(iid, 16).as_slice_todo();
+    let iid_slice = machine.memory.mem().sub(iid, 16).as_slice_todo();
     if iid_slice == IID_IDirectDraw7 {
         // Caller gives us:
         //   pointer (lplpDD) that they want us to fill in to point to ->
@@ -1045,7 +1040,7 @@ pub fn DirectDrawCreateEx(
         let lpDirectDraw7 = machine
             .state
             .kernel32
-            .get_heap(machine.x86.memory.mem(), ddraw.hheap)
+            .get_heap(machine.memory.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;

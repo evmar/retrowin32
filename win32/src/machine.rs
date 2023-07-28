@@ -4,11 +4,12 @@ use crate::{
     winapi,
 };
 use std::collections::HashMap;
-use x86::{Mem, X86};
+use x86::{Mem, VecMem, X86};
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
     pub x86: X86,
+    pub memory: VecMem,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub shims: Shims,
@@ -19,6 +20,7 @@ impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         Machine {
             x86: X86::new(),
+            memory: VecMem::default(),
             host,
             state: winapi::State::new(),
             shims: Shims::new(),
@@ -27,7 +29,7 @@ impl Machine {
     }
 
     pub fn mem(&self) -> Mem {
-        self.x86.memory.mem()
+        self.memory.mem()
     }
 
     pub fn load_exe(&mut self, buf: &[u8], cmdline: String, relocate: bool) -> anyhow::Result<()> {
@@ -54,7 +56,9 @@ impl Machine {
             // Treat any shim call as a single block.
             return Ok(true);
         }
-        self.x86.execute_block().map_err(|err| anyhow::anyhow!(err))
+        self.x86
+            .execute_block(self.memory.mem())
+            .map_err(|err| anyhow::anyhow!(err))
     }
 
     pub fn single_step(&mut self) -> anyhow::Result<()> {
@@ -62,6 +66,8 @@ impl Machine {
             // Treat any shim call as a single block.
             return Ok(());
         }
-        self.x86.single_step().map_err(|err| anyhow::anyhow!(err))
+        self.x86
+            .single_step(self.memory.mem())
+            .map_err(|err| anyhow::anyhow!(err))
     }
 }
