@@ -96,10 +96,6 @@ impl X86 {
         }
     }
 
-    pub fn mem(&self) -> Mem {
-        self.memory.mem()
-    }
-
     pub fn add_breakpoint(&mut self, addr: u32) {
         self.icache.add_breakpoint(self.memory.mem(), addr)
     }

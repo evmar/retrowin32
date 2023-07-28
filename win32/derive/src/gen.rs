@@ -35,13 +35,13 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> TokenStream {
         // TODO: reading the args in reverse would produce fewer bounds checks...
         let mut stack_offset = 4u32;
         #(
-            let #args = unsafe { <#tys>::from_stack(machine.x86.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+            let #args = unsafe { <#tys>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
             stack_offset += <#tys>::stack_consumed();
         )*
     };
     let ret = quote! {
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.x86.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     };
 

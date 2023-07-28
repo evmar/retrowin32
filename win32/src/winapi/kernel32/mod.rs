@@ -179,17 +179,14 @@ impl State {
 }
 
 fn teb(machine: &Machine) -> &TEB {
-    machine.x86.mem().view::<TEB>(machine.state.kernel32.teb)
+    machine.mem().view::<TEB>(machine.state.kernel32.teb)
 }
 fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    machine
-        .x86
-        .mem()
-        .view_mut::<TEB>(machine.state.kernel32.teb)
+    machine.mem().view_mut::<TEB>(machine.state.kernel32.teb)
 }
 fn peb_mut(machine: &mut Machine) -> &mut PEB {
     let peb_addr = teb(machine).Peb;
-    machine.x86.mem().view_mut::<PEB>(peb_addr)
+    machine.mem().view_mut::<PEB>(peb_addr)
 }
 
 #[repr(C)]
@@ -527,10 +524,9 @@ pub fn QueryPerformanceCounter(
 pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> bool {
     // 64-bit write
     machine
-        .x86
         .mem()
         .put::<u32>(lpFrequency, QUERY_PERFORMANCE_FREQ);
-    machine.x86.mem().put::<u32>(lpFrequency + 4, 0);
+    machine.mem().put::<u32>(lpFrequency + 4, 0);
     true
 }
 
@@ -686,8 +682,8 @@ pub fn MultiByteToWideChar(
     // TODO: dwFlags
 
     let input_len = match cbMultiByte {
-        0 => return 0, // TODO: invalid param
-        -1 => machine.x86.mem().slicez(lpMultiByteStr).unwrap().len() + 1, // include nul
+        0 => return 0,                                                 // TODO: invalid param
+        -1 => machine.mem().slicez(lpMultiByteStr).unwrap().len() + 1, // include nul
         len => len as u32,
     };
 
@@ -699,7 +695,7 @@ pub fn MultiByteToWideChar(
     match lpWideCharStr {
         None => input_len,
         Some(buf) => {
-            let input = machine.x86.mem().sub(lpMultiByteStr, input_len);
+            let input = machine.mem().sub(lpMultiByteStr, input_len);
             let mut len = 0;
             for (&c_in, c_out) in std::iter::zip(input.as_slice_todo(), buf) {
                 if c_in > 0x7f {

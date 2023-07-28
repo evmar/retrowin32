@@ -150,8 +150,11 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let mem = machine.x86.mem();
-    let mut heap = match machine.state.kernel32.get_heap(mem, hHeap) {
+    let mut heap = match machine
+        .state
+        .kernel32
+        .get_heap(machine.x86.memory.mem(), hHeap)
+    {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
@@ -163,12 +166,7 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        machine
-            .x86
-            .mem()
-            .sub(addr, dwBytes)
-            .as_mut_slice_todo()
-            .fill(0);
+        machine.mem().sub(addr, dwBytes).as_mut_slice_todo().fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
     }
     if !flags.is_empty() {
@@ -182,8 +180,11 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let mem = machine.x86.mem();
-    let mut heap = match machine.state.kernel32.get_heap(mem, hHeap) {
+    let mut heap = match machine
+        .state
+        .kernel32
+        .get_heap(machine.x86.memory.mem(), hHeap)
+    {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
             return 0;
@@ -199,8 +200,11 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let mem = machine.x86.mem();
-    let heap = match machine.state.kernel32.get_heap(mem, hHeap) {
+    let heap = match machine
+        .state
+        .kernel32
+        .get_heap(machine.x86.memory.mem(), hHeap)
+    {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -221,8 +225,11 @@ pub fn HeapReAlloc(
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let mem = machine.x86.mem();
-    let mut heap = match machine.state.kernel32.get_heap(mem, hHeap) {
+    let mut heap = match machine
+        .state
+        .kernel32
+        .get_heap(machine.x86.memory.mem(), hHeap)
+    {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
@@ -232,7 +239,7 @@ pub fn HeapReAlloc(
     let old_size = heap.size(lpMem);
     let new_addr = heap.alloc(dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
-    machine.x86.mem().as_mut_slice_todo().copy_within(
+    machine.mem().as_mut_slice_todo().copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
         new_addr as usize,
     );

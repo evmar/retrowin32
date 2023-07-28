@@ -1,11 +1,10 @@
-use std::collections::HashMap;
-use x86::X86;
-
 use crate::{
     host, pe,
     shims::{Shims, SHIM_BASE},
     winapi,
 };
+use std::collections::HashMap;
+use x86::{Mem, X86};
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
@@ -25,6 +24,10 @@ impl Machine {
             shims: Shims::new(),
             labels: HashMap::new(),
         }
+    }
+
+    pub fn mem(&self) -> Mem {
+        self.x86.memory.mem()
     }
 
     pub fn load_exe(&mut self, buf: &[u8], cmdline: String, relocate: bool) -> anyhow::Result<()> {
