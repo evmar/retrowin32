@@ -5,7 +5,7 @@ use iced_x86::Instruction;
 use crate::{memory::Mem, ops, x86::CPU};
 
 /// The type of all operations defined in the ops module.
-type Op = fn(&mut CPU, &mut Mem, &Instruction);
+type Op = fn(&mut CPU, Mem, &Instruction);
 
 // This table is constant and ideally would be initialized at compile time,
 // but it's too fiddly to do with const fns, so we'd likely need to codegen it.
@@ -357,7 +357,7 @@ pub unsafe fn init_op_tab() {
     // log::info!("highest op at {}", last.unwrap());
 }
 
-pub fn execute(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn execute(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     match unsafe { OP_TAB[instr.code() as usize] } {
         Some(f) => f(cpu, mem, instr),
         None => cpu.state = Err(format!("no dispatch for: {:?}", instr.code())),

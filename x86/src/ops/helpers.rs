@@ -2,11 +2,11 @@
 
 use crate::{x86::CPU, Mem, NULL_POINTER_REGION_SIZE};
 
-pub fn read_u64(mem: &Mem, addr: u32) -> u64 {
+pub fn read_u64(mem: Mem, addr: u32) -> u64 {
     mem.get::<u64>(addr)
 }
 
-pub fn write_u64(mem: &mut Mem, addr: u32, value: u64) {
+pub fn write_u64(mem: Mem, addr: u32, value: u64) {
     if addr < NULL_POINTER_REGION_SIZE {
         panic!("null pointer read at {addr:#x}");
     }
@@ -16,7 +16,7 @@ pub fn write_u64(mem: &mut Mem, addr: u32, value: u64) {
 // TODO: maybe there are no 64-bit memory reads needed (?)
 pub fn rm64_x(
     cpu: &mut CPU,
-    mem: &mut Mem,
+    mem: Mem,
     instr: &iced_x86::Instruction,
     op: impl FnOnce(&mut CPU, u64) -> u64,
 ) {
@@ -58,7 +58,7 @@ impl<T> Arg<T> {
     }
 }
 
-pub fn rm32<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u32> {
+pub fn rm32<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg<u32> {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -72,7 +72,7 @@ pub fn rm32<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instructio
     }
 }
 
-pub fn rm16<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u16> {
+pub fn rm16<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg<u16> {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -86,7 +86,7 @@ pub fn rm16<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instructio
     }
 }
 
-pub fn rm8<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction) -> Arg<u8> {
+pub fn rm8<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg<u8> {
     match instr.op0_kind() {
         iced_x86::OpKind::Register => {
             let reg = instr.op0_register();
@@ -100,7 +100,7 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: &'a mut Mem, instr: &iced_x86::Instruction
     }
 }
 
-pub fn op1_rm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
+pub fn op1_rm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()),
         iced_x86::OpKind::Memory => mem.get::<u32>(x86_addr(cpu, instr)),
@@ -108,7 +108,7 @@ pub fn op1_rm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 
     }
 }
 
-pub fn op1_rm16(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u16 {
+pub fn op1_rm16(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u16 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get16(instr.op1_register()),
         iced_x86::OpKind::Memory => mem.get::<u16>(x86_addr(cpu, instr)),
@@ -116,7 +116,7 @@ pub fn op1_rm16(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u16 
     }
 }
 
-pub fn op1_rm8(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
+pub fn op1_rm8(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u8 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get8(instr.op1_register()),
         iced_x86::OpKind::Memory => mem.get::<u8>(x86_addr(cpu, instr)),
@@ -125,26 +125,26 @@ pub fn op1_rm8(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u8 {
 }
 
 /// Push a u32 on the x86 stack.
-pub fn push(cpu: &mut CPU, mem: &mut Mem, value: u32) {
+pub fn push(cpu: &mut CPU, mem: Mem, value: u32) {
     cpu.regs.esp -= 4;
     mem.put::<u32>(cpu.regs.esp, value);
 }
 
 /// Push a u16 on the x86 stack.
-pub fn push16(cpu: &mut CPU, mem: &mut Mem, value: u16) {
+pub fn push16(cpu: &mut CPU, mem: Mem, value: u16) {
     cpu.regs.esp -= 2;
     mem.put::<u16>(cpu.regs.esp, value);
 }
 
 /// Pop a u32 from the x86 stack.
-pub fn pop(cpu: &mut CPU, mem: &mut Mem) -> u32 {
+pub fn pop(cpu: &mut CPU, mem: Mem) -> u32 {
     let value = mem.get::<u32>(cpu.regs.esp);
     cpu.regs.esp += 4;
     value
 }
 
 /// Pop a u16 from the x86 stack.
-pub fn pop16(cpu: &mut CPU, mem: &mut Mem) -> u16 {
+pub fn pop16(cpu: &mut CPU, mem: Mem) -> u16 {
     let value = mem.get::<u16>(cpu.regs.esp);
     cpu.regs.esp += 2;
     value

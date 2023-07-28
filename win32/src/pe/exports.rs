@@ -51,5 +51,5 @@ pub fn read_exports<'a>(
     exports: &'a IMAGE_DATA_DIRECTORY,
 ) -> &'a IMAGE_EXPORT_DIRECTORY {
     let image = machine.x86.mem().slice(base..);
-    exports.as_mem(&image).view::<IMAGE_EXPORT_DIRECTORY>(0)
+    exports.as_mem(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
 }

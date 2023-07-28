@@ -31,7 +31,7 @@ impl iced_x86::FormatterOutput for FormatterOutput {
     }
 }
 
-pub fn disassemble(mem: &Mem, addr: u32) -> Vec<Instruction> {
+pub fn disassemble(mem: Mem, addr: u32) -> Vec<Instruction> {
     if addr >= mem.len() {
         return Vec::new();
     }

@@ -71,7 +71,7 @@ impl State {
         self.arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let env = "\0\0".as_bytes();
-        let env_addr = self.arena.get(&mut mem.mem()).alloc(env.len() as u32);
+        let env_addr = self.arena.get(mem.mem()).alloc(env.len() as u32);
         mem.mem()
             .sub(env_addr, env.len() as u32)
             .as_mut_slice_todo()
@@ -79,7 +79,7 @@ impl State {
         self.env = env_addr;
     }
 
-    fn init_cmdline(&mut self, mem: &mut Mem, mut cmdline: String) {
+    fn init_cmdline(&mut self, mem: Mem, mut cmdline: String) {
         // Gross: GetCommandLineA() needs to return a pointer that's never freed,
         // so we need to hang on to both versions of the command line.
 
@@ -103,7 +103,7 @@ impl State {
 
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    pub fn init_process(&mut self, mem: &mut Mem, cmdline: String) {
+    pub fn init_process(&mut self, mem: Mem, cmdline: String) {
         let cmdline_len = cmdline.len();
 
         self.init_cmdline(mem, cmdline);
@@ -161,7 +161,7 @@ impl State {
 
     pub fn new_private_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> HeapInfo {
         let mapping = self.mappings.alloc(size as u32, desc, mem);
-        HeapInfo::new(&mut mem.mem(), mapping.addr, mapping.size)
+        HeapInfo::new(mem.mem(), mapping.addr, mapping.size)
     }
 
     pub fn new_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> u32 {
@@ -171,7 +171,7 @@ impl State {
         addr
     }
 
-    pub fn get_heap<'a>(&'a mut self, mem: &'a mut Mem<'a>, addr: u32) -> Option<Heap<'a>> {
+    pub fn get_heap<'a>(&'a mut self, mem: Mem<'a>, addr: u32) -> Option<Heap<'a>> {
         self.heaps
             .get_mut(&addr)
             .map(|h| h.get_heap(mem, &mut self.mappings))

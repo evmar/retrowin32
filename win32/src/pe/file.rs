@@ -91,7 +91,7 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
-    pub fn as_mem<'m>(&self, image: &Mem<'m>) -> Mem<'m> {
+    pub fn as_mem<'m>(&self, image: Mem<'m>) -> Mem<'m> {
         image.sub(self.VirtualAddress, self.Size)
     }
 }

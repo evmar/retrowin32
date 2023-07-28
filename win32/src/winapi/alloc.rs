@@ -21,14 +21,14 @@ impl ArenaInfo {
             next: 0,
         }
     }
-    pub fn get<'a, 'm>(&'a mut self, mem: &'a mut Mem<'m>) -> Arena<'a, 'm> {
+    pub fn get<'a, 'm>(&'a mut self, mem: Mem<'m>) -> Arena<'a, 'm> {
         Arena { info: self, mem }
     }
 }
 
 pub struct Arena<'a, 'm> {
     info: &'a mut ArenaInfo,
-    mem: &'a mut Mem<'m>,
+    mem: Mem<'m>,
 }
 
 fn align32(n: u32) -> u32 {
@@ -72,7 +72,7 @@ pub struct HeapInfo {
 }
 
 impl HeapInfo {
-    pub fn new(mem: &mut Mem, addr: u32, size: u32) -> Self {
+    pub fn new(mem: Mem, addr: u32, size: u32) -> Self {
         *FreeNode::get(mem, addr) = FreeNode { size, next: 0 };
         HeapInfo {
             addr,
@@ -83,7 +83,7 @@ impl HeapInfo {
 
     /// Attempt to coalesce the freelist node at addr with any subsequent
     /// adjacent blocks of free memory.
-    fn try_coalesce(&mut self, mem: &mut Mem, addr: u32) {
+    fn try_coalesce(&mut self, mem: Mem, addr: u32) {
         loop {
             let FreeNode { next, size } = *FreeNode::get(mem, addr);
             if next != addr + size {
@@ -99,7 +99,7 @@ impl HeapInfo {
 
     pub fn get_heap<'a>(
         &'a mut self,
-        mem: &'a mut Mem<'a>,
+        mem: Mem<'a>,
         mappings: &'a mut kernel32::Mappings,
     ) -> Heap<'a> {
         Heap {
@@ -112,7 +112,7 @@ impl HeapInfo {
 
 pub struct Heap<'a> {
     info: &'a mut HeapInfo,
-    mem: &'a mut Mem<'a>,
+    mem: Mem<'a>,
     mappings: &'a mut kernel32::Mappings,
 }
 
@@ -125,7 +125,7 @@ struct FreeNode {
 }
 unsafe impl x86::Pod for FreeNode {}
 impl FreeNode {
-    fn get<'a>(mem: &'a mut Mem, addr: u32) -> &'a mut Self {
+    fn get<'a>(mem: Mem<'a>, addr: u32) -> &'a mut Self {
         mem.view_mut::<FreeNode>(addr)
     }
 }

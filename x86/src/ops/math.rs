@@ -49,43 +49,43 @@ pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn and_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get32(instr.op1_register());
     let x = rm32(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to16() as u16;
     let x = rm16(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm16_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate16();
     let x = rm16(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
-pub fn and_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn and_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(and(x.get(), y, &mut cpu.flags));
@@ -98,43 +98,43 @@ fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn or_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm16_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate16();
     let x = rm16(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn or_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
@@ -164,25 +164,25 @@ fn shl<I: Int + num_traits::WrappingShl>(x: I, mut y: u8, flags: &mut Flags) -> 
     val
 }
 
-pub fn shl_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shl_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shl_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shl_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8;
     let x = rm32(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shl_rm8_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shl_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8;
     let x = rm8(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shl_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shl_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
@@ -203,36 +203,36 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     val
 }
 
-pub fn shr_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shr_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8;
     let x = rm32(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shr_rm32_1(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shr_rm32_1(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     x.set(shr(x.get(), 1, &mut cpu.flags));
 }
 
-pub fn shr_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shr_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shr_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shr_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm16(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shr_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shr_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let count = instr.immediate8();
     if count == 0 {
         return;
@@ -258,19 +258,19 @@ fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn sar_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sar_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sar_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sar_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8 as u32;
     let x = rm32(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sar_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sar_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8() as u8;
     let x = rm8(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
@@ -290,13 +290,13 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     result
 }
 
-pub fn rol_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn rol_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
     x.set(rol(x.get(), y, &mut cpu.flags));
 }
 
-pub fn rol_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn rol_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(rol(x.get(), y, &mut cpu.flags));
@@ -316,19 +316,19 @@ fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     result
 }
 
-pub fn ror_rm32_cl(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn ror_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8;
     let x = rm32(cpu, mem, instr);
     x.set(ror(x.get(), y, &mut cpu.flags));
 }
 
-pub fn ror_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn ror_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
     x.set(ror(x.get(), y, &mut cpu.flags));
 }
 
-pub fn ror_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn ror_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(ror(x.get(), y, &mut cpu.flags));
@@ -344,43 +344,43 @@ fn xor<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn xor_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_rm32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_r16_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr);
     let x = rm16(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn xor_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get8(instr.op1_register());
     let x = rm8(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
@@ -406,94 +406,94 @@ fn addc<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, z: I, flags
     result
 }
 
-pub fn add_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get32(instr.op1_register());
     let x = rm32(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm32_r32_2(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm32_r32_2(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get32(instr.op1_register());
     let x = rm32(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm16_imm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm16_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate16();
     let x = rm16(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm16_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to16() as u16;
     let x = rm16(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_r16_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr);
     let x = rm16(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm8_r8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get8(instr.op1_register());
     let x = rm8(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn add_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn adc_rm32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn adc_rm32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm32(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u32, &mut cpu.flags));
 }
 
-pub fn adc_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn adc_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8() as u32;
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm32(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u32, &mut cpu.flags));
 }
 
-pub fn adc_rm8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn adc_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm8(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u8, &mut cpu.flags));
 }
 
-pub fn adc_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn adc_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm8(cpu, mem, instr);
@@ -535,78 +535,78 @@ pub(crate) fn sub<
     sbb(x, y, false, flags)
 }
 
-pub fn sub_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get32(instr.op1_register());
     let x = rm32(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_rm8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_rm8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sub_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sbb_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sbb_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
-pub fn sbb_rm32_r32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sbb_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = cpu.regs.get32(instr.op1_register());
     let x = rm32(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
-pub fn sbb_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sbb_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8to32() as u32;
     let x = rm32(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
-pub fn sbb_r8_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sbb_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
-pub fn sbb_r8_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn sbb_r8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
-pub fn mul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn mul_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr).get();
     let y = cpu.regs.eax;
     let res = (x as u64).wrapping_mul(y as u64);
@@ -615,7 +615,7 @@ pub fn mul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     cpu.regs.eax = res as u32;
 }
 
-pub fn imul_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn imul_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr).get() as i32;
     let y = cpu.regs.eax as i32;
     let res = (x as i64).wrapping_mul(y as i64) as u64;
@@ -629,28 +629,28 @@ fn imul_trunc(x: i32, y: i32, _flags: &mut Flags) -> i32 {
     x.wrapping_mul(y)
 }
 
-pub fn imul_r32_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn imul_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = cpu.regs.get32(instr.op0_register()) as i32;
     let y = op1_rm32(cpu, mem, instr) as i32;
     let value = imul_trunc(x, y, &mut cpu.flags);
     cpu.regs.set32(instr.op0_register(), value as u32);
 }
 
-pub fn imul_r32_rm32_imm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn imul_r32_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = op1_rm32(cpu, mem, instr) as i32;
     let y = instr.immediate32() as i32;
     let value = imul_trunc(x, y, &mut cpu.flags);
     cpu.regs.set32(instr.op0_register(), value as u32);
 }
 
-pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = op1_rm32(cpu, mem, instr) as i32;
     let y = instr.immediate8to32();
     let value = imul_trunc(x, y, &mut cpu.flags);
     cpu.regs.set32(instr.op0_register(), value as u32);
 }
 
-pub fn idiv_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn idiv_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = (((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64)) as i64;
     let y = rm32(cpu, mem, instr).get() as i32 as i64;
     cpu.regs.eax = (x / y) as i32 as u32;
@@ -658,7 +658,7 @@ pub fn idiv_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // TODO: flags.
 }
 
-pub fn div_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn div_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
     let y = rm32(cpu, mem, instr).get() as u64;
     cpu.regs.eax = (x / y) as u32;
@@ -666,12 +666,12 @@ pub fn div_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     // TODO: flags.
 }
 
-pub fn dec_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn dec_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     x.set(sub(x.get(), 1, &mut cpu.flags));
 }
 
-pub fn dec_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn dec_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
     x.set(sub(x.get(), 1, &mut cpu.flags));
 }
@@ -685,36 +685,36 @@ fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
     result
 }
 
-pub fn inc_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn inc_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     x.set(inc(x.get(), &mut cpu.flags));
 }
 
-pub fn inc_rm16(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn inc_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm16(cpu, mem, instr);
     x.set(inc(x.get(), &mut cpu.flags));
 }
 
-pub fn inc_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn inc_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
     x.set(inc(x.get(), &mut cpu.flags));
 }
 
-pub fn neg_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn neg_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     cpu.flags.set(Flags::CF, x.get() != 0);
     // TODO: other flags registers.
     x.set(-(x.get() as i32) as u32)
 }
 
-pub fn neg_rm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn neg_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
     cpu.flags.set(Flags::CF, x.get() != 0);
     // TODO: other flags registers.
     x.set(-(x.get() as i8) as u8)
 }
 
-pub fn not_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn not_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     x.set(!x.get())
 }

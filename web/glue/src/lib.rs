@@ -57,7 +57,7 @@ impl Emulator {
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
-        serde_json::to_string(&win32::disassemble(&self.machine.x86.mem(), addr)).unwrap_throw()
+        serde_json::to_string(&win32::disassemble(self.machine.x86.mem(), addr)).unwrap_throw()
     }
 
     pub fn single_step(&mut self) -> JsResult<()> {

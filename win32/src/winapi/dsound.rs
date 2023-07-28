@@ -97,7 +97,7 @@ mod IDirectSoundBuffer {
         let lpDirectSoundBuffer = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), dsound.hheap)
+            .get_heap(machine.x86.mem(), dsound.hheap)
             .unwrap()
             .alloc(4);
         let vtable = dsound.vtable_IDirectSoundBuffer;
@@ -179,7 +179,7 @@ pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOu
     let lpDirectSound = machine
         .state
         .kernel32
-        .get_heap(&mut machine.x86.mem(), dsound.hheap)
+        .get_heap(machine.x86.mem(), dsound.hheap)
         .unwrap()
         .alloc(4);
     let vtable = dsound.vtable_IDirectSound;

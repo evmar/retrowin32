@@ -418,7 +418,7 @@ mod IDirectDrawSurface {
         let lpDirectDrawSurface = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), ddraw.hheap)
+            .get_heap(machine.x86.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
@@ -599,7 +599,7 @@ mod IDirectDraw7 {
         machine.x86.cpu.regs.esp -= size;
 
         let desc_addr = machine.x86.cpu.regs.esp;
-        let mut mem = machine.x86.mem();
+        let mem = machine.x86.mem();
         let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
         unsafe { desc.clear_struct() };
         // TODO: offer multiple display modes rather than hardcoding this one.
@@ -745,7 +745,7 @@ mod IDirectDrawSurface7 {
         let lpDirectDrawSurface7 = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), ddraw.hheap)
+            .get_heap(machine.x86.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
@@ -894,7 +894,7 @@ mod IDirectDrawSurface7 {
             surf.pixels = machine
                 .state
                 .kernel32
-                .get_heap(&mut machine.x86.mem(), machine.state.ddraw.hheap)
+                .get_heap(machine.x86.mem(), machine.state.ddraw.hheap)
                 .unwrap()
                 .alloc(surf.width * surf.height * bytes_per_pixel);
         }
@@ -978,7 +978,7 @@ mod IDirectDrawPalette {
         let lpDirectDrawPalette = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), ddraw.hheap)
+            .get_heap(machine.x86.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDrawPalette;
@@ -1029,7 +1029,7 @@ pub fn DirectDrawCreateEx(
         let lpDirectDraw = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), ddraw.hheap)
+            .get_heap(machine.x86.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw;
@@ -1047,7 +1047,7 @@ pub fn DirectDrawCreateEx(
         let lpDirectDraw7 = machine
             .state
             .kernel32
-            .get_heap(&mut machine.x86.mem(), ddraw.hheap)
+            .get_heap(machine.x86.mem(), ddraw.hheap)
             .unwrap()
             .alloc(4);
         let vtable = ddraw.vtable_IDirectDraw7;

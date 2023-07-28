@@ -3,7 +3,7 @@ use iced_x86::Instruction;
 
 use crate::{memory::Mem, registers::Flags, x86::CPU};
 
-pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     assert!(cpu.flags.contains(Flags::DF)); // TODO
     let p1 = cpu.regs.esi;
     let p2 = cpu.regs.edi;
@@ -29,7 +29,7 @@ pub fn cmps(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     }
 }
 
-fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
+fn movs(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
     let reverse = cpu.flags.contains(Flags::DF);
     let step = if reverse { -(size as i32) as u32 } else { size };
     let mut c = 1u32; // 1 step if no rep prefix
@@ -59,19 +59,19 @@ fn movs(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
     }
 }
 
-pub fn movsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movsd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 4)
 }
 
-pub fn movsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movsw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 2)
 }
 
-pub fn movsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, 1)
 }
 
-fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) {
+fn scas(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
     assert!(!cpu.flags.contains(Flags::DF)); // TODO
 
     let mut c = 1u32; // 1 step if no rep prefix
@@ -107,17 +107,17 @@ fn scas(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: u32) {
     }
 }
 
-pub fn scasd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn scasd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 4)
 }
-pub fn scasw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn scasw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 2)
 }
-pub fn scasb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 1)
 }
 
-pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
+pub fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
     assert!(!cpu.flags.contains(Flags::DF)); // TODO
 
     let mut c = 1u32; // 1 step if no rep prefix
@@ -140,19 +140,19 @@ pub fn stos(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction, size: u32) {
     // TODO: does this modify esi?  Sources disagree (!?)
 }
 
-pub fn stosd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn stosd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 4)
 }
 
-pub fn stosw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn stosw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 2)
 }
 
-pub fn stosb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn stosb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, 1)
 }
 
-pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) {
+pub fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: usize) {
     if cpu.flags.contains(Flags::DF) {
         cpu.state = Err("TODO DF".into());
         return;
@@ -176,14 +176,14 @@ pub fn lods(cpu: &mut CPU, mem: &Mem, instr: &Instruction, size: usize) {
     cpu.regs.esi += size as u32;
 }
 
-pub fn lodsd(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn lodsd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 4)
 }
 
-pub fn lodsw(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn lodsw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 2)
 }
 
-pub fn lodsb(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn lodsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, 1)
 }

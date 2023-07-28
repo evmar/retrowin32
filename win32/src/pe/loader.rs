@@ -93,7 +93,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     let mut patches = Vec::new();
 
     let image = unsafe { std::mem::transmute(machine.x86.mem().slice(base..)) };
-    for dll_imports in pe::read_imports(imports_data.as_mem(&image)) {
+    for dll_imports in pe::read_imports(imports_data.as_mem(image)) {
         let dll_name = dll_imports.image_name(&image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
@@ -129,7 +129,7 @@ struct IMAGE_BASE_RELOCATION {
 }
 unsafe impl x86::Pod for IMAGE_BASE_RELOCATION {}
 
-fn apply_relocs(image: &mut Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
+fn apply_relocs(image: Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
     // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
     // have a .reloc section that is invalid (?).
     // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
@@ -174,7 +174,7 @@ fn load_pe(
     if relocate {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             apply_relocs(
-                &mut machine.x86.mem().slice(base..),
+                machine.x86.mem().slice(base..),
                 file.opt_header.ImageBase,
                 base,
                 relocs,
@@ -205,7 +205,7 @@ pub fn load_exe(
     machine
         .state
         .kernel32
-        .init_process(&mut machine.x86.mem(), cmdline);
+        .init_process(machine.x86.mem(), cmdline);
     machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;

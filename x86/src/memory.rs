@@ -23,7 +23,7 @@ unsafe impl Pod for f64 {}
 
 /// A view into the x86 memory.  Distinct from a slice to better catch
 /// accesses and also to expose casts to/from Pod types.
-#[derive(Clone)]
+#[derive(Copy, Clone)]
 pub struct Mem<'m>(&'m [u8]);
 
 impl<'m> Mem<'m> {
@@ -40,7 +40,7 @@ impl<'m> Mem<'m> {
         unsafe { std::ptr::read_unaligned(buf.as_ptr() as *const T) }
     }
 
-    pub fn put<T: Copy + Pod>(&mut self, ofs: u32, val: T) {
+    pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
         // TODO: alignment?
         *self.view_mut(ofs) = val;
     }
@@ -66,7 +66,7 @@ impl<'m> Mem<'m> {
     }
 
     /// TODO: don't expose slices of memory, as we might not have contiguous pages.
-    pub fn as_mut_slice_todo(&mut self) -> &'m mut [u8] {
+    pub fn as_mut_slice_todo(&self) -> &'m mut [u8] {
         // Safety: this is totally unsafe, just need to revisit this API.
         // Possibly should be using a raw pointer for the underlying type.
         unsafe { &mut *(self.0 as *const [u8] as *mut [u8]) }
@@ -105,7 +105,7 @@ impl<'m> Mem<'m> {
 
     // TODO: this fails if addr isn't appropriately aligned.
     // We need to revisit this whole "view" API...
-    pub fn view_mut<T: Pod>(&mut self, addr: u32) -> &'m mut T {
+    pub fn view_mut<T: Pod>(&self, addr: u32) -> &'m mut T {
         let ofs = addr as usize;
         let s = self.as_mut_slice_todo();
         let buf = &mut s[ofs..(ofs + size_of::<T>())];
@@ -127,7 +127,7 @@ impl<'m> Mem<'m> {
     }
 
     /// Note: can returned unaligned pointers depending on addr.
-    pub fn ptr_mut<T: Pod + Copy>(&mut self, addr: u32) -> *mut T {
+    pub fn ptr_mut<T: Pod + Copy>(&self, addr: u32) -> *mut T {
         let ofs = addr as usize;
         let s = self.as_mut_slice_todo();
         let buf = &mut s[ofs..(ofs + size_of::<T>())];

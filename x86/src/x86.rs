@@ -68,7 +68,7 @@ impl CPU {
     // }
 
     /// Executes an instruction, leaving eip alone.
-    pub fn run(&mut self, mem: &mut Mem, instr: &iced_x86::Instruction) -> &Result<bool, String> {
+    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &Result<bool, String> {
         ops::execute(self, mem, instr);
         &self.state
     }
@@ -101,25 +101,23 @@ impl X86 {
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) {
-        self.icache.add_breakpoint(&mut self.memory.mem(), addr)
+        self.icache.add_breakpoint(self.memory.mem(), addr)
     }
 
     pub fn clear_breakpoint(&mut self, addr: u32) {
-        self.icache.clear_breakpoint(&mut self.memory.mem(), addr)
+        self.icache.clear_breakpoint(self.memory.mem(), addr)
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
     pub fn execute_block(&mut self) -> Result<bool, String> {
-        let count = self
-            .icache
-            .execute_block(&mut self.cpu, &mut self.memory.mem());
+        let count = self.icache.execute_block(&mut self.cpu, self.memory.mem());
         self.instr_count += count;
         self.cpu.state.clone()
     }
 
     pub fn single_step(&mut self) -> Result<(), String> {
         let ip = self.cpu.regs.eip;
-        self.icache.make_single_step(&mut self.memory.mem(), ip);
+        self.icache.make_single_step(self.memory.mem(), ip);
         self.execute_block()?;
         // TODO: clear_single_step doesn't help here, because ip now points into the middle
         // of some block and the next time we execute we'll just recreate the partial block anyway.

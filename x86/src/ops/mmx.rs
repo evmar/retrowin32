@@ -4,7 +4,7 @@ use crate::{Mem, CPU};
 
 use super::helpers::*;
 
-fn op1_mmm64(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u64 {
+fn op1_mmm64(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u64 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()),
         iced_x86::OpKind::Memory => read_u64(mem, x86_addr(cpu, instr)),
@@ -12,7 +12,7 @@ fn op1_mmm64(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u64 {
     }
 }
 
-fn op1_mmm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
+fn op1_mmm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()) as u32,
         iced_x86::OpKind::Memory => mem.get::<u32>(x86_addr(cpu, instr)),
@@ -20,28 +20,28 @@ fn op1_mmm32(cpu: &mut CPU, mem: &Mem, instr: &iced_x86::Instruction) -> u32 {
     }
 }
 
-pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| x ^ y);
 }
 
-pub fn movq_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movq_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, _x| y);
 }
 
-pub fn movd_mm_rm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movd_mm_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr) as u64;
     rm64_x(cpu, mem, instr, |_cpu, _x| y);
 }
 
-pub fn movd_rm32_mm(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn movd_rm32_mm(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get64(instr.op1_register()) as u32;
     let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
-pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm32(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
         let x = x as u32; // instr only uses low 32 bits of x
@@ -52,7 +52,7 @@ pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm32(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
         let x = x as u32; // instr only uses low 32 bits of x
@@ -67,7 +67,7 @@ pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
         let t0 = (((x >> 0) & 0xFFFF) as i16 as u32) * (((y >> 0) & 0xFFFF) as i16 as u32);
@@ -78,7 +78,7 @@ pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
         (((x >> 0) & 0xFFFF) >> y) << 0
@@ -88,7 +88,7 @@ pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fn saturate(x: i16) -> u8 {
         if x < 0 {
             0
@@ -111,12 +111,12 @@ pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn emms(_cpu: &mut CPU, _mem: &mut Mem, _instr: &Instruction) {
+pub fn emms(_cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     // This is supposed to reset the FPU tag word, but I don't have one of those
     // because I'm not yet clear on what it's actually used for...
 }
 
-pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fn op(x: u8, y: u8) -> u8 {
         y.saturating_sub(x)
     }
@@ -134,7 +134,7 @@ pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
     });
 }
 
-pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: &mut Mem, instr: &Instruction) {
+pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fn op(x: u8, y: u8) -> u8 {
         x.saturating_add(y)
     }

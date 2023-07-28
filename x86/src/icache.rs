@@ -27,7 +27,7 @@ impl Default for BasicBlock {
 }
 
 impl BasicBlock {
-    fn disassemble(buf: &Mem, ip: u32, single_step: bool) -> Self {
+    fn disassemble(buf: Mem, ip: u32, single_step: bool) -> Self {
         let mut instrs = Vec::new();
         let mut decoder = iced_x86::Decoder::with_ip(
             32,
@@ -83,7 +83,7 @@ impl InstrCache {
         None
     }
 
-    fn update_block(&mut self, mem: &Mem, ip: u32, single_step: bool) {
+    fn update_block(&mut self, mem: Mem, ip: u32, single_step: bool) {
         // If there's a block after this location, ensure we don't disassemble over it.
         let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
             later_ip
@@ -94,7 +94,7 @@ impl InstrCache {
         // Ensure we don't overlap any previous block.
         self.kill_block(ip);
 
-        let block = BasicBlock::disassemble(&mem.slice(ip..end), ip, single_step);
+        let block = BasicBlock::disassemble(mem.slice(ip..end), ip, single_step);
         // log::info!("added block {:x}..{:x}", ip, ip + block.len);
         // if block.len == 1 {
         //     log::info!(
@@ -111,14 +111,14 @@ impl InstrCache {
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
+    pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
         self.breakpoints.insert(addr, mem.get::<u8>(addr));
         mem.put::<u8>(addr, 0xcc); // int3
     }
 
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, mem: &mut Mem, addr: u32) {
+    pub fn clear_breakpoint(&mut self, mem: Mem, addr: u32) {
         self.kill_block(addr); // Allow recreating lazily.
 
         // Allow a subsequent block that might have been split due to the int3
@@ -131,7 +131,7 @@ impl InstrCache {
 
     /// Executes the current basic block, updating eip.
     /// Returns the number of instructions executed.
-    pub fn execute_block(&mut self, cpu: &mut CPU, mem: &mut Mem) -> usize {
+    pub fn execute_block(&mut self, cpu: &mut CPU, mem: Mem) -> usize {
         let ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
@@ -157,7 +157,7 @@ impl InstrCache {
 
     /// Change cache such that there's a single basic block at ip.
     /// This means executing the next execute_block() will execute a single instruction.
-    pub fn make_single_step(&mut self, mem: &Mem, ip: u32) {
+    pub fn make_single_step(&mut self, mem: Mem, ip: u32) {
         match self.blocks.get(&ip) {
             Some(b) if b.instrs.len() == 1 => {}
             _ => {
