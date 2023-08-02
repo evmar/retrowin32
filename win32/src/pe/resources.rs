@@ -27,7 +27,7 @@ struct ImageResourceDirectory<'a> {
 }
 
 impl<'a> ImageResourceDirectory<'a> {
-    fn read(mem: &'a Mem, ofs: u32) -> ImageResourceDirectory<'a> {
+    fn read(mem: Mem<'a>, ofs: u32) -> ImageResourceDirectory<'a> {
         let header = mem.view::<IMAGE_RESOURCE_DIRECTORY>(ofs);
         let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as u32;
         // Entries are in memory immediately after the directory.
@@ -76,7 +76,7 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
         }
     }
 
-    fn value<'a>(&self, section: &'a Mem) -> ResourceValue<'a> {
+    fn value<'a>(&self, section: Mem<'a>) -> ResourceValue<'a> {
         let is_directory = self.OffsetToData >> 31 == 1;
         let offset = self.OffsetToData & 0x7FFF_FFFF;
         if is_directory {
@@ -99,7 +99,7 @@ unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
 pub fn get_resource<'a>(
-    mem: &'a Mem<'a>,
+    mem: Mem<'a>,
     section: &IMAGE_DATA_DIRECTORY,
     query_type: u32,
     query_id: u32,
@@ -108,16 +108,16 @@ pub fn get_resource<'a>(
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
-    let dir = ImageResourceDirectory::read(&section, 0);
+    let dir = ImageResourceDirectory::read(section, 0);
 
     let etype = dir.entries.iter().find(|entry| entry.has_id(query_type))?;
-    let dir = match etype.value(&section) {
+    let dir = match etype.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
 
     let eid = dir.entries.iter().find(|entry| entry.has_id(query_id))?;
-    let dir = match eid.value(&section) {
+    let dir = match eid.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
@@ -125,7 +125,7 @@ pub fn get_resource<'a>(
     if dir.entries.len() > 1 {
         log::warn!("multiple res entries, picking first");
     }
-    let data = match dir.entries.first()?.value(&section) {
+    let data = match dir.entries.first()?.value(section) {
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };

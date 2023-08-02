@@ -632,7 +632,7 @@ pub fn LoadImageA(
     match typ {
         IMAGE_BITMAP => {
             let mem = machine.mem().slice(machine.state.kernel32.image_base..);
-            let buf = pe::get_resource(&mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
+            let buf = pe::get_resource(mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
                 .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
             machine.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));

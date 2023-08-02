@@ -93,7 +93,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 
     let image = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
     for dll_imports in pe::read_imports(imports_data.as_mem(image)) {
-        let dll_name = dll_imports.image_name(&image).to_ascii_lowercase();
+        let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
         let mut dll = match hmodule.to_dll_index() {
@@ -287,7 +287,7 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, name, buf, &file, true)?;
-    let image = &machine.mem().slice(base..);
+    let image = machine.mem().slice(base..);
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     let mut ordinals = HashMap::new();

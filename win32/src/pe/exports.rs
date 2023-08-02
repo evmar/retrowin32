@@ -25,21 +25,21 @@ unsafe impl x86::Pod for IMAGE_EXPORT_DIRECTORY {}
 
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
-    pub fn name<'a>(&self, image: &'a Mem) -> &'a str {
+    pub fn name<'a>(&self, image: Mem<'a>) -> &'a str {
         image.slicez(self.Name).unwrap().to_ascii()
     }
 
-    pub fn fns<'a>(&self, image: &'a Mem) -> &'a [u32] {
+    pub fn fns<'a>(&self, image: Mem<'a>) -> &'a [u32] {
         image.view_n::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
     }
 
-    pub fn names<'a>(&self, image: &'a Mem) -> impl Iterator<Item = (&'a str, u16)> {
+    pub fn names<'a>(&self, image: Mem<'a>) -> impl Iterator<Item = (&'a str, u16)> {
         let names = image.view_n::<u32>(self.AddressOfNames, self.NumberOfNames);
         let ords = image.view_n::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
         let ni = names
             .iter()
-            .map(|&addr| image.slicez(addr).unwrap().to_ascii());
+            .map(move |&addr| image.slicez(addr).unwrap().to_ascii());
         let oi = ords.iter().copied();
         ni.zip(oi)
     }
