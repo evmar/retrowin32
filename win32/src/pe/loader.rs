@@ -122,6 +122,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 }
 
 #[repr(C)]
+#[allow(non_camel_case_types)]
 struct IMAGE_BASE_RELOCATION {
     VirtualAddress: u32,
     SizeOfBlock: u32,
