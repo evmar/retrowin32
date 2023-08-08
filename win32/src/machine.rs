@@ -18,11 +18,13 @@ pub struct Machine {
 
 impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
+        let mut memory = VecMem::default();
+        let state = winapi::State::new(&mut memory);
         Machine {
             x86: X86::new(),
-            memory: VecMem::default(),
+            memory,
             host,
-            state: winapi::State::new(),
+            state,
             shims: Shims::new(),
             labels: HashMap::new(),
         }

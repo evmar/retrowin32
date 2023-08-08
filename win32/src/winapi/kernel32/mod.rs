@@ -51,32 +51,30 @@ pub struct State {
 }
 
 impl State {
-    pub fn new() -> Self {
-        State {
-            arena: ArenaInfo::new(0, 0),
-            image_base: 0,
-            teb: 0,
-            mappings: Mappings::new(),
-            heaps: HashMap::new(),
-            dlls: Vec::new(),
-            files: HashMap::new(),
-            env: 0,
-            cmdline: 0,
-            cmdline16: 0,
-        }
-    }
-
-    pub fn init(&mut self, mem: &mut VecMem) {
-        let mapping = self.mappings.alloc(0x1000, "kernel32 data".into(), mem);
-        self.arena = ArenaInfo::new(mapping.addr, mapping.size);
+    pub fn new(mem: &mut VecMem) -> Self {
+        let mut mappings = Mappings::new();
+        let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
+        let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let env = "\0\0".as_bytes();
-        let env_addr = self.arena.get(mem.mem()).alloc(env.len() as u32);
+        let env_addr = arena.get(mem.mem()).alloc(env.len() as u32);
         mem.mem()
             .sub(env_addr, env.len() as u32)
             .as_mut_slice_todo()
             .copy_from_slice(env);
-        self.env = env_addr;
+
+        State {
+            arena,
+            image_base: 0,
+            teb: 0,
+            mappings,
+            heaps: HashMap::new(),
+            dlls: Vec::new(),
+            files: HashMap::new(),
+            env: env_addr,
+            cmdline: 0,
+            cmdline16: 0,
+        }
     }
 
     fn init_cmdline(&mut self, mem: Mem, mut cmdline: String) {

@@ -1,4 +1,5 @@
 use crate::machine::Machine;
+use x86::VecMem;
 
 mod alloc;
 mod bass;
@@ -99,12 +100,12 @@ pub struct State {
 }
 
 impl State {
-    pub fn new() -> Self {
+    pub fn new(memory: &mut VecMem) -> Self {
         State {
             ddraw: ddraw::State::default(),
             dsound: dsound::State::default(),
             gdi32: gdi32::State::default(),
-            kernel32: kernel32::State::new(),
+            kernel32: kernel32::State::new(memory),
             user32: user32::State::default(),
         }
     }

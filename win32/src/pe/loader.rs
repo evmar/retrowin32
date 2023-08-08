@@ -197,8 +197,6 @@ pub fn load_exe(
 ) -> anyhow::Result<()> {
     let file = pe::parse(buf)?;
 
-    machine.state.kernel32.init(&mut machine.memory);
-
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
 
