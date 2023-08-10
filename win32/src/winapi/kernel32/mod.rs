@@ -357,7 +357,7 @@ pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
     buf: Option<&mut [u8]>,
-) -> usize {
+) -> u32 {
     println!("name {:?} buf {:?}", name, buf);
     0
 }
@@ -367,10 +367,10 @@ pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,
     filename: Option<&mut [u8]>,
-) -> usize {
+) -> u32 {
     assert!(hModule.is_null());
     match filename.unwrap().write(b"TODO.exe\0") {
-        Ok(n) => n,
+        Ok(n) => n as u32,
         Err(err) => {
             log::warn!("GetModuleFileNameA(): {}", err);
             0
