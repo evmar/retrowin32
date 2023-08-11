@@ -2,7 +2,7 @@ use crate::{
     machine::Machine,
     pe,
     shims::Shims,
-    winapi::{self, types::*, BuiltinDLL, ImportSymbol},
+    winapi::{self, builtin::BuiltinDLL, types::*, ImportSymbol},
 };
 use std::collections::HashMap;
 
@@ -42,22 +42,30 @@ impl DLL {
     }
 
     pub fn resolve_from_builtin(&mut self, shims: &mut Shims, sym: &ImportSymbol) -> Option<u32> {
-        if let Some(builtin) = self.builtin {
-            let handler = (builtin.resolve)(&sym);
-            let addr = shims.add(format!("{}!{}", self.name, sym.to_string()), handler);
+        let builtin = self.builtin?;
 
-            match *sym {
-                ImportSymbol::Name(name) => {
-                    self.dll.names.insert(name.to_string(), addr);
-                }
-                ImportSymbol::Ordinal(ord) => {
-                    self.dll.ordinals.insert(ord, addr);
-                }
+        let export = match *sym {
+            ImportSymbol::Name(name) => builtin.exports.iter().find(|&export| export.name == name),
+            ImportSymbol::Ordinal(ord) => builtin
+                .exports
+                .iter()
+                .find(|&export| export.ordinal == Some(ord as usize)),
+        };
+
+        let addr = shims.add(
+            format!("{}!{}", self.name, sym.to_string()),
+            export.map(|e| e.func),
+        );
+
+        match *sym {
+            ImportSymbol::Name(name) => {
+                self.dll.names.insert(name.to_string(), addr);
             }
-
-            return Some(addr);
+            ImportSymbol::Ordinal(ord) => {
+                self.dll.ordinals.insert(ord, addr);
+            }
         }
-        return None;
+        return Some(addr);
     }
 
     pub fn resolve(&mut self, shims: &mut Shims, sym: ImportSymbol) -> u32 {

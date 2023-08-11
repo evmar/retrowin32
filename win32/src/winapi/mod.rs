@@ -1,10 +1,9 @@
-use crate::machine::Machine;
 use x86::VecMem;
 
 mod alloc;
 mod bass;
+mod builtin;
 pub mod ddraw;
-mod dll;
 pub mod dsound;
 pub mod gdi32;
 pub mod kernel32;
@@ -69,21 +68,16 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub struct BuiltinDLL {
-    file_name: &'static str,
-    resolve: fn(&ImportSymbol) -> Option<fn(&mut Machine)>,
-}
-
-pub const DLLS: [BuiltinDLL; 9] = [
-    dll::bass::DLL,
-    dll::ddraw::DLL,
-    dll::dsound::DLL,
-    dll::gdi32::DLL,
-    dll::kernel32::DLL,
-    dll::ole32::DLL,
-    dll::oleaut32::DLL,
-    dll::user32::DLL,
-    dll::winmm::DLL,
+pub const DLLS: [builtin::BuiltinDLL; 9] = [
+    builtin::bass::DLL,
+    builtin::ddraw::DLL,
+    builtin::dsound::DLL,
+    builtin::gdi32::DLL,
+    builtin::kernel32::DLL,
+    builtin::ole32::DLL,
+    builtin::oleaut32::DLL,
+    builtin::user32::DLL,
+    builtin::winmm::DLL,
 ];
 
 #[derive(serde::Serialize, serde::Deserialize)]

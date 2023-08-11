@@ -4,8 +4,18 @@
 #[doc = r" Generated code, do not edit."]
 use crate::{
     machine::Machine,
-    winapi::{self, stack_args::*, types::*, BuiltinDLL},
+    winapi::{self, stack_args::*, types::*},
 };
+pub struct Symbol {
+    pub name: &'static str,
+    pub ordinal: Option<usize>,
+    pub func: fn(&mut Machine),
+    pub stack_consumed: fn() -> u32,
+}
+pub struct BuiltinDLL {
+    pub file_name: &'static str,
+    pub exports: &'static [Symbol],
+}
 pub mod bass {
     use super::*;
     use winapi::bass::*;
@@ -77,19 +87,52 @@ pub mod bass {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("BASS_Init") => BASS_Init,
-            winapi::ImportSymbol::Name("BASS_MusicLoad") => BASS_MusicLoad,
-            winapi::ImportSymbol::Name("BASS_Start") => BASS_Start,
-            winapi::ImportSymbol::Name("BASS_MusicPlay") => BASS_MusicPlay,
-            winapi::ImportSymbol::Name("BASS_ChannelGetPosition") => BASS_ChannelGetPosition,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 5usize] = [
+        Symbol {
+            name: "BASS_Init",
+            ordinal: None,
+            func: BASS_Init,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "BASS_MusicLoad",
+            ordinal: None,
+            func: BASS_MusicLoad,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "BASS_Start",
+            ordinal: None,
+            func: BASS_Start,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "BASS_MusicPlay",
+            ordinal: None,
+            func: BASS_MusicPlay,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "BASS_ChannelGetPosition",
+            ordinal: None,
+            func: BASS_ChannelGetPosition,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "bass.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod ddraw {
@@ -130,16 +173,30 @@ pub mod ddraw {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("DirectDrawCreate") => DirectDrawCreate,
-            winapi::ImportSymbol::Name("DirectDrawCreateEx") => DirectDrawCreateEx,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 2usize] = [
+        Symbol {
+            name: "DirectDrawCreate",
+            ordinal: None,
+            func: DirectDrawCreate,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "DirectDrawCreateEx",
+            ordinal: None,
+            func: DirectDrawCreateEx,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ddraw.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod dsound {
@@ -161,16 +218,17 @@ pub mod dsound {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("DirectSoundCreate") => DirectSoundCreate,
-            winapi::ImportSymbol::Ordinal(1u32) => DirectSoundCreate,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        name: "DirectSoundCreate",
+        ordinal: Some(1usize),
+        func: DirectSoundCreate,
+        stack_consumed: || {
+            <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+        },
+    }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "dsound.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod gdi32 {
@@ -311,21 +369,77 @@ pub mod gdi32 {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("GetStockObject") => GetStockObject,
-            winapi::ImportSymbol::Name("SelectObject") => SelectObject,
-            winapi::ImportSymbol::Name("GetObjectA") => GetObjectA,
-            winapi::ImportSymbol::Name("CreateCompatibleDC") => CreateCompatibleDC,
-            winapi::ImportSymbol::Name("DeleteDC") => DeleteDC,
-            winapi::ImportSymbol::Name("BitBlt") => BitBlt,
-            winapi::ImportSymbol::Name("StretchBlt") => StretchBlt,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 7usize] = [
+        Symbol {
+            name: "GetStockObject",
+            ordinal: None,
+            func: GetStockObject,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "SelectObject",
+            ordinal: None,
+            func: SelectObject,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetObjectA",
+            ordinal: None,
+            func: GetObjectA,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "CreateCompatibleDC",
+            ordinal: None,
+            func: CreateCompatibleDC,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "DeleteDC",
+            ordinal: None,
+            func: DeleteDC,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "BitBlt",
+            ordinal: None,
+            func: BitBlt,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "StretchBlt",
+            ordinal: None,
+            func: StretchBlt,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "gdi32.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod kernel32 {
@@ -1298,109 +1412,526 @@ pub mod kernel32 {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("GetModuleHandleA") => GetModuleHandleA,
-            winapi::ImportSymbol::Name("GetModuleHandleW") => GetModuleHandleW,
-            winapi::ImportSymbol::Name("GetModuleHandleExW") => GetModuleHandleExW,
-            winapi::ImportSymbol::Name("LoadLibraryA") => LoadLibraryA,
-            winapi::ImportSymbol::Name("LoadLibraryExW") => LoadLibraryExW,
-            winapi::ImportSymbol::Name("GetProcAddress") => GetProcAddress,
-            winapi::ImportSymbol::Name("GetStdHandle") => GetStdHandle,
-            winapi::ImportSymbol::Name("CreateFileA") => CreateFileA,
-            winapi::ImportSymbol::Name("CreateFileW") => CreateFileW,
-            winapi::ImportSymbol::Name("GetFileType") => GetFileType,
-            winapi::ImportSymbol::Name("SetFilePointer") => SetFilePointer,
-            winapi::ImportSymbol::Name("ReadFile") => ReadFile,
-            winapi::ImportSymbol::Name("WriteFile") => WriteFile,
-            winapi::ImportSymbol::Name("HeapAlloc") => HeapAlloc,
-            winapi::ImportSymbol::Name("HeapFree") => HeapFree,
-            winapi::ImportSymbol::Name("HeapSize") => HeapSize,
-            winapi::ImportSymbol::Name("HeapReAlloc") => HeapReAlloc,
-            winapi::ImportSymbol::Name("HeapCreate") => HeapCreate,
-            winapi::ImportSymbol::Name("HeapDestroy") => HeapDestroy,
-            winapi::ImportSymbol::Name("VirtualAlloc") => VirtualAlloc,
-            winapi::ImportSymbol::Name("VirtualFree") => VirtualFree,
-            winapi::ImportSymbol::Name("IsBadReadPtr") => IsBadReadPtr,
-            winapi::ImportSymbol::Name("IsBadWritePtr") => IsBadWritePtr,
-            winapi::ImportSymbol::Name("SetLastError") => SetLastError,
-            winapi::ImportSymbol::Name("GetLastError") => GetLastError,
-            winapi::ImportSymbol::Name("ExitProcess") => ExitProcess,
-            winapi::ImportSymbol::Name("GetACP") => GetACP,
-            winapi::ImportSymbol::Name("IsValidCodePage") => IsValidCodePage,
-            winapi::ImportSymbol::Name("GetCPInfo") => GetCPInfo,
-            winapi::ImportSymbol::Name("GetCommandLineA") => GetCommandLineA,
-            winapi::ImportSymbol::Name("GetCommandLineW") => GetCommandLineW,
-            winapi::ImportSymbol::Name("GetEnvironmentStrings") => GetEnvironmentStrings,
-            winapi::ImportSymbol::Name("FreeEnvironmentStringsA") => FreeEnvironmentStringsA,
-            winapi::ImportSymbol::Name("GetEnvironmentStringsW") => GetEnvironmentStringsW,
-            winapi::ImportSymbol::Name("GetEnvironmentVariableA") => GetEnvironmentVariableA,
-            winapi::ImportSymbol::Name("GetModuleFileNameA") => GetModuleFileNameA,
-            winapi::ImportSymbol::Name("GetModuleFileNameW") => GetModuleFileNameW,
-            winapi::ImportSymbol::Name("GetStartupInfoA") => GetStartupInfoA,
-            winapi::ImportSymbol::Name("GetStartupInfoW") => GetStartupInfoW,
-            winapi::ImportSymbol::Name("IsProcessorFeaturePresent") => IsProcessorFeaturePresent,
-            winapi::ImportSymbol::Name("IsDebuggerPresent") => IsDebuggerPresent,
-            winapi::ImportSymbol::Name("GetCurrentProcessId") => GetCurrentProcessId,
-            winapi::ImportSymbol::Name("GetTickCount") => GetTickCount,
-            winapi::ImportSymbol::Name("QueryPerformanceCounter") => QueryPerformanceCounter,
-            winapi::ImportSymbol::Name("QueryPerformanceFrequency") => QueryPerformanceFrequency,
-            winapi::ImportSymbol::Name("GetSystemTimeAsFileTime") => GetSystemTimeAsFileTime,
-            winapi::ImportSymbol::Name("GetVersion") => GetVersion,
-            winapi::ImportSymbol::Name("GetVersionExA") => GetVersionExA,
-            winapi::ImportSymbol::Name("GetProcessHeap") => GetProcessHeap,
-            winapi::ImportSymbol::Name("SetHandleCount") => SetHandleCount,
-            winapi::ImportSymbol::Name("OutputDebugStringA") => OutputDebugStringA,
-            winapi::ImportSymbol::Name("InitializeCriticalSectionAndSpinCount") => {
-                InitializeCriticalSectionAndSpinCount
-            }
-            winapi::ImportSymbol::Name("DeleteCriticalSection") => DeleteCriticalSection,
-            winapi::ImportSymbol::Name("EnterCriticalSection") => EnterCriticalSection,
-            winapi::ImportSymbol::Name("LeaveCriticalSection") => LeaveCriticalSection,
-            winapi::ImportSymbol::Name("SetUnhandledExceptionFilter") => {
-                SetUnhandledExceptionFilter
-            }
-            winapi::ImportSymbol::Name("UnhandledExceptionFilter") => UnhandledExceptionFilter,
-            winapi::ImportSymbol::Name("NtCurrentTeb") => NtCurrentTeb,
-            winapi::ImportSymbol::Name("InitializeSListHead") => InitializeSListHead,
-            winapi::ImportSymbol::Name("MultiByteToWideChar") => MultiByteToWideChar,
-            winapi::ImportSymbol::Name("WriteConsoleW") => WriteConsoleW,
-            winapi::ImportSymbol::Name("GetCurrentThreadId") => GetCurrentThreadId,
-            winapi::ImportSymbol::Name("TlsAlloc") => TlsAlloc,
-            winapi::ImportSymbol::Name("TlsFree") => TlsFree,
-            winapi::ImportSymbol::Name("TlsSetValue") => TlsSetValue,
-            winapi::ImportSymbol::Name("TlsGetValue") => TlsGetValue,
-            winapi::ImportSymbol::Name("CreateThread") => CreateThread,
-            winapi::ImportSymbol::Name("SetThreadPriority") => SetThreadPriority,
-            winapi::ImportSymbol::Name("InterlockedIncrement") => InterlockedIncrement,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 69usize] = [
+        Symbol {
+            name: "GetModuleHandleA",
+            ordinal: None,
+            func: GetModuleHandleA,
+            stack_consumed: || <Option<&str>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetModuleHandleW",
+            ordinal: None,
+            func: GetModuleHandleW,
+            stack_consumed: || <Option<Str16>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetModuleHandleExW",
+            ordinal: None,
+            func: GetModuleHandleExW,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <Option<Str16>>::stack_consumed()
+                    + <Option<&mut HMODULE>>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "LoadLibraryA",
+            ordinal: None,
+            func: LoadLibraryA,
+            stack_consumed: || <Option<&str>>::stack_consumed(),
+        },
+        Symbol {
+            name: "LoadLibraryExW",
+            ordinal: None,
+            func: LoadLibraryExW,
+            stack_consumed: || {
+                <Option<Str16>>::stack_consumed()
+                    + <HFILE>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetProcAddress",
+            ordinal: None,
+            func: GetProcAddress,
+            stack_consumed: || <HMODULE>::stack_consumed() + <Option<&str>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetStdHandle",
+            ordinal: None,
+            func: GetStdHandle,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "CreateFileA",
+            ordinal: None,
+            func: CreateFileA,
+            stack_consumed: || {
+                <Option<&str>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <Result<CreationDisposition, u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <HFILE>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "CreateFileW",
+            ordinal: None,
+            func: CreateFileW,
+            stack_consumed: || {
+                <Option<Str16>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <Result<CreationDisposition, u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <HFILE>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetFileType",
+            ordinal: None,
+            func: GetFileType,
+            stack_consumed: || <HFILE>::stack_consumed(),
+        },
+        Symbol {
+            name: "SetFilePointer",
+            ordinal: None,
+            func: SetFilePointer,
+            stack_consumed: || {
+                <HFILE>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <Option<&mut u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "ReadFile",
+            ordinal: None,
+            func: ReadFile,
+            stack_consumed: || {
+                <HFILE>::stack_consumed()
+                    + <Option<&mut [u8]>>::stack_consumed()
+                    + <Option<&mut u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "WriteFile",
+            ordinal: None,
+            func: WriteFile,
+            stack_consumed: || {
+                <HFILE>::stack_consumed()
+                    + <Option<&[u8]>>::stack_consumed()
+                    + <Option<&mut u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapAlloc",
+            ordinal: None,
+            func: HeapAlloc,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapFree",
+            ordinal: None,
+            func: HeapFree,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapSize",
+            ordinal: None,
+            func: HeapSize,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapReAlloc",
+            ordinal: None,
+            func: HeapReAlloc,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapCreate",
+            ordinal: None,
+            func: HeapCreate,
+            stack_consumed: || {
+                <Result<HeapCreateFlags, u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "HeapDestroy",
+            ordinal: None,
+            func: HeapDestroy,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "VirtualAlloc",
+            ordinal: None,
+            func: VirtualAlloc,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "VirtualFree",
+            ordinal: None,
+            func: VirtualFree,
+            stack_consumed: || {
+                <u32>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "IsBadReadPtr",
+            ordinal: None,
+            func: IsBadReadPtr,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "IsBadWritePtr",
+            ordinal: None,
+            func: IsBadWritePtr,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "SetLastError",
+            ordinal: None,
+            func: SetLastError,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetLastError",
+            ordinal: None,
+            func: GetLastError,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "ExitProcess",
+            ordinal: None,
+            func: ExitProcess,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetACP",
+            ordinal: None,
+            func: GetACP,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "IsValidCodePage",
+            ordinal: None,
+            func: IsValidCodePage,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetCPInfo",
+            ordinal: None,
+            func: GetCPInfo,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetCommandLineA",
+            ordinal: None,
+            func: GetCommandLineA,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetCommandLineW",
+            ordinal: None,
+            func: GetCommandLineW,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetEnvironmentStrings",
+            ordinal: None,
+            func: GetEnvironmentStrings,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "FreeEnvironmentStringsA",
+            ordinal: None,
+            func: FreeEnvironmentStringsA,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetEnvironmentStringsW",
+            ordinal: None,
+            func: GetEnvironmentStringsW,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetEnvironmentVariableA",
+            ordinal: None,
+            func: GetEnvironmentVariableA,
+            stack_consumed: || {
+                <Option<&str>>::stack_consumed() + <Option<&mut [u8]>>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetModuleFileNameA",
+            ordinal: None,
+            func: GetModuleFileNameA,
+            stack_consumed: || <HMODULE>::stack_consumed() + <Option<&mut [u8]>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetModuleFileNameW",
+            ordinal: None,
+            func: GetModuleFileNameW,
+            stack_consumed: || {
+                <HMODULE>::stack_consumed() + <u32>::stack_consumed() + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetStartupInfoA",
+            ordinal: None,
+            func: GetStartupInfoA,
+            stack_consumed: || <Option<&mut STARTUPINFOA>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetStartupInfoW",
+            ordinal: None,
+            func: GetStartupInfoW,
+            stack_consumed: || <Option<&mut STARTUPINFOA>>::stack_consumed(),
+        },
+        Symbol {
+            name: "IsProcessorFeaturePresent",
+            ordinal: None,
+            func: IsProcessorFeaturePresent,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "IsDebuggerPresent",
+            ordinal: None,
+            func: IsDebuggerPresent,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetCurrentProcessId",
+            ordinal: None,
+            func: GetCurrentProcessId,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetTickCount",
+            ordinal: None,
+            func: GetTickCount,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "QueryPerformanceCounter",
+            ordinal: None,
+            func: QueryPerformanceCounter,
+            stack_consumed: || <Option<&mut LARGE_INTEGER>>::stack_consumed(),
+        },
+        Symbol {
+            name: "QueryPerformanceFrequency",
+            ordinal: None,
+            func: QueryPerformanceFrequency,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetSystemTimeAsFileTime",
+            ordinal: None,
+            func: GetSystemTimeAsFileTime,
+            stack_consumed: || <Option<&mut FILETIME>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetVersion",
+            ordinal: None,
+            func: GetVersion,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetVersionExA",
+            ordinal: None,
+            func: GetVersionExA,
+            stack_consumed: || <Option<&mut OSVERSIONINFO>>::stack_consumed(),
+        },
+        Symbol {
+            name: "GetProcessHeap",
+            ordinal: None,
+            func: GetProcessHeap,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "SetHandleCount",
+            ordinal: None,
+            func: SetHandleCount,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "OutputDebugStringA",
+            ordinal: None,
+            func: OutputDebugStringA,
+            stack_consumed: || <Option<&str>>::stack_consumed(),
+        },
+        Symbol {
+            name: "InitializeCriticalSectionAndSpinCount",
+            ordinal: None,
+            func: InitializeCriticalSectionAndSpinCount,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "DeleteCriticalSection",
+            ordinal: None,
+            func: DeleteCriticalSection,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "EnterCriticalSection",
+            ordinal: None,
+            func: EnterCriticalSection,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "LeaveCriticalSection",
+            ordinal: None,
+            func: LeaveCriticalSection,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "SetUnhandledExceptionFilter",
+            ordinal: None,
+            func: SetUnhandledExceptionFilter,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "UnhandledExceptionFilter",
+            ordinal: None,
+            func: UnhandledExceptionFilter,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "NtCurrentTeb",
+            ordinal: None,
+            func: NtCurrentTeb,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "InitializeSListHead",
+            ordinal: None,
+            func: InitializeSListHead,
+            stack_consumed: || <Option<&mut SLIST_HEADER>>::stack_consumed(),
+        },
+        Symbol {
+            name: "MultiByteToWideChar",
+            ordinal: None,
+            func: MultiByteToWideChar,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <i32>::stack_consumed()
+                    + <Option<&mut [u16]>>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "WriteConsoleW",
+            ordinal: None,
+            func: WriteConsoleW,
+            stack_consumed: || {
+                <HFILE>::stack_consumed()
+                    + <Option<&[u16]>>::stack_consumed()
+                    + <Option<&mut u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetCurrentThreadId",
+            ordinal: None,
+            func: GetCurrentThreadId,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "TlsAlloc",
+            ordinal: None,
+            func: TlsAlloc,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "TlsFree",
+            ordinal: None,
+            func: TlsFree,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "TlsSetValue",
+            ordinal: None,
+            func: TlsSetValue,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "TlsGetValue",
+            ordinal: None,
+            func: TlsGetValue,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "CreateThread",
+            ordinal: None,
+            func: CreateThread,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "SetThreadPriority",
+            ordinal: None,
+            func: SetThreadPriority,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "InterlockedIncrement",
+            ordinal: None,
+            func: InterlockedIncrement,
+            stack_consumed: || <Option<&mut u32>>::stack_consumed(),
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "kernel32.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod ole32 {
     use super::*;
     use winapi::ole32::*;
-    fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        None
-    }
+    const EXPORTS: [Symbol; 0usize] = [];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod oleaut32 {
     use super::*;
     use winapi::oleaut32::*;
-    fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        None
-    }
+    const EXPORTS: [Symbol; 0usize] = [];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "oleaut32.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod user32 {
@@ -1793,37 +2324,196 @@ pub mod user32 {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("RegisterClassA") => RegisterClassA,
-            winapi::ImportSymbol::Name("RegisterClassExA") => RegisterClassExA,
-            winapi::ImportSymbol::Name("CreateWindowExA") => CreateWindowExA,
-            winapi::ImportSymbol::Name("GetForegroundWindow") => GetForegroundWindow,
-            winapi::ImportSymbol::Name("GetActiveWindow") => GetActiveWindow,
-            winapi::ImportSymbol::Name("GetLastActivePopup") => GetLastActivePopup,
-            winapi::ImportSymbol::Name("UpdateWindow") => UpdateWindow,
-            winapi::ImportSymbol::Name("ShowWindow") => ShowWindow,
-            winapi::ImportSymbol::Name("SetFocus") => SetFocus,
-            winapi::ImportSymbol::Name("SetCursor") => SetCursor,
-            winapi::ImportSymbol::Name("MessageBoxA") => MessageBoxA,
-            winapi::ImportSymbol::Name("DialogBoxParamA") => DialogBoxParamA,
-            winapi::ImportSymbol::Name("PeekMessageA") => PeekMessageA,
-            winapi::ImportSymbol::Name("GetMessageA") => GetMessageA,
-            winapi::ImportSymbol::Name("WaitMessage") => WaitMessage,
-            winapi::ImportSymbol::Name("TranslateMessage") => TranslateMessage,
-            winapi::ImportSymbol::Name("DispatchMessageA") => DispatchMessageA,
-            winapi::ImportSymbol::Name("DefWindowProcA") => DefWindowProcA,
-            winapi::ImportSymbol::Name("LoadIconA") => LoadIconA,
-            winapi::ImportSymbol::Name("LoadCursorA") => LoadCursorA,
-            winapi::ImportSymbol::Name("ShowCursor") => ShowCursor,
-            winapi::ImportSymbol::Name("LoadImageA") => LoadImageA,
-            winapi::ImportSymbol::Name("GetSystemMetrics") => GetSystemMetrics,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 23usize] = [
+        Symbol {
+            name: "RegisterClassA",
+            ordinal: None,
+            func: RegisterClassA,
+            stack_consumed: || <Option<&WNDCLASSA>>::stack_consumed(),
+        },
+        Symbol {
+            name: "RegisterClassExA",
+            ordinal: None,
+            func: RegisterClassExA,
+            stack_consumed: || <Option<&WNDCLASSEXA>>::stack_consumed(),
+        },
+        Symbol {
+            name: "CreateWindowExA",
+            ordinal: None,
+            func: CreateWindowExA,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <Option<&str>>::stack_consumed()
+                    + <Result<WindowStyle, u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <HWND>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetForegroundWindow",
+            ordinal: None,
+            func: GetForegroundWindow,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetActiveWindow",
+            ordinal: None,
+            func: GetActiveWindow,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "GetLastActivePopup",
+            ordinal: None,
+            func: GetLastActivePopup,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "UpdateWindow",
+            ordinal: None,
+            func: UpdateWindow,
+            stack_consumed: || <HWND>::stack_consumed(),
+        },
+        Symbol {
+            name: "ShowWindow",
+            ordinal: None,
+            func: ShowWindow,
+            stack_consumed: || <HWND>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "SetFocus",
+            ordinal: None,
+            func: SetFocus,
+            stack_consumed: || <HWND>::stack_consumed(),
+        },
+        Symbol {
+            name: "SetCursor",
+            ordinal: None,
+            func: SetCursor,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "MessageBoxA",
+            ordinal: None,
+            func: MessageBoxA,
+            stack_consumed: || {
+                <HWND>::stack_consumed()
+                    + <Option<&str>>::stack_consumed()
+                    + <Option<&str>>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "DialogBoxParamA",
+            ordinal: None,
+            func: DialogBoxParamA,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <HWND>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "PeekMessageA",
+            ordinal: None,
+            func: PeekMessageA,
+            stack_consumed: || {
+                <Option<&mut MSG>>::stack_consumed()
+                    + <HWND>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <Result<RemoveMsg, u32>>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetMessageA",
+            ordinal: None,
+            func: GetMessageA,
+            stack_consumed: || {
+                <Option<&mut MSG>>::stack_consumed()
+                    + <HWND>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "WaitMessage",
+            ordinal: None,
+            func: WaitMessage,
+            stack_consumed: || 0,
+        },
+        Symbol {
+            name: "TranslateMessage",
+            ordinal: None,
+            func: TranslateMessage,
+            stack_consumed: || <Option<&MSG>>::stack_consumed(),
+        },
+        Symbol {
+            name: "DispatchMessageA",
+            ordinal: None,
+            func: DispatchMessageA,
+            stack_consumed: || <Option<&MSG>>::stack_consumed(),
+        },
+        Symbol {
+            name: "DefWindowProcA",
+            ordinal: None,
+            func: DefWindowProcA,
+            stack_consumed: || {
+                <HWND>::stack_consumed()
+                    + <Result<WM, u32>>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "LoadIconA",
+            ordinal: None,
+            func: LoadIconA,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "LoadCursorA",
+            ordinal: None,
+            func: LoadCursorA,
+            stack_consumed: || <u32>::stack_consumed() + <u32>::stack_consumed(),
+        },
+        Symbol {
+            name: "ShowCursor",
+            ordinal: None,
+            func: ShowCursor,
+            stack_consumed: || <bool>::stack_consumed(),
+        },
+        Symbol {
+            name: "LoadImageA",
+            ordinal: None,
+            func: LoadImageA,
+            stack_consumed: || {
+                <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+                    + <u32>::stack_consumed()
+            },
+        },
+        Symbol {
+            name: "GetSystemMetrics",
+            ordinal: None,
+            func: GetSystemMetrics,
+            stack_consumed: || <u32>::stack_consumed(),
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "user32.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }
 pub mod winmm {
@@ -1858,14 +2548,20 @@ pub mod winmm {
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-        Some(match *sym {
-            winapi::ImportSymbol::Name("timeSetEvent") => timeSetEvent,
-            _ => return None,
-        })
-    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        name: "timeSetEvent",
+        ordinal: None,
+        func: timeSetEvent,
+        stack_consumed: || {
+            <u32>::stack_consumed()
+                + <u32>::stack_consumed()
+                + <u32>::stack_consumed()
+                + <u32>::stack_consumed()
+                + <u32>::stack_consumed()
+        },
+    }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "winmm.dll",
-        resolve,
+        exports: &EXPORTS,
     };
 }

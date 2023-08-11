@@ -60,10 +60,13 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     paths.sort();
 
     let mut fns = Vec::new();
-    let mut fn_names = Vec::new();
+    let mut exports = Vec::new();
     for path in paths {
-        let buf = std::fs::read_to_string(path)?;
-        let file = syn::parse_file(&buf)?;
+        let buf = std::fs::read_to_string(&path)?;
+        let file = match syn::parse_file(&buf) {
+            Ok(file) => file,
+            Err(err) => return Ok(err.into_compile_error().into()),
+        };
         for item in &file.items {
             match item {
                 syn::Item::Fn(func) => {
@@ -77,8 +80,10 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
                     }
 
                     if let Some(ordinal) = dllexport {
-                        fn_names.push((func.sig.ident.clone(), ordinal));
-                        fns.push(gen::fn_wrapper(quote! { winapi::#module }, func));
+                        let (wrapper, export) =
+                            gen::fn_wrapper(quote! { winapi::#module }, ordinal, func);
+                        fns.push(wrapper);
+                        exports.push(export);
                     }
                 }
                 // syn::Item::Struct(_) => todo!(),
@@ -87,7 +92,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
         }
     }
 
-    let resolve_fn = gen::resolve_fn(fn_names);
+    let exports_count = exports.len();
 
     Ok(quote! {
         pub mod #module {
@@ -95,10 +100,14 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
             use winapi::#module::*;
 
             #(#fns)*
-            #resolve_fn
+
+            const EXPORTS: [Symbol; #exports_count] = [
+                #(#exports),*
+            ];
+
             pub const DLL: BuiltinDLL = BuiltinDLL {
                 file_name: #dll_name,
-                resolve,
+                exports: &EXPORTS,
             };
         }
     })
@@ -112,13 +121,29 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
         let path = std::path::Path::new(&path);
         let module_name = path.file_stem().unwrap().to_string_lossy();
         let module = quote::format_ident!("{}", module_name);
-        mods.push(process_mod(&module, &path)?);
+        let gen = match process_mod(&module, &path) {
+            Ok(gen) => gen,
+            Err(err) => anyhow::bail!("processing module: {}", err),
+        };
+        mods.push(gen);
         names.push(module);
     }
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{machine::Machine, winapi::{self, BuiltinDLL, stack_args::*, types::*}};
+        use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
+
+        pub struct Symbol {
+            pub name: &'static str,
+            pub ordinal: Option<usize>,
+            pub func: fn(&mut Machine),
+            pub stack_consumed: fn() -> u32,
+        }
+
+        pub struct BuiltinDLL {
+            pub file_name: &'static str,
+            pub exports: &'static [Symbol],
+        }
 
         #(#mods)*
     })
@@ -146,8 +171,11 @@ fn rustfmt(tokens: &mut String) -> anyhow::Result<()> {
 }
 
 fn print(tokens: TokenStream) -> anyhow::Result<()> {
-    //println!("{}", tokens);
-    let file = syn::parse2::<syn::File>(tokens)?;
+    // println!("{}", tokens);
+    let file = match syn::parse2::<syn::File>(tokens) {
+        Ok(file) => file,
+        Err(err) => anyhow::bail!("parsing macro-generated code: {}", err),
+    };
     println!("#![allow(non_snake_case)]"); // parse2 seems to fail if it sees this.
     println!("#![allow(unused_imports)]");
     println!("#![allow(unused_mut)]");
