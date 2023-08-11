@@ -90,37 +90,6 @@ pub fn fn_wrapper(
     )
 }
 
-// TODO: this fn is used by main.rs, but not lib.rs.
-#[allow(dead_code)]
-pub fn resolve_fn(fn_names: Vec<(syn::Ident, Option<usize>)>) -> TokenStream {
-    if fn_names.is_empty() {
-        return quote! {
-            fn resolve(_sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-                None
-            }
-        };
-    };
-    let matches = fn_names.into_iter().map(|(sym, ordinal)| {
-        let ord_match = if let Some(n) = ordinal {
-            let n = n as u32;
-            quote!(, winapi::ImportSymbol::Ordinal(#n) => #sym)
-        } else {
-            quote!()
-        };
-        let quoted = sym.to_string();
-        let name_match = quote!(winapi::ImportSymbol::Name(#quoted) => #sym);
-        quote!(#name_match #ord_match)
-    });
-    quote! {
-        fn resolve(sym: &winapi::ImportSymbol) -> Option<fn(&mut Machine)> {
-            Some(match *sym {
-                #(#matches,)*
-                _ => return None,
-            })
-        }
-    }
-}
-
 /// Insert a `log::info!` at the front of a function that logs its name and arguments.
 // TODO: this fn is used by lib.rs, but not main.rs.
 #[allow(dead_code)]
