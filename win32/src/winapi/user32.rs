@@ -7,10 +7,10 @@ use super::{
 use crate::{host, machine::Machine, pe, reader::Reader, winapi::gdi32};
 use anyhow::bail;
 use bitflags::bitflags;
+use memory::Mem;
 use num_traits::FromPrimitive;
 use std::collections::VecDeque;
 use std::rc::Rc;
-use x86::Mem;
 
 const TRACE_CONTEXT: &'static str = "user32";
 

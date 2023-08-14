@@ -5,7 +5,7 @@ use crate::{
     reader::Reader,
     winapi::{types::DWORD, ImportSymbol},
 };
-use x86::Mem;
+use memory::Mem;
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
 //

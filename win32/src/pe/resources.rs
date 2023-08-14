@@ -5,8 +5,8 @@
 #![allow(non_camel_case_types)]
 
 use crate::winapi::types::{DWORD, WORD};
+use memory::Mem;
 use std::mem::size_of;
-use x86::Mem;
 
 use super::IMAGE_DATA_DIRECTORY;
 

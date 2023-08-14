@@ -465,6 +465,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "log",
+ "memory",
  "num-derive",
  "num-traits",
  "serde",

@@ -1,4 +1,4 @@
-use x86::VecMem;
+use memory::VecMem;
 
 mod alloc;
 mod bass;

@@ -13,13 +13,13 @@ use super::{
     types::*,
 };
 use crate::machine::Machine;
+use ::memory::{Mem, Pod, VecMem};
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
-use x86::{Mem, Pod, VecMem};
 
+pub use self::memory::*;
 pub use dll::*;
 pub use file::*;
-pub use memory::*;
 pub use thread::*;
 
 const TRACE_CONTEXT: &'static str = "kernel32";

@@ -1,8 +1,8 @@
 use crate::{machine::Machine, pe::ImageSectionFlags, winapi::alloc::Alloc};
 use bitflags::bitflags;
+use memory::VecMem;
 use std::cmp::max;
 use tsify::Tsify;
-use x86::VecMem;
 
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
 

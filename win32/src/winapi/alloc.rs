@@ -1,5 +1,5 @@
 use super::kernel32;
-use x86::Mem;
+use memory::Mem;
 
 pub trait Alloc {
     fn alloc(&mut self, size: u32) -> u32;

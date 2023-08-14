@@ -7,7 +7,7 @@ use crate::{
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
-use x86::Mem;
+use memory::Mem;
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
