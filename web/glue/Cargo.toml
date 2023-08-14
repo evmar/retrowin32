@@ -25,11 +25,9 @@ features = ["Performance"]
 
 [dependencies.win32]
 path = "../../win32"
-version = "0.1.0"
 
 [dependencies.x86]
 path = "../../x86"
-version = "0.1.0"
 
 # wasm-pack --profiling mode doesn't work without this
 # https://github.com/rustwasm/wasm-pack/issues/797
