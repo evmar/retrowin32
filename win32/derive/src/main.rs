@@ -131,12 +131,12 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
+        use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}, shims};
 
         pub struct Symbol {
             pub name: &'static str,
             pub ordinal: Option<usize>,
-            pub func: fn(&mut Machine),
+            pub func: shims::Handler,
             pub stack_consumed: fn() -> u32,
         }
 

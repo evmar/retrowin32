@@ -4,12 +4,13 @@
 #[doc = r" Generated code, do not edit."]
 use crate::{
     machine::Machine,
+    shims,
     winapi::{self, stack_args::*, types::*},
 };
 pub struct Symbol {
     pub name: &'static str,
     pub ordinal: Option<usize>,
-    pub func: fn(&mut Machine),
+    pub func: shims::Handler,
     pub stack_consumed: fn() -> u32,
 }
 pub struct BuiltinDLL {
@@ -19,72 +20,61 @@ pub struct BuiltinDLL {
 pub mod bass {
     use super::*;
     use winapi::bass::*;
-    pub fn BASS_Init(machine: &mut Machine) {
+    pub fn BASS_Init(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let arg1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg2 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg2 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg3 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg3 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg4 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg4 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::bass::BASS_Init(machine, arg1, arg2, arg3, arg4);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn BASS_MusicLoad(machine: &mut Machine) {
+    pub fn BASS_MusicLoad(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let arg1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg2 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg2 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg3 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg3 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg4 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg4 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let arg5 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg5 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::bass::BASS_MusicLoad(machine, arg1, arg2, arg3, arg4, arg5);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn BASS_Start(machine: &mut Machine) {
+    pub fn BASS_Start(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::bass::BASS_Start(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn BASS_MusicPlay(machine: &mut Machine) {
+    pub fn BASS_MusicPlay(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let arg1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::bass::BASS_MusicPlay(machine, arg1);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn BASS_ChannelGetPosition(machine: &mut Machine) {
+    pub fn BASS_ChannelGetPosition(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let arg1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let arg1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::bass::BASS_ChannelGetPosition(machine, arg1);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 5usize] = [
@@ -138,39 +128,32 @@ pub mod bass {
 pub mod ddraw {
     use super::*;
     use winapi::ddraw::*;
-    pub fn DirectDrawCreate(machine: &mut Machine) {
+    pub fn DirectDrawCreate(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpGuid =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpGuid = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lplpDD =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lplpDD = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let pUnkOuter =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let pUnkOuter = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn DirectDrawCreateEx(machine: &mut Machine) {
+    pub fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpGuid =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpGuid = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lplpDD =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lplpDD = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let iid =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let iid = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let pUnkOuter =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let pUnkOuter = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 2usize] = [
@@ -202,20 +185,17 @@ pub mod ddraw {
 pub mod dsound {
     use super::*;
     use winapi::dsound::*;
-    pub fn DirectSoundCreate(machine: &mut Machine) {
+    pub fn DirectSoundCreate(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _lpGuid =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpGuid = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let ppDS =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let ppDS = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _pUnkOuter =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _pUnkOuter = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {
@@ -234,139 +214,111 @@ pub mod dsound {
 pub mod gdi32 {
     use super::*;
     use winapi::gdi32::*;
-    pub fn GetStockObject(machine: &mut Machine) {
+    pub fn GetStockObject(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _i =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _i = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::GetStockObject(machine, _i);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SelectObject(machine: &mut Machine) {
+    pub fn SelectObject(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hdc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hGdiObj =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hGdiObj = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::SelectObject(machine, hdc, hGdiObj);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetObjectA(machine: &mut Machine) {
+    pub fn GetObjectA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let handle =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let handle = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _bytes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _bytes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _out =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _out = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::GetObjectA(machine, handle, _bytes, _out);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn CreateCompatibleDC(machine: &mut Machine) {
+    pub fn CreateCompatibleDC(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hdc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::CreateCompatibleDC(machine, hdc);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn DeleteDC(machine: &mut Machine) {
+    pub fn DeleteDC(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hdc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::DeleteDC(machine, hdc);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn BitBlt(machine: &mut Machine) {
+    pub fn BitBlt(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hdc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let x =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let x = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let y =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let y = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let cx =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let cx = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let cy =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let cy = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hdcSrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdcSrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let x1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let x1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let y1 =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let y1 = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let rop =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let rop = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn StretchBlt(machine: &mut Machine) {
+    pub fn StretchBlt(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hdcDest =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdcDest = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let xDest =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let xDest = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let yDest =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let yDest = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wDest =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wDest = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hDest =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hDest = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hdcSrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hdcSrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let xSrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let xSrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let ySrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let ySrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wSrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wSrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hSrc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hSrc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let rop =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let rop = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::gdi32::StretchBlt(
             machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 7usize] = [
@@ -445,129 +397,100 @@ pub mod gdi32 {
 pub mod kernel32 {
     use super::*;
     use winapi::kernel32::*;
-    pub fn GetModuleHandleA(machine: &mut Machine) {
+    pub fn GetModuleHandleA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpModuleName = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpModuleName = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
         let result = winapi::kernel32::GetModuleHandleA(machine, lpModuleName);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetModuleHandleW(machine: &mut Machine) {
+    pub fn GetModuleHandleW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpModuleName = unsafe {
-            <Option<Str16>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpModuleName =
+            unsafe { <Option<Str16>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<Str16>>::stack_consumed();
         let result = winapi::kernel32::GetModuleHandleW(machine, lpModuleName);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetModuleHandleExW(machine: &mut Machine) {
+    pub fn GetModuleHandleExW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpModuleName = unsafe {
-            <Option<Str16>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpModuleName =
+            unsafe { <Option<Str16>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<Str16>>::stack_consumed();
-        let hModule = unsafe {
-            <Option<&mut HMODULE>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let hModule =
+            unsafe { <Option<&mut HMODULE>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut HMODULE>>::stack_consumed();
         let result = winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LoadLibraryA(machine: &mut Machine) {
+    pub fn LoadLibraryA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let filename = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let filename = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
         let result = winapi::kernel32::LoadLibraryA(machine, filename);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LoadLibraryExW(machine: &mut Machine) {
+    pub fn LoadLibraryExW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpLibFileName = unsafe {
-            <Option<Str16>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpLibFileName =
+            unsafe { <Option<Str16>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<Str16>>::stack_consumed();
-        let hFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetProcAddress(machine: &mut Machine) {
+    pub fn GetProcAddress(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hModule = unsafe {
-            <HMODULE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let hModule = unsafe { <HMODULE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HMODULE>::stack_consumed();
-        let lpProcName = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpProcName = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
         let result = winapi::kernel32::GetProcAddress(machine, hModule, lpProcName);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetStdHandle(machine: &mut Machine) {
+    pub fn GetStdHandle(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let nStdHandle =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let nStdHandle = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::GetStdHandle(machine, nStdHandle);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn CreateFileA(machine: &mut Machine) {
+    pub fn CreateFileA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpFileName = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpFileName = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
-        let dwDesiredAccess =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwDesiredAccess = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwShareMode =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwShareMode = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpSecurityAttributes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpSecurityAttributes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let dwCreationDisposition = unsafe {
-            <Result<CreationDisposition, u32>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
+            <Result<CreationDisposition, u32>>::from_stack(machine.mem(), esp + stack_offset)
         };
         stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
-        let dwFlagsAndAttributes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlagsAndAttributes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hTemplateFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hTemplateFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
         let result = winapi::kernel32::CreateFileA(
             machine,
@@ -580,36 +503,26 @@ pub mod kernel32 {
             hTemplateFile,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn CreateFileW(machine: &mut Machine) {
+    pub fn CreateFileW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpFileName = unsafe {
-            <Option<Str16>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpFileName = unsafe { <Option<Str16>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<Str16>>::stack_consumed();
-        let dwDesiredAccess =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwDesiredAccess = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwShareMode =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwShareMode = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpSecurityAttributes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpSecurityAttributes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let dwCreationDisposition = unsafe {
-            <Result<CreationDisposition, u32>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
+            <Result<CreationDisposition, u32>>::from_stack(machine.mem(), esp + stack_offset)
         };
         stack_offset += <Result<CreationDisposition, u32>>::stack_consumed();
-        let dwFlagsAndAttributes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlagsAndAttributes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hTemplateFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hTemplateFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
         let result = winapi::kernel32::CreateFileW(
             machine,
@@ -622,33 +535,28 @@ pub mod kernel32 {
             hTemplateFile,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetFileType(machine: &mut Machine) {
+    pub fn GetFileType(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
         let result = winapi::kernel32::GetFileType(machine, hFile);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetFilePointer(machine: &mut Machine) {
+    pub fn SetFilePointer(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
-        let lDistanceToMove =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lDistanceToMove = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpDistanceToMoveHigh = unsafe {
-            <Option<&mut u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpDistanceToMoveHigh =
+            unsafe { <Option<&mut u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut u32>>::stack_consumed();
-        let dwMoveMethod =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwMoveMethod = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::SetFilePointer(
             machine,
@@ -658,46 +566,37 @@ pub mod kernel32 {
             dwMoveMethod,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn ReadFile(machine: &mut Machine) {
+    pub fn ReadFile(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
-        let lpBuffer = unsafe {
-            <Option<&mut [u8]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpBuffer =
+            unsafe { <Option<&mut [u8]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut [u8]>>::stack_consumed();
-        let lpNumberOfBytesRead = unsafe {
-            <Option<&mut u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpNumberOfBytesRead =
+            unsafe { <Option<&mut u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut u32>>::stack_consumed();
-        let lpOverlapped =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpOverlapped = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result =
             winapi::kernel32::ReadFile(machine, hFile, lpBuffer, lpNumberOfBytesRead, lpOverlapped);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn WriteFile(machine: &mut Machine) {
+    pub fn WriteFile(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hFile =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hFile = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
-        let lpBuffer = unsafe {
-            <Option<&[u8]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpBuffer = unsafe { <Option<&[u8]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&[u8]>>::stack_consumed();
-        let lpNumberOfBytesWritten = unsafe {
-            <Option<&mut u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpNumberOfBytesWritten =
+            unsafe { <Option<&mut u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut u32>>::stack_consumed();
-        let lpOverlapped =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpOverlapped = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::WriteFile(
             machine,
@@ -707,119 +606,96 @@ pub mod kernel32 {
             lpOverlapped,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapAlloc(machine: &mut Machine) {
+    pub fn HeapAlloc(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hHeap = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwBytes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwBytes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapFree(machine: &mut Machine) {
+    pub fn HeapFree(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hHeap = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpMem = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapSize(machine: &mut Machine) {
+    pub fn HeapSize(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hHeap = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpMem = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapReAlloc(machine: &mut Machine) {
+    pub fn HeapReAlloc(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hHeap = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpMem =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpMem = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwBytes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwBytes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapCreate(machine: &mut Machine) {
+    pub fn HeapCreate(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let flOptions = unsafe {
-            <Result<HeapCreateFlags, u32>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
+            <Result<HeapCreateFlags, u32>>::from_stack(machine.mem(), esp + stack_offset)
         };
         stack_offset += <Result<HeapCreateFlags, u32>>::stack_consumed();
-        let dwInitialSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwInitialSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwMaximumSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwMaximumSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn HeapDestroy(machine: &mut Machine) {
+    pub fn HeapDestroy(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hHeap =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hHeap = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::HeapDestroy(machine, hHeap);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn VirtualAlloc(machine: &mut Machine) {
+    pub fn VirtualAlloc(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpAddress =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpAddress = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _flAllocationType =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _flAllocationType = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _flProtec =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _flProtec = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::VirtualAlloc(
             machine,
@@ -829,346 +705,295 @@ pub mod kernel32 {
             _flProtec,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn VirtualFree(machine: &mut Machine) {
+    pub fn VirtualFree(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpAddress =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpAddress = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFreeType =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFreeType = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn IsBadReadPtr(machine: &mut Machine) {
+    pub fn IsBadReadPtr(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lp =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lp = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let ucb =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let ucb = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::IsBadReadPtr(machine, lp, ucb);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn IsBadWritePtr(machine: &mut Machine) {
+    pub fn IsBadWritePtr(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lp =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lp = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let ucb =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let ucb = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::IsBadWritePtr(machine, lp, ucb);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetLastError(machine: &mut Machine) {
+    pub fn SetLastError(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwErrCode =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwErrCode = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::SetLastError(machine, dwErrCode);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetLastError(machine: &mut Machine) {
+    pub fn GetLastError(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetLastError(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn ExitProcess(machine: &mut Machine) {
+    pub fn ExitProcess(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let uExitCode =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let uExitCode = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::ExitProcess(machine, uExitCode);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetACP(machine: &mut Machine) {
+    pub fn GetACP(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetACP(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn IsValidCodePage(machine: &mut Machine) {
+    pub fn IsValidCodePage(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let CodePage =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let CodePage = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::IsValidCodePage(machine, CodePage);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetCPInfo(machine: &mut Machine) {
+    pub fn GetCPInfo(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _CodePage =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _CodePage = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _lpCPInfo =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCPInfo = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::GetCPInfo(machine, _CodePage, _lpCPInfo);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetCommandLineA(machine: &mut Machine) {
+    pub fn GetCommandLineA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetCommandLineA(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetCommandLineW(machine: &mut Machine) {
+    pub fn GetCommandLineW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetCommandLineW(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetEnvironmentStrings(machine: &mut Machine) {
+    pub fn GetEnvironmentStrings(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetEnvironmentStrings(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn FreeEnvironmentStringsA(machine: &mut Machine) {
+    pub fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _penv =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _penv = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::FreeEnvironmentStringsA(machine, _penv);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetEnvironmentStringsW(machine: &mut Machine) {
+    pub fn GetEnvironmentStringsW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetEnvironmentStringsW(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetEnvironmentVariableA(machine: &mut Machine) {
+    pub fn GetEnvironmentVariableA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let name = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let name = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
-        let buf = unsafe {
-            <Option<&mut [u8]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let buf = unsafe { <Option<&mut [u8]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut [u8]>>::stack_consumed();
         let result = winapi::kernel32::GetEnvironmentVariableA(machine, name, buf);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetModuleFileNameA(machine: &mut Machine) {
+    pub fn GetModuleFileNameA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hModule = unsafe {
-            <HMODULE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let hModule = unsafe { <HMODULE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HMODULE>::stack_consumed();
-        let filename = unsafe {
-            <Option<&mut [u8]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let filename =
+            unsafe { <Option<&mut [u8]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut [u8]>>::stack_consumed();
         let result = winapi::kernel32::GetModuleFileNameA(machine, hModule, filename);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetModuleFileNameW(machine: &mut Machine) {
+    pub fn GetModuleFileNameW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hModule = unsafe {
-            <HMODULE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let hModule = unsafe { <HMODULE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HMODULE>::stack_consumed();
-        let _lpFilename =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpFilename = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _nSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _nSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::GetModuleFileNameW(machine, hModule, _lpFilename, _nSize);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetStartupInfoA(machine: &mut Machine) {
+    pub fn GetStartupInfoA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpStartupInfo = unsafe {
-            <Option<&mut STARTUPINFOA>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let lpStartupInfo =
+            unsafe { <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut STARTUPINFOA>>::stack_consumed();
         let result = winapi::kernel32::GetStartupInfoA(machine, lpStartupInfo);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetStartupInfoW(machine: &mut Machine) {
+    pub fn GetStartupInfoW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpStartupInfo = unsafe {
-            <Option<&mut STARTUPINFOA>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let lpStartupInfo =
+            unsafe { <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut STARTUPINFOA>>::stack_consumed();
         let result = winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn IsProcessorFeaturePresent(machine: &mut Machine) {
+    pub fn IsProcessorFeaturePresent(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let feature =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let feature = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::IsProcessorFeaturePresent(machine, feature);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn IsDebuggerPresent(machine: &mut Machine) {
+    pub fn IsDebuggerPresent(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::IsDebuggerPresent(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetCurrentProcessId(machine: &mut Machine) {
+    pub fn GetCurrentProcessId(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetCurrentProcessId(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetTickCount(machine: &mut Machine) {
+    pub fn GetTickCount(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetTickCount(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn QueryPerformanceCounter(machine: &mut Machine) {
+    pub fn QueryPerformanceCounter(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpPerformanceCount = unsafe {
-            <Option<&mut LARGE_INTEGER>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let lpPerformanceCount =
+            unsafe { <Option<&mut LARGE_INTEGER>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut LARGE_INTEGER>>::stack_consumed();
         let result = winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn QueryPerformanceFrequency(machine: &mut Machine) {
+    pub fn QueryPerformanceFrequency(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpFrequency =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpFrequency = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetSystemTimeAsFileTime(machine: &mut Machine) {
+    pub fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _time = unsafe {
-            <Option<&mut FILETIME>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let _time =
+            unsafe { <Option<&mut FILETIME>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut FILETIME>>::stack_consumed();
         let result = winapi::kernel32::GetSystemTimeAsFileTime(machine, _time);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetVersion(machine: &mut Machine) {
+    pub fn GetVersion(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetVersion(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetVersionExA(machine: &mut Machine) {
+    pub fn GetVersionExA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpVersionInformation = unsafe {
-            <Option<&mut OSVERSIONINFO>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let lpVersionInformation =
+            unsafe { <Option<&mut OSVERSIONINFO>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut OSVERSIONINFO>>::stack_consumed();
         let result = winapi::kernel32::GetVersionExA(machine, lpVersionInformation);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetProcessHeap(machine: &mut Machine) {
+    pub fn GetProcessHeap(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetProcessHeap(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetHandleCount(machine: &mut Machine) {
+    pub fn SetHandleCount(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let uNumber =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let uNumber = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::SetHandleCount(machine, uNumber);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn OutputDebugStringA(machine: &mut Machine) {
+    pub fn OutputDebugStringA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let msg = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let msg = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
         let result = winapi::kernel32::OutputDebugStringA(machine, msg);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn InitializeCriticalSectionAndSpinCount(machine: &mut Machine) {
+    pub fn InitializeCriticalSectionAndSpinCount(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _lpCriticalSection =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCriticalSection = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _dwSpinCount =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _dwSpinCount = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::InitializeCriticalSectionAndSpinCount(
             machine,
@@ -1176,98 +1001,85 @@ pub mod kernel32 {
             _dwSpinCount,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn DeleteCriticalSection(machine: &mut Machine) {
+    pub fn DeleteCriticalSection(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _lpCriticalSection =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCriticalSection = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::DeleteCriticalSection(machine, _lpCriticalSection);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn EnterCriticalSection(machine: &mut Machine) {
+    pub fn EnterCriticalSection(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _lpCriticalSection =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCriticalSection = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::EnterCriticalSection(machine, _lpCriticalSection);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LeaveCriticalSection(machine: &mut Machine) {
+    pub fn LeaveCriticalSection(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _lpCriticalSection =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCriticalSection = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::LeaveCriticalSection(machine, _lpCriticalSection);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetUnhandledExceptionFilter(machine: &mut Machine) {
+    pub fn SetUnhandledExceptionFilter(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let _lpTopLevelExceptionFilter =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+            unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result =
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn UnhandledExceptionFilter(machine: &mut Machine) {
+    pub fn UnhandledExceptionFilter(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _exceptionInfo =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _exceptionInfo = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::UnhandledExceptionFilter(machine, _exceptionInfo);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn NtCurrentTeb(machine: &mut Machine) {
+    pub fn NtCurrentTeb(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::NtCurrentTeb(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn InitializeSListHead(machine: &mut Machine) {
+    pub fn InitializeSListHead(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let ListHead = unsafe {
-            <Option<&mut SLIST_HEADER>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let ListHead =
+            unsafe { <Option<&mut SLIST_HEADER>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut SLIST_HEADER>>::stack_consumed();
         let result = winapi::kernel32::InitializeSListHead(machine, ListHead);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn MultiByteToWideChar(machine: &mut Machine) {
+    pub fn MultiByteToWideChar(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let CodePage =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let CodePage = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpMultiByteStr =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpMultiByteStr = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let cbMultiByte =
-            unsafe { <i32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let cbMultiByte = unsafe { <i32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <i32>::stack_consumed();
-        let lpWideCharStr = unsafe {
-            <Option<&mut [u16]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpWideCharStr =
+            unsafe { <Option<&mut [u16]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut [u16]>>::stack_consumed();
         let result = winapi::kernel32::MultiByteToWideChar(
             machine,
@@ -1278,24 +1090,19 @@ pub mod kernel32 {
             lpWideCharStr,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn WriteConsoleW(machine: &mut Machine) {
+    pub fn WriteConsoleW(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hConsoleOutput =
-            unsafe { <HFILE>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hConsoleOutput = unsafe { <HFILE>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HFILE>::stack_consumed();
-        let lpBuffer = unsafe {
-            <Option<&[u16]>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpBuffer = unsafe { <Option<&[u16]>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&[u16]>>::stack_consumed();
-        let lpNumberOfCharsWritten = unsafe {
-            <Option<&mut u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpNumberOfCharsWritten =
+            unsafe { <Option<&mut u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut u32>>::stack_consumed();
-        let _lpReserved =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpReserved = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::WriteConsoleW(
             machine,
@@ -1305,75 +1112,65 @@ pub mod kernel32 {
             _lpReserved,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetCurrentThreadId(machine: &mut Machine) {
+    pub fn GetCurrentThreadId(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::GetCurrentThreadId(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn TlsAlloc(machine: &mut Machine) {
+    pub fn TlsAlloc(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::kernel32::TlsAlloc(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn TlsFree(machine: &mut Machine) {
+    pub fn TlsFree(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwTlsIndex = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::TlsFree(machine, dwTlsIndex);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn TlsSetValue(machine: &mut Machine) {
+    pub fn TlsSetValue(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwTlsIndex = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpTlsValue =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpTlsValue = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn TlsGetValue(machine: &mut Machine) {
+    pub fn TlsGetValue(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwTlsIndex =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwTlsIndex = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::TlsGetValue(machine, dwTlsIndex);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn CreateThread(machine: &mut Machine) {
+    pub fn CreateThread(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpThreadAttributes =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpThreadAttributes = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwStackSize =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwStackSize = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpStartAddress =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpStartAddress = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpParameter =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpParameter = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwCreationFlags =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwCreationFlags = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpThreadId =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpThreadId = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::CreateThread(
             machine,
@@ -1385,31 +1182,27 @@ pub mod kernel32 {
             lpThreadId,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetThreadPriority(machine: &mut Machine) {
+    pub fn SetThreadPriority(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _hThread =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _hThread = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _nPriority =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _nPriority = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn InterlockedIncrement(machine: &mut Machine) {
+    pub fn InterlockedIncrement(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let addend = unsafe {
-            <Option<&mut u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let addend = unsafe { <Option<&mut u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut u32>>::stack_consumed();
         let result = winapi::kernel32::InterlockedIncrement(machine, addend);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 69usize] = [
@@ -1937,73 +1730,52 @@ pub mod oleaut32 {
 pub mod user32 {
     use super::*;
     use winapi::user32::*;
-    pub fn RegisterClassA(machine: &mut Machine) {
+    pub fn RegisterClassA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpWndClass = unsafe {
-            <Option<&WNDCLASSA>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpWndClass =
+            unsafe { <Option<&WNDCLASSA>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&WNDCLASSA>>::stack_consumed();
         let result = winapi::user32::RegisterClassA(machine, lpWndClass);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn RegisterClassExA(machine: &mut Machine) {
+    pub fn RegisterClassExA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpWndClassEx = unsafe {
-            <Option<&WNDCLASSEXA>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let lpWndClassEx =
+            unsafe { <Option<&WNDCLASSEXA>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&WNDCLASSEXA>>::stack_consumed();
         let result = winapi::user32::RegisterClassExA(machine, lpWndClassEx);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn CreateWindowExA(machine: &mut Machine) {
+    pub fn CreateWindowExA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let dwExStyle =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwExStyle = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpClassName =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpClassName = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpWindowName = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpWindowName = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
-        let dwStyle = unsafe {
-            <Result<WindowStyle, u32>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let dwStyle =
+            unsafe { <Result<WindowStyle, u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Result<WindowStyle, u32>>::stack_consumed();
-        let X =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let X = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let Y =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let Y = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let nWidth =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let nWidth = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let nHeight =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let nHeight = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hWndParent =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWndParent = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let hMenu =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hMenu = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hInstance =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hInstance = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpParam =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpParam = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let m: *mut Machine = machine;
         let result = async move {
@@ -2025,112 +1797,96 @@ pub mod user32 {
             )
             .await;
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
             machine.x86.cpu.regs.esp += stack_offset;
         };
         crate::shims::become_async(machine, Box::pin(result));
     }
-    pub fn GetForegroundWindow(machine: &mut Machine) {
+    pub fn GetForegroundWindow(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::user32::GetForegroundWindow(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetActiveWindow(machine: &mut Machine) {
+    pub fn GetActiveWindow(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::user32::GetActiveWindow(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetLastActivePopup(machine: &mut Machine) {
+    pub fn GetLastActivePopup(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::user32::GetLastActivePopup(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn UpdateWindow(machine: &mut Machine) {
+    pub fn UpdateWindow(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
         let result = winapi::user32::UpdateWindow(machine, hWnd);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn ShowWindow(machine: &mut Machine) {
+    pub fn ShowWindow(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let _nCmdShow =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _nCmdShow = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::ShowWindow(machine, hWnd, _nCmdShow);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetFocus(machine: &mut Machine) {
+    pub fn SetFocus(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
         let result = winapi::user32::SetFocus(machine, hWnd);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn SetCursor(machine: &mut Machine) {
+    pub fn SetCursor(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hCursor =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hCursor = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::SetCursor(machine, hCursor);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn MessageBoxA(machine: &mut Machine) {
+    pub fn MessageBoxA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let lpText = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpText = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
-        let lpCaption = unsafe {
-            <Option<&str>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpCaption = unsafe { <Option<&str>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&str>>::stack_consumed();
-        let uType =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let uType = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn DialogBoxParamA(machine: &mut Machine) {
+    pub fn DialogBoxParamA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hInstance =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hInstance = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lpTemplateName =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpTemplateName = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let hWndParent =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWndParent = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let lpDialogFunc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lpDialogFunc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let dwInitParam =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let dwInitParam = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::DialogBoxParamA(
             machine,
@@ -2141,30 +1897,21 @@ pub mod user32 {
             dwInitParam,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn PeekMessageA(machine: &mut Machine) {
+    pub fn PeekMessageA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpMsg = unsafe {
-            <Option<&mut MSG>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpMsg = unsafe { <Option<&mut MSG>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut MSG>>::stack_consumed();
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let wMsgFilterMin =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wMsgFilterMin = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wMsgFilterMax =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wMsgFilterMax = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wRemoveMsg = unsafe {
-            <Result<RemoveMsg, u32>>::from_stack(
-                machine.mem(),
-                machine.x86.cpu.regs.esp + stack_offset,
-            )
-        };
+        let wRemoveMsg =
+            unsafe { <Result<RemoveMsg, u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Result<RemoveMsg, u32>>::stack_consumed();
         let result = winapi::user32::PeekMessageA(
             machine,
@@ -2175,153 +1922,127 @@ pub mod user32 {
             wRemoveMsg,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetMessageA(machine: &mut Machine) {
+    pub fn GetMessageA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpMsg = unsafe {
-            <Option<&mut MSG>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpMsg = unsafe { <Option<&mut MSG>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&mut MSG>>::stack_consumed();
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let wMsgFilterMin =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wMsgFilterMin = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let wMsgFilterMax =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wMsgFilterMax = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result =
             winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn WaitMessage(machine: &mut Machine) {
+    pub fn WaitMessage(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
         let result = winapi::user32::WaitMessage(machine);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn TranslateMessage(machine: &mut Machine) {
+    pub fn TranslateMessage(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpMsg = unsafe {
-            <Option<&MSG>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpMsg = unsafe { <Option<&MSG>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&MSG>>::stack_consumed();
         let result = winapi::user32::TranslateMessage(machine, lpMsg);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn DispatchMessageA(machine: &mut Machine) {
+    pub fn DispatchMessageA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let lpMsg = unsafe {
-            <Option<&MSG>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let lpMsg = unsafe { <Option<&MSG>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Option<&MSG>>::stack_consumed();
         let m: *mut Machine = machine;
         let result = async move {
             let machine = unsafe { &mut *m };
             let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
             machine.x86.cpu.regs.esp += stack_offset;
         };
         crate::shims::become_async(machine, Box::pin(result));
     }
-    pub fn DefWindowProcA(machine: &mut Machine) {
+    pub fn DefWindowProcA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hWnd =
-            unsafe { <HWND>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hWnd = unsafe { <HWND>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <HWND>::stack_consumed();
-        let msg = unsafe {
-            <Result<WM, u32>>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset)
-        };
+        let msg = unsafe { <Result<WM, u32>>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <Result<WM, u32>>::stack_consumed();
-        let wParam =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let wParam = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let lParam =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let lParam = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LoadIconA(machine: &mut Machine) {
+    pub fn LoadIconA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _hInstance =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _hInstance = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _lpIconName =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpIconName = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::LoadIconA(machine, _hInstance, _lpIconName);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LoadCursorA(machine: &mut Machine) {
+    pub fn LoadCursorA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _hInstance =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _hInstance = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _lpCursorName =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpCursorName = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn ShowCursor(machine: &mut Machine) {
+    pub fn ShowCursor(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _bShow =
-            unsafe { <bool>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _bShow = unsafe { <bool>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <bool>::stack_consumed();
         let result = winapi::user32::ShowCursor(machine, _bShow);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn LoadImageA(machine: &mut Machine) {
+    pub fn LoadImageA(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let hInstance =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let hInstance = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let name =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let name = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let typ =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let typ = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let cx =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let cx = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let cy =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let cy = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let fuLoad =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let fuLoad = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
-    pub fn GetSystemMetrics(machine: &mut Machine) {
+    pub fn GetSystemMetrics(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let nIndex =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let nIndex = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::user32::GetSystemMetrics(machine, nIndex);
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 23usize] = [
@@ -2519,22 +2240,17 @@ pub mod user32 {
 pub mod winmm {
     use super::*;
     use winapi::winmm::*;
-    pub fn timeSetEvent(machine: &mut Machine) {
+    pub fn timeSetEvent(machine: &mut Machine, esp: u32) {
         let mut stack_offset = 4u32;
-        let _uDelay =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _uDelay = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _uResolution =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _uResolution = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _lpTimeProc =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _lpTimeProc = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _dwUser =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _dwUser = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
-        let _fuEvent =
-            unsafe { <u32>::from_stack(machine.mem(), machine.x86.cpu.regs.esp + stack_offset) };
+        let _fuEvent = unsafe { <u32>::from_stack(machine.mem(), esp + stack_offset) };
         stack_offset += <u32>::stack_consumed();
         let result = winapi::winmm::timeSetEvent(
             machine,
@@ -2545,7 +2261,7 @@ pub mod winmm {
             _fuEvent,
         );
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.x86.cpu.regs.esp);
+        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
         machine.x86.cpu.regs.esp += stack_offset;
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {

@@ -47,9 +47,11 @@ use crate::machine::Machine;
 /// "fake IAT" => "FIAT" => "F1A7"
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
+pub type Handler = fn(&mut Machine, u32);
+
 struct Shim {
     name: String,
-    handler: Option<fn(&mut Machine)>,
+    handler: Option<Handler>,
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -85,17 +87,17 @@ impl Shims {
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, name: String, handler: Option<fn(&mut Machine)>) -> u32 {
+    pub fn add(&mut self, name: String, handler: Option<Handler>) -> u32 {
         let id = SHIM_BASE | self.shims.len() as u32;
         self.shims.push(Shim { name, handler });
         id
     }
 
-    pub fn get(&self, addr: u32) -> Option<&fn(&mut Machine)> {
+    pub fn get(&self, addr: u32) -> Option<Handler> {
         let index = (addr & 0x0000_FFFF) as usize;
         match self.shims.get(index) {
             Some(shim) => {
-                if let Some(handler) = &shim.handler {
+                if let Some(handler) = shim.handler {
                     return Some(handler);
                 }
                 log::error!("unimplemented: {}", shim.name);
@@ -153,7 +155,7 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
 }
 
 #[allow(deref_nullptr)]
-fn async_executor(machine: &mut Machine) {
+fn async_executor(machine: &mut Machine, stack_pointer: u32) {
     if let Some(mut future) = machine.shims.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
