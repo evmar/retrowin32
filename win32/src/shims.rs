@@ -47,7 +47,7 @@ use crate::machine::Machine;
 /// "fake IAT" => "FIAT" => "F1A7"
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
-pub type Handler = fn(&mut Machine, u32);
+pub type Handler = unsafe fn(&mut Machine, u32);
 
 struct Shim {
     name: String,

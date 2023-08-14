@@ -40,7 +40,7 @@ pub fn fn_wrapper(
         // TODO: reading the args in reverse would produce fewer bounds checks...
         let mut stack_offset = 4u32;
         #(
-            let #args = unsafe { <#tys>::from_stack(machine.mem(), esp + stack_offset) };
+            let #args = <#tys>::from_stack(machine.mem(), esp + stack_offset);
             stack_offset += <#tys>::stack_consumed();
         )*
     };
@@ -85,7 +85,7 @@ pub fn fn_wrapper(
     };
 
     (
-        quote!(pub fn #name(machine: &mut Machine, esp: u32) { #body }),
+        quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
         quote!(Symbol { name: #name_str, ordinal: #ordinal_tok, func: #name, stack_consumed: || { #stack_consumed } }),
     )
 }

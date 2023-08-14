@@ -48,7 +48,7 @@ impl Machine {
             .shims
             .get(self.x86.cpu.regs.eip)
             .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
-        handler(self, self.x86.cpu.regs.esp);
+        unsafe { handler(self, self.x86.cpu.regs.esp) };
         // Handler will have set eip to the return address from the stack.
         Ok(true)
     }
