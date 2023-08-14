@@ -193,6 +193,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "memory"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_bytes",
+]
+
+[[package]]
 name = "num-derive"
 version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -460,7 +468,6 @@ dependencies = [
  "num-derive",
  "num-traits",
  "serde",
- "serde_bytes",
  "tsify",
  "wasm-bindgen",
  "win32-derive",
@@ -484,9 +491,9 @@ dependencies = [
  "bitflags",
  "iced-x86",
  "log",
+ "memory",
  "num-traits",
  "serde",
- "serde_bytes",
  "tsify",
  "wasm-bindgen",
 ]

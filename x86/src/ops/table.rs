@@ -2,7 +2,7 @@
 
 use iced_x86::Instruction;
 
-use crate::{memory::Mem, ops, x86::CPU};
+use crate::{ops, x86::CPU, Mem};
 
 /// The type of all operations defined in the ops module.
 type Op = fn(&mut CPU, Mem, &Instruction);
