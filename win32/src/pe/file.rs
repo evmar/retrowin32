@@ -29,7 +29,7 @@ pub struct IMAGE_FILE_HEADER {
     pub SizeOfOptionalHeader: WORD,
     pub Characteristics: WORD,
 }
-unsafe impl x86::Pod for IMAGE_FILE_HEADER {}
+unsafe impl memory::Pod for IMAGE_FILE_HEADER {}
 
 bitflags! {
     pub struct DllCharacteristics: u16 {
@@ -81,7 +81,7 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub LoaderFlags: DWORD,
     pub NumberOfRvaAndSizes: DWORD,
 }
-unsafe impl x86::Pod for IMAGE_OPTIONAL_HEADER32 {}
+unsafe impl memory::Pod for IMAGE_OPTIONAL_HEADER32 {}
 
 #[repr(C)]
 #[derive(Clone, Debug, Default)]
@@ -89,7 +89,7 @@ pub struct IMAGE_DATA_DIRECTORY {
     pub VirtualAddress: DWORD,
     pub Size: DWORD,
 }
-unsafe impl x86::Pod for IMAGE_DATA_DIRECTORY {}
+unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
     pub fn as_mem<'m>(&self, image: Mem<'m>) -> Mem<'m> {
         image.sub(self.VirtualAddress, self.Size)
@@ -139,7 +139,7 @@ pub struct IMAGE_SECTION_HEADER {
     pub NumberOfLinenumbers: u16,
     pub Characteristics: u32,
 }
-unsafe impl x86::Pod for IMAGE_SECTION_HEADER {}
+unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
     pub fn name(&self) -> &str {
         Mem::from_slice(&self.Name[..])

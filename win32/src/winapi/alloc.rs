@@ -123,7 +123,7 @@ struct FreeNode {
     /// Pointer to next node.
     next: u32,
 }
-unsafe impl x86::Pod for FreeNode {}
+unsafe impl memory::Pod for FreeNode {}
 impl FreeNode {
     fn get<'a>(mem: Mem<'a>, addr: u32) -> &'a mut Self {
         mem.view_mut::<FreeNode>(addr)

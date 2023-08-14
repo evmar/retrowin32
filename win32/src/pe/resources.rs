@@ -20,7 +20,7 @@ struct IMAGE_RESOURCE_DIRECTORY {
     NumberOfNamedEntries: WORD,
     NumberOfIdEntries: WORD,
 }
-unsafe impl x86::Pod for IMAGE_RESOURCE_DIRECTORY {}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
 
 struct ImageResourceDirectory<'a> {
     entries: &'a [IMAGE_RESOURCE_DIRECTORY_ENTRY],
@@ -45,7 +45,7 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
     Name: DWORD,
     OffsetToData: DWORD,
 }
-unsafe impl x86::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
 /// Top-level dir entry.
 pub const RT_BITMAP: u32 = 2;
@@ -95,7 +95,7 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
     CodePage: DWORD,
     Reserved: DWORD,
 }
-unsafe impl x86::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
+unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
 pub fn get_resource<'a>(

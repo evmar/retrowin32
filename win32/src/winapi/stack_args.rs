@@ -46,7 +46,7 @@ impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
     }
 }
 
-impl<T: x86::Pod> FromX86 for Option<&T> {
+impl<T: memory::Pod> FromX86 for Option<&T> {
     unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
@@ -57,7 +57,7 @@ impl<T: x86::Pod> FromX86 for Option<&T> {
     }
 }
 
-impl<T: x86::Pod> FromX86 for Option<&mut T> {
+impl<T: memory::Pod> FromX86 for Option<&mut T> {
     unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {

@@ -1,6 +1,6 @@
+use crate::{registers::Flags, x86::CPU};
 use iced_x86::Instruction;
-
-use crate::{registers::Flags, x86::CPU, Mem};
+use memory::Mem;
 
 use super::helpers::*;
 

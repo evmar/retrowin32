@@ -31,7 +31,7 @@ pub struct MSG {
     pt_y: u32,
     lPrivate: u32,
 }
-unsafe impl x86::Pod for MSG {}
+unsafe impl memory::Pod for MSG {}
 
 pub struct Window {
     pub host: Box<dyn host::Window>,
@@ -85,7 +85,7 @@ pub struct WNDCLASSA {
     lpszMenuName: u32,
     lpszClassName: u32,
 }
-unsafe impl x86::Pod for WNDCLASSA {}
+unsafe impl memory::Pod for WNDCLASSA {}
 
 #[win32_derive::dllexport]
 pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
@@ -123,7 +123,7 @@ pub struct WNDCLASSEXA {
     lpszClassName: u32,
     hIconSm: HICON,
 }
-unsafe impl x86::Pod for WNDCLASSEXA {}
+unsafe impl memory::Pod for WNDCLASSEXA {}
 
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
@@ -517,7 +517,7 @@ struct BITMAPINFOHEADER {
     biClrUsed: DWORD,
     biClrImportant: DWORD,
 }
-unsafe impl x86::Pod for BITMAPINFOHEADER {}
+unsafe impl memory::Pod for BITMAPINFOHEADER {}
 impl BITMAPINFOHEADER {
     fn width(&self) -> u32 {
         self.biWidth

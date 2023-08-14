@@ -33,7 +33,7 @@ macro_rules! vtable {
         struct Vtable {
             $($fn: DWORD),*
         }
-        unsafe impl x86::Pod for Vtable {}
+        unsafe impl memory::Pod for Vtable {}
         impl Vtable {
             fn new(shims: &mut crate::shims::Shims) -> Self {
                 Vtable {

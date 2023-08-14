@@ -12,7 +12,7 @@ macro_rules! declare_handle {
         #[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
         #[repr(transparent)]
         pub struct $name(u32);
-        unsafe impl x86::Pod for $name {}
+        unsafe impl memory::Pod for $name {}
         #[allow(dead_code)]
         impl $name {
             pub const fn from_raw(raw: u32) -> Self {

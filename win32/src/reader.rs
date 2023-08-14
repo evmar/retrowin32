@@ -43,19 +43,19 @@ impl<'m> Reader<'m> {
     }
 
     // TODO: Result<> here.
-    pub fn read<T: x86::Pod>(&mut self) -> &'m T {
+    pub fn read<T: memory::Pod>(&mut self) -> &'m T {
         let t = self.buf.view::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
 
-    pub fn read_unaligned<T: x86::Pod + Clone>(&mut self) -> T {
+    pub fn read_unaligned<T: memory::Pod + Clone>(&mut self) -> T {
         let t = self.buf.get::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
 
-    pub fn read_n<T: x86::Pod>(&mut self, count: u32) -> anyhow::Result<&'m [T]> {
+    pub fn read_n<T: memory::Pod>(&mut self, count: u32) -> anyhow::Result<&'m [T]> {
         let len = size_of::<T>() as u32 * count;
         if self.pos + len > self.buf.len() {
             bail!("EOF");

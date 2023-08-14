@@ -127,7 +127,7 @@ struct IMAGE_BASE_RELOCATION {
     VirtualAddress: u32,
     SizeOfBlock: u32,
 }
-unsafe impl x86::Pod for IMAGE_BASE_RELOCATION {}
+unsafe impl memory::Pod for IMAGE_BASE_RELOCATION {}
 
 fn apply_relocs(image: Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
     // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does

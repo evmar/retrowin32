@@ -1,8 +1,7 @@
-use iced_x86::Instruction;
-
-use crate::{registers::FPUStatus, x86::CPU, Mem};
-
 use super::helpers::*;
+use crate::{registers::FPUStatus, x86::CPU};
+use iced_x86::Instruction;
+use memory::Mem;
 
 fn read_f32(mem: Mem, addr: u32) -> f32 {
     f32::from_bits(mem.get::<u32>(addr))

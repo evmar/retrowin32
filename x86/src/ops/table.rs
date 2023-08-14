@@ -1,8 +1,8 @@
 //! Efficiently maps an iced_x86::Code (roughly x86 opcode) to a implementation of the op.
 
+use crate::{ops, x86::CPU};
 use iced_x86::Instruction;
-
-use crate::{ops, x86::CPU, Mem};
+use memory::Mem;
 
 /// The type of all operations defined in the ops module.
 type Op = fn(&mut CPU, Mem, &Instruction);

@@ -1,8 +1,7 @@
-use iced_x86::Instruction;
-
-use crate::{Mem, CPU};
-
 use super::helpers::*;
+use crate::CPU;
+use iced_x86::Instruction;
+use memory::Mem;
 
 fn op1_mmm64(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u64 {
     match instr.op1_kind() {

@@ -1,8 +1,7 @@
-use iced_x86::Instruction;
-
-use crate::{registers::Flags, x86::CPU, Mem};
-
 use super::helpers::*;
+use crate::{registers::Flags, x86::CPU};
+use iced_x86::Instruction;
+use memory::Mem;
 
 /// This trait is implemented for u32/u16/u8 and lets us write operations generically
 /// over all those bit sizes.

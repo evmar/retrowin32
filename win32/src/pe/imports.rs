@@ -28,7 +28,7 @@ pub struct IMAGE_IMPORT_DESCRIPTOR {
     Name: DWORD,
     FirstThunk: DWORD,
 }
-unsafe impl x86::Pod for IMAGE_IMPORT_DESCRIPTOR {}
+unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn image_name<'a>(&self, image: Mem<'a>) -> &'a str {

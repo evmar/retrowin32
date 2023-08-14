@@ -21,7 +21,7 @@ pub struct IMAGE_EXPORT_DIRECTORY {
     AddressOfNames: u32,
     AddressOfNameOrdinals: u32,
 }
-unsafe impl x86::Pod for IMAGE_EXPORT_DIRECTORY {}
+unsafe impl memory::Pod for IMAGE_EXPORT_DIRECTORY {}
 
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]

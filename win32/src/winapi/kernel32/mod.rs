@@ -206,7 +206,7 @@ struct PEB {
     // TODO: this should be TlsBitmap.
     TlsCount: DWORD,
 }
-unsafe impl x86::Pod for PEB {}
+unsafe impl ::memory::Pod for PEB {}
 
 #[repr(C)]
 struct NT_TIB {
@@ -218,7 +218,7 @@ struct NT_TIB {
     ArbitraryUserPointer: DWORD,
     _Self: DWORD,
 }
-unsafe impl x86::Pod for NT_TIB {}
+unsafe impl ::memory::Pod for NT_TIB {}
 
 #[repr(C)]
 struct TEB {
@@ -242,7 +242,7 @@ struct TEB {
     // This is at the wrong offset, but it shouldn't matter.
     TlsSlots: [DWORD; 64],
 }
-unsafe impl x86::Pod for TEB {}
+unsafe impl ::memory::Pod for TEB {}
 
 #[repr(C)]
 struct UNICODE_STRING {
@@ -281,14 +281,14 @@ struct RTL_USER_PROCESS_PARAMETERS {
     ImagePathName: UNICODE_STRING,
     CommandLine: UNICODE_STRING,
 }
-unsafe impl x86::Pod for RTL_USER_PROCESS_PARAMETERS {}
+unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
 #[repr(C)]
 struct _EXCEPTION_REGISTRATION_RECORD {
     Prev: DWORD,
     Handler: DWORD,
 }
-unsafe impl x86::Pod for _EXCEPTION_REGISTRATION_RECORD {}
+unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
 #[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
@@ -413,7 +413,7 @@ pub struct STARTUPINFOA {
     hStdOutput: DWORD,
     hStdError: DWORD,
 }
-unsafe impl x86::Pod for STARTUPINFOA {}
+unsafe impl ::memory::Pod for STARTUPINFOA {}
 
 #[win32_derive::dllexport]
 pub fn GetStartupInfoA(_machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
@@ -534,7 +534,7 @@ pub struct FILETIME {
     dwLowDateTime: DWORD,
     dwHighDateTime: DWORD,
 }
-unsafe impl x86::Pod for FILETIME {}
+unsafe impl ::memory::Pod for FILETIME {}
 #[win32_derive::dllexport]
 pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
     0
@@ -653,7 +653,7 @@ pub struct SLIST_HEADER {
     Next: u32,
     todo: [u32; 3],
 }
-unsafe impl x86::Pod for SLIST_HEADER {}
+unsafe impl ::memory::Pod for SLIST_HEADER {}
 
 #[win32_derive::dllexport]
 pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {

@@ -1,6 +1,7 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::CPU, Mem, NULL_POINTER_REGION_SIZE};
+use crate::{x86::CPU, NULL_POINTER_REGION_SIZE};
+use memory::Mem;
 
 pub fn read_u64(mem: Mem, addr: u32) -> u64 {
     mem.get::<u64>(addr)

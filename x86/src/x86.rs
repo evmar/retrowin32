@@ -4,8 +4,8 @@ use crate::{
     icache::InstrCache,
     ops,
     registers::{Flags, Registers},
-    Mem,
 };
+use memory::Mem;
 
 /// Addresses from 0 up to this point cause panics if we access them.
 /// This helps catch implementation bugs earlier.

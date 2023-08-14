@@ -7,9 +7,9 @@
 //! any affected basic block into smaller pieces to maintain the invariant of
 //! always executing through a basic block's end.
 
+use crate::CPU;
+use memory::Mem;
 use std::collections::{BTreeMap, HashMap};
-
-use crate::{Mem, CPU};
 
 struct BasicBlock {
     /// Number of x86 instruction bytes covered by this block.
