@@ -44,10 +44,10 @@ impl Machine {
         if self.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(false);
         }
-        let handler = self
-            .shims
-            .get(self.x86.cpu.regs.eip)
-            .ok_or_else(|| anyhow::anyhow!("missing shim"))?;
+        let shim = self.shims.get(self.x86.cpu.regs.eip);
+        let handler = shim
+            .handler
+            .ok_or_else(|| anyhow::anyhow!("unimplemented: {}", shim.name))?;
         unsafe { handler(self, self.x86.cpu.regs.esp) };
         // Handler will have set eip to the return address from the stack.
         Ok(true)

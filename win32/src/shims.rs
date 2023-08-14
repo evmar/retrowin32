@@ -49,9 +49,9 @@ pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 pub type Handler = unsafe fn(&mut Machine, u32);
 
-struct Shim {
-    name: String,
-    handler: Option<Handler>,
+pub struct Shim {
+    pub name: String,
+    pub handler: Option<Handler>,
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -93,18 +93,12 @@ impl Shims {
         id
     }
 
-    pub fn get(&self, addr: u32) -> Option<Handler> {
+    pub fn get(&self, addr: u32) -> &Shim {
         let index = (addr & 0x0000_FFFF) as usize;
         match self.shims.get(index) {
-            Some(shim) => {
-                if let Some(handler) = shim.handler {
-                    return Some(handler);
-                }
-                log::error!("unimplemented: {}", shim.name);
-            }
-            None => log::error!("unknown import reference at {:x}", addr),
-        };
-        None
+            Some(shim) => shim,
+            None => panic!("unknown import reference at {:x}", addr),
+        }
     }
 
     pub fn lookup(&self, name: &str) -> Option<u32> {
