@@ -1,6 +1,9 @@
 use crate::{
     machine::Machine,
-    winapi::types::{Str16, HFILE},
+    winapi::{
+        stack_args::{ArrayWithSize, ArrayWithSizeMut},
+        types::{Str16, HFILE},
+    },
 };
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
@@ -141,7 +144,7 @@ pub fn SetFilePointer(
 pub fn ReadFile(
     machine: &mut Machine,
     hFile: HFILE,
-    lpBuffer: Option<&mut [u8]>,
+    lpBuffer: ArrayWithSizeMut<u8>,
     lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
@@ -154,7 +157,7 @@ pub fn ReadFile(
 pub fn WriteFile(
     machine: &mut Machine,
     hFile: HFILE,
-    lpBuffer: Option<&[u8]>,
+    lpBuffer: ArrayWithSize<u8>,
     lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {

@@ -1,6 +1,26 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
+/// Return the amount of stack a given stdcall argument uses.
+/// (All of them except the array+size type are 4 bytes.)
+fn stack_consumed(ty: &syn::Type) -> u32 {
+    let ty = match ty {
+        syn::Type::Path(ty) => ty,
+        _ => panic!("unhandled type {ty:?}"),
+    };
+    if ty.path.segments.len() != 1 {
+        panic!("unhandled type {ty:?}");
+    }
+
+    if ty.path.segments[0].ident == "ArrayWithSize"
+        || ty.path.segments[0].ident == "ArrayWithSizeMut"
+    {
+        8
+    } else {
+        4
+    }
+}
+
 /// Generate the wrapper function that calls a win32api function by taking arguments using from_x86.
 ///
 /// winapi is stdcall, which means args are pushed right to left.
@@ -35,19 +55,20 @@ pub fn fn_wrapper(
     let name = &func.sig.ident;
     let name_str = name.to_string();
 
-    let fetch_args = quote! {
+    let mut fetch_args = TokenStream::new();
+    let mut stack_offset = 4u32; // return address
+    for (arg, ty) in args.iter().zip(tys.iter()) {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
-        let mut stack_offset = 4u32;
-        #(
-            let #args = <#tys>::from_stack(machine.mem(), esp + stack_offset);
-            stack_offset += <#tys>::stack_consumed();
-        )*
-    };
+        fetch_args.extend(quote! {
+            let #arg = <#ty>::from_stack(machine.mem(), esp + #stack_offset);
+        });
+        stack_offset += stack_consumed(ty);
+    }
     let ret = quote! {
         machine.x86.cpu.regs.eax = result.to_raw();
         machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-        machine.x86.cpu.regs.esp += stack_offset;
+        machine.x86.cpu.regs.esp += #stack_offset;
     };
 
     // If the function is async, we need to handle the return value a bit differently.
@@ -78,15 +99,9 @@ pub fn fn_wrapper(
         Some(o) => quote!(Some(#o)),
     };
 
-    let stack_consumed = if tys.is_empty() {
-        quote!(0)
-    } else {
-        quote!(#(<#tys>::stack_consumed())+*)
-    };
-
     (
         quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
-        quote!(Symbol { name: #name_str, ordinal: #ordinal_tok, func: #name, stack_consumed: || { #stack_consumed } }),
+        quote!(Symbol { name: #name_str, ordinal: #ordinal_tok, func: #name, stack_consumed: #stack_offset }),
     )
 }
 

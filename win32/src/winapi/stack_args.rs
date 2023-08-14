@@ -10,15 +10,17 @@ unsafe fn extend_lifetime_mut<'a, T: ?Sized>(x: &mut T) -> &'a mut T {
     std::mem::transmute(x)
 }
 
+/// ArrayWithSize<&[u8]> matches a pair of C arguments like
+///    const u8_t* items, size_t len,
+pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
+pub type ArrayWithSizeMut<'a, T> = Option<&'a mut [T]>;
+
 pub trait FromX86: Sized {
     fn from_raw(_raw: u32) -> Self {
         unimplemented!()
     }
     unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
         Self::from_raw(mem.get::<u32>(sp))
-    }
-    fn stack_consumed() -> u32 {
-        4
     }
 }
 
@@ -77,9 +79,6 @@ impl FromX86 for Option<&[u8]> {
         }
         Some(extend_lifetime(&mem.sub(addr, len).as_slice_todo()))
     }
-    fn stack_consumed() -> u32 {
-        8
-    }
 }
 
 impl FromX86 for Option<&mut [u8]> {
@@ -91,9 +90,6 @@ impl FromX86 for Option<&mut [u8]> {
         }
         Some(extend_lifetime_mut(mem.sub(addr, len).as_mut_slice_todo()))
     }
-    fn stack_consumed() -> u32 {
-        8
-    }
 }
 
 impl FromX86 for Option<&[u16]> {
@@ -103,10 +99,7 @@ impl FromX86 for Option<&[u16]> {
         if addr == 0 {
             return None;
         }
-        std::mem::transmute(mem.sub(addr, len).as_slice_todo())
-    }
-    fn stack_consumed() -> u32 {
-        8
+        Some(std::mem::transmute(mem.sub(addr, len).as_slice_todo()))
     }
 }
 
@@ -117,10 +110,7 @@ impl FromX86 for Option<&mut [u16]> {
         if addr == 0 {
             return None;
         }
-        std::mem::transmute(mem.sub(addr, len).as_slice_todo())
-    }
-    fn stack_consumed() -> u32 {
-        8
+        Some(std::mem::transmute(mem.sub(addr, len).as_mut_slice_todo()))
     }
 }
 

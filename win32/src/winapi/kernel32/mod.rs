@@ -10,6 +10,7 @@ use super::{
     alloc::Alloc,
     alloc::ArenaInfo,
     alloc::{Heap, HeapInfo},
+    stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
 };
 use crate::machine::Machine;
@@ -356,7 +357,7 @@ pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
 pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
-    buf: Option<&mut [u8]>,
+    buf: ArrayWithSize<u8>,
 ) -> u32 {
     println!("name {:?} buf {:?}", name, buf);
     0
@@ -366,7 +367,7 @@ pub fn GetEnvironmentVariableA(
 pub fn GetModuleFileNameA(
     _machine: &mut Machine,
     hModule: HMODULE,
-    filename: Option<&mut [u8]>,
+    filename: ArrayWithSizeMut<u8>,
 ) -> u32 {
     assert!(hModule.is_null());
     match filename.unwrap().write(b"TODO.exe\0") {
@@ -671,7 +672,7 @@ pub fn MultiByteToWideChar(
     dwFlags: u32,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
-    mut lpWideCharStr: Option<&mut [u16]>,
+    mut lpWideCharStr: ArrayWithSizeMut<u16>,
 ) -> u32 {
     if CodePage != CP_ACP && CodePage != 1252 {
         unimplemented!("MultiByteToWideChar code page {CodePage}");
@@ -710,7 +711,7 @@ pub fn MultiByteToWideChar(
 pub fn WriteConsoleW(
     machine: &mut Machine,
     hConsoleOutput: HFILE,
-    lpBuffer: Option<&[u16]>,
+    lpBuffer: ArrayWithSize<u16>,
     lpNumberOfCharsWritten: Option<&mut u32>,
     _lpReserved: u32,
 ) -> bool {

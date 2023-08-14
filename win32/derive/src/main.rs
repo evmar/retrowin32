@@ -137,7 +137,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
             pub name: &'static str,
             pub ordinal: Option<usize>,
             pub func: shims::Handler,
-            pub stack_consumed: fn() -> u32,
+            pub stack_consumed: u32,
         }
 
         pub struct BuiltinDLL {
