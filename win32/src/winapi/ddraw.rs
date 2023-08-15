@@ -320,6 +320,7 @@ mod IDirectDraw {
         WaitForVerticalBlank todo,
     ];
 
+    #[win32_derive::dllexport]
     fn CreateSurface(
         machine: &mut Machine,
         _this: u32,
@@ -426,6 +427,7 @@ mod IDirectDrawSurface {
         lpDirectDrawSurface
     }
 
+    #[win32_derive::dllexport]
     fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
@@ -451,6 +453,7 @@ mod IDirectDrawSurface {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn GetPixelFormat(_machine: &mut Machine, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
         let fmt = fmt.unwrap();
         *fmt = unsafe { std::mem::zeroed() };
@@ -500,6 +503,7 @@ mod IDirectDraw7 {
         EvaluateMode todo,
     ];
 
+    #[win32_derive::dllexport]
     fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
@@ -749,11 +753,13 @@ mod IDirectDrawSurface7 {
         lpDirectDrawSurface7
     }
 
+    #[win32_derive::dllexport]
     fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
+    #[win32_derive::dllexport]
     fn BltFast(
         machine: &mut Machine,
         this: u32,
@@ -835,6 +841,7 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> u32 {
         let (handle, dc) = machine.state.gdi32.new_dc();
         dc.ddraw_surface = this;
@@ -842,6 +849,7 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn GetSurfaceDesc(
         machine: &mut Machine,
         this: u32,
@@ -897,11 +905,13 @@ mod IDirectDrawSurface7 {
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
         // leak
         DD_OK
     }
 
+    #[win32_derive::dllexport]
     fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
         DD_OK
     }

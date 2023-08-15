@@ -23,7 +23,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     };
     paths.sort();
 
-    let mut fns = Vec::new();
+    let mut impls = Vec::new();
     let mut shims = Vec::new();
     let mut exports = Vec::new();
     for path in paths {
@@ -35,7 +35,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
         let dllexports = gen::gather_shims(&file.items)?;
         for (func, dllexport) in dllexports {
             let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
-            fns.push(wrapper);
+            impls.push(wrapper);
             shims.push(shim);
 
             let ordinal = match dllexport.ordinal {
@@ -56,7 +56,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
             mod impls {
                 use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
                 use winapi::#module::*;
-                #(#fns)*
+                #(#impls)*
             }
 
             mod shims {

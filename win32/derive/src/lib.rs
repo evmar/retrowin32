@@ -24,35 +24,42 @@ pub fn shims_from_x86(
     let mut module: syn::ItemMod = syn::parse_macro_input!(item);
 
     // Generate one wrapper function per function found in the input module.
-    let mut shims: Vec<TokenStream> = Vec::new();
     let items = &module.content.as_ref().unwrap().1;
-    for item in items {
-        match item {
-            syn::Item::Fn(func) => {
-                let (wrapper, _) = gen::fn_wrapper(quote! { super }, func);
-                shims.push(wrapper.into());
-            }
-            _ => {}
-        }
+    let dllexports = gen::gather_shims(items).unwrap();
+
+    let mut impls: Vec<TokenStream> = Vec::new();
+    let mut shims: Vec<TokenStream> = Vec::new();
+    for (func, _) in &dllexports {
+        let (wrapper, shim) = gen::fn_wrapper(quote!(super), func);
+        impls.push(wrapper);
+        shims.push(shim);
     }
 
-    // Generate a module containing the generated functions.
-    let shims_module: syn::ItemMod = syn::parse2(quote! {
-        pub mod shims {
+    let impls_module = syn::parse2::<syn::ItemMod>(quote! {
+        mod impls {
+            use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
             use super::*;
-            use crate::winapi::stack_args::*;
+            #(#impls)*
+        }
+    })
+    .unwrap();
+
+    let shims_module: syn::ItemMod = syn::parse2::<syn::ItemMod>(quote! {
+        pub mod shims {
+            use crate::shims::Shim;
+            use super::impls;
             #(#shims)*
         }
     })
     .unwrap();
 
-    // Add that module into the outer module.
+    // Add modules into the outer module.
     module
         .content
         .as_mut()
         .unwrap()
         .1
-        .push(syn::Item::Mod(shims_module));
+        .extend([syn::Item::Mod(shims_module), syn::Item::Mod(impls_module)]);
     let out = quote! {
         #module
     };

@@ -49,6 +49,7 @@ impl Default for State {
 mod IDirectSound {
     use super::*;
 
+    #[win32_derive::dllexport]
     pub fn CreateSoundBuffer(
         machine: &mut Machine,
         _this: u32,
@@ -61,6 +62,7 @@ mod IDirectSound {
         DS_OK
     }
 
+    #[win32_derive::dllexport]
     pub fn SetCooperativeLevel(
         _machine: &mut Machine,
         _this: u32,
@@ -102,6 +104,7 @@ mod IDirectSoundBuffer {
         lpDirectSoundBuffer
     }
 
+    #[win32_derive::dllexport]
     pub fn Lock(
         _machine: &mut Machine,
         _this: u32,
@@ -116,6 +119,7 @@ mod IDirectSoundBuffer {
         DS_OK
     }
 
+    #[win32_derive::dllexport]
     pub fn Play(
         _machine: &mut Machine,
         _this: u32,
@@ -126,10 +130,12 @@ mod IDirectSoundBuffer {
         DS_OK
     }
 
+    #[win32_derive::dllexport]
     pub fn SetFormat(_machine: &mut Machine, _this: u32, _lpcfxFormat: u32) -> u32 {
         DS_OK
     }
 
+    #[win32_derive::dllexport]
     pub fn Unlock(
         _machine: &mut Machine,
         _this: u32,

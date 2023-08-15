@@ -15,21 +15,20 @@ pub mod user32;
 mod winmm;
 
 macro_rules! vtable_entry {
-    ($shims:ident $fn:ident ok) => {
-        //shims.add(...)
+    ($shims:ident $module:ident $fn:ident todo) => {
         0u32
     };
-    ($shims:ident $fn:ident todo) => {
-        0u32
+    ($shims:ident $module:ident $fn:ident ok) => {
+        $shims.add($module::$fn)
     };
-    ($shims:ident $fn:ident $impl:tt) => {
-        0u32
+    ($shims:ident $module:ident $fn:ident $shim:tt) => {
+        $shims.add($shim)
     };
 }
 pub(crate) use vtable_entry;
 
 macro_rules! vtable {
-    ($iface:ident $shims:ident $($fn:ident $status:tt,)*) => {
+    ($iface:ident $module:ident $($fn:ident $impl:tt,)*) => {
         #[repr(C)]
         struct Vtable {
             $($fn: DWORD),*
@@ -38,7 +37,7 @@ macro_rules! vtable {
         impl Vtable {
             fn new(shims: &mut crate::shims::Shims) -> Self {
                 Vtable {
-                    $($fn: $crate::winapi::vtable_entry!($shims $fn $status).into()),*
+                    $($fn: $crate::winapi::vtable_entry!(shims $module $fn $impl).into()),*
                 }
             }
         }
