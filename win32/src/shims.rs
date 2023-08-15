@@ -53,7 +53,7 @@ pub type Handler = unsafe fn(&mut Machine, u32);
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
-    pub stack_consumed: u32,
+    pub stack_consumed: Option<u32>,
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -87,7 +87,7 @@ impl Shims {
         shims.async_executor = shims.add(Shim {
             name: "retrowin32 async helper",
             func: async_executor,
-            stack_consumed: 0,
+            stack_consumed: None,
         });
         shims
     }

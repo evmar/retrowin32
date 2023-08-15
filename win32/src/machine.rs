@@ -44,10 +44,18 @@ impl Machine {
         if self.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(false);
         }
-        let shim = self.shims.get(self.x86.cpu.regs.eip);
-        let handler = shim.func;
-        unsafe { handler(self, self.x86.cpu.regs.esp) };
-        // Handler will have set eip to the return address from the stack.
+        let crate::shims::Shim {
+            func,
+            stack_consumed,
+            ..
+        } = *self.shims.get(self.x86.cpu.regs.eip);
+        unsafe { func(self, self.x86.cpu.regs.esp) };
+        if let Some(stack_consumed) = stack_consumed {
+            self.x86.cpu.regs.eip = self.mem().get::<u32>(self.x86.cpu.regs.esp);
+            self.x86.cpu.regs.esp += stack_consumed;
+        } else {
+            // Async handler will manage the return address etc.
+        }
         Ok(true)
     }
 

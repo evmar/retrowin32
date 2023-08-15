@@ -123,12 +123,13 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     }
     let ret = quote! {
         machine.x86.cpu.regs.eax = result.to_raw();
-        machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-        machine.x86.cpu.regs.esp += #stack_offset;
     };
+
+    let mut stack_consumed = quote!(Some(#stack_offset));
 
     // If the function is async, we need to handle the return value a bit differently.
     let body = if func.sig.asyncness.is_some() {
+        stack_consumed = quote!(None);
         quote! {
             #fetch_args
             // Yuck: we know Machine will outlive the future, but Rust doesn't.
@@ -137,6 +138,8 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
+                machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                machine.x86.cpu.regs.esp += #stack_offset;
                 #ret
             };
             crate::shims::become_async(machine, Box::pin(result));
@@ -152,7 +155,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
 
     (
         quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
-        quote!(pub const #name: Shim = Shim {name: #name_str, func: impls::#name, stack_consumed: #stack_offset };),
+        quote!(pub const #name: Shim = Shim {name: #name_str, func: impls::#name, stack_consumed: #stack_consumed };),
     )
 }
 

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 #![allow(unused_imports)]
-#![allow(unused_mut)]
+#![allow(unused_variables)]
 #[doc = r" Generated code, do not edit."]
 use crate::shims;
 pub struct Symbol {
@@ -27,8 +27,6 @@ pub mod bass {
             let arg4 = <u32>::from_stack(machine.mem(), esp + 16u32);
             let result = winapi::bass::BASS_Init(machine, arg1, arg2, arg3, arg4);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn BASS_MusicLoad(machine: &mut Machine, esp: u32) {
             let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -38,28 +36,20 @@ pub mod bass {
             let arg5 = <u32>::from_stack(machine.mem(), esp + 20u32);
             let result = winapi::bass::BASS_MusicLoad(machine, arg1, arg2, arg3, arg4, arg5);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn BASS_Start(machine: &mut Machine, esp: u32) {
             let result = winapi::bass::BASS_Start(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn BASS_MusicPlay(machine: &mut Machine, esp: u32) {
             let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::bass::BASS_MusicPlay(machine, arg1);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, esp: u32) {
             let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::bass::BASS_ChannelGetPosition(machine, arg1);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
     }
     mod shims {
@@ -68,27 +58,27 @@ pub mod bass {
         pub const BASS_Init: Shim = Shim {
             name: "BASS_Init",
             func: impls::BASS_Init,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const BASS_MusicLoad: Shim = Shim {
             name: "BASS_MusicLoad",
             func: impls::BASS_MusicLoad,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const BASS_Start: Shim = Shim {
             name: "BASS_Start",
             func: impls::BASS_Start,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const BASS_MusicPlay: Shim = Shim {
             name: "BASS_MusicPlay",
             func: impls::BASS_MusicPlay,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const BASS_ChannelGetPosition: Shim = Shim {
             name: "BASS_ChannelGetPosition",
             func: impls::BASS_ChannelGetPosition,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
     }
     const EXPORTS: [Symbol; 5usize] = [
@@ -132,8 +122,6 @@ pub mod ddraw {
             let pUnkOuter = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) {
             let lpGuid = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -142,8 +130,6 @@ pub mod ddraw {
             let pUnkOuter = <u32>::from_stack(machine.mem(), esp + 16u32);
             let result = winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
     }
     mod shims {
@@ -152,12 +138,12 @@ pub mod ddraw {
         pub const DirectDrawCreate: Shim = Shim {
             name: "DirectDrawCreate",
             func: impls::DirectDrawCreate,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const DirectDrawCreateEx: Shim = Shim {
             name: "DirectDrawCreateEx",
             func: impls::DirectDrawCreateEx,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
     }
     const EXPORTS: [Symbol; 2usize] = [
@@ -189,8 +175,6 @@ pub mod dsound {
             let _pUnkOuter = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
     }
     mod shims {
@@ -199,7 +183,7 @@ pub mod dsound {
         pub const DirectSoundCreate: Shim = Shim {
             name: "DirectSoundCreate",
             func: impls::DirectSoundCreate,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {
@@ -223,16 +207,12 @@ pub mod gdi32 {
             let _i = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::gdi32::GetStockObject(machine, _i);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn SelectObject(machine: &mut Machine, esp: u32) {
             let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
             let hGdiObj = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::gdi32::SelectObject(machine, hdc, hGdiObj);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) {
             let handle = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -240,22 +220,16 @@ pub mod gdi32 {
             let _out = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::gdi32::GetObjectA(machine, handle, _bytes, _out);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn CreateCompatibleDC(machine: &mut Machine, esp: u32) {
             let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::gdi32::CreateCompatibleDC(machine, hdc);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) {
             let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::gdi32::DeleteDC(machine, hdc);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn BitBlt(machine: &mut Machine, esp: u32) {
             let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -269,8 +243,6 @@ pub mod gdi32 {
             let rop = <u32>::from_stack(machine.mem(), esp + 36u32);
             let result = winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 40u32;
         }
         pub unsafe fn StretchBlt(machine: &mut Machine, esp: u32) {
             let hdcDest = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -288,8 +260,6 @@ pub mod gdi32 {
                 machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 48u32;
         }
     }
     mod shims {
@@ -298,37 +268,37 @@ pub mod gdi32 {
         pub const GetStockObject: Shim = Shim {
             name: "GetStockObject",
             func: impls::GetStockObject,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const SelectObject: Shim = Shim {
             name: "SelectObject",
             func: impls::SelectObject,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const GetObjectA: Shim = Shim {
             name: "GetObjectA",
             func: impls::GetObjectA,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const CreateCompatibleDC: Shim = Shim {
             name: "CreateCompatibleDC",
             func: impls::CreateCompatibleDC,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: impls::DeleteDC,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const BitBlt: Shim = Shim {
             name: "BitBlt",
             func: impls::BitBlt,
-            stack_consumed: 40u32,
+            stack_consumed: Some(40u32),
         };
         pub const StretchBlt: Shim = Shim {
             name: "StretchBlt",
             func: impls::StretchBlt,
-            stack_consumed: 48u32,
+            stack_consumed: Some(48u32),
         };
     }
     const EXPORTS: [Symbol; 7usize] = [
@@ -378,15 +348,11 @@ pub mod kernel32 {
             let lpModuleName = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetModuleHandleA(machine, lpModuleName);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetModuleHandleW(machine: &mut Machine, esp: u32) {
             let lpModuleName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetModuleHandleW(machine, lpModuleName);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetModuleHandleExW(machine: &mut Machine, esp: u32) {
             let dwFlags = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -395,15 +361,11 @@ pub mod kernel32 {
             let result =
                 winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn LoadLibraryA(machine: &mut Machine, esp: u32) {
             let filename = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::LoadLibraryA(machine, filename);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn LoadLibraryExW(machine: &mut Machine, esp: u32) {
             let lpLibFileName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
@@ -411,23 +373,17 @@ pub mod kernel32 {
             let dwFlags = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) {
             let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
             let lpProcName = <Option<&str>>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::GetProcAddress(machine, hModule, lpProcName);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn GetStdHandle(machine: &mut Machine, esp: u32) {
             let nStdHandle = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetStdHandle(machine, nStdHandle);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn CreateFileA(machine: &mut Machine, esp: u32) {
             let lpFileName = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
@@ -449,8 +405,6 @@ pub mod kernel32 {
                 hTemplateFile,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 32u32;
         }
         pub unsafe fn CreateFileW(machine: &mut Machine, esp: u32) {
             let lpFileName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
@@ -472,15 +426,11 @@ pub mod kernel32 {
                 hTemplateFile,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 32u32;
         }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) {
             let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetFileType(machine, hFile);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn SetFilePointer(machine: &mut Machine, esp: u32) {
             let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
@@ -495,8 +445,6 @@ pub mod kernel32 {
                 dwMoveMethod,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn ReadFile(machine: &mut Machine, esp: u32) {
             let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
@@ -511,8 +459,6 @@ pub mod kernel32 {
                 lpOverlapped,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn WriteFile(machine: &mut Machine, esp: u32) {
             let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
@@ -527,8 +473,6 @@ pub mod kernel32 {
                 lpOverlapped,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn HeapAlloc(machine: &mut Machine, esp: u32) {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -536,8 +480,6 @@ pub mod kernel32 {
             let dwBytes = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn HeapFree(machine: &mut Machine, esp: u32) {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -545,8 +487,6 @@ pub mod kernel32 {
             let lpMem = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn HeapSize(machine: &mut Machine, esp: u32) {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -554,8 +494,6 @@ pub mod kernel32 {
             let lpMem = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn HeapReAlloc(machine: &mut Machine, esp: u32) {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -564,8 +502,6 @@ pub mod kernel32 {
             let dwBytes = <u32>::from_stack(machine.mem(), esp + 16u32);
             let result = winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn HeapCreate(machine: &mut Machine, esp: u32) {
             let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(machine.mem(), esp + 4u32);
@@ -574,15 +510,11 @@ pub mod kernel32 {
             let result =
                 winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn HeapDestroy(machine: &mut Machine, esp: u32) {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::HeapDestroy(machine, hHeap);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn VirtualAlloc(machine: &mut Machine, esp: u32) {
             let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -597,8 +529,6 @@ pub mod kernel32 {
                 _flProtec,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn VirtualFree(machine: &mut Machine, esp: u32) {
             let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -606,112 +536,80 @@ pub mod kernel32 {
             let dwFreeType = <u32>::from_stack(machine.mem(), esp + 12u32);
             let result = winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn IsBadReadPtr(machine: &mut Machine, esp: u32) {
             let lp = <u32>::from_stack(machine.mem(), esp + 4u32);
             let ucb = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::IsBadReadPtr(machine, lp, ucb);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn IsBadWritePtr(machine: &mut Machine, esp: u32) {
             let lp = <u32>::from_stack(machine.mem(), esp + 4u32);
             let ucb = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::IsBadWritePtr(machine, lp, ucb);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn SetLastError(machine: &mut Machine, esp: u32) {
             let dwErrCode = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::SetLastError(machine, dwErrCode);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetLastError(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetLastError(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn ExitProcess(machine: &mut Machine, esp: u32) {
             let uExitCode = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::ExitProcess(machine, uExitCode);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetACP(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetACP(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn IsValidCodePage(machine: &mut Machine, esp: u32) {
             let CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::IsValidCodePage(machine, CodePage);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetCPInfo(machine: &mut Machine, esp: u32) {
             let _CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
             let _lpCPInfo = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::GetCPInfo(machine, _CodePage, _lpCPInfo);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn GetCommandLineA(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetCommandLineA(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetCommandLineW(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetCommandLineW(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetEnvironmentStrings(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) {
             let _penv = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::FreeEnvironmentStringsA(machine, _penv);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetEnvironmentStringsW(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetEnvironmentStringsW(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetEnvironmentVariableA(machine: &mut Machine, esp: u32) {
             let name = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
             let buf = <ArrayWithSize<u8>>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::GetEnvironmentVariableA(machine, name, buf);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn GetModuleFileNameA(machine: &mut Machine, esp: u32) {
             let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
             let filename = <ArrayWithSizeMut<u8>>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::GetModuleFileNameA(machine, hModule, filename);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn GetModuleFileNameW(machine: &mut Machine, esp: u32) {
             let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
@@ -720,103 +618,73 @@ pub mod kernel32 {
             let result =
                 winapi::kernel32::GetModuleFileNameW(machine, hModule, _lpFilename, _nSize);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 16u32;
         }
         pub unsafe fn GetStartupInfoA(machine: &mut Machine, esp: u32) {
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetStartupInfoA(machine, lpStartupInfo);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetStartupInfoW(machine: &mut Machine, esp: u32) {
             let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn IsProcessorFeaturePresent(machine: &mut Machine, esp: u32) {
             let feature = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::IsProcessorFeaturePresent(machine, feature);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn IsDebuggerPresent(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::IsDebuggerPresent(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetCurrentProcessId(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetTickCount(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetTickCount(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn QueryPerformanceCounter(machine: &mut Machine, esp: u32) {
             let lpPerformanceCount =
                 <Option<&mut LARGE_INTEGER>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn QueryPerformanceFrequency(machine: &mut Machine, esp: u32) {
             let lpFrequency = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) {
             let _time = <Option<&mut FILETIME>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetSystemTimeAsFileTime(machine, _time);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetVersion(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetVersion(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetVersionExA(machine: &mut Machine, esp: u32) {
             let lpVersionInformation =
                 <Option<&mut OSVERSIONINFO>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::GetVersionExA(machine, lpVersionInformation);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetProcessHeap(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn SetHandleCount(machine: &mut Machine, esp: u32) {
             let uNumber = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::SetHandleCount(machine, uNumber);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn OutputDebugStringA(machine: &mut Machine, esp: u32) {
             let msg = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::OutputDebugStringA(machine, msg);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(machine: &mut Machine, esp: u32) {
             let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -827,57 +695,41 @@ pub mod kernel32 {
                 _dwSpinCount,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn DeleteCriticalSection(machine: &mut Machine, esp: u32) {
             let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::DeleteCriticalSection(machine, _lpCriticalSection);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn EnterCriticalSection(machine: &mut Machine, esp: u32) {
             let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::EnterCriticalSection(machine, _lpCriticalSection);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn LeaveCriticalSection(machine: &mut Machine, esp: u32) {
             let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::LeaveCriticalSection(machine, _lpCriticalSection);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn SetUnhandledExceptionFilter(machine: &mut Machine, esp: u32) {
             let _lpTopLevelExceptionFilter = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result =
                 winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn UnhandledExceptionFilter(machine: &mut Machine, esp: u32) {
             let _exceptionInfo = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::UnhandledExceptionFilter(machine, _exceptionInfo);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn NtCurrentTeb(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::NtCurrentTeb(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn InitializeSListHead(machine: &mut Machine, esp: u32) {
             let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::InitializeSListHead(machine, ListHead);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, esp: u32) {
             let CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -894,8 +746,6 @@ pub mod kernel32 {
                 lpWideCharStr,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 28u32;
         }
         pub unsafe fn WriteConsoleW(machine: &mut Machine, esp: u32) {
             let hConsoleOutput = <HFILE>::from_stack(machine.mem(), esp + 4u32);
@@ -910,42 +760,30 @@ pub mod kernel32 {
                 _lpReserved,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn GetCurrentThreadId(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::GetCurrentThreadId(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) {
             let result = winapi::kernel32::TlsAlloc(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn TlsFree(machine: &mut Machine, esp: u32) {
             let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::TlsFree(machine, dwTlsIndex);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn TlsSetValue(machine: &mut Machine, esp: u32) {
             let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
             let lpTlsValue = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn TlsGetValue(machine: &mut Machine, esp: u32) {
             let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::TlsGetValue(machine, dwTlsIndex);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn CreateThread(machine: &mut Machine, esp: u32) {
             let lpThreadAttributes = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -964,23 +802,17 @@ pub mod kernel32 {
                 lpThreadId,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 28u32;
         }
         pub unsafe fn SetThreadPriority(machine: &mut Machine, esp: u32) {
             let _hThread = <u32>::from_stack(machine.mem(), esp + 4u32);
             let _nPriority = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn InterlockedIncrement(machine: &mut Machine, esp: u32) {
             let addend = <Option<&mut u32>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::kernel32::InterlockedIncrement(machine, addend);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
     }
     mod shims {
@@ -989,347 +821,347 @@ pub mod kernel32 {
         pub const GetModuleHandleA: Shim = Shim {
             name: "GetModuleHandleA",
             func: impls::GetModuleHandleA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetModuleHandleW: Shim = Shim {
             name: "GetModuleHandleW",
             func: impls::GetModuleHandleW,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetModuleHandleExW: Shim = Shim {
             name: "GetModuleHandleExW",
             func: impls::GetModuleHandleExW,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const LoadLibraryA: Shim = Shim {
             name: "LoadLibraryA",
             func: impls::LoadLibraryA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const LoadLibraryExW: Shim = Shim {
             name: "LoadLibraryExW",
             func: impls::LoadLibraryExW,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const GetProcAddress: Shim = Shim {
             name: "GetProcAddress",
             func: impls::GetProcAddress,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const GetStdHandle: Shim = Shim {
             name: "GetStdHandle",
             func: impls::GetStdHandle,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const CreateFileA: Shim = Shim {
             name: "CreateFileA",
             func: impls::CreateFileA,
-            stack_consumed: 32u32,
+            stack_consumed: Some(32u32),
         };
         pub const CreateFileW: Shim = Shim {
             name: "CreateFileW",
             func: impls::CreateFileW,
-            stack_consumed: 32u32,
+            stack_consumed: Some(32u32),
         };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const SetFilePointer: Shim = Shim {
             name: "SetFilePointer",
             func: impls::SetFilePointer,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const ReadFile: Shim = Shim {
             name: "ReadFile",
             func: impls::ReadFile,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const WriteFile: Shim = Shim {
             name: "WriteFile",
             func: impls::WriteFile,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const HeapAlloc: Shim = Shim {
             name: "HeapAlloc",
             func: impls::HeapAlloc,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const HeapFree: Shim = Shim {
             name: "HeapFree",
             func: impls::HeapFree,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const HeapSize: Shim = Shim {
             name: "HeapSize",
             func: impls::HeapSize,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const HeapReAlloc: Shim = Shim {
             name: "HeapReAlloc",
             func: impls::HeapReAlloc,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const HeapCreate: Shim = Shim {
             name: "HeapCreate",
             func: impls::HeapCreate,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const HeapDestroy: Shim = Shim {
             name: "HeapDestroy",
             func: impls::HeapDestroy,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const VirtualAlloc: Shim = Shim {
             name: "VirtualAlloc",
             func: impls::VirtualAlloc,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const VirtualFree: Shim = Shim {
             name: "VirtualFree",
             func: impls::VirtualFree,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const IsBadReadPtr: Shim = Shim {
             name: "IsBadReadPtr",
             func: impls::IsBadReadPtr,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const IsBadWritePtr: Shim = Shim {
             name: "IsBadWritePtr",
             func: impls::IsBadWritePtr,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const SetLastError: Shim = Shim {
             name: "SetLastError",
             func: impls::SetLastError,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetLastError: Shim = Shim {
             name: "GetLastError",
             func: impls::GetLastError,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const ExitProcess: Shim = Shim {
             name: "ExitProcess",
             func: impls::ExitProcess,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetACP: Shim = Shim {
             name: "GetACP",
             func: impls::GetACP,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const IsValidCodePage: Shim = Shim {
             name: "IsValidCodePage",
             func: impls::IsValidCodePage,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetCPInfo: Shim = Shim {
             name: "GetCPInfo",
             func: impls::GetCPInfo,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const GetCommandLineA: Shim = Shim {
             name: "GetCommandLineA",
             func: impls::GetCommandLineA,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetCommandLineW: Shim = Shim {
             name: "GetCommandLineW",
             func: impls::GetCommandLineW,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetEnvironmentStrings: Shim = Shim {
             name: "GetEnvironmentStrings",
             func: impls::GetEnvironmentStrings,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const FreeEnvironmentStringsA: Shim = Shim {
             name: "FreeEnvironmentStringsA",
             func: impls::FreeEnvironmentStringsA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetEnvironmentStringsW: Shim = Shim {
             name: "GetEnvironmentStringsW",
             func: impls::GetEnvironmentStringsW,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetEnvironmentVariableA: Shim = Shim {
             name: "GetEnvironmentVariableA",
             func: impls::GetEnvironmentVariableA,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const GetModuleFileNameA: Shim = Shim {
             name: "GetModuleFileNameA",
             func: impls::GetModuleFileNameA,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const GetModuleFileNameW: Shim = Shim {
             name: "GetModuleFileNameW",
             func: impls::GetModuleFileNameW,
-            stack_consumed: 16u32,
+            stack_consumed: Some(16u32),
         };
         pub const GetStartupInfoA: Shim = Shim {
             name: "GetStartupInfoA",
             func: impls::GetStartupInfoA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetStartupInfoW: Shim = Shim {
             name: "GetStartupInfoW",
             func: impls::GetStartupInfoW,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const IsProcessorFeaturePresent: Shim = Shim {
             name: "IsProcessorFeaturePresent",
             func: impls::IsProcessorFeaturePresent,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const IsDebuggerPresent: Shim = Shim {
             name: "IsDebuggerPresent",
             func: impls::IsDebuggerPresent,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetTickCount: Shim = Shim {
             name: "GetTickCount",
             func: impls::GetTickCount,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const QueryPerformanceCounter: Shim = Shim {
             name: "QueryPerformanceCounter",
             func: impls::QueryPerformanceCounter,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const QueryPerformanceFrequency: Shim = Shim {
             name: "QueryPerformanceFrequency",
             func: impls::QueryPerformanceFrequency,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
             name: "GetSystemTimeAsFileTime",
             func: impls::GetSystemTimeAsFileTime,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetVersion: Shim = Shim {
             name: "GetVersion",
             func: impls::GetVersion,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetVersionExA: Shim = Shim {
             name: "GetVersionExA",
             func: impls::GetVersionExA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const GetProcessHeap: Shim = Shim {
             name: "GetProcessHeap",
             func: impls::GetProcessHeap,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const SetHandleCount: Shim = Shim {
             name: "SetHandleCount",
             func: impls::SetHandleCount,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const OutputDebugStringA: Shim = Shim {
             name: "OutputDebugStringA",
             func: impls::OutputDebugStringA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",
             func: impls::DeleteCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const EnterCriticalSection: Shim = Shim {
             name: "EnterCriticalSection",
             func: impls::EnterCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const LeaveCriticalSection: Shim = Shim {
             name: "LeaveCriticalSection",
             func: impls::LeaveCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const SetUnhandledExceptionFilter: Shim = Shim {
             name: "SetUnhandledExceptionFilter",
             func: impls::SetUnhandledExceptionFilter,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const UnhandledExceptionFilter: Shim = Shim {
             name: "UnhandledExceptionFilter",
             func: impls::UnhandledExceptionFilter,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const NtCurrentTeb: Shim = Shim {
             name: "NtCurrentTeb",
             func: impls::NtCurrentTeb,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const InitializeSListHead: Shim = Shim {
             name: "InitializeSListHead",
             func: impls::InitializeSListHead,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const MultiByteToWideChar: Shim = Shim {
             name: "MultiByteToWideChar",
             func: impls::MultiByteToWideChar,
-            stack_consumed: 28u32,
+            stack_consumed: Some(28u32),
         };
         pub const WriteConsoleW: Shim = Shim {
             name: "WriteConsoleW",
             func: impls::WriteConsoleW,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const GetCurrentThreadId: Shim = Shim {
             name: "GetCurrentThreadId",
             func: impls::GetCurrentThreadId,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
             func: impls::TlsAlloc,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const TlsFree: Shim = Shim {
             name: "TlsFree",
             func: impls::TlsFree,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const TlsSetValue: Shim = Shim {
             name: "TlsSetValue",
             func: impls::TlsSetValue,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const TlsGetValue: Shim = Shim {
             name: "TlsGetValue",
             func: impls::TlsGetValue,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const CreateThread: Shim = Shim {
             name: "CreateThread",
             func: impls::CreateThread,
-            stack_consumed: 28u32,
+            stack_consumed: Some(28u32),
         };
         pub const SetThreadPriority: Shim = Shim {
             name: "SetThreadPriority",
             func: impls::SetThreadPriority,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const InterlockedIncrement: Shim = Shim {
             name: "InterlockedIncrement",
             func: impls::InterlockedIncrement,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
     }
     const EXPORTS: [Symbol; 69usize] = [
@@ -1665,15 +1497,11 @@ pub mod user32 {
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::RegisterClassA(machine, lpWndClass);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn RegisterClassExA(machine: &mut Machine, esp: u32) {
             let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::RegisterClassExA(machine, lpWndClassEx);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn CreateWindowExA(machine: &mut Machine, esp: u32) {
             let dwExStyle = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -1707,58 +1535,44 @@ pub mod user32 {
                     lpParam,
                 )
                 .await;
-                machine.x86.cpu.regs.eax = result.to_raw();
                 machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
                 machine.x86.cpu.regs.esp += 52u32;
+                machine.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
         }
         pub unsafe fn GetForegroundWindow(machine: &mut Machine, esp: u32) {
             let result = winapi::user32::GetForegroundWindow(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) {
             let result = winapi::user32::GetActiveWindow(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn GetLastActivePopup(machine: &mut Machine, esp: u32) {
             let result = winapi::user32::GetLastActivePopup(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn UpdateWindow(machine: &mut Machine, esp: u32) {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::UpdateWindow(machine, hWnd);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn ShowWindow(machine: &mut Machine, esp: u32) {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
             let _nCmdShow = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::user32::ShowWindow(machine, hWnd, _nCmdShow);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn SetFocus(machine: &mut Machine, esp: u32) {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::SetFocus(machine, hWnd);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) {
             let hCursor = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::SetCursor(machine, hCursor);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
@@ -1767,8 +1581,6 @@ pub mod user32 {
             let uType = <u32>::from_stack(machine.mem(), esp + 16u32);
             let result = winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn DialogBoxParamA(machine: &mut Machine, esp: u32) {
             let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -1785,8 +1597,6 @@ pub mod user32 {
                 dwInitParam,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) {
             let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
@@ -1803,8 +1613,6 @@ pub mod user32 {
                 wRemoveMsg,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
         pub unsafe fn GetMessageA(machine: &mut Machine, esp: u32) {
             let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
@@ -1814,21 +1622,15 @@ pub mod user32 {
             let result =
                 winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn WaitMessage(machine: &mut Machine, esp: u32) {
             let result = winapi::user32::WaitMessage(machine);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 4u32;
         }
         pub unsafe fn TranslateMessage(machine: &mut Machine, esp: u32) {
             let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::TranslateMessage(machine, lpMsg);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn DispatchMessageA(machine: &mut Machine, esp: u32) {
             let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
@@ -1836,9 +1638,9 @@ pub mod user32 {
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                machine.x86.cpu.regs.eax = result.to_raw();
                 machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
                 machine.x86.cpu.regs.esp += 8u32;
+                machine.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
         }
@@ -1849,31 +1651,23 @@ pub mod user32 {
             let lParam = <u32>::from_stack(machine.mem(), esp + 16u32);
             let result = winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 20u32;
         }
         pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) {
             let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
             let _lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::user32::LoadIconA(machine, _hInstance, _lpIconName);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) {
             let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
             let _lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
             let result = winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 12u32;
         }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) {
             let _bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::ShowCursor(machine, _bShow);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) {
             let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -1884,15 +1678,11 @@ pub mod user32 {
             let fuLoad = <u32>::from_stack(machine.mem(), esp + 24u32);
             let result = winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 28u32;
         }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) {
             let nIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
             let result = winapi::user32::GetSystemMetrics(machine, nIndex);
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 8u32;
         }
     }
     mod shims {
@@ -1901,117 +1691,117 @@ pub mod user32 {
         pub const RegisterClassA: Shim = Shim {
             name: "RegisterClassA",
             func: impls::RegisterClassA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const RegisterClassExA: Shim = Shim {
             name: "RegisterClassExA",
             func: impls::RegisterClassExA,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const CreateWindowExA: Shim = Shim {
             name: "CreateWindowExA",
             func: impls::CreateWindowExA,
-            stack_consumed: 52u32,
+            stack_consumed: None,
         };
         pub const GetForegroundWindow: Shim = Shim {
             name: "GetForegroundWindow",
             func: impls::GetForegroundWindow,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: impls::GetActiveWindow,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const GetLastActivePopup: Shim = Shim {
             name: "GetLastActivePopup",
             func: impls::GetLastActivePopup,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const UpdateWindow: Shim = Shim {
             name: "UpdateWindow",
             func: impls::UpdateWindow,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const ShowWindow: Shim = Shim {
             name: "ShowWindow",
             func: impls::ShowWindow,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const SetFocus: Shim = Shim {
             name: "SetFocus",
             func: impls::SetFocus,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const SetCursor: Shim = Shim {
             name: "SetCursor",
             func: impls::SetCursor,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const MessageBoxA: Shim = Shim {
             name: "MessageBoxA",
             func: impls::MessageBoxA,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const DialogBoxParamA: Shim = Shim {
             name: "DialogBoxParamA",
             func: impls::DialogBoxParamA,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const PeekMessageA: Shim = Shim {
             name: "PeekMessageA",
             func: impls::PeekMessageA,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
         pub const GetMessageA: Shim = Shim {
             name: "GetMessageA",
             func: impls::GetMessageA,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const WaitMessage: Shim = Shim {
             name: "WaitMessage",
             func: impls::WaitMessage,
-            stack_consumed: 4u32,
+            stack_consumed: Some(4u32),
         };
         pub const TranslateMessage: Shim = Shim {
             name: "TranslateMessage",
             func: impls::TranslateMessage,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const DispatchMessageA: Shim = Shim {
             name: "DispatchMessageA",
             func: impls::DispatchMessageA,
-            stack_consumed: 8u32,
+            stack_consumed: None,
         };
         pub const DefWindowProcA: Shim = Shim {
             name: "DefWindowProcA",
             func: impls::DefWindowProcA,
-            stack_consumed: 20u32,
+            stack_consumed: Some(20u32),
         };
         pub const LoadIconA: Shim = Shim {
             name: "LoadIconA",
             func: impls::LoadIconA,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: impls::LoadCursorA,
-            stack_consumed: 12u32,
+            stack_consumed: Some(12u32),
         };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
         pub const LoadImageA: Shim = Shim {
             name: "LoadImageA",
             func: impls::LoadImageA,
-            stack_consumed: 28u32,
+            stack_consumed: Some(28u32),
         };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",
             func: impls::GetSystemMetrics,
-            stack_consumed: 8u32,
+            stack_consumed: Some(8u32),
         };
     }
     const EXPORTS: [Symbol; 23usize] = [
@@ -2136,8 +1926,6 @@ pub mod winmm {
                 _fuEvent,
             );
             machine.x86.cpu.regs.eax = result.to_raw();
-            machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-            machine.x86.cpu.regs.esp += 24u32;
         }
     }
     mod shims {
@@ -2146,7 +1934,7 @@ pub mod winmm {
         pub const timeSetEvent: Shim = Shim {
             name: "timeSetEvent",
             func: impls::timeSetEvent,
-            stack_consumed: 24u32,
+            stack_consumed: Some(24u32),
         };
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {

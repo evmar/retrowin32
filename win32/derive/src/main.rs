@@ -142,7 +142,7 @@ fn print(tokens: TokenStream) -> anyhow::Result<()> {
     println!("#![allow(non_snake_case)]");
     println!("#![allow(non_upper_case_globals)]");
     println!("#![allow(unused_imports)]");
-    println!("#![allow(unused_mut)]");
+    println!("#![allow(unused_variables)]");
     let mut text = file.to_token_stream().to_string();
     rustfmt(&mut text)?;
     print!("{}", text);
