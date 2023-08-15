@@ -150,3 +150,5 @@ impl VecMem {
         Mem::from_slice(&self.0)
     }
 }
+
+pub type MemImpl = VecMem;

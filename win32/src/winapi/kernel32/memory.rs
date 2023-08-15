@@ -1,6 +1,6 @@
 use crate::{machine::Machine, pe::ImageSectionFlags, winapi::alloc::Alloc};
 use bitflags::bitflags;
-use memory::VecMem;
+use memory::MemImpl;
 use std::cmp::max;
 use tsify::Tsify;
 
@@ -58,7 +58,7 @@ impl Mappings {
         &self.0[pos]
     }
 
-    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut VecMem) -> &Mapping {
+    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut MemImpl) -> &Mapping {
         let size = round_up_to_page_granularity(size);
         if size > 20 << 20 {
             panic!("new mapping {:?} {size:x} bytes", desc);

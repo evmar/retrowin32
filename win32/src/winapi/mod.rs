@@ -1,4 +1,4 @@
-use memory::VecMem;
+use memory::MemImpl;
 
 mod alloc;
 mod bass;
@@ -94,7 +94,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(memory: &mut VecMem) -> Self {
+    pub fn new(memory: &mut MemImpl) -> Self {
         State {
             ddraw: ddraw::State::default(),
             dsound: dsound::State::default(),

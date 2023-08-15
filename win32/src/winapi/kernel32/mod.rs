@@ -14,7 +14,7 @@ use super::{
     types::*,
 };
 use crate::machine::Machine;
-use ::memory::{Mem, Pod, VecMem};
+use ::memory::{Mem, MemImpl, Pod};
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
 
@@ -52,7 +52,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut VecMem) -> Self {
+    pub fn new(mem: &mut MemImpl) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
@@ -158,12 +158,12 @@ impl State {
         // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
     }
 
-    pub fn new_private_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> HeapInfo {
+    pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> HeapInfo {
         let mapping = self.mappings.alloc(size as u32, desc, mem);
         HeapInfo::new(mem.mem(), mapping.addr, mapping.size)
     }
 
-    pub fn new_heap(&mut self, mem: &mut VecMem, size: usize, desc: String) -> u32 {
+    pub fn new_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> u32 {
         let heap = self.new_private_heap(mem, size, desc);
         let addr = heap.addr;
         self.heaps.insert(addr, heap);

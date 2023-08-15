@@ -3,14 +3,14 @@ use crate::{
     shims::{Shims, SHIM_BASE},
     winapi,
 };
-use memory::{Mem, VecMem};
+use memory::{Mem, MemImpl};
 use std::collections::HashMap;
 use x86::X86;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
     pub x86: X86,
-    pub memory: VecMem,
+    pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub shims: Shims,
@@ -19,7 +19,7 @@ pub struct Machine {
 
 impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = VecMem::default();
+        let mut memory = MemImpl::default();
         let state = winapi::State::new(&mut memory);
         Machine {
             x86: X86::new(),
