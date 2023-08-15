@@ -45,17 +45,17 @@ impl DLL {
         let builtin = self.builtin?;
 
         let export = match *sym {
-            ImportSymbol::Name(name) => builtin.exports.iter().find(|&export| export.name == name),
+            ImportSymbol::Name(name) => builtin
+                .exports
+                .iter()
+                .find(|&export| export.shim.name == name),
             ImportSymbol::Ordinal(ord) => builtin
                 .exports
                 .iter()
                 .find(|&export| export.ordinal == Some(ord as usize)),
         };
 
-        let addr = shims.add(
-            format!("{}!{}", self.name, sym.to_string()),
-            export.map(|e| e.func),
-        );
+        let addr = shims.add(export?.shim.clone());
 
         match *sym {
             ImportSymbol::Name(name) => {

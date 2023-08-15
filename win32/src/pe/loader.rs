@@ -109,7 +109,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
             let resolved_addr = if let Some(dll) = dll.as_mut() {
                 dll.resolve(&mut machine.shims, sym)
             } else {
-                machine.shims.add(name.clone(), None)
+                0
             };
             machine.labels.insert(resolved_addr, name);
             patches.push((base + iat_addr, resolved_addr));

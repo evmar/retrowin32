@@ -134,10 +134,8 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
         use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}, shims};
 
         pub struct Symbol {
-            pub name: &'static str,
             pub ordinal: Option<usize>,
-            pub func: shims::Handler,
-            pub stack_consumed: u32,
+            pub shim: shims::Shim,
         }
 
         pub struct BuiltinDLL {

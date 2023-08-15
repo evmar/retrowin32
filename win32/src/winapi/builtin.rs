@@ -8,10 +8,8 @@ use crate::{
     winapi::{self, stack_args::*, types::*},
 };
 pub struct Symbol {
-    pub name: &'static str,
     pub ordinal: Option<usize>,
-    pub func: shims::Handler,
-    pub stack_consumed: u32,
+    pub shim: shims::Shim,
 }
 pub struct BuiltinDLL {
     pub file_name: &'static str,
@@ -63,34 +61,44 @@ pub mod bass {
     }
     const EXPORTS: [Symbol; 5usize] = [
         Symbol {
-            name: "BASS_Init",
+            shim: shims::Shim {
+                name: "BASS_Init",
+                func: BASS_Init,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: BASS_Init,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "BASS_MusicLoad",
+            shim: shims::Shim {
+                name: "BASS_MusicLoad",
+                func: BASS_MusicLoad,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: BASS_MusicLoad,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "BASS_Start",
+            shim: shims::Shim {
+                name: "BASS_Start",
+                func: BASS_Start,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: BASS_Start,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "BASS_MusicPlay",
+            shim: shims::Shim {
+                name: "BASS_MusicPlay",
+                func: BASS_MusicPlay,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: BASS_MusicPlay,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "BASS_ChannelGetPosition",
+            shim: shims::Shim {
+                name: "BASS_ChannelGetPosition",
+                func: BASS_ChannelGetPosition,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: BASS_ChannelGetPosition,
-            stack_consumed: 8u32,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -122,16 +130,20 @@ pub mod ddraw {
     }
     const EXPORTS: [Symbol; 2usize] = [
         Symbol {
-            name: "DirectDrawCreate",
+            shim: shims::Shim {
+                name: "DirectDrawCreate",
+                func: DirectDrawCreate,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: DirectDrawCreate,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "DirectDrawCreateEx",
+            shim: shims::Shim {
+                name: "DirectDrawCreateEx",
+                func: DirectDrawCreateEx,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: DirectDrawCreateEx,
-            stack_consumed: 20u32,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -152,10 +164,12 @@ pub mod dsound {
         machine.x86.cpu.regs.esp += 16u32;
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {
-        name: "DirectSoundCreate",
+        shim: shims::Shim {
+            name: "DirectSoundCreate",
+            func: DirectSoundCreate,
+            stack_consumed: 16u32,
+        },
         ordinal: Some(1usize),
-        func: DirectSoundCreate,
-        stack_consumed: 16u32,
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "dsound.dll",
@@ -239,46 +253,60 @@ pub mod gdi32 {
     }
     const EXPORTS: [Symbol; 7usize] = [
         Symbol {
-            name: "GetStockObject",
+            shim: shims::Shim {
+                name: "GetStockObject",
+                func: GetStockObject,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetStockObject,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "SelectObject",
+            shim: shims::Shim {
+                name: "SelectObject",
+                func: SelectObject,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: SelectObject,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "GetObjectA",
+            shim: shims::Shim {
+                name: "GetObjectA",
+                func: GetObjectA,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: GetObjectA,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "CreateCompatibleDC",
+            shim: shims::Shim {
+                name: "CreateCompatibleDC",
+                func: CreateCompatibleDC,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: CreateCompatibleDC,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "DeleteDC",
+            shim: shims::Shim {
+                name: "DeleteDC",
+                func: DeleteDC,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: DeleteDC,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "BitBlt",
+            shim: shims::Shim {
+                name: "BitBlt",
+                func: BitBlt,
+                stack_consumed: 40u32,
+            },
             ordinal: None,
-            func: BitBlt,
-            stack_consumed: 40u32,
         },
         Symbol {
-            name: "StretchBlt",
+            shim: shims::Shim {
+                name: "StretchBlt",
+                func: StretchBlt,
+                stack_consumed: 48u32,
+            },
             ordinal: None,
-            func: StretchBlt,
-            stack_consumed: 48u32,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -891,418 +919,556 @@ pub mod kernel32 {
     }
     const EXPORTS: [Symbol; 69usize] = [
         Symbol {
-            name: "GetModuleHandleA",
+            shim: shims::Shim {
+                name: "GetModuleHandleA",
+                func: GetModuleHandleA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetModuleHandleA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetModuleHandleW",
+            shim: shims::Shim {
+                name: "GetModuleHandleW",
+                func: GetModuleHandleW,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetModuleHandleW,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetModuleHandleExW",
+            shim: shims::Shim {
+                name: "GetModuleHandleExW",
+                func: GetModuleHandleExW,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: GetModuleHandleExW,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "LoadLibraryA",
+            shim: shims::Shim {
+                name: "LoadLibraryA",
+                func: LoadLibraryA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: LoadLibraryA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "LoadLibraryExW",
+            shim: shims::Shim {
+                name: "LoadLibraryExW",
+                func: LoadLibraryExW,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: LoadLibraryExW,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "GetProcAddress",
+            shim: shims::Shim {
+                name: "GetProcAddress",
+                func: GetProcAddress,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: GetProcAddress,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "GetStdHandle",
+            shim: shims::Shim {
+                name: "GetStdHandle",
+                func: GetStdHandle,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetStdHandle,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "CreateFileA",
+            shim: shims::Shim {
+                name: "CreateFileA",
+                func: CreateFileA,
+                stack_consumed: 32u32,
+            },
             ordinal: None,
-            func: CreateFileA,
-            stack_consumed: 32u32,
         },
         Symbol {
-            name: "CreateFileW",
+            shim: shims::Shim {
+                name: "CreateFileW",
+                func: CreateFileW,
+                stack_consumed: 32u32,
+            },
             ordinal: None,
-            func: CreateFileW,
-            stack_consumed: 32u32,
         },
         Symbol {
-            name: "GetFileType",
+            shim: shims::Shim {
+                name: "GetFileType",
+                func: GetFileType,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetFileType,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "SetFilePointer",
+            shim: shims::Shim {
+                name: "SetFilePointer",
+                func: SetFilePointer,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: SetFilePointer,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "ReadFile",
+            shim: shims::Shim {
+                name: "ReadFile",
+                func: ReadFile,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: ReadFile,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "WriteFile",
+            shim: shims::Shim {
+                name: "WriteFile",
+                func: WriteFile,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: WriteFile,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "HeapAlloc",
+            shim: shims::Shim {
+                name: "HeapAlloc",
+                func: HeapAlloc,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: HeapAlloc,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "HeapFree",
+            shim: shims::Shim {
+                name: "HeapFree",
+                func: HeapFree,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: HeapFree,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "HeapSize",
+            shim: shims::Shim {
+                name: "HeapSize",
+                func: HeapSize,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: HeapSize,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "HeapReAlloc",
+            shim: shims::Shim {
+                name: "HeapReAlloc",
+                func: HeapReAlloc,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: HeapReAlloc,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "HeapCreate",
+            shim: shims::Shim {
+                name: "HeapCreate",
+                func: HeapCreate,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: HeapCreate,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "HeapDestroy",
+            shim: shims::Shim {
+                name: "HeapDestroy",
+                func: HeapDestroy,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: HeapDestroy,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "VirtualAlloc",
+            shim: shims::Shim {
+                name: "VirtualAlloc",
+                func: VirtualAlloc,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: VirtualAlloc,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "VirtualFree",
+            shim: shims::Shim {
+                name: "VirtualFree",
+                func: VirtualFree,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: VirtualFree,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "IsBadReadPtr",
+            shim: shims::Shim {
+                name: "IsBadReadPtr",
+                func: IsBadReadPtr,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: IsBadReadPtr,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "IsBadWritePtr",
+            shim: shims::Shim {
+                name: "IsBadWritePtr",
+                func: IsBadWritePtr,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: IsBadWritePtr,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "SetLastError",
+            shim: shims::Shim {
+                name: "SetLastError",
+                func: SetLastError,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: SetLastError,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetLastError",
+            shim: shims::Shim {
+                name: "GetLastError",
+                func: GetLastError,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetLastError,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "ExitProcess",
+            shim: shims::Shim {
+                name: "ExitProcess",
+                func: ExitProcess,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: ExitProcess,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetACP",
+            shim: shims::Shim {
+                name: "GetACP",
+                func: GetACP,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetACP,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "IsValidCodePage",
+            shim: shims::Shim {
+                name: "IsValidCodePage",
+                func: IsValidCodePage,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: IsValidCodePage,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetCPInfo",
+            shim: shims::Shim {
+                name: "GetCPInfo",
+                func: GetCPInfo,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: GetCPInfo,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "GetCommandLineA",
+            shim: shims::Shim {
+                name: "GetCommandLineA",
+                func: GetCommandLineA,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetCommandLineA,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetCommandLineW",
+            shim: shims::Shim {
+                name: "GetCommandLineW",
+                func: GetCommandLineW,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetCommandLineW,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetEnvironmentStrings",
+            shim: shims::Shim {
+                name: "GetEnvironmentStrings",
+                func: GetEnvironmentStrings,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetEnvironmentStrings,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "FreeEnvironmentStringsA",
+            shim: shims::Shim {
+                name: "FreeEnvironmentStringsA",
+                func: FreeEnvironmentStringsA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: FreeEnvironmentStringsA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetEnvironmentStringsW",
+            shim: shims::Shim {
+                name: "GetEnvironmentStringsW",
+                func: GetEnvironmentStringsW,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetEnvironmentStringsW,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetEnvironmentVariableA",
+            shim: shims::Shim {
+                name: "GetEnvironmentVariableA",
+                func: GetEnvironmentVariableA,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: GetEnvironmentVariableA,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "GetModuleFileNameA",
+            shim: shims::Shim {
+                name: "GetModuleFileNameA",
+                func: GetModuleFileNameA,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: GetModuleFileNameA,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "GetModuleFileNameW",
+            shim: shims::Shim {
+                name: "GetModuleFileNameW",
+                func: GetModuleFileNameW,
+                stack_consumed: 16u32,
+            },
             ordinal: None,
-            func: GetModuleFileNameW,
-            stack_consumed: 16u32,
         },
         Symbol {
-            name: "GetStartupInfoA",
+            shim: shims::Shim {
+                name: "GetStartupInfoA",
+                func: GetStartupInfoA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetStartupInfoA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetStartupInfoW",
+            shim: shims::Shim {
+                name: "GetStartupInfoW",
+                func: GetStartupInfoW,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetStartupInfoW,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "IsProcessorFeaturePresent",
+            shim: shims::Shim {
+                name: "IsProcessorFeaturePresent",
+                func: IsProcessorFeaturePresent,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: IsProcessorFeaturePresent,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "IsDebuggerPresent",
+            shim: shims::Shim {
+                name: "IsDebuggerPresent",
+                func: IsDebuggerPresent,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: IsDebuggerPresent,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetCurrentProcessId",
+            shim: shims::Shim {
+                name: "GetCurrentProcessId",
+                func: GetCurrentProcessId,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetCurrentProcessId,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetTickCount",
+            shim: shims::Shim {
+                name: "GetTickCount",
+                func: GetTickCount,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetTickCount,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "QueryPerformanceCounter",
+            shim: shims::Shim {
+                name: "QueryPerformanceCounter",
+                func: QueryPerformanceCounter,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: QueryPerformanceCounter,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "QueryPerformanceFrequency",
+            shim: shims::Shim {
+                name: "QueryPerformanceFrequency",
+                func: QueryPerformanceFrequency,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: QueryPerformanceFrequency,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetSystemTimeAsFileTime",
+            shim: shims::Shim {
+                name: "GetSystemTimeAsFileTime",
+                func: GetSystemTimeAsFileTime,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetSystemTimeAsFileTime,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetVersion",
+            shim: shims::Shim {
+                name: "GetVersion",
+                func: GetVersion,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetVersion,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetVersionExA",
+            shim: shims::Shim {
+                name: "GetVersionExA",
+                func: GetVersionExA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetVersionExA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "GetProcessHeap",
+            shim: shims::Shim {
+                name: "GetProcessHeap",
+                func: GetProcessHeap,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetProcessHeap,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "SetHandleCount",
+            shim: shims::Shim {
+                name: "SetHandleCount",
+                func: SetHandleCount,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: SetHandleCount,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "OutputDebugStringA",
+            shim: shims::Shim {
+                name: "OutputDebugStringA",
+                func: OutputDebugStringA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: OutputDebugStringA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "InitializeCriticalSectionAndSpinCount",
+            shim: shims::Shim {
+                name: "InitializeCriticalSectionAndSpinCount",
+                func: InitializeCriticalSectionAndSpinCount,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: InitializeCriticalSectionAndSpinCount,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "DeleteCriticalSection",
+            shim: shims::Shim {
+                name: "DeleteCriticalSection",
+                func: DeleteCriticalSection,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: DeleteCriticalSection,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "EnterCriticalSection",
+            shim: shims::Shim {
+                name: "EnterCriticalSection",
+                func: EnterCriticalSection,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: EnterCriticalSection,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "LeaveCriticalSection",
+            shim: shims::Shim {
+                name: "LeaveCriticalSection",
+                func: LeaveCriticalSection,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: LeaveCriticalSection,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "SetUnhandledExceptionFilter",
+            shim: shims::Shim {
+                name: "SetUnhandledExceptionFilter",
+                func: SetUnhandledExceptionFilter,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: SetUnhandledExceptionFilter,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "UnhandledExceptionFilter",
+            shim: shims::Shim {
+                name: "UnhandledExceptionFilter",
+                func: UnhandledExceptionFilter,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: UnhandledExceptionFilter,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "NtCurrentTeb",
+            shim: shims::Shim {
+                name: "NtCurrentTeb",
+                func: NtCurrentTeb,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: NtCurrentTeb,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "InitializeSListHead",
+            shim: shims::Shim {
+                name: "InitializeSListHead",
+                func: InitializeSListHead,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: InitializeSListHead,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "MultiByteToWideChar",
+            shim: shims::Shim {
+                name: "MultiByteToWideChar",
+                func: MultiByteToWideChar,
+                stack_consumed: 28u32,
+            },
             ordinal: None,
-            func: MultiByteToWideChar,
-            stack_consumed: 28u32,
         },
         Symbol {
-            name: "WriteConsoleW",
+            shim: shims::Shim {
+                name: "WriteConsoleW",
+                func: WriteConsoleW,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: WriteConsoleW,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "GetCurrentThreadId",
+            shim: shims::Shim {
+                name: "GetCurrentThreadId",
+                func: GetCurrentThreadId,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetCurrentThreadId,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "TlsAlloc",
+            shim: shims::Shim {
+                name: "TlsAlloc",
+                func: TlsAlloc,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: TlsAlloc,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "TlsFree",
+            shim: shims::Shim {
+                name: "TlsFree",
+                func: TlsFree,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: TlsFree,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "TlsSetValue",
+            shim: shims::Shim {
+                name: "TlsSetValue",
+                func: TlsSetValue,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: TlsSetValue,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "TlsGetValue",
+            shim: shims::Shim {
+                name: "TlsGetValue",
+                func: TlsGetValue,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: TlsGetValue,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "CreateThread",
+            shim: shims::Shim {
+                name: "CreateThread",
+                func: CreateThread,
+                stack_consumed: 28u32,
+            },
             ordinal: None,
-            func: CreateThread,
-            stack_consumed: 28u32,
         },
         Symbol {
-            name: "SetThreadPriority",
+            shim: shims::Shim {
+                name: "SetThreadPriority",
+                func: SetThreadPriority,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: SetThreadPriority,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "InterlockedIncrement",
+            shim: shims::Shim {
+                name: "InterlockedIncrement",
+                func: InterlockedIncrement,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: InterlockedIncrement,
-            stack_consumed: 8u32,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -1566,142 +1732,188 @@ pub mod user32 {
     }
     const EXPORTS: [Symbol; 23usize] = [
         Symbol {
-            name: "RegisterClassA",
+            shim: shims::Shim {
+                name: "RegisterClassA",
+                func: RegisterClassA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: RegisterClassA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "RegisterClassExA",
+            shim: shims::Shim {
+                name: "RegisterClassExA",
+                func: RegisterClassExA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: RegisterClassExA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "CreateWindowExA",
+            shim: shims::Shim {
+                name: "CreateWindowExA",
+                func: CreateWindowExA,
+                stack_consumed: 52u32,
+            },
             ordinal: None,
-            func: CreateWindowExA,
-            stack_consumed: 52u32,
         },
         Symbol {
-            name: "GetForegroundWindow",
+            shim: shims::Shim {
+                name: "GetForegroundWindow",
+                func: GetForegroundWindow,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetForegroundWindow,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetActiveWindow",
+            shim: shims::Shim {
+                name: "GetActiveWindow",
+                func: GetActiveWindow,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetActiveWindow,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "GetLastActivePopup",
+            shim: shims::Shim {
+                name: "GetLastActivePopup",
+                func: GetLastActivePopup,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: GetLastActivePopup,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "UpdateWindow",
+            shim: shims::Shim {
+                name: "UpdateWindow",
+                func: UpdateWindow,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: UpdateWindow,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "ShowWindow",
+            shim: shims::Shim {
+                name: "ShowWindow",
+                func: ShowWindow,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: ShowWindow,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "SetFocus",
+            shim: shims::Shim {
+                name: "SetFocus",
+                func: SetFocus,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: SetFocus,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "SetCursor",
+            shim: shims::Shim {
+                name: "SetCursor",
+                func: SetCursor,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: SetCursor,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "MessageBoxA",
+            shim: shims::Shim {
+                name: "MessageBoxA",
+                func: MessageBoxA,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: MessageBoxA,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "DialogBoxParamA",
+            shim: shims::Shim {
+                name: "DialogBoxParamA",
+                func: DialogBoxParamA,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: DialogBoxParamA,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "PeekMessageA",
+            shim: shims::Shim {
+                name: "PeekMessageA",
+                func: PeekMessageA,
+                stack_consumed: 24u32,
+            },
             ordinal: None,
-            func: PeekMessageA,
-            stack_consumed: 24u32,
         },
         Symbol {
-            name: "GetMessageA",
+            shim: shims::Shim {
+                name: "GetMessageA",
+                func: GetMessageA,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: GetMessageA,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "WaitMessage",
+            shim: shims::Shim {
+                name: "WaitMessage",
+                func: WaitMessage,
+                stack_consumed: 4u32,
+            },
             ordinal: None,
-            func: WaitMessage,
-            stack_consumed: 4u32,
         },
         Symbol {
-            name: "TranslateMessage",
+            shim: shims::Shim {
+                name: "TranslateMessage",
+                func: TranslateMessage,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: TranslateMessage,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "DispatchMessageA",
+            shim: shims::Shim {
+                name: "DispatchMessageA",
+                func: DispatchMessageA,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: DispatchMessageA,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "DefWindowProcA",
+            shim: shims::Shim {
+                name: "DefWindowProcA",
+                func: DefWindowProcA,
+                stack_consumed: 20u32,
+            },
             ordinal: None,
-            func: DefWindowProcA,
-            stack_consumed: 20u32,
         },
         Symbol {
-            name: "LoadIconA",
+            shim: shims::Shim {
+                name: "LoadIconA",
+                func: LoadIconA,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: LoadIconA,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "LoadCursorA",
+            shim: shims::Shim {
+                name: "LoadCursorA",
+                func: LoadCursorA,
+                stack_consumed: 12u32,
+            },
             ordinal: None,
-            func: LoadCursorA,
-            stack_consumed: 12u32,
         },
         Symbol {
-            name: "ShowCursor",
+            shim: shims::Shim {
+                name: "ShowCursor",
+                func: ShowCursor,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: ShowCursor,
-            stack_consumed: 8u32,
         },
         Symbol {
-            name: "LoadImageA",
+            shim: shims::Shim {
+                name: "LoadImageA",
+                func: LoadImageA,
+                stack_consumed: 28u32,
+            },
             ordinal: None,
-            func: LoadImageA,
-            stack_consumed: 28u32,
         },
         Symbol {
-            name: "GetSystemMetrics",
+            shim: shims::Shim {
+                name: "GetSystemMetrics",
+                func: GetSystemMetrics,
+                stack_consumed: 8u32,
+            },
             ordinal: None,
-            func: GetSystemMetrics,
-            stack_consumed: 8u32,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -1731,10 +1943,12 @@ pub mod winmm {
         machine.x86.cpu.regs.esp += 24u32;
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {
-        name: "timeSetEvent",
+        shim: shims::Shim {
+            name: "timeSetEvent",
+            func: timeSetEvent,
+            stack_consumed: 24u32,
+        },
         ordinal: None,
-        func: timeSetEvent,
-        stack_consumed: 24u32,
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "winmm.dll",

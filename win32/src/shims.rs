@@ -49,9 +49,11 @@ pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
 pub type Handler = unsafe fn(&mut Machine, u32);
 
+#[derive(Clone)]
 pub struct Shim {
-    pub name: String,
-    pub handler: Option<Handler>,
+    pub name: &'static str,
+    pub func: Handler,
+    pub stack_consumed: u32,
 }
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -82,14 +84,18 @@ impl Shims {
             async_executor: 0,
             future: None,
         };
-        shims.async_executor = shims.add("retrowin32 async helper".into(), Some(async_executor));
+        shims.async_executor = shims.add(Shim {
+            name: "retrowin32 async helper",
+            func: async_executor,
+            stack_consumed: 0,
+        });
         shims
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, name: String, handler: Option<Handler>) -> u32 {
+    pub fn add(&mut self, shim: Shim) -> u32 {
         let id = SHIM_BASE | self.shims.len() as u32;
-        self.shims.push(Shim { name, handler });
+        self.shims.push(shim);
         id
     }
 

@@ -101,7 +101,10 @@ pub fn fn_wrapper(
 
     (
         quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
-        quote!(Symbol { name: #name_str, ordinal: #ordinal_tok, func: #name, stack_consumed: #stack_offset }),
+        quote!(Symbol {
+            shim: shims::Shim {name: #name_str, func: #name, stack_consumed: #stack_offset },
+            ordinal: #ordinal_tok,
+        }),
     )
 }
 

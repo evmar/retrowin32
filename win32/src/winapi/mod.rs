@@ -16,13 +16,14 @@ mod winmm;
 
 macro_rules! vtable_entry {
     ($shims:ident $fn:ident ok) => {
-        Some($shims::$fn)
+        //shims.add(...)
+        0u32
     };
     ($shims:ident $fn:ident todo) => {
-        None
+        0u32
     };
     ($shims:ident $fn:ident $impl:tt) => {
-        Some($impl)
+        0u32
     };
 }
 pub(crate) use vtable_entry;
@@ -37,7 +38,7 @@ macro_rules! vtable {
         impl Vtable {
             fn new(shims: &mut crate::shims::Shims) -> Self {
                 Vtable {
-                    $($fn: shims.add(format!("{}::{}", stringify!($iface), stringify!($fn)), $crate::winapi::vtable_entry!($shims $fn $status)).into()),*
+                    $($fn: $crate::winapi::vtable_entry!($shims $fn $status).into()),*
                 }
             }
         }

@@ -45,9 +45,7 @@ impl Machine {
             return Ok(false);
         }
         let shim = self.shims.get(self.x86.cpu.regs.eip);
-        let handler = shim
-            .handler
-            .ok_or_else(|| anyhow::anyhow!("unimplemented: {}", shim.name))?;
+        let handler = shim.func;
         unsafe { handler(self, self.x86.cpu.regs.esp) };
         // Handler will have set eip to the return address from the stack.
         Ok(true)
