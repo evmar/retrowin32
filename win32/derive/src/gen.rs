@@ -121,9 +121,6 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
         });
         stack_offset += stack_consumed(ty);
     }
-    let ret = quote! {
-        machine.x86.cpu.regs.eax = result.to_raw();
-    };
 
     let mut stack_consumed = quote!(Some(#stack_offset));
 
@@ -140,21 +137,21 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
                 let result = #module::#name(machine, #(#args),*).await;
                 machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
                 machine.x86.cpu.regs.esp += #stack_offset;
-                #ret
+                machine.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
             // push_async will set up the stack and eip.
+            0
         }
     } else {
         quote! {
             #fetch_args
-            let result = #module::#name(machine, #(#args),*);
-            #ret
+            #module::#name(machine, #(#args),*).to_raw()
         }
     };
 
     (
-        quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
+        quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) -> u32 { #body }),
         quote!(pub const #name: Shim = Shim {name: #name_str, func: impls::#name, stack_consumed: #stack_consumed };),
     )
 }

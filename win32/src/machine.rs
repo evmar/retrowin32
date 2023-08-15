@@ -49,10 +49,11 @@ impl Machine {
             stack_consumed,
             ..
         } = *self.shims.get(self.x86.cpu.regs.eip);
-        unsafe { func(self, self.x86.cpu.regs.esp) };
+        let ret = unsafe { func(self, self.x86.cpu.regs.esp) };
         if let Some(stack_consumed) = stack_consumed {
             self.x86.cpu.regs.eip = self.mem().get::<u32>(self.x86.cpu.regs.esp);
             self.x86.cpu.regs.esp += stack_consumed;
+            self.x86.cpu.regs.eax = ret;
         } else {
             // Async handler will manage the return address etc.
         }
