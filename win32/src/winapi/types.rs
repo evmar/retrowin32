@@ -40,8 +40,8 @@ macro_rules! declare_handle {
             }
         }
         impl crate::winapi::stack_args::FromX86 for $name {
-            fn from_raw(raw: u32) -> Self {
-                $name(raw)
+            unsafe fn from_stack(mem: memory::Mem, sp: u32) -> Self {
+                $name(mem.get::<u32>(sp))
             }
         }
         impl crate::winapi::stack_args::ToX86 for $name {

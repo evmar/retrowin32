@@ -15,36 +15,31 @@ unsafe fn extend_lifetime_mut<'a, T: ?Sized>(x: &mut T) -> &'a mut T {
 pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
 pub type ArrayWithSizeMut<'a, T> = Option<&'a mut [T]>;
 
-pub trait FromX86: Sized {
-    fn from_raw(_raw: u32) -> Self {
-        unimplemented!()
-    }
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
-        Self::from_raw(mem.get::<u32>(sp))
-    }
+pub trait FromX86 {
+    unsafe fn from_stack(mem: Mem, sp: u32) -> Self;
 }
 
 impl FromX86 for u32 {
-    fn from_raw(raw: u32) -> Self {
-        raw
+    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+        mem.get::<u32>(sp)
     }
 }
 
 impl FromX86 for i32 {
-    fn from_raw(raw: u32) -> Self {
-        raw as i32
+    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+        mem.get::<u32>(sp) as i32
     }
 }
 
 impl FromX86 for bool {
-    fn from_raw(raw: u32) -> Self {
-        raw != 0
+    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+        mem.get::<u32>(sp) != 0
     }
 }
 
 impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
-    fn from_raw(raw: u32) -> Self {
-        T::try_from(raw)
+    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+        T::try_from(mem.get::<u32>(sp))
     }
 }
 
