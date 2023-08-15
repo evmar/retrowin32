@@ -8,42 +8,6 @@ use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 mod gen;
 
-enum Attribute {
-    DllExport(Option<usize>),
-}
-
-fn parse_attr(attr: &syn::Attribute) -> anyhow::Result<Option<Attribute>> {
-    let (path, nested) = match attr.parse_meta() {
-        Ok(syn::Meta::Path(path)) => (path, None),
-        Ok(syn::Meta::List(list)) => (list.path, Some(list.nested)),
-        _ => return Ok(None), // ignore unexpected attrs
-    };
-    if path.leading_colon.is_some()
-        || path.segments.len() != 2
-        || path.segments[0].ident != "win32_derive"
-    {
-        return Ok(None);
-    }
-    let seg = &attr.path.segments[1];
-    if seg.ident == "dllexport" {
-        let ordinal = match nested {
-            None => None,
-            Some(n) => {
-                if n.len() != 1 {
-                    anyhow::bail!("bad dllexport");
-                }
-                match n.first().unwrap() {
-                    syn::NestedMeta::Lit(syn::Lit::Int(i)) => Some(i.base10_parse::<usize>()?),
-                    _ => anyhow::bail!("bad dllexport"),
-                }
-            }
-        };
-        Ok(Some(Attribute::DllExport(ordinal)))
-    } else {
-        anyhow::bail!("bad win32_derive attribute")
-    }
-}
-
 /// Process one module, generating the wrapper functions and resolve helper.
 fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<TokenStream> {
     let dll_name = format!("{}.dll", module);
@@ -68,33 +32,18 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
             Ok(file) => file,
             Err(err) => return Ok(err.into_compile_error().into()),
         };
-        for item in &file.items {
-            match item {
-                syn::Item::Fn(func) => {
-                    let mut dllexport = None;
-                    for attr in func.attrs.iter() {
-                        if let Some(attr) = parse_attr(attr)? {
-                            match attr {
-                                Attribute::DllExport(n) => dllexport = Some(n),
-                            }
-                        }
-                    }
+        let dllexports = gen::gather_shims(&file.items)?;
+        for (func, dllexport) in dllexports {
+            let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
+            fns.push(wrapper);
+            shims.push(shim);
 
-                    if let Some(ordinal) = dllexport {
-                        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
-                        let ordinal = match ordinal {
-                            Some(ord) => quote!(Some(#ord)),
-                            None => quote!(None),
-                        };
-                        fns.push(wrapper);
-                        shims.push(shim);
-                        let name = &func.sig.ident;
-                        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
-                    }
-                }
-                // syn::Item::Struct(_) => todo!(),
-                _ => {}
-            }
+            let ordinal = match dllexport.ordinal {
+                Some(ord) => quote!(Some(#ord)),
+                None => quote!(None),
+            };
+            let name = &func.sig.ident;
+            exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
         }
     }
 

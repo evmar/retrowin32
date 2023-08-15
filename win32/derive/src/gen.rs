@@ -1,6 +1,66 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
+pub struct DllExport {
+    pub ordinal: Option<usize>,
+}
+
+/// Parse a #[attr] looking for #[win32_derive::dllexport].
+fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExport>> {
+    let (path, nested) = match attr.parse_meta() {
+        Ok(syn::Meta::Path(path)) => (path, None),
+        Ok(syn::Meta::List(list)) => (list.path, Some(list.nested)),
+        _ => return Ok(None), // ignore unexpected attrs
+    };
+    if path.leading_colon.is_some()
+        || path.segments.len() != 2
+        || path.segments[0].ident != "win32_derive"
+    {
+        return Ok(None);
+    }
+    let seg = &attr.path.segments[1];
+    if seg.ident != "dllexport" {
+        anyhow::bail!("bad win32_derive attribute")
+    }
+
+    let ordinal = match nested {
+        None => None,
+        Some(n) => {
+            if n.len() != 1 {
+                anyhow::bail!("bad dllexport");
+            }
+            match n.first().unwrap() {
+                syn::NestedMeta::Lit(syn::Lit::Int(i)) => Some(i.base10_parse::<usize>()?),
+                _ => anyhow::bail!("bad dllexport"),
+            }
+        }
+    };
+    Ok(Some(DllExport { ordinal }))
+}
+
+/// Gather all the dllexport fns in a list of syn::Items (module contents).
+pub fn gather_shims(items: &[syn::Item]) -> anyhow::Result<Vec<(&syn::ItemFn, DllExport)>> {
+    let mut fns = Vec::new();
+    for item in items {
+        match item {
+            syn::Item::Fn(func) => {
+                let mut dllexport = None;
+                for attr in func.attrs.iter() {
+                    dllexport = parse_dllexport(attr)?;
+                    if dllexport.is_some() {
+                        break;
+                    }
+                }
+                if let Some(dllexport) = dllexport {
+                    fns.push((func, dllexport));
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(fns)
+}
+
 /// Return the amount of stack a given stdcall argument uses.
 /// (All of them except the array+size type are 4 bytes.)
 fn stack_consumed(ty: &syn::Type) -> u32 {
