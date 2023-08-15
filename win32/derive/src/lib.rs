@@ -29,7 +29,7 @@ pub fn shims_from_x86(
     for item in items {
         match item {
             syn::Item::Fn(func) => {
-                let (wrapper, _) = gen::fn_wrapper(quote! { super }, None, func);
+                let (wrapper, _) = gen::fn_wrapper(quote! { super }, func);
                 shims.push(wrapper.into());
             }
             _ => {}

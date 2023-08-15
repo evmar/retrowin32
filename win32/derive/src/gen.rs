@@ -30,11 +30,7 @@ fn stack_consumed(ty: &syn::Type) -> u32 {
 ///
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
-pub fn fn_wrapper(
-    module: TokenStream,
-    ordinal: Option<usize>,
-    func: &syn::ItemFn,
-) -> (TokenStream, TokenStream) {
+pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, TokenStream) {
     let mut args = Vec::new();
     let mut tys = Vec::new();
 
@@ -94,17 +90,9 @@ pub fn fn_wrapper(
         }
     };
 
-    let ordinal_tok = match ordinal {
-        None => quote!(None),
-        Some(o) => quote!(Some(#o)),
-    };
-
     (
         quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) { #body }),
-        quote!(Symbol {
-            shim: shims::Shim {name: #name_str, func: #name, stack_consumed: #stack_offset },
-            ordinal: #ordinal_tok,
-        }),
+        quote!(pub const #name: Shim = Shim {name: #name_str, func: impls::#name, stack_consumed: #stack_offset };),
     )
 }
 

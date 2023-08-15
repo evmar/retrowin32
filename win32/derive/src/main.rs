@@ -60,6 +60,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     paths.sort();
 
     let mut fns = Vec::new();
+    let mut shims = Vec::new();
     let mut exports = Vec::new();
     for path in paths {
         let buf = std::fs::read_to_string(&path)?;
@@ -80,10 +81,15 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
                     }
 
                     if let Some(ordinal) = dllexport {
-                        let (wrapper, export) =
-                            gen::fn_wrapper(quote! { winapi::#module }, ordinal, func);
+                        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
+                        let ordinal = match ordinal {
+                            Some(ord) => quote!(Some(#ord)),
+                            None => quote!(None),
+                        };
                         fns.push(wrapper);
-                        exports.push(export);
+                        shims.push(shim);
+                        let name = &func.sig.ident;
+                        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
                     }
                 }
                 // syn::Item::Struct(_) => todo!(),
@@ -97,9 +103,18 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     Ok(quote! {
         pub mod #module {
             use super::*;
-            use winapi::#module::*;
 
-            #(#fns)*
+            mod impls {
+                use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
+                use winapi::#module::*;
+                #(#fns)*
+            }
+
+            mod shims {
+                use crate::shims::Shim;
+                use super::impls;
+                #(#shims)*
+            }
 
             const EXPORTS: [Symbol; #exports_count] = [
                 #(#exports),*
@@ -131,7 +146,7 @@ fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
     Ok(quote! {
         /// Generated code, do not edit.
 
-        use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}, shims};
+        use crate::shims;
 
         pub struct Symbol {
             pub ordinal: Option<usize>,
@@ -174,7 +189,9 @@ fn print(tokens: TokenStream) -> anyhow::Result<()> {
         Ok(file) => file,
         Err(err) => anyhow::bail!("parsing macro-generated code: {}", err),
     };
-    println!("#![allow(non_snake_case)]"); // parse2 seems to fail if it sees this.
+    // parse2 seems to fail if it sees these, so dump them here.
+    println!("#![allow(non_snake_case)]");
+    println!("#![allow(non_upper_case_globals)]");
     println!("#![allow(unused_imports)]");
     println!("#![allow(unused_mut)]");
     let mut text = file.to_token_stream().to_string();

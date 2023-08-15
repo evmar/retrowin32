@@ -75,7 +75,7 @@ impl DLL {
         if let Some(addr) = self.resolve_from_builtin(shims, &sym) {
             return addr;
         }
-        todo!()
+        0
     }
 }
 
