@@ -47,7 +47,7 @@ use crate::machine::Machine;
 /// "fake IAT" => "FIAT" => "F1A7"
 pub const SHIM_BASE: u32 = 0xF1A7_0000;
 
-pub type Handler = unsafe fn(&mut Machine, u32) -> u32;
+pub type Handler = unsafe extern "C" fn(&mut Machine, u32) -> u32;
 
 #[derive(Clone)]
 pub struct Shim {
@@ -155,7 +155,7 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
 }
 
 #[allow(deref_nullptr)]
-fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
+extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
     if let Some(mut future) = machine.shims.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
