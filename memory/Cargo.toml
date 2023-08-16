@@ -4,9 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0", features = ["derive"] }
-serde_bytes = "0.11.7"
+serde = { version = "1.0", features = ["derive"], optional = true }
+serde_bytes = { version = "0.11.7", optional = true }
 
-[lib]
-name = "memory"
-path = "memory.rs"
+[features]
+cpuemu = ["dep:serde", "dep:serde_bytes"]

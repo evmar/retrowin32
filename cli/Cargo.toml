@@ -20,7 +20,9 @@ path = "../win32"
 version = "1.17.0"
 optional = true
 
+[dependencies.libc]
+version = "0.2"
+
 [features]
-default = ["cpuemu", "sdl"]
 sdl = ["dep:sdl2"]
 cpuemu = ["dep:iced-x86"]

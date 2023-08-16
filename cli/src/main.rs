@@ -19,6 +19,9 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
+#[cfg(not(feature = "cpuemu"))]
+mod resv32;
+
 #[cfg(feature = "cpuemu")]
 fn dump_asm(machine: &win32::Machine) {
     let instrs = win32::disassemble(machine.mem(), machine.x86.cpu.regs.eip);
@@ -145,6 +148,11 @@ struct Args {
 }
 
 fn main() -> anyhow::Result<()> {
+    #[cfg(not(feature = "cpuemu"))]
+    unsafe {
+        crate::resv32::init_resv32();
+    }
+
     logging::init()?;
     let args: Args = argh::from_env();
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));

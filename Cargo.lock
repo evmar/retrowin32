@@ -251,6 +251,7 @@ dependencies = [
  "anyhow",
  "argh",
  "iced-x86",
+ "libc",
  "log",
  "sdl2",
  "win32",

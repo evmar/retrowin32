@@ -24,4 +24,4 @@ path = "../memory"
 path = "derive"
 
 [features]
-cpuemu = ["dep:x86"]
+cpuemu = ["dep:x86", "memory/cpuemu"]

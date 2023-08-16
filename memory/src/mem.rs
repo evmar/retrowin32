@@ -1,25 +1,5 @@
+use crate::Pod;
 use std::mem::size_of;
-
-// Idea for this Pod type comes from https://github.com/CasualX/pelite.
-// I didn't copy the code but it's MIT-licensed anyway.
-
-/// A trait for types where it's safe to reintepret_cast<> from/to random memory blocks.
-pub unsafe trait Pod: 'static + Sized {
-    unsafe fn clear_memory(&mut self, count: u32) {
-        std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
-    }
-
-    unsafe fn clear_struct(&mut self) {
-        std::ptr::write_bytes(self as *mut Self, 0, 1);
-    }
-}
-
-// See discussion of endianness in doc/design_notes.md.
-unsafe impl Pod for u8 {}
-unsafe impl Pod for u16 {}
-unsafe impl Pod for u32 {}
-unsafe impl Pod for u64 {}
-unsafe impl Pod for f64 {}
 
 /// A view into the x86 memory.  Distinct from a slice to better catch
 /// accesses and also to expose casts to/from Pod types.
@@ -28,6 +8,8 @@ pub struct Mem<'m>(&'m [u8]);
 
 impl<'m> Mem<'m> {
     pub fn from_slice(s: &'m [u8]) -> Mem<'m> {
+        //println!("resv {}", memory_raw::resv() as u64);
+
         Mem(s)
     }
 
@@ -135,20 +117,3 @@ impl<'m> Mem<'m> {
         buf.as_mut_ptr() as *mut T
     }
 }
-
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
-
-impl VecMem {
-    pub fn resize(&mut self, size: u32, value: u8) {
-        self.0.resize(size as usize, value);
-    }
-    pub fn len(&self) -> u32 {
-        self.0.len() as u32
-    }
-    pub fn mem(&self) -> Mem {
-        Mem::from_slice(&self.0)
-    }
-}
-
-pub type MemImpl = VecMem;
