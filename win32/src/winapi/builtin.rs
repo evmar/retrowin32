@@ -1455,7 +1455,7 @@ pub mod user32 {
                 machine.x86.cpu.regs.esp += 52u32;
                 machine.x86.cpu.regs.eax = result.to_raw();
             };
-            crate::shims::become_async(machine, Box::pin(result));
+            crate::future::become_async(machine, Box::pin(result));
             0
         }
         pub unsafe extern "C" fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
@@ -1547,7 +1547,7 @@ pub mod user32 {
                 machine.x86.cpu.regs.esp += 8u32;
                 machine.x86.cpu.regs.eax = result.to_raw();
             };
-            crate::shims::become_async(machine, Box::pin(result));
+            crate::future::become_async(machine, Box::pin(result));
             0
         }
         pub unsafe extern "C" fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {

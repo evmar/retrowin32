@@ -139,7 +139,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
                 machine.x86.cpu.regs.esp += #stack_offset;
                 machine.x86.cpu.regs.eax = result.to_raw();
             };
-            crate::shims::become_async(machine, Box::pin(result));
+            crate::future::become_async(machine, Box::pin(result));
             // push_async will set up the stack and eip.
             0
         }

@@ -617,7 +617,7 @@ mod IDirectDraw7 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        crate::shims::async_call(machine, callback, vec![desc_addr, data]).await;
+        crate::future::async_call(machine, callback, vec![desc_addr, data]).await;
 
         machine.x86.cpu.regs.esp += size;
 
