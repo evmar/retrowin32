@@ -11,7 +11,8 @@ Doesn't really work for much yet, but I'm still tinkering!
 - 2023/08:
   [new blog post](https://neugierig.org/software/blog/2023/08/x86-x64-aarch64.html)
   about new Rosetta-based emulation support. retrowin32 now can run on web,
-  native with CPU emulation, or native x86.
+  native with CPU emulation, or Rosetta x86-64. (Native x86-64 ought to be
+  relatively easy to add too.)
 - 2023/05:
   [new blog post](https://neugierig.org/software/blog/2023/05/retrowin32-async-dll-tracing-zig.html).
 - 2023/04: "monolife" demo now can sorta render first scene.
