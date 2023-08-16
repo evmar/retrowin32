@@ -1,17 +1,11 @@
-use crate::{
-    host, pe,
-    shims::{Shims, SHIM_BASE},
-    winapi,
-};
+use crate::{host, pe, shims::Shims, winapi};
 use memory::{Mem, MemImpl};
 use std::collections::HashMap;
-#[cfg(feature = "cpuemu")]
-use x86::X86;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
     #[cfg(feature = "cpuemu")]
-    pub x86: X86,
+    pub x86: x86::X86,
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
@@ -25,7 +19,7 @@ impl Machine {
         let state = winapi::State::new(&mut memory);
         Machine {
             #[cfg(feature = "cpuemu")]
-            x86: X86::new(),
+            x86: x86::X86::new(),
             memory,
             host,
             state,
@@ -45,7 +39,7 @@ impl Machine {
     /// If eip points at a shim address, call the handler and update eip.
     #[cfg(feature = "cpuemu")]
     fn check_shim_call(&mut self) -> anyhow::Result<bool> {
-        if self.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
+        if self.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_cpuemu::SHIM_BASE {
             return Ok(false);
         }
         let crate::shims::Shim {

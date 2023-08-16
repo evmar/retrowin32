@@ -1460,7 +1460,7 @@ pub mod user32 {
                 #[cfg(not(feature = "cpuemu"))]
                 todo!();
             };
-            crate::future::become_async(machine, Box::pin(result));
+            crate::shims::become_async(machine, Box::pin(result));
             0
         }
         pub unsafe extern "C" fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
@@ -1557,7 +1557,7 @@ pub mod user32 {
                 #[cfg(not(feature = "cpuemu"))]
                 todo!();
             };
-            crate::future::become_async(machine, Box::pin(result));
+            crate::shims::become_async(machine, Box::pin(result));
             0
         }
         pub unsafe extern "C" fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {

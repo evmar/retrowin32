@@ -252,7 +252,7 @@ pub fn load_exe(
     } else {
         // Invoke any DllMains then jump to the entry point.
         let m = machine as *mut Machine;
-        crate::future::become_async(
+        crate::shims::become_async(
             machine,
             Box::pin(async move {
                 let machine = unsafe { &mut *m };
@@ -261,7 +261,7 @@ pub fn load_exe(
                     let hInstance = 0u32; // TODO
                     let fdwReason = 1u32; // DLL_PROCESS_ATTACH
                     let lpvReserved = 0u32;
-                    crate::future::async_call(
+                    crate::shims::async_call(
                         machine,
                         dll_main,
                         vec![hInstance, fdwReason, lpvReserved],

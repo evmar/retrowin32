@@ -144,7 +144,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
                 #[cfg(not(feature = "cpuemu"))]
                 todo!();
             };
-            crate::future::become_async(machine, Box::pin(result));
+            crate::shims::become_async(machine, Box::pin(result));
             // push_async will set up the stack and eip.
             0
         }

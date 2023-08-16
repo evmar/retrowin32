@@ -7,14 +7,10 @@ pub mod trace;
 mod winapi;
 
 #[cfg(feature = "cpuemu")]
-mod future_cpuemu;
-#[cfg(feature = "cpuemu")]
-use future_cpuemu as future;
+mod shims_cpuemu;
 
 #[cfg(not(feature = "cpuemu"))]
-mod future_raw;
-#[cfg(not(feature = "cpuemu"))]
-use future_raw as future;
+mod shims_raw;
 
 pub use host::*;
 pub use machine::Machine;

@@ -1,7 +1,19 @@
-//! Unimplemented version of future_cpuemu for non-emulated cpu case.
+//! Unimplemented version of shims for non-emulated cpu case.
 //! Currently bails with todo!().
 
-use crate::Machine;
+use crate::{shims::Shim, Machine};
+
+pub struct Shims {}
+
+impl Shims {
+    pub fn new() -> Self {
+        Shims {}
+    }
+
+    pub fn add(&mut self, shim: Shim) -> u32 {
+        todo!()
+    }
+}
 
 pub fn become_async(
     machine: &mut Machine,

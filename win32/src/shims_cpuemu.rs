@@ -1,4 +1,13 @@
-//! Support for async implementations of x86->retrowin32->x86 calls.
+//! "Shims" are my word for the mechanism for x86 -> retrowin32 (and back) calls.
+//!
+//! In the simple case, we register Rust functions like kernel32.dll!ExitProcess
+//! to associate with a special invalid x86 address.  If the x86 ever jumps to such an
+//! address, we forward the call to the registered shim handler.
+//!
+//! The win32_derive::dllexport attribute on our shim functions wraps them with
+//! a prologue/epilogue that does the required stack manipulation to read
+//! arguments off the x86 stack and transform them into Rust types, so the Rust
+//! functions can act as if they're just being called from Rust.
 //!
 //! The complex case is when our Rust function needs to call back into x86
 //! code.  x86 emulation executes one basic block of instructions at a time, while
@@ -31,13 +40,17 @@
 //! and runs the async state machine.  In the case of async_call that means the
 //! x86 code eventually invoked there will return control back to async_executor.
 
-use crate::{
-    shims::{Shim, Shims},
-    Machine,
-};
+use crate::{machine::Machine, shims::Shim};
 
-#[derive(Default)]
-pub struct AsyncState {
+/// Code that calls from x86 to the host will jump to addresses in this
+/// magic range.
+/// "fake IAT" => "FIAT" => "F1A7"
+pub const SHIM_BASE: u32 = 0xF1A7_0000;
+
+/// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
+/// This is how emulated code calls out to hosting code for e.g. DLL imports.
+pub struct Shims {
+    shims: Vec<Shim>,
     /// Address of async_executor() shim entry point.
     async_executor: u32,
     /// Pending future for code being ran by async_executor().
@@ -45,16 +58,41 @@ pub struct AsyncState {
     future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
-impl AsyncState {
-    pub fn new(shims: &mut Shims) -> Self {
-        AsyncState {
-            async_executor: shims.add(Shim {
-                name: "retrowin32 async helper",
-                func: async_executor,
-                stack_consumed: None,
-            }),
+impl Shims {
+    pub fn new() -> Self {
+        let mut shims = Shims {
+            shims: Vec::new(),
+            async_executor: 0,
             future: None,
+        };
+        shims.async_executor = shims.add(Shim {
+            name: "retrowin32 async helper",
+            func: async_executor,
+            stack_consumed: None,
+        });
+        shims
+    }
+
+    /// Returns the (fake) address of the registered function.
+    pub fn add(&mut self, shim: Shim) -> u32 {
+        let id = SHIM_BASE | self.shims.len() as u32;
+        self.shims.push(shim);
+        id
+    }
+
+    pub fn get(&self, addr: u32) -> &Shim {
+        let index = (addr & 0x0000_FFFF) as usize;
+        match self.shims.get(index) {
+            Some(shim) => shim,
+            None => panic!("unknown import reference at {:x}", addr),
         }
+    }
+
+    pub fn lookup(&self, name: &str) -> Option<u32> {
+        if let Some(idx) = self.shims.iter().position(|shim| shim.name == name) {
+            return Some(SHIM_BASE | idx as u32);
+        }
+        None
     }
 }
 
@@ -64,8 +102,8 @@ pub fn become_async(
     machine: &mut Machine,
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    machine.x86.cpu.regs.eip = machine.shims.async_state.async_executor;
-    machine.shims.async_state.future = Some(future);
+    machine.x86.cpu.regs.eip = machine.shims.async_executor;
+    machine.shims.future = Some(future);
 }
 
 pub struct X86Future {
@@ -101,7 +139,7 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
     x86::ops::push(
         &mut machine.x86.cpu,
         machine.memory.mem(),
-        machine.shims.async_state.async_executor,
+        machine.shims.async_executor,
     ); // return address
     machine.x86.cpu.regs.eip = func;
     X86Future { m: machine, esp }
@@ -109,7 +147,7 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
 
 #[allow(deref_nullptr)]
 extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
-    if let Some(mut future) = machine.shims.async_state.future.take() {
+    if let Some(mut future) = machine.shims.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
@@ -117,10 +155,10 @@ extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 
         match future.as_mut().poll(context) {
             std::task::Poll::Ready(()) => {}
             std::task::Poll::Pending => {
-                if machine.shims.async_state.future.is_some() {
+                if machine.shims.future.is_some() {
                     panic!("multiple pending futures");
                 }
-                machine.shims.async_state.future = Some(future);
+                machine.shims.future = Some(future);
             }
         }
     }
