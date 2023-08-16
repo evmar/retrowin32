@@ -16,14 +16,30 @@ pub struct Machine {
 impl Machine {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = MemImpl::default();
-        let state = winapi::State::new(&mut memory);
+        let mut state = winapi::State::new(&mut memory);
+
+        #[cfg(feature = "cpuemu")]
+        let shims = {
+            state = state;
+            Shims::new()
+        };
+        #[cfg(not(feature = "cpuemu"))]
+        let shims = {
+            let mapping =
+                state
+                    .kernel32
+                    .mappings
+                    .alloc(0x1000, "shims x64 trampoline".into(), &mut memory);
+            Shims::new(mapping.addr as u64 as *mut u8, mapping.size)
+        };
+
         Machine {
             #[cfg(feature = "cpuemu")]
             x86: x86::X86::new(),
             memory,
             host,
             state,
-            shims: Shims::new(),
+            shims,
             labels: HashMap::new(),
         }
     }
