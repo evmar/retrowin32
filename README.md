@@ -8,6 +8,10 @@ Take a win32 `.exe` file and run it in a web browser or a Mac.
 
 Doesn't really work for much yet, but I'm still tinkering!
 
+- 2023/08:
+  [new blog post](https://neugierig.org/software/blog/2023/08/x86-x64-aarch64.html)
+  about new Rosetta-based emulation support. retrowin32 now can run on web,
+  native with CPU emulation, or native x86.
 - 2023/05:
   [new blog post](https://neugierig.org/software/blog/2023/05/retrowin32-async-dll-tracing-zig.html).
 - 2023/04: "monolife" demo now can sorta render first scene.
