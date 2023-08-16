@@ -204,7 +204,10 @@ pub fn load_exe(
         .state
         .kernel32
         .init_process(machine.memory.mem(), cmdline);
-    machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
+    #[cfg(feature = "cpuemu")]
+    {
+        machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
+    }
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.
@@ -222,8 +225,11 @@ pub fn load_exe(
             .mappings
             .alloc(stack_size, "stack".into(), &mut machine.memory);
     let stack_end = stack.addr + stack.size - 4;
-    machine.x86.cpu.regs.esp = stack_end;
-    machine.x86.cpu.regs.ebp = stack_end;
+    #[cfg(feature = "cpuemu")]
+    {
+        machine.x86.cpu.regs.esp = stack_end;
+        machine.x86.cpu.regs.ebp = stack_end;
+    }
 
     if let Some(res_data) = file
         .data_directory
@@ -240,6 +246,7 @@ pub fn load_exe(
     }
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
+    #[cfg(feature = "cpuemu")]
     if dll_mains.is_empty() {
         machine.x86.cpu.regs.eip = entry_point;
     } else {

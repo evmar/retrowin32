@@ -5,10 +5,12 @@ use crate::{
 };
 use memory::{Mem, MemImpl};
 use std::collections::HashMap;
+#[cfg(feature = "cpuemu")]
 use x86::X86;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
+    #[cfg(feature = "cpuemu")]
     pub x86: X86,
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
@@ -22,6 +24,7 @@ impl Machine {
         let mut memory = MemImpl::default();
         let state = winapi::State::new(&mut memory);
         Machine {
+            #[cfg(feature = "cpuemu")]
             x86: X86::new(),
             memory,
             host,
@@ -40,6 +43,7 @@ impl Machine {
     }
 
     /// If eip points at a shim address, call the handler and update eip.
+    #[cfg(feature = "cpuemu")]
     fn check_shim_call(&mut self) -> anyhow::Result<bool> {
         if self.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
             return Ok(false);
@@ -61,6 +65,7 @@ impl Machine {
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
+    #[cfg(feature = "cpuemu")]
     pub fn execute_block(&mut self) -> anyhow::Result<bool> {
         if self.check_shim_call()? {
             // Treat any shim call as a single block.
@@ -71,6 +76,7 @@ impl Machine {
             .map_err(|err| anyhow::anyhow!(err))
     }
 
+    #[cfg(feature = "cpuemu")]
     pub fn single_step(&mut self) -> anyhow::Result<()> {
         if self.check_shim_call()? {
             // Treat any shim call as a single block.

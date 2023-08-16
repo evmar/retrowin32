@@ -308,6 +308,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     machine.host.exit(uExitCode);
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
+    #[cfg(feature = "cpuemu")]
     machine.x86.cpu.stop();
     0
 }

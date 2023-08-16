@@ -31,7 +31,32 @@
 //! and runs the async state machine.  In the case of async_call that means the
 //! x86 code eventually invoked there will return control back to async_executor.
 
-use crate::Machine;
+use crate::{
+    shims::{Shim, Shims},
+    Machine,
+};
+
+#[derive(Default)]
+pub struct AsyncState {
+    /// Address of async_executor() shim entry point.
+    async_executor: u32,
+    /// Pending future for code being ran by async_executor().
+    /// TODO: we will need a stack of these to handle multiple nested callbacks.
+    future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
+}
+
+impl AsyncState {
+    pub fn new(shims: &mut Shims) -> Self {
+        AsyncState {
+            async_executor: shims.add(Shim {
+                name: "retrowin32 async helper",
+                func: async_executor,
+                stack_consumed: None,
+            }),
+            future: None,
+        }
+    }
+}
 
 /// Redirect x86 control to async_executor.  Note this has particular requirements on the
 /// state of the stack, and is called when a dllexport function is async.
@@ -39,8 +64,8 @@ pub fn become_async(
     machine: &mut Machine,
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    machine.x86.cpu.regs.eip = machine.shims.async_executor;
-    machine.shims.future = Some(future);
+    machine.x86.cpu.regs.eip = machine.shims.async_state.async_executor;
+    machine.shims.async_state.future = Some(future);
 }
 
 pub struct X86Future {
@@ -76,15 +101,15 @@ pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future
     x86::ops::push(
         &mut machine.x86.cpu,
         machine.memory.mem(),
-        machine.shims.async_executor,
+        machine.shims.async_state.async_executor,
     ); // return address
     machine.x86.cpu.regs.eip = func;
     X86Future { m: machine, esp }
 }
 
 #[allow(deref_nullptr)]
-pub extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
-    if let Some(mut future) = machine.shims.future.take() {
+extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
+    if let Some(mut future) = machine.shims.async_state.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
@@ -92,10 +117,10 @@ pub extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> 
         match future.as_mut().poll(context) {
             std::task::Poll::Ready(()) => {}
             std::task::Poll::Pending => {
-                if machine.shims.future.is_some() {
+                if machine.shims.async_state.future.is_some() {
                     panic!("multiple pending futures");
                 }
-                machine.shims.future = Some(future);
+                machine.shims.async_state.future = Some(future);
             }
         }
     }

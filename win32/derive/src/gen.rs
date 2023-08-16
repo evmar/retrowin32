@@ -135,9 +135,14 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
-                machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                machine.x86.cpu.regs.esp += #stack_offset;
-                machine.x86.cpu.regs.eax = result.to_raw();
+                #[cfg(feature = "cpuemu")]
+                {
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += #stack_offset;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                }
+                #[cfg(not(feature = "cpuemu"))]
+                todo!();
             };
             crate::future::become_async(machine, Box::pin(result));
             // push_async will set up the stack and eip.

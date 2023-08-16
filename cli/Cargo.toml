@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 argh = "0.1.10"
-iced-x86 = "1.17.0"
 log = "0.4.17"
 
 [dependencies.sdl2]
@@ -17,6 +16,11 @@ optional = true
 [dependencies.win32]
 path = "../win32"
 
+[dependencies.iced-x86]
+version = "1.17.0"
+optional = true
+
 [features]
-default = ["sdl"]
+default = ["cpuemu", "sdl"]
 sdl = ["dep:sdl2"]
+cpuemu = ["dep:iced-x86"]

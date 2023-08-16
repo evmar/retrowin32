@@ -1451,9 +1451,14 @@ pub mod user32 {
                     lpParam,
                 )
                 .await;
-                machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                machine.x86.cpu.regs.esp += 52u32;
-                machine.x86.cpu.regs.eax = result.to_raw();
+                #[cfg(feature = "cpuemu")]
+                {
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += 52u32;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                }
+                #[cfg(not(feature = "cpuemu"))]
+                todo!();
             };
             crate::future::become_async(machine, Box::pin(result));
             0
@@ -1543,9 +1548,14 @@ pub mod user32 {
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                machine.x86.cpu.regs.esp += 8u32;
-                machine.x86.cpu.regs.eax = result.to_raw();
+                #[cfg(feature = "cpuemu")]
+                {
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += 8u32;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                }
+                #[cfg(not(feature = "cpuemu"))]
+                todo!();
             };
             crate::future::become_async(machine, Box::pin(result));
             0

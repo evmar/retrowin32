@@ -32,25 +32,21 @@ pub struct Shim {
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims {
     shims: Vec<Shim>,
-    /// Address of async_executor() shim entry point.
-    pub async_executor: u32,
-    /// Pending future for code being ran by async_executor().
-    /// TODO: we will need a stack of these to handle multiple nested callbacks.
-    pub future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
+    #[cfg(feature = "cpuemu")]
+    pub async_state: crate::future::AsyncState,
 }
 
 impl Shims {
     pub fn new() -> Self {
         let mut shims = Shims {
             shims: Vec::new(),
-            async_executor: 0,
-            future: None,
+            #[cfg(feature = "cpuemu")]
+            async_state: crate::future::AsyncState::default(),
         };
-        shims.async_executor = shims.add(Shim {
-            name: "retrowin32 async helper",
-            func: crate::future::async_executor,
-            stack_consumed: None,
-        });
+        #[cfg(feature = "cpuemu")]
+        {
+            shims.async_state = crate::future::AsyncState::new(&mut shims);
+        }
         shims
     }
 

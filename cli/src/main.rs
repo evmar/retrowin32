@@ -19,6 +19,7 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
+#[cfg(feature = "cpuemu")]
 fn dump_asm(machine: &win32::Machine) {
     let instrs = win32::disassemble(machine.mem(), machine.x86.cpu.regs.eip);
 
@@ -157,52 +158,55 @@ fn main() -> anyhow::Result<()> {
         .load_exe(&buf, cmdline.clone(), false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
-    let mut trace_points = HashSet::new();
-    for &tp in &args.trace_points {
-        trace_points.insert(tp);
-        machine.x86.add_breakpoint(machine.memory.mem(), tp);
-    }
-
-    let start = std::time::Instant::now();
-    loop {
-        if let Some(gui) = &mut host.0.borrow_mut().gui {
-            if !gui.pump_messages() {
-                break;
-            }
+    #[cfg(feature = "cpuemu")]
+    {
+        let mut trace_points = HashSet::new();
+        for &tp in &args.trace_points {
+            trace_points.insert(tp);
+            machine.x86.add_breakpoint(machine.memory.mem(), tp);
         }
-        match machine.execute_block() {
-            Err(err) => {
-                dump_asm(&machine);
-                log::error!("{:?}", err);
-                break;
-            }
-            Ok(done) => {
-                if host.0.borrow().exit_code.is_some() {
+
+        let start = std::time::Instant::now();
+        loop {
+            if let Some(gui) = &mut host.0.borrow_mut().gui {
+                if !gui.pump_messages() {
                     break;
                 }
+            }
+            match machine.execute_block() {
+                Err(err) => {
+                    dump_asm(&machine);
+                    log::error!("{:?}", err);
+                    break;
+                }
+                Ok(done) => {
+                    if host.0.borrow().exit_code.is_some() {
+                        break;
+                    }
 
-                let ip = machine.x86.cpu.regs.eip;
-                if !done && trace_points.contains(&ip) {
-                    let regs = &machine.x86.cpu.regs;
-                    eprintln!(
-                        "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
-                        regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
-                    );
-                    machine.x86.clear_breakpoint(machine.memory.mem(), ip);
-                    machine.single_step().unwrap();
-                    machine.x86.add_breakpoint(machine.memory.mem(), ip);
+                    let ip = machine.x86.cpu.regs.eip;
+                    if !done && trace_points.contains(&ip) {
+                        let regs = &machine.x86.cpu.regs;
+                        eprintln!(
+                            "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
+                            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
+                        );
+                        machine.x86.clear_breakpoint(machine.memory.mem(), ip);
+                        machine.single_step().unwrap();
+                        machine.x86.add_breakpoint(machine.memory.mem(), ip);
+                    }
                 }
             }
         }
-    }
-    let millis = start.elapsed().as_millis() as usize;
-    if millis > 0 {
-        eprintln!(
-            "{} instrs in {} ms: {}m/s",
-            machine.x86.instr_count,
-            millis,
-            (machine.x86.instr_count / millis) / 1000
-        );
+        let millis = start.elapsed().as_millis() as usize;
+        if millis > 0 {
+            eprintln!(
+                "{} instrs in {} ms: {}m/s",
+                machine.x86.instr_count,
+                millis,
+                (machine.x86.instr_count / millis) / 1000
+            );
+        }
     }
 
     Ok(())

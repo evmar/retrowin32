@@ -595,33 +595,37 @@ mod IDirectDraw7 {
         data: u32,
         callback: u32,
     ) -> u32 {
-        let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
-        machine.x86.cpu.regs.esp -= size;
+        #[cfg(feature = "cpuemu")]
+        {
+            let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+            machine.x86.cpu.regs.esp -= size;
 
-        let desc_addr = machine.x86.cpu.regs.esp;
-        let mem = machine.mem();
-        let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-        unsafe { desc.clear_struct() };
-        // TODO: offer multiple display modes rather than hardcoding this one.
-        desc.dwSize = size;
-        desc.dwWidth = 320;
-        desc.dwHeight = 200;
-        desc.ddpfPixelFormat = DDPIXELFORMAT {
-            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
-            dwFlags: 0,
-            dwFourCC: 0,
-            dwRGBBitCount: 8,
-            dwRBitMask: 0xFF000000,
-            dwGBitMask: 0x00FF0000,
-            dwBBitMask: 0x0000FF00,
-            dwRGBAlphaBitMask: 0x000000FF,
-        };
+            let desc_addr = machine.x86.cpu.regs.esp;
+            let mem = machine.mem();
+            let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
+            unsafe { desc.clear_struct() };
+            // TODO: offer multiple display modes rather than hardcoding this one.
+            desc.dwSize = size;
+            desc.dwWidth = 320;
+            desc.dwHeight = 200;
+            desc.ddpfPixelFormat = DDPIXELFORMAT {
+                dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+                dwFlags: 0,
+                dwFourCC: 0,
+                dwRGBBitCount: 8,
+                dwRBitMask: 0xFF000000,
+                dwGBitMask: 0x00FF0000,
+                dwBBitMask: 0x0000FF00,
+                dwRGBAlphaBitMask: 0x000000FF,
+            };
 
-        crate::future::async_call(machine, callback, vec![desc_addr, data]).await;
+            crate::future::async_call(machine, callback, vec![desc_addr, data]).await;
 
-        machine.x86.cpu.regs.esp += size;
-
-        DD_OK
+            machine.x86.cpu.regs.esp += size;
+            DD_OK
+        }
+        #[cfg(not(feature = "cpuemu"))]
+        todo!();
     }
 
     bitflags! {

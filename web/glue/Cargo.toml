@@ -33,3 +33,7 @@ path = "../../x86"
 # https://github.com/rustwasm/wasm-pack/issues/797
 [package.metadata.wasm-pack.profile.profiling]
 wasm-opt = ['-O4', '-g']
+
+[features]
+default = ["cpuemu"]
+cpuemu = ["win32/cpuemu"]
