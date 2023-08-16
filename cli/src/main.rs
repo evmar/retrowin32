@@ -163,6 +163,7 @@ fn main() -> anyhow::Result<()> {
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut machine = win32::Machine::new(Box::new(host.clone()));
+    #[cfg(not(feature = "cpuemu"))]
     unsafe {
         machine.shims.set_machine(&machine);
     }
@@ -197,6 +198,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "cpuemu")]
     {
+        _ = addrs;
         let start = std::time::Instant::now();
         loop {
             if let Some(gui) = &mut host.0.borrow_mut().gui {

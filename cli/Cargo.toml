@@ -25,4 +25,4 @@ version = "0.2"
 
 [features]
 sdl = ["dep:sdl2"]
-cpuemu = ["dep:iced-x86"]
+cpuemu = ["dep:iced-x86", "win32/cpuemu"]
