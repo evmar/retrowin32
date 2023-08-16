@@ -12,6 +12,9 @@ mod shims_cpuemu;
 #[cfg(not(feature = "cpuemu"))]
 mod shims_raw;
 
+#[cfg(not(feature = "cpuemu"))]
+mod ldt;
+
 pub use host::*;
 pub use machine::Machine;
 #[cfg(feature = "cpuemu")]

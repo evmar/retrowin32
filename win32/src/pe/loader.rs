@@ -208,6 +208,11 @@ pub fn load_exe(
     {
         machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
     }
+    #[cfg(not(efeature = "cpuemu"))]
+    {
+        let code32_selector = unsafe { crate::ldt::setup_ldt(machine.state.kernel32.teb) };
+        _ = code32_selector;
+    }
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.
