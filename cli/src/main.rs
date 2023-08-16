@@ -92,6 +92,7 @@ struct EnvRef(Rc<RefCell<Env>>);
 impl win32::Host for EnvRef {
     fn exit(&mut self, code: u32) {
         self.0.borrow_mut().exit_code = Some(code);
+        std::process::exit(code as i32);
     }
 
     fn time(&self) -> u32 {
@@ -162,9 +163,30 @@ fn main() -> anyhow::Result<()> {
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut machine = win32::Machine::new(Box::new(host.clone()));
-    machine
+    unsafe {
+        machine.shims.set_machine(&machine);
+    }
+
+    let addrs = machine
         .load_exe(&buf, cmdline.clone(), false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
+
+    #[cfg(not(feature = "cpuemu"))]
+    {
+        println!("entry point at {:x}, about to jump", addrs.entry_point);
+        std::io::stdin().read_line(&mut String::new()).unwrap();
+
+        // https://www.felixcloutier.com/x86/call
+        // We want a "CALL m16:32" to specify the code segment selector.
+        // This needs an address pointing at a 48-bit value cs:entry_point.
+        let m1632: u64 = ((addrs.code32_selector as u64) << 32) | addrs.entry_point as u64;
+        unsafe {
+            std::arch::asm!(
+                "lcall [{entry_point}]",
+                entry_point = in(reg) &m1632,
+            );
+        }
+    }
 
     #[cfg(feature = "cpuemu")]
     {
