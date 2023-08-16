@@ -123,8 +123,8 @@ impl Shims {
 }
 
 pub fn become_async(
-    machine: &mut Machine,
-    future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
+    _machine: &mut Machine,
+    _future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
     todo!()
 }
@@ -135,12 +135,12 @@ impl std::future::Future for UnimplFuture {
 
     fn poll(
         self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
+        _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
         todo!()
     }
 }
 
-pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+pub fn async_call(_machine: &mut Machine, _func: u32, _args: Vec<u32>) -> UnimplFuture {
     todo!()
 }

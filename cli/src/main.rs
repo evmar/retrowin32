@@ -188,14 +188,15 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
+    let mut trace_points = HashSet::new();
+    for &tp in &args.trace_points {
+        trace_points.insert(tp);
+        #[cfg(feature = "cpuemu")]
+        machine.x86.add_breakpoint(machine.memory.mem(), tp);
+    }
+
     #[cfg(feature = "cpuemu")]
     {
-        let mut trace_points = HashSet::new();
-        for &tp in &args.trace_points {
-            trace_points.insert(tp);
-            machine.x86.add_breakpoint(machine.memory.mem(), tp);
-        }
-
         let start = std::time::Instant::now();
         loop {
             if let Some(gui) = &mut host.0.borrow_mut().gui {

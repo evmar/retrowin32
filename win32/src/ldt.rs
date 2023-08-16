@@ -114,6 +114,7 @@ impl LDT {
         (index << 3) | 0b111
     }
 
+    #[allow(dead_code)]
     unsafe fn dump() {
         let mut entries: [LDT_ENTRY; 256] = std::mem::zeroed();
         let ret = i386_get_ldt(0, &mut entries as *mut LDT_ENTRY, 256);
