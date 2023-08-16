@@ -27,7 +27,7 @@ impl Mappings {
     pub fn new() -> Self {
         Mappings(vec![Mapping {
             addr: 0,
-            size: x86::NULL_POINTER_REGION_SIZE,
+            size: 0x1000,
             desc: "avoid null pointers".into(),
             flags: ImageSectionFlags::empty(),
         }])

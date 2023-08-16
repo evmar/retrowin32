@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::CPU, NULL_POINTER_REGION_SIZE};
+use crate::x86::CPU;
 use memory::Mem;
 
 pub fn read_u64(mem: Mem, addr: u32) -> u64 {
@@ -8,9 +8,6 @@ pub fn read_u64(mem: Mem, addr: u32) -> u64 {
 }
 
 pub fn write_u64(mem: Mem, addr: u32, value: u64) {
-    if addr < NULL_POINTER_REGION_SIZE {
-        panic!("null pointer read at {addr:#x}");
-    }
     *mem.view_mut::<u64>(addr) = value;
 }
 

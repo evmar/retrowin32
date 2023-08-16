@@ -7,10 +7,6 @@ use crate::{
 };
 use memory::Mem;
 
-/// Addresses from 0 up to this point cause panics if we access them.
-/// This helps catch implementation bugs earlier.
-pub const NULL_POINTER_REGION_SIZE: u32 = 0x1000;
-
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CPU {
     pub regs: Registers,
