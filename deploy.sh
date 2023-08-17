@@ -2,7 +2,6 @@
 
 set -e
 
-(cd web/glue && wasm-pack build -t web --release)
-(cd web && npm run build)
+make deploy
 mkdir -p deploy
 cp web/{bundle.js,index.html,debugger.html,wasm.wasm} deploy
