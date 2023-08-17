@@ -1,4 +1,6 @@
-//! Shims for non-emulated cpu case, using raw 32-bit memory.
+//! "Shims" are my word for the mechanism for x86 -> retrowin32 (and back) calls.
+//!
+//! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
 use crate::{shims::Shim, Machine};
