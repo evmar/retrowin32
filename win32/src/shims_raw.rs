@@ -55,6 +55,8 @@ pub struct Shims {
     machine_ptr: *mut u8,
     /// Address of the call64 trampoline.
     call64_addr: u32,
+    /// Address of the tramp32 trampoline.
+    pub tramp32_addr: u32,
 }
 
 impl Shims {
@@ -79,10 +81,18 @@ impl Shims {
             buf.write(&(0x2bu32).to_le_bytes());
             buf.realign();
 
+            // trampoline_x86.s:tramp32:
+            let tramp32_addr = buf.write(
+                b"\xff\xd0\
+                \xcb",
+            ) as u32;
+            buf.realign();
+
             Shims {
                 buf,
                 machine_ptr,
                 call64_addr,
+                tramp32_addr,
             }
         }
     }

@@ -148,6 +148,47 @@ struct Args {
     cmdline: Option<String>,
 }
 
+/// The saved value of %rsp when switching from 64-bit to 32-bit mode.
+/// TODO: maybe we could put this on the (32-bit) stack?
+#[cfg(not(feature = "cpuemu"))]
+static mut STACK64: u64 = 0;
+
+/// Transfer control to the executable's entry point.
+/// Needs to switch code segments to enter compatibility mode, stacks, etc.
+#[cfg(not(feature = "cpuemu"))]
+#[inline(never)] // aid in debugging
+fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, tramp32_addr: u32) {
+    // Assert that our code was loaded in the 3-4gb memory range, which means
+    // that calls from/to it can be managed with 32-bit pointers.
+    // (This arrangement is set up by the linker flags.)
+    let mem_3gb_range = 0xc000_0000u64..0x1_0000_0000u64;
+    let fn_addr = &jump_to_entry_point as *const _ as u64;
+    assert!(mem_3gb_range.contains(&fn_addr));
+
+    println!("entry point at {:x}, about to jump", addrs.entry_point);
+    std::io::stdin().read_line(&mut String::new()).unwrap();
+
+    #[cfg(target_arch = "x86_64")] // just to keep editor from getting confused
+    {
+        // See doc/x86-64.md, "Calling between x86-64 and x86"
+        let m1632: u64 = ((addrs.code32_selector as u64) << 32) | tramp32_addr as u64;
+        unsafe {
+            std::arch::asm!(
+                "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
+                "movl {stack32:e}, %esp",      // switch to 32-bit stack
+                "lcalll *({m1632})",           // jump to 32-bit code
+                "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
+                options(att_syntax),
+                inout("eax") addrs.entry_point => _,  // address for tramp32 to call
+                stack64 = sym STACK64,
+                stack32 = in(reg) addrs.stack_pointer,
+                m1632 = in(reg) &m1632,
+                // TODO: more clobbers?
+            );
+        }
+    }
+}
+
 fn main() -> anyhow::Result<()> {
     #[cfg(not(feature = "cpuemu"))]
     unsafe {
@@ -173,28 +214,7 @@ fn main() -> anyhow::Result<()> {
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     #[cfg(not(feature = "cpuemu"))]
-    {
-        println!("entry point at {:x}, about to jump", addrs.entry_point);
-        std::io::stdin().read_line(&mut String::new()).unwrap();
-
-        // https://www.felixcloutier.com/x86/call
-        // We want a "CALL m16:32" to specify the code segment selector.
-        // This needs an address pointing at a 48-bit value cs:entry_point.
-        // TODO: this pushes RIP as 32-bit, so we need to make the initial call from a 32-bit address.
-        let m1632: u64 = ((addrs.code32_selector as u64) << 32) | addrs.entry_point as u64;
-        let mut stack64: u64 = 0;
-        unsafe {
-            std::arch::asm!(
-                "mov [{stack64}], rsp",  // back up 64-bit sp
-                "mov rsp, {stack32}",    // switch to 32-bit sp
-                "lcall [{entry_point}]", // jump to 32-bit code
-                "mov rsp, [{stack64}]",  // switch back to 64-bit sp
-                stack64 = in(reg) &mut stack64,
-                stack32 = in(reg) addrs.stack_pointer as u64,
-                entry_point = in(reg) &m1632,
-            );
-        }
-    }
+    jump_to_entry_point(&addrs, machine.shims.tramp32_addr);
 
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {

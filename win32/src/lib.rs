@@ -1,6 +1,6 @@
 mod host;
 mod machine;
-mod pe;
+pub mod pe;
 mod reader;
 mod shims;
 pub mod trace;
