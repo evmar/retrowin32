@@ -55,7 +55,10 @@ impl DLL {
                 .find(|&export| export.ordinal == Some(ord as usize)),
         };
 
-        let addr = shims.add(export?.shim.clone());
+        let addr = match export {
+            Some(export) => shims.add(export.shim.clone()),
+            None => shims.add_todo(format!("{}:{}", self.name, sym)),
+        };
 
         match *sym {
             ImportSymbol::Name(name) => {
@@ -75,6 +78,7 @@ impl DLL {
         if let Some(addr) = self.resolve_from_builtin(shims, &sym) {
             return addr;
         }
+        log::warn!("failed to resolve {}:{}", self.name, sym);
         0
     }
 }

@@ -54,6 +54,10 @@ pub struct Shims {
     future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
+unsafe extern "C" fn unimplemented(_machine: &mut Machine, _esp: u32) -> u32 {
+    unimplemented!()
+}
+
 impl Shims {
     pub fn new() -> Self {
         let mut shims = Shims {
@@ -74,6 +78,14 @@ impl Shims {
         let id = SHIM_BASE | self.shims.len() as u32;
         self.shims.push(shim);
         id
+    }
+
+    pub fn add_todo(&mut self, _name: String) -> u32 {
+        self.add(Shim {
+            name: "unimplemented",
+            func: unimplemented,
+            stack_consumed: None,
+        })
     }
 
     pub fn get(&self, addr: u32) -> &Shim {

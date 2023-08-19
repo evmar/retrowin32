@@ -122,6 +122,11 @@ impl Shims {
             tramp_addr
         }
     }
+
+    pub fn add_todo(&mut self, _name: String) -> u32 {
+        // trampoline_x86.rs:crash
+        unsafe { self.buf.write(b"\xcc\xb8\x01\x00\x00\x00\xff\x20") as u32 }
+    }
 }
 
 pub fn become_async(

@@ -15,3 +15,8 @@ tramp64:
     #   N bytes arguments passed via stdcall
 
     retl $20  # clean stdcall args, adjust value here as appropriate
+
+crash:
+    int3
+    movl $1, %eax
+    jmpl *%eax
