@@ -180,10 +180,17 @@ fn main() -> anyhow::Result<()> {
         // https://www.felixcloutier.com/x86/call
         // We want a "CALL m16:32" to specify the code segment selector.
         // This needs an address pointing at a 48-bit value cs:entry_point.
+        // TODO: this pushes RIP as 32-bit, so we need to make the initial call from a 32-bit address.
         let m1632: u64 = ((addrs.code32_selector as u64) << 32) | addrs.entry_point as u64;
+        let mut stack64: u64 = 0;
         unsafe {
             std::arch::asm!(
-                "lcall [{entry_point}]",
+                "mov [{stack64}], rsp",  // back up 64-bit sp
+                "mov rsp, {stack32}",    // switch to 32-bit sp
+                "lcall [{entry_point}]", // jump to 32-bit code
+                "mov rsp, [{stack64}]",  // switch back to 64-bit sp
+                stack64 = in(reg) &mut stack64,
+                stack32 = in(reg) addrs.stack_pointer as u64,
                 entry_point = in(reg) &m1632,
             );
         }
