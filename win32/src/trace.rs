@@ -1,3 +1,10 @@
+//! A system for enabling tracing of different subsystems of winapi.
+//! Each winapi file has a magic TRACE_CONTEXT constant string like
+//! "kernel32/file".  The user can specify tracing based on prefix
+//! matching, and a "-" suppresses, so e.g.
+//!   --win32-trace=kernel32/,-kernel32/file
+//! Pass '*' to enable all.
+
 use std::collections::HashMap;
 
 #[derive(Debug)]
@@ -17,6 +24,9 @@ impl State {
         for mut part in scheme.split(',') {
             if part.len() == 0 {
                 continue;
+            }
+            if part == "*" {
+                part = ""
             }
             let enabled = if part.starts_with('-') {
                 part = &part[1..];

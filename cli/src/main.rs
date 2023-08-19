@@ -131,7 +131,7 @@ fn hex_arg(arg: &str) -> Result<u32, String> {
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
-    /// win32 modules to trace calls into
+    /// winapi systems to trace; see trace.rs for docs
     #[argh(option)]
     win32_trace: Option<String>,
 
