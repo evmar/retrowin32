@@ -48,8 +48,10 @@ pub trait File {
 }
 
 pub trait Host {
-    fn exit(&mut self, code: u32);
+    fn exit(&self, code: u32);
     fn time(&self) -> u32;
+
+    fn pump_messages(&self);
 
     fn open(&self, path: &str) -> Box<dyn File>;
     fn write(&self, buf: &[u8]) -> usize;

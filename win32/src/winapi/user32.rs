@@ -408,6 +408,8 @@ pub fn PeekMessageA(
     wMsgFilterMax: u32,
     wRemoveMsg: Result<RemoveMsg, u32>,
 ) -> bool {
+    machine.host.pump_messages();
+
     // TODO: obey HWND.
     let remove = wRemoveMsg.unwrap();
     let msg = match machine.state.user32.messages.front() {

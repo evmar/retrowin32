@@ -90,7 +90,7 @@ impl Env {
 struct EnvRef(Rc<RefCell<Env>>);
 
 impl win32::Host for EnvRef {
-    fn exit(&mut self, code: u32) {
+    fn exit(&self, code: u32) {
         self.0.borrow_mut().exit_code = Some(code);
         std::process::exit(code as i32);
     }
@@ -100,6 +100,14 @@ impl win32::Host for EnvRef {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_millis() as u32
+    }
+
+    fn pump_messages(&self) {
+        let mut env = self.0.borrow_mut();
+        let gui = env.gui.as_mut().unwrap();
+        if !gui.pump_messages() {
+            self.exit(0);
+        }
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
@@ -228,11 +236,6 @@ fn main() -> anyhow::Result<()> {
         _ = addrs;
         let start = std::time::Instant::now();
         loop {
-            if let Some(gui) = &mut host.0.borrow_mut().gui {
-                if !gui.pump_messages() {
-                    break;
-                }
-            }
             match machine.execute_block() {
                 Err(err) => {
                     dump_asm(&machine);
