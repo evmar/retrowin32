@@ -26,4 +26,4 @@ done
 # --print link-args
 export RUSTFLAGS="-C relocation-model=dynamic-no-pic $link_flag"
 
-exec cargo build --target x86_64-apple-darwin -p retrowin32 "$@"
+exec cargo build --target x86_64-apple-darwin -p retrowin32 --features sdl "$@"
