@@ -125,7 +125,10 @@ impl Shims {
             self.buf.write(b"\xc2");
             // TODO revisit stack_consumed, does it include eip or not?
             // We have to -4 here to not include IP.
-            let stack_consumed: u16 = shim.stack_consumed.unwrap() as u16 - 4;
+            if shim.is_async {
+                panic!("async unhandled for shim {}", shim.name);
+            }
+            let stack_consumed: u16 = shim.stack_consumed as u16 - 4;
             self.buf.write(&stack_consumed.to_le_bytes());
             self.buf.realign();
 

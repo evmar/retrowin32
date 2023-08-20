@@ -122,11 +122,9 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
         stack_offset += stack_consumed(ty);
     }
 
-    let mut stack_consumed = quote!(Some(#stack_offset));
-
     // If the function is async, we need to handle the return value a bit differently.
+    let is_async = func.sig.asyncness.is_some();
     let body = if func.sig.asyncness.is_some() {
-        stack_consumed = quote!(None);
         quote! {
             #fetch_args
             // Yuck: we know Machine will outlive the future, but Rust doesn't.
@@ -157,7 +155,12 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
 
     (
         quote!(pub unsafe extern "C" fn #name(machine: &mut Machine, esp: u32) -> u32 { #body }),
-        quote!(pub const #name: Shim = Shim {name: #name_str, func: impls::#name, stack_consumed: #stack_consumed };),
+        quote!(pub const #name: Shim = Shim {
+            name: #name_str,
+            func: impls::#name,
+            stack_consumed: #stack_offset,
+            is_async: #is_async,
+        };),
     )
 }
 

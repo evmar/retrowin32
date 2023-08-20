@@ -66,10 +66,11 @@ impl Machine {
         let crate::shims::Shim {
             func,
             stack_consumed,
+            is_async,
             ..
         } = *self.shims.get(self.x86.cpu.regs.eip);
         let ret = unsafe { func(self, self.x86.cpu.regs.esp) };
-        if let Some(stack_consumed) = stack_consumed {
+        if !is_async {
             self.x86.cpu.regs.eip = self.mem().get::<u32>(self.x86.cpu.regs.esp);
             self.x86.cpu.regs.esp += stack_consumed;
             self.x86.cpu.regs.eax = ret;

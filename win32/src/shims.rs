@@ -22,5 +22,6 @@ pub type Handler = unsafe extern "C" fn(&mut Machine, u32) -> u32;
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
-    pub stack_consumed: Option<u32>,
+    pub stack_consumed: u32,
+    pub is_async: bool,
 }

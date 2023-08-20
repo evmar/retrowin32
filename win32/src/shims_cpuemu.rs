@@ -68,7 +68,8 @@ impl Shims {
         shims.async_executor = shims.add(Shim {
             name: "retrowin32 async helper",
             func: async_executor,
-            stack_consumed: None,
+            stack_consumed: 0,
+            is_async: true,
         });
         shims
     }
@@ -84,7 +85,8 @@ impl Shims {
         self.add(Shim {
             name: "unimplemented",
             func: unimplemented,
-            stack_consumed: None,
+            stack_consumed: 0,
+            is_async: false,
         })
     }
 
