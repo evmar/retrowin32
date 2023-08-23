@@ -209,10 +209,7 @@ pub fn load_exe(
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
 
-    machine
-        .state
-        .kernel32
-        .init_process(machine.memory.mem(), cmdline);
+    machine.state.kernel32.init_process(machine.memory.mem());
     #[cfg(not(feature = "cpuemu"))]
     let code32_selector = unsafe { crate::ldt::setup_ldt(machine.state.kernel32.teb) };
 

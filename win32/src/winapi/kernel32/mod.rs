@@ -25,18 +25,22 @@ pub use thread::*;
 
 const TRACE_CONTEXT: &'static str = "kernel32";
 
+/// Process command line, as exposed in GetCommandLine() and also TEB.
+/// Gross: GetCommandLineA() needs to return a pointer that's never freed,
+/// so we need to hang on to both versions of the command line.
 #[derive(serde::Serialize, serde::Deserialize)]
 struct CommandLine {
     /// Command line, ASCII.
     cmdline: u32,
     /// Command line, UTF16.
     cmdline16: u32,
+    /// Length without trailing nul.
+    len: usize,
 }
 
 impl CommandLine {
     fn new(mut cmdline: String, arena: &mut ArenaInfo, mem: Mem) -> Self {
-        // Gross: GetCommandLineA() needs to return a pointer that's never freed,
-        // so we need to hang on to both versions of the command line.
+        let len = cmdline.len();
 
         cmdline.push(0 as char); // nul terminator
 
@@ -58,6 +62,15 @@ impl CommandLine {
         CommandLine {
             cmdline: cmdline8_ptr,
             cmdline16: cmdline16_ptr,
+            len,
+        }
+    }
+
+    fn as_unicode_string(&self) -> UNICODE_STRING {
+        UNICODE_STRING {
+            Length: self.len as u16,
+            MaximumLength: self.len as u16,
+            Buffer: self.cmdline16,
         }
     }
 }
@@ -86,7 +99,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, mut cmdline: String) -> Self {
+    pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
@@ -114,9 +127,7 @@ impl State {
 
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    pub fn init_process(&mut self, mem: Mem, cmdline: String) {
-        let cmdline_len = cmdline.len();
-
+    pub fn init_process(&mut self, mem: Mem) {
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.get(mem).alloc(std::cmp::max(
             std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
@@ -129,11 +140,7 @@ impl State {
         params.hStdOutput = STDOUT_HFILE;
         params.hStdError = STDERR_HFILE;
         params.ImagePathName.clear();
-        params.CommandLine = UNICODE_STRING {
-            Length: cmdline_len as u16,
-            MaximumLength: cmdline_len as u16,
-            Buffer: self.cmdline.cmdline16,
-        };
+        params.CommandLine = self.cmdline.as_unicode_string();
 
         // PEB
         let peb_addr = self
