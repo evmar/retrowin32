@@ -211,7 +211,7 @@ fn main() -> anyhow::Result<()> {
     let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
-    let mut machine = win32::Machine::new(Box::new(host.clone()));
+    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
     #[cfg(not(feature = "cpuemu"))]
     unsafe {
         machine.shims.set_machine(&machine);

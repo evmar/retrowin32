@@ -23,7 +23,7 @@ export class Emulator {
     relocate: boolean,
   ) {
     host.emulator = this;
-    this.emu = wasm.new_emulator(host);
+    this.emu = wasm.new_emulator(host, storageKey);
     this.emu.load_exe(storageKey, bytes, relocate);
 
     const importsJSON = JSON.parse(this.emu.labels());

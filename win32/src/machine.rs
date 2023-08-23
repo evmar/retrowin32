@@ -14,9 +14,9 @@ pub struct Machine {
 }
 
 impl Machine {
-    pub fn new(host: Box<dyn host::Host>) -> Self {
+    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory);
+        let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 
         #[cfg(feature = "cpuemu")]
         let shims = {

@@ -26,6 +26,43 @@ pub use thread::*;
 const TRACE_CONTEXT: &'static str = "kernel32";
 
 #[derive(serde::Serialize, serde::Deserialize)]
+struct CommandLine {
+    /// Command line, ASCII.
+    cmdline: u32,
+    /// Command line, UTF16.
+    cmdline16: u32,
+}
+
+impl CommandLine {
+    fn new(mut cmdline: String, arena: &mut ArenaInfo, mem: Mem) -> Self {
+        // Gross: GetCommandLineA() needs to return a pointer that's never freed,
+        // so we need to hang on to both versions of the command line.
+
+        cmdline.push(0 as char); // nul terminator
+
+        let cmdline8_ptr = arena.get(mem).alloc(cmdline.len() as u32);
+        mem.sub(cmdline8_ptr, cmdline.len() as u32)
+            .as_mut_slice_todo()
+            .copy_from_slice(cmdline.as_bytes());
+
+        let cmdline16 = String16::from(&cmdline);
+        let cmdline16_ptr = arena.get(mem).alloc(cmdline16.byte_size() as u32);
+        let mem16: &mut [u16] = unsafe {
+            std::mem::transmute(
+                mem.sub(cmdline16_ptr, cmdline16.0.len() as u32)
+                    .as_mut_slice_todo(),
+            )
+        };
+        mem16.copy_from_slice(&cmdline16.0);
+
+        CommandLine {
+            cmdline: cmdline8_ptr,
+            cmdline16: cmdline16_ptr,
+        }
+    }
+}
+
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
     arena: ArenaInfo,
@@ -45,14 +82,11 @@ pub struct State {
 
     env: u32,
 
-    /// Command line, ASCII.
-    cmdline: u32,
-    /// Command line, UTF16.
-    cmdline16: u32,
+    cmdline: CommandLine,
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl) -> Self {
+    pub fn new(mem: &mut MemImpl, mut cmdline: String) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
@@ -64,6 +98,7 @@ impl State {
             .as_mut_slice_todo()
             .copy_from_slice(env);
 
+        let cmdline = CommandLine::new(cmdline, &mut arena, mem.mem());
         State {
             arena,
             image_base: 0,
@@ -73,39 +108,14 @@ impl State {
             dlls: Vec::new(),
             files: HashMap::new(),
             env: env_addr,
-            cmdline: 0,
-            cmdline16: 0,
+            cmdline,
         }
-    }
-
-    fn init_cmdline(&mut self, mem: Mem, mut cmdline: String) {
-        // Gross: GetCommandLineA() needs to return a pointer that's never freed,
-        // so we need to hang on to both versions of the command line.
-
-        cmdline.push(0 as char); // nul terminator
-
-        self.cmdline = self.arena.get(mem).alloc(cmdline.len() as u32);
-        mem.sub(self.cmdline, cmdline.len() as u32)
-            .as_mut_slice_todo()
-            .copy_from_slice(cmdline.as_bytes());
-
-        let cmdline16 = String16::from(&cmdline);
-        self.cmdline16 = self.arena.get(mem).alloc(cmdline16.byte_size() as u32);
-        let mem16: &mut [u16] = unsafe {
-            std::mem::transmute(
-                mem.sub(self.cmdline16, cmdline16.0.len() as u32)
-                    .as_mut_slice_todo(),
-            )
-        };
-        mem16.copy_from_slice(&cmdline16.0);
     }
 
     /// Set up TEB, PEB, and other process info.
     /// The FS register points at the TEB (thread info), which points at the PEB (process info).
     pub fn init_process(&mut self, mem: Mem, cmdline: String) {
         let cmdline_len = cmdline.len();
-
-        self.init_cmdline(mem, cmdline);
 
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.get(mem).alloc(std::cmp::max(
@@ -122,7 +132,7 @@ impl State {
         params.CommandLine = UNICODE_STRING {
             Length: cmdline_len as u16,
             MaximumLength: cmdline_len as u16,
-            Buffer: self.cmdline16,
+            Buffer: self.cmdline.cmdline16,
         };
 
         // PEB
@@ -330,12 +340,12 @@ pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline
+    machine.state.kernel32.cmdline.cmdline
 }
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline16
+    machine.state.kernel32.cmdline.cmdline16
 }
 
 #[win32_derive::dllexport]
