@@ -192,10 +192,6 @@ fn load_pe(
 pub struct LoadedAddrs {
     pub entry_point: u32,
     pub stack_pointer: u32,
-
-    /// Segment selector for the code segment.
-    #[cfg(not(feature = "cpuemu"))]
-    pub code32_selector: u16,
 }
 
 pub fn load_exe(
@@ -208,9 +204,6 @@ pub fn load_exe(
 
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
-
-    #[cfg(not(feature = "cpuemu"))]
-    let code32_selector = unsafe { crate::ldt::setup_ldt(machine.state.kernel32.teb) };
 
     let mut stack_size = file.opt_header.SizeOfStackReserve;
     // Zig reserves 16mb stacks, just truncate for now.
@@ -247,8 +240,6 @@ pub fn load_exe(
     let addrs = LoadedAddrs {
         entry_point,
         stack_pointer: stack.addr + stack.size - 4,
-        #[cfg(not(feature = "cpuemu"))]
-        code32_selector,
     };
 
     #[cfg(feature = "cpuemu")]

@@ -3,7 +3,7 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{shims::Shim, Machine};
+use crate::{ldt::LDT, shims::Shim, Machine};
 
 /// Wraps a region of low (32-bit) memory for us to generate code/etc. into.
 struct ScratchSpace {
@@ -57,10 +57,16 @@ pub struct Shims {
     call64_addr: u32,
     /// Address of the tramp32 trampoline.
     pub tramp32_addr: u32,
+
+    /// Segment selector for the code segment.
+    pub code32_selector: u16,
 }
 
 impl Shims {
-    pub fn new(addr: *mut u8, size: u32) -> Self {
+    pub fn new(ldt: &mut LDT, addr: *mut u8, size: u32) -> Self {
+        // Wine marks all of memory as code.
+        let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
+
         unsafe {
             let mut buf = ScratchSpace::new(addr, size as usize);
 
@@ -93,6 +99,7 @@ impl Shims {
                 machine_ptr,
                 call64_addr,
                 tramp32_addr,
+                code32_selector,
             }
         }
     }

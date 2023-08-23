@@ -165,7 +165,7 @@ static mut STACK64: u64 = 0;
 /// Needs to switch code segments to enter compatibility mode, stacks, etc.
 #[cfg(not(feature = "cpuemu"))]
 #[inline(never)] // aid in debugging
-fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, tramp32_addr: u32) {
+fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, shims: &win32::Shims) {
     // Assert that our code was loaded in the 3-4gb memory range, which means
     // that calls from/to it can be managed with 32-bit pointers.
     // (This arrangement is set up by the linker flags.)
@@ -179,7 +179,7 @@ fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, tramp32_addr: u32) {
     #[cfg(target_arch = "x86_64")] // just to keep editor from getting confused
     {
         // See doc/x86-64.md, "Calling between x86-64 and x86"
-        let m1632: u64 = ((addrs.code32_selector as u64) << 32) | tramp32_addr as u64;
+        let m1632: u64 = ((shims.code32_selector as u64) << 32) | shims.tramp32_addr as u64;
         unsafe {
             std::arch::asm!(
                 "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
@@ -222,7 +222,7 @@ fn main() -> anyhow::Result<()> {
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     #[cfg(not(feature = "cpuemu"))]
-    jump_to_entry_point(&addrs, machine.shims.tramp32_addr);
+    jump_to_entry_point(&addrs, &machine.shims);
 
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {

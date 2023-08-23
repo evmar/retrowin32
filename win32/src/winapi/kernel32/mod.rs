@@ -129,7 +129,7 @@ pub struct State {
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (what FS register-relative addresses refer to).
-    pub teb: u32,
+    teb: u32,
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, HeapInfo>,
@@ -139,6 +139,10 @@ pub struct State {
 
     #[serde(skip)] // TODO
     files: HashMap<HFILE, Box<dyn crate::host::File>>,
+
+    #[serde(skip)]
+    #[cfg(not(feature = "cpuemu"))]
+    pub ldt: crate::ldt::LDT,
 
     env: u32,
 
@@ -162,6 +166,23 @@ impl State {
 
         let teb = init_teb(&cmdline, &mut arena, mem.mem());
 
+        #[cfg(not(feature = "cpuemu"))]
+        let ldt = {
+            let mut ldt = crate::ldt::LDT::default();
+
+            // NOTE: OSX seems extremely sensitive to the values used here, where like
+            // using a span size that is not exactly 0xFFF causes the entry to be rejected.
+            let fs_sel = ldt.add_entry(teb, 0xFFF, false);
+            unsafe {
+                std::arch::asm!(
+                    "mov fs,{fs_sel:x}",
+                    fs_sel = in(reg) fs_sel
+                );
+            }
+
+            ldt
+        };
+
         State {
             arena,
             image_base: 0,
@@ -172,6 +193,8 @@ impl State {
             files: HashMap::new(),
             env: env_addr,
             cmdline,
+            #[cfg(not(feature = "cpuemu"))]
+            ldt,
         }
     }
 

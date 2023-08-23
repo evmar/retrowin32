@@ -60,11 +60,13 @@ pub struct LDT {
     next_index: u16,
 }
 
-impl LDT {
-    pub fn new() -> Self {
+impl Default for LDT {
+    fn default() -> Self {
         LDT { next_index: 32 }
     }
+}
 
+impl LDT {
     pub fn add_entry(&mut self, base: u32, size: u32, code: bool) -> u16 {
         let (limit, granularity) = if size >= 0x10000 {
             (size >> 12, 1u8)
@@ -126,24 +128,4 @@ impl LDT {
             println!("{} {:x?}", i, e);
         }
     }
-}
-
-/// Set up two LDT entries, for code and the FS register.
-/// Set the FS selector to point at the teb address,
-/// and return the selector used for 32-bit code.
-pub unsafe fn setup_ldt(teb: u32) -> u16 {
-    let mut ldt = LDT::new();
-
-    // Wine marks all of memory as code.
-    let cs = ldt.add_entry(0, 0xFFFF_FFFF, true);
-
-    // NOTE: OSX seems extremely sensitive to the values used here, where like
-    // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-    let fs_sel = ldt.add_entry(teb, 0xFFF, false);
-    std::arch::asm!(
-        "mov fs,{fs_sel:x}",
-        fs_sel = in(reg) fs_sel
-    );
-
-    cs
 }

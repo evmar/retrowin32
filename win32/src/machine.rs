@@ -29,7 +29,11 @@ impl Machine {
                 kernel32
                     .mappings
                     .alloc(0x1000, "shims x64 trampoline".into(), &mut memory);
-            Shims::new(mapping.addr as u64 as *mut u8, mapping.size)
+            Shims::new(
+                &mut kernel32.ldt,
+                mapping.addr as u64 as *mut u8,
+                mapping.size,
+            )
         };
 
         let state = winapi::State::new(kernel32);
