@@ -75,6 +75,53 @@ impl CommandLine {
     }
 }
 
+/// Set up TEB, PEB, and other process info.
+/// The FS register points at the TEB (thread info), which points at the PEB (process info).
+fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
+    // RTL_USER_PROCESS_PARAMETERS
+    let params_addr = arena.get(mem).alloc(std::cmp::max(
+        std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+        0x100,
+    ));
+    let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
+    // x86.put::<u32>(params_addr + 0x10, console_handle);
+    // x86.put::<u32>(params_addr + 0x14, console_flags);
+    // x86.put::<u32>(params_addr + 0x18, stdin);
+    params.hStdOutput = STDOUT_HFILE;
+    params.hStdError = STDERR_HFILE;
+    params.ImagePathName.clear();
+    params.CommandLine = cmdline.as_unicode_string();
+
+    // PEB
+    let peb_addr = arena
+        .get(mem)
+        .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
+    let peb = mem.view_mut::<PEB>(peb_addr);
+    peb.ProcessParameters = params_addr;
+    peb.ProcessHeap = 0; // Initialized lazily.
+    peb.TlsCount = 0;
+
+    // SEH chain
+    let seh_addr = arena
+        .get(mem)
+        .alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
+    let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
+    seh.Prev = 0xFFFF_FFFF;
+    seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
+
+    // TEB
+    let teb_addr = arena
+        .get(mem)
+        .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
+    let teb = mem.view_mut::<TEB>(teb_addr);
+    teb.Tib.ExceptionList = seh_addr;
+    teb.Tib._Self = teb_addr; // Confusing: it points to itself.
+    teb.Peb = peb_addr;
+
+    teb_addr
+    // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
@@ -112,10 +159,13 @@ impl State {
             .copy_from_slice(env);
 
         let cmdline = CommandLine::new(cmdline, &mut arena, mem.mem());
+
+        let teb = init_teb(&cmdline, &mut arena, mem.mem());
+
         State {
             arena,
             image_base: 0,
-            teb: 0,
+            teb,
             mappings,
             heaps: HashMap::new(),
             dlls: Vec::new(),
@@ -123,56 +173,6 @@ impl State {
             env: env_addr,
             cmdline,
         }
-    }
-
-    /// Set up TEB, PEB, and other process info.
-    /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-    pub fn init_process(&mut self, mem: Mem) {
-        // RTL_USER_PROCESS_PARAMETERS
-        let params_addr = self.arena.get(mem).alloc(std::cmp::max(
-            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-            0x100,
-        ));
-        let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
-        // x86.put::<u32>(params_addr + 0x10, console_handle);
-        // x86.put::<u32>(params_addr + 0x14, console_flags);
-        // x86.put::<u32>(params_addr + 0x18, stdin);
-        params.hStdOutput = STDOUT_HFILE;
-        params.hStdError = STDERR_HFILE;
-        params.ImagePathName.clear();
-        params.CommandLine = self.cmdline.as_unicode_string();
-
-        // PEB
-        let peb_addr = self
-            .arena
-            .get(mem)
-            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
-        let peb = mem.view_mut::<PEB>(peb_addr);
-        peb.ProcessParameters = params_addr;
-        peb.ProcessHeap = 0; // Initialized lazily.
-        peb.TlsCount = 0;
-
-        // SEH chain
-        let seh_addr = self
-            .arena
-            .get(mem)
-            .alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
-        let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
-        seh.Prev = 0xFFFF_FFFF;
-        seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
-
-        // TEB
-        let teb_addr = self
-            .arena
-            .get(mem)
-            .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
-        let teb = mem.view_mut::<TEB>(teb_addr);
-        teb.Tib.ExceptionList = seh_addr;
-        teb.Tib._Self = teb_addr; // Confusing: it points to itself.
-        teb.Peb = peb_addr;
-
-        self.teb = teb_addr;
-        // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
     }
 
     pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> HeapInfo {
