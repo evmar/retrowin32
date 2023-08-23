@@ -1,5 +1,3 @@
-use memory::MemImpl;
-
 mod alloc;
 mod bass;
 mod builtin;
@@ -94,12 +92,12 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(memory: &mut MemImpl) -> Self {
+    pub fn new(kernel32: kernel32::State) -> Self {
         State {
             ddraw: ddraw::State::default(),
             dsound: dsound::State::default(),
             gdi32: gdi32::State::default(),
-            kernel32: kernel32::State::new(memory),
+            kernel32,
             user32: user32::State::default(),
         }
     }
