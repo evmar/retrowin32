@@ -279,7 +279,7 @@ pub fn load_exe(
                     let hInstance = 0u32; // TODO
                     let fdwReason = 1u32; // DLL_PROCESS_ATTACH
                     let lpvReserved = 0u32;
-                    crate::shims::async_call(
+                    crate::shims::call_x86(
                         machine,
                         dll_main,
                         vec![hInstance, fdwReason, lpvReserved],

@@ -161,7 +161,7 @@ impl std::future::Future for UnimplFuture {
     }
 }
 
-pub fn async_call(_machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
+pub fn call_x86(_machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
     log::warn!("TODO: x64->x32 call {func:x} unimplemented");
     UnimplFuture {}
 }

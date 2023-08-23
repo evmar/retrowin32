@@ -12,9 +12,9 @@
 use crate::Machine;
 
 #[cfg(feature = "cpuemu")]
-pub use crate::shims_cpuemu::{async_call, become_async, Shims};
+pub use crate::shims_cpuemu::{become_async, call_x86, Shims};
 #[cfg(not(feature = "cpuemu"))]
-pub use crate::shims_raw::{async_call, call_sync, Shims};
+pub use crate::shims_raw::{call_sync, call_x86, Shims};
 
 pub type Handler = unsafe extern "C" fn(&mut Machine, u32) -> u32;
 

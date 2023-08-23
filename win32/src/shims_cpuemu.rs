@@ -21,7 +21,7 @@
 //!    async fn EnumDisplayModes(...) -> u32 {
 //!      ...setup code...
 //!      // Call into x86 function and await its result.
-//!      shims::async_call(some_ptr, vec![args]).await;
+//!      shims::call_x86(some_ptr, vec![args]).await;
 //!      // Return to x86 caller, as before.
 //!      0
 //!    }
@@ -33,7 +33,7 @@
 //! Concretely when EnumDisplayModes is called, the "simple case" shim logic as
 //! described above runs as before, but rather than returning to the caller
 //! we instead also push a call to async_executor, which adds itself to the call stack
-//! and runs the async state machine.  In the case of async_call that means the
+//! and runs the async state machine.  In the case of call_x86 that means the
 //! x86 code eventually invoked there will return control back to async_executor.
 
 use crate::{machine::Machine, shims::Shim};
@@ -139,7 +139,7 @@ impl std::future::Future for X86Future {
     }
 }
 
-pub fn async_call(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
+pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
     // Save original esp, as that's the marker that we use to know when the call is done.
     let esp = machine.x86.cpu.regs.esp;
     // Push the args in reverse order.
