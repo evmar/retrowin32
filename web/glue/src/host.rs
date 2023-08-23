@@ -120,12 +120,14 @@ extern "C" {
 }
 
 impl win32::Host for JsHost {
-    fn exit(&mut self, exit_code: u32) {
+    fn exit(&self, exit_code: u32) {
         JsHost::exit(self, exit_code)
     }
     fn time(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
+
+    fn pump_messages(&self) {}
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
         let file = JsHost::open(self, path);
