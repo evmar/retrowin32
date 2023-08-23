@@ -126,25 +126,29 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     let is_async = func.sig.asyncness.is_some();
     let body = if func.sig.asyncness.is_some() {
         quote! {
-            #fetch_args
+        #fetch_args
+        #[cfg(feature = "cpuemu")]
+        {
             // Yuck: we know Machine will outlive the future, but Rust doesn't.
             // At least we managed to isolate the yuck to this point.
             let m: *mut Machine = machine;
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
-                #[cfg(feature = "cpuemu")]
-                {
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += #stack_offset;
-                    machine.x86.cpu.regs.eax = result.to_raw();
-                }
-                #[cfg(not(feature = "cpuemu"))]
-                todo!();
+                machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                machine.x86.cpu.regs.esp += #stack_offset;
+                machine.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
-            // push_async will set up the stack and eip.
+            // async block will set up the stack and eip.
             0
+        }
+        #[cfg(not(feature = "cpuemu"))]
+        {
+            // In the non-emulated case, we synchronously evaluate the future.
+            let pin = std::pin::pin!(#module::#name(machine, #(#args),*));
+            crate::shims::call_sync(pin).to_raw()
+        }
         }
     } else {
         quote! {

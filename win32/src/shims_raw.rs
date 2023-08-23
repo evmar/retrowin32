@@ -125,9 +125,6 @@ impl Shims {
             self.buf.write(b"\xc2");
             // TODO revisit stack_consumed, does it include eip or not?
             // We have to -4 here to not include IP.
-            if shim.is_async {
-                panic!("async unhandled for shim {}", shim.name);
-            }
             let stack_consumed: u16 = shim.stack_consumed as u16 - 4;
             self.buf.write(&stack_consumed.to_le_bytes());
             self.buf.realign();
@@ -142,11 +139,14 @@ impl Shims {
     }
 }
 
-pub fn become_async(
-    _machine: &mut Machine,
-    _future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
-) {
-    todo!()
+/// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
+#[allow(deref_nullptr)]
+pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {
+    let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
+    match future.poll(context) {
+        std::task::Poll::Pending => unreachable!(),
+        std::task::Poll::Ready(t) => t,
+    }
 }
 
 pub struct UnimplFuture {}
@@ -157,10 +157,11 @@ impl std::future::Future for UnimplFuture {
         self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
-        todo!()
+        std::task::Poll::Ready(())
     }
 }
 
-pub fn async_call(_machine: &mut Machine, _func: u32, _args: Vec<u32>) -> UnimplFuture {
-    todo!()
+pub fn async_call(_machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
+    log::warn!("TODO: x64->x32 call {func:x} unimplemented");
+    UnimplFuture {}
 }

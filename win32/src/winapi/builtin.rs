@@ -1516,10 +1516,37 @@ pub mod user32 {
             let hMenu = <u32>::from_stack(machine.mem(), esp + 40u32);
             let hInstance = <u32>::from_stack(machine.mem(), esp + 44u32);
             let lpParam = <u32>::from_stack(machine.mem(), esp + 48u32);
-            let m: *mut Machine = machine;
-            let result = async move {
-                let machine = unsafe { &mut *m };
-                let result = winapi::user32::CreateWindowExA(
+            #[cfg(feature = "cpuemu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::CreateWindowExA(
+                        machine,
+                        dwExStyle,
+                        lpClassName,
+                        lpWindowName,
+                        dwStyle,
+                        X,
+                        Y,
+                        nWidth,
+                        nHeight,
+                        hWndParent,
+                        hMenu,
+                        hInstance,
+                        lpParam,
+                    )
+                    .await;
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += 52u32;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(not(feature = "cpuemu"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::CreateWindowExA(
                     machine,
                     dwExStyle,
                     lpClassName,
@@ -1532,20 +1559,10 @@ pub mod user32 {
                     hWndParent,
                     hMenu,
                     hInstance,
-                    lpParam,
-                )
-                .await;
-                #[cfg(feature = "cpuemu")]
-                {
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += 52u32;
-                    machine.x86.cpu.regs.eax = result.to_raw();
-                }
-                #[cfg(not(feature = "cpuemu"))]
-                todo!();
-            };
-            crate::shims::become_async(machine, Box::pin(result));
-            0
+                    lpParam
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe extern "C" fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
             winapi::user32::GetForegroundWindow(machine).to_raw()
@@ -1628,21 +1645,24 @@ pub mod user32 {
         }
         pub unsafe extern "C" fn DispatchMessageA(machine: &mut Machine, esp: u32) -> u32 {
             let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
-            let m: *mut Machine = machine;
-            let result = async move {
-                let machine = unsafe { &mut *m };
-                let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                #[cfg(feature = "cpuemu")]
-                {
+            #[cfg(feature = "cpuemu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
                     machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
                     machine.x86.cpu.regs.esp += 8u32;
                     machine.x86.cpu.regs.eax = result.to_raw();
-                }
-                #[cfg(not(feature = "cpuemu"))]
-                todo!();
-            };
-            crate::shims::become_async(machine, Box::pin(result));
-            0
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(not(feature = "cpuemu"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe extern "C" fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
