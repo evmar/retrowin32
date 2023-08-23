@@ -2,7 +2,7 @@ mod host;
 mod machine;
 pub mod pe;
 mod reader;
-mod shims;
+pub mod shims;
 pub mod trace;
 mod winapi;
 
@@ -17,7 +17,6 @@ mod ldt;
 
 pub use host::*;
 pub use machine::Machine;
-pub use shims::Shims;
 #[cfg(feature = "cpuemu")]
 pub use x86::debug::disassemble;
 

@@ -156,16 +156,11 @@ struct Args {
     cmdline: Option<String>,
 }
 
-/// The saved value of %rsp when switching from 64-bit to 32-bit mode.
-/// TODO: maybe we could put this on the (32-bit) stack?
-#[cfg(not(feature = "cpuemu"))]
-static mut STACK64: u64 = 0;
-
 /// Transfer control to the executable's entry point.
 /// Needs to switch code segments to enter compatibility mode, stacks, etc.
 #[cfg(not(feature = "cpuemu"))]
 #[inline(never)] // aid in debugging
-fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, shims: &win32::Shims) {
+fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
     // Assert that our code was loaded in the 3-4gb memory range, which means
     // that calls from/to it can be managed with 32-bit pointers.
     // (This arrangement is set up by the linker flags.)
@@ -173,28 +168,9 @@ fn jump_to_entry_point(addrs: &win32::pe::LoadedAddrs, shims: &win32::Shims) {
     let fn_addr = &jump_to_entry_point as *const _ as u64;
     assert!(mem_3gb_range.contains(&fn_addr));
 
-    println!("entry point at {:x}, about to jump", addrs.entry_point);
+    println!("entry point at {:x}, about to jump", entry_point);
     std::io::stdin().read_line(&mut String::new()).unwrap();
-
-    #[cfg(target_arch = "x86_64")] // just to keep editor from getting confused
-    {
-        // See doc/x86-64.md, "Calling between x86-64 and x86"
-        let m1632: u64 = ((shims.code32_selector as u64) << 32) | shims.tramp32_addr as u64;
-        unsafe {
-            std::arch::asm!(
-                "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
-                "movl {stack32:e}, %esp",      // switch to 32-bit stack
-                "lcalll *({m1632})",           // jump to 32-bit code
-                "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
-                options(att_syntax),
-                inout("eax") addrs.entry_point => _,  // address for tramp32 to call
-                stack64 = sym STACK64,
-                stack32 = in(reg) addrs.stack_pointer,
-                m1632 = in(reg) &m1632,
-                // TODO: more clobbers?
-            );
-        }
-    }
+    win32::shims::call_x86(machine, entry_point, vec![]);
 }
 
 fn main() -> anyhow::Result<()> {
@@ -212,17 +188,20 @@ fn main() -> anyhow::Result<()> {
     let cwd = Path::parent(Path::new(&args.exe)).unwrap();
     let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
-    #[cfg(not(feature = "cpuemu"))]
-    unsafe {
-        machine.shims.set_machine(&machine);
-    }
 
     let addrs = machine
         .load_exe(&buf, cmdline.clone(), false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     #[cfg(not(feature = "cpuemu"))]
-    jump_to_entry_point(&addrs, &machine.shims);
+    unsafe {
+        machine
+            .shims
+            .set_machine_hack(&machine, addrs.stack_pointer);
+    }
+
+    #[cfg(not(feature = "cpuemu"))]
+    jump_to_entry_point(&mut machine, addrs.entry_point);
 
     let mut trace_points = HashSet::new();
     for &tp in &args.trace_points {

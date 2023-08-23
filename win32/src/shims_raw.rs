@@ -53,13 +53,17 @@ pub struct Shims {
     buf: ScratchSpace,
     /// Address that we write a pointer to the Machine to.
     machine_ptr: *mut u8,
+
+    /// Segment selector for 32-bit code.
+    code32_selector: u16,
+
+    /// Value for esp in 32-bit mode.
+    stack_pointer: u32,
+
     /// Address of the call64 trampoline.
     call64_addr: u32,
     /// Address of the tramp32 trampoline.
     pub tramp32_addr: u32,
-
-    /// Segment selector for the code segment.
-    pub code32_selector: u16,
 }
 
 impl Shims {
@@ -97,6 +101,7 @@ impl Shims {
             Shims {
                 buf,
                 machine_ptr,
+                stack_pointer: 0,
                 call64_addr,
                 tramp32_addr,
                 code32_selector,
@@ -106,9 +111,10 @@ impl Shims {
 
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
     /// way after all the initialization happens...
-    pub unsafe fn set_machine(&mut self, machine: *const Machine) {
+    pub unsafe fn set_machine_hack(&mut self, machine: *const Machine, esp: u32) {
         let addr = machine as u64;
         std::ptr::copy_nonoverlapping(&addr, self.machine_ptr as *mut u64, 1);
+        self.stack_pointer = esp;
     }
 
     pub fn add(&mut self, shim: Shim) -> u32 {
@@ -168,7 +174,40 @@ impl std::future::Future for UnimplFuture {
     }
 }
 
-pub fn call_x86(_machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
-    log::warn!("TODO: x64->x32 call {func:x} unimplemented");
-    UnimplFuture {}
+/// The saved value of %rsp when switching from 64-bit to 32-bit mode.
+/// TODO: maybe we could put this on the (32-bit) stack?
+#[cfg(not(feature = "cpuemu"))]
+static mut STACK64: u64 = 0;
+
+pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        // See doc/x86-64.md, "Calling between x86-64 and x86"
+        let m1632: u64 =
+            ((machine.shims.code32_selector as u64) << 32) | machine.shims.tramp32_addr as u64;
+        println!("sel {m1632:x}");
+
+        std::arch::asm!(
+            "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
+            "movl {stack32:e}, %esp",      // switch to 32-bit stack
+            "lcalll *({m1632})",           // jump to 32-bit code
+            "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
+            options(att_syntax),
+            inout("eax") func => _,  // address for tramp32 to call
+            stack64 = sym STACK64,
+            stack32 = in(reg) machine.shims.stack_pointer,
+            m1632 = in(reg) &m1632,
+            // TODO: more clobbers?
+        );
+        UnimplFuture {}
+    }
+
+    #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
+    unsafe {
+        _ = machine.shims.code32_selector;
+        _ = machine;
+        _ = func;
+        _ = STACK64;
+        todo!()
+    }
 }
