@@ -1487,6 +1487,59 @@ pub mod oleaut32 {
         exports: &EXPORTS,
     };
 }
+pub mod retrowin32 {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use winapi::retrowin32::*;
+        pub unsafe extern "C" fn retrowin32_callback1(machine: &mut Machine, esp: u32) -> u32 {
+            let func = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let data = <u32>::from_stack(machine.mem(), esp + 8u32);
+            #[cfg(feature = "cpuemu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result =
+                        winapi::retrowin32::retrowin32_callback1(machine, func, data).await;
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += 12u32;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(not(feature = "cpuemu"))]
+            {
+                let pin = std::pin::pin!(winapi::retrowin32::retrowin32_callback1(
+                    machine, func, data
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const retrowin32_callback1: Shim = Shim {
+            name: "retrowin32_callback1",
+            func: impls::retrowin32_callback1,
+            stack_consumed: 12u32,
+            is_async: true,
+        };
+    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        ordinal: None,
+        shim: shims::retrowin32_callback1,
+    }];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "retrowin32.dll",
+        exports: &EXPORTS,
+    };
+}
 pub mod user32 {
     use super::*;
     mod impls {

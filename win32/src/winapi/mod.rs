@@ -7,6 +7,7 @@ pub mod gdi32;
 pub mod kernel32;
 mod ole32;
 mod oleaut32;
+mod retrowin32;
 mod stack_args;
 pub mod types;
 pub mod user32;
@@ -66,7 +67,7 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 9] = [
+pub const DLLS: [builtin::BuiltinDLL; 10] = [
     builtin::bass::DLL,
     builtin::ddraw::DLL,
     builtin::dsound::DLL,
@@ -76,6 +77,7 @@ pub const DLLS: [builtin::BuiltinDLL; 9] = [
     builtin::oleaut32::DLL,
     builtin::user32::DLL,
     builtin::winmm::DLL,
+    builtin::retrowin32::DLL,
 ];
 
 #[derive(serde::Serialize, serde::Deserialize)]

@@ -22,5 +22,9 @@
   {
     "desc": "win32 tracer",
     "params": "dir=exe/trace/&exe=trace.exe"
+  },
+  {
+    "desc": "callback test",
+    "params": "dir=exe/callback/&exe=callback.exe"
   }
 ]
