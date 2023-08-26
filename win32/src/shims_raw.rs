@@ -92,10 +92,8 @@ impl Shims {
             buf.realign();
 
             // trampoline_x86.s:tramp32:
-            let tramp32_addr = buf.write(
-                b"\xff\xd0\
-                \xcb",
-            ) as u32;
+            let tramp32_addr = buf.write(b"\x89\xfc\xff\xd6\xcb") as u32;
+            println!("tramp32 at {:x}", tramp32_addr);
             buf.realign();
 
             Shims {
@@ -121,7 +119,7 @@ impl Shims {
         unsafe {
             let target: u64 = shim.func as u64;
 
-            // Code from trampoline_x86.s:
+            // trampoline_x86.s:tramp64
 
             // pushl high 32 bits of dest
             let tramp_addr = self.buf.write(b"\x68") as u32;
@@ -179,13 +177,27 @@ impl std::future::Future for UnimplFuture {
 #[cfg(not(feature = "cpuemu"))]
 static mut STACK64: u64 = 0;
 
-pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
+pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
     #[cfg(target_arch = "x86_64")]
     unsafe {
-        // See doc/x86-64.md, "Calling between x86-64 and x86"
+        // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
+        // be able to return to our 64-bit RIP we want to use a lcall/lret pair.  So we put
+        // those *below* the above data on the stack, which is pretty weird.
+        println!("call_x86 start {STACK64:x} {:x}", func);
+
+        let mem = machine.memory.mem();
+        let mut esp = machine.shims.stack_pointer;
+        println!("initial esp {esp:x}");
+        esp -= 8;
+        mem.put::<u32>(esp, machine.shims.tramp32_addr);
+        for &arg in args.iter().rev() {
+            esp -= 4;
+            mem.put::<u32>(esp, arg);
+        }
+        println!("win esp {esp:x}");
+
         let m1632: u64 =
             ((machine.shims.code32_selector as u64) << 32) | machine.shims.tramp32_addr as u64;
-        println!("sel {m1632:x}");
 
         std::arch::asm!(
             "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
@@ -193,12 +205,14 @@ pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFutu
             "lcalll *({m1632})",           // jump to 32-bit code
             "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
             options(att_syntax),
-            inout("eax") func => _,  // address for tramp32 to call
             stack64 = sym STACK64,
             stack32 = in(reg) machine.shims.stack_pointer,
             m1632 = in(reg) &m1632,
+            inout("edi") esp => _,  // tramp32: new stack
+            inout("esi") func => _,  // tramp32: address to call
             // TODO: more clobbers?
         );
+        println!("call_x86 done {STACK64:x} {:x}", func);
         UnimplFuture {}
     }
 
@@ -208,6 +222,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFutu
         _ = machine;
         _ = func;
         _ = STACK64;
+        _ = args;
         todo!()
     }
 }

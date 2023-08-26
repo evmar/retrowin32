@@ -129,7 +129,7 @@ pub struct State {
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (what FS register-relative addresses refer to).
-    teb: u32,
+    pub teb: u32,
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, HeapInfo>,

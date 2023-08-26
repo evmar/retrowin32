@@ -1,7 +1,8 @@
 # See doc/x86-64 section "Trampoline assembly".
 
 tramp32:
-    calll *%eax
+    movl %edi, %esp
+    calll *%esi
     lretl   # long ret to 64-bit mode
 
 # This code is the x86 entry point for 32->64bit calls.
