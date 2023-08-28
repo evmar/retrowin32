@@ -58,7 +58,7 @@ pub struct Shims {
     code32_selector: u16,
 
     /// Value for esp in 32-bit mode.
-    stack_pointer: u32,
+    esp: u32,
 
     /// Address of the call64 trampoline.
     call64_addr: u32,
@@ -93,13 +93,12 @@ impl Shims {
 
             // trampoline_x86.s:tramp32:
             let tramp32_addr = buf.write(b"\x89\xfc\xff\xd6\xcb") as u32;
-            println!("tramp32 at {:x}", tramp32_addr);
             buf.realign();
 
             Shims {
                 buf,
                 machine_ptr,
-                stack_pointer: 0,
+                esp: 0,
                 call64_addr,
                 tramp32_addr,
                 code32_selector,
@@ -112,7 +111,7 @@ impl Shims {
     pub unsafe fn set_machine_hack(&mut self, machine: *const Machine, esp: u32) {
         let addr = machine as u64;
         std::ptr::copy_nonoverlapping(&addr, self.machine_ptr as *mut u64, 1);
-        self.stack_pointer = esp;
+        self.esp = esp;
     }
 
     pub fn add(&mut self, shim: Shim) -> u32 {
@@ -172,56 +171,61 @@ impl std::future::Future for UnimplFuture {
     }
 }
 
-/// The saved value of %rsp when switching from 64-bit to 32-bit mode.
-/// TODO: maybe we could put this on the (32-bit) stack?
-#[cfg(not(feature = "cpuemu"))]
-static mut STACK64: u64 = 0;
-
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
     #[cfg(target_arch = "x86_64")]
     unsafe {
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
-        // be able to return to our 64-bit RIP we want to use a lcall/lret pair.  So we put
-        // those *below* the above data on the stack, which is pretty weird.
-        println!("call_x86 start {STACK64:x} {:x}", func);
+        // be able to return to our 64-bit RIP we want to use a lcall/lret pair.
+        //
+        // So we lay out the 32-bit stack like this before going into assembly:
+        //   arg0
+        //   ...
+        //   argN
+        //   [8 bytes space for m16:32]
+        //   [8 bytes space for rsp]  <- lcall_esp
+        //
+        // The asm then backs up $rsp in the bottom slot,
+        // then lcall tramp32 (which pushes m16:32 in the second slot),
+        // and then tramp32 switches esp to point to the top of this stack.
+        // When tramp32 returns it pops the m16:32, and this code pops rsp.
 
         let mem = machine.memory.mem();
-        let mut esp = machine.shims.stack_pointer;
-        println!("initial esp {esp:x}");
-        esp -= 8;
-        mem.put::<u32>(esp, machine.shims.tramp32_addr);
+        let orig_esp = machine.shims.esp;
+
+        // TODO: align?
+        machine.shims.esp -= 8; // space for rsp
+        let lcall_esp = machine.shims.esp;
+        machine.shims.esp -= 8; // space for m16:32 return address pushed by lcall
         for &arg in args.iter().rev() {
-            esp -= 4;
-            mem.put::<u32>(esp, arg);
+            machine.shims.esp -= 4;
+            mem.put::<u32>(machine.shims.esp, arg);
         }
-        println!("win esp {esp:x}");
 
         let m1632: u64 =
             ((machine.shims.code32_selector as u64) << 32) | machine.shims.tramp32_addr as u64;
 
         std::arch::asm!(
-            "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
-            "movl {stack32:e}, %esp",      // switch to 32-bit stack
-            "lcalll *({m1632})",           // jump to 32-bit code
-            "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
+            "movq %rsp, ({lcall_esp:r})", // save 64-bit stack
+            "movl {lcall_esp:e}, %esp",   // switch to 32-bit stack
+            "lcalll *({m1632})",          // jump to 32-bit code
+            "popq %rsp",                  // restore 64-bit stack
             options(att_syntax),
-            stack64 = sym STACK64,
-            stack32 = in(reg) machine.shims.stack_pointer,
+            lcall_esp = in(reg) lcall_esp,
             m1632 = in(reg) &m1632,
-            inout("edi") esp => _,  // tramp32: new stack
+            inout("edi") machine.shims.esp => _,  // tramp32: new stack
             inout("esi") func => _,  // tramp32: address to call
             // TODO: more clobbers?
         );
-        println!("call_x86 done {STACK64:x} {:x}", func);
+        println!("call_x86 done {:x}", func);
+        machine.shims.esp = orig_esp;
         UnimplFuture {}
     }
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
-    unsafe {
+    {
         _ = machine.shims.code32_selector;
         _ = machine;
         _ = func;
-        _ = STACK64;
         _ = args;
         todo!()
     }
