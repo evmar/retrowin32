@@ -3,16 +3,16 @@
 # Builds retrowin32 as a x86_64 Darwin exe.
 
 # Arguments passed through to the underlying linker.
+linker_args=""
 # - Shrink pagezero from 4gb to 4kb so we can use lower 32 bits of memory:
-#     -segalign 0x1000 -pagezero_size 0x1000
+linker_args="$linker_args -segalign 0x1000 -pagezero_size 0x1000"
 # - Put all our own content above 3gb:
-#     -image_base 0xc0000000
+linker_args="$linker_args -image_base 0xc0001000"
 # - Disable PIE, required for moving image base:
-#     -no_pie -no_fixup_chains
+linker_args="$linker_args -no_pie -no_fixup_chains"
 # - Put our RESV32 section at 0x1000 to ensure nothing like malloc claims
 #   the now available lower memory:
-#     -segaddr RESV32 0x1000
-linker_args="-segalign 0x1000 -pagezero_size 0x1000 -image_base 0xc0000000 -no_pie -no_fixup_chains -segaddr RESV32 0x1000"
+linker_args="$linker_args -segaddr RESV32 0x1000"
 
 # To pass the linker args through all the intermediate build layers,
 # we want to end up with a RUSTFLAGS like
