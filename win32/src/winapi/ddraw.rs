@@ -47,6 +47,9 @@ pub struct State {
     /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
     /// how surface flipping works for the palettes to work out, so this is hacked for now.
     palette_hack: u32,
+
+    // 32-bit space for passing a DDSURFACEDESC.
+    surfacedesc2: u32,
 }
 
 impl State {
@@ -63,6 +66,13 @@ impl State {
         ddraw.vtable_IDirectDraw7 = IDirectDraw7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
+
+        ddraw.surfacedesc2 = machine
+            .state
+            .kernel32
+            .get_heap(machine.memory.mem(), ddraw.hheap)
+            .unwrap()
+            .alloc(std::mem::size_of::<DDSURFACEDESC2>() as u32);
         ddraw
     }
 }
@@ -82,6 +92,7 @@ impl Default for State {
             surfaces: HashMap::new(),
             palettes: HashMap::new(),
             palette_hack: 0,
+            surfacedesc2: 0,
         }
     }
 }
@@ -595,37 +606,32 @@ mod IDirectDraw7 {
         data: u32,
         callback: u32,
     ) -> u32 {
-        #[cfg(feature = "cpuemu")]
-        {
-            let size = std::mem::size_of::<DDSURFACEDESC2>() as u32;
-            machine.x86.cpu.regs.esp -= size;
+        let mem = machine.mem();
+        let desc = mem.view_mut::<DDSURFACEDESC2>(machine.state.ddraw.surfacedesc2);
+        unsafe { desc.clear_struct() };
+        // TODO: offer multiple display modes rather than hardcoding this one.
+        desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+        desc.dwWidth = 320;
+        desc.dwHeight = 200;
+        desc.ddpfPixelFormat = DDPIXELFORMAT {
+            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+            dwFlags: 0,
+            dwFourCC: 0,
+            dwRGBBitCount: 8,
+            dwRBitMask: 0xFF000000,
+            dwGBitMask: 0x00FF0000,
+            dwBBitMask: 0x0000FF00,
+            dwRGBAlphaBitMask: 0x000000FF,
+        };
 
-            let desc_addr = machine.x86.cpu.regs.esp;
-            let mem = machine.mem();
-            let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-            unsafe { desc.clear_struct() };
-            // TODO: offer multiple display modes rather than hardcoding this one.
-            desc.dwSize = size;
-            desc.dwWidth = 320;
-            desc.dwHeight = 200;
-            desc.ddpfPixelFormat = DDPIXELFORMAT {
-                dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
-                dwFlags: 0,
-                dwFourCC: 0,
-                dwRGBBitCount: 8,
-                dwRBitMask: 0xFF000000,
-                dwGBitMask: 0x00FF0000,
-                dwBBitMask: 0x0000FF00,
-                dwRGBAlphaBitMask: 0x000000FF,
-            };
+        crate::shims::call_x86(
+            machine,
+            callback,
+            vec![machine.state.ddraw.surfacedesc2, data],
+        )
+        .await;
 
-            crate::shims::call_x86(machine, callback, vec![desc_addr, data]).await;
-
-            machine.x86.cpu.regs.esp += size;
-            DD_OK
-        }
-        #[cfg(not(feature = "cpuemu"))]
-        todo!();
+        DD_OK
     }
 
     bitflags! {
