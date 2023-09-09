@@ -54,7 +54,7 @@ pub struct Shims {
     future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
-unsafe extern "C" fn unimplemented(_machine: &mut Machine, _esp: u32) -> u32 {
+fn unimplemented(_machine: &mut Machine, _esp: u32) -> u32 {
     unimplemented!()
 }
 
@@ -156,7 +156,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
 }
 
 #[allow(deref_nullptr)]
-extern "C" fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
+fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
     if let Some(mut future) = machine.shims.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).

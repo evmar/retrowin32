@@ -158,7 +158,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     };
 
     (
-        quote!(pub unsafe extern "C" fn #name(machine: &mut Machine, esp: u32) -> u32 { #body }),
+        quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) -> u32 { #body }),
         quote!(pub const #name: Shim = Shim {
             name: #name_str,
             func: impls::#name,
