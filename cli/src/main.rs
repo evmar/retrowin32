@@ -195,9 +195,8 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(not(feature = "cpuemu"))]
     unsafe {
-        machine
-            .shims
-            .set_machine_hack(&machine, addrs.stack_pointer);
+        let ptr: *mut win32::Machine = &mut machine;
+        machine.shims.set_machine_hack(ptr, addrs.stack_pointer);
     }
 
     #[cfg(not(feature = "cpuemu"))]

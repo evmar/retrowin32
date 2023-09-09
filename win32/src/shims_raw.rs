@@ -47,23 +47,66 @@ impl ScratchSpace {
         }
         ptr
     }
+
+    unsafe fn write_many(&mut self, bufs: &[&[u8]]) -> *mut u8 {
+        let ptr = self.write(bufs[0]);
+        for buf in &bufs[1..] {
+            self.write(buf);
+        }
+        ptr
+    }
 }
 
 pub struct Shims {
     buf: ScratchSpace,
-    /// Address that we write a pointer to the Machine to.
-    machine_ptr: *mut u8,
 
     /// Segment selector for 32-bit code.
     code32_selector: u16,
 
-    /// Value for esp in 32-bit mode.
-    esp: u32,
-
-    /// Address of the call64 trampoline.
-    call64_addr: u32,
     /// Address of the tramp32 trampoline.
     pub tramp32_addr: u32,
+
+    shims: Vec<Shim>,
+}
+
+static mut MACHINE: *mut Machine = std::ptr::null_mut();
+static mut STACK32: u32 = 0;
+static mut STACK64: u64 = 0;
+
+unsafe extern "C" fn call64(shim_index: u32) -> u32 {
+    let machine: &mut Machine = &mut *MACHINE;
+    let shim = &machine.shims.shims[shim_index as usize];
+    // Stack contents:
+    //   4 bytes edi +
+    //   8 bytes far return address
+    //   and the callee expected stack is after that.
+    (shim.func)(machine, STACK32 + 12)
+}
+
+// trans64 is the code we jump to when transitioning from 32->64-bit.
+// It's responsible for switching to the 64-bit stack and backing up the appropriate
+// registers to transition from stdcall ABI to SysV AMD64 ABI.
+// See "Calling conventions" in doc/x86-64.md; the summary is we only need to preserve
+// ESI/EDI.  EDI was already saved (due to being used to pass shim_index).
+#[cfg(target_arch = "x86_64")]
+std::arch::global_asm!(
+    "_trans64:",
+    "movl %esp, {stack32}(%rip)",  // save 32-bit stack
+    "movq {stack64}(%rip), %rsp",  // switch to 64-bit stack
+    "pushq %rsi",                  // preserve esi
+    "call {call64}",               // call 64-bit Rust
+    "popq %rsi",                   // restore esi
+    "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
+    "movl {stack32}(%rip), %esp",  // restore 32-bit stack
+    "lret",                        // back to 32-bit
+    options(att_syntax),
+    stack32 = sym STACK32,
+    stack64 = sym STACK64,
+    call64 = sym call64,
+);
+
+extern "C" {
+    fn trans64();
 }
 
 impl Shims {
@@ -74,69 +117,54 @@ impl Shims {
         unsafe {
             let mut buf = ScratchSpace::new(addr, size as usize);
 
-            // trampoline_x86-64.s:call64:
-            let call64 = buf.write(b"\x57\x56");
-            buf.write(b"\x48\xbf");
-            let machine_ptr = buf.write(&0u64.to_le_bytes());
-            buf.write(
-                b"\x48\x8d\x74\x24\x20\
-                \xff\x54\x24\x18\
-                \x5e\x5f\
-                \xca\x08\x00",
-            );
-            buf.realign();
-
-            // 16:32 selector:address of call64
-            let call64_addr = buf.write(&(call64 as u32).to_le_bytes()) as u32;
-            buf.write(&(0x2bu32).to_le_bytes());
-            buf.realign();
-
             // trampoline_x86.s:tramp32:
             let tramp32_addr = buf.write(b"\x89\xfc\xff\xd6\xcb") as u32;
             buf.realign();
 
             Shims {
                 buf,
-                machine_ptr,
-                esp: 0,
-                call64_addr,
                 tramp32_addr,
                 code32_selector,
+                shims: Default::default(),
             }
         }
     }
 
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
     /// way after all the initialization happens...
-    pub unsafe fn set_machine_hack(&mut self, machine: *const Machine, esp: u32) {
-        let addr = machine as u64;
-        std::ptr::copy_nonoverlapping(&addr, self.machine_ptr as *mut u64, 1);
-        self.esp = esp;
+    pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine, esp: u32) {
+        MACHINE = machine;
+        STACK32 = esp;
     }
 
     pub fn add(&mut self, shim: Shim) -> u32 {
+        let shim_index = self.shims.len();
+        self.shims.push(shim.clone());
         unsafe {
-            let target: u64 = shim.func as u64;
+            assert!((trans64 as u64) < 0x1_0000_0000);
 
-            // trampoline_x86.s:tramp64
-
-            // pushl high 32 bits of dest
-            let tramp_addr = self.buf.write(b"\x68") as u32;
-            self.buf.write(&((target >> 32) as u32).to_le_bytes());
-            // pushl low 32 bits of dest
-            self.buf.write(b"\x68");
-            self.buf.write(&(target as u32).to_le_bytes());
-
-            // lcalll *call64_addr
-            self.buf.write(b"\xff\x1d");
-            self.buf.write(&self.call64_addr.to_le_bytes());
-
-            // retl <16-bit bytes to pop>
-            self.buf.write(b"\xc2");
             // TODO revisit stack_consumed, does it include eip or not?
             // We have to -4 here to not include IP.
             let stack_consumed: u16 = shim.stack_consumed as u16 - 4;
-            self.buf.write(&stack_consumed.to_le_bytes());
+
+            // trampoline_x86.s:tramp64
+            let tramp_addr = self.buf.write_many(&[
+                // pushl %edi
+                b"\x57",
+                // movl shim_index, %edi
+                b"\xbf",
+                &(shim_index as u32).to_le_bytes(),
+                // lcalll 64_bit_selector, trans64
+                b"\x9a",
+                &(trans64 as u32).to_le_bytes(),
+                &(0x2bu16).to_le_bytes(),
+                // popl %edi
+                b"\x5f",
+                // retl <16-bit bytes to pop>
+                b"\xc2",
+                &stack_consumed.to_le_bytes(),
+            ]) as u32;
+
             self.buf.realign();
 
             tramp_addr
@@ -172,6 +200,7 @@ impl std::future::Future for UnimplFuture {
 }
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+    // TODO: x86_64-apple-darwin vs x86_64-pc-windows-msvc calling conventions differ!
     #[cfg(target_arch = "x86_64")]
     unsafe {
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
@@ -181,52 +210,60 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         //   arg0
         //   ...
         //   argN
-        //   [8 bytes space for m16:32]
-        //   [8 bytes space for rsp]  <- lcall_esp
+        //   [8 bytes space for m16:32] <- lcall_esp
         //
-        // The asm then backs up $rsp in the bottom slot,
-        // then lcall tramp32 (which pushes m16:32 in the second slot),
+        // lcall tramp32 pushes m16:32 to the saved spot,
         // and then tramp32 switches esp to point to the top of this stack.
-        // When tramp32 returns it pops the m16:32, and this code pops rsp.
+        // When tramp32 returns it pops the m16:32.
 
         let mem = machine.memory.mem();
-        let orig_esp = machine.shims.esp;
 
         // TODO: align?
-        machine.shims.esp -= 8; // space for rsp
-        let lcall_esp = machine.shims.esp;
-        machine.shims.esp -= 8; // space for m16:32 return address pushed by lcall
+        let lcall_esp = STACK32;
+        STACK32 -= 8; // space for m16:32 return address pushed by lcall
         for &arg in args.iter().rev() {
-            machine.shims.esp -= 4;
-            mem.put::<u32>(machine.shims.esp, arg);
+            STACK32 -= 4;
+            mem.put::<u32>(STACK32, arg);
         }
 
         let m1632: u64 =
             ((machine.shims.code32_selector as u64) << 32) | machine.shims.tramp32_addr as u64;
 
+        // Note: we need to back up all non-scratch registers,
+        // because even callee-saved registers will only be saved as 32-bit,
+        // clobbering any 64-bit values.  In particular this manifests as rbp losing its
+        // high bits after this call.
         std::arch::asm!(
-            "movq %rsp, ({lcall_esp:r})", // save 64-bit stack
-            "movl {lcall_esp:e}, %esp",   // switch to 32-bit stack
+            "pushq %rbp",
+            "pushq %rbx",
+            "movq %rsp, {stack64}(%rip)", // save 64-bit stack
+            "movl {esp:e}, %esp",         // switch to 32-bit stack
             "lcalll *({m1632})",          // jump to 32-bit code
-            "popq %rsp",                  // restore 64-bit stack
+            // after we ret we're 64-bit again
+            "movl %esp, {stack32}(%rip)", // save 32-bit stack
+            "movq {stack64}(%rip), %rsp", // restore 64-bit stack
+            "popq %rbx",
+            "popq %rbp",
             options(att_syntax),
-            lcall_esp = in(reg) lcall_esp,
+            stack64 = sym STACK64,
+            stack32 = sym STACK32,
+            esp = in(reg) lcall_esp,
             m1632 = in(reg) &m1632,
-            inout("edi") machine.shims.esp => _,  // tramp32: new stack
-            inout("esi") func => _,  // tramp32: address to call
-            // TODO: more clobbers?
+            inout("rdi") STACK32 => _,  // tramp32: new stack
+            inout("rsi") func => _,  // tramp32: address to call
         );
-        println!("call_x86 done {:x}", func);
-        machine.shims.esp = orig_esp;
+
         UnimplFuture {}
     }
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
-    {
+    unsafe {
         _ = machine.shims.code32_selector;
         _ = machine;
         _ = func;
         _ = args;
+        _ = STACK64;
+        call64(0);
         todo!()
     }
 }
