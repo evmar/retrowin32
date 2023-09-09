@@ -63,9 +63,6 @@ pub struct Shims {
     /// Segment selector for 32-bit code.
     code32_selector: u16,
 
-    /// Address of the tramp32 trampoline.
-    pub tramp32_addr: u32,
-
     shims: Vec<Shim>,
 }
 
@@ -105,8 +102,23 @@ std::arch::global_asm!(
     call64 = sym call64,
 );
 
+// Target for 64->32bit transition.
+// Takes two parameters:
+//   edi: stack pointer to use
+//   esi: function to call
+#[cfg(target_arch = "x86_64")]
+std::arch::global_asm!(
+    ".code32", // this is 32-bit x86 code
+    "_tramp32:",
+    "movl %edi, %esp",
+    "calll *%esi",
+    "lretl", // long ret to 64-bit mode
+    options(att_syntax),
+);
+
 extern "C" {
     fn trans64();
+    static tramp32: [u8; 0];
 }
 
 impl Shims {
@@ -114,19 +126,11 @@ impl Shims {
         // Wine marks all of memory as code.
         let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
 
-        unsafe {
-            let mut buf = ScratchSpace::new(addr, size as usize);
-
-            // trampoline_x86.s:tramp32:
-            let tramp32_addr = buf.write(b"\x89\xfc\xff\xd6\xcb") as u32;
-            buf.realign();
-
-            Shims {
-                buf,
-                tramp32_addr,
-                code32_selector,
-                shims: Default::default(),
-            }
+        let buf = ScratchSpace::new(addr, size as usize);
+        Shims {
+            buf,
+            code32_selector,
+            shims: Default::default(),
         }
     }
 
@@ -226,8 +230,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             mem.put::<u32>(STACK32, arg);
         }
 
-        let m1632: u64 =
-            ((machine.shims.code32_selector as u64) << 32) | machine.shims.tramp32_addr as u64;
+        let m1632: u64 = ((machine.shims.code32_selector as u64) << 32) | tramp32.as_ptr() as u64;
 
         // Note: we need to back up all non-scratch registers,
         // because even callee-saved registers will only be saved as 32-bit,
@@ -263,6 +266,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         _ = func;
         _ = args;
         _ = STACK64;
+        _ = tramp32;
         call64(0);
         todo!()
     }
