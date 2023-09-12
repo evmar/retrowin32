@@ -227,17 +227,19 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         let mem = machine.memory.mem();
 
         // Push selector and reserve space for return address.
+        let mut esp = STACK32;
         let code64_selector = 0x2b;
-        STACK32 -= 4;
-        mem.put::<u32>(STACK32, code64_selector);
-        STACK32 -= 4;
-        let return_addr = STACK32;
+        esp -= 4;
+        mem.put::<u32>(esp, code64_selector);
+        esp -= 4;
+        let return_addr = esp;
 
         // Push arguments in reverse order.
         for &arg in args.iter().rev() {
-            STACK32 -= 4;
-            mem.put::<u32>(STACK32, arg);
+            esp -= 4;
+            mem.put::<u32>(esp, arg);
         }
+        STACK32 = esp;
 
         let m1632: u64 = ((machine.shims.code32_selector as u64) << 32) | (tramp32.as_ptr() as u64);
 

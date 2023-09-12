@@ -38,8 +38,14 @@ impl<'m> Mem<'m> {
     }
 
     pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
-        // TODO: alignment?
-        *self.view_mut(ofs) = val;
+        unsafe {
+            let ptr = self.ptr.add(ofs as usize);
+            if ptr.add(size_of::<T>()) > self.end {
+                panic!("oob");
+            }
+            // Need write_volatile here to ensure optimizer doesn't elide the write.
+            std::ptr::write_volatile(ptr as *mut T, val)
+        }
     }
 
     pub fn slicez(&self, ofs: u32) -> Option<Mem<'m>> {
