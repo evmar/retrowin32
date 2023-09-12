@@ -27,9 +27,15 @@ impl<'m> Mem<'m> {
         }
     }
 
+    fn get_ptr(&self, ofs: u32) -> *mut u8 {
+        // Avoid using self.ptr.add here, because when self.ptr is 0 (for native Mems)
+        // a later bounds check gets optimized out into always panicking.
+        ((self.ptr as u32) + ofs) as *mut u8
+    }
+
     pub fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
         unsafe {
-            let ptr = self.ptr.add(ofs as usize);
+            let ptr = self.get_ptr(ofs);
             if ptr.add(size_of::<T>()) > self.end {
                 panic!("oob");
             }
@@ -39,7 +45,7 @@ impl<'m> Mem<'m> {
 
     pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
         unsafe {
-            let ptr = self.ptr.add(ofs as usize);
+            let ptr = self.get_ptr(ofs);
             if ptr.add(size_of::<T>()) > self.end {
                 panic!("oob");
             }
@@ -83,15 +89,15 @@ impl<'m> Mem<'m> {
 
     pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> Mem<'m> {
         unsafe {
-            let ptr = self.ptr.add(match b.start_bound() {
-                std::ops::Bound::Included(&n) => n as usize,
-                std::ops::Bound::Excluded(&n) => n as usize + 1,
+            let ptr = self.get_ptr(match b.start_bound() {
+                std::ops::Bound::Included(&n) => n,
+                std::ops::Bound::Excluded(&n) => n + 1,
                 std::ops::Bound::Unbounded => 0,
             });
-            let end = self.ptr.add(match b.end_bound() {
-                std::ops::Bound::Included(&n) => n as usize + 1,
-                std::ops::Bound::Excluded(&n) => n as usize,
-                std::ops::Bound::Unbounded => self.len() as usize,
+            let end = self.get_ptr(match b.end_bound() {
+                std::ops::Bound::Included(&n) => n + 1,
+                std::ops::Bound::Excluded(&n) => n,
+                std::ops::Bound::Unbounded => self.len(),
             });
             if !(self.ptr..self.end).contains(&ptr) || !(self.ptr..self.end.add(1)).contains(&end) {
                 panic!("oob");
@@ -112,7 +118,7 @@ impl<'m> Mem<'m> {
     // We need to revisit this whole "view" API...
     pub fn view<T: Pod>(&self, addr: u32) -> &'m T {
         unsafe {
-            let ptr = self.ptr.add(addr as usize);
+            let ptr = self.get_ptr(addr);
             if ptr.add(size_of::<T>()) > self.end {
                 panic!("oob");
             }
@@ -124,7 +130,7 @@ impl<'m> Mem<'m> {
     // We need to revisit this whole "view" API...
     pub fn view_mut<T: Pod>(&self, addr: u32) -> &'m mut T {
         unsafe {
-            let ptr = self.ptr.add(addr as usize);
+            let ptr = self.get_ptr(addr);
             if ptr.add(size_of::<T>()) > self.end {
                 panic!("oob");
             }
@@ -134,7 +140,7 @@ impl<'m> Mem<'m> {
 
     pub fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &'m [T] {
         unsafe {
-            let ptr = self.ptr.add(ofs as usize);
+            let ptr = self.get_ptr(ofs);
             if ptr.add(size_of::<T>() * count as usize) > self.end {
                 panic!("oob");
             }
@@ -145,7 +151,7 @@ impl<'m> Mem<'m> {
     /// Note: can returned unaligned pointers depending on addr.
     pub fn ptr_mut<T: Pod + Copy>(&self, addr: u32) -> *mut T {
         unsafe {
-            let ptr = self.ptr.add(addr as usize);
+            let ptr = self.get_ptr(addr);
             if ptr.add(size_of::<T>()) > self.end {
                 panic!("oob");
             }
