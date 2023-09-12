@@ -102,22 +102,24 @@ std::arch::global_asm!(
     call64 = sym call64,
 );
 
+extern "C" {
+    fn trans64();
+}
+
 // Target for 64->32bit transition.
-// Takes two parameters:
-//   edi: stack pointer to use
-//   esi: function to call
+// Takes function to call in eax.
 #[cfg(target_arch = "x86_64")]
 std::arch::global_asm!(
-    ".code32", // this is 32-bit x86 code
+    ".code32", // 32-bit x86 code
     "_tramp32:",
-    "movl %edi, %esp",
-    "calll *%esi",
+    "calll *%eax", // regular call to user 32-bit code
+    // The user 32-bit code will ret, popping off both the return address pushed by calll
+    // and any stdcall args.  What's left on the stack is the far address of 64-bit mode.
     "lretl", // long ret to 64-bit mode
     options(att_syntax),
 );
 
 extern "C" {
-    fn trans64();
     static tramp32: [u8; 0];
 }
 
@@ -208,13 +210,15 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
     #[cfg(target_arch = "x86_64")]
     unsafe {
         // To jump between 64/32 we need to stash some m16:32 pointers, and in particular to
-        // be able to return to our 64-bit RIP we want to use a lcall/lret pair.
+        // be able to return to our 64-bit RIP we put it on the stack and lret to it.
         //
         // So we lay out the 32-bit stack like this before going into assembly:
+        //   return address (tramp32ret)
         //   arg0
         //   ...
         //   argN
-        //   [8 bytes space for m16:32] <- lcall_esp
+        //   64-bit return address
+        //   64-bit segment selector
         //
         // lcall tramp32 pushes m16:32 to the saved spot,
         // and then tramp32 switches esp to point to the top of this stack.
@@ -222,38 +226,47 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
         let mem = machine.memory.mem();
 
-        // TODO: align?
-        let lcall_esp = STACK32;
-        STACK32 -= 8; // space for m16:32 return address pushed by lcall
+        // Push selector and reserve space for return address.
+        let code64_selector = 0x2b;
+        STACK32 -= 4;
+        mem.put::<u32>(STACK32, code64_selector);
+        STACK32 -= 4;
+        let return_addr = STACK32;
+
+        // Push arguments in reverse order.
         for &arg in args.iter().rev() {
             STACK32 -= 4;
             mem.put::<u32>(STACK32, arg);
         }
 
-        let m1632: u64 = ((machine.shims.code32_selector as u64) << 32) | tramp32.as_ptr() as u64;
+        let m1632: u64 = ((machine.shims.code32_selector as u64) << 32) | (tramp32.as_ptr() as u64);
 
-        // Note: we need to back up all non-scratch registers,
-        // because even callee-saved registers will only be saved as 32-bit,
-        // clobbering any 64-bit values.  In particular this manifests as rbp losing its
-        // high bits after this call.
         std::arch::asm!(
-            "pushq %rbp",
+            // We need to back up all non-scratch registers (rbx/rbp),
+            // because even callee-saved registers will only be saved as 32-bit,
+            // clobbering any 64-bit values.
+            // In particular getting this wrong manifests as rbp losing its high bits after this call.
             "pushq %rbx",
-            "movq %rsp, {stack64}(%rip)", // save 64-bit stack
-            "movl {esp:e}, %esp",         // switch to 32-bit stack
-            "lcalll *({m1632})",          // jump to 32-bit code
-            // after we ret we're 64-bit again
-            "movl %esp, {stack32}(%rip)", // save 32-bit stack
-            "movq {stack64}(%rip), %rsp", // restore 64-bit stack
-            "popq %rbx",
+            "pushq %rbp",
+            "movl $2f, ({return_addr:e})", // after jmp, ret to the "2" label below
+            "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
+            "movl {stack32}(%rip), %esp",  // switch to 32-bit stack
+            "ljmpl *({m1632})",            // jump to 32-bit tramp32
+            // It will return here (set above in return_addr):
+            "2:",
+            "movl %esp, {stack32}(%rip)",  // save 32-bit stack
+            "movq {stack64}(%rip), %rsp",  // restore 64-bit stack
             "popq %rbp",
+            "popq %rbx",
             options(att_syntax),
+            // A 32-bit call may call back into 64-bit Rust code, so it may clobber
+            // 64-bit registers.  Mark this code as if it's a 64-bit call.
+            clobber_abi("system"),
+            in("eax") func,  // passed to tramp32
+            return_addr = in(reg) return_addr as u32,
             stack64 = sym STACK64,
             stack32 = sym STACK32,
-            esp = in(reg) lcall_esp,
             m1632 = in(reg) &m1632,
-            inout("rdi") STACK32 => _,  // tramp32: new stack
-            inout("rsi") func => _,  // tramp32: address to call
         );
 
         UnimplFuture {}

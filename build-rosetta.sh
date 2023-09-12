@@ -24,7 +24,7 @@ done
 
 # relocation=model=dynamic-no-pic needed for disabling PIE as well.
 # --print link-args
-export RUSTFLAGS="-C relocation-model=dynamic-no-pic $link_flag"
+export RUSTFLAGS="$RUSTFLAGS -C relocation-model=dynamic-no-pic $link_flag"
 
 # faster debug cycle without sdl:
 #   exe cargo build --target x86_64-apple-darwin -p retrowin32 "$@"
