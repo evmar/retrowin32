@@ -171,19 +171,19 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
 }
 
 #[win32_derive::dllexport]
-pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> u32 {
+pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
     let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
-            return 0;
+            return false;
         }
         Some(heap) => heap,
     };
     heap.free(lpMem);
-    1 // success
+    true
 }
 
 #[win32_derive::dllexport]
@@ -324,12 +324,22 @@ pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 
 #[win32_derive::dllexport]
 pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
-    assert!(uFlags == 0);
+    if uFlags & 0x2 != 0 {
+        todo!("GMEM_MOVEABLE");
+    }
+    if uFlags & 0x40 != 0 {
+        todo!("GMEM_ZEROINIT");
+    }
+    // Allow any other flags, because there are a bunch of ignored 16-bit Windows flags.
     let heap = winapi::kernel32::GetProcessHeap(machine);
     HeapAlloc(machine, heap, 0, dwBytes)
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalFree(_machine: &mut Machine, hMem: u32) -> u32 {
-    todo!()
+pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+    let heap = winapi::kernel32::GetProcessHeap(machine);
+    if !HeapFree(machine, heap, 0, hMem) {
+        return hMem;
+    }
+    return 0; // success
 }
