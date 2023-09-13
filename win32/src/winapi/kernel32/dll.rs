@@ -59,7 +59,11 @@ impl DLL {
 
         let addr = match export {
             Some(export) => shims.add(export.shim.clone()),
-            None => shims.add_todo(format!("{}:{}", self.name, sym)),
+            None => {
+                let name = format!("{}:{}", self.name, sym);
+                log::warn!("unimplemented: {}", name);
+                shims.add_todo(name)
+            }
         };
 
         match *sym {

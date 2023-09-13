@@ -772,3 +772,42 @@ pub fn WriteConsoleW(
     }
     return bytes_written == buf.len() as u32;
 }
+
+#[win32_derive::dllexport]
+pub fn WaitForSingleObject(
+    _machine: &mut Machine,
+    hHandle: HANDLE<()>,
+    dwMilliseconds: u32,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn CreateEventA(
+    _machine: &mut Machine,
+    lpEventAttributes: u32,
+    bManualReset: bool,
+    bInitialState: bool,
+    lpName: Option<&str>,
+) -> HANDLE<()> {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SetEvent(_machine: &mut Machine, hEvent: HANDLE<()>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetCurrentThread(_machine: &mut Machine) -> HANDLE<()> {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SetPriorityClass(
+    _machine: &mut Machine,
+    hProcess: HANDLE<()>,
+    dwPriorityClass: u32,
+) -> HANDLE<()> {
+    todo!()
+}

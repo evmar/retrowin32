@@ -1,4 +1,4 @@
-use crate::{machine::Machine, pe::ImageSectionFlags, winapi::alloc::Alloc};
+use crate::{machine::Machine, pe::ImageSectionFlags, winapi, winapi::alloc::Alloc};
 use bitflags::bitflags;
 use memory::MemImpl;
 use std::cmp::max;
@@ -320,4 +320,16 @@ pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 #[win32_derive::dllexport]
 pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
+    assert!(uFlags == 0);
+    let heap = winapi::kernel32::GetProcessHeap(machine);
+    HeapAlloc(machine, heap, 0, dwBytes)
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+    todo!()
 }

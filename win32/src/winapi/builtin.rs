@@ -519,6 +519,15 @@ pub mod kernel32 {
             let ucb = <u32>::from_stack(machine.mem(), esp + 8u32);
             winapi::kernel32::IsBadWritePtr(machine, lp, ucb).to_raw()
         }
+        pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
+            let uFlags = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let dwBytes = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::kernel32::GlobalAlloc(machine, uFlags, dwBytes).to_raw()
+        }
+        pub unsafe fn GlobalFree(machine: &mut Machine, esp: u32) -> u32 {
+            let hMem = <u32>::from_stack(machine.mem(), esp + 4u32);
+            winapi::kernel32::GlobalFree(machine, hMem).to_raw()
+        }
         pub unsafe fn SetLastError(machine: &mut Machine, esp: u32) -> u32 {
             let dwErrCode = <u32>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::SetLastError(machine, dwErrCode).to_raw()
@@ -697,6 +706,37 @@ pub mod kernel32 {
                 _lpReserved,
             )
             .to_raw()
+        }
+        pub unsafe fn WaitForSingleObject(machine: &mut Machine, esp: u32) -> u32 {
+            let hHandle = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
+            let dwMilliseconds = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds).to_raw()
+        }
+        pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
+            let lpEventAttributes = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let bManualReset = <bool>::from_stack(machine.mem(), esp + 8u32);
+            let bInitialState = <bool>::from_stack(machine.mem(), esp + 12u32);
+            let lpName = <Option<&str>>::from_stack(machine.mem(), esp + 16u32);
+            winapi::kernel32::CreateEventA(
+                machine,
+                lpEventAttributes,
+                bManualReset,
+                bInitialState,
+                lpName,
+            )
+            .to_raw()
+        }
+        pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
+            let hEvent = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
+            winapi::kernel32::SetEvent(machine, hEvent).to_raw()
+        }
+        pub unsafe fn GetCurrentThread(machine: &mut Machine, esp: u32) -> u32 {
+            winapi::kernel32::GetCurrentThread(machine).to_raw()
+        }
+        pub unsafe fn SetPriorityClass(machine: &mut Machine, esp: u32) -> u32 {
+            let hProcess = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
+            let dwPriorityClass = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::kernel32::SetPriorityClass(machine, hProcess, dwPriorityClass).to_raw()
         }
         pub unsafe fn GetCurrentThreadId(machine: &mut Machine, esp: u32) -> u32 {
             winapi::kernel32::GetCurrentThreadId(machine).to_raw()
@@ -884,6 +924,18 @@ pub mod kernel32 {
             name: "IsBadWritePtr",
             func: impls::IsBadWritePtr,
             stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const GlobalAlloc: Shim = Shim {
+            name: "GlobalAlloc",
+            func: impls::GlobalAlloc,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const GlobalFree: Shim = Shim {
+            name: "GlobalFree",
+            func: impls::GlobalFree,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetLastError: Shim = Shim {
@@ -1114,6 +1166,36 @@ pub mod kernel32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const WaitForSingleObject: Shim = Shim {
+            name: "WaitForSingleObject",
+            func: impls::WaitForSingleObject,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const CreateEventA: Shim = Shim {
+            name: "CreateEventA",
+            func: impls::CreateEventA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const SetEvent: Shim = Shim {
+            name: "SetEvent",
+            func: impls::SetEvent,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetCurrentThread: Shim = Shim {
+            name: "GetCurrentThread",
+            func: impls::GetCurrentThread,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const SetPriorityClass: Shim = Shim {
+            name: "SetPriorityClass",
+            func: impls::SetPriorityClass,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const GetCurrentThreadId: Shim = Shim {
             name: "GetCurrentThreadId",
             func: impls::GetCurrentThreadId,
@@ -1163,7 +1245,7 @@ pub mod kernel32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 69usize] = [
+    const EXPORTS: [Symbol; 76usize] = [
         Symbol {
             ordinal: None,
             shim: shims::GetModuleHandleA,
@@ -1255,6 +1337,14 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::IsBadWritePtr,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GlobalAlloc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GlobalFree,
         },
         Symbol {
             ordinal: None,
@@ -1407,6 +1497,26 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::WriteConsoleW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::WaitForSingleObject,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateEventA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetEvent,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetCurrentThread,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetPriorityClass,
         },
         Symbol {
             ordinal: None,
