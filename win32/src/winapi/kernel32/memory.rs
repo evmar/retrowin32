@@ -2,7 +2,6 @@ use crate::{machine::Machine, pe::ImageSectionFlags, winapi::alloc::Alloc};
 use bitflags::bitflags;
 use memory::MemImpl;
 use std::cmp::max;
-use tsify::Tsify;
 
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
 
