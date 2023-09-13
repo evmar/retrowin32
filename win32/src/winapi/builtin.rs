@@ -1841,6 +1841,19 @@ pub mod user32 {
             let _lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
             winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName).to_raw()
         }
+        pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
+            let hInst = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let xHotSpot = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let yHotSpot = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let nWidth = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let nHeight = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let pvANDPlane = <u32>::from_stack(machine.mem(), esp + 24u32);
+            let pvXORPlane = <u32>::from_stack(machine.mem(), esp + 28u32);
+            winapi::user32::CreateCursor(
+                machine, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
+            )
+            .to_raw()
+        }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
             let _bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
             winapi::user32::ShowCursor(machine, _bShow).to_raw()
@@ -1982,6 +1995,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const CreateCursor: Shim = Shim {
+            name: "CreateCursor",
+            func: impls::CreateCursor,
+            stack_consumed: 32u32,
+            is_async: false,
+        };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
@@ -2001,7 +2020,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 23usize] = [
+    const EXPORTS: [Symbol; 24usize] = [
         Symbol {
             ordinal: None,
             shim: shims::RegisterClassA,
@@ -2081,6 +2100,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadCursorA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateCursor,
         },
         Symbol {
             ordinal: None,

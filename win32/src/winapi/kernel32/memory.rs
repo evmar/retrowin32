@@ -330,6 +330,6 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+pub fn GlobalFree(_machine: &mut Machine, hMem: u32) -> u32 {
     todo!()
 }

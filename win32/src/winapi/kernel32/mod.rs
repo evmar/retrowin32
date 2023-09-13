@@ -808,6 +808,6 @@ pub fn SetPriorityClass(
     _machine: &mut Machine,
     hProcess: HANDLE<()>,
     dwPriorityClass: u32,
-) -> HANDLE<()> {
-    todo!()
+) -> bool {
+    true // success
 }

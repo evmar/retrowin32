@@ -68,7 +68,6 @@ impl Default for State {
 
 type HICON = u32;
 type HINSTANCE = u32;
-type HCURSOR = u32;
 type HBRUSH = u32;
 
 #[repr(C)]
@@ -493,8 +492,24 @@ pub fn LoadIconA(_machine: &mut Machine, _hInstance: u32, _lpIconName: u32) -> u
     0
 }
 
+type HCURSOR = u32;
+
 #[win32_derive::dllexport]
-pub fn LoadCursorA(_machine: &mut Machine, _hInstance: u32, _lpCursorName: u32) -> u32 {
+pub fn LoadCursorA(_machine: &mut Machine, _hInstance: u32, _lpCursorName: u32) -> HCURSOR {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn CreateCursor(
+    _machine: &mut Machine,
+    hInst: u32,
+    xHotSpot: u32,
+    yHotSpot: u32,
+    nWidth: u32,
+    nHeight: u32,
+    pvANDPlane: u32,
+    pvXORPlane: u32,
+) -> HCURSOR {
     0
 }
 
