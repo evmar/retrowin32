@@ -59,6 +59,7 @@ impl<T> crate::winapi::stack_args::ToX86 for HANDLE<T> {
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFILET;
 pub type HFILE = HANDLE<HFILET>;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;

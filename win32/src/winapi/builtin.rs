@@ -2124,6 +2124,9 @@ pub mod winmm {
             )
             .to_raw()
         }
+        pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, esp: u32) -> u32 {
+            winapi::winmm::waveOutGetNumDevs(machine).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -2134,11 +2137,23 @@ pub mod winmm {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const waveOutGetNumDevs: Shim = Shim {
+            name: "waveOutGetNumDevs",
+            func: impls::waveOutGetNumDevs,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: None,
-        shim: shims::timeSetEvent,
-    }];
+    const EXPORTS: [Symbol; 2usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::timeSetEvent,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutGetNumDevs,
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "winmm.dll",
         exports: &EXPORTS,

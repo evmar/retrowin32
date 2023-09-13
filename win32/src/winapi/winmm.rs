@@ -16,3 +16,8 @@ pub fn timeSetEvent(
 ) -> u32 {
     0
 }
+
+#[win32_derive::dllexport]
+pub fn waveOutGetNumDevs(_machine: &mut Machine) -> u32 {
+    0 // no sound yet
+}
