@@ -73,6 +73,9 @@ static mut STACK64: u64 = 0;
 unsafe extern "C" fn call64(shim_index: u32) -> u32 {
     let machine: &mut Machine = &mut *MACHINE;
     let shim = &machine.shims.shims[shim_index as usize];
+    if shim.func == missing_shim {
+        unimplemented!("shim for {}", shim.name);
+    }
     // Stack contents:
     //   4 bytes edi +
     //   8 bytes far return address
@@ -121,6 +124,10 @@ std::arch::global_asm!(
 
 extern "C" {
     static tramp32: [u8; 0];
+}
+
+unsafe fn missing_shim(_machine: &mut Machine, _esp: u32) -> u32 {
+    unreachable!()
 }
 
 impl Shims {
@@ -177,9 +184,14 @@ impl Shims {
         }
     }
 
-    pub fn add_todo(&mut self, _name: String) -> u32 {
-        // trampoline_x86.rs:crash
-        unsafe { self.buf.write(b"\xcc\xb8\x01\x00\x00\x00\xff\x20") as u32 }
+    pub fn add_todo(&mut self, name: String) -> u32 {
+        let shim = Shim {
+            name: Box::leak(name.into_boxed_str()),
+            func: missing_shim,
+            stack_consumed: 4,
+            is_async: false,
+        };
+        self.add(shim)
     }
 }
 

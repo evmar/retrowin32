@@ -14,8 +14,3 @@ tramp64:
     lcalll $0x22, $0x33  # call trans64; 0x22=selector, 0x33=address
     popl %edi
     ret
-
-crash:
-    int3
-    movl $1, %eax
-    jmpl *%eax
