@@ -9,7 +9,9 @@ use std::collections::HashMap;
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
 // HMODULE is index+1 into kernel32::State::dlls.
-declare_handle!(HMODULE);
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HMODULET;
+pub type HMODULE = HANDLE<HMODULET>;
 
 impl HMODULE {
     fn from_dll_index(index: usize) -> Self {
@@ -20,7 +22,7 @@ impl HMODULE {
         if self.is_null() {
             return None;
         }
-        Some(self.0 as usize - 1)
+        Some(self.raw as usize - 1)
     }
 }
 
