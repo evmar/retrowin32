@@ -1,13 +1,15 @@
 [workspace]
 members = [
   "cli",
-  "log",
-  "memory",
   "web/glue",
-  "win32",
   "win32/derive",
-  "x86",
 ]
+
+[workspace.dependencies]
+log = { path = "log" }
+memory = { path = "memory" }
+win32 = { path = "win32" }
+x86 = { path = "x86" }
 
 [profile.release]
 lto = true

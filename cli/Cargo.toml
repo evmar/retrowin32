@@ -4,26 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+log = { workspace = true }
+win32 = { workspace = true }
+
 anyhow = "1.0"
 argh = "0.1.10"
-
-[dependencies.log]
-path = "../log"
+libc = "0.2"
 
 [dependencies.sdl2]
 version = "0.35.2"
 features = ["unsafe_textures"]
 optional = true
 
-[dependencies.win32]
-path = "../win32"
-
 [dependencies.iced-x86]
 version = "1.17.0"
 optional = true
-
-[dependencies.libc]
-version = "0.2"
 
 [features]
 sdl = ["dep:sdl2"]
