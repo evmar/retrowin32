@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "cli",
+  "log",
   "memory",
   "web/glue",
   "win32",

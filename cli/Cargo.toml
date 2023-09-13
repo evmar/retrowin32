@@ -6,7 +6,9 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 argh = "0.1.10"
-log = "0.4.17"
+
+[dependencies.log]
+path = "../log"
 
 [dependencies.sdl2]
 version = "0.35.2"

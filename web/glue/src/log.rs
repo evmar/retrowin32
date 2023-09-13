@@ -17,33 +17,13 @@ extern "C" {
 struct HostLogger {
     host: JsLogger,
 }
-unsafe impl Send for HostLogger {}
-unsafe impl Sync for HostLogger {}
 impl log::Log for HostLogger {
-    fn enabled(&self, _metadata: &log::Metadata) -> bool {
-        true
-    }
-
     fn log(&self, record: &log::Record) {
-        let level = match record.level() {
-            log::Level::Error => 5,
-            log::Level::Warn => 4,
-            log::Level::Info => 3,
-            log::Level::Debug => 2,
-            log::Level::Trace => 1,
-        };
         self.host.log(
-            level,
-            format!(
-                "{}:{}: {}",
-                record.file().unwrap_or(""),
-                record.line().unwrap_or(0),
-                record.args()
-            ),
+            record.level as u8,
+            format!("{}:{} {}", record.file, record.line, record.args),
         );
     }
-
-    fn flush(&self) {}
 }
 
 fn panic_hook(info: &std::panic::PanicInfo) {
@@ -52,8 +32,7 @@ fn panic_hook(info: &std::panic::PanicInfo) {
 
 pub fn init(host: JsLogger) -> JsResult<()> {
     let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
-    log::set_logger(logger).map_err(|err| JsError::new(&err.to_string()))?;
-    log::set_max_level(log::LevelFilter::Debug);
+    log::set_logger(logger);
     std::panic::set_hook(Box::new(panic_hook));
     Ok(())
 }

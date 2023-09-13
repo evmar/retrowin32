@@ -174,12 +174,13 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 }
 
 fn main() -> anyhow::Result<()> {
+    logging::init();
+
     #[cfg(not(feature = "cpuemu"))]
     unsafe {
         crate::resv32::init_resv32();
     }
 
-    logging::init()?;
     let args: Args = argh::from_env();
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
