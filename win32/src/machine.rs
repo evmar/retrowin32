@@ -28,7 +28,7 @@ impl Machine {
             let mapping =
                 kernel32
                     .mappings
-                    .alloc(0x1000, "shims x64 trampoline".into(), &mut memory);
+                    .alloc(0x4000, "shims x64 trampoline".into(), &mut memory);
             Shims::new(
                 &mut kernel32.ldt,
                 mapping.addr as u64 as *mut u8,

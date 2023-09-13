@@ -15,7 +15,7 @@ mod winmm;
 
 macro_rules! vtable_entry {
     ($shims:ident $module:ident $fn:ident todo) => {
-        0u32
+        $shims.add_todo(format!("{}:{}", stringify!($module), stringify!($fn)))
     };
     ($shims:ident $module:ident $fn:ident ok) => {
         $shims.add($module::$fn)
