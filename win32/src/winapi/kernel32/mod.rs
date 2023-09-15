@@ -9,7 +9,7 @@ mod thread;
 use super::{
     alloc::Alloc,
     alloc::ArenaInfo,
-    alloc::{Heap, HeapInfo},
+    heap::{Heap, HeapInfo},
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
 };
