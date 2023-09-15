@@ -196,6 +196,30 @@ impl TryFrom<u32> for DDPCAPS {
     }
 }
 
+bitflags! {
+    pub struct DDLOCK: u32 {
+        const SURFACEMEMORYPTR= 0x00000000;
+        const WAIT = 0x00000001;
+        const EVENT = 0x00000002;
+        const READONLY = 0x00000010;
+        const WRITEONLY = 0x00000020;
+        const NOSYSLOCK = 0x00000800;
+        const NOOVERWRITE = 0x00001000;
+        const DISCARDCONTENTS = 0x00002000;
+        const OKTOSWAP = 0x00002000;
+        const DONOTWAIT = 0x00004000;
+        const HASVOLUMETEXTUREBOXRECT = 0x00008000;
+        const NODIRTYUPDATE = 0x00010000;
+    }
+}
+impl TryFrom<u32> for DDLOCK {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        DDLOCK::from_bits(value).ok_or(value)
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 struct DDCOLORKEY {
@@ -412,7 +436,7 @@ mod IDirectDrawSurface {
         GetSurfaceDesc todo,
         Initialize todo,
         IsLost todo,
-        Lock todo,
+        Lock ok,
         ReleaseDC todo,
         Restore todo,
         SetClipper todo,
@@ -470,6 +494,24 @@ mod IDirectDrawSurface {
         *fmt = unsafe { std::mem::zeroed() };
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn Lock(
+        _machine: &mut Machine,
+        this: u32,
+        rect: Option<&RECT>,
+        desc: Option<&mut DDSURFACEDESC>,
+        flags: Result<DDLOCK, u32>,
+        event: u32,
+    ) -> u32 {
+        if rect.is_some() {
+            todo!()
+        }
+        if event != 0 {
+            todo!()
+        }
+        todo!()
     }
 }
 
@@ -892,7 +934,7 @@ mod IDirectDrawSurface7 {
         this: u32,
         rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC2>,
-        flags: u32,
+        flags: Result<DDLOCK, u32>,
         unused: u32,
     ) -> u32 {
         if rect.is_some() {
