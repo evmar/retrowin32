@@ -28,7 +28,7 @@ impl Heap {
             .freelist
             .iter()
             .position(|f| f.size >= size)
-            .expect("heap oom");
+            .unwrap_or_else(|| panic!("heap size {:x} oom {:x}", self.size, size));
         let free = &mut self.freelist[i];
         let addr = free.addr;
         free.size -= size;

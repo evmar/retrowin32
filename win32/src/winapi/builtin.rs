@@ -528,6 +528,20 @@ pub mod kernel32 {
             let hMem = <u32>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::GlobalFree(machine, hMem).to_raw()
         }
+        pub unsafe fn VirtualProtect(machine: &mut Machine, esp: u32) -> u32 {
+            let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let dwSize = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let flNewProtect = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let lpflOldProtect = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
+            winapi::kernel32::VirtualProtect(
+                machine,
+                lpAddress,
+                dwSize,
+                flNewProtect,
+                lpflOldProtect,
+            )
+            .to_raw()
+        }
         pub unsafe fn SetLastError(machine: &mut Machine, esp: u32) -> u32 {
             let dwErrCode = <u32>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::SetLastError(machine, dwErrCode).to_raw()
@@ -938,6 +952,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const VirtualProtect: Shim = Shim {
+            name: "VirtualProtect",
+            func: impls::VirtualProtect,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const SetLastError: Shim = Shim {
             name: "SetLastError",
             func: impls::SetLastError,
@@ -1245,7 +1265,7 @@ pub mod kernel32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 76usize] = [
+    const EXPORTS: [Symbol; 77usize] = [
         Symbol {
             ordinal: None,
             shim: shims::GetModuleHandleA,
@@ -1345,6 +1365,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GlobalFree,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::VirtualProtect,
         },
         Symbol {
             ordinal: None,

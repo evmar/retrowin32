@@ -343,3 +343,14 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
     }
     return 0; // success
 }
+
+#[win32_derive::dllexport]
+pub fn VirtualProtect(
+    _machine: &mut Machine,
+    lpAddress: u32,
+    dwSize: u32,
+    flNewProtect: u32,
+    lpflOldProtect: Option<&mut u32>,
+) -> bool {
+    true // success
+}
