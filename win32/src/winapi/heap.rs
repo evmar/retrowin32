@@ -2,162 +2,89 @@
 //! and also for win32-visible allocations created by other calls (like in
 //! DirectDraw).
 
-use super::{
-    alloc::{align32, Alloc},
-    kernel32,
-};
+use super::alloc::align32;
 use memory::Mem;
 
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct HeapInfo {
+#[derive(serde::Serialize, serde::Deserialize, Default)]
+pub struct Heap {
     pub addr: u32,
     pub size: u32,
-    /// Pointer to first free block: head of the FreeNode list.
-    free: u32,
+    freelist: Vec<FreeNode>,
 }
 
-impl HeapInfo {
-    pub fn new(mem: Mem, addr: u32, size: u32) -> Self {
-        *FreeNode::get(mem, addr) = FreeNode { size, next: 0 };
-        HeapInfo {
+impl Heap {
+    pub fn new(addr: u32, size: u32) -> Self {
+        let freelist = vec![FreeNode { addr, size }];
+        Heap {
             addr,
             size,
-            free: addr,
+            freelist,
         }
     }
 
-    /// Attempt to coalesce the freelist node at addr with any subsequent
-    /// adjacent blocks of free memory.
-    fn try_coalesce(&mut self, mem: Mem, addr: u32) {
-        loop {
-            let FreeNode { next, size } = *FreeNode::get(mem, addr);
-            if next != addr + size {
-                break;
-            }
-            let next = FreeNode::get(mem, next);
-            *FreeNode::get(mem, addr) = FreeNode {
-                next: next.next,
-                size: size + next.size,
-            }
+    pub fn alloc(&mut self, mem: Mem, size: u32) -> u32 {
+        let size = align32(size) + 4;
+        let i = self.freelist.iter().position(|f| f.size >= size).unwrap();
+        let free = &mut self.freelist[i];
+        let addr = free.addr;
+        free.size -= size;
+        free.addr += size;
+        if free.size == 0 {
+            log::warn!("freelist chunk1 {}", self.freelist.len());
+            self.freelist.remove(i);
         }
+        mem.put::<u32>(addr, size);
+        addr + 4
     }
 
-    pub fn get_heap<'a>(
-        &'a mut self,
-        mem: Mem<'a>,
-        mappings: &'a mut kernel32::Mappings,
-    ) -> Heap<'a> {
-        Heap {
-            info: self,
-            mem,
-            mappings,
-        }
-    }
-}
-
-pub struct Heap<'a> {
-    info: &'a mut HeapInfo,
-    mem: Mem<'a>,
-    mappings: &'a mut kernel32::Mappings,
-}
-
-#[derive(Debug)]
-#[repr(C)]
-struct FreeNode {
-    size: u32,
-    /// Pointer to next node.
-    next: u32,
-}
-unsafe impl memory::Pod for FreeNode {}
-impl FreeNode {
-    fn get<'a>(mem: Mem<'a>, addr: u32) -> &'a mut Self {
-        mem.view_mut::<FreeNode>(addr)
-    }
-}
-
-impl<'a> Alloc for Heap<'a> {
-    fn alloc(&mut self, size: u32) -> u32 {
-        let alloc_size = align32(size + 4);
-
-        // Find a FreeNode large enough to accommodate alloc_size.
-        // To use it, update the previous node to point past it.
-        let mut prev = 0;
-        let mut cur = self.info.free;
-        let mut blocks = 0;
-        while cur != 0 {
-            blocks += 1;
-            let node = FreeNode::get(self.mem, cur);
-            if node.size >= alloc_size {
-                break;
-            }
-            if node.next == 0 {
-                // Reached last node, try resizing before giving up.
-                let space_needed = alloc_size - node.size;
-                node.size += self.mappings.grow(self.info.addr, space_needed);
-                if node.size < alloc_size {
-                    panic!("heap OOM allocating {alloc_size:#x}: resized, but still too small");
-                }
-                break;
-            }
-            prev = cur;
-            cur = node.next;
-        }
-        if cur == 0 {
-            panic!("heap OOM allocating {alloc_size:#x} freelist {blocks} entries");
-        }
-
-        // Find the pointer to the point after the allocated block.
-        let next = if FreeNode::get(self.mem, cur).size > alloc_size + 8 {
-            // Split cur block into smaller piece; create a new FreeNode in
-            // the remaining space.
-            let next = cur + alloc_size;
-            let cur = FreeNode::get(self.mem, cur);
-            *FreeNode::get(self.mem, next) = FreeNode {
-                size: cur.size - alloc_size,
-                next: cur.next,
-            };
-            next
-        } else {
-            FreeNode::get(self.mem, cur).next
-        };
-
-        // Link next node into the list.
-        if prev == 0 {
-            self.info.free = next;
-        } else {
-            FreeNode::get(self.mem, prev).next = next;
-        }
-
-        self.mem.put::<u32>(cur, size);
-        cur + 4
+    pub fn size(&self, mem: Mem, addr: u32) -> u32 {
+        mem.get::<u32>(addr - 4)
     }
 
-    fn size(&self, addr: u32) -> u32 {
-        self.mem.get::<u32>(addr - 4)
-    }
-
-    fn free(&mut self, addr: u32) {
-        let free_size = self.size(addr) + 4;
+    pub fn free(&mut self, mem: Mem, addr: u32) {
         let addr = addr - 4;
+        let size = mem.get::<u32>(addr);
 
-        let mut prev = 0;
-        let mut next = self.info.free;
-        while next < addr {
-            prev = next;
-            next = FreeNode::get(self.mem, next).next;
+        let next_i = self
+            .freelist
+            .iter()
+            .position(|f| f.addr > addr)
+            .unwrap_or(self.freelist.len());
+
+        let mut joined = false;
+        if next_i > 0 {
+            let prev_i = next_i - 1;
+            let prev = &mut self.freelist[prev_i];
+            if prev.addr + prev.size == addr {
+                prev.size += size;
+                joined = true;
+            }
         }
 
-        // Insert freelist node at addr.
-        *FreeNode::get(self.mem, addr) = FreeNode {
-            next,
-            size: free_size,
-        };
-        if prev > 0 {
-            FreeNode::get(self.mem, prev).next = addr;
-            self.info.try_coalesce(self.mem, prev);
-        } else {
-            self.info.free = addr;
-            self.info.try_coalesce(self.mem, addr);
+        let next = &mut self.freelist[next_i];
+        if addr + size == next.addr {
+            if joined {
+                let join_size = next.size;
+                let prev = &mut self.freelist[next_i - 1];
+                prev.size += join_size;
+                log::warn!("freelist chunk2 {}", self.freelist.len());
+                self.freelist.remove(next_i);
+                return;
+            }
+            next.addr -= size;
+            next.size += size;
+            return;
+        }
+
+        if !joined {
+            let free = FreeNode { addr, size };
+            self.freelist.insert(next_i, free);
         }
     }
+}
+
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+struct FreeNode {
+    addr: u32,
+    size: u32,
 }

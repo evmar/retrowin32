@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use super::alloc::Alloc;
+use super::heap::Heap;
 use super::types::DWORD;
 use crate::machine::Machine;
 use crate::winapi::vtable;
@@ -15,7 +15,7 @@ const E_FAIL: u32 = 0x80004005;
 pub const DSERR_GENERIC: u32 = E_FAIL;
 
 pub struct State {
-    hheap: u32,
+    heap: Heap,
     vtable_IDirectSound: u32,
     vtable_IDirectSoundBuffer: u32,
 }
@@ -23,11 +23,11 @@ pub struct State {
 impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut dsound = State::default();
-        dsound.hheap =
-            machine
-                .state
-                .kernel32
-                .new_heap(&mut machine.memory, 0x1000, "dsound.dll heap".into());
+        dsound.heap = machine.state.kernel32.new_private_heap(
+            &mut machine.memory,
+            0x1000,
+            "dsound.dll heap".into(),
+        );
 
         dsound.vtable_IDirectSound = IDirectSound::vtable(&mut dsound, machine);
         dsound.vtable_IDirectSoundBuffer = IDirectSoundBuffer::vtable(&mut dsound, machine);
@@ -38,7 +38,7 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            hheap: 0,
+            heap: Heap::default(),
             vtable_IDirectSound: 0,
             vtable_IDirectSoundBuffer: 0,
         }
@@ -93,12 +93,7 @@ mod IDirectSoundBuffer {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = machine
-            .state
-            .kernel32
-            .get_heap(machine.memory.mem(), dsound.hheap)
-            .unwrap()
-            .alloc(4);
+        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
         let vtable = dsound.vtable_IDirectSoundBuffer;
         machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
@@ -174,17 +169,12 @@ mod IDirectSoundBuffer {
 
 #[win32_derive::dllexport(1)]
 pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOuter: u32) -> u32 {
-    if machine.state.dsound.hheap == 0 {
+    if machine.state.dsound.heap.addr == 0 {
         machine.state.dsound = State::new_init(machine);
     }
     let dsound = &mut machine.state.dsound;
 
-    let lpDirectSound = machine
-        .state
-        .kernel32
-        .get_heap(machine.memory.mem(), dsound.hheap)
-        .unwrap()
-        .alloc(4);
+    let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
     let vtable = dsound.vtable_IDirectSound;
     machine.mem().put::<u32>(lpDirectSound, vtable);
     machine.mem().put::<u32>(ppDS, lpDirectSound);

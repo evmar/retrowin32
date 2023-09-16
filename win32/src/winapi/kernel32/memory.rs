@@ -1,4 +1,4 @@
-use crate::{machine::Machine, pe::ImageSectionFlags, winapi, winapi::alloc::Alloc};
+use crate::{machine::Machine, pe::ImageSectionFlags, winapi};
 use bitflags::bitflags;
 use memory::MemImpl;
 use std::cmp::max;
@@ -149,14 +149,14 @@ pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) 
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
+    let heap = match machine.state.kernel32.get_heap(hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    let addr = heap.alloc(dwBytes);
+    let addr = heap.alloc(machine.memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -175,14 +175,14 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
+    let heap = match machine.state.kernel32.get_heap(hHeap) {
         None => {
             log::error!("HeapFree({hHeap:x}): no such heap");
             return false;
         }
         Some(heap) => heap,
     };
-    heap.free(lpMem);
+    heap.free(machine.memory.mem(), lpMem);
     true
 }
 
@@ -191,14 +191,14 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
+    let heap = match machine.state.kernel32.get_heap(hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    heap.size(lpMem)
+    heap.size(machine.memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -212,15 +212,15 @@ pub fn HeapReAlloc(
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let mut heap = match machine.state.kernel32.get_heap(machine.memory.mem(), hHeap) {
+    let heap = match machine.state.kernel32.get_heap(hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    let old_size = heap.size(lpMem);
-    let new_addr = heap.alloc(dwBytes);
+    let old_size = heap.size(machine.memory.mem(), lpMem);
+    let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
     machine.mem().as_mut_slice_todo().copy_within(
         lpMem as usize..(lpMem + old_size) as usize,

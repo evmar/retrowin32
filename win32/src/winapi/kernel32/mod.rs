@@ -9,7 +9,7 @@ mod thread;
 use super::{
     alloc::Alloc,
     alloc::ArenaInfo,
-    heap::{Heap, HeapInfo},
+    heap::Heap,
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
 };
@@ -132,7 +132,7 @@ pub struct State {
     pub teb: u32,
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
-    heaps: HashMap<u32, HeapInfo>,
+    heaps: HashMap<u32, Heap>,
 
     #[serde(skip)] // TODO
     pub dlls: Vec<DLL>,
@@ -198,9 +198,9 @@ impl State {
         }
     }
 
-    pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> HeapInfo {
+    pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> Heap {
         let mapping = self.mappings.alloc(size as u32, desc, mem);
-        HeapInfo::new(mem.mem(), mapping.addr, mapping.size)
+        Heap::new(mapping.addr, mapping.size)
     }
 
     pub fn new_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> u32 {
@@ -210,10 +210,8 @@ impl State {
         addr
     }
 
-    pub fn get_heap<'a>(&'a mut self, mem: Mem<'a>, addr: u32) -> Option<Heap<'a>> {
-        self.heaps
-            .get_mut(&addr)
-            .map(|h| h.get_heap(mem, &mut self.mappings))
+    pub fn get_heap<'a>(&'a mut self, addr: u32) -> Option<&mut Heap> {
+        self.heaps.get_mut(&addr)
     }
 }
 
