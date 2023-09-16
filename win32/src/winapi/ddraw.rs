@@ -57,7 +57,7 @@ impl State {
         let mut ddraw = State::default();
         let mut heap = machine.state.kernel32.new_private_heap(
             &mut machine.memory,
-            0x1000,
+            1 << 20,
             "ddraw.dll heap".into(),
         );
         ddraw.surfacedesc2 = heap.alloc(
@@ -148,6 +148,7 @@ bitflags! {
 }
 
 bitflags! {
+    #[derive(Default)]
     pub struct DDSD: u32 {
         const CAPS = 0x00000001;
         const HEIGHT = 0x00000002;
@@ -231,7 +232,7 @@ unsafe impl memory::Pod for DDCOLORKEY {}
 #[derive(Debug)]
 struct DDSURFACEDESC {
     dwSize: DWORD,
-    dwFlags: DWORD,
+    dwFlags: DDSD,
     dwHeight: DWORD,
     dwWidth: DWORD,
     lPitch_dwLinearSize: DWORD,
@@ -249,17 +250,14 @@ struct DDSURFACEDESC {
 }
 unsafe impl memory::Pod for DDSURFACEDESC {}
 impl DDSURFACEDESC {
-    fn flags(&self) -> DDSD {
-        unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
-    }
     fn caps(&self) -> Option<&DDSCAPS> {
-        if !self.flags().contains(DDSD::CAPS) {
+        if !self.dwFlags.contains(DDSD::CAPS) {
             return None;
         }
         Some(&self.ddsCaps)
     }
     fn back_buffer_count(&self) -> Option<u32> {
-        if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
+        if !self.dwFlags.contains(DDSD::BACKBUFFERCOUNT) {
             return None;
         }
         Some(self.dwBackBufferCount)
@@ -269,6 +267,9 @@ impl DDSURFACEDESC {
         self.dwFlags = desc2.dwFlags;
         self.dwHeight = desc2.dwHeight;
         self.dwWidth = desc2.dwWidth;
+
+        self.lpSurface = desc2.lpSurface;
+        self.lPitch_dwLinearSize = desc2.lPitch_dwLinearSize;
     }
 }
 
@@ -276,7 +277,7 @@ impl DDSURFACEDESC {
 #[derive(Debug, Default)]
 struct DDSURFACEDESC2 {
     dwSize: DWORD,
-    dwFlags: DWORD,
+    dwFlags: DDSD,
     dwHeight: DWORD,
     dwWidth: DWORD,
 
@@ -299,17 +300,14 @@ struct DDSURFACEDESC2 {
 }
 unsafe impl memory::Pod for DDSURFACEDESC2 {}
 impl DDSURFACEDESC2 {
-    fn flags(&self) -> DDSD {
-        unsafe { DDSD::from_bits_unchecked(self.dwFlags) }
-    }
     fn back_buffer_count(&self) -> Option<u32> {
-        if !self.flags().contains(DDSD::BACKBUFFERCOUNT) {
+        if !self.dwFlags.contains(DDSD::BACKBUFFERCOUNT) {
             return None;
         }
         Some(self.dwBackBufferCount_dwDepth)
     }
     fn caps(&self) -> Option<&DDSCAPS2> {
-        if !self.flags().contains(DDSD::CAPS) {
+        if !self.dwFlags.contains(DDSD::CAPS) {
             return None;
         }
         Some(&self.ddsCaps)
@@ -372,7 +370,7 @@ mod IDirectDraw {
         assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize as usize);
 
         let mut opts = host::SurfaceOptions::default();
-        let mut flags = desc.flags();
+        let mut flags = desc.dwFlags;
         if let Some(caps) = desc.caps() {
             flags.remove(DDSD::CAPS);
             if caps.contains(DDSCAPS::PRIMARYSURFACE) {
@@ -448,7 +446,7 @@ mod IDirectDrawSurface {
         SetColorKey todo,
         SetOverlayPosition todo,
         SetPalette (IDirectDrawSurface7::shims::SetPalette),
-        Unlock todo,
+        Unlock ok,
         UpdateOverlay todo,
         UpdateOverlayDisplay todo,
         UpdateOverlayZOrder todo,
@@ -519,6 +517,11 @@ mod IDirectDrawSurface {
         desc.from_desc2(&desc2);
 
         ret
+    }
+
+    #[win32_derive::dllexport]
+    fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> u32 {
+        IDirectDrawSurface7::Unlock(machine, this, rect)
     }
 }
 
@@ -608,10 +611,10 @@ mod IDirectDraw7 {
         let lpDirectDrawSurface7 = lpDirectDrawSurface7.unwrap();
 
         let mut opts = host::SurfaceOptions::default();
-        if desc.flags().contains(DDSD::WIDTH) {
+        if desc.dwFlags.contains(DDSD::WIDTH) {
             opts.width = desc.dwWidth;
         }
-        if desc.flags().contains(DDSD::HEIGHT) {
+        if desc.dwFlags.contains(DDSD::HEIGHT) {
             opts.height = desc.dwHeight;
         }
         if let Some(caps) = desc.caps() {
@@ -912,7 +915,7 @@ mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get(&this).unwrap();
         let desc = lpDesc.unwrap();
         assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
-        let mut flags = desc.flags();
+        let mut flags = desc.dwFlags;
         if flags.contains(DDSD::WIDTH) {
             desc.dwWidth = surf.width;
             flags.remove(DDSD::WIDTH);
@@ -924,7 +927,7 @@ mod IDirectDrawSurface7 {
         if !flags.is_empty() {
             log::warn!(
                 "unimp: {:?} for {this:x}->GetSurfaceDesc({desc:?})",
-                desc.flags()
+                desc.dwFlags
             );
         }
         DDERR_GENERIC
@@ -940,6 +943,7 @@ mod IDirectDrawSurface7 {
         unused: u32,
     ) -> u32 {
         if rect.is_some() {
+            // TODO: once we implement this, we need corresponding logic in Unlock.
             todo!();
         }
         let desc = desc.unwrap();
@@ -951,7 +955,7 @@ mod IDirectDrawSurface7 {
                 surf.width * surf.height * bytes_per_pixel,
             );
         }
-        desc.dwFlags = DDSD::LPSURFACE.bits();
+        desc.dwFlags = DDSD::LPSURFACE;
         desc.lpSurface = surf.pixels;
         desc.lPitch_dwLinearSize = surf.width * bytes_per_pixel;
         DD_OK
@@ -976,12 +980,15 @@ mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn Unlock(machine: &mut Machine, this: u32, rect: Option<&RECT>) -> u32 {
-        if rect.is_some() {
-            // Needs to match the rect passed in Lock.
-            todo!();
-        }
+    pub(super) fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> u32 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        if let Some(rect) = rect {
+            // TODO: needs to match the rect passed in Lock.
+            rect.left = 0;
+            rect.top = 0;
+            rect.right = surf.width;
+            rect.bottom = surf.height;
+        }
         let phack = machine.state.ddraw.palette_hack;
         if surf.pixels != 0 && phack != 0 {
             let bytes_per_pixel = 1; // TODO: where does this come from?
