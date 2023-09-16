@@ -1679,6 +1679,124 @@ pub mod user32 {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::user32::*;
+        pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(machine.mem(), esp + 20u32);
+            winapi::user32::PeekMessageA(
+                machine,
+                lpMsg,
+                hWnd,
+                wMsgFilterMin,
+                wMsgFilterMax,
+                wRemoveMsg,
+            )
+            .to_raw()
+        }
+        pub unsafe fn GetMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
+            winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
+        }
+        pub unsafe fn WaitMessage(machine: &mut Machine, esp: u32) -> u32 {
+            winapi::user32::WaitMessage(machine).to_raw()
+        }
+        pub unsafe fn TranslateMessage(machine: &mut Machine, esp: u32) -> u32 {
+            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::TranslateMessage(machine, lpMsg).to_raw()
+        }
+        pub unsafe fn DispatchMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
+            #[cfg(feature = "cpuemu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
+                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.x86.cpu.regs.esp += 8u32;
+                    machine.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(not(feature = "cpuemu"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+        pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) -> u32 {
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let lpText = <Option<&str>>::from_stack(machine.mem(), esp + 8u32);
+            let lpCaption = <Option<&str>>::from_stack(machine.mem(), esp + 12u32);
+            let uType = <u32>::from_stack(machine.mem(), esp + 16u32);
+            winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw()
+        }
+        pub unsafe fn DialogBoxParamA(machine: &mut Machine, esp: u32) -> u32 {
+            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let lpTemplateName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let hWndParent = <HWND>::from_stack(machine.mem(), esp + 12u32);
+            let lpDialogFunc = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let dwInitParam = <u32>::from_stack(machine.mem(), esp + 20u32);
+            winapi::user32::DialogBoxParamA(
+                machine,
+                hInstance,
+                lpTemplateName,
+                hWndParent,
+                lpDialogFunc,
+                dwInitParam,
+            )
+            .to_raw()
+        }
+        pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
+            let nIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::GetSystemMetrics(machine, nIndex).to_raw()
+        }
+        pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) -> u32 {
+            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let _lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::LoadIconA(machine, _hInstance, _lpIconName).to_raw()
+        }
+        pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
+            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let _lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName).to_raw()
+        }
+        pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
+            let hInst = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let xHotSpot = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let yHotSpot = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let nWidth = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let nHeight = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let pvANDPlane = <u32>::from_stack(machine.mem(), esp + 24u32);
+            let pvXORPlane = <u32>::from_stack(machine.mem(), esp + 28u32);
+            winapi::user32::CreateCursor(
+                machine, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
+            )
+            .to_raw()
+        }
+        pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
+            let _bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::ShowCursor(machine, _bShow).to_raw()
+        }
+        pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) -> u32 {
+            let hCursor = <u32>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::SetCursor(machine, hCursor).to_raw()
+        }
+        pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
+            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let name = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let typ = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let cx = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let cy = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let fuLoad = <u32>::from_stack(machine.mem(), esp + 24u32);
+            winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
+        }
         pub unsafe fn RegisterClassA(machine: &mut Machine, esp: u32) -> u32 {
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(machine.mem(), esp + 4u32);
             winapi::user32::RegisterClassA(machine, lpWndClass).to_raw()
@@ -1770,84 +1888,6 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
             winapi::user32::SetFocus(machine, hWnd).to_raw()
         }
-        pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let hCursor = <u32>::from_stack(machine.mem(), esp + 4u32);
-            winapi::user32::SetCursor(machine, hCursor).to_raw()
-        }
-        pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let lpText = <Option<&str>>::from_stack(machine.mem(), esp + 8u32);
-            let lpCaption = <Option<&str>>::from_stack(machine.mem(), esp + 12u32);
-            let uType = <u32>::from_stack(machine.mem(), esp + 16u32);
-            winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw()
-        }
-        pub unsafe fn DialogBoxParamA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpTemplateName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let hWndParent = <HWND>::from_stack(machine.mem(), esp + 12u32);
-            let lpDialogFunc = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let dwInitParam = <u32>::from_stack(machine.mem(), esp + 20u32);
-            winapi::user32::DialogBoxParamA(
-                machine,
-                hInstance,
-                lpTemplateName,
-                hWndParent,
-                lpDialogFunc,
-                dwInitParam,
-            )
-            .to_raw()
-        }
-        pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
-            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(machine.mem(), esp + 20u32);
-            winapi::user32::PeekMessageA(
-                machine,
-                lpMsg,
-                hWnd,
-                wMsgFilterMin,
-                wMsgFilterMax,
-                wRemoveMsg,
-            )
-            .to_raw()
-        }
-        pub unsafe fn GetMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
-            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
-            winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
-        }
-        pub unsafe fn WaitMessage(machine: &mut Machine, esp: u32) -> u32 {
-            winapi::user32::WaitMessage(machine).to_raw()
-        }
-        pub unsafe fn TranslateMessage(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
-            winapi::user32::TranslateMessage(machine, lpMsg).to_raw()
-        }
-        pub unsafe fn DispatchMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
-            #[cfg(feature = "cpuemu")]
-            {
-                let m: *mut Machine = machine;
-                let result = async move {
-                    let machine = unsafe { &mut *m };
-                    let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += 8u32;
-                    machine.x86.cpu.regs.eax = result.to_raw();
-                };
-                crate::shims::become_async(machine, Box::pin(result));
-                0
-            }
-            #[cfg(not(feature = "cpuemu"))]
-            {
-                let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
-                crate::shims::call_sync(pin).to_raw()
-            }
-        }
         pub unsafe fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
             let msg = <Result<WM, u32>>::from_stack(machine.mem(), esp + 8u32);
@@ -1855,50 +1895,94 @@ pub mod user32 {
             let lParam = <u32>::from_stack(machine.mem(), esp + 16u32);
             winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).to_raw()
         }
-        pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) -> u32 {
-            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            winapi::user32::LoadIconA(machine, _hInstance, _lpIconName).to_raw()
-        }
-        pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
-            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName).to_raw()
-        }
-        pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let hInst = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let xHotSpot = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let yHotSpot = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let nWidth = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let nHeight = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let pvANDPlane = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let pvXORPlane = <u32>::from_stack(machine.mem(), esp + 28u32);
-            winapi::user32::CreateCursor(
-                machine, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
-            )
-            .to_raw()
-        }
-        pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let _bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
-            winapi::user32::ShowCursor(machine, _bShow).to_raw()
-        }
-        pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let name = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let typ = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let cx = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let cy = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let fuLoad = <u32>::from_stack(machine.mem(), esp + 24u32);
-            winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
-        }
-        pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
-            let nIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
-            winapi::user32::GetSystemMetrics(machine, nIndex).to_raw()
-        }
     }
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const PeekMessageA: Shim = Shim {
+            name: "PeekMessageA",
+            func: impls::PeekMessageA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const GetMessageA: Shim = Shim {
+            name: "GetMessageA",
+            func: impls::GetMessageA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const WaitMessage: Shim = Shim {
+            name: "WaitMessage",
+            func: impls::WaitMessage,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const TranslateMessage: Shim = Shim {
+            name: "TranslateMessage",
+            func: impls::TranslateMessage,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const DispatchMessageA: Shim = Shim {
+            name: "DispatchMessageA",
+            func: impls::DispatchMessageA,
+            stack_consumed: 8u32,
+            is_async: true,
+        };
+        pub const MessageBoxA: Shim = Shim {
+            name: "MessageBoxA",
+            func: impls::MessageBoxA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const DialogBoxParamA: Shim = Shim {
+            name: "DialogBoxParamA",
+            func: impls::DialogBoxParamA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const GetSystemMetrics: Shim = Shim {
+            name: "GetSystemMetrics",
+            func: impls::GetSystemMetrics,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const LoadIconA: Shim = Shim {
+            name: "LoadIconA",
+            func: impls::LoadIconA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const LoadCursorA: Shim = Shim {
+            name: "LoadCursorA",
+            func: impls::LoadCursorA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const CreateCursor: Shim = Shim {
+            name: "CreateCursor",
+            func: impls::CreateCursor,
+            stack_consumed: 32u32,
+            is_async: false,
+        };
+        pub const ShowCursor: Shim = Shim {
+            name: "ShowCursor",
+            func: impls::ShowCursor,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const SetCursor: Shim = Shim {
+            name: "SetCursor",
+            func: impls::SetCursor,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const LoadImageA: Shim = Shim {
+            name: "LoadImageA",
+            func: impls::LoadImageA,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
         pub const RegisterClassA: Shim = Shim {
             name: "RegisterClassA",
             func: impls::RegisterClassA,
@@ -1953,98 +2037,70 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
-        pub const SetCursor: Shim = Shim {
-            name: "SetCursor",
-            func: impls::SetCursor,
-            stack_consumed: 8u32,
-            is_async: false,
-        };
-        pub const MessageBoxA: Shim = Shim {
-            name: "MessageBoxA",
-            func: impls::MessageBoxA,
-            stack_consumed: 20u32,
-            is_async: false,
-        };
-        pub const DialogBoxParamA: Shim = Shim {
-            name: "DialogBoxParamA",
-            func: impls::DialogBoxParamA,
-            stack_consumed: 24u32,
-            is_async: false,
-        };
-        pub const PeekMessageA: Shim = Shim {
-            name: "PeekMessageA",
-            func: impls::PeekMessageA,
-            stack_consumed: 24u32,
-            is_async: false,
-        };
-        pub const GetMessageA: Shim = Shim {
-            name: "GetMessageA",
-            func: impls::GetMessageA,
-            stack_consumed: 20u32,
-            is_async: false,
-        };
-        pub const WaitMessage: Shim = Shim {
-            name: "WaitMessage",
-            func: impls::WaitMessage,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const TranslateMessage: Shim = Shim {
-            name: "TranslateMessage",
-            func: impls::TranslateMessage,
-            stack_consumed: 8u32,
-            is_async: false,
-        };
-        pub const DispatchMessageA: Shim = Shim {
-            name: "DispatchMessageA",
-            func: impls::DispatchMessageA,
-            stack_consumed: 8u32,
-            is_async: true,
-        };
         pub const DefWindowProcA: Shim = Shim {
             name: "DefWindowProcA",
             func: impls::DefWindowProcA,
             stack_consumed: 20u32,
             is_async: false,
         };
-        pub const LoadIconA: Shim = Shim {
-            name: "LoadIconA",
-            func: impls::LoadIconA,
-            stack_consumed: 12u32,
-            is_async: false,
-        };
-        pub const LoadCursorA: Shim = Shim {
-            name: "LoadCursorA",
-            func: impls::LoadCursorA,
-            stack_consumed: 12u32,
-            is_async: false,
-        };
-        pub const CreateCursor: Shim = Shim {
-            name: "CreateCursor",
-            func: impls::CreateCursor,
-            stack_consumed: 32u32,
-            is_async: false,
-        };
-        pub const ShowCursor: Shim = Shim {
-            name: "ShowCursor",
-            func: impls::ShowCursor,
-            stack_consumed: 8u32,
-            is_async: false,
-        };
-        pub const LoadImageA: Shim = Shim {
-            name: "LoadImageA",
-            func: impls::LoadImageA,
-            stack_consumed: 28u32,
-            is_async: false,
-        };
-        pub const GetSystemMetrics: Shim = Shim {
-            name: "GetSystemMetrics",
-            func: impls::GetSystemMetrics,
-            stack_consumed: 8u32,
-            is_async: false,
-        };
     }
     const EXPORTS: [Symbol; 24usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::PeekMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::WaitMessage,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::TranslateMessage,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DispatchMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MessageBoxA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DialogBoxParamA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetSystemMetrics,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadIconA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadCursorA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateCursor,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::ShowCursor,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetCursor,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadImageA,
+        },
         Symbol {
             ordinal: None,
             shim: shims::RegisterClassA,
@@ -2083,63 +2139,7 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
-            shim: shims::SetCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MessageBoxA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DialogBoxParamA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PeekMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WaitMessage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TranslateMessage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DispatchMessageA,
-        },
-        Symbol {
-            ordinal: None,
             shim: shims::DefWindowProcA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadIconA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadCursorA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ShowCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadImageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemMetrics,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
