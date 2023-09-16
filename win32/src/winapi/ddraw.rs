@@ -326,7 +326,7 @@ mod IDirectDraw {
     vtable![IDirectDraw shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
         Compact todo,
         CreateClipper todo,
         CreatePalette (IDirectDraw7::shims::CreatePalette),
@@ -396,15 +396,54 @@ mod IDirectDraw {
 
     #[win32_derive::dllexport]
     async fn EnumDisplayModes(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         dwFlags: u32,
         lpSurfaceDesc: Option<&DDSURFACEDESC>,
         lpContext: u32,
         lpEnumCallback: u32,
     ) -> u32 {
-        todo!()
-        //DD_OK
+        if lpSurfaceDesc.is_some() {
+            todo!()
+        }
+        let mem = machine.memory.mem();
+        let desc_addr = machine
+            .state
+            .ddraw
+            .heap
+            .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
+        let desc = mem.view_mut::<DDSURFACEDESC>(desc_addr);
+        unsafe { desc.clear_struct() };
+        // TODO: offer multiple display modes rather than hardcoding this one.
+        desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
+        desc.dwWidth = 320;
+        desc.dwHeight = 200;
+        desc.ddpfPixelFormat = DDPIXELFORMAT {
+            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+            dwFlags: 0,
+            dwFourCC: 0,
+            dwRGBBitCount: 8,
+            dwRBitMask: 0xFF000000,
+            dwGBitMask: 0x00FF0000,
+            dwBBitMask: 0x0000FF00,
+            dwRGBAlphaBitMask: 0x000000FF,
+        };
+
+        crate::shims::call_x86(machine, lpEnumCallback, vec![desc_addr, lpContext]).await;
+
+        machine
+            .state
+            .ddraw
+            .heap
+            .free(machine.memory.mem(), desc_addr);
+
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        log::warn!("{this:x}->Release()");
+        0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
@@ -662,6 +701,10 @@ mod IDirectDraw7 {
         lpContext: u32,
         lpEnumCallback: u32,
     ) -> u32 {
+        if lpSurfaceDesc.is_some() {
+            todo!()
+        }
+
         let mem = machine.memory.mem();
         let desc_addr = machine
             .state
@@ -1038,7 +1081,7 @@ mod IDirectDrawPalette {
     vtable![IDirectDrawPalette shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
         GetCaps todo,
         GetEntries todo,
         Initialize todo,
@@ -1051,6 +1094,12 @@ mod IDirectDrawPalette {
         let vtable = ddraw.vtable_IDirectDrawPalette;
         machine.mem().put::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
+    }
+
+    #[win32_derive::dllexport]
+    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        log::warn!("{this:x}->Release()");
+        0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
