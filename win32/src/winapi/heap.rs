@@ -34,7 +34,6 @@ impl Heap {
         free.size -= size;
         free.addr += size;
         if free.size == 0 {
-            log::warn!("freelist chunk1 {}", self.freelist.len());
             self.freelist.remove(i);
         }
         mem.put::<u32>(addr, size);
