@@ -47,24 +47,16 @@ pub struct State {
     /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
     /// how surface flipping works for the palettes to work out, so this is hacked for now.
     palette_hack: u32,
-
-    // 32-bit space for passing a DDSURFACEDESC.
-    surfacedesc2: u32,
 }
 
 impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut ddraw = State::default();
-        let mut heap = machine.state.kernel32.new_private_heap(
+        ddraw.heap = machine.state.kernel32.new_private_heap(
             &mut machine.memory,
             1 << 20,
             "ddraw.dll heap".into(),
         );
-        ddraw.surfacedesc2 = heap.alloc(
-            machine.memory.mem(),
-            std::mem::size_of::<DDSURFACEDESC2>() as u32,
-        );
-        ddraw.heap = heap;
 
         ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, machine);
@@ -91,7 +83,6 @@ impl Default for State {
             surfaces: HashMap::new(),
             palettes: HashMap::new(),
             palette_hack: 0,
-            surfacedesc2: 0,
         }
     }
 }
@@ -341,7 +332,7 @@ mod IDirectDraw {
         CreatePalette (IDirectDraw7::shims::CreatePalette),
         CreateSurface ok,
         DuplicateSurface todo,
-        EnumDisplayModes todo,
+        EnumDisplayModes ok,
         EnumSurfaces todo,
         FlipToGDISurface todo,
         GetCaps todo,
@@ -401,6 +392,19 @@ mod IDirectDraw {
         );
 
         DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    async fn EnumDisplayModes(
+        _machine: &mut Machine,
+        this: u32,
+        dwFlags: u32,
+        lpSurfaceDesc: Option<&DDSURFACEDESC>,
+        lpContext: u32,
+        lpEnumCallback: u32,
+    ) -> u32 {
+        todo!()
+        //DD_OK
     }
 
     #[win32_derive::dllexport]
@@ -653,13 +657,18 @@ mod IDirectDraw7 {
     async fn EnumDisplayModes(
         machine: &mut Machine,
         this: u32,
-        flags: u32,
+        dwFlags: u32,
         lpSurfaceDesc: Option<&DDSURFACEDESC2>,
-        data: u32,
-        callback: u32,
+        lpContext: u32,
+        lpEnumCallback: u32,
     ) -> u32 {
-        let mem = machine.mem();
-        let desc = mem.view_mut::<DDSURFACEDESC2>(machine.state.ddraw.surfacedesc2);
+        let mem = machine.memory.mem();
+        let desc_addr = machine
+            .state
+            .ddraw
+            .heap
+            .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
+        let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
         unsafe { desc.clear_struct() };
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
@@ -676,12 +685,13 @@ mod IDirectDraw7 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        crate::shims::call_x86(
-            machine,
-            callback,
-            vec![machine.state.ddraw.surfacedesc2, data],
-        )
-        .await;
+        crate::shims::call_x86(machine, lpEnumCallback, vec![desc_addr, lpContext]).await;
+
+        machine
+            .state
+            .ddraw
+            .heap
+            .free(machine.memory.mem(), desc_addr);
 
         DD_OK
     }
