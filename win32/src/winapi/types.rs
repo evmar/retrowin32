@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 pub type WORD = u16;
 pub type DWORD = u32;
 
-#[derive(Debug, Eq, PartialEq, Clone, Copy, Hash)]
+#[derive(Eq, PartialEq, Clone, Copy, Hash)]
 #[repr(transparent)]
 pub struct HANDLE<T> {
     pub raw: u32,
@@ -35,6 +35,12 @@ impl<T> HANDLE<T> {
     }
     pub fn is_invalid(&self) -> bool {
         self.raw == -1i32 as u32
+    }
+}
+
+impl<T> std::fmt::Debug for HANDLE<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("HANDLE({})", self.raw))
     }
 }
 
