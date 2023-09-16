@@ -24,7 +24,11 @@ impl Heap {
 
     pub fn alloc(&mut self, mem: Mem, size: u32) -> u32 {
         let size = align32(size) + 4;
-        let i = self.freelist.iter().position(|f| f.size >= size).unwrap();
+        let i = self
+            .freelist
+            .iter()
+            .position(|f| f.size >= size)
+            .expect("heap oom");
         let free = &mut self.freelist[i];
         let addr = free.addr;
         free.size -= size;

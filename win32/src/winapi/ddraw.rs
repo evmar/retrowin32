@@ -60,6 +60,11 @@ impl State {
             0x1000,
             "ddraw.dll heap".into(),
         );
+        ddraw.surfacedesc2 = heap.alloc(
+            machine.memory.mem(),
+            std::mem::size_of::<DDSURFACEDESC2>() as u32,
+        );
+        ddraw.heap = heap;
 
         ddraw.vtable_IDirectDraw = IDirectDraw::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface = IDirectDrawSurface::vtable(&mut ddraw, machine);
@@ -67,11 +72,6 @@ impl State {
         ddraw.vtable_IDirectDrawSurface7 = IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
 
-        ddraw.surfacedesc2 = heap.alloc(
-            machine.memory.mem(),
-            std::mem::size_of::<DDSURFACEDESC2>() as u32,
-        );
-        ddraw.heap = heap;
         ddraw
     }
 }
@@ -101,7 +101,7 @@ const DD_OK: u32 = 0;
 const DDERR_GENERIC: u32 = 0x80004005;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct DDSCAPS2 {
     dwCaps: DWORD,
     dwCaps2: DWORD,
@@ -220,7 +220,7 @@ impl TryFrom<u32> for DDLOCK {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct DDCOLORKEY {
     dwColorSpaceLowValue: DWORD,
     dwColorSpaceHighValue: DWORD,
@@ -264,10 +264,16 @@ impl DDSURFACEDESC {
         }
         Some(self.dwBackBufferCount)
     }
+
+    fn from_desc2(&mut self, desc2: &DDSURFACEDESC2) {
+        self.dwFlags = desc2.dwFlags;
+        self.dwHeight = desc2.dwHeight;
+        self.dwWidth = desc2.dwWidth;
+    }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct DDSURFACEDESC2 {
     dwSize: DWORD,
     dwFlags: DWORD,
@@ -311,7 +317,7 @@ impl DDSURFACEDESC2 {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct DDPIXELFORMAT {
     dwSize: DWORD,
     dwFlags: DWORD,
@@ -492,20 +498,27 @@ mod IDirectDrawSurface {
 
     #[win32_derive::dllexport]
     fn Lock(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         rect: Option<&RECT>,
         desc: Option<&mut DDSURFACEDESC>,
         flags: Result<DDLOCK, u32>,
         event: u32,
     ) -> u32 {
-        if rect.is_some() {
-            todo!()
-        }
         if event != 0 {
             todo!()
         }
-        todo!()
+        let mut desc2 = DDSURFACEDESC2::default();
+        desc2.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
+        let ret = IDirectDrawSurface7::Lock(machine, this, rect, Some(&mut desc2), flags, 0);
+        if ret != DD_OK {
+            return ret;
+        }
+
+        let desc = desc.unwrap();
+        desc.from_desc2(&desc2);
+
+        ret
     }
 }
 
@@ -918,7 +931,7 @@ mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn Lock(
+    pub(super) fn Lock(
         machine: &mut Machine,
         this: u32,
         rect: Option<&RECT>,
