@@ -462,7 +462,7 @@ pub mod kernel32 {
         }
         pub unsafe fn HeapAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let dwFlags = <Result<HeapAllocFlags, u32>>::from_stack(machine.mem(), esp + 8u32);
             let dwBytes = <u32>::from_stack(machine.mem(), esp + 12u32);
             winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes).to_raw()
         }

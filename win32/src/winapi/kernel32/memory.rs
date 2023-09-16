@@ -134,17 +134,30 @@ impl Mappings {
 }
 
 bitflags! {
+    #[derive(Default)]
     pub struct HeapAllocFlags: u32 {
         const HEAP_GENERATE_EXCEPTIONS = 0x4;
         const HEAP_NO_SERIALIZE = 0x1;
         const HEAP_ZERO_MEMORY = 0x8;
     }
 }
+impl TryFrom<u32> for HeapAllocFlags {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        HeapAllocFlags::from_bits(value).ok_or(value)
+    }
+}
 
 #[win32_derive::dllexport]
-pub fn HeapAlloc(machine: &mut Machine, hHeap: u32, dwFlags: u32, dwBytes: u32) -> u32 {
-    let mut flags = HeapAllocFlags::from_bits(dwFlags).unwrap_or_else(|| {
-        log::warn!("HeapAlloc invalid flags {dwFlags:x}");
+pub fn HeapAlloc(
+    machine: &mut Machine,
+    hHeap: u32,
+    dwFlags: Result<HeapAllocFlags, u32>,
+    dwBytes: u32,
+) -> u32 {
+    let mut flags = dwFlags.unwrap_or_else(|_| {
+        log::warn!("HeapAlloc invalid flags {dwFlags:x?}");
         HeapAllocFlags::empty()
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
@@ -324,15 +337,18 @@ pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 
 #[win32_derive::dllexport]
 pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
+    // GlobalAlloc accepted many flags, but most are obsolete and ignored.
+    // We only care about two in particular.
     if uFlags & 0x2 != 0 {
         todo!("GMEM_MOVEABLE");
     }
+    let mut flags = HeapAllocFlags::default();
     if uFlags & 0x40 != 0 {
-        todo!("GMEM_ZEROINIT");
+        // GMEM_ZEROINIT
+        flags.set(HeapAllocFlags::HEAP_ZERO_MEMORY, true);
     }
-    // Allow any other flags, because there are a bunch of ignored 16-bit Windows flags.
     let heap = winapi::kernel32::GetProcessHeap(machine);
-    HeapAlloc(machine, heap, 0, dwBytes)
+    HeapAlloc(machine, heap, Ok(flags), dwBytes)
 }
 
 #[win32_derive::dllexport]
