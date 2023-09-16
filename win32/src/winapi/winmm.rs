@@ -18,6 +18,11 @@ pub fn timeSetEvent(
 }
 
 #[win32_derive::dllexport]
+pub fn timeGetTime(machine: &mut Machine) -> u32 {
+    machine.host.time()
+}
+
+#[win32_derive::dllexport]
 pub fn waveOutGetNumDevs(_machine: &mut Machine) -> u32 {
     0 // no sound yet
 }

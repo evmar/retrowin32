@@ -2171,6 +2171,9 @@ pub mod winmm {
             )
             .to_raw()
         }
+        pub unsafe fn timeGetTime(machine: &mut Machine, esp: u32) -> u32 {
+            winapi::winmm::timeGetTime(machine).to_raw()
+        }
         pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, esp: u32) -> u32 {
             winapi::winmm::waveOutGetNumDevs(machine).to_raw()
         }
@@ -2184,6 +2187,12 @@ pub mod winmm {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const timeGetTime: Shim = Shim {
+            name: "timeGetTime",
+            func: impls::timeGetTime,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const waveOutGetNumDevs: Shim = Shim {
             name: "waveOutGetNumDevs",
             func: impls::waveOutGetNumDevs,
@@ -2191,10 +2200,14 @@ pub mod winmm {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 2usize] = [
+    const EXPORTS: [Symbol; 3usize] = [
         Symbol {
             ordinal: None,
             shim: shims::timeSetEvent,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::timeGetTime,
         },
         Symbol {
             ordinal: None,
