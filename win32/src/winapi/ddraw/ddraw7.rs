@@ -1,3 +1,5 @@
+//! Implementation of DirectDraw7 interfaces.
+
 use super::{types::*, IDirectDrawPalette, State, DDERR_GENERIC, DD_OK};
 use crate::{
     winapi::{ddraw, types::*, vtable},

@@ -1,3 +1,5 @@
+//! Types defined in the DirectDraw API.
+
 use crate::winapi::types::*;
 use bitflags::bitflags;
 
