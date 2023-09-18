@@ -20,12 +20,12 @@ pub type HICON = u32;
 pub type HBRUSH = u32;
 
 #[win32_derive::dllexport]
-pub fn LoadIconA(_machine: &mut Machine, _hInstance: u32, _lpIconName: u32) -> u32 {
+pub fn LoadIconA(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn LoadCursorA(_machine: &mut Machine, _hInstance: u32, _lpCursorName: u32) -> HCURSOR {
+pub fn LoadCursorA(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
     0
 }
 
@@ -44,7 +44,7 @@ pub fn CreateCursor(
 }
 
 #[win32_derive::dllexport]
-pub fn ShowCursor(_machine: &mut Machine, _bShow: bool) -> u32 {
+pub fn ShowCursor(_machine: &mut Machine, bShow: bool) -> u32 {
     // TODO: increment/decrement refcount
     1 // ref=1
 }

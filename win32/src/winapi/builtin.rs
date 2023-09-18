@@ -1889,14 +1889,14 @@ pub mod user32 {
             winapi::user32::GetWindowDC(machine, hWnd).to_raw()
         }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
-            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            winapi::user32::LoadCursorA(machine, _hInstance, _lpCursorName).to_raw()
+            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::LoadCursorA(machine, hInstance, lpCursorName).to_raw()
         }
         pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) -> u32 {
-            let _hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            winapi::user32::LoadIconA(machine, _hInstance, _lpIconName).to_raw()
+            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::LoadIconA(machine, hInstance, lpIconName).to_raw()
         }
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
             let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -1955,8 +1955,8 @@ pub mod user32 {
             winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let _bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
-            winapi::user32::ShowCursor(machine, _bShow).to_raw()
+            let bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::ShowCursor(machine, bShow).to_raw()
         }
         pub unsafe fn ShowWindow(machine: &mut Machine, esp: u32) -> u32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
