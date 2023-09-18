@@ -228,8 +228,46 @@ pub fn UpdateWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
     true // success
 }
 
+/// nCmdShow passed to ShowWindow().
+#[derive(Debug)]
+pub enum SW {
+    HIDE = 0,
+    NORMAL = 1,
+    SHOWMINIMIZED = 2,
+    SHOWMAXIMIZED = 3,
+    SHOWNOACTIVATE = 4,
+    SHOW = 5,
+    MINIMIZE = 6,
+    SHOWMINNOACTIVE = 7,
+    SHOWNA = 8,
+    RESTORE = 9,
+    SHOWDEFAULT = 10,
+    FORCEMINIMIZE = 11,
+}
+impl TryFrom<u32> for SW {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            0 => SW::HIDE,
+            1 => SW::NORMAL,
+            2 => SW::SHOWMINIMIZED,
+            3 => SW::SHOWMAXIMIZED,
+            4 => SW::SHOWNOACTIVATE,
+            5 => SW::SHOW,
+            6 => SW::MINIMIZE,
+            7 => SW::SHOWMINNOACTIVE,
+            8 => SW::SHOWNA,
+            9 => SW::RESTORE,
+            10 => SW::SHOWDEFAULT,
+            11 => SW::FORCEMINIMIZE,
+            _ => return Err(value),
+        })
+    }
+}
+
 #[win32_derive::dllexport]
-pub fn ShowWindow(_machine: &mut Machine, hWnd: HWND, _nCmdShow: u32) -> bool {
+pub fn ShowWindow(_machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
     let previously_visible = true;
     previously_visible
 }

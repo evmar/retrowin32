@@ -1903,8 +1903,8 @@ pub mod user32 {
         }
         pub unsafe fn ShowWindow(machine: &mut Machine, esp: u32) -> u32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let _nCmdShow = <u32>::from_stack(machine.mem(), esp + 8u32);
-            winapi::user32::ShowWindow(machine, hWnd, _nCmdShow).to_raw()
+            let nCmdShow = <Result<SW, u32>>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::ShowWindow(machine, hWnd, nCmdShow).to_raw()
         }
         pub unsafe fn SetFocus(machine: &mut Machine, esp: u32) -> u32 {
             let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
