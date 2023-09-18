@@ -39,8 +39,10 @@ fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExport>> {
 }
 
 /// Gather all the dllexport fns in a list of syn::Items (module contents).
-pub fn gather_shims(items: &[syn::Item]) -> anyhow::Result<Vec<(&syn::ItemFn, DllExport)>> {
-    let mut fns = Vec::new();
+pub fn gather_shims<'a>(
+    items: &'a [syn::Item],
+    out: &mut Vec<(&'a syn::ItemFn, DllExport)>,
+) -> anyhow::Result<()> {
     for item in items {
         match item {
             syn::Item::Fn(func) => {
@@ -52,13 +54,13 @@ pub fn gather_shims(items: &[syn::Item]) -> anyhow::Result<Vec<(&syn::ItemFn, Dl
                     }
                 }
                 if let Some(dllexport) = dllexport {
-                    fns.push((func, dllexport));
+                    out.push((func, dllexport));
                 }
             }
             _ => {}
         }
     }
-    Ok(fns)
+    Ok(())
 }
 
 /// Return the amount of stack a given stdcall argument uses.

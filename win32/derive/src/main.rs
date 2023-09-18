@@ -23,28 +23,36 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     };
     paths.sort();
 
-    let mut impls = Vec::new();
-    let mut shims = Vec::new();
-    let mut exports = Vec::new();
+    let mut files = Vec::new();
     for path in paths {
         let buf = std::fs::read_to_string(&path)?;
         let file = match syn::parse_file(&buf) {
             Ok(file) => file,
             Err(err) => return Ok(err.into_compile_error().into()),
         };
-        let dllexports = gen::gather_shims(&file.items)?;
-        for (func, dllexport) in dllexports {
-            let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
-            impls.push(wrapper);
-            shims.push(shim);
+        files.push(file);
+    }
 
-            let ordinal = match dllexport.ordinal {
-                Some(ord) => quote!(Some(#ord)),
-                None => quote!(None),
-            };
-            let name = &func.sig.ident;
-            exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
-        }
+    let mut dllexports = Vec::new();
+    for file in &files {
+        gen::gather_shims(&file.items, &mut dllexports)?;
+    }
+    dllexports.sort_by_key(|(func, _)| &func.sig.ident);
+
+    let mut impls = Vec::new();
+    let mut shims = Vec::new();
+    let mut exports = Vec::new();
+    for (func, dllexport) in dllexports {
+        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
+        impls.push(wrapper);
+        shims.push(shim);
+
+        let ordinal = match dllexport.ordinal {
+            Some(ord) => quote!(Some(#ord)),
+            None => quote!(None),
+        };
+        let name = &func.sig.ident;
+        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
     }
 
     let exports_count = exports.len();
