@@ -3,6 +3,8 @@ use bitflags::bitflags;
 use memory::MemImpl;
 use std::cmp::max;
 
+use super::peb_mut;
+
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
 
 pub fn round_up_to_page_granularity(size: u32) -> u32 {
@@ -369,4 +371,19 @@ pub fn VirtualProtect(
     lpflOldProtect: Option<&mut u32>,
 ) -> bool {
     true // success
+}
+
+#[win32_derive::dllexport]
+pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
+    let heap = peb_mut(machine).ProcessHeap;
+    if heap != 0 {
+        return heap;
+    }
+    let size = 8 << 20;
+    let heap = machine
+        .state
+        .kernel32
+        .new_heap(&mut machine.memory, size, "process heap".into());
+    peb_mut(machine).ProcessHeap = heap;
+    heap
 }

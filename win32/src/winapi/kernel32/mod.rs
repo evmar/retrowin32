@@ -221,13 +221,13 @@ fn teb(machine: &Machine) -> &TEB {
 fn teb_mut(machine: &mut Machine) -> &mut TEB {
     machine.mem().view_mut::<TEB>(machine.state.kernel32.teb)
 }
-fn peb_mut(machine: &mut Machine) -> &mut PEB {
+pub fn peb_mut(machine: &mut Machine) -> &mut PEB {
     let peb_addr = teb(machine).Peb;
     machine.mem().view_mut::<PEB>(peb_addr)
 }
 
 #[repr(C)]
-struct PEB {
+pub struct PEB {
     InheritedAddressSpace: u8,
     ReadImageFileExecOptions: u8,
     BeingDebugged: u8,
@@ -614,21 +614,6 @@ pub fn GetVersionExA(
     info.dwPlatformId = 2 /* VER_PLATFORM_WIN32_NT */;
 
     1
-}
-
-#[win32_derive::dllexport]
-pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    let heap = peb_mut(machine).ProcessHeap;
-    if heap != 0 {
-        return heap;
-    }
-    let size = 8 << 20;
-    let heap = machine
-        .state
-        .kernel32
-        .new_heap(&mut machine.memory, size, "process heap".into());
-    peb_mut(machine).ProcessHeap = heap;
-    heap
 }
 
 #[win32_derive::dllexport]

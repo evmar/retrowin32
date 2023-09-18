@@ -562,6 +562,9 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
+            winapi::kernel32::GetProcessHeap(machine).to_raw()
+        }
         pub unsafe fn SetLastError(machine: &mut Machine, esp: u32) -> u32 {
             let dwErrCode = <u32>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::SetLastError(machine, dwErrCode).to_raw()
@@ -658,9 +661,6 @@ pub mod kernel32 {
             let lpVersionInformation =
                 <Option<&mut OSVERSIONINFO>>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::GetVersionExA(machine, lpVersionInformation).to_raw()
-        }
-        pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
-            winapi::kernel32::GetProcessHeap(machine).to_raw()
         }
         pub unsafe fn SetHandleCount(machine: &mut Machine, esp: u32) -> u32 {
             let uNumber = <u32>::from_stack(machine.mem(), esp + 4u32);
@@ -996,6 +996,12 @@ pub mod kernel32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const GetProcessHeap: Shim = Shim {
+            name: "GetProcessHeap",
+            func: impls::GetProcessHeap,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetLastError: Shim = Shim {
             name: "SetLastError",
             func: impls::SetLastError,
@@ -1144,12 +1150,6 @@ pub mod kernel32 {
             name: "GetVersionExA",
             func: impls::GetVersionExA,
             stack_consumed: 8u32,
-            is_async: false,
-        };
-        pub const GetProcessHeap: Shim = Shim {
-            name: "GetProcessHeap",
-            func: impls::GetProcessHeap,
-            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetHandleCount: Shim = Shim {
@@ -1422,6 +1422,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetProcessHeap,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SetLastError,
         },
         Symbol {
@@ -1519,10 +1523,6 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetVersionExA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProcessHeap,
         },
         Symbol {
             ordinal: None,
