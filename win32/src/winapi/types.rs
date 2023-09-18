@@ -70,6 +70,10 @@ pub type HFILE = HANDLE<HFILET>;
 pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HDCT;
+pub type HDC = HANDLE<HDCT>;
+
 /// UTF-16 string view.
 pub struct Str16<'a>(&'a [u16]);
 

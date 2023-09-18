@@ -56,7 +56,7 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
 
 #[repr(C)]
 #[derive(Debug)]
-struct BITMAPINFOHEADER {
+pub struct BITMAPINFOHEADER {
     biSize: DWORD,
     biWidth: DWORD,
     biHeight: DWORD,

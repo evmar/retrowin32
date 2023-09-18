@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use super::types::*;
 use crate::{machine::Machine, winapi::user32};
 
 const TRACE_CONTEXT: &'static str = "gdi32";
@@ -187,4 +188,29 @@ pub fn StretchBlt(
     BitBlt(
         machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
     )
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct BITMAPINFO {
+    bmiHeader: user32::BITMAPINFOHEADER,
+    bmiColors: [u32; 0], // TODO
+}
+unsafe impl memory::Pod for BITMAPINFO {}
+
+#[win32_derive::dllexport]
+pub fn CreateDIBSection(
+    _machine: &mut Machine,
+    hdc: HDC,
+    pbmi: Option<&BITMAPINFO>,
+    usage: u32,
+    ppvBits: Option<&mut u32>, // **void
+    hSection: u32,
+    offset: u32,
+) -> u32 {
+    // TODO: HBITMAP
+    if hSection != 0 || offset != 0 {
+        todo!()
+    }
+    0 // fail
 }

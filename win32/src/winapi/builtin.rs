@@ -255,6 +255,16 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn CreateDIBSection(machine: &mut Machine, esp: u32) -> u32 {
+            let hdc = <HDC>::from_stack(machine.mem(), esp + 4u32);
+            let pbmi = <Option<&BITMAPINFO>>::from_stack(machine.mem(), esp + 8u32);
+            let usage = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let ppvBits = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
+            let hSection = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let offset = <u32>::from_stack(machine.mem(), esp + 24u32);
+            winapi::gdi32::CreateDIBSection(machine, hdc, pbmi, usage, ppvBits, hSection, offset)
+                .to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -301,8 +311,14 @@ pub mod gdi32 {
             stack_consumed: 48u32,
             is_async: false,
         };
+        pub const CreateDIBSection: Shim = Shim {
+            name: "CreateDIBSection",
+            func: impls::CreateDIBSection,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 7usize] = [
+    const EXPORTS: [Symbol; 8usize] = [
         Symbol {
             ordinal: None,
             shim: shims::GetStockObject,
@@ -330,6 +346,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::StretchBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateDIBSection,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -1922,6 +1942,14 @@ pub mod user32 {
             let lpRect = <Option<&mut RECT>>::from_stack(machine.mem(), esp + 8u32);
             winapi::user32::GetClientRect(machine, hWnd, lpRect).to_raw()
         }
+        pub unsafe fn GetWindowDC(machine: &mut Machine, esp: u32) -> u32 {
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::GetWindowDC(machine, hWnd).to_raw()
+        }
+        pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
+            let hdc = <HDC>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::ReleaseDC(machine, hdc).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -2088,8 +2116,20 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetWindowDC: Shim = Shim {
+            name: "GetWindowDC",
+            func: impls::GetWindowDC,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const ReleaseDC: Shim = Shim {
+            name: "ReleaseDC",
+            func: impls::ReleaseDC,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 27usize] = [
+    const EXPORTS: [Symbol; 29usize] = [
         Symbol {
             ordinal: None,
             shim: shims::PeekMessageA,
@@ -2197,6 +2237,14 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetClientRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetWindowDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::ReleaseDC,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

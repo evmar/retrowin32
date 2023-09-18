@@ -300,3 +300,15 @@ pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut REC
     };
     true
 }
+
+#[win32_derive::dllexport]
+pub fn GetWindowDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
+    HDC::null()
+}
+
+#[win32_derive::dllexport]
+pub fn ReleaseDC(_machine: &mut Machine, hdc: HDC) -> bool {
+    // Note: there is also DeleteDC; this one is specific for some specific DC types...
+    log::warn!("todo: ReleaseDC({hdc:x})");
+    false // fail
+}
