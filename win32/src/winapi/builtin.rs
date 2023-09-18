@@ -538,7 +538,7 @@ pub mod kernel32 {
             winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo).to_raw()
         }
         pub unsafe fn GetStdHandle(machine: &mut Machine, esp: u32) -> u32 {
-            let nStdHandle = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let nStdHandle = <Result<STD, u32>>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw()
         }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) -> u32 {

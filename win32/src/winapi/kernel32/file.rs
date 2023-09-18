@@ -8,17 +8,36 @@ use crate::{
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
 
-// For now, a magic variable that makes it easier to spot.
+#[derive(Debug)]
+pub enum STD {
+    INPUT_HANDLE = -10,
+    OUTPUT_HANDLE = -11,
+    ERROR_HANDLE = -12,
+}
+impl TryFrom<u32> for STD {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value as i32 {
+            -10 => STD::INPUT_HANDLE,
+            -11 => STD::OUTPUT_HANDLE,
+            -12 => STD::ERROR_HANDLE,
+            _ => return Err(value),
+        })
+    }
+}
+
+// For now, a magic variable  that makes it easier to spot.
 pub const STDIN_HFILE: HFILE = HFILE::from_raw(0xF11E_0100);
 pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
 pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
 #[win32_derive::dllexport]
-pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: u32) -> HFILE {
-    match nStdHandle as i32 {
-        -10 => STDIN_HFILE,
-        -11 => STDOUT_HFILE,
-        -12 => STDERR_HFILE,
+pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFILE {
+    match nStdHandle {
+        Ok(STD::INPUT_HANDLE) => STDIN_HFILE,
+        Ok(STD::OUTPUT_HANDLE) => STDOUT_HFILE,
+        Ok(STD::ERROR_HANDLE) => STDERR_HFILE,
         _ => HFILE::invalid(),
     }
 }
