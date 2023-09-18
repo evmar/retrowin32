@@ -6,6 +6,7 @@
 //! Pass '*' to enable all.
 
 use std::collections::HashMap;
+use std::fmt::Write;
 
 #[derive(Debug)]
 struct Rule {
@@ -71,6 +72,7 @@ pub fn set_scheme(scheme: &str) {
     unsafe { STATE = Some(State::new(scheme)) };
 }
 
+#[inline(never)]
 pub fn enabled(context: &'static str) -> bool {
     let state = unsafe {
         match &mut STATE {
@@ -79,4 +81,17 @@ pub fn enabled(context: &'static str) -> bool {
         }
     };
     state.lookup(context)
+}
+
+#[inline(never)]
+pub fn trace(context: &str, func: &str, args: &[(&str, &dyn std::fmt::Debug)]) {
+    let mut msg = format!("{}/{}(", context, func);
+    for (i, arg) in args.iter().enumerate() {
+        if i > 0 {
+            msg.push_str(", ");
+        }
+        write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
+    }
+    msg.push_str(")");
+    log::info!("{}", msg);
 }

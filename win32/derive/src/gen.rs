@@ -170,12 +170,12 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     )
 }
 
-/// Insert a `log::info!` at the front of a function that logs its name and arguments.
+/// Insert a call to trace::trace() at the front of a function that logs its name and arguments.
 // TODO: this fn is used by lib.rs, but not main.rs.
+// TODO: this maybe belongs at the "impls" mod, so it can do its own traversal of the stack (?).
 #[allow(dead_code)]
 pub fn add_trace(func: &mut syn::ItemFn) {
-    let mut fmt: String = "{}/".into(); // TRACE_CONTEXT prefix
-    fmt.push_str(&func.sig.ident.to_string());
+    let name = func.sig.ident.to_string();
     let mut args: Vec<&syn::Ident> = Vec::new();
     for arg in func.sig.inputs.iter().skip(1) {
         match arg {
@@ -188,17 +188,19 @@ pub fn add_trace(func: &mut syn::ItemFn) {
             _ => {}
         };
     }
-    fmt.push_str("(");
-    fmt.push_str(
-        &args
-            .iter()
-            .map(|arg| format!("{arg}:{{:x?}}"))
-            .collect::<Vec<_>>()
-            .join(", "),
-    );
-    fmt.push_str(")");
-    let stmt = syn::parse_quote! {
-        if crate::trace::enabled(TRACE_CONTEXT) { log::info!(#fmt, TRACE_CONTEXT, #(#args),*); }
+    let synargs = args
+        .iter()
+        .map(|arg| {
+            let name = arg.to_string();
+            quote!((#name, &#arg))
+        })
+        .collect::<Vec<_>>();
+    let arg_count = args.len();
+    let stmt: syn::Stmt = syn::parse_quote! {
+        if crate::trace::enabled(TRACE_CONTEXT) {
+            let args: &[(&str, &dyn std::fmt::Debug); #arg_count] = &[#(#synargs),*];
+            crate::trace::trace(TRACE_CONTEXT, #name, args);
+        }
     };
     func.block.stmts.insert(0, stmt);
 }
