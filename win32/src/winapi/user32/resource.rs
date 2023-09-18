@@ -187,8 +187,7 @@ pub fn LoadImageA(
             let buf = pe::get_resource(mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
                 .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
-            machine.state.gdi32.objects.push(gdi32::Object::Bitmap(bmp));
-            machine.state.gdi32.objects.len() as u32
+            machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp))
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);

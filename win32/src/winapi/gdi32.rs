@@ -1,5 +1,7 @@
 #![allow(non_snake_case)]
 
+use std::collections::HashMap;
+
 use super::types::*;
 use crate::{machine::Machine, winapi::user32};
 
@@ -23,7 +25,7 @@ pub struct DC {
     pub ddraw_surface: u32,
 }
 impl DC {
-    fn new() -> Self {
+    pub fn new() -> Self {
         DC {
             bitmap: 0,
             ddraw_surface: 0,
@@ -31,47 +33,50 @@ impl DC {
     }
 }
 
-pub struct State {
-    dcs: Vec<DC>,
-    pub objects: Vec<Object>,
+pub type HDC = HANDLE<DC>;
+
+/// Maintains a mapping of u32 -> T, vending out new u32 ids.
+pub struct Handles<T> {
+    map: HashMap<u32, T>,
+    next: u32,
 }
 
-impl State {
-    pub fn new_dc(&mut self) -> (u32, &mut DC) {
-        self.dcs.push(DC::new());
-        let handle = self.dcs.len() as u32;
-        (handle, &mut self.dcs[handle as usize - 1])
+impl<T> Default for Handles<T> {
+    fn default() -> Self {
+        Handles {
+            map: HashMap::default(),
+            next: 1,
+        }
+    }
+}
+
+impl<T> Handles<T> {
+    pub fn add(&mut self, t: T) -> u32 {
+        let handle = self.next;
+        self.next += 1;
+        self.map.insert(handle, t);
+        handle
     }
 
-    fn get_dc(&self, handle: u32) -> Option<&DC> {
-        if handle > 0 {
-            self.dcs.get((handle - 1) as usize)
-        } else {
-            None
-        }
-    }
-    fn get_dc_mut(&mut self, handle: u32) -> Option<&mut DC> {
-        if handle > 0 {
-            self.dcs.get_mut((handle - 1) as usize)
-        } else {
-            None
-        }
+    pub fn get(&self, handle: u32) -> Option<&T> {
+        self.map.get(&handle)
     }
 
-    fn get_object(&self, handle: u32) -> Option<&Object> {
-        if handle > 0 {
-            self.objects.get((handle - 1) as usize)
-        } else {
-            None
-        }
+    pub fn get_mut(&mut self, handle: u32) -> Option<&mut T> {
+        self.map.get_mut(&handle)
     }
+}
+
+pub struct State {
+    pub dcs: Handles<DC>,
+    pub objects: Handles<Object>,
 }
 
 impl Default for State {
     fn default() -> Self {
         State {
-            dcs: Vec::new(),
-            objects: Vec::new(),
+            dcs: Default::default(),
+            objects: Default::default(),
         }
     }
 }
@@ -83,26 +88,23 @@ pub fn GetStockObject(_machine: &mut Machine, _i: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
-    let obj = match machine.state.gdi32.get_object(hGdiObj) {
-        None => return 0, // TODO: HGDI_ERROR
-        Some(obj) => obj,
-    };
-
-    let op = match obj {
-        Object::Bitmap(_) => |dc: &mut DC| std::mem::replace(&mut dc.bitmap, hGdiObj),
-    };
-
-    let dc = match machine.state.gdi32.get_dc_mut(hdc) {
+    let dc = match machine.state.gdi32.dcs.get_mut(hdc) {
         None => return 0, // TODO: HGDI_ERROR
         Some(dc) => dc,
     };
 
-    op(dc) // returns previous value
+    let obj = match machine.state.gdi32.objects.get(hGdiObj) {
+        None => return 0, // TODO: HGDI_ERROR
+        Some(obj) => obj,
+    };
+    match obj {
+        Object::Bitmap(_) => std::mem::replace(&mut dc.bitmap, hGdiObj),
+    }
 }
 
 #[win32_derive::dllexport]
 pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) -> u32 {
-    let obj = match machine.state.gdi32.get_object(handle) {
+    let obj = match machine.state.gdi32.objects.get(handle) {
         None => return 0, // fail
         Some(obj) => obj,
     };
@@ -114,7 +116,8 @@ pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) ->
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: u32) -> u32 {
     assert!(hdc == 0); // null means "compatible with current screen"
-    let (handle, _) = machine.state.gdi32.new_dc();
+    let dc = DC::new();
+    let handle = machine.state.gdi32.dcs.add(dc);
     handle
 }
 
@@ -146,15 +149,15 @@ pub fn BitBlt(
 
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
-    let hdc = machine.state.gdi32.get_dc(hdc).unwrap();
+    let hdc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let surface = machine
         .state
         .ddraw
         .surfaces
         .get_mut(&hdc.ddraw_surface)
         .unwrap();
-    let hdcSrc = machine.state.gdi32.get_dc(hdcSrc).unwrap();
-    let obj = machine.state.gdi32.get_object(hdcSrc.bitmap).unwrap();
+    let hdcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
+    let obj = machine.state.gdi32.objects.get(hdcSrc.bitmap).unwrap();
     let bitmap = match obj {
         Object::Bitmap(bmp) => bmp,
     };

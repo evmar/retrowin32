@@ -4,6 +4,7 @@ mod message;
 mod resource;
 mod window;
 
+pub use super::gdi32::HDC;
 use super::{stack_args::ToX86, types::*};
 use crate::{machine::Machine, pe};
 pub use message::*;

@@ -1,5 +1,5 @@
 use super::*;
-use crate::host;
+use crate::{host, winapi::gdi32::HDC};
 use bitflags::bitflags;
 use std::rc::Rc;
 
