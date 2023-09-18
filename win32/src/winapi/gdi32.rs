@@ -2,7 +2,11 @@
 
 use std::collections::HashMap;
 
-use super::types::*;
+use super::{
+    kernel32,
+    types::*,
+    user32::{BI, BITMAPINFOHEADER},
+};
 use crate::{machine::Machine, winapi::user32};
 
 const TRACE_CONTEXT: &'static str = "gdi32";
@@ -165,7 +169,9 @@ pub fn BitBlt(
     assert!(cx == surface.width && cy == surface.height);
     assert!(surface.width == bitmap.width && surface.height == bitmap.height);
 
-    surface.host.write_pixels(&bitmap.pixels);
+    surface
+        .host
+        .write_pixels(bitmap.pixels_slice(machine.memory.mem()));
     1 // success
 }
 
@@ -201,9 +207,12 @@ pub struct BITMAPINFO {
 }
 unsafe impl memory::Pod for BITMAPINFO {}
 
+const DIB_RGB_COLORS: u32 = 0;
+// const DIB_PAL_COLORS: u32 = 1;
+
 #[win32_derive::dllexport]
 pub fn CreateDIBSection(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hdc: HDC,
     pbmi: Option<&BITMAPINFO>,
     usage: u32,
@@ -211,9 +220,43 @@ pub fn CreateDIBSection(
     hSection: u32,
     offset: u32,
 ) -> u32 {
-    // TODO: HBITMAP
+    if usage != DIB_RGB_COLORS {
+        todo!()
+    }
     if hSection != 0 || offset != 0 {
         todo!()
     }
-    0 // fail
+
+    let bi = &pbmi.unwrap().bmiHeader;
+    if bi.biSize != std::mem::size_of::<BITMAPINFOHEADER>() as u32 {
+        todo!()
+    }
+    if !bi.is_top_down() {
+        todo!()
+    }
+    if bi.biBitCount != 32 {
+        todo!()
+    }
+    if bi.compression().unwrap() != BI::BITFIELDS {
+        todo!()
+    }
+    // TODO: ought to check that .bmiColors masks are the RGBX we expect.
+
+    let byte_count = bi.width() * bi.height() * bi.biBitCount as u32;
+    let heap = kernel32::GetProcessHeap(machine);
+    let pixels = kernel32::HeapAlloc(
+        machine,
+        heap,
+        Ok(kernel32::HeapAllocFlags::default()),
+        byte_count,
+    );
+
+    *ppvBits.unwrap() = pixels;
+
+    let bitmap = user32::Bitmap {
+        width: bi.width(),
+        height: bi.height(),
+        pixels: user32::Pixels::Ptr(pixels),
+    };
+    machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
 }

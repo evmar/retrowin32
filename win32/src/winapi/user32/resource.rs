@@ -54,46 +54,93 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
+#[derive(Debug, Eq, PartialEq)]
+pub enum BI {
+    RGB = 0,
+    RLE8 = 1,
+    RLE4 = 2,
+    BITFIELDS = 3,
+    JPEG = 4,
+    PNG = 5,
+}
+
+impl TryFrom<u32> for BI {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            0 => BI::RGB,
+            1 => BI::RLE8,
+            2 => BI::RLE4,
+            3 => BI::BITFIELDS,
+            4 => BI::JPEG,
+            5 => BI::PNG,
+            _ => return Err(value),
+        })
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct BITMAPINFOHEADER {
-    biSize: DWORD,
-    biWidth: DWORD,
-    biHeight: DWORD,
-    biPlanes: WORD,
-    biBitCount: WORD,
-    biCompression: DWORD,
-    biSizeImage: DWORD,
-    biXPelsPerMeter: DWORD,
-    biYPelsPerMeter: DWORD,
-    biClrUsed: DWORD,
-    biClrImportant: DWORD,
+    pub biSize: DWORD,
+    pub biWidth: DWORD,
+    pub biHeight: DWORD,
+    pub biPlanes: WORD,
+    pub biBitCount: WORD,
+    pub biCompression: DWORD,
+    pub biSizeImage: DWORD,
+    pub biXPelsPerMeter: DWORD,
+    pub biYPelsPerMeter: DWORD,
+    pub biClrUsed: DWORD,
+    pub biClrImportant: DWORD,
 }
 unsafe impl memory::Pod for BITMAPINFOHEADER {}
 impl BITMAPINFOHEADER {
-    fn width(&self) -> u32 {
+    pub fn width(&self) -> u32 {
         self.biWidth
     }
-    fn height(&self) -> u32 {
+    pub fn height(&self) -> u32 {
         // Height is negative if top-down DIB.
         (self.biHeight as i32).abs() as u32
     }
-    fn is_top_down(&self) -> bool {
+    pub fn is_top_down(&self) -> bool {
         (self.biHeight as i32) < 0
     }
+    pub fn compression(&self) -> Result<BI, u32> {
+        BI::try_from(self.biCompression)
+    }
+}
+
+pub enum Pixels {
+    Owned(Box<[[u8; 4]]>),
+    Ptr(u32),
 }
 
 pub struct Bitmap {
     pub width: u32,
     pub height: u32,
-    pub pixels: Box<[[u8; 4]]>,
+    pub pixels: Pixels,
 }
+
+impl Bitmap {
+    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+        match self.pixels {
+            Pixels::Owned(ref slice) => &*slice,
+            Pixels::Ptr(addr) => {
+                let len = self.width * self.height;
+                mem.view_n::<[u8; 4]>(addr, len)
+            }
+        }
+    }
+}
+
 impl std::fmt::Debug for Bitmap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Bitmap")
             .field("width", &self.width)
             .field("height", &self.height)
-            .field("pixels", &&self.pixels[0..16])
+            //.field("pixels", &&self.pixels[0..16])
             .finish()
     }
 }
@@ -153,7 +200,7 @@ fn parse_bitmap(buf: Mem) -> anyhow::Result<Bitmap> {
     Ok(Bitmap {
         width,
         height,
-        pixels: pixels.into_boxed_slice(),
+        pixels: Pixels::Owned(pixels.into_boxed_slice()),
     })
 }
 

@@ -622,7 +622,7 @@ pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
     if heap != 0 {
         return heap;
     }
-    let size = 2 << 20;
+    let size = 8 << 20;
     let heap = machine
         .state
         .kernel32
