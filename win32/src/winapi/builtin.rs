@@ -670,6 +670,20 @@ pub mod kernel32 {
             let msg = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
             winapi::kernel32::OutputDebugStringA(machine, msg).to_raw()
         }
+        pub unsafe fn WriteConsoleA(machine: &mut Machine, esp: u32) -> u32 {
+            let hConsoleOutput = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
+            let lpBuffer = <ArrayWithSize<u8>>::from_stack(machine.mem(), esp + 8u32);
+            let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
+            let lpReserved = <u32>::from_stack(machine.mem(), esp + 20u32);
+            winapi::kernel32::WriteConsoleA(
+                machine,
+                hConsoleOutput,
+                lpBuffer,
+                lpNumberOfCharsWritten,
+                lpReserved,
+            )
+            .to_raw()
+        }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(
             machine: &mut Machine,
             esp: u32,
@@ -1150,6 +1164,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const WriteConsoleA: Shim = Shim {
+            name: "WriteConsoleA",
+            func: impls::WriteConsoleA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
@@ -1295,7 +1315,7 @@ pub mod kernel32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 78usize] = [
+    const EXPORTS: [Symbol; 79usize] = [
         Symbol {
             ordinal: None,
             shim: shims::GetModuleHandleA,
@@ -1511,6 +1531,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::OutputDebugStringA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::WriteConsoleA,
         },
         Symbol {
             ordinal: None,

@@ -644,6 +644,22 @@ pub fn OutputDebugStringA(_machine: &mut Machine, msg: Option<&str>) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn WriteConsoleA(
+    _machine: &mut Machine,
+    hConsoleOutput: HANDLE<()>,
+    lpBuffer: ArrayWithSize<u8>,
+    lpNumberOfCharsWritten: Option<&mut u32>,
+    lpReserved: u32,
+) -> bool {
+    let msg = std::str::from_utf8(lpBuffer.unwrap()).unwrap();
+    log::warn!("WriteConsoleA: {:?}", msg);
+    if let Some(w) = lpNumberOfCharsWritten {
+        *w = msg.len() as u32;
+    }
+    true // success
+}
+
+#[win32_derive::dllexport]
 pub fn InitializeCriticalSectionAndSpinCount(
     _machine: &mut Machine,
     _lpCriticalSection: u32,
