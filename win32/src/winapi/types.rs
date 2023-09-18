@@ -122,3 +122,13 @@ impl String16 {
         )
     }
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct RECT {
+    pub left: DWORD,
+    pub top: DWORD,
+    pub right: DWORD,
+    pub bottom: DWORD,
+}
+unsafe impl memory::Pod for RECT {}

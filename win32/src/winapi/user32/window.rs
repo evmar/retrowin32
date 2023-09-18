@@ -198,8 +198,18 @@ pub async fn CreateWindowExA(
 }
 
 #[win32_derive::dllexport]
+pub fn DestroyWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+    true // success
+}
+
+#[win32_derive::dllexport]
 pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
     HWND::from_raw(machine.state.user32.windows.len() as u32)
+}
+
+#[win32_derive::dllexport]
+pub fn SetForegroundWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+    true // success
 }
 
 #[win32_derive::dllexport]
@@ -239,4 +249,16 @@ pub fn DefWindowProcA(
     lParam: u32,
 ) -> u32 {
     0
+}
+
+#[win32_derive::dllexport]
+pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+    let rect = lpRect.unwrap();
+    *rect = RECT {
+        left: 0,
+        top: 0,
+        right: 640, // TODO: use actual window size
+        bottom: 480,
+    };
+    true
 }

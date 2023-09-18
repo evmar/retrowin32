@@ -4,16 +4,6 @@ use crate::winapi::types::*;
 use bitflags::bitflags;
 
 #[repr(C)]
-#[derive(Debug)]
-pub struct RECT {
-    pub left: DWORD,
-    pub top: DWORD,
-    pub right: DWORD,
-    pub bottom: DWORD,
-}
-unsafe impl memory::Pod for RECT {}
-
-#[repr(C)]
 #[derive(Debug, Default)]
 pub struct DDSCAPS2 {
     dwCaps: DWORD,

@@ -809,3 +809,9 @@ pub fn SetPriorityClass(
 ) -> bool {
     true // success
 }
+
+#[win32_derive::dllexport]
+pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
+    log::warn!("TODO: sleep");
+    0
+}

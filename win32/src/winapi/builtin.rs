@@ -752,6 +752,10 @@ pub mod kernel32 {
             let dwPriorityClass = <u32>::from_stack(machine.mem(), esp + 8u32);
             winapi::kernel32::SetPriorityClass(machine, hProcess, dwPriorityClass).to_raw()
         }
+        pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> u32 {
+            let dwMilliseconds = <u32>::from_stack(machine.mem(), esp + 4u32);
+            winapi::kernel32::Sleep(machine, dwMilliseconds).to_raw()
+        }
         pub unsafe fn GetCurrentThreadId(machine: &mut Machine, esp: u32) -> u32 {
             winapi::kernel32::GetCurrentThreadId(machine).to_raw()
         }
@@ -1216,6 +1220,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const Sleep: Shim = Shim {
+            name: "Sleep",
+            func: impls::Sleep,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetCurrentThreadId: Shim = Shim {
             name: "GetCurrentThreadId",
             func: impls::GetCurrentThreadId,
@@ -1265,7 +1275,7 @@ pub mod kernel32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 77usize] = [
+    const EXPORTS: [Symbol; 78usize] = [
         Symbol {
             ordinal: None,
             shim: shims::GetModuleHandleA,
@@ -1541,6 +1551,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::SetPriorityClass,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::Sleep,
         },
         Symbol {
             ordinal: None,
@@ -1866,8 +1880,16 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn DestroyWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::DestroyWindow(machine, hWnd).to_raw()
+        }
         pub unsafe fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
             winapi::user32::GetForegroundWindow(machine).to_raw()
+        }
+        pub unsafe fn SetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
             winapi::user32::GetActiveWindow(machine).to_raw()
@@ -1894,6 +1916,11 @@ pub mod user32 {
             let wParam = <u32>::from_stack(machine.mem(), esp + 12u32);
             let lParam = <u32>::from_stack(machine.mem(), esp + 16u32);
             winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).to_raw()
+        }
+        pub unsafe fn GetClientRect(machine: &mut Machine, esp: u32) -> u32 {
+            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let lpRect = <Option<&mut RECT>>::from_stack(machine.mem(), esp + 8u32);
+            winapi::user32::GetClientRect(machine, hWnd, lpRect).to_raw()
         }
     }
     mod shims {
@@ -2001,10 +2028,22 @@ pub mod user32 {
             stack_consumed: 52u32,
             is_async: true,
         };
+        pub const DestroyWindow: Shim = Shim {
+            name: "DestroyWindow",
+            func: impls::DestroyWindow,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetForegroundWindow: Shim = Shim {
             name: "GetForegroundWindow",
             func: impls::GetForegroundWindow,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const SetForegroundWindow: Shim = Shim {
+            name: "SetForegroundWindow",
+            func: impls::SetForegroundWindow,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetActiveWindow: Shim = Shim {
@@ -2043,8 +2082,14 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const GetClientRect: Shim = Shim {
+            name: "GetClientRect",
+            func: impls::GetClientRect,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 24usize] = [
+    const EXPORTS: [Symbol; 27usize] = [
         Symbol {
             ordinal: None,
             shim: shims::PeekMessageA,
@@ -2115,7 +2160,15 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::DestroyWindow,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetForegroundWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetForegroundWindow,
         },
         Symbol {
             ordinal: None,
@@ -2140,6 +2193,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::DefWindowProcA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetClientRect,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
