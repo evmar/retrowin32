@@ -6,7 +6,7 @@ mod ddraw7;
 mod types;
 
 use super::{heap::Heap, types::*};
-use crate::{host, machine::Machine, winapi::vtable};
+use crate::{host, machine::Machine, winapi::vtable, SurfaceOptions};
 use std::collections::HashMap;
 use types::*;
 
@@ -19,6 +19,53 @@ pub struct Surface {
     pub palette: u32, // same as key in palettes
     /// x86 address to pixel buffer, or 0 if unused.
     pixels: u32,
+}
+
+impl Surface {
+    fn new(machine: &mut Machine, opts: &SurfaceOptions) -> Self {
+        Surface {
+            host: machine.host.create_surface(&opts),
+            width: opts.width,
+            height: opts.height,
+            palette: 0,
+            pixels: 0,
+        }
+    }
+
+    pub fn create(machine: &mut Machine, desc: &DDSURFACEDESC2) -> Vec<Surface> {
+        assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
+
+        let mut surfaces = Vec::new();
+
+        let mut opts = crate::host::SurfaceOptions::default();
+        if desc.dwFlags.contains(DDSD::WIDTH) {
+            opts.width = desc.dwWidth;
+        }
+        if desc.dwFlags.contains(DDSD::HEIGHT) {
+            opts.height = desc.dwHeight;
+        }
+
+        if let Some(caps) = desc.caps() {
+            log::warn!("  caps: {:?}", caps.dwCaps);
+            if caps.dwCaps.contains(DDSCAPS::PRIMARYSURFACE) {
+                opts.primary = true;
+                // Take width/height from window dimensions
+                opts.width = machine.state.ddraw.width;
+                opts.height = machine.state.ddraw.height;
+            }
+        }
+        surfaces.push(Surface::new(machine, &opts));
+
+        if let Some(count) = desc.back_buffer_count() {
+            log::warn!("  back_buffer: {count:x}");
+            opts.primary = false;
+            for _ in 0..count {
+                surfaces.push(Surface::new(machine, &opts));
+            }
+        }
+
+        surfaces
+    }
 }
 
 pub struct State {

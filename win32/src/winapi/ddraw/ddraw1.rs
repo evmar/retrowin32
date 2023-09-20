@@ -49,39 +49,23 @@ pub(super) mod IDirectDraw {
         machine: &mut Machine,
         this: u32,
         desc: Option<&DDSURFACEDESC>,
-        lplpDDSurface: u32,
+        lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> u32 {
-        let desc = desc.unwrap();
-        assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize as usize);
-
-        let mut opts = crate::host::SurfaceOptions::default();
-        let mut flags = desc.dwFlags;
-        if let Some(caps) = desc.caps() {
-            flags.remove(DDSD::CAPS);
-            if caps.contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.primary = true;
-            }
+        let surfaces = ddraw::Surface::create(machine, &DDSURFACEDESC2::from_desc(desc.unwrap()));
+        if surfaces.len() > 2 {
+            todo!()
         }
-        if let Some(count) = desc.back_buffer_count() {
-            flags.remove(DDSD::BACKBUFFERCOUNT);
-            assert!(count == 1);
-        }
-        assert!(flags.is_empty());
 
-        let surface = machine.host.create_surface(&opts);
-        let x86_surface = IDirectDrawSurface::new(machine);
-        machine.mem().put::<u32>(lplpDDSurface, x86_surface);
-        machine.state.ddraw.surfaces.insert(
-            x86_surface,
-            ddraw::Surface {
-                host: surface,
-                width: opts.width,
-                height: opts.height,
-                palette: 0,
-                pixels: 0,
-            },
-        );
+        let mut prev = 0;
+        for surface in surfaces.into_iter().rev() {
+            let ptr = IDirectDrawSurface::new(machine);
+            //surface.attached = prev;
+            machine.state.ddraw.surfaces.insert(ptr, surface);
+            prev = ptr;
+        }
+
+        *lplpDDSurface.unwrap() = prev;
 
         DD_OK
     }
@@ -248,8 +232,7 @@ pub(super) mod IDirectDrawSurface {
             return ret;
         }
 
-        let desc = desc.unwrap();
-        desc.from_desc2(&desc2);
+        *desc.unwrap() = DDSURFACEDESC::from_desc2(&desc2);
 
         ret
     }

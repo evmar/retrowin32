@@ -6,19 +6,15 @@ use bitflags::bitflags;
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct DDSCAPS2 {
-    dwCaps: DWORD,
+    pub dwCaps: DDSCAPS,
     dwCaps2: DWORD,
     dwCaps3: DWORD,
     dwCaps4: DWORD,
 }
 unsafe impl memory::Pod for DDSCAPS2 {}
-impl DDSCAPS2 {
-    pub fn caps1(&self) -> DDSCAPS {
-        unsafe { DDSCAPS::from_bits_unchecked(self.dwCaps) }
-    }
-}
 
 bitflags! {
+    #[derive(Default)]
     pub struct DDSCAPS: u32 {
         const ALPHA = 0x00000002;
         const BACKBUFFER = 0x00000004;
@@ -138,6 +134,7 @@ pub struct DDSURFACEDESC {
     pub dwFlags: DDSD,
     pub dwHeight: DWORD,
     pub dwWidth: DWORD,
+
     pub lPitch_dwLinearSize: DWORD,
     pub dwBackBufferCount: DWORD,
     pub dwMipMapCount_dwZBufferBitDepth_dwRefreshRate: DWORD,
@@ -166,13 +163,26 @@ impl DDSURFACEDESC {
         Some(self.dwBackBufferCount)
     }
 
-    pub fn from_desc2(&mut self, desc2: &DDSURFACEDESC2) {
-        self.dwFlags = desc2.dwFlags;
-        self.dwHeight = desc2.dwHeight;
-        self.dwWidth = desc2.dwWidth;
+    pub fn from_desc2(desc2: &DDSURFACEDESC2) -> DDSURFACEDESC {
+        DDSURFACEDESC {
+            dwSize: std::mem::size_of::<DDSURFACEDESC>() as u32,
+            dwFlags: desc2.dwFlags,
+            dwHeight: desc2.dwHeight,
+            dwWidth: desc2.dwWidth,
 
-        self.lpSurface = desc2.lpSurface;
-        self.lPitch_dwLinearSize = desc2.lPitch_dwLinearSize;
+            lPitch_dwLinearSize: desc2.lPitch_dwLinearSize,
+            dwBackBufferCount: desc2.dwBackBufferCount_dwDepth,
+            dwMipMapCount_dwZBufferBitDepth_dwRefreshRate: Default::default(),
+            dwAlphaBitDepth: Default::default(),
+            dwReserved: Default::default(),
+            lpSurface: desc2.lpSurface,
+            ddckCKDestOverlay: Default::default(),
+            ddckCKDestBlt: Default::default(),
+            ddckCKSrcOverlay: Default::default(),
+            ddckCKSrcBlt: Default::default(),
+            ddpfPixelFormat: Default::default(),
+            ddsCaps: desc2.ddsCaps.dwCaps,
+        }
     }
 }
 
@@ -214,6 +224,33 @@ impl DDSURFACEDESC2 {
             return None;
         }
         Some(&self.ddsCaps)
+    }
+
+    pub fn from_desc(desc: &DDSURFACEDESC) -> DDSURFACEDESC2 {
+        DDSURFACEDESC2 {
+            dwSize: std::mem::size_of::<DDSURFACEDESC2>() as u32,
+            dwFlags: desc.dwFlags,
+            dwHeight: desc.dwHeight,
+            dwWidth: desc.dwWidth,
+            lPitch_dwLinearSize: desc.lPitch_dwLinearSize,
+            dwBackBufferCount_dwDepth: desc.dwBackBufferCount,
+            dwMipMapCount_dwRefreshRate_dwSrcVBHandle: Default::default(),
+            dwAlphaBitDepth: Default::default(),
+            dwReserved: Default::default(),
+            lpSurface: desc.lpSurface,
+            ddckCKDestOverlay_dwEmptyFaceColor: Default::default(),
+            ddckCKDestBlt: Default::default(),
+            ddckCKSrcOverlay: Default::default(),
+            ddckCKSrcBlt: Default::default(),
+            ddpfPixelFormat: Default::default(),
+            ddsCaps: DDSCAPS2 {
+                dwCaps: desc.ddsCaps,
+                dwCaps2: Default::default(),
+                dwCaps3: Default::default(),
+                dwCaps4: Default::default(),
+            },
+            dwTextureStage: Default::default(),
+        }
     }
 }
 

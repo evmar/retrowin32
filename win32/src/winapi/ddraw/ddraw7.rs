@@ -91,45 +91,20 @@ pub(super) mod IDirectDraw7 {
         lpDirectDrawSurface7: Option<&mut u32>,
         unused: u32,
     ) -> u32 {
-        let desc = desc.unwrap();
-        assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
-        let lpDirectDrawSurface7 = lpDirectDrawSurface7.unwrap();
-
-        let mut opts = crate::host::SurfaceOptions::default();
-        if desc.dwFlags.contains(DDSD::WIDTH) {
-            opts.width = desc.dwWidth;
-        }
-        if desc.dwFlags.contains(DDSD::HEIGHT) {
-            opts.height = desc.dwHeight;
-        }
-        if let Some(caps) = desc.caps() {
-            log::warn!("  caps: {:?}", caps.caps1());
-            if caps.caps1().contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.width = machine.state.ddraw.width;
-                opts.height = machine.state.ddraw.height;
-                opts.primary = true;
-            }
+        let surfaces = ddraw::Surface::create(machine, desc.unwrap());
+        if surfaces.len() > 2 {
+            todo!()
         }
 
-        if let Some(count) = desc.back_buffer_count() {
-            log::warn!("  back_buffer: {count:x}");
+        let mut prev = 0;
+        for surface in surfaces.into_iter().rev() {
+            let ptr = IDirectDrawSurface7::new(machine);
+            //surface.attached = prev;
+            machine.state.ddraw.surfaces.insert(ptr, surface);
+            prev = ptr;
         }
 
-        //let window = machine.state.user32.get_window(machine.state.ddraw.hwnd);
-        let surface = machine.host.create_surface(&opts);
-
-        let x86_surface = IDirectDrawSurface7::new(machine);
-        *lpDirectDrawSurface7 = x86_surface;
-        machine.state.ddraw.surfaces.insert(
-            x86_surface,
-            ddraw::Surface {
-                host: surface,
-                width: opts.width,
-                height: opts.height,
-                palette: 0,
-                pixels: 0,
-            },
-        );
+        *lpDirectDrawSurface7.unwrap() = prev;
 
         DD_OK
     }
