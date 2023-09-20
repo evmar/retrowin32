@@ -30,7 +30,7 @@ impl<'m> Mem<'m> {
     fn get_ptr(&self, ofs: u32) -> *mut u8 {
         // Avoid using self.ptr.add here, because when self.ptr is 0 (for native Mems)
         // a later bounds check gets optimized out into always panicking.
-        ((self.ptr as u32) + ofs) as *mut u8
+        ((self.ptr as usize) + ofs as usize) as *mut u8
     }
 
     pub fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
