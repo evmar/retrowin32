@@ -26,5 +26,9 @@
   {
     "desc": "callback test",
     "params": "dir=exe/callback/&exe=callback.exe"
+  },
+  {
+    "desc": "psi mofo",
+    "params": "dir=exe/demo/dreamhack_1999/&exe=psi_mofo.exe"
   }
 ]

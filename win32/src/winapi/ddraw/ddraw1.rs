@@ -144,7 +144,7 @@ pub(super) mod IDirectDrawSurface {
         DeleteAttachedSurface todo,
         EnumAttachedSurfaces todo,
         EnumOverlayZOrders todo,
-        Flip todo,
+        Flip (IDirectDrawSurface7::shims::Flip),
         GetAttachedSurface ok,
         GetBltStatus todo,
         GetCaps todo,
