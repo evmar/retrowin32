@@ -47,10 +47,10 @@ pub(super) mod IDirectDraw {
     #[win32_derive::dllexport]
     fn CreateSurface(
         machine: &mut Machine,
-        _this: u32,
+        this: u32,
         desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: u32,
-        _pUnkOuter: u32,
+        pUnkOuter: u32,
     ) -> u32 {
         let desc = desc.unwrap();
         assert!(std::mem::size_of::<DDSURFACEDESC>() == desc.dwSize as usize);
@@ -60,8 +60,6 @@ pub(super) mod IDirectDraw {
         if let Some(caps) = desc.caps() {
             flags.remove(DDSD::CAPS);
             if caps.contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.width = machine.state.ddraw.width;
-                opts.height = machine.state.ddraw.height;
                 opts.primary = true;
             }
         }
@@ -72,7 +70,6 @@ pub(super) mod IDirectDraw {
         assert!(flags.is_empty());
 
         let surface = machine.host.create_surface(&opts);
-
         let x86_surface = IDirectDrawSurface::new(machine);
         machine.mem().put::<u32>(lplpDDSurface, x86_surface);
         machine.state.ddraw.surfaces.insert(

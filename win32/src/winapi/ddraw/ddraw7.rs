@@ -89,7 +89,7 @@ pub(super) mod IDirectDraw7 {
         this: u32,
         desc: Option<&DDSURFACEDESC2>,
         lpDirectDrawSurface7: Option<&mut u32>,
-        _unused: u32,
+        unused: u32,
     ) -> u32 {
         let desc = desc.unwrap();
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
