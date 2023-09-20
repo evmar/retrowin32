@@ -9,15 +9,15 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
 }
 
 class Surface implements glue.JsSurface {
+  /** Where to render output on show() */
+  screen?: CanvasRenderingContext2D;
+
+  /** Backing pixels. */
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
-  back?: Surface;
 
   constructor(width: number, height: number, primary: boolean) {
     this.canvas = document.createElement('canvas');
-    if (primary) {
-      this.back = new Surface(width, height, false);
-    }
     this.canvas.width = width;
     this.canvas.height = height;
     this.ctx = this.canvas.getContext('2d')!;
@@ -34,15 +34,8 @@ class Surface implements glue.JsSurface {
     this.ctx.putImageData(data, 0, 0);
   }
 
-  get_attached(): glue.JsSurface {
-    if (!this.back) throw new Error('no back for attached');
-    return this.back!;
-  }
-
-  flip() {
-    if (!this.back) throw new Error('no back for flip');
-    this.ctx.drawImage(this.back.canvas, 0, 0);
-    // TODO: do we need to swap canvases or something?
+  show() {
+    this.screen!.drawImage(this.canvas, 0, 0);
   }
 
   bit_blt(dx: number, dy: number, other: glue.JsSurface, sx: number, sy: number, w: number, h: number): void {
@@ -55,14 +48,17 @@ class Window implements glue.JsWindow {
     readonly host: Host,
     /** Unique ID for React purposes. */
     readonly key: number,
-  ) {}
+  ) {
+  }
   title: string = '';
   width: number | undefined;
   height: number | undefined;
-  surface?: Surface;
+  canvas: HTMLCanvasElement = document.createElement('canvas');
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
+    this.canvas.width = w;
+    this.canvas.height = h;
     this.host.page.forceUpdate();
   }
 }
@@ -92,6 +88,7 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
 
   stdout = '';
   decoder = new TextDecoder();
+  canvas?: HTMLCanvasElement;
 
   async fetch(files: string[], dir: string = '') {
     for (const file of files) {
@@ -165,11 +162,9 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
     // XXX how to tie surface and window together?
     // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
     // but how to plumb that info across JS boundary?
-    if (primary) {
-      this.windows[this.windows.length - 1].surface = surface;
-      console.warn('hack: attached surface to window');
-      this.page.forceUpdate();
-    }
+    console.warn('hack: attached surface to window');
+    const win = this.windows[this.windows.length - 1];
+    surface.screen = win.canvas.getContext('2d')!;
     return surface;
   }
 }

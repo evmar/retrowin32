@@ -40,14 +40,7 @@ impl GUI {
     }
 
     pub fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        if opts.primary {
-            Box::new(Surface::Window(self.win.as_ref().unwrap().clone()))
-        } else {
-            Box::new(Surface::Texture(Texture::new(
-                self.win.as_ref().unwrap(),
-                opts,
-            )))
-        }
+        Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
 }
 
@@ -84,30 +77,50 @@ impl win32::Window for WindowRef {
     }
 }
 
-enum Surface {
-    Window(WindowRef),
-    Texture(Texture),
+struct Texture {
+    window: WindowRef,
+    texture: sdl2::render::Texture,
+    width: u32,
+    height: u32,
 }
-impl win32::Surface for Surface {
+
+impl Texture {
+    fn new(win: &WindowRef, opts: &win32::SurfaceOptions) -> Self {
+        let texture = win
+            .0
+            .borrow()
+            .canvas
+            .texture_creator()
+            .create_texture_target(
+                sdl2::pixels::PixelFormatEnum::ABGR8888,
+                opts.width,
+                opts.height,
+            )
+            .unwrap();
+        Texture {
+            window: win.clone(),
+            texture,
+            width: opts.width,
+            height: opts.height,
+        }
+    }
+}
+
+impl win32::Surface for Texture {
     fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        match self {
-            Surface::Window(_) => unimplemented!(),
-            Surface::Texture(t) => t.write_pixels(pixels),
-        }
+        let pixels_u8 =
+            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
+        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
+        self.texture
+            .update(rect, pixels_u8, self.width as usize * 4)
+            .unwrap();
     }
 
-    fn get_attached(&self) -> Box<dyn win32::Surface> {
-        match self {
-            Surface::Window(w) => Box::new(Surface::Window(w.clone())),
-            Surface::Texture(_) => unimplemented!(),
-        }
-    }
-
-    fn flip(&mut self) {
-        match self {
-            Surface::Window(w) => w.0.borrow_mut().canvas.present(),
-            Surface::Texture(_) => unimplemented!(),
-        }
+    fn show(&mut self) {
+        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
+        let canvas = &mut self.window.0.borrow_mut().canvas;
+        canvas.copy(&self.texture, rect, rect).unwrap();
+        canvas.present();
     }
 
     fn bit_blt(
@@ -121,55 +134,16 @@ impl win32::Surface for Surface {
         h: u32,
     ) {
         let src_rect = sdl2::rect::Rect::new(sx as i32, sy as i32, w, h);
-        let src = unsafe { &*(src as *const dyn win32::Surface as *const Surface) };
-        let tex = match src {
-            Surface::Window(_) => unimplemented!(),
-            Surface::Texture(t) => &t.texture,
-        };
+        let src = &unsafe { &*(src as *const dyn win32::Surface as *const Texture) }.texture;
         let dst_rect = sdl2::rect::Rect::new(dx as i32, dy as i32, w, h);
-        match self {
-            Surface::Window(wr) => {
-                wr.0.borrow_mut()
-                    .canvas
-                    .copy(tex, src_rect, dst_rect)
-                    .unwrap()
-            }
-            Surface::Texture(_) => unimplemented!(),
-        };
-    }
-}
 
-struct Texture {
-    texture: sdl2::render::Texture,
-    width: u32,
-    height: u32,
-}
-impl Texture {
-    fn new(win: &WindowRef, opts: &win32::SurfaceOptions) -> Self {
-        let texture = win
+        self.window
             .0
-            .borrow()
+            .borrow_mut()
             .canvas
-            .texture_creator()
-            .create_texture_static(
-                sdl2::pixels::PixelFormatEnum::ABGR8888,
-                opts.width,
-                opts.height,
-            )
-            .unwrap();
-        Texture {
-            texture,
-            width: opts.width,
-            height: opts.height,
-        }
-    }
-
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        let pixels_u8 =
-            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
-        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
-        self.texture
-            .update(rect, pixels_u8, self.width as usize * 4)
+            .with_texture_canvas(&mut self.texture, |canvas| {
+                canvas.copy(src, src_rect, dst_rect).unwrap()
+            })
             .unwrap();
     }
 }

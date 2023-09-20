@@ -97,9 +97,9 @@ pub(super) mod IDirectDraw7 {
         }
 
         let mut prev = 0;
-        for surface in surfaces.into_iter().rev() {
+        for mut surface in surfaces.into_iter().rev() {
             let ptr = IDirectDrawSurface7::new(machine);
-            //surface.attached = prev;
+            surface.attached = prev;
             machine.state.ddraw.surfaces.insert(ptr, surface);
             prev = ptr;
         }
@@ -297,7 +297,7 @@ pub(super) mod IDirectDrawSurface7 {
         flags: u32,
     ) -> u32 {
         if flags != 0 {
-            log::warn!("BltFlat flags: {:x}", flags);
+            log::warn!("BltFast flags: {:x}", flags);
         }
         let (dst, src) = unsafe {
             let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
@@ -337,8 +337,10 @@ pub(super) mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> u32 {
-        let surface = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        surface.host.flip();
+        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let attached = surface.attached;
+        let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
+        back.host.show();
         DD_OK
     }
 
@@ -346,25 +348,12 @@ pub(super) mod IDirectDrawSurface7 {
     fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
-        _lpDDSCaps2: u32,
-        lpDirectDrawSurface7: u32,
+        lpDDSCaps2: Option<&DDSCAPS2>,
+        lpDirectDrawSurface7: Option<&mut u32>,
     ) -> u32 {
         // TODO: consider caps.
-        // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        let this_surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let host = this_surface.host.get_attached();
-
-        let surface = ddraw::Surface {
-            host,
-            width: this_surface.width,
-            height: this_surface.height,
-            palette: this_surface.palette,
-            pixels: this_surface.pixels,
-        };
-        let x86_surface = new(machine);
-
-        machine.mem().put::<u32>(lpDirectDrawSurface7, x86_surface);
-        machine.state.ddraw.surfaces.insert(x86_surface, surface);
+        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        *lpDirectDrawSurface7.unwrap() = surface.attached;
         DD_OK
     }
 

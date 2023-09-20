@@ -58,9 +58,9 @@ pub(super) mod IDirectDraw {
         }
 
         let mut prev = 0;
-        for surface in surfaces.into_iter().rev() {
+        for mut surface in surfaces.into_iter().rev() {
             let ptr = IDirectDrawSurface::new(machine);
-            //surface.attached = prev;
+            surface.attached = prev;
             machine.state.ddraw.surfaces.insert(ptr, surface);
             prev = ptr;
         }
@@ -183,25 +183,12 @@ pub(super) mod IDirectDrawSurface {
     fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
-        _lpDDSCaps: u32,
-        lpDirectDrawSurface: u32,
+        lpDDSCaps: Option<&DDSCAPS>,
+        lpDirectDrawSurface: Option<&mut u32>,
     ) -> u32 {
         // TODO: consider caps.
-        // log::warn!("{this:x}->GetAttachedSurface({lpDDSCaps2:x}, {lpDirectDrawSurface7:x})");
-        let this_surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let host = this_surface.host.get_attached();
-
-        let surface = ddraw::Surface {
-            host,
-            width: this_surface.width,
-            height: this_surface.height,
-            palette: this_surface.palette,
-            pixels: this_surface.pixels,
-        };
-        let x86_surface = new(machine);
-
-        machine.mem().put::<u32>(lpDirectDrawSurface, x86_surface);
-        machine.state.ddraw.surfaces.insert(x86_surface, surface);
+        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        *lpDirectDrawSurface.unwrap() = surface.attached;
         DD_OK
     }
 

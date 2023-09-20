@@ -8,11 +8,8 @@ pub trait Surface {
     /// Used for copying an image to the surface via GDI calls, and for Lock/Unlock pixel writes.
     fn write_pixels(&mut self, pixels: &[[u8; 4]]);
 
-    /// Get the back Surface from a primary Surface.
-    fn get_attached(&self) -> Box<dyn Surface>;
-
-    /// Show the back Surface on a primary Surface.
-    fn flip(&mut self);
+    /// Show the this surface as the foreground.  Called by ::Flip().
+    fn show(&mut self);
 
     // TODO: the trait object here means we end up needing to cast, but the alternative
     // isn't object safe, bleh.

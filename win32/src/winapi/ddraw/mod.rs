@@ -19,6 +19,8 @@ pub struct Surface {
     pub palette: u32, // same as key in palettes
     /// x86 address to pixel buffer, or 0 if unused.
     pixels: u32,
+    /// Address of attached surface, e.g. back buffer.
+    attached: u32,
 }
 
 impl Surface {
@@ -29,6 +31,7 @@ impl Surface {
             height: opts.height,
             palette: 0,
             pixels: 0,
+            attached: 0,
         }
     }
 

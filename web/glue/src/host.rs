@@ -8,9 +8,7 @@ extern "C" {
     #[wasm_bindgen(method)]
     fn write_pixels(this: &JsSurface, pixels: &[u8]) -> JsSurface;
     #[wasm_bindgen(method)]
-    fn get_attached(this: &JsSurface) -> JsSurface;
-    #[wasm_bindgen(method)]
-    fn flip(this: &JsSurface);
+    fn show(this: &JsSurface);
     #[wasm_bindgen(method)]
     fn bit_blt(
         this: &JsSurface,
@@ -33,12 +31,8 @@ impl win32::Surface for JsSurface {
         JsSurface::write_pixels(self, slice);
     }
 
-    fn get_attached(&self) -> Box<dyn win32::Surface> {
-        Box::new(JsSurface::get_attached(self))
-    }
-
-    fn flip(&mut self) {
-        JsSurface::flip(self);
+    fn show(&mut self) {
+        JsSurface::show(self);
     }
 
     fn bit_blt(

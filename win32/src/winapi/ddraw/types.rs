@@ -45,6 +45,7 @@ bitflags! {
         const STANDARDVGAMODE = 0x40000000;
     }
 }
+unsafe impl memory::Pod for DDSCAPS {}
 
 bitflags! {
     #[derive(Default)]

@@ -17,7 +17,7 @@ namespace WindowComponent {
   export interface Props {
     title: string;
     size: [number | undefined, number | undefined];
-    canvas?: HTMLCanvasElement;
+    canvas: HTMLCanvasElement;
   }
   export interface State {
     drag?: [number, number];
@@ -164,7 +164,7 @@ export class Page extends preact.Component<Page.Props, Page.State> {
           key={window.key}
           title={window.title}
           size={[window.width, window.height]}
-          canvas={window.surface?.canvas}
+          canvas={window.canvas}
         />
       );
     });

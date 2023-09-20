@@ -9,8 +9,7 @@ export { SurfaceOptions };
 // Matches 'pub type JsSurface' in glue/host.rs.
 export interface JsSurface {
   write_pixels(pixels: Uint8Array): void;
-  get_attached(): JsSurface;
-  flip(): void;
+  show(): void;
   bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
 }
 
