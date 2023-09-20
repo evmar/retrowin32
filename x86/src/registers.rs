@@ -208,6 +208,7 @@ impl Registers {
             iced_x86::Register::BX => self.ebx = (self.ebx & 0xFFFF_0000) | value as u32,
             iced_x86::Register::SI => self.esi = (self.esi & 0xFFFF_0000) | value as u32,
             iced_x86::Register::DI => self.edi = (self.edi & 0xFFFF_0000) | value as u32,
+            iced_x86::Register::BP => self.ebp = (self.ebp & 0xFFFF_0000) | value as u32,
             iced_x86::Register::ES => self.es = value,
             iced_x86::Register::CS => self.cs = value,
             iced_x86::Register::SS => self.ss = value,
