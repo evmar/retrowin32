@@ -24,6 +24,19 @@ $ cd web
 $ npm run serve
 ```
 
+## Compile-time features matrix
+
+There are two build time toggles implemented as Rust "features":
+
+- `cpuemu`: enable the x86 emulator
+- `sdl`: use sdl2 for graphics
+
+Web builds require `cpuemu` and no `sdl`.
+
+Native builds can either use `cpuemu` (for non-x86) or not (which requires
+native x86/Rosetta on Mac). Native builds without `sdl` are headless and crash
+if they run any exe with graphics calls.
+
 ## Code layout
 
 - `x86/` -- the x86 emulator
