@@ -670,6 +670,11 @@ pub fn dec_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(sub(x.get(), 1, &mut cpu.flags));
 }
 
+pub fn dec_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm16(cpu, mem, instr);
+    x.set(sub(x.get(), 1, &mut cpu.flags));
+}
+
 pub fn dec_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
     x.set(sub(x.get(), 1, &mut cpu.flags));
