@@ -175,6 +175,12 @@ pub fn shl_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
+pub fn shl_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    let x = rm16(cpu, mem, instr);
+    x.set(shl(x.get(), y, &mut cpu.flags));
+}
+
 pub fn shl_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.ecx as u8;
     let x = rm8(cpu, mem, instr);
@@ -555,6 +561,12 @@ pub fn sub_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn sub_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
+    x.set(sub(x.get(), y, &mut cpu.flags));
+}
+
+pub fn sub_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
