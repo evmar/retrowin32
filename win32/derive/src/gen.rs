@@ -114,12 +114,13 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     let name_str = name.to_string();
 
     let mut fetch_args = TokenStream::new();
+    fetch_args.extend(quote!(let mem = machine.mem().detach();));
     let mut stack_offset = 4u32; // return address
     for (arg, ty) in args.iter().zip(tys.iter()) {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         fetch_args.extend(quote! {
-            let #arg = <#ty>::from_stack(machine.mem(), esp + #stack_offset);
+            let #arg = <#ty>::from_stack(mem, esp + #stack_offset);
         });
         stack_offset += stack_consumed(ty);
     }

@@ -21,29 +21,34 @@ pub mod bass {
         };
         use winapi::bass::*;
         pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, esp: u32) -> u32 {
-            let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
             winapi::bass::BASS_ChannelGetPosition(machine, arg1).to_raw()
         }
         pub unsafe fn BASS_Init(machine: &mut Machine, esp: u32) -> u32 {
-            let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let arg2 = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let arg3 = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let arg4 = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
+            let arg2 = <u32>::from_stack(mem, esp + 8u32);
+            let arg3 = <u32>::from_stack(mem, esp + 12u32);
+            let arg4 = <u32>::from_stack(mem, esp + 16u32);
             winapi::bass::BASS_Init(machine, arg1, arg2, arg3, arg4).to_raw()
         }
         pub unsafe fn BASS_MusicLoad(machine: &mut Machine, esp: u32) -> u32 {
-            let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let arg2 = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let arg3 = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let arg4 = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let arg5 = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
+            let arg2 = <u32>::from_stack(mem, esp + 8u32);
+            let arg3 = <u32>::from_stack(mem, esp + 12u32);
+            let arg4 = <u32>::from_stack(mem, esp + 16u32);
+            let arg5 = <u32>::from_stack(mem, esp + 20u32);
             winapi::bass::BASS_MusicLoad(machine, arg1, arg2, arg3, arg4, arg5).to_raw()
         }
         pub unsafe fn BASS_MusicPlay(machine: &mut Machine, esp: u32) -> u32 {
-            let arg1 = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
             winapi::bass::BASS_MusicPlay(machine, arg1).to_raw()
         }
         pub unsafe fn BASS_Start(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::bass::BASS_Start(machine).to_raw()
         }
     }
@@ -117,16 +122,18 @@ pub mod ddraw {
         };
         use winapi::ddraw::*;
         pub unsafe fn DirectDrawCreate(machine: &mut Machine, esp: u32) -> u32 {
-            let lpGuid = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lplpDD = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let pUnkOuter = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let lpGuid = <u32>::from_stack(mem, esp + 4u32);
+            let lplpDD = <u32>::from_stack(mem, esp + 8u32);
+            let pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter).to_raw()
         }
         pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) -> u32 {
-            let lpGuid = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lplpDD = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let iid = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let pUnkOuter = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpGuid = <u32>::from_stack(mem, esp + 4u32);
+            let lplpDD = <u32>::from_stack(mem, esp + 8u32);
+            let iid = <u32>::from_stack(mem, esp + 12u32);
+            let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
             winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter).to_raw()
         }
     }
@@ -170,9 +177,10 @@ pub mod dsound {
         };
         use winapi::dsound::*;
         pub unsafe fn DirectSoundCreate(machine: &mut Machine, esp: u32) -> u32 {
-            let _lpGuid = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let ppDS = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let _pUnkOuter = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let _lpGuid = <u32>::from_stack(mem, esp + 4u32);
+            let ppDS = <u32>::from_stack(mem, esp + 8u32);
+            let _pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter).to_raw()
         }
     }
@@ -204,62 +212,70 @@ pub mod gdi32 {
         };
         use winapi::gdi32::*;
         pub unsafe fn BitBlt(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let x = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let y = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let cx = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let cy = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let hdcSrc = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let x1 = <u32>::from_stack(machine.mem(), esp + 28u32);
-            let y1 = <u32>::from_stack(machine.mem(), esp + 32u32);
-            let rop = <u32>::from_stack(machine.mem(), esp + 36u32);
+            let mem = machine.mem().detach();
+            let hdc = <u32>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            let cx = <u32>::from_stack(mem, esp + 16u32);
+            let cy = <u32>::from_stack(mem, esp + 20u32);
+            let hdcSrc = <u32>::from_stack(mem, esp + 24u32);
+            let x1 = <u32>::from_stack(mem, esp + 28u32);
+            let y1 = <u32>::from_stack(mem, esp + 32u32);
+            let rop = <u32>::from_stack(mem, esp + 36u32);
             winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop).to_raw()
         }
         pub unsafe fn CreateCompatibleDC(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hdc = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::CreateCompatibleDC(machine, hdc).to_raw()
         }
         pub unsafe fn CreateDIBSection(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <HDC>::from_stack(machine.mem(), esp + 4u32);
-            let pbmi = <Option<&BITMAPINFO>>::from_stack(machine.mem(), esp + 8u32);
-            let usage = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let ppvBits = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
-            let hSection = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let offset = <u32>::from_stack(machine.mem(), esp + 24u32);
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let pbmi = <Option<&BITMAPINFO>>::from_stack(mem, esp + 8u32);
+            let usage = <u32>::from_stack(mem, esp + 12u32);
+            let ppvBits = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let hSection = <u32>::from_stack(mem, esp + 20u32);
+            let offset = <u32>::from_stack(mem, esp + 24u32);
             winapi::gdi32::CreateDIBSection(machine, hdc, pbmi, usage, ppvBits, hSection, offset)
                 .to_raw()
         }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hdc = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::DeleteDC(machine, hdc).to_raw()
         }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
-            let handle = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _bytes = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let _out = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let handle = <u32>::from_stack(mem, esp + 4u32);
+            let _bytes = <u32>::from_stack(mem, esp + 8u32);
+            let _out = <u32>::from_stack(mem, esp + 12u32);
             winapi::gdi32::GetObjectA(machine, handle, _bytes, _out).to_raw()
         }
         pub unsafe fn GetStockObject(machine: &mut Machine, esp: u32) -> u32 {
-            let _i = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _i = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::GetStockObject(machine, _i).to_raw()
         }
         pub unsafe fn SelectObject(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let hGdiObj = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hdc = <u32>::from_stack(mem, esp + 4u32);
+            let hGdiObj = <u32>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SelectObject(machine, hdc, hGdiObj).to_raw()
         }
         pub unsafe fn StretchBlt(machine: &mut Machine, esp: u32) -> u32 {
-            let hdcDest = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let xDest = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let yDest = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let wDest = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let hDest = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let hdcSrc = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let xSrc = <u32>::from_stack(machine.mem(), esp + 28u32);
-            let ySrc = <u32>::from_stack(machine.mem(), esp + 32u32);
-            let wSrc = <u32>::from_stack(machine.mem(), esp + 36u32);
-            let hSrc = <u32>::from_stack(machine.mem(), esp + 40u32);
-            let rop = <u32>::from_stack(machine.mem(), esp + 44u32);
+            let mem = machine.mem().detach();
+            let hdcDest = <u32>::from_stack(mem, esp + 4u32);
+            let xDest = <u32>::from_stack(mem, esp + 8u32);
+            let yDest = <u32>::from_stack(mem, esp + 12u32);
+            let wDest = <u32>::from_stack(mem, esp + 16u32);
+            let hDest = <u32>::from_stack(mem, esp + 20u32);
+            let hdcSrc = <u32>::from_stack(mem, esp + 24u32);
+            let xSrc = <u32>::from_stack(mem, esp + 28u32);
+            let ySrc = <u32>::from_stack(mem, esp + 32u32);
+            let wSrc = <u32>::from_stack(mem, esp + 36u32);
+            let hSrc = <u32>::from_stack(mem, esp + 40u32);
+            let rop = <u32>::from_stack(mem, esp + 44u32);
             winapi::gdi32::StretchBlt(
                 machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
             )
@@ -366,10 +382,11 @@ pub mod kernel32 {
         };
         use winapi::kernel32::*;
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpEventAttributes = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let bManualReset = <bool>::from_stack(machine.mem(), esp + 8u32);
-            let bInitialState = <bool>::from_stack(machine.mem(), esp + 12u32);
-            let lpName = <Option<&str>>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpEventAttributes = <u32>::from_stack(mem, esp + 4u32);
+            let bManualReset = <bool>::from_stack(mem, esp + 8u32);
+            let bInitialState = <bool>::from_stack(mem, esp + 12u32);
+            let lpName = <Option<&str>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::CreateEventA(
                 machine,
                 lpEventAttributes,
@@ -380,14 +397,15 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn CreateFileA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpFileName = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
-            let dwDesiredAccess = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let dwShareMode = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let lpSecurityAttributes = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let dwDesiredAccess = <u32>::from_stack(mem, esp + 8u32);
+            let dwShareMode = <u32>::from_stack(mem, esp + 12u32);
+            let lpSecurityAttributes = <u32>::from_stack(mem, esp + 16u32);
             let dwCreationDisposition =
-                <Result<CreationDisposition, u32>>::from_stack(machine.mem(), esp + 20u32);
-            let dwFlagsAndAttributes = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let hTemplateFile = <HFILE>::from_stack(machine.mem(), esp + 28u32);
+                <Result<CreationDisposition, u32>>::from_stack(mem, esp + 20u32);
+            let dwFlagsAndAttributes = <u32>::from_stack(mem, esp + 24u32);
+            let hTemplateFile = <HFILE>::from_stack(mem, esp + 28u32);
             winapi::kernel32::CreateFileA(
                 machine,
                 lpFileName,
@@ -401,14 +419,15 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn CreateFileW(machine: &mut Machine, esp: u32) -> u32 {
-            let lpFileName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
-            let dwDesiredAccess = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let dwShareMode = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let lpSecurityAttributes = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let dwDesiredAccess = <u32>::from_stack(mem, esp + 8u32);
+            let dwShareMode = <u32>::from_stack(mem, esp + 12u32);
+            let lpSecurityAttributes = <u32>::from_stack(mem, esp + 16u32);
             let dwCreationDisposition =
-                <Result<CreationDisposition, u32>>::from_stack(machine.mem(), esp + 20u32);
-            let dwFlagsAndAttributes = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let hTemplateFile = <HFILE>::from_stack(machine.mem(), esp + 28u32);
+                <Result<CreationDisposition, u32>>::from_stack(mem, esp + 20u32);
+            let dwFlagsAndAttributes = <u32>::from_stack(mem, esp + 24u32);
+            let hTemplateFile = <HFILE>::from_stack(mem, esp + 28u32);
             winapi::kernel32::CreateFileW(
                 machine,
                 lpFileName,
@@ -422,12 +441,13 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn CreateThread(machine: &mut Machine, esp: u32) -> u32 {
-            let lpThreadAttributes = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwStackSize = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpStartAddress = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let lpParameter = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let dwCreationFlags = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let lpThreadId = <u32>::from_stack(machine.mem(), esp + 24u32);
+            let mem = machine.mem().detach();
+            let lpThreadAttributes = <u32>::from_stack(mem, esp + 4u32);
+            let dwStackSize = <u32>::from_stack(mem, esp + 8u32);
+            let lpStartAddress = <u32>::from_stack(mem, esp + 12u32);
+            let lpParameter = <u32>::from_stack(mem, esp + 16u32);
+            let dwCreationFlags = <u32>::from_stack(mem, esp + 20u32);
+            let lpThreadId = <u32>::from_stack(mem, esp + 24u32);
             winapi::kernel32::CreateThread(
                 machine,
                 lpThreadAttributes,
@@ -440,172 +460,210 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn DeleteCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
-            let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::DeleteCriticalSection(machine, _lpCriticalSection).to_raw()
         }
         pub unsafe fn EnterCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
-            let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::EnterCriticalSection(machine, _lpCriticalSection).to_raw()
         }
         pub unsafe fn ExitProcess(machine: &mut Machine, esp: u32) -> u32 {
-            let uExitCode = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let uExitCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ExitProcess(machine, uExitCode).to_raw()
         }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) -> u32 {
-            let _penv = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _penv = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::FreeEnvironmentStringsA(machine, _penv).to_raw()
         }
         pub unsafe fn GetACP(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetACP(machine).to_raw()
         }
         pub unsafe fn GetCPInfo(machine: &mut Machine, esp: u32) -> u32 {
-            let _CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _lpCPInfo = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let _CodePage = <u32>::from_stack(mem, esp + 4u32);
+            let _lpCPInfo = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetCPInfo(machine, _CodePage, _lpCPInfo).to_raw()
         }
         pub unsafe fn GetCommandLineA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetCommandLineA(machine).to_raw()
         }
         pub unsafe fn GetCommandLineW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetCommandLineW(machine).to_raw()
         }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentProcessId(machine).to_raw()
         }
         pub unsafe fn GetCurrentThread(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentThread(machine).to_raw()
         }
         pub unsafe fn GetCurrentThreadId(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentThreadId(machine).to_raw()
         }
         pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetEnvironmentStrings(machine).to_raw()
         }
         pub unsafe fn GetEnvironmentStringsW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetEnvironmentStringsW(machine).to_raw()
         }
         pub unsafe fn GetEnvironmentVariableA(machine: &mut Machine, esp: u32) -> u32 {
-            let name = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
-            let buf = <ArrayWithSize<u8>>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let name = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let buf = <ArrayWithSize<u8>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableA(machine, name, buf).to_raw()
         }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) -> u32 {
-            let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetFileType(machine, hFile).to_raw()
         }
         pub unsafe fn GetLastError(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetLastError(machine).to_raw()
         }
         pub unsafe fn GetModuleFileNameA(machine: &mut Machine, esp: u32) -> u32 {
-            let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
-            let filename = <ArrayWithSizeMut<u8>>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let filename = <ArrayWithSizeMut<u8>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetModuleFileNameA(machine, hModule, filename).to_raw()
         }
         pub unsafe fn GetModuleFileNameW(machine: &mut Machine, esp: u32) -> u32 {
-            let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
-            let _lpFilename = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let _nSize = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let _lpFilename = <u32>::from_stack(mem, esp + 8u32);
+            let _nSize = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::GetModuleFileNameW(machine, hModule, _lpFilename, _nSize).to_raw()
         }
         pub unsafe fn GetModuleHandleA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpModuleName = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpModuleName = <Option<&str>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetModuleHandleA(machine, lpModuleName).to_raw()
         }
         pub unsafe fn GetModuleHandleExW(machine: &mut Machine, esp: u32) -> u32 {
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpModuleName = <Option<Str16>>::from_stack(machine.mem(), esp + 8u32);
-            let hModule = <Option<&mut HMODULE>>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let dwFlags = <u32>::from_stack(mem, esp + 4u32);
+            let lpModuleName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let hModule = <Option<&mut HMODULE>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule).to_raw()
         }
         pub unsafe fn GetModuleHandleW(machine: &mut Machine, esp: u32) -> u32 {
-            let lpModuleName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpModuleName = <Option<Str16>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetModuleHandleW(machine, lpModuleName).to_raw()
         }
         pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) -> u32 {
-            let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
-            let lpProcName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let lpProcName = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetProcAddress(machine, hModule, lpProcName).to_raw()
         }
         pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetProcessHeap(machine).to_raw()
         }
         pub unsafe fn GetStartupInfoA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStartupInfoA(machine, lpStartupInfo).to_raw()
         }
         pub unsafe fn GetStartupInfoW(machine: &mut Machine, esp: u32) -> u32 {
-            let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStartupInfoW(machine, lpStartupInfo).to_raw()
         }
         pub unsafe fn GetStdHandle(machine: &mut Machine, esp: u32) -> u32 {
-            let nStdHandle = <Result<STD, u32>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let nStdHandle = <Result<STD, u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw()
         }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) -> u32 {
-            let _time = <Option<&mut FILETIME>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _time = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetSystemTimeAsFileTime(machine, _time).to_raw()
         }
         pub unsafe fn GetTickCount(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetTickCount(machine).to_raw()
         }
         pub unsafe fn GetVersion(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::GetVersion(machine).to_raw()
         }
         pub unsafe fn GetVersionExA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpVersionInformation =
-                <Option<&mut OSVERSIONINFO>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpVersionInformation = <Option<&mut OSVERSIONINFO>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetVersionExA(machine, lpVersionInformation).to_raw()
         }
         pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
-            let uFlags = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwBytes = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let uFlags = <u32>::from_stack(mem, esp + 4u32);
+            let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GlobalAlloc(machine, uFlags, dwBytes).to_raw()
         }
         pub unsafe fn GlobalFree(machine: &mut Machine, esp: u32) -> u32 {
-            let hMem = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GlobalFree(machine, hMem).to_raw()
         }
         pub unsafe fn HeapAlloc(machine: &mut Machine, esp: u32) -> u32 {
-            let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <Result<HeapAllocFlags, u32>>::from_stack(machine.mem(), esp + 8u32);
-            let dwBytes = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <Result<HeapAllocFlags, u32>>::from_stack(mem, esp + 8u32);
+            let dwBytes = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapAlloc(machine, hHeap, dwFlags, dwBytes).to_raw()
         }
         pub unsafe fn HeapCreate(machine: &mut Machine, esp: u32) -> u32 {
-            let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(machine.mem(), esp + 4u32);
-            let dwInitialSize = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let dwMaximumSize = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(mem, esp + 4u32);
+            let dwInitialSize = <u32>::from_stack(mem, esp + 8u32);
+            let dwMaximumSize = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapCreate(machine, flOptions, dwInitialSize, dwMaximumSize).to_raw()
         }
         pub unsafe fn HeapDestroy(machine: &mut Machine, esp: u32) -> u32 {
-            let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::HeapDestroy(machine, hHeap).to_raw()
         }
         pub unsafe fn HeapFree(machine: &mut Machine, esp: u32) -> u32 {
-            let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpMem = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpMem = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapFree(machine, hHeap, dwFlags, lpMem).to_raw()
         }
         pub unsafe fn HeapReAlloc(machine: &mut Machine, esp: u32) -> u32 {
-            let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpMem = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let dwBytes = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpMem = <u32>::from_stack(mem, esp + 12u32);
+            let dwBytes = <u32>::from_stack(mem, esp + 16u32);
             winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes).to_raw()
         }
         pub unsafe fn HeapSize(machine: &mut Machine, esp: u32) -> u32 {
-            let hHeap = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpMem = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpMem = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem).to_raw()
         }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(
             machine: &mut Machine,
             esp: u32,
         ) -> u32 {
-            let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _dwSpinCount = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            let _dwSpinCount = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::InitializeCriticalSectionAndSpinCount(
                 machine,
                 _lpCriticalSection,
@@ -614,54 +672,65 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn InitializeSListHead(machine: &mut Machine, esp: u32) -> u32 {
-            let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::InitializeSListHead(machine, ListHead).to_raw()
         }
         pub unsafe fn InterlockedIncrement(machine: &mut Machine, esp: u32) -> u32 {
-            let addend = <Option<&mut u32>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let addend = <Option<&mut u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::InterlockedIncrement(machine, addend).to_raw()
         }
         pub unsafe fn IsBadReadPtr(machine: &mut Machine, esp: u32) -> u32 {
-            let lp = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let ucb = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let lp = <u32>::from_stack(mem, esp + 4u32);
+            let ucb = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::IsBadReadPtr(machine, lp, ucb).to_raw()
         }
         pub unsafe fn IsBadWritePtr(machine: &mut Machine, esp: u32) -> u32 {
-            let lp = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let ucb = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let lp = <u32>::from_stack(mem, esp + 4u32);
+            let ucb = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::IsBadWritePtr(machine, lp, ucb).to_raw()
         }
         pub unsafe fn IsDebuggerPresent(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::IsDebuggerPresent(machine).to_raw()
         }
         pub unsafe fn IsProcessorFeaturePresent(machine: &mut Machine, esp: u32) -> u32 {
-            let feature = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let feature = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::IsProcessorFeaturePresent(machine, feature).to_raw()
         }
         pub unsafe fn IsValidCodePage(machine: &mut Machine, esp: u32) -> u32 {
-            let CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let CodePage = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::IsValidCodePage(machine, CodePage).to_raw()
         }
         pub unsafe fn LeaveCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
-            let _lpCriticalSection = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::LeaveCriticalSection(machine, _lpCriticalSection).to_raw()
         }
         pub unsafe fn LoadLibraryA(machine: &mut Machine, esp: u32) -> u32 {
-            let filename = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let filename = <Option<&str>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::LoadLibraryA(machine, filename).to_raw()
         }
         pub unsafe fn LoadLibraryExW(machine: &mut Machine, esp: u32) -> u32 {
-            let lpLibFileName = <Option<Str16>>::from_stack(machine.mem(), esp + 4u32);
-            let hFile = <HFILE>::from_stack(machine.mem(), esp + 8u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let lpLibFileName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let hFile = <HFILE>::from_stack(mem, esp + 8u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).to_raw()
         }
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, esp: u32) -> u32 {
-            let CodePage = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwFlags = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpMultiByteStr = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let cbMultiByte = <i32>::from_stack(machine.mem(), esp + 16u32);
-            let lpWideCharStr = <ArrayWithSizeMut<u16>>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let CodePage = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpMultiByteStr = <u32>::from_stack(mem, esp + 12u32);
+            let cbMultiByte = <i32>::from_stack(mem, esp + 16u32);
+            let lpWideCharStr = <ArrayWithSizeMut<u16>>::from_stack(mem, esp + 20u32);
             winapi::kernel32::MultiByteToWideChar(
                 machine,
                 CodePage,
@@ -673,38 +742,44 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn NtCurrentTeb(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::NtCurrentTeb(machine).to_raw()
         }
         pub unsafe fn OutputDebugStringA(machine: &mut Machine, esp: u32) -> u32 {
-            let msg = <Option<&str>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let msg = <Option<&str>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::OutputDebugStringA(machine, msg).to_raw()
         }
         pub unsafe fn QueryPerformanceCounter(machine: &mut Machine, esp: u32) -> u32 {
-            let lpPerformanceCount =
-                <Option<&mut LARGE_INTEGER>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpPerformanceCount = <Option<&mut LARGE_INTEGER>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::QueryPerformanceCounter(machine, lpPerformanceCount).to_raw()
         }
         pub unsafe fn QueryPerformanceFrequency(machine: &mut Machine, esp: u32) -> u32 {
-            let lpFrequency = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpFrequency = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency).to_raw()
         }
         pub unsafe fn ReadFile(machine: &mut Machine, esp: u32) -> u32 {
-            let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
-            let lpBuffer = <ArrayWithSizeMut<u8>>::from_stack(machine.mem(), esp + 8u32);
-            let lpNumberOfBytesRead = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
-            let lpOverlapped = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <ArrayWithSizeMut<u8>>::from_stack(mem, esp + 8u32);
+            let lpNumberOfBytesRead = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpOverlapped = <u32>::from_stack(mem, esp + 20u32);
             winapi::kernel32::ReadFile(machine, hFile, lpBuffer, lpNumberOfBytesRead, lpOverlapped)
                 .to_raw()
         }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
-            let hEvent = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEvent(machine, hEvent).to_raw()
         }
         pub unsafe fn SetFilePointer(machine: &mut Machine, esp: u32) -> u32 {
-            let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
-            let lDistanceToMove = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpDistanceToMoveHigh = <Option<&mut u32>>::from_stack(machine.mem(), esp + 12u32);
-            let dwMoveMethod = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lDistanceToMove = <u32>::from_stack(mem, esp + 8u32);
+            let lpDistanceToMoveHigh = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let dwMoveMethod = <u32>::from_stack(mem, esp + 16u32);
             winapi::kernel32::SetFilePointer(
                 machine,
                 hFile,
@@ -715,71 +790,85 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn SetHandleCount(machine: &mut Machine, esp: u32) -> u32 {
-            let uNumber = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let uNumber = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetHandleCount(machine, uNumber).to_raw()
         }
         pub unsafe fn SetLastError(machine: &mut Machine, esp: u32) -> u32 {
-            let dwErrCode = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let dwErrCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetLastError(machine, dwErrCode).to_raw()
         }
         pub unsafe fn SetPriorityClass(machine: &mut Machine, esp: u32) -> u32 {
-            let hProcess = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
-            let dwPriorityClass = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hProcess = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let dwPriorityClass = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetPriorityClass(machine, hProcess, dwPriorityClass).to_raw()
         }
         pub unsafe fn SetThreadPriority(machine: &mut Machine, esp: u32) -> u32 {
-            let _hThread = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _nPriority = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let _hThread = <u32>::from_stack(mem, esp + 4u32);
+            let _nPriority = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw()
         }
         pub unsafe fn SetUnhandledExceptionFilter(machine: &mut Machine, esp: u32) -> u32 {
-            let _lpTopLevelExceptionFilter = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter)
                 .to_raw()
         }
         pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> u32 {
-            let dwMilliseconds = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let dwMilliseconds = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::Sleep(machine, dwMilliseconds).to_raw()
         }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::kernel32::TlsAlloc(machine).to_raw()
         }
         pub unsafe fn TlsFree(machine: &mut Machine, esp: u32) -> u32 {
-            let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let dwTlsIndex = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::TlsFree(machine, dwTlsIndex).to_raw()
         }
         pub unsafe fn TlsGetValue(machine: &mut Machine, esp: u32) -> u32 {
-            let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let dwTlsIndex = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::TlsGetValue(machine, dwTlsIndex).to_raw()
         }
         pub unsafe fn TlsSetValue(machine: &mut Machine, esp: u32) -> u32 {
-            let dwTlsIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpTlsValue = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let dwTlsIndex = <u32>::from_stack(mem, esp + 4u32);
+            let lpTlsValue = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue).to_raw()
         }
         pub unsafe fn UnhandledExceptionFilter(machine: &mut Machine, esp: u32) -> u32 {
-            let _exceptionInfo = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let _exceptionInfo = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::UnhandledExceptionFilter(machine, _exceptionInfo).to_raw()
         }
         pub unsafe fn VirtualAlloc(machine: &mut Machine, esp: u32) -> u32 {
-            let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwSize = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let _flAllocationType = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let _flProtec = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, esp + 4u32);
+            let dwSize = <u32>::from_stack(mem, esp + 8u32);
+            let _flAllocationType = <u32>::from_stack(mem, esp + 12u32);
+            let _flProtec = <u32>::from_stack(mem, esp + 16u32);
             winapi::kernel32::VirtualAlloc(machine, lpAddress, dwSize, _flAllocationType, _flProtec)
                 .to_raw()
         }
         pub unsafe fn VirtualFree(machine: &mut Machine, esp: u32) -> u32 {
-            let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwSize = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let dwFreeType = <u32>::from_stack(machine.mem(), esp + 12u32);
+            let mem = machine.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, esp + 4u32);
+            let dwSize = <u32>::from_stack(mem, esp + 8u32);
+            let dwFreeType = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::VirtualFree(machine, lpAddress, dwSize, dwFreeType).to_raw()
         }
         pub unsafe fn VirtualProtect(machine: &mut Machine, esp: u32) -> u32 {
-            let lpAddress = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let dwSize = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let flNewProtect = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let lpflOldProtect = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, esp + 4u32);
+            let dwSize = <u32>::from_stack(mem, esp + 8u32);
+            let flNewProtect = <u32>::from_stack(mem, esp + 12u32);
+            let lpflOldProtect = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::VirtualProtect(
                 machine,
                 lpAddress,
@@ -790,15 +879,17 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, esp: u32) -> u32 {
-            let hHandle = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
-            let dwMilliseconds = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hHandle = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let dwMilliseconds = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds).to_raw()
         }
         pub unsafe fn WriteConsoleA(machine: &mut Machine, esp: u32) -> u32 {
-            let hConsoleOutput = <HANDLE<()>>::from_stack(machine.mem(), esp + 4u32);
-            let lpBuffer = <ArrayWithSize<u8>>::from_stack(machine.mem(), esp + 8u32);
-            let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
-            let lpReserved = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let hConsoleOutput = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, esp + 8u32);
+            let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpReserved = <u32>::from_stack(mem, esp + 20u32);
             winapi::kernel32::WriteConsoleA(
                 machine,
                 hConsoleOutput,
@@ -809,10 +900,11 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn WriteConsoleW(machine: &mut Machine, esp: u32) -> u32 {
-            let hConsoleOutput = <HFILE>::from_stack(machine.mem(), esp + 4u32);
-            let lpBuffer = <ArrayWithSize<u16>>::from_stack(machine.mem(), esp + 8u32);
-            let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
-            let _lpReserved = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let hConsoleOutput = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
+            let lpNumberOfCharsWritten = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let _lpReserved = <u32>::from_stack(mem, esp + 20u32);
             winapi::kernel32::WriteConsoleW(
                 machine,
                 hConsoleOutput,
@@ -823,10 +915,11 @@ pub mod kernel32 {
             .to_raw()
         }
         pub unsafe fn WriteFile(machine: &mut Machine, esp: u32) -> u32 {
-            let hFile = <HFILE>::from_stack(machine.mem(), esp + 4u32);
-            let lpBuffer = <ArrayWithSize<u8>>::from_stack(machine.mem(), esp + 8u32);
-            let lpNumberOfBytesWritten = <Option<&mut u32>>::from_stack(machine.mem(), esp + 16u32);
-            let lpOverlapped = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, esp + 8u32);
+            let lpNumberOfBytesWritten = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpOverlapped = <u32>::from_stack(mem, esp + 20u32);
             winapi::kernel32::WriteFile(
                 machine,
                 hFile,
@@ -1685,8 +1778,9 @@ pub mod retrowin32 {
         };
         use winapi::retrowin32::*;
         pub unsafe fn retrowin32_callback1(machine: &mut Machine, esp: u32) -> u32 {
-            let func = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let data = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, esp + 4u32);
+            let data = <u32>::from_stack(mem, esp + 8u32);
             #[cfg(feature = "cpuemu")]
             {
                 let m: *mut Machine = machine;
@@ -1738,31 +1832,33 @@ pub mod user32 {
         };
         use winapi::user32::*;
         pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let hInst = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let xHotSpot = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let yHotSpot = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let nWidth = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let nHeight = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let pvANDPlane = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let pvXORPlane = <u32>::from_stack(machine.mem(), esp + 28u32);
+            let mem = machine.mem().detach();
+            let hInst = <u32>::from_stack(mem, esp + 4u32);
+            let xHotSpot = <u32>::from_stack(mem, esp + 8u32);
+            let yHotSpot = <u32>::from_stack(mem, esp + 12u32);
+            let nWidth = <u32>::from_stack(mem, esp + 16u32);
+            let nHeight = <u32>::from_stack(mem, esp + 20u32);
+            let pvANDPlane = <u32>::from_stack(mem, esp + 24u32);
+            let pvXORPlane = <u32>::from_stack(mem, esp + 28u32);
             winapi::user32::CreateCursor(
                 machine, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
             )
             .to_raw()
         }
         pub unsafe fn CreateWindowExA(machine: &mut Machine, esp: u32) -> u32 {
-            let dwExStyle = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpClassName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let lpWindowName = <Option<&str>>::from_stack(machine.mem(), esp + 12u32);
-            let dwStyle = <Result<WindowStyle, u32>>::from_stack(machine.mem(), esp + 16u32);
-            let X = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let Y = <u32>::from_stack(machine.mem(), esp + 24u32);
-            let nWidth = <u32>::from_stack(machine.mem(), esp + 28u32);
-            let nHeight = <u32>::from_stack(machine.mem(), esp + 32u32);
-            let hWndParent = <HWND>::from_stack(machine.mem(), esp + 36u32);
-            let hMenu = <u32>::from_stack(machine.mem(), esp + 40u32);
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 44u32);
-            let lpParam = <u32>::from_stack(machine.mem(), esp + 48u32);
+            let mem = machine.mem().detach();
+            let dwExStyle = <u32>::from_stack(mem, esp + 4u32);
+            let lpClassName = <u32>::from_stack(mem, esp + 8u32);
+            let lpWindowName = <Option<&str>>::from_stack(mem, esp + 12u32);
+            let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
+            let X = <u32>::from_stack(mem, esp + 20u32);
+            let Y = <u32>::from_stack(mem, esp + 24u32);
+            let nWidth = <u32>::from_stack(mem, esp + 28u32);
+            let nHeight = <u32>::from_stack(mem, esp + 32u32);
+            let hWndParent = <HWND>::from_stack(mem, esp + 36u32);
+            let hMenu = <u32>::from_stack(mem, esp + 40u32);
+            let hInstance = <u32>::from_stack(mem, esp + 44u32);
+            let lpParam = <u32>::from_stack(mem, esp + 48u32);
             #[cfg(feature = "cpuemu")]
             {
                 let m: *mut Machine = machine;
@@ -1812,22 +1908,25 @@ pub mod user32 {
             }
         }
         pub unsafe fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let msg = <Result<WM, u32>>::from_stack(machine.mem(), esp + 8u32);
-            let wParam = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let lParam = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
+            let wParam = <u32>::from_stack(mem, esp + 12u32);
+            let lParam = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).to_raw()
         }
         pub unsafe fn DestroyWindow(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::DestroyWindow(machine, hWnd).to_raw()
         }
         pub unsafe fn DialogBoxParamA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpTemplateName = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let hWndParent = <HWND>::from_stack(machine.mem(), esp + 12u32);
-            let lpDialogFunc = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let dwInitParam = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpTemplateName = <u32>::from_stack(mem, esp + 8u32);
+            let hWndParent = <HWND>::from_stack(mem, esp + 12u32);
+            let lpDialogFunc = <u32>::from_stack(mem, esp + 16u32);
+            let dwInitParam = <u32>::from_stack(mem, esp + 20u32);
             winapi::user32::DialogBoxParamA(
                 machine,
                 hInstance,
@@ -1839,7 +1938,8 @@ pub mod user32 {
             .to_raw()
         }
         pub unsafe fn DispatchMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
             #[cfg(feature = "cpuemu")]
             {
                 let m: *mut Machine = machine;
@@ -1860,66 +1960,78 @@ pub mod user32 {
             }
         }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::user32::GetActiveWindow(machine).to_raw()
         }
         pub unsafe fn GetClientRect(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let lpRect = <Option<&mut RECT>>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
             winapi::user32::GetClientRect(machine, hWnd, lpRect).to_raw()
         }
         pub unsafe fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::user32::GetForegroundWindow(machine).to_raw()
         }
         pub unsafe fn GetLastActivePopup(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::user32::GetLastActivePopup(machine).to_raw()
         }
         pub unsafe fn GetMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
-            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
+            let hWnd = <HWND>::from_stack(mem, esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
         }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
-            let nIndex = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let nIndex = <u32>::from_stack(mem, esp + 4u32);
             winapi::user32::GetSystemMetrics(machine, nIndex).to_raw()
         }
         pub unsafe fn GetWindowDC(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::GetWindowDC(machine, hWnd).to_raw()
         }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpCursorName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpCursorName = <u32>::from_stack(mem, esp + 8u32);
             winapi::user32::LoadCursorA(machine, hInstance, lpCursorName).to_raw()
         }
         pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let lpIconName = <u32>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpIconName = <u32>::from_stack(mem, esp + 8u32);
             winapi::user32::LoadIconA(machine, hInstance, lpIconName).to_raw()
         }
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
-            let hInstance = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let name = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let typ = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let cx = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let cy = <u32>::from_stack(machine.mem(), esp + 20u32);
-            let fuLoad = <u32>::from_stack(machine.mem(), esp + 24u32);
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let name = <u32>::from_stack(mem, esp + 8u32);
+            let typ = <u32>::from_stack(mem, esp + 12u32);
+            let cx = <u32>::from_stack(mem, esp + 16u32);
+            let cy = <u32>::from_stack(mem, esp + 20u32);
+            let fuLoad = <u32>::from_stack(mem, esp + 24u32);
             winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
         }
         pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let lpText = <Option<&str>>::from_stack(machine.mem(), esp + 8u32);
-            let lpCaption = <Option<&str>>::from_stack(machine.mem(), esp + 12u32);
-            let uType = <u32>::from_stack(machine.mem(), esp + 16u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpText = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let lpCaption = <Option<&str>>::from_stack(mem, esp + 12u32);
+            let uType = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw()
         }
         pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&mut MSG>>::from_stack(machine.mem(), esp + 4u32);
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 8u32);
-            let wMsgFilterMin = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let wMsgFilterMax = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
+            let hWnd = <HWND>::from_stack(mem, esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
+            let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, esp + 20u32);
             winapi::user32::PeekMessageA(
                 machine,
                 lpMsg,
@@ -1931,47 +2043,58 @@ pub mod user32 {
             .to_raw()
         }
         pub unsafe fn RegisterClassA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpWndClass = <Option<&WNDCLASSA>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, esp + 4u32);
             winapi::user32::RegisterClassA(machine, lpWndClass).to_raw()
         }
         pub unsafe fn RegisterClassExA(machine: &mut Machine, esp: u32) -> u32 {
-            let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, esp + 4u32);
             winapi::user32::RegisterClassExA(machine, lpWndClassEx).to_raw()
         }
         pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
-            let hdc = <HDC>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
             winapi::user32::ReleaseDC(machine, hdc).to_raw()
         }
         pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let hCursor = <u32>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hCursor = <u32>::from_stack(mem, esp + 4u32);
             winapi::user32::SetCursor(machine, hCursor).to_raw()
         }
         pub unsafe fn SetFocus(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::SetFocus(machine, hWnd).to_raw()
         }
         pub unsafe fn SetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
-            let bShow = <bool>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let bShow = <bool>::from_stack(mem, esp + 4u32);
             winapi::user32::ShowCursor(machine, bShow).to_raw()
         }
         pub unsafe fn ShowWindow(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
-            let nCmdShow = <Result<SW, u32>>::from_stack(machine.mem(), esp + 8u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let nCmdShow = <Result<SW, u32>>::from_stack(mem, esp + 8u32);
             winapi::user32::ShowWindow(machine, hWnd, nCmdShow).to_raw()
         }
         pub unsafe fn TranslateMessage(machine: &mut Machine, esp: u32) -> u32 {
-            let lpMsg = <Option<&MSG>>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
             winapi::user32::TranslateMessage(machine, lpMsg).to_raw()
         }
         pub unsafe fn UpdateWindow(machine: &mut Machine, esp: u32) -> u32 {
-            let hWnd = <HWND>::from_stack(machine.mem(), esp + 4u32);
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::UpdateWindow(machine, hWnd).to_raw()
         }
         pub unsafe fn WaitMessage(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::user32::WaitMessage(machine).to_raw()
         }
     }
@@ -2285,14 +2408,16 @@ pub mod winmm {
         };
         use winapi::winmm::*;
         pub unsafe fn timeGetTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::winmm::timeGetTime(machine).to_raw()
         }
         pub unsafe fn timeSetEvent(machine: &mut Machine, esp: u32) -> u32 {
-            let _uDelay = <u32>::from_stack(machine.mem(), esp + 4u32);
-            let _uResolution = <u32>::from_stack(machine.mem(), esp + 8u32);
-            let _lpTimeProc = <u32>::from_stack(machine.mem(), esp + 12u32);
-            let _dwUser = <u32>::from_stack(machine.mem(), esp + 16u32);
-            let _fuEvent = <u32>::from_stack(machine.mem(), esp + 20u32);
+            let mem = machine.mem().detach();
+            let _uDelay = <u32>::from_stack(mem, esp + 4u32);
+            let _uResolution = <u32>::from_stack(mem, esp + 8u32);
+            let _lpTimeProc = <u32>::from_stack(mem, esp + 12u32);
+            let _dwUser = <u32>::from_stack(mem, esp + 16u32);
+            let _fuEvent = <u32>::from_stack(mem, esp + 20u32);
             winapi::winmm::timeSetEvent(
                 machine,
                 _uDelay,
@@ -2304,6 +2429,7 @@ pub mod winmm {
             .to_raw()
         }
         pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
             winapi::winmm::waveOutGetNumDevs(machine).to_raw()
         }
     }

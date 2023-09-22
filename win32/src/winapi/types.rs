@@ -50,7 +50,7 @@ impl<T> std::fmt::LowerHex for HANDLE<T> {
     }
 }
 
-impl<T> crate::winapi::stack_args::FromX86 for HANDLE<T> {
+impl<'a, T> crate::winapi::stack_args::FromX86<'a> for HANDLE<T> {
     unsafe fn from_stack(mem: memory::Mem, sp: u32) -> Self {
         Self::from_raw(mem.get::<u32>(sp))
     }

@@ -158,4 +158,9 @@ impl<'m> Mem<'m> {
             ptr as *mut T
         }
     }
+
+    /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in stack_args codegen.
+    pub unsafe fn detach<'a, 'b>(&'a self) -> Mem<'b> {
+        std::mem::transmute(*self)
+    }
 }

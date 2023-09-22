@@ -3,92 +3,85 @@
 use super::types::Str16;
 use memory::Mem;
 
-unsafe fn extend_lifetime<'a, T: ?Sized>(x: &T) -> &'a T {
-    std::mem::transmute(x)
-}
-unsafe fn extend_lifetime_mut<'a, T: ?Sized>(x: &mut T) -> &'a mut T {
-    std::mem::transmute(x)
-}
-
 /// ArrayWithSize<&[u8]> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,
 pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
 pub type ArrayWithSizeMut<'a, T> = Option<&'a mut [T]>;
 
-pub trait FromX86 {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self;
+pub trait FromX86<'a> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self;
 }
 
-impl FromX86 for u32 {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for u32 {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         mem.get::<u32>(sp)
     }
 }
 
-impl FromX86 for i32 {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for i32 {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         mem.get::<u32>(sp) as i32
     }
 }
 
-impl FromX86 for bool {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for bool {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         mem.get::<u32>(sp) != 0
     }
 }
 
-impl<T: TryFrom<u32>> FromX86 for Result<T, T::Error> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a, T: TryFrom<u32>> FromX86<'a> for Result<T, T::Error> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         T::try_from(mem.get::<u32>(sp))
     }
 }
 
-impl<T: memory::Pod> FromX86 for Option<&T> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a T> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
             None
         } else {
-            Some(extend_lifetime(mem.view::<T>(addr)))
+            Some(mem.view::<T>(addr))
         }
     }
 }
 
-impl<T: memory::Pod> FromX86 for Option<&mut T> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a mut T> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
             None
         } else {
-            Some(extend_lifetime_mut(mem.view_mut::<T>(addr)))
+            Some(mem.view_mut::<T>(addr))
         }
     }
 }
 
-impl FromX86 for Option<&[u8]> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for Option<&'a [u8]> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime(&mem.sub(addr, len).as_slice_todo()))
+        Some(&mem.sub(addr, len).as_slice_todo())
     }
 }
 
-impl FromX86 for Option<&mut [u8]> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for Option<&'a mut [u8]> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
-        Some(extend_lifetime_mut(mem.sub(addr, len).as_mut_slice_todo()))
+        Some(mem.sub(addr, len).as_mut_slice_todo())
     }
 }
 
-impl FromX86 for Option<&[u16]> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for Option<&'a [u16]> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
         if addr == 0 {
@@ -98,7 +91,7 @@ impl FromX86 for Option<&[u16]> {
     }
 }
 
-impl FromX86 for Option<&mut [u16]> {
+impl<'a> FromX86<'a> for Option<&'a mut [u16]> {
     unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
@@ -109,19 +102,19 @@ impl FromX86 for Option<&mut [u16]> {
     }
 }
 
-impl FromX86 for Option<&str> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for Option<&'a str> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
             return None;
         }
         let strz = mem.slicez(addr).unwrap().to_ascii();
-        Some(extend_lifetime(strz))
+        Some(strz)
     }
 }
 
-impl<'a> FromX86 for Option<Str16<'a>> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
+impl<'a> FromX86<'a> for Option<Str16<'a>> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
             return None;
