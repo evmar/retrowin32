@@ -201,11 +201,16 @@ pub fn LoadLibraryExW(
 }
 
 #[win32_derive::dllexport]
-pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: Option<&str>) -> u32 {
-    let proc_name = lpProcName.unwrap();
+pub fn GetProcAddress(machine: &mut Machine, hModule: HMODULE, lpProcName: u32) -> u32 {
+    let symbol = if lpProcName & 0xFFFF_0000 == 0 {
+        ImportSymbol::Ordinal(lpProcName)
+    } else {
+        let proc_name = machine.memory.mem().slicez(lpProcName).unwrap().to_ascii();
+        ImportSymbol::Name(proc_name)
+    };
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
-        return dll.resolve(&mut machine.shims, ImportSymbol::Name(proc_name));
+        return dll.resolve(&mut machine.shims, symbol);
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail

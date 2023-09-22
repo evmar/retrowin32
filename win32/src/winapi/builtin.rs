@@ -523,7 +523,7 @@ pub mod kernel32 {
         }
         pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) -> u32 {
             let hModule = <HMODULE>::from_stack(machine.mem(), esp + 4u32);
-            let lpProcName = <Option<&str>>::from_stack(machine.mem(), esp + 8u32);
+            let lpProcName = <u32>::from_stack(machine.mem(), esp + 8u32);
             winapi::kernel32::GetProcAddress(machine, hModule, lpProcName).to_raw()
         }
         pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
