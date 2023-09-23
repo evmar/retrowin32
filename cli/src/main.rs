@@ -106,7 +106,7 @@ impl win32::Host for EnvRef {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
         if !gui.pump_messages() {
-            self.exit(0);
+            std::process::exit(0);
         }
     }
 
