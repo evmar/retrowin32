@@ -18,4 +18,5 @@ unsafe impl Pod for [u8; 4] {} // pixels
 unsafe impl Pod for u16 {}
 unsafe impl Pod for u32 {}
 unsafe impl Pod for u64 {}
+unsafe impl Pod for f32 {}
 unsafe impl Pod for f64 {}
