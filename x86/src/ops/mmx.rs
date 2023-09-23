@@ -6,7 +6,7 @@ use memory::Mem;
 fn op1_mmm64(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u64 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get64(instr.op1_register()),
-        iced_x86::OpKind::Memory => read_u64(mem, x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get::<u64>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }

@@ -3,14 +3,6 @@
 use crate::x86::CPU;
 use memory::Mem;
 
-pub fn read_u64(mem: Mem, addr: u32) -> u64 {
-    mem.get::<u64>(addr)
-}
-
-pub fn write_u64(mem: Mem, addr: u32, value: u64) {
-    *mem.view_mut::<u64>(addr) = value;
-}
-
 // TODO: maybe there are no 64-bit memory reads needed (?)
 pub fn rm64_x(
     cpu: &mut CPU,
@@ -27,9 +19,9 @@ pub fn rm64_x(
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            let x = read_u64(mem, addr);
+            let x = mem.get::<u64>(addr);
             let value = op(cpu, x);
-            write_u64(mem, addr, value);
+            mem.put::<u64>(addr, value);
         }
         _ => unimplemented!(),
     }
