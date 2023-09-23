@@ -219,20 +219,6 @@ pub fn fmulp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
-pub fn fdivp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.regs.st_top();
-    let x = cpu.regs.getst(instr.op0_register());
-    *x = *x / y;
-    cpu.regs.st_top += 1;
-}
-
-pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.regs.st_top();
-    let x = cpu.regs.getst(instr.op0_register());
-    *x = y / *x;
-    cpu.regs.st_top += 1;
-}
-
 pub fn fdiv_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = read_f64(mem, x86_addr(cpu, instr));
     *cpu.regs.st_top() /= y;
@@ -243,14 +229,41 @@ pub fn fdiv_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.regs.st_top() /= y;
 }
 
+pub fn fdivp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.st_top();
+    let x = cpu.regs.getst(instr.op0_register());
+    *x = *x / y;
+    cpu.regs.st_top += 1;
+}
+
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() /= y;
 }
 
+pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = read_f32(mem, x86_addr(cpu, instr)) as f64;
+    let x = cpu.regs.st_top();
+    *x = y / *x;
+}
+
+pub fn fdivr_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.getst(instr.op0_register());
+    let x = cpu.regs.st_top();
+    *x = y / *x;
+}
+
+pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.st_top();
+    let x = cpu.regs.getst(instr.op0_register());
+    *x = y / *x;
+    cpu.regs.st_top += 1;
+}
+
 pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
-    *cpu.regs.st_top() = y / *cpu.regs.st_top();
+    let x = cpu.regs.st_top();
+    *x = y / *x;
 }
 
 pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
