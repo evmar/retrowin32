@@ -247,6 +247,12 @@ pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.regs.st_top() /= y;
 }
 
+pub fn fdivr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = read_f64(mem, x86_addr(cpu, instr));
+    let x = cpu.regs.st_top();
+    *x = y / *x;
+}
+
 pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = read_f32(mem, x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
