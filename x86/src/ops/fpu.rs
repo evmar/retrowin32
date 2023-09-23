@@ -12,7 +12,7 @@ pub fn read_f64(mem: Mem, addr: u32) -> f64 {
 }
 
 pub fn write_f64(mem: Mem, addr: u32, value: f64) {
-    *mem.view_mut::<f64>(addr) = value;
+    mem.put::<f64>(addr, value);
 }
 
 /// Compare two values and set floating-point comparison flags.
