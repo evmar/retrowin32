@@ -175,7 +175,7 @@ pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fsub_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.regs.getst(instr.op1_register());
-    let x = cpu.regs.getst(instr.op0_register());
+    let x = cpu.regs.st_top();
     *x *= y;
 }
 
@@ -187,6 +187,12 @@ pub fn fsubr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fsubr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = read_f32(mem, x86_addr(cpu, instr)) as f64;
+    let x = cpu.regs.st_top();
+    *x = y - *x;
+}
+
+pub fn fsubr_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.getst(instr.op1_register());
     let x = cpu.regs.st_top();
     *x = y - *x;
 }
