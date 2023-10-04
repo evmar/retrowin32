@@ -132,10 +132,6 @@ impl win32::Host for EnvRef {
     }
 }
 
-fn hex_arg(arg: &str) -> Result<u32, String> {
-    u32::from_str_radix(arg, 16).map_err(|err| err.to_string())
-}
-
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
@@ -143,9 +139,9 @@ struct Args {
     #[argh(option)]
     win32_trace: Option<String>,
 
-    #[argh(option, from_str_fn(hex_arg))]
-    /// addresses to dump emulator state
-    trace_points: Vec<u32>,
+    /// log CPU state upon each new basic block
+    #[argh(switch)]
+    trace_blocks: bool,
 
     /// exe to run
     #[argh(positional)]
@@ -194,6 +190,16 @@ fn main() -> anyhow::Result<()> {
         .load_exe(&buf, cmdline.clone(), false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
+    // To make CPU traces match more closely, set up some registers to what their
+    // initial values appear to be from looking in a debugger.
+    #[cfg(feature = "cpuemu")]
+    {
+        machine.x86.cpu.regs.ecx = addrs.entry_point;
+        machine.x86.cpu.regs.edx = addrs.entry_point;
+        machine.x86.cpu.regs.esi = addrs.entry_point;
+        machine.x86.cpu.regs.edi = addrs.entry_point;
+    }
+
     #[cfg(not(feature = "cpuemu"))]
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;
@@ -203,12 +209,7 @@ fn main() -> anyhow::Result<()> {
     #[cfg(not(feature = "cpuemu"))]
     jump_to_entry_point(&mut machine, addrs.entry_point);
 
-    let mut trace_points = HashSet::new();
-    for &tp in &args.trace_points {
-        trace_points.insert(tp);
-        #[cfg(feature = "cpuemu")]
-        machine.x86.add_breakpoint(machine.memory.mem(), tp);
-    }
+    let mut seen_blocks = HashSet::new();
 
     #[cfg(feature = "cpuemu")]
     {
@@ -221,21 +222,21 @@ fn main() -> anyhow::Result<()> {
                     log::error!("{:?}", err);
                     break;
                 }
-                Ok(done) => {
+                Ok(_) => {
                     if host.0.borrow().exit_code.is_some() {
                         break;
                     }
 
-                    let ip = machine.x86.cpu.regs.eip;
-                    if !done && trace_points.contains(&ip) {
+                    if args.trace_blocks {
                         let regs = &machine.x86.cpu.regs;
+                        if seen_blocks.contains(&regs.eip) {
+                            continue;
+                        }
                         eprintln!(
-                            "trace ip:{:x} eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
+                            "@{:x}\n  eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
                             regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
                         );
-                        machine.x86.clear_breakpoint(machine.memory.mem(), ip);
-                        machine.single_step().unwrap();
-                        machine.x86.add_breakpoint(machine.memory.mem(), ip);
+                        seen_blocks.insert(regs.eip);
                     }
                 }
             }

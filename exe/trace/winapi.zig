@@ -1,3 +1,5 @@
+//! Declarations of Windows API, mostly debugging-related.
+
 const std = @import("std");
 const windows = std.os.windows;
 
@@ -5,6 +7,12 @@ const BOOL = windows.BOOL;
 const DWORD = windows.DWORD;
 const HANDLE = windows.HANDLE;
 const WINAPI = windows.WINAPI;
+
+pub fn logWindowsErr(call: []const u8) void {
+    // Logging GetLastError as an enum adds 100kb(!) to the binary size.
+    const code = @enumToInt(windows.kernel32.GetLastError());
+    std.log.err("{s}: {}", .{ call, code });
+}
 
 pub const DEBUG_EVENT_CODE = enum(DWORD) {
     EXCEPTION_DEBUG_EVENT = 1,
@@ -49,6 +57,7 @@ pub const OUTPUT_DEBUG_STRING_INFO = extern struct {
 pub const EXCEPTION_CODE = enum(DWORD) {
     EXCEPTION_BREAKPOINT = 0x80000003,
     EXCEPTION_SINGLE_STEP = 0x80000004,
+    EXCEPTION_ACCESS_VIOLATION = 0xC0000005,
     _,
 };
 
