@@ -9,10 +9,10 @@ mod winapi;
 #[cfg(feature = "x86-emu")]
 mod shims_emu;
 
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(feature = "x86-64")]
 mod shims_raw;
 
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(feature = "x86-64")]
 mod ldt;
 
 pub use host::*;

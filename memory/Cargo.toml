@@ -9,3 +9,4 @@ serde_bytes = { version = "0.11.7", optional = true }
 
 [features]
 x86-emu = ["dep:serde", "dep:serde_bytes"]
+x86-64 = []

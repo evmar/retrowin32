@@ -146,7 +146,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             // async block will set up the stack and eip.
             0
         }
-        #[cfg(not(feature = "x86-emu"))]
+        #[cfg(feature = "x86-64")]
         {
             // In the non-emulated case, we synchronously evaluate the future.
             let pin = std::pin::pin!(#module::#name(machine, #(#args),*));

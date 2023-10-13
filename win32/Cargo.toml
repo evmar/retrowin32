@@ -19,3 +19,4 @@ wasm-bindgen = "0.2.83"
 
 [features]
 x86-emu = ["dep:x86", "memory/x86-emu"]
+x86-64 = ["memory/x86-64"]

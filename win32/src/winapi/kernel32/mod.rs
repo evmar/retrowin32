@@ -141,7 +141,7 @@ pub struct State {
     files: HashMap<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)]
-    #[cfg(not(feature = "x86-emu"))]
+    #[cfg(feature = "x86-64")]
     pub ldt: crate::ldt::LDT,
 
     env: u32,
@@ -166,7 +166,7 @@ impl State {
 
         let teb = init_teb(&cmdline, &mut arena, mem.mem());
 
-        #[cfg(not(feature = "x86-emu"))]
+        #[cfg(feature = "x86-64")]
         let ldt = {
             let mut ldt = crate::ldt::LDT::default();
 
@@ -193,7 +193,7 @@ impl State {
             files: HashMap::new(),
             env: env_addr,
             cmdline,
-            #[cfg(not(feature = "x86-emu"))]
+            #[cfg(feature = "x86-64")]
             ldt,
         }
     }

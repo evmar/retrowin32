@@ -23,7 +23,7 @@ impl Machine {
             kernel32 = kernel32;
             Shims::new()
         };
-        #[cfg(not(feature = "x86-emu"))]
+        #[cfg(feature = "x86-64")]
         let shims = {
             let mapping =
                 kernel32

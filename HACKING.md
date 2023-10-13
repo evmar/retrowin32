@@ -26,14 +26,18 @@ $ npm run serve
 
 ## Compile-time features matrix
 
-There are two build time toggles implemented as Rust "features":
+To choose the x86 emulation strategy, you must pick one of two Rust "features":
 
 - `x86-emu`: enable the x86 emulator
+- `x86-64`: generate x86-64 code
+
+There are one further build time toggle:
+
 - `sdl`: use sdl2 for graphics
 
 Web builds require `x86-emu` and no `sdl`.
 
-Native builds can either use `x86-emu` (for non-x86) or not (which requires
+Native builds can either use `x86-emu` (for non-x86) or `x86-64` (which requires
 native x86/Rosetta on Mac). Native builds without `sdl` are headless and crash
 if they run any exe with graphics calls.
 

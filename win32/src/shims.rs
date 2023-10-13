@@ -13,7 +13,7 @@ use crate::Machine;
 
 #[cfg(feature = "x86-emu")]
 pub use crate::shims_emu::{become_async, call_x86, Shims};
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(feature = "x86-64")]
 pub use crate::shims_raw::{call_sync, call_x86, Shims};
 
 pub type Handler = unsafe fn(&mut Machine, u32) -> u32;

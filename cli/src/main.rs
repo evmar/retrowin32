@@ -19,7 +19,7 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(feature = "x86-64")]
 mod resv32;
 
 #[cfg(feature = "x86-emu")]
@@ -154,7 +154,7 @@ struct Args {
 
 /// Transfer control to the executable's entry point.
 /// Needs to switch code segments to enter compatibility mode, stacks, etc.
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(feature = "x86-64")]
 #[inline(never)] // aid in debugging
 fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
     // Assert that our code was loaded in the 3-4gb memory range, which means
@@ -172,7 +172,7 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 fn main() -> anyhow::Result<()> {
     logging::init();
 
-    #[cfg(not(feature = "x86-emu"))]
+    #[cfg(feature = "x86-64")]
     unsafe {
         crate::resv32::init_resv32();
     }
@@ -200,19 +200,19 @@ fn main() -> anyhow::Result<()> {
         machine.x86.cpu.regs.edi = addrs.entry_point;
     }
 
-    #[cfg(not(feature = "x86-emu"))]
+    #[cfg(feature = "x86-64")]
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;
         machine.shims.set_machine_hack(ptr, addrs.stack_pointer);
     }
 
-    #[cfg(not(feature = "x86-emu"))]
+    #[cfg(feature = "x86-64")]
     jump_to_entry_point(&mut machine, addrs.entry_point);
-
-    let mut seen_blocks = HashSet::new();
 
     #[cfg(feature = "x86-emu")]
     {
+        let mut seen_blocks = HashSet::new();
+
         _ = addrs;
         let start = std::time::Instant::now();
         loop {
