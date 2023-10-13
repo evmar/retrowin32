@@ -1,16 +1,16 @@
 mod mem;
 mod pod;
 
-#[cfg(feature = "cpuemu")]
-mod memory_cpuemu;
-#[cfg(not(feature = "cpuemu"))]
+#[cfg(feature = "x86-emu")]
+mod memory_emu;
+#[cfg(not(feature = "x86-emu"))]
 mod memory_raw;
 
 pub use mem::Mem;
 pub use pod::Pod;
 
-#[cfg(feature = "cpuemu")]
-pub type MemImpl = memory_cpuemu::VecMem;
+#[cfg(feature = "x86-emu")]
+pub type MemImpl = memory_emu::VecMem;
 
-#[cfg(not(feature = "cpuemu"))]
+#[cfg(not(feature = "x86-emu"))]
 pub type MemImpl = memory_raw::RawMem;

@@ -32,5 +32,5 @@ features = ["Performance"]
 wasm-opt = ['-O4', '-g']
 
 [features]
-default = ["cpuemu"]
-cpuemu = ["win32/cpuemu"]
+default = ["x86-emu"]
+x86-emu = ["win32/x86-emu"]

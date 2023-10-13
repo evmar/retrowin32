@@ -6,14 +6,14 @@
 //! functions can act as if they're just being called from Rust.
 //!
 //! There are two underlying implementations of Shims:
-//! 1. shims_cpuemu.rs, which is used with the CPU emulator
+//! 1. shims-emu.rs, which is used with the CPU emulator
 //! 2. shims_raw.rs, which is used when executing x86 natively
 
 use crate::Machine;
 
-#[cfg(feature = "cpuemu")]
-pub use crate::shims_cpuemu::{become_async, call_x86, Shims};
-#[cfg(not(feature = "cpuemu"))]
+#[cfg(feature = "x86-emu")]
+pub use crate::shims_emu::{become_async, call_x86, Shims};
+#[cfg(not(feature = "x86-emu"))]
 pub use crate::shims_raw::{call_sync, call_x86, Shims};
 
 pub type Handler = unsafe fn(&mut Machine, u32) -> u32;

@@ -242,7 +242,7 @@ pub fn load_exe(
         stack_pointer: stack.addr + stack.size - 4,
     };
 
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     {
         // TODO: put this init somewhere better.
         machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
@@ -251,7 +251,7 @@ pub fn load_exe(
         machine.x86.cpu.regs.ebp = stack_end;
     }
 
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     if dll_mains.is_empty() {
         machine.x86.cpu.regs.eip = entry_point;
     } else {

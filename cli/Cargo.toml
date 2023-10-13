@@ -22,4 +22,4 @@ optional = true
 
 [features]
 sdl = ["dep:sdl2"]
-cpuemu = ["dep:iced-x86", "win32/cpuemu"]
+x86-emu = ["dep:iced-x86", "win32/x86-emu"]

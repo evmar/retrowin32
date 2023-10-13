@@ -19,10 +19,10 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
-#[cfg(not(feature = "cpuemu"))]
+#[cfg(not(feature = "x86-emu"))]
 mod resv32;
 
-#[cfg(feature = "cpuemu")]
+#[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine) {
     let instrs = win32::disassemble(machine.mem(), machine.x86.cpu.regs.eip);
 
@@ -154,7 +154,7 @@ struct Args {
 
 /// Transfer control to the executable's entry point.
 /// Needs to switch code segments to enter compatibility mode, stacks, etc.
-#[cfg(not(feature = "cpuemu"))]
+#[cfg(not(feature = "x86-emu"))]
 #[inline(never)] // aid in debugging
 fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
     // Assert that our code was loaded in the 3-4gb memory range, which means
@@ -172,7 +172,7 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 fn main() -> anyhow::Result<()> {
     logging::init();
 
-    #[cfg(not(feature = "cpuemu"))]
+    #[cfg(not(feature = "x86-emu"))]
     unsafe {
         crate::resv32::init_resv32();
     }
@@ -192,7 +192,7 @@ fn main() -> anyhow::Result<()> {
 
     // To make CPU traces match more closely, set up some registers to what their
     // initial values appear to be from looking in a debugger.
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     {
         machine.x86.cpu.regs.ecx = addrs.entry_point;
         machine.x86.cpu.regs.edx = addrs.entry_point;
@@ -200,18 +200,18 @@ fn main() -> anyhow::Result<()> {
         machine.x86.cpu.regs.edi = addrs.entry_point;
     }
 
-    #[cfg(not(feature = "cpuemu"))]
+    #[cfg(not(feature = "x86-emu"))]
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;
         machine.shims.set_machine_hack(ptr, addrs.stack_pointer);
     }
 
-    #[cfg(not(feature = "cpuemu"))]
+    #[cfg(not(feature = "x86-emu"))]
     jump_to_entry_point(&mut machine, addrs.entry_point);
 
     let mut seen_blocks = HashSet::new();
 
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     {
         _ = addrs;
         let start = std::time::Instant::now();

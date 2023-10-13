@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     pub x86: x86::X86,
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
@@ -18,12 +18,12 @@ impl Machine {
         let mut memory = MemImpl::default();
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 
-        #[cfg(feature = "cpuemu")]
+        #[cfg(feature = "x86-emu")]
         let shims = {
             kernel32 = kernel32;
             Shims::new()
         };
-        #[cfg(not(feature = "cpuemu"))]
+        #[cfg(not(feature = "x86-emu"))]
         let shims = {
             let mapping =
                 kernel32
@@ -39,7 +39,7 @@ impl Machine {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            #[cfg(feature = "cpuemu")]
+            #[cfg(feature = "x86-emu")]
             x86: x86::X86::new(),
             memory,
             host,
@@ -63,9 +63,9 @@ impl Machine {
     }
 
     /// If eip points at a shim address, call the handler and update eip.
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     fn check_shim_call(&mut self) -> anyhow::Result<bool> {
-        if self.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_cpuemu::SHIM_BASE {
+        if self.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
             return Ok(false);
         }
         let crate::shims::Shim {
@@ -86,7 +86,7 @@ impl Machine {
     }
 
     // Execute one basic block.  Returns Ok(false) if we stopped early.
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     pub fn execute_block(&mut self) -> anyhow::Result<bool> {
         if self.check_shim_call()? {
             // Treat any shim call as a single block.
@@ -97,7 +97,7 @@ impl Machine {
             .map_err(|err| anyhow::anyhow!(err))
     }
 
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     pub fn single_step(&mut self) -> anyhow::Result<()> {
         if self.check_shim_call()? {
             // Treat any shim call as a single block.

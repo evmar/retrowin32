@@ -1781,7 +1781,7 @@ pub mod retrowin32 {
             let mem = machine.mem().detach();
             let func = <u32>::from_stack(mem, esp + 4u32);
             let data = <u32>::from_stack(mem, esp + 8u32);
-            #[cfg(feature = "cpuemu")]
+            #[cfg(feature = "x86-emu")]
             {
                 let m: *mut Machine = machine;
                 let result = async move {
@@ -1795,7 +1795,7 @@ pub mod retrowin32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(not(feature = "cpuemu"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::retrowin32::retrowin32_callback1(
                     machine, func, data
@@ -1859,7 +1859,7 @@ pub mod user32 {
             let hMenu = <u32>::from_stack(mem, esp + 40u32);
             let hInstance = <u32>::from_stack(mem, esp + 44u32);
             let lpParam = <u32>::from_stack(mem, esp + 48u32);
-            #[cfg(feature = "cpuemu")]
+            #[cfg(feature = "x86-emu")]
             {
                 let m: *mut Machine = machine;
                 let result = async move {
@@ -1887,7 +1887,7 @@ pub mod user32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(not(feature = "cpuemu"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExA(
                     machine,
@@ -1940,7 +1940,7 @@ pub mod user32 {
         pub unsafe fn DispatchMessageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
-            #[cfg(feature = "cpuemu")]
+            #[cfg(feature = "x86-emu")]
             {
                 let m: *mut Machine = machine;
                 let result = async move {
@@ -1953,7 +1953,7 @@ pub mod user32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(not(feature = "cpuemu"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()

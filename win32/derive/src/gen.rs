@@ -130,7 +130,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
     let body = if func.sig.asyncness.is_some() {
         quote! {
         #fetch_args
-        #[cfg(feature = "cpuemu")]
+        #[cfg(feature = "x86-emu")]
         {
             // Yuck: we know Machine will outlive the future, but Rust doesn't.
             // At least we managed to isolate the yuck to this point.
@@ -146,7 +146,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             // async block will set up the stack and eip.
             0
         }
-        #[cfg(not(feature = "cpuemu"))]
+        #[cfg(not(feature = "x86-emu"))]
         {
             // In the non-emulated case, we synchronously evaluate the future.
             let pin = std::pin::pin!(#module::#name(machine, #(#args),*));

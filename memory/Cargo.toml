@@ -8,4 +8,4 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 serde_bytes = { version = "0.11.7", optional = true }
 
 [features]
-cpuemu = ["dep:serde", "dep:serde_bytes"]
+x86-emu = ["dep:serde", "dep:serde_bytes"]

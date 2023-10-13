@@ -141,7 +141,7 @@ pub struct State {
     files: HashMap<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)]
-    #[cfg(not(feature = "cpuemu"))]
+    #[cfg(not(feature = "x86-emu"))]
     pub ldt: crate::ldt::LDT,
 
     env: u32,
@@ -166,7 +166,7 @@ impl State {
 
         let teb = init_teb(&cmdline, &mut arena, mem.mem());
 
-        #[cfg(not(feature = "cpuemu"))]
+        #[cfg(not(feature = "x86-emu"))]
         let ldt = {
             let mut ldt = crate::ldt::LDT::default();
 
@@ -193,7 +193,7 @@ impl State {
             files: HashMap::new(),
             env: env_addr,
             cmdline,
-            #[cfg(not(feature = "cpuemu"))]
+            #[cfg(not(feature = "x86-emu"))]
             ldt,
         }
     }
@@ -346,7 +346,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     machine.host.exit(uExitCode);
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
-    #[cfg(feature = "cpuemu")]
+    #[cfg(feature = "x86-emu")]
     machine.x86.cpu.stop();
     0
 }

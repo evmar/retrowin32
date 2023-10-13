@@ -33,7 +33,7 @@ rosetta:
 
 
 cli:
-	cargo build -p retrowin32 -F cpuemu,sdl $(cargoflags)
+	cargo build -p retrowin32 -F x86-emu,sdl $(cargoflags)
 .PHONY: cli
 
 

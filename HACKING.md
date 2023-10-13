@@ -5,7 +5,7 @@
 Build/run the CLI app:
 
 ```
-$ cargo build -p retrowin32 --release --features cpuemu,sdl
+$ cargo build -p retrowin32 --release --features x86-emu,sdl
 $ ./target/release/retrowin32 exe/zig_hello/hello.exe
 ```
 
@@ -28,12 +28,12 @@ $ npm run serve
 
 There are two build time toggles implemented as Rust "features":
 
-- `cpuemu`: enable the x86 emulator
+- `x86-emu`: enable the x86 emulator
 - `sdl`: use sdl2 for graphics
 
-Web builds require `cpuemu` and no `sdl`.
+Web builds require `x86-emu` and no `sdl`.
 
-Native builds can either use `cpuemu` (for non-x86) or not (which requires
+Native builds can either use `x86-emu` (for non-x86) or not (which requires
 native x86/Rosetta on Mac). Native builds without `sdl` are headless and crash
 if they run any exe with graphics calls.
 

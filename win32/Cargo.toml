@@ -18,4 +18,4 @@ tsify = "0.4.1"
 wasm-bindgen = "0.2.83"
 
 [features]
-cpuemu = ["dep:x86", "memory/cpuemu"]
+x86-emu = ["dep:x86", "memory/x86-emu"]
