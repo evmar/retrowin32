@@ -8,6 +8,8 @@ Take a win32 `.exe` file and run it in a web browser or a Mac.
 
 Doesn't really work for much yet, but I'm still tinkering!
 
+- 2023/10: preliminary support for using
+  [Unicorn](https://www.unicorn-engine.org/) (basically QEMU) for x86 emulation.
 - 2023/08:
   [new blog post](https://neugierig.org/software/blog/2023/08/x86-x64-aarch64.html)
   about new Rosetta-based emulation support. retrowin32 now can run on web,
