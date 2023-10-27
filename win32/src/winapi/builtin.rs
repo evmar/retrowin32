@@ -1795,7 +1795,7 @@ pub mod retrowin32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(feature = "x86-64")]
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
             {
                 let pin = std::pin::pin!(winapi::retrowin32::retrowin32_callback1(
                     machine, func, data
@@ -1887,7 +1887,7 @@ pub mod user32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(feature = "x86-64")]
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExA(
                     machine,
@@ -1953,7 +1953,7 @@ pub mod user32 {
                 crate::shims::become_async(machine, Box::pin(result));
                 0
             }
-            #[cfg(feature = "x86-64")]
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()

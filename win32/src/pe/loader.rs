@@ -250,6 +250,19 @@ pub fn load_exe(
         machine.x86.cpu.regs.esp = stack_end;
         machine.x86.cpu.regs.ebp = stack_end;
     }
+    #[cfg(feature = "x86-unicorn")]
+    {
+        // TODO: put this init somewhere better.
+        let stack_end = stack.addr + stack.size - 4;
+        machine
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::ESP, stack_end as u64)
+            .unwrap();
+        machine
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EBP, stack_end as u64)
+            .unwrap();
+    }
 
     #[cfg(feature = "x86-emu")]
     if dll_mains.is_empty() {

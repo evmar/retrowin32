@@ -26,10 +26,12 @@ $ npm run serve
 
 ## Compile-time features matrix
 
-To choose the x86 emulation strategy, you must pick one of two Rust "features":
+To choose the x86 emulation strategy, you must pick a Rust "feature":
 
-- `x86-emu`: enable the x86 emulator
+- `x86-emu`: retrowin32's own x86 emulator
 - `x86-64`: generate x86-64 code
+- `x86-unicorn`: use [Unicorn](https://www.unicorn-engine.org/) (effectively
+  QEMU) for x86 emulation
 
 There are one further build time toggle:
 
@@ -37,9 +39,9 @@ There are one further build time toggle:
 
 Web builds require `x86-emu` and no `sdl`.
 
-Native builds can either use `x86-emu` (for non-x86) or `x86-64` (which requires
-native x86/Rosetta on Mac). Native builds without `sdl` are headless and crash
-if they run any exe with graphics calls.
+Native builds can use any emulation strategy, but `x86-64` requires an x86
+process (or Rosetta on Mac) to run. Native builds without `sdl` are headless and
+crash if they run any exe with graphics calls.
 
 ## Code layout
 

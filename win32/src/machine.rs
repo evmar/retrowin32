@@ -6,6 +6,8 @@ use std::collections::HashMap;
 pub struct Machine {
     #[cfg(feature = "x86-emu")]
     pub x86: x86::X86,
+    #[cfg(feature = "x86-unicorn")]
+    pub unicorn: unicorn_engine::Unicorn<'static, ()>,
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
@@ -15,7 +17,12 @@ pub struct Machine {
 
 impl Machine {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
+        #[cfg(not(feature = "x86-unicorn"))]
         let mut memory = MemImpl::default();
+
+        #[cfg(feature = "x86-unicorn")]
+        let mut memory = MemImpl::new(16 << 20);
+
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 
         #[cfg(feature = "x86-emu")]
@@ -36,11 +43,46 @@ impl Machine {
             )
         };
 
+        #[cfg(feature = "x86-unicorn")]
+        let unicorn = {
+            let mut unicorn = unicorn_engine::Unicorn::new(
+                unicorn_engine::unicorn_const::Arch::X86,
+                unicorn_engine::unicorn_const::Mode::MODE_32,
+            )
+            .unwrap();
+            unsafe {
+                unicorn
+                    .mem_map_ptr(
+                        0,
+                        memory.len() as usize,
+                        unicorn_engine::unicorn_const::Permission::ALL,
+                        memory.ptr() as *mut _,
+                    )
+                    .unwrap();
+            };
+            unicorn
+        };
+
+        #[cfg(feature = "x86-unicorn")]
+        let shims = {
+            let mapping = kernel32
+                .mappings
+                .alloc(0x1000, "syscalls".into(), &mut memory);
+            Shims::new(
+                memory
+                    .mem()
+                    .slice(mapping.addr..mapping.addr + mapping.size),
+                mapping.addr,
+            )
+        };
+
         let state = winapi::State::new(kernel32);
 
         Machine {
             #[cfg(feature = "x86-emu")]
             x86: x86::X86::new(),
+            #[cfg(feature = "x86-unicorn")]
+            unicorn,
             memory,
             host,
             state,

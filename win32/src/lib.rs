@@ -8,9 +8,10 @@ mod winapi;
 
 #[cfg(feature = "x86-emu")]
 mod shims_emu;
-
 #[cfg(feature = "x86-64")]
 mod shims_raw;
+#[cfg(feature = "x86-unicorn")]
+mod shims_unicorn;
 
 #[cfg(feature = "x86-64")]
 mod ldt;

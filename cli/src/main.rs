@@ -204,10 +204,8 @@ fn main() -> anyhow::Result<()> {
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;
         machine.shims.set_machine_hack(ptr, addrs.stack_pointer);
+        jump_to_entry_point(&mut machine, addrs.entry_point);
     }
-
-    #[cfg(feature = "x86-64")]
-    jump_to_entry_point(&mut machine, addrs.entry_point);
 
     #[cfg(feature = "x86-emu")]
     {
@@ -250,6 +248,16 @@ fn main() -> anyhow::Result<()> {
                 (machine.x86.instr_count / millis) / 1000
             );
         }
+    }
+
+    #[cfg(feature = "x86-unicorn")]
+    {
+        let ptr: *mut win32::Machine = &mut machine;
+        unsafe {
+            machine.shims.set_machine_hack(ptr, &mut machine.unicorn);
+        }
+        let begin = addrs.entry_point as u64;
+        machine.unicorn.emu_start(begin, 0, 0, 0).unwrap();
     }
 
     Ok(())
