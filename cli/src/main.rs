@@ -4,7 +4,6 @@ mod logging;
 use anyhow::anyhow;
 use std::{
     cell::RefCell,
-    collections::HashSet,
     io::{Read, Seek, Write},
     path::{Path, PathBuf},
     rc::Rc,
@@ -141,6 +140,7 @@ struct Args {
 
     /// log CPU state upon each new basic block
     #[argh(switch)]
+    #[cfg(feature = "x86-emu")]
     trace_blocks: bool,
 
     /// exe to run
@@ -199,7 +199,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-emu")]
     {
-        let mut seen_blocks = HashSet::new();
+        let mut seen_blocks = std::collections::HashSet::new();
 
         _ = addrs;
         let start = std::time::Instant::now();

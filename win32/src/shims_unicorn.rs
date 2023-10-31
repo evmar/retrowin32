@@ -123,7 +123,7 @@ impl std::future::Future for UnimplFuture {
     }
 }
 
-pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
     machine.unicorn.emu_start(func as u64, 0, 0, 0).unwrap();
     UnimplFuture {}
 }
