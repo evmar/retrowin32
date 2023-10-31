@@ -3,57 +3,12 @@
 //! See https://en.wikipedia.org/wiki/Global_Descriptor_Table
 //! and doc/x86-64.md section "LDT".
 
+use crate::segments::SegmentDescriptor;
 use std::ffi::c_int;
 
-// https://en.wikipedia.org/wiki/Segment_descriptor
-// little endian, low bits first
-#[repr(C)]
-#[allow(non_snake_case)]
-#[allow(non_camel_case_types)]
-struct LDT_ENTRY {
-    LimitLow: u16,
-    BaseLow: u16,
-    BaseMid: u8,
-
-    /*
-    unsigned    Type : 5;
-    unsigned    Dpl : 2;
-    unsigned    Pres : 1;
-    */
-    Flags1: u8,
-    /*
-    unsigned    LimitHi : 4;
-    unsigned    Sys : 1;
-    unsigned    Reserved_0 : 1;
-    unsigned    Default_Big : 1;
-    unsigned    Granularity : 1;
-    */
-    Flags2: u8,
-
-    BaseHi: u8,
-}
-
-impl std::fmt::Debug for LDT_ENTRY {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("LDT_ENTRY")
-            .field("LimitLow", &self.LimitLow)
-            .field("BaseLow", &self.BaseLow)
-            .field("BaseMid", &self.BaseMid)
-            .field("Type", &(self.Flags1 & 0x1F))
-            .field("Dpl", &((self.Flags1 >> 5) & 0x3))
-            .field("Pres", &((self.Flags1 >> 7) & 0x1))
-            .field("LimitHi", &(self.Flags2 & 0xF))
-            .field("Sys", &((self.Flags2 >> 4) & 0x1))
-            .field("Default_Big", &((self.Flags2 >> 6) & 0x1))
-            .field("Granularity", &((self.Flags2 >> 7) & 0x1))
-            .field("BaseHi", &self.BaseHi)
-            .finish()
-    }
-}
-
 extern "C" {
-    fn i386_get_ldt(start_sel: c_int, descs: *mut LDT_ENTRY, num_sels: c_int) -> c_int;
-    fn i386_set_ldt(start_sel: c_int, descs: *const LDT_ENTRY, num_sels: c_int) -> c_int;
+    fn i386_get_ldt(start_sel: c_int, descs: *mut u64, num_sels: c_int) -> c_int;
+    fn i386_set_ldt(start_sel: c_int, descs: *const u64, num_sels: c_int) -> c_int;
 }
 
 pub struct LDT {
@@ -69,44 +24,36 @@ impl Default for LDT {
 impl LDT {
     pub fn add_entry(&mut self, base: u32, size: u32, code: bool) -> u16 {
         let (limit, granularity) = if size >= 0x10000 {
-            (size >> 12, 1u8)
+            (size >> 12, true)
         } else {
-            (size, 0u8)
+            (size, false)
         };
 
-        // type bits:
-        //  S: 0=system, 1=code/data
-        //   : 0=data, 1=code
-        //  E: expand-down
-        //  W: writeable
-        //  A: accessed
+        // Intel manual 3.4.5.1 Code-and Data-Segment Descriptor Types
         let type_ = if code {
             // code, execute/read, accessed
-            0b11011u8
+            0b1011u8
         } else {
             // data, read/write, accessed
-            0b10011u8
+            0b0011u8
         };
-        let dpl = 3u8;
-        let pres = 1u8;
-        let flags1 = (pres << 7) | (dpl << 5) | type_;
 
-        let limit_hi = ((limit >> 16) & 0xF) as u8;
-        let sys = 0u8;
-        let default_big = 1u8; // 32bit, not 16
-        let flags2: u8 = (granularity << 7) | (default_big << 6) | (sys << 4) | limit_hi;
-
-        let entry = LDT_ENTRY {
-            BaseLow: base as u16,
-            BaseMid: (base >> 16) as u8,
-            BaseHi: (base >> 24) as u8,
-            LimitLow: limit as u16,
-            Flags1: flags1,
-            Flags2: flags2,
+        let entry = SegmentDescriptor {
+            base,
+            limit,
+            granularity,
+            db: true,    // 32-bit, not 16
+            long: false, // 32-bit, not 64
+            available: false,
+            present: true,
+            dpl: 3,       // lowest privilege
+            system: true, // code or data segment, not system
+            type_,
         };
+
         let index = self.next_index;
         // println!("adding ldt {:x?}", entry);
-        let ret = unsafe { i386_set_ldt(self.next_index as c_int, &entry, 1) };
+        let ret = unsafe { i386_set_ldt(self.next_index as c_int, &entry.encode(), 1) };
         if ret < 0 {
             panic!("i386_set_ldt: {}", std::io::Error::last_os_error());
         }
@@ -117,15 +64,16 @@ impl LDT {
     }
 
     #[allow(dead_code)]
-    unsafe fn dump() {
-        let mut entries: [LDT_ENTRY; 256] = std::mem::zeroed();
-        let ret = i386_get_ldt(0, &mut entries as *mut LDT_ENTRY, 256);
+    fn dump() {
+        let mut entries: [u64; 256] = [0; 256];
+        let ret = unsafe { i386_get_ldt(0, &mut entries as *mut _, entries.len() as c_int) };
         println!("existing: {ret}");
-        for (i, e) in entries.iter().enumerate() {
-            if e.BaseLow == 0 && e.Flags1 == 0 && e.Flags2 == 0 {
+        for (i, &e) in entries.iter().enumerate() {
+            let entry = SegmentDescriptor::decode(e);
+            if entry.empty() {
                 continue;
             }
-            println!("{} {:x?}", i, e);
+            println!("{} {:x} {:#x?}", i, e, entry);
         }
     }
 }

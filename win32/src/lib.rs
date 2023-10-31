@@ -2,6 +2,7 @@ mod host;
 mod machine;
 pub mod pe;
 mod reader;
+mod segments;
 pub mod shims;
 pub mod trace;
 mod winapi;
