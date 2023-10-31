@@ -190,16 +190,6 @@ fn main() -> anyhow::Result<()> {
         .load_exe(&buf, cmdline.clone(), false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
-    // To make CPU traces match more closely, set up some registers to what their
-    // initial values appear to be from looking in a debugger.
-    #[cfg(feature = "x86-emu")]
-    {
-        machine.x86.cpu.regs.ecx = addrs.entry_point;
-        machine.x86.cpu.regs.edx = addrs.entry_point;
-        machine.x86.cpu.regs.esi = addrs.entry_point;
-        machine.x86.cpu.regs.edi = addrs.entry_point;
-    }
-
     #[cfg(feature = "x86-64")]
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;

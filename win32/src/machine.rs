@@ -2,6 +2,11 @@ use crate::{host, pe, shims::Shims, winapi};
 use memory::{Mem, MemImpl};
 use std::collections::HashMap;
 
+pub struct LoadedAddrs {
+    pub entry_point: u32,
+    pub stack_pointer: u32,
+}
+
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct Machine {
     #[cfg(feature = "x86-emu")]
@@ -95,13 +100,97 @@ impl Machine {
         self.memory.mem()
     }
 
+    /// Initialize a memory mapping for the stack and return the initial stack pointer.
+    fn setup_stack(&mut self, stack_size: u32) -> u32 {
+        let stack =
+            self.state
+                .kernel32
+                .mappings
+                .alloc(stack_size, "stack".into(), &mut self.memory);
+        let stack_pointer = stack.addr + stack.size - 4;
+
+        #[cfg(feature = "x86-emu")]
+        {
+            self.x86.cpu.regs.esp = stack_pointer;
+            self.x86.cpu.regs.ebp = stack_pointer;
+        }
+
+        #[cfg(feature = "x86-unicorn")]
+        {
+            // TODO: put this init somewhere better.
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::ESP, stack_pointer as u64)
+                .unwrap();
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::EBP, stack_pointer as u64)
+                .unwrap();
+        }
+
+        stack_pointer
+    }
+
+    #[allow(non_snake_case)]
     pub fn load_exe(
         &mut self,
         buf: &[u8],
         cmdline: String,
         relocate: bool,
-    ) -> anyhow::Result<pe::LoadedAddrs> {
-        pe::load_exe(self, buf, cmdline, relocate)
+    ) -> anyhow::Result<LoadedAddrs> {
+        let exe = pe::load_exe(self, buf, cmdline, relocate)?;
+
+        let stack_pointer = self.setup_stack(exe.stack_size);
+
+        #[cfg(feature = "x86-emu")]
+        {
+            // To make CPU traces match more closely, set up some registers to what their
+            // initial values appear to be from looking in a debugger.
+            self.x86.cpu.regs.ecx = exe.entry_point;
+            self.x86.cpu.regs.edx = exe.entry_point;
+            self.x86.cpu.regs.esi = exe.entry_point;
+            self.x86.cpu.regs.edi = exe.entry_point;
+
+            // TODO: put this init somewhere better.
+            self.x86.cpu.regs.fs_addr = self.state.kernel32.teb;
+
+            let mut dll_mains = Vec::new();
+            for dll in &self.state.kernel32.dlls {
+                if dll.dll.entry_point != 0 {
+                    dll_mains.push(dll.dll.entry_point);
+                }
+            }
+
+            if dll_mains.is_empty() {
+                self.x86.cpu.regs.eip = exe.entry_point;
+            } else {
+                // Invoke any DllMains then jump to the entry point.
+
+                let m = self as *mut Machine;
+                crate::shims::become_async(
+                    self,
+                    Box::pin(async move {
+                        let machine = unsafe { &mut *m };
+                        for dll_main in dll_mains {
+                            log::info!("invoking dllmain {:x}", dll_main);
+                            let hInstance = 0u32; // TODO
+                            let fdwReason = 1u32; // DLL_PROCESS_ATTACH
+                            let lpvReserved = 0u32;
+                            crate::shims::call_x86(
+                                machine,
+                                dll_main,
+                                vec![hInstance, fdwReason, lpvReserved],
+                            )
+                            .await;
+                        }
+                        machine.x86.cpu.regs.eip = exe.entry_point;
+                    }),
+                );
+            };
+        }
+
+        Ok(LoadedAddrs {
+            entry_point: exe.entry_point,
+            stack_pointer,
+        })
     }
 
     /// If eip points at a shim address, call the handler and update eip.

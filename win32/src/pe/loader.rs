@@ -189,9 +189,9 @@ fn load_pe(
     Ok(base)
 }
 
-pub struct LoadedAddrs {
+pub struct EXEFields {
     pub entry_point: u32,
-    pub stack_pointer: u32,
+    pub stack_size: u32,
 }
 
 pub fn load_exe(
@@ -199,27 +199,11 @@ pub fn load_exe(
     buf: &[u8],
     cmdline: String,
     relocate: bool,
-) -> anyhow::Result<LoadedAddrs> {
+) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
     let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
-
-    let mut stack_size = file.opt_header.SizeOfStackReserve;
-    // Zig reserves 16mb stacks, just truncate for now.
-    if stack_size > 1 << 20 {
-        log::warn!(
-            "requested {}mb stack reserve, using 32kb instead",
-            stack_size / (1 << 20)
-        );
-        stack_size = 32 << 10;
-    }
-    let stack =
-        machine
-            .state
-            .kernel32
-            .mappings
-            .alloc(stack_size, "stack".into(), &mut machine.memory);
 
     if let Some(res_data) = file
         .data_directory
@@ -228,69 +212,12 @@ pub fn load_exe(
         machine.state.user32.resources = res_data.clone();
     }
 
-    let mut dll_mains = Vec::new();
-    for dll in &machine.state.kernel32.dlls {
-        if dll.dll.entry_point != 0 {
-            dll_mains.push(dll.dll.entry_point);
-        }
-    }
-
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
 
-    let addrs = LoadedAddrs {
+    let addrs = EXEFields {
         entry_point,
-        stack_pointer: stack.addr + stack.size - 4,
+        stack_size: file.opt_header.SizeOfStackReserve,
     };
-
-    #[cfg(feature = "x86-emu")]
-    {
-        // TODO: put this init somewhere better.
-        machine.x86.cpu.regs.fs_addr = machine.state.kernel32.teb;
-        let stack_end = stack.addr + stack.size - 4;
-        machine.x86.cpu.regs.esp = stack_end;
-        machine.x86.cpu.regs.ebp = stack_end;
-    }
-    #[cfg(feature = "x86-unicorn")]
-    {
-        // TODO: put this init somewhere better.
-        let stack_end = stack.addr + stack.size - 4;
-        machine
-            .unicorn
-            .reg_write(unicorn_engine::RegisterX86::ESP, stack_end as u64)
-            .unwrap();
-        machine
-            .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EBP, stack_end as u64)
-            .unwrap();
-    }
-
-    #[cfg(feature = "x86-emu")]
-    if dll_mains.is_empty() {
-        machine.x86.cpu.regs.eip = entry_point;
-    } else {
-        // Invoke any DllMains then jump to the entry point.
-        let m = machine as *mut Machine;
-        crate::shims::become_async(
-            machine,
-            Box::pin(async move {
-                let machine = unsafe { &mut *m };
-                for dll_main in dll_mains {
-                    log::info!("invoking dllmain {:x}", dll_main);
-                    let hInstance = 0u32; // TODO
-                    let fdwReason = 1u32; // DLL_PROCESS_ATTACH
-                    let lpvReserved = 0u32;
-                    crate::shims::call_x86(
-                        machine,
-                        dll_main,
-                        vec![hInstance, fdwReason, lpvReserved],
-                    )
-                    .await;
-                }
-                machine.x86.cpu.regs.eip = entry_point;
-            }),
-        );
-    };
-
     Ok(addrs)
 }
 
