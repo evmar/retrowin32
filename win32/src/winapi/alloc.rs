@@ -1,9 +1,13 @@
 use memory::Mem;
 
-pub trait Alloc {
-    fn alloc(&mut self, size: u32, align: usize) -> u32;
-    fn size(&self, addr: u32) -> u32;
-    fn free(&mut self, addr: u32);
+pub fn align_to(n: u32, align: usize) -> u32 {
+    // log2(align) - 1
+    let add = match align {
+        1 | 2 | 4 => 3, // still need to align to 4-byte boundary for metadata purposes
+        8 => 7,
+        _ => todo!("{align}"),
+    };
+    (n + add) & !add
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -30,18 +34,8 @@ pub struct Arena<'a, 'm> {
     mem: Mem<'m>,
 }
 
-pub fn align_to(n: u32, align: usize) -> u32 {
-    // log2(align) - 1
-    let add = match align {
-        1 | 2 | 4 => 3, // still need to align to 4-byte boundary for metadata purposes
-        8 => 7,
-        _ => todo!("{align}"),
-    };
-    (n + add) & !add
-}
-
-impl<'a, 'm> Alloc for Arena<'a, 'm> {
-    fn alloc(&mut self, size: u32, align: usize) -> u32 {
+impl<'a, 'm> Arena<'a, 'm> {
+    pub fn alloc(&mut self, size: u32, align: usize) -> u32 {
         let next = align_to(self.info.next + 4, align);
         if next + size > self.info.size {
             log::error!(
@@ -56,14 +50,5 @@ impl<'a, 'm> Alloc for Arena<'a, 'm> {
         self.mem.put::<u32>(addr - 4, size);
         self.info.next = next + size;
         addr
-    }
-
-    fn size(&self, addr: u32) -> u32 {
-        assert!(addr >= self.info.addr + 4 && addr < self.info.addr + self.info.size);
-        self.mem.get::<u32>(addr - 4)
-    }
-
-    fn free(&mut self, _addr: u32) {
-        unimplemented!("can't free from arena")
     }
 }

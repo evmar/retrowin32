@@ -7,7 +7,6 @@ mod memory;
 mod thread;
 
 use super::{
-    alloc::Alloc,
     alloc::ArenaInfo,
     heap::Heap,
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
