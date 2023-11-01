@@ -24,6 +24,7 @@ pub struct SegmentDescriptor {
 }
 
 impl SegmentDescriptor {
+    #[allow(dead_code)]
     pub fn decode(raw: u64) -> Self {
         let hi = (raw >> 32) as u32;
         let lo = raw as u32;
@@ -69,6 +70,7 @@ impl SegmentDescriptor {
         ((hi as u64) << 32) | (lo as u64)
     }
 
+    #[allow(dead_code)]
     pub fn empty(&self) -> bool {
         self.encode() == 0
     }
