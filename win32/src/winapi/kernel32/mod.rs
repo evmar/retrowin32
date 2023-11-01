@@ -13,7 +13,7 @@ use super::{
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
 };
-use crate::machine::Machine;
+use crate::{machine::Machine, segments::SegmentDescriptor};
 use ::memory::{Mem, MemImpl, Pod};
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
@@ -212,6 +212,79 @@ impl State {
 
     pub fn get_heap<'a>(&'a mut self, addr: u32) -> Option<&mut Heap> {
         self.heaps.get_mut(&addr)
+    }
+
+    pub fn create_gdt(&mut self, mem: Mem) -> (u32, u16, u16, u16, u16) {
+        const COUNT: usize = 5;
+        let addr = self.arena.get(mem).alloc(COUNT as u32 * 8);
+        let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.ptr_mut::<u64>(addr) as *mut _) };
+
+        gdt[0] = 0;
+
+        let cs = (1 << 3) | 0b011;
+        gdt[1] = SegmentDescriptor {
+            base: 0x0000_0000,
+            limit: 0xFFFF_FFFF,
+            granularity: true,
+            db: true, // 32 bit
+            long: false,
+            available: false,
+            present: true,
+            dpl: 3,
+            system: true,  // code/data
+            type_: 0b1011, // code, execute/read, accessed
+        }
+        .encode();
+
+        let ds = (2 << 3) | 0b011;
+        gdt[2] = SegmentDescriptor {
+            base: 0x0000_0000,
+            limit: 0xFFFF_FFFF,
+            granularity: true,
+            db: true, // 32 bit
+            long: false,
+            available: false,
+            present: true,
+            dpl: 3,
+            system: true,  // code/data
+            type_: 0b0011, // data, read/write, accessed
+        }
+        .encode();
+
+        let fs = (3 << 3) | 0b011;
+        gdt[3] = SegmentDescriptor {
+            base: 0x0000_0000, // TODO
+            limit: 0xFFFF_FFFF,
+            granularity: true,
+            db: true, // 32 bit
+            long: false,
+            available: false,
+            present: true,
+            dpl: 3,
+            system: true,  // code/data
+            type_: 0b0011, // data, read/write, accessed
+        }
+        .encode();
+
+        // unicorn test says: "when setting SS, need rpl == cpl && dpl == cpl",
+        // which is to say because the system is level 0 (cpl) we need the descriptor
+        // to also be zero (dpl) and the selector to also be zero (rpl, the 0b000 here).
+        let ss = (4 << 3) | 0b000;
+        gdt[4] = SegmentDescriptor {
+            base: 0x0000_0000,
+            limit: 0xFFFF_FFFF,
+            granularity: true,
+            db: true, // 32 bit
+            long: false,
+            available: false,
+            present: true,
+            dpl: 0,        // NOTE: this is different from others
+            system: true,  // code/data
+            type_: 0b0011, // data, read/write, accessed
+        }
+        .encode();
+
+        (addr, cs, ds, fs, ss)
     }
 }
 

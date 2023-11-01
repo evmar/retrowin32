@@ -129,6 +129,53 @@ impl Machine {
         stack_pointer
     }
 
+    /// Initialize segment registers.  In particular, we need FS to point at the kernel32 TEB.
+    fn setup_segments(&mut self) {
+        #[cfg(feature = "x86-emu")]
+        {
+            self.x86.cpu.regs.fs_addr = self.state.kernel32.teb;
+        }
+
+        #[cfg(feature = "x86-unicorn")]
+        {
+            // To be able to set FS, we need to create a GDT, which then requires entries
+            // for the code and data segments too.
+            // https://scoding.de/setting-global-descriptor-table-unicorn
+            // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
+            let (addr, cs, ds, fs, ss) = self.state.kernel32.create_gdt(self.memory.mem());
+
+            let gdtr = unicorn_engine::X86Mmr {
+                selector: 0, // unused
+                base: addr as u64,
+                limit: 5 * 8,
+                flags: 0, // unused
+            };
+            // Gross: need gdtr as a slice to pass to reg_write_long.
+            let gdtr_slice = unsafe {
+                std::slice::from_raw_parts(
+                    &gdtr as *const _ as *const u8,
+                    std::mem::size_of::<unicorn_engine::X86Mmr>(),
+                )
+            };
+
+            self.unicorn
+                .reg_write_long(unicorn_engine::RegisterX86::GDTR, gdtr_slice)
+                .unwrap();
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::CS, cs as u64)
+                .unwrap();
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::DS, ds as u64)
+                .unwrap();
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::SS, ss as u64)
+                .unwrap();
+            self.unicorn
+                .reg_write(unicorn_engine::RegisterX86::FS, fs as u64)
+                .unwrap();
+        }
+    }
+
     #[allow(non_snake_case)]
     pub fn load_exe(
         &mut self,
@@ -139,6 +186,7 @@ impl Machine {
         let exe = pe::load_exe(self, buf, cmdline, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
+        self.setup_segments();
 
         #[cfg(feature = "x86-emu")]
         {
@@ -148,9 +196,6 @@ impl Machine {
             self.x86.cpu.regs.edx = exe.entry_point;
             self.x86.cpu.regs.esi = exe.entry_point;
             self.x86.cpu.regs.edi = exe.entry_point;
-
-            // TODO: put this init somewhere better.
-            self.x86.cpu.regs.fs_addr = self.state.kernel32.teb;
 
             let mut dll_mains = Vec::new();
             for dll in &self.state.kernel32.dlls {

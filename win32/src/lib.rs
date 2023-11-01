@@ -15,7 +15,7 @@ mod shims_unicorn;
 
 #[cfg(feature = "x86-64")]
 mod ldt;
-#[cfg(feature = "x86-64")]
+#[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
 mod segments;
 
 pub use host::*;
