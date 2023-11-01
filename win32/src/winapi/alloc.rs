@@ -3,7 +3,9 @@ use memory::Mem;
 pub fn align_to(n: u32, align: usize) -> u32 {
     // log2(align) - 1
     let add = match align {
-        1 | 2 | 4 => 3, // still need to align to 4-byte boundary for metadata purposes
+        1 => return n,
+        2 => 1,
+        4 => 3,
         8 => 7,
         _ => todo!("{align}"),
     };
@@ -25,18 +27,21 @@ impl ArenaInfo {
         }
     }
     pub fn get<'a, 'm>(&'a mut self, mem: Mem<'m>) -> Arena<'a, 'm> {
-        Arena { info: self, mem }
+        Arena {
+            info: self,
+            _mem: mem,
+        }
     }
 }
 
 pub struct Arena<'a, 'm> {
     info: &'a mut ArenaInfo,
-    mem: Mem<'m>,
+    _mem: Mem<'m>,
 }
 
 impl<'a, 'm> Arena<'a, 'm> {
     pub fn alloc(&mut self, size: u32, align: usize) -> u32 {
-        let next = align_to(self.info.next + 4, align);
+        let next = align_to(self.info.next, align);
         if next + size > self.info.size {
             log::error!(
                 "Arena::alloc cannot allocate {:x}, using {:x}/{:x}",
@@ -47,7 +52,6 @@ impl<'a, 'm> Arena<'a, 'm> {
             return 0;
         }
         let addr = self.info.addr + next;
-        self.mem.put::<u32>(addr - 4, size);
         self.info.next = next + size;
         addr
     }
