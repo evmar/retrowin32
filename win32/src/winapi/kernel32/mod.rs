@@ -7,7 +7,7 @@ mod memory;
 mod thread;
 
 use super::{
-    alloc::ArenaInfo,
+    alloc::Arena,
     heap::Heap,
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
@@ -38,18 +38,18 @@ struct CommandLine {
 }
 
 impl CommandLine {
-    fn new(mut cmdline: String, arena: &mut ArenaInfo, mem: Mem) -> Self {
+    fn new(mut cmdline: String, arena: &mut Arena, mem: Mem) -> Self {
         let len = cmdline.len();
 
         cmdline.push(0 as char); // nul terminator
 
-        let cmdline8_ptr = arena.get(mem).alloc(cmdline.len() as u32, 1);
+        let cmdline8_ptr = arena.alloc(cmdline.len() as u32, 1);
         mem.sub(cmdline8_ptr, cmdline.len() as u32)
             .as_mut_slice_todo()
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
-        let cmdline16_ptr = arena.get(mem).alloc(cmdline16.byte_size() as u32, 2);
+        let cmdline16_ptr = arena.alloc(cmdline16.byte_size() as u32, 2);
         let mem16: &mut [u16] = unsafe {
             std::mem::transmute(
                 mem.sub(cmdline16_ptr, cmdline16.0.len() as u32)
@@ -76,9 +76,9 @@ impl CommandLine {
 
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
+fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     // RTL_USER_PROCESS_PARAMETERS
-    let params_addr = arena.get(mem).alloc(
+    let params_addr = arena.alloc(
         std::cmp::max(
             std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
             0x100,
@@ -95,16 +95,14 @@ fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
     params.CommandLine = cmdline.as_unicode_string();
 
     // PEB
-    let peb_addr = arena
-        .get(mem)
-        .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
+    let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
     let peb = mem.view_mut::<PEB>(peb_addr);
     peb.ProcessParameters = params_addr;
     peb.ProcessHeap = 0; // Initialized lazily.
     peb.TlsCount = 0;
 
     // SEH chain
-    let seh_addr = arena.get(mem).alloc(
+    let seh_addr = arena.alloc(
         std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
         4,
     );
@@ -113,9 +111,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
     seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
 
     // TEB
-    let teb_addr = arena
-        .get(mem)
-        .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
+    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
     let teb = mem.view_mut::<TEB>(teb_addr);
     teb.Tib.ExceptionList = seh_addr;
     teb.Tib._Self = teb_addr; // Confusing: it points to itself.
@@ -128,7 +124,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
-    arena: ArenaInfo,
+    arena: Arena,
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (what FS register-relative addresses refer to).
@@ -156,10 +152,10 @@ impl State {
     pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
-        let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
+        let mut arena = Arena::new(mapping.addr, mapping.size);
 
         let env = "\0\0".as_bytes();
-        let env_addr = arena.get(mem.mem()).alloc(env.len() as u32, 1);
+        let env_addr = arena.alloc(env.len() as u32, 1);
         mem.mem()
             .sub(env_addr, env.len() as u32)
             .as_mut_slice_todo()
@@ -219,7 +215,7 @@ impl State {
 
     pub fn create_gdt(&mut self, mem: Mem) -> (u32, u16, u16, u16, u16) {
         const COUNT: usize = 5;
-        let addr = self.arena.get(mem).alloc(COUNT as u32 * 8, 8);
+        let addr = self.arena.alloc(COUNT as u32 * 8, 8);
         let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.ptr_mut::<u64>(addr) as *mut _) };
 
         gdt[0] = 0;
