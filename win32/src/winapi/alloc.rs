@@ -1,7 +1,7 @@
 use memory::Mem;
 
 pub trait Alloc {
-    fn alloc(&mut self, size: u32) -> u32;
+    fn alloc(&mut self, size: u32, align: usize) -> u32;
     fn size(&self, addr: u32) -> u32;
     fn free(&mut self, addr: u32);
 }
@@ -30,14 +30,20 @@ pub struct Arena<'a, 'm> {
     mem: Mem<'m>,
 }
 
-pub fn align32(n: u32) -> u32 {
-    (n + 3) & !3
+pub fn align_to(n: u32, align: usize) -> u32 {
+    // log2(align) - 1
+    let add = match align {
+        1 | 2 | 4 => 3, // still need to align to 4-byte boundary for metadata purposes
+        8 => 7,
+        _ => todo!("{align}"),
+    };
+    (n + add) & !add
 }
 
 impl<'a, 'm> Alloc for Arena<'a, 'm> {
-    fn alloc(&mut self, size: u32) -> u32 {
-        let alloc_size = align32(size + 4);
-        if self.info.next + alloc_size > self.info.size {
+    fn alloc(&mut self, size: u32, align: usize) -> u32 {
+        let next = align_to(self.info.next + 4, align);
+        if next + size > self.info.size {
             log::error!(
                 "Arena::alloc cannot allocate {:x}, using {:x}/{:x}",
                 size,
@@ -46,10 +52,10 @@ impl<'a, 'm> Alloc for Arena<'a, 'm> {
             );
             return 0;
         }
-        let addr = self.info.addr + self.info.next;
-        self.mem.put::<u32>(addr, size);
-        self.info.next += alloc_size;
-        addr + 4
+        let addr = self.info.addr + next;
+        self.mem.put::<u32>(addr - 4, size);
+        self.info.next = next + size;
+        addr
     }
 
     fn size(&self, addr: u32) -> u32 {

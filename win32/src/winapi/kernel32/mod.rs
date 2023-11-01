@@ -44,13 +44,13 @@ impl CommandLine {
 
         cmdline.push(0 as char); // nul terminator
 
-        let cmdline8_ptr = arena.get(mem).alloc(cmdline.len() as u32);
+        let cmdline8_ptr = arena.get(mem).alloc(cmdline.len() as u32, 1);
         mem.sub(cmdline8_ptr, cmdline.len() as u32)
             .as_mut_slice_todo()
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
-        let cmdline16_ptr = arena.get(mem).alloc(cmdline16.byte_size() as u32);
+        let cmdline16_ptr = arena.get(mem).alloc(cmdline16.byte_size() as u32, 2);
         let mem16: &mut [u16] = unsafe {
             std::mem::transmute(
                 mem.sub(cmdline16_ptr, cmdline16.0.len() as u32)
@@ -79,10 +79,13 @@ impl CommandLine {
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
 fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
     // RTL_USER_PROCESS_PARAMETERS
-    let params_addr = arena.get(mem).alloc(std::cmp::max(
-        std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-        0x100,
-    ));
+    let params_addr = arena.get(mem).alloc(
+        std::cmp::max(
+            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+            0x100,
+        ),
+        4,
+    );
     let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
     // x86.put::<u32>(params_addr + 0x10, console_handle);
     // x86.put::<u32>(params_addr + 0x14, console_flags);
@@ -95,16 +98,17 @@ fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
     // PEB
     let peb_addr = arena
         .get(mem)
-        .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100));
+        .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
     let peb = mem.view_mut::<PEB>(peb_addr);
     peb.ProcessParameters = params_addr;
     peb.ProcessHeap = 0; // Initialized lazily.
     peb.TlsCount = 0;
 
     // SEH chain
-    let seh_addr = arena
-        .get(mem)
-        .alloc(std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32);
+    let seh_addr = arena.get(mem).alloc(
+        std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
+        4,
+    );
     let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
     seh.Prev = 0xFFFF_FFFF;
     seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
@@ -112,7 +116,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut ArenaInfo, mem: Mem) -> u32 {
     // TEB
     let teb_addr = arena
         .get(mem)
-        .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100));
+        .alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
     let teb = mem.view_mut::<TEB>(teb_addr);
     teb.Tib.ExceptionList = seh_addr;
     teb.Tib._Self = teb_addr; // Confusing: it points to itself.
@@ -156,7 +160,7 @@ impl State {
         let mut arena = ArenaInfo::new(mapping.addr, mapping.size);
 
         let env = "\0\0".as_bytes();
-        let env_addr = arena.get(mem.mem()).alloc(env.len() as u32);
+        let env_addr = arena.get(mem.mem()).alloc(env.len() as u32, 1);
         mem.mem()
             .sub(env_addr, env.len() as u32)
             .as_mut_slice_todo()
@@ -216,7 +220,7 @@ impl State {
 
     pub fn create_gdt(&mut self, mem: Mem) -> (u32, u16, u16, u16, u16) {
         const COUNT: usize = 5;
-        let addr = self.arena.get(mem).alloc(COUNT as u32 * 8);
+        let addr = self.arena.get(mem).alloc(COUNT as u32 * 8, 8);
         let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.ptr_mut::<u64>(addr) as *mut _) };
 
         gdt[0] = 0;
@@ -253,9 +257,9 @@ impl State {
 
         let fs = (3 << 3) | 0b011;
         gdt[3] = SegmentDescriptor {
-            base: 0x0000_0000, // TODO
-            limit: 0xFFFF_FFFF,
-            granularity: true,
+            base: self.teb,
+            limit: 0x1000,
+            granularity: false,
             db: true, // 32 bit
             long: false,
             available: false,

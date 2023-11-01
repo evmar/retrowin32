@@ -2,7 +2,7 @@
 //! and also for win32-visible allocations created by other calls (like in
 //! DirectDraw).
 
-use super::alloc::align32;
+use super::alloc::align_to;
 use memory::Mem;
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
@@ -23,7 +23,7 @@ impl Heap {
     }
 
     pub fn alloc(&mut self, mem: Mem, size: u32) -> u32 {
-        let size = align32(size) + 4;
+        let size = align_to(size, 4) + 4;
         let i = self
             .freelist
             .iter()
