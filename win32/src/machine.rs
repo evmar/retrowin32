@@ -26,7 +26,7 @@ impl Machine {
         let mut memory = MemImpl::default();
 
         #[cfg(feature = "x86-unicorn")]
-        let mut memory = MemImpl::new(16 << 20);
+        let mut memory = MemImpl::new(32 << 20);
 
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 
