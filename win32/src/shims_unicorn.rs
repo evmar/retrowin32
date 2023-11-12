@@ -10,18 +10,14 @@ use crate::{shims::Shim, Machine};
 #[derive(Default)]
 pub struct Shims {
     shims: Vec<Shim>,
-    sysenters_addr: u32,
+    hooks_base: u32,
 }
 
 impl Shims {
-    pub fn new(mem: Mem, addr: u32) -> Self {
-        for i in 0..mem.len() / 2 {
-            mem.put::<u16>(i * 2, 0x340f);
-        }
-
+    pub fn new(_mem: Mem, addr: u32) -> Self {
         Shims {
             shims: Default::default(),
-            sysenters_addr: addr,
+            hooks_base: addr,
         }
     }
 
@@ -33,11 +29,10 @@ impl Shims {
         unicorn: &mut unicorn_engine::Unicorn<'static, ()>,
     ) {
         unicorn
-            .add_insn_sys_hook(
-                unicorn_engine::InsnSysX86::SYSENTER,
-                0,
-                0xFFFF_FFFF,
-                move |_u| {
+            .add_code_hook(
+                self.hooks_base as u64,
+                self.hooks_base as u64 + 0x1000,
+                move |_u, _addr, _size| {
                     let machine = &mut *machine;
                     Shims::handle_call(machine).unwrap();
                 },
@@ -47,7 +42,7 @@ impl Shims {
 
     pub fn add(&mut self, shim: Shim) -> u32 {
         let index = self.shims.len() as u32;
-        let addr = self.sysenters_addr + index * 2;
+        let addr = self.hooks_base + index;
         self.shims.push(shim);
         addr
     }
@@ -62,7 +57,7 @@ impl Shims {
             .unicorn
             .reg_read(unicorn_engine::RegisterX86::EIP)
             .unwrap() as u32;
-        let index = (eip - machine.shims.sysenters_addr) / 2;
+        let index = eip - machine.shims.hooks_base;
         let shim = &machine.shims.shims[index as usize];
 
         let crate::shims::Shim {
@@ -80,11 +75,7 @@ impl Shims {
         let next_eip = machine.mem().get::<u32>(esp);
         machine
             .unicorn
-            .reg_write(
-                unicorn_engine::RegisterX86::EIP,
-                // -2 here because it appears unicorn increments eip unconditionally from the 2-byte sysenter
-                next_eip as u64 - 2,
-            )
+            .reg_write(unicorn_engine::RegisterX86::EIP, next_eip as u64)
             .unwrap();
         machine
             .unicorn
