@@ -2,6 +2,7 @@ mod host;
 mod machine;
 pub mod pe;
 mod reader;
+mod segments;
 pub mod shims;
 pub mod trace;
 mod winapi;
@@ -15,8 +16,6 @@ mod shims_unicorn;
 
 #[cfg(feature = "x86-64")]
 mod ldt;
-#[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
-mod segments;
 
 pub use host::*;
 pub use machine::Machine;
