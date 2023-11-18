@@ -7,7 +7,7 @@ use crate::{shims::Shim, Machine};
 
 #[derive(Default)]
 pub struct Shims {
-    shims: Vec<Shim>,
+    shims: Vec<Result<Shim, String>>,
     hooks_base: u32,
 }
 
@@ -35,16 +35,19 @@ impl Shims {
         }
     }
 
-    pub fn add(&mut self, shim: Shim) -> u32 {
+    fn add_impl(&mut self, shim: Result<Shim, String>) -> u32 {
         let index = self.shims.len() as u32;
         let addr = self.hooks_base + index;
         self.shims.push(shim);
         addr
     }
 
+    pub fn add(&mut self, shim: Shim) -> u32 {
+        self.add_impl(Ok(shim))
+    }
+
     pub fn add_todo(&mut self, name: String) -> u32 {
-        log::warn!("todo: register shim for {name}");
-        0
+        self.add_impl(Err(name))
     }
 
     pub fn handle_call(machine: &mut Machine) -> anyhow::Result<()> {
@@ -53,7 +56,10 @@ impl Shims {
             .reg_read(unicorn_engine::RegisterX86::EIP)
             .unwrap() as u32;
         let index = eip - machine.shims.hooks_base;
-        let shim = &machine.shims.shims[index as usize];
+        let shim = match &machine.shims.shims[index as usize] {
+            Ok(shim) => shim,
+            Err(name) => unimplemented!("shim call to {name}"),
+        };
 
         let crate::shims::Shim {
             func,
@@ -142,14 +148,12 @@ pub fn unicorn_loop(machine: &mut Machine, eip: u32, until: u32) {
     let mut eip = eip as u64;
     let until = until as u64;
     loop {
-        println!("unicorn_loop {eip:x} {until:x}");
         machine.unicorn.emu_start(eip, until, 0, 0).unwrap();
         eip = machine
             .unicorn
             .reg_read(unicorn_engine::RegisterX86::EIP)
             .unwrap();
         if eip == until {
-            println!("x eip => {eip:x}");
             return;
         }
         if (machine.shims.hooks_base..machine.shims.hooks_base + 0x1000).contains(&(eip as u32)) {
@@ -158,9 +162,6 @@ pub fn unicorn_loop(machine: &mut Machine, eip: u32, until: u32) {
                 .unicorn
                 .reg_read(unicorn_engine::RegisterX86::EIP)
                 .unwrap();
-        } else {
-            println!("x no hook eip => {eip:x}");
-            break;
         }
     }
 }
