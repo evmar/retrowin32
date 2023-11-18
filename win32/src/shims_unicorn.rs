@@ -1,7 +1,12 @@
 //! "Shims" are my word for the mechanism for x86 -> retrowin32 (and back) calls.
 //!
-//! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
-//! See doc/x86-64.md for an overview.
+//! This module implements Shims for use within the Unicorn CPU emulator.
+//!
+//! The basic approach is:
+//! 1) reserve some page of memory as special for shims, called `hooks_base`
+//! 2) use the address `hooks_base+x` to represent shim number x
+//! 3) tell Unicorn to stop emulation whenever the page is hit,
+//!    and use eip to compute which shim
 
 use crate::{shims::Shim, Machine};
 
@@ -49,48 +54,6 @@ impl Shims {
     pub fn add_todo(&mut self, name: String) -> u32 {
         self.add_impl(Err(name))
     }
-
-    pub fn handle_call(machine: &mut Machine) -> anyhow::Result<()> {
-        let eip = machine
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::EIP)
-            .unwrap() as u32;
-        let index = eip - machine.shims.hooks_base;
-        let shim = match &machine.shims.shims[index as usize] {
-            Ok(shim) => shim,
-            Err(name) => unimplemented!("shim call to {name}"),
-        };
-
-        let crate::shims::Shim {
-            func,
-            stack_consumed,
-            ..
-        } = *shim;
-
-        let esp = machine
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::ESP)
-            .unwrap() as u32;
-        let ret = unsafe { func(machine, esp) };
-
-        let ret_addr = machine.mem().get::<u32>(esp);
-        machine
-            .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EIP, ret_addr as u64)
-            .unwrap();
-        machine
-            .unicorn
-            .reg_write(
-                unicorn_engine::RegisterX86::ESP,
-                (esp + stack_consumed) as u64,
-            )
-            .unwrap();
-        machine
-            .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
-            .unwrap();
-        Ok(())
-    }
 }
 
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
@@ -113,6 +76,50 @@ impl std::future::Future for UnimplFuture {
     ) -> std::task::Poll<Self::Output> {
         std::task::Poll::Ready(())
     }
+}
+
+/// Handle a call to a shim.  Expects eip to point somewhere within the hooks_base page.
+fn handle_shim_call(machine: &mut Machine) -> u32 {
+    let eip = machine
+        .unicorn
+        .reg_read(unicorn_engine::RegisterX86::EIP)
+        .unwrap() as u32;
+    let index = eip - machine.shims.hooks_base;
+    let shim = match &machine.shims.shims[index as usize] {
+        Ok(shim) => shim,
+        Err(name) => unimplemented!("shim call to {name}"),
+    };
+
+    let crate::shims::Shim {
+        func,
+        stack_consumed,
+        ..
+    } = *shim;
+
+    let esp = machine
+        .unicorn
+        .reg_read(unicorn_engine::RegisterX86::ESP)
+        .unwrap() as u32;
+    let ret = unsafe { func(machine, esp) };
+
+    let ret_addr = machine.mem().get::<u32>(esp);
+    machine
+        .unicorn
+        .reg_write(unicorn_engine::RegisterX86::EIP, ret_addr as u64)
+        .unwrap();
+    machine
+        .unicorn
+        .reg_write(
+            unicorn_engine::RegisterX86::ESP,
+            (esp + stack_consumed) as u64,
+        )
+        .unwrap();
+    machine
+        .unicorn
+        .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
+        .unwrap();
+
+    ret_addr
 }
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
@@ -144,8 +151,10 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
     UnimplFuture {}
 }
 
-pub fn unicorn_loop(machine: &mut Machine, eip: u32, until: u32) {
-    let mut eip = eip as u64;
+/// Run emulation via machine.unicorn starting from eip=begin until eip==until is hit.
+/// This is like unicorn.emu_start() but handles shim calls as well.
+pub fn unicorn_loop(machine: &mut Machine, begin: u32, until: u32) {
+    let mut eip = begin as u64;
     let until = until as u64;
     loop {
         machine.unicorn.emu_start(eip, until, 0, 0).unwrap();
@@ -157,11 +166,7 @@ pub fn unicorn_loop(machine: &mut Machine, eip: u32, until: u32) {
             return;
         }
         if (machine.shims.hooks_base..machine.shims.hooks_base + 0x1000).contains(&(eip as u32)) {
-            Shims::handle_call(machine).unwrap();
-            eip = machine
-                .unicorn
-                .reg_read(unicorn_engine::RegisterX86::EIP)
-                .unwrap();
+            eip = handle_shim_call(machine) as u64;
         }
     }
 }
