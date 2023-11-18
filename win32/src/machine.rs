@@ -137,11 +137,11 @@ impl Machine {
             // for the code and data segments too.
             // https://scoding.de/setting-global-descriptor-table-unicorn
             // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
-            let (addr, cs, ds, fs, ss) = self.state.kernel32.create_gdt(self.memory.mem());
+            let gdt = self.state.kernel32.create_gdt(self.memory.mem());
 
             let gdtr = unicorn_engine::X86Mmr {
                 selector: 0, // unused
-                base: addr as u64,
+                base: gdt.addr as u64,
                 limit: 5 * 8,
                 flags: 0, // unused
             };
@@ -157,16 +157,16 @@ impl Machine {
                 .reg_write_long(unicorn_engine::RegisterX86::GDTR, gdtr_slice)
                 .unwrap();
             self.unicorn
-                .reg_write(unicorn_engine::RegisterX86::CS, cs as u64)
+                .reg_write(unicorn_engine::RegisterX86::CS, gdt.cs as u64)
                 .unwrap();
             self.unicorn
-                .reg_write(unicorn_engine::RegisterX86::DS, ds as u64)
+                .reg_write(unicorn_engine::RegisterX86::DS, gdt.ds as u64)
                 .unwrap();
             self.unicorn
-                .reg_write(unicorn_engine::RegisterX86::SS, ss as u64)
+                .reg_write(unicorn_engine::RegisterX86::SS, gdt.ss as u64)
                 .unwrap();
             self.unicorn
-                .reg_write(unicorn_engine::RegisterX86::FS, fs as u64)
+                .reg_write(unicorn_engine::RegisterX86::FS, gdt.fs as u64)
                 .unwrap();
         }
     }

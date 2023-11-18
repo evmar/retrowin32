@@ -121,6 +121,16 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
 }
 
+/// Result of setting up the GDT, with initial values for all the relevant segment registers.
+pub struct GDTEntries {
+    /// Address of GDT itself.
+    pub addr: u32,
+    pub cs: u16,
+    pub ds: u16,
+    pub fs: u16,
+    pub ss: u16,
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
@@ -213,7 +223,7 @@ impl State {
         self.heaps.get_mut(&addr)
     }
 
-    pub fn create_gdt(&mut self, mem: Mem) -> (u32, u16, u16, u16, u16) {
+    pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
         const COUNT: usize = 5;
         let addr = self.arena.alloc(COUNT as u32 * 8, 8);
         let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.ptr_mut::<u64>(addr) as *mut _) };
@@ -283,7 +293,13 @@ impl State {
         }
         .encode();
 
-        (addr, cs, ds, fs, ss)
+        GDTEntries {
+            addr,
+            cs,
+            ds,
+            fs,
+            ss,
+        }
     }
 }
 
