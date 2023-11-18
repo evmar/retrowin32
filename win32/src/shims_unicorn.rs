@@ -3,8 +3,6 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use memory::Mem;
-
 use crate::{shims::Shim, Machine};
 
 #[derive(Default)]
@@ -14,30 +12,27 @@ pub struct Shims {
 }
 
 impl Shims {
-    pub fn new(_mem: Mem, addr: u32) -> Self {
+    pub fn new(unicorn: &mut unicorn_engine::Unicorn<'static, ()>, addr: u32) -> Self {
+        unicorn
+            .add_code_hook(
+                addr as u64,
+                addr as u64 + 0x1000,
+                |unicorn, _addr, _size| {
+                    unicorn.emu_stop().unwrap();
+                },
+            )
+            .unwrap();
+        // Uncomment to trace every executed instruction:
+        // unicorn
+        //     .add_code_hook(0, 0xFFFF_FFFF, |_unicorn, addr, size| {
+        //         println!("u {addr:x}+{size:x}");
+        //     })
+        //     .unwrap();
+
         Shims {
             shims: Default::default(),
             hooks_base: addr,
         }
-    }
-
-    /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
-    /// way after all the initialization happens...
-    pub unsafe fn set_machine_hack(
-        &mut self,
-        machine: *mut Machine,
-        unicorn: &mut unicorn_engine::Unicorn<'static, ()>,
-    ) {
-        unicorn
-            .add_code_hook(
-                self.hooks_base as u64,
-                self.hooks_base as u64 + 0x1000,
-                move |_u, _addr, _size| {
-                    let machine = &mut *machine;
-                    Shims::handle_call(machine).unwrap();
-                },
-            )
-            .unwrap();
     }
 
     pub fn add(&mut self, shim: Shim) -> u32 {
@@ -47,8 +42,8 @@ impl Shims {
         addr
     }
 
-    pub fn add_todo(&mut self, _name: String) -> u32 {
-        log::warn!("todo: register shim");
+    pub fn add_todo(&mut self, name: String) -> u32 {
+        log::warn!("todo: register shim for {name}");
         0
     }
 
@@ -72,10 +67,10 @@ impl Shims {
             .unwrap() as u32;
         let ret = unsafe { func(machine, esp) };
 
-        let next_eip = machine.mem().get::<u32>(esp);
+        let ret_addr = machine.mem().get::<u32>(esp);
         machine
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EIP, next_eip as u64)
+            .reg_write(unicorn_engine::RegisterX86::EIP, ret_addr as u64)
             .unwrap();
         machine
             .unicorn
@@ -114,7 +109,58 @@ impl std::future::Future for UnimplFuture {
     }
 }
 
-pub fn call_x86(machine: &mut Machine, func: u32, _args: Vec<u32>) -> UnimplFuture {
-    machine.unicorn.emu_start(func as u64, 0, 0, 0).unwrap();
+pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+    let mem = machine.memory.mem();
+
+    let ret_addr = machine
+        .unicorn
+        .reg_read(unicorn_engine::RegisterX86::EIP)
+        .unwrap() as u32;
+
+    let mut esp = machine
+        .unicorn
+        .reg_read(unicorn_engine::RegisterX86::ESP)
+        .unwrap() as u32;
+    for &arg in args.iter().rev() {
+        esp -= 4;
+        mem.put(esp, arg);
+    }
+    esp -= 4;
+    mem.put(esp, ret_addr);
+
+    machine
+        .unicorn
+        .reg_write(unicorn_engine::RegisterX86::ESP, esp as u64)
+        .unwrap();
+
+    unicorn_loop(machine, func, ret_addr);
+
     UnimplFuture {}
+}
+
+pub fn unicorn_loop(machine: &mut Machine, eip: u32, until: u32) {
+    let mut eip = eip as u64;
+    let until = until as u64;
+    loop {
+        println!("unicorn_loop {eip:x} {until:x}");
+        machine.unicorn.emu_start(eip, until, 0, 0).unwrap();
+        eip = machine
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::EIP)
+            .unwrap();
+        if eip == until {
+            println!("x eip => {eip:x}");
+            return;
+        }
+        if (machine.shims.hooks_base..machine.shims.hooks_base + 0x1000).contains(&(eip as u32)) {
+            Shims::handle_call(machine).unwrap();
+            eip = machine
+                .unicorn
+                .reg_read(unicorn_engine::RegisterX86::EIP)
+                .unwrap();
+        } else {
+            println!("x no hook eip => {eip:x}");
+            break;
+        }
+    }
 }

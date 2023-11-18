@@ -49,7 +49,7 @@ impl Machine {
         };
 
         #[cfg(feature = "x86-unicorn")]
-        let unicorn = {
+        let mut unicorn = {
             let mut unicorn = unicorn_engine::Unicorn::new(
                 unicorn_engine::unicorn_const::Arch::X86,
                 unicorn_engine::unicorn_const::Mode::MODE_32,
@@ -72,13 +72,8 @@ impl Machine {
         let shims = {
             let mapping = kernel32
                 .mappings
-                .alloc(0x1000, "syscalls".into(), &mut memory);
-            Shims::new(
-                memory
-                    .mem()
-                    .slice(mapping.addr..mapping.addr + mapping.size),
-                mapping.addr,
-            )
+                .alloc(0x1000, "syscall hooks".into(), &mut memory);
+            Shims::new(&mut unicorn, mapping.addr)
         };
 
         let state = winapi::State::new(kernel32);

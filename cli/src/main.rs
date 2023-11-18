@@ -242,12 +242,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        let ptr: *mut win32::Machine = &mut machine;
-        unsafe {
-            machine.shims.set_machine_hack(ptr, &mut machine.unicorn);
-        }
-        let begin = addrs.entry_point as u64;
-        machine.unicorn.emu_start(begin, 0, 0, 0).unwrap();
+        crate::win32::shims::unicorn_loop(&mut machine, addrs.entry_point, 0);
     }
 
     Ok(())
