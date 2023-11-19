@@ -1,6 +1,9 @@
 const std = @import("std");
 const windows = std.os.windows;
 
+// This declares a function named `retrowin32_callback1` exists in `retrowin32.dll`,
+// which is true in the emulator enivronment because the emulator exposes this function
+// just for this program.  See win32/lib/ for related support files.
 pub extern "retrowin32" fn retrowin32_callback1(
     func: *const fn (u32) callconv(.Stdcall) u32,
     data: u32,
