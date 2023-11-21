@@ -45,6 +45,16 @@ impl MachineX<x86::X86> {
     }
 
     #[allow(non_snake_case)]
+    async fn invoke_dllmains(&mut self, dllmains: Vec<u32>) {
+        for dll_main in dllmains {
+            log::info!("invoking dllmain {:x}", dll_main);
+            let hInstance = 0u32; // TODO
+            let fdwReason = 1u32; // DLL_PROCESS_ATTACH
+            let lpvReserved = 0u32;
+            crate::shims::call_x86(self, dll_main, vec![hInstance, fdwReason, lpvReserved]).await;
+        }
+    }
+
     pub fn load_exe(
         &mut self,
         buf: &[u8],
@@ -63,35 +73,23 @@ impl MachineX<x86::X86> {
         self.emu.cpu.regs.esi = exe.entry_point;
         self.emu.cpu.regs.edi = exe.entry_point;
 
-        let mut dll_mains = Vec::new();
+        let mut dllmains = Vec::new();
         for dll in &self.state.kernel32.dlls {
             if dll.dll.entry_point != 0 {
-                dll_mains.push(dll.dll.entry_point);
+                dllmains.push(dll.dll.entry_point);
             }
         }
 
-        if dll_mains.is_empty() {
+        if dllmains.is_empty() {
             self.emu.cpu.regs.eip = exe.entry_point;
         } else {
             // Invoke any DllMains then jump to the entry point.
-
             let m = self as *mut Machine;
             crate::shims::become_async(
                 self,
                 Box::pin(async move {
                     let machine = unsafe { &mut *m };
-                    for dll_main in dll_mains {
-                        log::info!("invoking dllmain {:x}", dll_main);
-                        let hInstance = 0u32; // TODO
-                        let fdwReason = 1u32; // DLL_PROCESS_ATTACH
-                        let lpvReserved = 0u32;
-                        crate::shims::call_x86(
-                            machine,
-                            dll_main,
-                            vec![hInstance, fdwReason, lpvReserved],
-                        )
-                        .await;
-                    }
+                    machine.invoke_dllmains(dllmains).await;
                     machine.emu.cpu.regs.eip = exe.entry_point;
                 }),
             );
