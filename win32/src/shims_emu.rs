@@ -112,7 +112,7 @@ pub fn become_async(
     machine: &mut Machine,
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    machine.x86.cpu.regs.eip = machine.shims.async_executor;
+    machine.emu.cpu.regs.eip = machine.shims.async_executor;
     machine.shims.future = Some(future);
 }
 
@@ -130,8 +130,8 @@ impl std::future::Future for X86Future {
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
         let machine = unsafe { &*self.m };
-        // log::info!("poll esp:{:x} want:{:x}", machine.x86.regs.esp, self.esp);
-        if machine.x86.cpu.regs.esp == self.esp {
+        // log::info!("poll esp:{:x} want:{:x}", machine.cpu.regs.esp, self.esp);
+        if machine.emu.cpu.regs.esp == self.esp {
             std::task::Poll::Ready(())
         } else {
             std::task::Poll::Pending
@@ -141,17 +141,17 @@ impl std::future::Future for X86Future {
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
     // Save original esp, as that's the marker that we use to know when the call is done.
-    let esp = machine.x86.cpu.regs.esp;
+    let esp = machine.emu.cpu.regs.esp;
     // Push the args in reverse order.
     for &arg in args.iter().rev() {
-        x86::ops::push(&mut machine.x86.cpu, machine.memory.mem(), arg);
+        x86::ops::push(&mut machine.emu.cpu, machine.memory.mem(), arg);
     }
     x86::ops::push(
-        &mut machine.x86.cpu,
+        &mut machine.emu.cpu,
         machine.memory.mem(),
         machine.shims.async_executor,
     ); // return address
-    machine.x86.cpu.regs.eip = func;
+    machine.emu.cpu.regs.eip = func;
     X86Future { m: machine, esp }
 }
 

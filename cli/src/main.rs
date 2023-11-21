@@ -23,7 +23,7 @@ mod resv32;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine) {
-    let instrs = win32::disassemble(machine.mem(), machine.x86.cpu.regs.eip);
+    let instrs = win32::disassemble(machine.mem(), machine.emu.cpu.regs.eip);
 
     for instr in &instrs[..std::cmp::min(instrs.len(), 5)] {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
@@ -216,7 +216,7 @@ fn main() -> anyhow::Result<()> {
                     }
 
                     if args.trace_blocks {
-                        let regs = &machine.x86.cpu.regs;
+                        let regs = &machine.emu.cpu.regs;
                         if seen_blocks.contains(&regs.eip) {
                             continue;
                         }
@@ -233,9 +233,9 @@ fn main() -> anyhow::Result<()> {
         if millis > 0 {
             eprintln!(
                 "{} instrs in {} ms: {}m/s",
-                machine.x86.instr_count,
+                machine.emu.instr_count,
                 millis,
-                (machine.x86.instr_count / millis) / 1000
+                (machine.emu.instr_count / millis) / 1000
             );
         }
     }

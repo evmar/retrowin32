@@ -81,7 +81,7 @@ impl std::future::Future for UnimplFuture {
 /// Handle a call to a shim.  Expects eip to point somewhere within the hooks_base page.
 fn handle_shim_call(machine: &mut Machine) -> u32 {
     let eip = machine
-        .unicorn
+        .emu
         .reg_read(unicorn_engine::RegisterX86::EIP)
         .unwrap() as u32;
     let index = eip - machine.shims.hooks_base;
@@ -97,25 +97,25 @@ fn handle_shim_call(machine: &mut Machine) -> u32 {
     } = *shim;
 
     let esp = machine
-        .unicorn
+        .emu
         .reg_read(unicorn_engine::RegisterX86::ESP)
         .unwrap() as u32;
     let ret = unsafe { func(machine, esp) };
 
     let ret_addr = machine.mem().get::<u32>(esp);
     machine
-        .unicorn
+        .emu
         .reg_write(unicorn_engine::RegisterX86::EIP, ret_addr as u64)
         .unwrap();
     machine
-        .unicorn
+        .emu
         .reg_write(
             unicorn_engine::RegisterX86::ESP,
             (esp + stack_consumed) as u64,
         )
         .unwrap();
     machine
-        .unicorn
+        .emu
         .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
         .unwrap();
 
@@ -126,12 +126,12 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
     let mem = machine.memory.mem();
 
     let ret_addr = machine
-        .unicorn
+        .emu
         .reg_read(unicorn_engine::RegisterX86::EIP)
         .unwrap() as u32;
 
     let mut esp = machine
-        .unicorn
+        .emu
         .reg_read(unicorn_engine::RegisterX86::ESP)
         .unwrap() as u32;
     for &arg in args.iter().rev() {
@@ -142,7 +142,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
     mem.put(esp, ret_addr);
 
     machine
-        .unicorn
+        .emu
         .reg_write(unicorn_engine::RegisterX86::ESP, esp as u64)
         .unwrap();
 
@@ -151,15 +151,15 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
     UnimplFuture {}
 }
 
-/// Run emulation via machine.unicorn starting from eip=begin until eip==until is hit.
+/// Run emulation via machine.emu starting from eip=begin until eip==until is hit.
 /// This is like unicorn.emu_start() but handles shim calls as well.
 pub fn unicorn_loop(machine: &mut Machine, begin: u32, until: u32) {
     let mut eip = begin as u64;
     let until = until as u64;
     loop {
-        machine.unicorn.emu_start(eip, until, 0, 0).unwrap();
+        machine.emu.emu_start(eip, until, 0, 0).unwrap();
         eip = machine
-            .unicorn
+            .emu
             .reg_read(unicorn_engine::RegisterX86::EIP)
             .unwrap();
         if eip == until {

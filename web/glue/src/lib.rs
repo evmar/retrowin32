@@ -40,21 +40,21 @@ impl Emulator {
 
     #[wasm_bindgen(getter)]
     pub fn esp(&self) -> u32 {
-        self.machine.x86.cpu.regs.esp
+        self.machine.emu.cpu.regs.esp
     }
 
     #[wasm_bindgen(getter)]
     pub fn eip(&self) -> u32 {
-        self.machine.x86.cpu.regs.eip
+        self.machine.emu.cpu.regs.eip
     }
 
     pub fn regs(&self) -> debugger::Registers {
-        debugger::Registers::from_x86(&self.machine.x86.cpu)
+        debugger::Registers::from_x86(&self.machine.emu.cpu)
     }
 
     #[wasm_bindgen(getter)]
     pub fn instr_count(&self) -> usize {
-        self.machine.x86.instr_count
+        self.machine.emu.instr_count
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
@@ -69,23 +69,23 @@ impl Emulator {
     /// Execute multiple basic blocks until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn execute_many(&mut self, count: usize) -> JsResult<usize> {
-        let start = self.machine.x86.instr_count;
-        while self.machine.x86.instr_count < start + count {
+        let start = self.machine.emu.instr_count;
+        while self.machine.emu.instr_count < start + count {
             if !self.machine.execute_block().map_err(err_from_anyhow)? {
                 break;
             }
         }
-        Ok(self.machine.x86.instr_count - start)
+        Ok(self.machine.emu.instr_count - start)
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
         self.machine
-            .x86
+            .emu
             .add_breakpoint(self.machine.memory.mem(), addr)
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
         self.machine
-            .x86
+            .emu
             .clear_breakpoint(self.machine.memory.mem(), addr)
     }
 
@@ -98,11 +98,11 @@ impl Emulator {
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
-        bincode::serialize(&self.machine.x86).unwrap().into()
+        bincode::serialize(&self.machine.emu).unwrap().into()
     }
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         let snap = bincode::deserialize(bytes).unwrap();
-        self.machine.x86.load_snapshot(snap);
+        self.machine.emu.load_snapshot(snap);
     }
 }
 

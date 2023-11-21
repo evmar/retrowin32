@@ -1788,9 +1788,9 @@ pub mod retrowin32 {
                     let machine = unsafe { &mut *m };
                     let result =
                         winapi::retrowin32::retrowin32_callback1(machine, func, data).await;
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += 12u32;
-                    machine.x86.cpu.regs.eax = result.to_raw();
+                    machine.emu.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.cpu.regs.esp += 12u32;
+                    machine.emu.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -1880,9 +1880,9 @@ pub mod user32 {
                         lpParam,
                     )
                     .await;
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += 52u32;
-                    machine.x86.cpu.regs.eax = result.to_raw();
+                    machine.emu.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.cpu.regs.esp += 52u32;
+                    machine.emu.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -1946,9 +1946,9 @@ pub mod user32 {
                 let result = async move {
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                    machine.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.x86.cpu.regs.esp += 8u32;
-                    machine.x86.cpu.regs.eax = result.to_raw();
+                    machine.emu.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.cpu.regs.esp += 8u32;
+                    machine.emu.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
