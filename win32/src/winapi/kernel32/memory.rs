@@ -1,6 +1,9 @@
-use crate::{machine::Machine, pe::ImageSectionFlags, winapi};
+use crate::{
+    machine::{Machine, MemImpl},
+    pe::ImageSectionFlags,
+    winapi,
+};
 use bitflags::bitflags;
-use memory::MemImpl;
 use std::cmp::max;
 
 use super::peb_mut;

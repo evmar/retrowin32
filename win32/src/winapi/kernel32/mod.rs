@@ -12,8 +12,11 @@ use super::{
     stack_args::{ArrayWithSize, ArrayWithSizeMut},
     types::*,
 };
-use crate::{machine::Machine, segments::SegmentDescriptor};
-use ::memory::{Mem, MemImpl, Pod};
+use crate::{
+    machine::{Machine, MemImpl},
+    segments::SegmentDescriptor,
+};
+use ::memory::{Mem, Pod};
 use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
 

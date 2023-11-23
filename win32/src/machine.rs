@@ -1,13 +1,13 @@
 use crate::{host, shims::Shims, winapi};
-use memory::{Mem, MemImpl};
+use memory::Mem;
 use std::collections::HashMap;
 
 #[cfg(feature = "x86-emu")]
-pub use crate::machine_emu::Machine;
+pub use crate::machine_emu::{Machine, MemImpl};
 #[cfg(feature = "x86-64")]
-pub use crate::machine_raw::Machine;
+pub use crate::machine_raw::{Machine, MemImpl};
 #[cfg(feature = "x86-unicorn")]
-pub use crate::machine_unicorn::Machine;
+pub use crate::machine_unicorn::{Machine, MemImpl};
 
 pub struct LoadedAddrs {
     pub entry_point: u32,

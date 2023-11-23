@@ -169,11 +169,6 @@ checksum = "b5e6163cb8c49088c2c36f57875e58ccd8c87c7427f7fbd50ea6710b2f3f2e8f"
 [[package]]
 name = "memory"
 version = "0.1.0"
-dependencies = [
- "serde",
- "serde_bytes",
- "unicorn-engine",
-]
 
 [[package]]
 name = "num-derive"
@@ -466,6 +461,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "serde",
+ "serde_bytes",
  "tsify",
  "unicorn-engine",
  "wasm-bindgen",
