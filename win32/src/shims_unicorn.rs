@@ -40,19 +40,11 @@ impl Shims {
         }
     }
 
-    fn add_impl(&mut self, shim: Result<Shim, String>) -> u32 {
+    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
         let index = self.shims.len() as u32;
         let addr = self.hooks_base + index;
         self.shims.push(shim);
         addr
-    }
-
-    pub fn add(&mut self, shim: Shim) -> u32 {
-        self.add_impl(Ok(shim))
-    }
-
-    pub fn add_todo(&mut self, name: String) -> u32 {
-        self.add_impl(Err(name))
     }
 }
 

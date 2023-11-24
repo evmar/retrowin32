@@ -16,13 +16,13 @@ mod winmm;
 
 macro_rules! vtable_entry {
     ($shims:ident $module:ident $fn:ident todo) => {
-        $shims.add_todo(format!("{}:{}", stringify!($module), stringify!($fn)))
+        $shims.add(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
     };
     ($shims:ident $module:ident $fn:ident ok) => {
-        $shims.add($module::$fn)
+        $shims.add(Ok($module::$fn))
     };
     ($shims:ident $module:ident $fn:ident $shim:tt) => {
-        $shims.add($shim)
+        $shims.add(Ok($shim))
     };
 }
 pub(crate) use vtable_entry;

@@ -63,7 +63,7 @@ pub struct Shims {
     /// Segment selector for 32-bit code.
     code32_selector: u16,
 
-    shims: Vec<Shim>,
+    shims: Vec<Result<Shim, String>>,
 }
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
@@ -72,10 +72,10 @@ static mut STACK64: u64 = 0;
 
 unsafe extern "C" fn call64(shim_index: u32) -> u32 {
     let machine: &mut Machine = &mut *MACHINE;
-    let shim = &machine.shims.shims[shim_index as usize];
-    if shim.func == missing_shim {
-        unimplemented!("shim for {}", shim.name);
-    }
+    let shim = match &machine.shims.shims[shim_index as usize] {
+        Ok(shim) => shim,
+        Err(name) => unimplemented!("{}", name),
+    };
     // Stack contents:
     //   4 bytes edi +
     //   8 bytes far return address
@@ -126,10 +126,6 @@ extern "C" {
     static tramp32: [u8; 0];
 }
 
-unsafe fn missing_shim(_machine: &mut Machine, _esp: u32) -> u32 {
-    unreachable!()
-}
-
 impl Shims {
     pub fn new(ldt: &mut LDT, addr: *mut u8, size: u32) -> Self {
         // Wine marks all of memory as code.
@@ -150,7 +146,7 @@ impl Shims {
         STACK32 = esp;
     }
 
-    pub fn add(&mut self, shim: Shim) -> u32 {
+    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
         let shim_index = self.shims.len();
         self.shims.push(shim.clone());
         unsafe {
@@ -158,7 +154,10 @@ impl Shims {
 
             // TODO revisit stack_consumed, does it include eip or not?
             // We have to -4 here to not include IP.
-            let stack_consumed: u16 = shim.stack_consumed as u16 - 4;
+            let stack_consumed: u16 = match shim {
+                Ok(shim) => shim.stack_consumed as u16 - 4,
+                Err(_) => 0, // we'll crash when it's hit anyway
+            };
 
             // trampoline_x86.s:tramp64
             let tramp_addr = self.buf.write_many(&[
@@ -182,16 +181,6 @@ impl Shims {
 
             tramp_addr
         }
-    }
-
-    pub fn add_todo(&mut self, name: String) -> u32 {
-        let shim = Shim {
-            name: Box::leak(name.into_boxed_str()),
-            func: missing_shim,
-            stack_consumed: 4,
-            is_async: false,
-        };
-        self.add(shim)
     }
 }
 

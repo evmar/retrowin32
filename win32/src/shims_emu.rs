@@ -46,16 +46,12 @@ pub const SHIM_BASE: u32 = 0xF1A7_0000;
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims {
-    shims: Vec<Shim>,
+    shims: Vec<Result<Shim, String>>,
     /// Address of async_executor() shim entry point.
     async_executor: u32,
     /// Pending future for code being ran by async_executor().
     /// TODO: we will need a stack of these to handle multiple nested callbacks.
     future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
-}
-
-fn unimplemented(_machine: &mut Machine, _esp: u32) -> u32 {
-    unimplemented!()
 }
 
 impl Shims {
@@ -65,44 +61,29 @@ impl Shims {
             async_executor: 0,
             future: None,
         };
-        shims.async_executor = shims.add(Shim {
+        shims.async_executor = shims.add(Ok(Shim {
             name: "retrowin32 async helper",
             func: async_executor,
             stack_consumed: 0,
             is_async: true,
-        });
+        }));
         shims
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, shim: Shim) -> u32 {
+    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
         let id = SHIM_BASE | self.shims.len() as u32;
         self.shims.push(shim);
         id
     }
 
-    pub fn add_todo(&mut self, _name: String) -> u32 {
-        self.add(Shim {
-            name: "unimplemented",
-            func: unimplemented,
-            stack_consumed: 0,
-            is_async: false,
-        })
-    }
-
-    pub fn get(&self, addr: u32) -> &Shim {
+    pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
         let index = (addr & 0x0000_FFFF) as usize;
         match self.shims.get(index) {
-            Some(shim) => shim,
+            Some(Ok(shim)) => Ok(shim),
+            Some(Err(name)) => Err(name),
             None => panic!("unknown import reference at {:x}", addr),
         }
-    }
-
-    pub fn lookup(&self, name: &str) -> Option<u32> {
-        if let Some(idx) = self.shims.iter().position(|shim| shim.name == name) {
-            return Some(SHIM_BASE | idx as u32);
-        }
-        None
     }
 }
 

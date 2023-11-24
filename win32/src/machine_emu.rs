@@ -122,12 +122,16 @@ impl MachineX<x86::X86> {
         if self.emu.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
             return Ok(false);
         }
+        let shim = match self.shims.get(self.emu.cpu.regs.eip) {
+            Ok(shim) => shim,
+            Err(name) => unimplemented!("{}", name),
+        };
         let crate::shims::Shim {
             func,
             stack_consumed,
             is_async,
             ..
-        } = *self.shims.get(self.emu.cpu.regs.eip);
+        } = *shim;
         let ret = unsafe { func(self, self.emu.cpu.regs.esp) };
         if !is_async {
             self.emu.cpu.regs.eip = self.mem().get::<u32>(self.emu.cpu.regs.esp);
