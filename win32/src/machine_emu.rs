@@ -28,6 +28,12 @@ pub struct Emulator {
     pub shims: Shims,
 }
 
+impl crate::machine::Emulator for Emulator {
+    fn register(&mut self, shim: Result<&'static crate::shims::Shim, String>) -> u32 {
+        self.shims.add(shim)
+    }
+}
+
 pub type MemImpl = VecMem;
 pub type Machine = MachineX<Emulator>;
 

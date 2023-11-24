@@ -16,13 +16,13 @@ mod winmm;
 
 macro_rules! vtable_entry {
     ($shims:expr, $module:ident $fn:ident todo) => {
-        $shims.add(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
+        $shims.register(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
     };
     ($shims:expr, $module:ident $fn:ident ok) => {
-        $shims.add(Ok(&$module::$fn))
+        $shims.register(Ok(&$module::$fn))
     };
     ($shims:expr, $module:ident $fn:ident $shim:tt) => {
-        $shims.add(Ok(&$shim))
+        $shims.register(Ok(&$shim))
     };
 }
 pub(crate) use vtable_entry;
@@ -37,7 +37,7 @@ macro_rules! vtable {
         impl Vtable {
             fn new(machine: &mut crate::Machine) -> Self {
                 Vtable {
-                    $($fn: $crate::winapi::vtable_entry!(machine.emu.shims, $module $fn $impl).into()),*
+                    $($fn: $crate::winapi::vtable_entry!(machine.emu, $module $fn $impl).into()),*
                 }
             }
         }

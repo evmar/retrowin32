@@ -1,5 +1,5 @@
 use crate::{
-    machine::Machine,
+    machine::{Emulator, Machine},
     pe,
     winapi::{self, builtin::BuiltinDLL, types::*, ImportSymbol},
 };
@@ -231,7 +231,7 @@ pub fn GetProcAddress(
 ) -> u32 {
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
-        return dll.resolve(lpProcName.0, |shim| machine.emu.shims.add(shim));
+        return dll.resolve(lpProcName.0, |shim| machine.emu.register(shim));
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail

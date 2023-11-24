@@ -7,6 +7,7 @@ use super::{
     State, DD_OK,
 };
 use crate::{
+    machine::Emulator,
     winapi::{ddraw, types::*, vtable},
     Machine,
 };

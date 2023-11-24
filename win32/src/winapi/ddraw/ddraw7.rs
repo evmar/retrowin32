@@ -2,6 +2,7 @@
 
 use super::{types::*, IDirectDrawPalette, State, DDERR_GENERIC, DD_OK};
 use crate::{
+    machine::Emulator,
     winapi::{ddraw, types::*, vtable},
     Machine,
 };

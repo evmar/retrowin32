@@ -1,4 +1,4 @@
-use crate::{host, winapi};
+use crate::{host, shims::Shim, winapi};
 use memory::Mem;
 use std::collections::HashMap;
 
@@ -14,9 +14,13 @@ pub struct LoadedAddrs {
     pub stack_pointer: u32,
 }
 
+pub trait Emulator {
+    fn register(&mut self, shim: Result<&'static Shim, String>) -> u32;
+}
+
 /// Integrates the X86 CPU emulator with the Windows OS support.
-pub struct MachineX<Emulator> {
-    pub emu: Emulator,
+pub struct MachineX<Emu> {
+    pub emu: Emu,
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,

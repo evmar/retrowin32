@@ -6,7 +6,7 @@ mod ddraw7;
 mod types;
 
 use super::{heap::Heap, types::*};
-use crate::{host, machine::Machine, winapi::vtable, SurfaceOptions};
+use crate::{host, machine::Emulator, machine::Machine, winapi::vtable, SurfaceOptions};
 use std::collections::HashMap;
 use types::*;
 

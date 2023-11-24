@@ -3,8 +3,7 @@
 
 use super::heap::Heap;
 use super::types::DWORD;
-use crate::machine::Machine;
-use crate::winapi::vtable;
+use crate::{machine::Emulator, machine::Machine, winapi::vtable};
 
 const TRACE_CONTEXT: &'static str = "dsound";
 
