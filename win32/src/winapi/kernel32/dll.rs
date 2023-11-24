@@ -224,7 +224,7 @@ pub fn GetProcAddress(
 ) -> u32 {
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
-        return dll.resolve(&mut machine.shims, lpProcName.0);
+        return dll.resolve(&mut machine.emu.shims, lpProcName.0);
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail

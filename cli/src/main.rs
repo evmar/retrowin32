@@ -23,7 +23,7 @@ mod resv32;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine) {
-    let instrs = win32::disassemble(machine.mem(), machine.emu.cpu.regs.eip);
+    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip);
 
     for instr in &instrs[..std::cmp::min(instrs.len(), 5)] {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
@@ -193,7 +193,7 @@ fn main() -> anyhow::Result<()> {
     #[cfg(feature = "x86-64")]
     unsafe {
         let ptr: *mut win32::Machine = &mut machine;
-        machine.shims.set_machine_hack(ptr, addrs.stack_pointer);
+        machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
         jump_to_entry_point(&mut machine, addrs.entry_point);
     }
 
@@ -216,7 +216,7 @@ fn main() -> anyhow::Result<()> {
                     }
 
                     if args.trace_blocks {
-                        let regs = &machine.emu.cpu.regs;
+                        let regs = &machine.emu.x86.cpu.regs;
                         if seen_blocks.contains(&regs.eip) {
                             continue;
                         }
@@ -233,9 +233,9 @@ fn main() -> anyhow::Result<()> {
         if millis > 0 {
             eprintln!(
                 "{} instrs in {} ms: {}m/s",
-                machine.emu.instr_count,
+                machine.emu.x86.instr_count,
                 millis,
-                (machine.emu.instr_count / millis) / 1000
+                (machine.emu.x86.instr_count / millis) / 1000
             );
         }
     }

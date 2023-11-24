@@ -32,9 +32,14 @@ impl MemImpl {
     }
 }
 
-pub type Machine = MachineX<unicorn_engine::Unicorn<'static, ()>>;
+pub struct Emulator {
+    pub unicorn: unicorn_engine::Unicorn<'static, ()>,
+    pub shims: Shims,
+}
 
-impl MachineX<unicorn_engine::Unicorn<'static, ()>> {
+pub type Machine = MachineX<Emulator>;
+
+impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::new(32 << 20);
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
@@ -65,11 +70,10 @@ impl MachineX<unicorn_engine::Unicorn<'static, ()>> {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            emu: unicorn,
+            emu: Emulator { unicorn, shims },
             memory,
             host,
             state,
-            shims,
             labels: HashMap::new(),
         }
     }
@@ -85,9 +89,11 @@ impl MachineX<unicorn_engine::Unicorn<'static, ()>> {
 
         // TODO: put this init somewhere better.
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::ESP, stack_pointer as u64)
             .unwrap();
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::EBP, stack_pointer as u64)
             .unwrap();
 
@@ -117,18 +123,23 @@ impl MachineX<unicorn_engine::Unicorn<'static, ()>> {
         };
 
         self.emu
+            .unicorn
             .reg_write_long(unicorn_engine::RegisterX86::GDTR, gdtr_slice)
             .unwrap();
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::CS, gdt.cs as u64)
             .unwrap();
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::DS, gdt.ds as u64)
             .unwrap();
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::SS, gdt.ss as u64)
             .unwrap();
         self.emu
+            .unicorn
             .reg_write(unicorn_engine::RegisterX86::FS, gdt.fs as u64)
             .unwrap();
     }

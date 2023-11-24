@@ -23,10 +23,15 @@ impl VecMem {
     }
 }
 
-pub type MemImpl = VecMem;
-pub type Machine = MachineX<x86::X86>;
+pub struct Emulator {
+    pub x86: x86::X86,
+    pub shims: Shims,
+}
 
-impl MachineX<x86::X86> {
+pub type MemImpl = VecMem;
+pub type Machine = MachineX<Emulator>;
+
+impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
@@ -37,11 +42,13 @@ impl MachineX<x86::X86> {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            emu: x86::X86::new(),
+            emu: Emulator {
+                x86: x86::X86::new(),
+                shims,
+            },
             memory,
             host,
             state,
-            shims,
             labels: HashMap::new(),
         }
     }
@@ -54,8 +61,8 @@ impl MachineX<x86::X86> {
                 .mappings
                 .alloc(stack_size, "stack".into(), &mut self.memory);
         let stack_pointer = stack.addr + stack.size - 4;
-        self.emu.cpu.regs.esp = stack_pointer;
-        self.emu.cpu.regs.ebp = stack_pointer;
+        self.emu.x86.cpu.regs.esp = stack_pointer;
+        self.emu.x86.cpu.regs.ebp = stack_pointer;
 
         stack_pointer
     }
@@ -80,14 +87,14 @@ impl MachineX<x86::X86> {
         let exe = pe::load_exe(self, buf, cmdline, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
-        self.emu.cpu.regs.fs_addr = self.state.kernel32.teb;
+        self.emu.x86.cpu.regs.fs_addr = self.state.kernel32.teb;
 
         // To make CPU traces match more closely, set up some registers to what their
         // initial values appear to be from looking in a debugger.
-        self.emu.cpu.regs.ecx = exe.entry_point;
-        self.emu.cpu.regs.edx = exe.entry_point;
-        self.emu.cpu.regs.esi = exe.entry_point;
-        self.emu.cpu.regs.edi = exe.entry_point;
+        self.emu.x86.cpu.regs.ecx = exe.entry_point;
+        self.emu.x86.cpu.regs.edx = exe.entry_point;
+        self.emu.x86.cpu.regs.esi = exe.entry_point;
+        self.emu.x86.cpu.regs.edi = exe.entry_point;
 
         let mut dllmains = Vec::new();
         for dll in &self.state.kernel32.dlls {
@@ -97,7 +104,7 @@ impl MachineX<x86::X86> {
         }
 
         if dllmains.is_empty() {
-            self.emu.cpu.regs.eip = exe.entry_point;
+            self.emu.x86.cpu.regs.eip = exe.entry_point;
         } else {
             // Invoke any DllMains then jump to the entry point.
             let m = self as *mut Machine;
@@ -106,7 +113,7 @@ impl MachineX<x86::X86> {
                 Box::pin(async move {
                     let machine = unsafe { &mut *m };
                     machine.invoke_dllmains(dllmains).await;
-                    machine.emu.cpu.regs.eip = exe.entry_point;
+                    machine.emu.x86.cpu.regs.eip = exe.entry_point;
                 }),
             );
         };
@@ -119,10 +126,10 @@ impl MachineX<x86::X86> {
 
     /// If eip points at a shim address, call the handler and update eip.
     fn check_shim_call(&mut self) -> anyhow::Result<bool> {
-        if self.emu.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
+        if self.emu.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
             return Ok(false);
         }
-        let shim = match self.shims.get(self.emu.cpu.regs.eip) {
+        let shim = match self.emu.shims.get(self.emu.x86.cpu.regs.eip) {
             Ok(shim) => shim,
             Err(name) => unimplemented!("{}", name),
         };
@@ -132,11 +139,11 @@ impl MachineX<x86::X86> {
             is_async,
             ..
         } = *shim;
-        let ret = unsafe { func(self, self.emu.cpu.regs.esp) };
+        let ret = unsafe { func(self, self.emu.x86.cpu.regs.esp) };
         if !is_async {
-            self.emu.cpu.regs.eip = self.mem().get::<u32>(self.emu.cpu.regs.esp);
-            self.emu.cpu.regs.esp += stack_consumed;
-            self.emu.cpu.regs.eax = ret;
+            self.emu.x86.cpu.regs.eip = self.mem().get::<u32>(self.emu.x86.cpu.regs.esp);
+            self.emu.x86.cpu.regs.esp += stack_consumed;
+            self.emu.x86.cpu.regs.eax = ret;
         } else {
             // Async handler will manage the return address etc.
         }
@@ -150,6 +157,7 @@ impl MachineX<x86::X86> {
             return Ok(true);
         }
         self.emu
+            .x86
             .execute_block(self.memory.mem())
             .map_err(|err| anyhow::anyhow!(err))
     }
@@ -160,6 +168,7 @@ impl MachineX<x86::X86> {
             return Ok(());
         }
         self.emu
+            .x86
             .single_step(self.memory.mem())
             .map_err(|err| anyhow::anyhow!(err))
     }

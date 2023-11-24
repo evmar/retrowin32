@@ -1,4 +1,4 @@
-use crate::{host, shims::Shims, winapi};
+use crate::{host, winapi};
 use memory::Mem;
 use std::collections::HashMap;
 
@@ -20,7 +20,6 @@ pub struct MachineX<Emulator> {
     pub memory: MemImpl,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
-    pub shims: Shims,
     pub labels: HashMap<u32, String>,
 }
 

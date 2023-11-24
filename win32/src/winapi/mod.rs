@@ -45,7 +45,7 @@ macro_rules! vtable {
         pub fn vtable(state: &mut State, machine: &mut Machine) -> u32 {
             let addr = state.heap.alloc(machine.memory.mem(), std::mem::size_of::<Vtable>() as u32);
             let vtable = machine.memory.mem().view_mut::<Vtable>(addr);
-            *vtable = Vtable::new(&mut machine.shims);
+            *vtable = Vtable::new(&mut machine.emu.shims);
             addr
         }
     };

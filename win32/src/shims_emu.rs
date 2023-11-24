@@ -93,8 +93,8 @@ pub fn become_async(
     machine: &mut Machine,
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    machine.emu.cpu.regs.eip = machine.shims.async_executor;
-    machine.shims.future = Some(future);
+    machine.emu.x86.cpu.regs.eip = machine.emu.shims.async_executor;
+    machine.emu.shims.future = Some(future);
 }
 
 pub struct X86Future {
@@ -112,7 +112,7 @@ impl std::future::Future for X86Future {
     ) -> std::task::Poll<Self::Output> {
         let machine = unsafe { &*self.m };
         // log::info!("poll esp:{:x} want:{:x}", machine.cpu.regs.esp, self.esp);
-        if machine.emu.cpu.regs.esp == self.esp {
+        if machine.emu.x86.cpu.regs.esp == self.esp {
             std::task::Poll::Ready(())
         } else {
             std::task::Poll::Pending
@@ -122,23 +122,23 @@ impl std::future::Future for X86Future {
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
     // Save original esp, as that's the marker that we use to know when the call is done.
-    let esp = machine.emu.cpu.regs.esp;
+    let esp = machine.emu.x86.cpu.regs.esp;
     // Push the args in reverse order.
     for &arg in args.iter().rev() {
-        x86::ops::push(&mut machine.emu.cpu, machine.memory.mem(), arg);
+        x86::ops::push(&mut machine.emu.x86.cpu, machine.memory.mem(), arg);
     }
     x86::ops::push(
-        &mut machine.emu.cpu,
+        &mut machine.emu.x86.cpu,
         machine.memory.mem(),
-        machine.shims.async_executor,
+        machine.emu.shims.async_executor,
     ); // return address
-    machine.emu.cpu.regs.eip = func;
+    machine.emu.x86.cpu.regs.eip = func;
     X86Future { m: machine, esp }
 }
 
 #[allow(deref_nullptr)]
 fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
-    if let Some(mut future) = machine.shims.future.take() {
+    if let Some(mut future) = machine.emu.shims.future.take() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
@@ -146,10 +146,10 @@ fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
         match future.as_mut().poll(context) {
             std::task::Poll::Ready(()) => {}
             std::task::Poll::Pending => {
-                if machine.shims.future.is_some() {
+                if machine.emu.shims.future.is_some() {
                     panic!("multiple pending futures");
                 }
-                machine.shims.future = Some(future);
+                machine.emu.shims.future = Some(future);
             }
         }
     }

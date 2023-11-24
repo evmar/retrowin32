@@ -72,7 +72,7 @@ static mut STACK64: u64 = 0;
 
 unsafe extern "C" fn call64(shim_index: u32) -> u32 {
     let machine: &mut Machine = &mut *MACHINE;
-    let shim = match &machine.shims.shims[shim_index as usize] {
+    let shim = match &machine.emu.shims.shims[shim_index as usize] {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
@@ -243,7 +243,8 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         }
         STACK32 = esp;
 
-        let m1632: u64 = ((machine.shims.code32_selector as u64) << 32) | (tramp32.as_ptr() as u64);
+        let m1632: u64 =
+            ((machine.emu.shims.code32_selector as u64) << 32) | (tramp32.as_ptr() as u64);
 
         std::arch::asm!(
             // We need to back up all non-scratch registers (rbx/rbp),
@@ -278,7 +279,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
     unsafe {
-        _ = machine.shims.code32_selector;
+        _ = machine.emu.shims.code32_selector;
         _ = machine;
         _ = func;
         _ = args;

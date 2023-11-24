@@ -24,10 +24,14 @@ impl RawMem {
     }
 }
 
-pub type MemImpl = RawMem;
-pub type Machine = MachineX<()>;
+pub struct Emulator {
+    pub shims: Shims,
+}
 
-impl MachineX<()> {
+pub type MemImpl = RawMem;
+pub type Machine = MachineX<Emulator>;
+
+impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
@@ -42,11 +46,10 @@ impl MachineX<()> {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            emu: (),
+            emu: Emulator { shims },
             memory,
             host,
             state,
-            shims,
             labels: HashMap::new(),
         }
     }

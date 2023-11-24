@@ -138,9 +138,9 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
-                machine.emu.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                machine.emu.cpu.regs.esp += #stack_offset;
-                machine.emu.cpu.regs.eax = result.to_raw();
+                machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                machine.emu.x86.cpu.regs.esp += #stack_offset;
+                machine.emu.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
             // async block will set up the stack and eip.
