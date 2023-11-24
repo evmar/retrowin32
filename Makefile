@@ -1,7 +1,8 @@
 # Targets:
 # - deploy: prepare web bundle for deploying
+# - emu: cpu emulator-based native build
 # - rosetta: rosetta-based native x86 build
-# - cli: cpu emulator-based native build
+# - unicorn: cpu emulator-based native build
 # - fmt: run all code formatting
 # Flags:
 # $ make deploy opt=1
@@ -14,7 +15,7 @@ ifeq ($(opt), 1)
 	wasmpackflags=--profiling
 endif
 
-all: deploy rosetta cli
+all: deploy emu rosetta unicorn
 
 
 wasm web/glue/pkg/glue.d.ts:
@@ -27,14 +28,19 @@ deploy: wasm web/bundle.js
 .PHONY: wasm deploy web-check
 
 
+emu:
+	source cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-emu,sdl $(cargoflags)
+.PHONY: emu
+
+
 rosetta:
-	./build-rosetta.sh $(cargoflags)
+	source cli/sdl-manual.sh && ./build-rosetta.sh $(cargoflags)
 .PHONY: rosetta
 
 
-cli:
-	cargo build -p retrowin32 -F x86-emu,sdl $(cargoflags)
-.PHONY: cli
+unicorn:
+	source cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-unicorn,sdl $(cargoflags)
+.PHONY: unicorn
 
 
 fmt-rust:

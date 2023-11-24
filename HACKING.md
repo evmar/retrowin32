@@ -5,21 +5,21 @@
 Build/run the CLI app:
 
 ```
-$ cargo build -p retrowin32 --release --features x86-emu,sdl
+$ make emu opt=1
 $ ./target/release/retrowin32 exe/zig_hello/hello.exe
 ```
 
 Rosetta mode (see doc/x86-64.md):
 
 ```
-$ ./build-rosetta.sh
+$ make rosetta
 $ ./target/x86_64-apple-darwin/debug/retrowin32 exe/zig_hello/hello.exe
 ```
 
 Build/run the web app:
 
 ```
-$ make
+$ make deploy opt=1
 $ cd web
 $ npm run serve
 ```
