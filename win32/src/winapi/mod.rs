@@ -15,13 +15,13 @@ pub mod user32;
 mod winmm;
 
 macro_rules! vtable_entry {
-    ($shims:ident $module:ident $fn:ident todo) => {
+    ($shims:expr, $module:ident $fn:ident todo) => {
         $shims.add(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
     };
-    ($shims:ident $module:ident $fn:ident ok) => {
+    ($shims:expr, $module:ident $fn:ident ok) => {
         $shims.add(Ok(&$module::$fn))
     };
-    ($shims:ident $module:ident $fn:ident $shim:tt) => {
+    ($shims:expr, $module:ident $fn:ident $shim:tt) => {
         $shims.add(Ok(&$shim))
     };
 }
@@ -35,17 +35,17 @@ macro_rules! vtable {
         }
         unsafe impl memory::Pod for Vtable {}
         impl Vtable {
-            fn new(shims: &mut crate::shims::Shims) -> Self {
+            fn new(machine: &mut crate::Machine) -> Self {
                 Vtable {
-                    $($fn: $crate::winapi::vtable_entry!(shims $module $fn $impl).into()),*
+                    $($fn: $crate::winapi::vtable_entry!(machine.emu.shims, $module $fn $impl).into()),*
                 }
             }
         }
 
         pub fn vtable(state: &mut State, machine: &mut Machine) -> u32 {
             let addr = state.heap.alloc(machine.memory.mem(), std::mem::size_of::<Vtable>() as u32);
-            let vtable = machine.memory.mem().view_mut::<Vtable>(addr);
-            *vtable = Vtable::new(&mut machine.emu.shims);
+            let vtable = Vtable::new(machine);
+            *machine.memory.mem().view_mut::<Vtable>(addr) = vtable;
             addr
         }
     };

@@ -1,7 +1,6 @@
 use crate::{
     machine::Machine,
     pe,
-    shims::Shims,
     winapi::{self, builtin::BuiltinDLL, types::*, ImportSymbol},
 };
 use std::collections::HashMap;
@@ -43,7 +42,11 @@ impl DLL {
         }
     }
 
-    pub fn resolve_from_builtin(&mut self, shims: &mut Shims, sym: &ImportSymbol) -> Option<u32> {
+    pub fn resolve_from_builtin(
+        &mut self,
+        sym: &ImportSymbol,
+        register: impl FnOnce(Result<&'static crate::shims::Shim, String>) -> u32,
+    ) -> Option<u32> {
         let builtin = self.builtin?;
 
         let export = match *sym {
@@ -58,11 +61,11 @@ impl DLL {
         };
 
         let addr = match export {
-            Some(export) => shims.add(Ok(&export.shim)),
+            Some(export) => register(Ok(&export.shim)),
             None => {
                 let name = format!("{}:{}", self.name, sym);
                 log::warn!("unimplemented: {}", name);
-                shims.add(Err(name))
+                register(Err(name))
             }
         };
 
@@ -77,11 +80,15 @@ impl DLL {
         return Some(addr);
     }
 
-    pub fn resolve(&mut self, shims: &mut Shims, sym: ImportSymbol) -> u32 {
+    pub fn resolve(
+        &mut self,
+        sym: ImportSymbol,
+        register: impl FnOnce(Result<&'static crate::shims::Shim, String>) -> u32,
+    ) -> u32 {
         if let Some(addr) = self.resolve_from_pe(&sym) {
             return addr;
         }
-        if let Some(addr) = self.resolve_from_builtin(shims, &sym) {
+        if let Some(addr) = self.resolve_from_builtin(&sym, register) {
             return addr;
         }
         log::warn!("failed to resolve {}:{}", self.name, sym);
@@ -224,7 +231,7 @@ pub fn GetProcAddress(
 ) -> u32 {
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
-        return dll.resolve(&mut machine.emu.shims, lpProcName.0);
+        return dll.resolve(lpProcName.0, |shim| machine.emu.shims.add(shim));
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail

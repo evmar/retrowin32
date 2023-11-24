@@ -2,7 +2,7 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims::Shims,
+    shims_emu::Shims,
     winapi,
 };
 use memory::Mem;
