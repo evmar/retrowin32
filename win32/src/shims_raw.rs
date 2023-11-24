@@ -63,7 +63,7 @@ pub struct Shims {
     /// Segment selector for 32-bit code.
     code32_selector: u16,
 
-    shims: Vec<Result<Shim, String>>,
+    shims: Vec<Result<&'static Shim, String>>,
 }
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
@@ -146,18 +146,19 @@ impl Shims {
         STACK32 = esp;
     }
 
-    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
+    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
         let shim_index = self.shims.len();
-        self.shims.push(shim.clone());
+
+        // TODO revisit stack_consumed, does it include eip or not?
+        // We have to -4 here to not include IP.
+        let stack_consumed: u16 = match shim {
+            Ok(shim) => shim.stack_consumed as u16 - 4,
+            Err(_) => 0, // we'll crash when it's hit anyway
+        };
+
+        self.shims.push(shim);
         unsafe {
             assert!((trans64 as u64) < 0x1_0000_0000);
-
-            // TODO revisit stack_consumed, does it include eip or not?
-            // We have to -4 here to not include IP.
-            let stack_consumed: u16 = match shim {
-                Ok(shim) => shim.stack_consumed as u16 - 4,
-                Err(_) => 0, // we'll crash when it's hit anyway
-            };
 
             // trampoline_x86.s:tramp64
             let tramp_addr = self.buf.write_many(&[

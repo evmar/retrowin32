@@ -12,7 +12,7 @@ use crate::{shims::Shim, Machine};
 
 #[derive(Default)]
 pub struct Shims {
-    shims: Vec<Result<Shim, String>>,
+    shims: Vec<Result<&'static Shim, String>>,
     hooks_base: u32,
 }
 
@@ -40,7 +40,7 @@ impl Shims {
         }
     }
 
-    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
+    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
         let index = self.shims.len() as u32;
         let addr = self.hooks_base + index;
         self.shims.push(shim);

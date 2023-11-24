@@ -46,7 +46,7 @@ pub const SHIM_BASE: u32 = 0xF1A7_0000;
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 pub struct Shims {
-    shims: Vec<Result<Shim, String>>,
+    shims: Vec<Result<&'static Shim, String>>,
     /// Address of async_executor() shim entry point.
     async_executor: u32,
     /// Pending future for code being ran by async_executor().
@@ -61,7 +61,7 @@ impl Shims {
             async_executor: 0,
             future: None,
         };
-        shims.async_executor = shims.add(Ok(Shim {
+        shims.async_executor = shims.add(Ok(&Shim {
             name: "retrowin32 async helper",
             func: async_executor,
             stack_consumed: 0,
@@ -71,7 +71,7 @@ impl Shims {
     }
 
     /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, shim: Result<Shim, String>) -> u32 {
+    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
         let id = SHIM_BASE | self.shims.len() as u32;
         self.shims.push(shim);
         id

@@ -19,10 +19,10 @@ macro_rules! vtable_entry {
         $shims.add(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
     };
     ($shims:ident $module:ident $fn:ident ok) => {
-        $shims.add(Ok($module::$fn))
+        $shims.add(Ok(&$module::$fn))
     };
     ($shims:ident $module:ident $fn:ident $shim:tt) => {
-        $shims.add(Ok($shim))
+        $shims.add(Ok(&$shim))
     };
 }
 pub(crate) use vtable_entry;

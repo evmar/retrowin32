@@ -20,7 +20,6 @@ pub use crate::shims_unicorn::{call_sync, call_x86, unicorn_loop, Shims};
 
 pub type Handler = unsafe fn(&mut Machine, u32) -> u32;
 
-#[derive(Clone)]
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
