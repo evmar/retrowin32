@@ -2,7 +2,6 @@
 #![allow(non_camel_case_types)]
 
 use super::IMAGE_DATA_DIRECTORY;
-use crate::machine::Machine;
 use memory::Mem;
 
 #[derive(Debug)]
@@ -46,10 +45,10 @@ impl IMAGE_EXPORT_DIRECTORY {
 }
 
 pub fn read_exports<'a>(
-    machine: &'a Machine,
+    mem: Mem<'a>,
     base: u32,
-    exports: &'a IMAGE_DATA_DIRECTORY,
+    exports: &IMAGE_DATA_DIRECTORY,
 ) -> &'a IMAGE_EXPORT_DIRECTORY {
-    let image = machine.mem().slice(base..);
+    let image = mem.slice(base..);
     exports.as_mem(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
 }
