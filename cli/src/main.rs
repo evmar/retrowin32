@@ -166,7 +166,9 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 
     println!("entry point at {:x}, about to jump", entry_point);
     std::io::stdin().read_line(&mut String::new()).unwrap();
-    win32::shims::call_x86(machine, entry_point, vec![]);
+
+    let pin = std::pin::pin!(machine.call_x86(entry_point, vec![]));
+    win32::shims::call_sync(pin);
 }
 
 fn main() -> anyhow::Result<()> {

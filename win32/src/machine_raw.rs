@@ -81,4 +81,8 @@ impl MachineX<Emulator> {
             stack_pointer,
         })
     }
+
+    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
+        crate::shims_raw::call_x86(self, func, args)
+    }
 }

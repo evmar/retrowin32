@@ -27,7 +27,7 @@ pub struct MachineX<Emu> {
     pub labels: HashMap<u32, String>,
 }
 
-impl<T> MachineX<T> {
+impl<Emu: Emulator> MachineX<Emu> {
     pub fn mem(&self) -> Mem {
         self.memory.mem()
     }

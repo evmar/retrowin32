@@ -7,6 +7,6 @@ const TRACE_CONTEXT: &'static str = "retrowin32";
 
 #[win32_derive::dllexport]
 pub async fn retrowin32_callback1(machine: &mut Machine, func: u32, data: u32) -> u32 {
-    crate::shims::call_x86(machine, func, vec![data]).await;
+    machine.call_x86(func, vec![data]).await;
     1
 }

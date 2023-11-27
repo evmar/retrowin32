@@ -8,7 +8,7 @@
 //! 3) tell Unicorn to stop emulation whenever the page is hit,
 //!    and use eip to compute which shim
 
-use crate::{shims::Shim, Machine};
+use crate::{shims::Shim, shims::UnimplFuture, Machine};
 
 #[derive(Default)]
 pub struct Shims {
@@ -45,28 +45,6 @@ impl Shims {
         let addr = self.hooks_base + index;
         self.shims.push(shim);
         addr
-    }
-}
-
-/// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
-#[allow(deref_nullptr)]
-pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {
-    let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-    match future.poll(context) {
-        std::task::Poll::Pending => unreachable!(),
-        std::task::Poll::Ready(t) => t,
-    }
-}
-
-pub struct UnimplFuture {}
-impl std::future::Future for UnimplFuture {
-    type Output = ();
-
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        std::task::Poll::Ready(())
     }
 }
 

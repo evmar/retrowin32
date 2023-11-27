@@ -119,16 +119,16 @@ pub async fn DispatchMessageA(m: *mut Machine, lpMsg: Option<&MSG>) -> u32 {
     let msg = lpMsg.unwrap();
     let window = &machine.state.user32.windows[msg.hwnd.to_raw() as usize - 1];
     // TODO: SetWindowLong can change the wndproc.
-    crate::shims::call_x86(
-        machine,
-        window.wndclass.wndproc,
-        vec![
-            msg.hwnd.to_raw(),
-            msg.message as u32,
-            msg.wParam,
-            msg.lParam,
-        ],
-    )
-    .await;
+    machine
+        .call_x86(
+            window.wndclass.wndproc,
+            vec![
+                msg.hwnd.to_raw(),
+                msg.message as u32,
+                msg.wParam,
+                msg.lParam,
+            ],
+        )
+        .await;
     0
 }

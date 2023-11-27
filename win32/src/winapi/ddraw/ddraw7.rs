@@ -146,7 +146,9 @@ pub(super) mod IDirectDraw7 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        crate::shims::call_x86(machine, lpEnumCallback, vec![desc_addr, lpContext]).await;
+        machine
+            .call_x86(lpEnumCallback, vec![desc_addr, lpContext])
+            .await;
 
         machine
             .state

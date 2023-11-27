@@ -80,7 +80,8 @@ impl MachineX<Emulator> {
             let hInstance = 0u32; // TODO
             let fdwReason = 1u32; // DLL_PROCESS_ATTACH
             let lpvReserved = 0u32;
-            crate::shims::call_x86(self, dll_main, vec![hInstance, fdwReason, lpvReserved]).await;
+            self.call_x86(dll_main, vec![hInstance, fdwReason, lpvReserved])
+                .await;
         }
     }
 
@@ -177,5 +178,9 @@ impl MachineX<Emulator> {
             .x86
             .single_step(self.memory.mem())
             .map_err(|err| anyhow::anyhow!(err))
+    }
+
+    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
+        crate::shims_emu::call_x86(self, func, args)
     }
 }
