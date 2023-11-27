@@ -10,44 +10,55 @@ use crate::{
 use memory::Mem;
 use std::collections::HashMap;
 
-/// Copy the file itself into memory, choosing a base address.
-fn load_image(machine: &mut Machine, name: &str, file: &pe::File, relocate: bool) -> u32 {
-    let memory_size = file.opt_header.SizeOfImage;
-    if memory_size > 20 << 20 {
-        // TODO: 5k_run.exe specifies SizeOfImage as like 1000mb, but then doesn't
-        // end up using it.  We might need to figure out uncommitted memory to properly
-        // load it.
-        log::warn!(
-            "file header requests {}mb of memory",
-            memory_size / (1 << 20)
-        );
-    }
+/// Create a memory mapping, optionally copying some data to it.
+fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Option<&[u8]>) {
+    let winapi::kernel32::Mapping { addr, size, .. } =
+        *machine.state.kernel32.mappings.add(mapping);
 
-    let mapping = if relocate {
-        machine
-            .state
-            .kernel32
-            .mappings
-            .alloc(memory_size, name.into(), &mut machine.memory)
-    } else {
-        machine.state.kernel32.mappings.add(
-            winapi::kernel32::Mapping {
-                addr: file.opt_header.ImageBase,
-                size: memory_size,
-                desc: name.into(),
-                flags: pe::ImageSectionFlags::MEM_READ,
-            },
-            false,
-        )
-    };
-
-    // TODO: .alloc() ensures the memory exists, .add() doesn't.
-    let memory_end = mapping.addr + mapping.size;
+    let memory_end = addr + size;
     if memory_end > machine.memory.len() {
         machine.memory.resize(memory_end, 0);
     }
 
-    mapping.addr
+    if let Some(buf) = buf {
+        machine
+            .mem()
+            .sub(addr, buf.len() as u32)
+            .as_mut_slice_todo()
+            .copy_from_slice(buf);
+    }
+}
+
+/// Copy the file header itself into memory, choosing a base address.
+fn load_image(
+    machine: &mut Machine,
+    name: &str,
+    file: &pe::File,
+    buf: &[u8],
+    relocate: bool,
+) -> u32 {
+    let addr = if relocate {
+        machine
+            .state
+            .kernel32
+            .mappings
+            .find_space(file.opt_header.SizeOfImage)
+    } else {
+        file.opt_header.ImageBase
+    };
+
+    map_memory(
+        machine,
+        winapi::kernel32::Mapping {
+            addr,
+            size: 0x1000,
+            desc: name.into(),
+            flags: pe::ImageSectionFlags::MEM_READ,
+        },
+        Some(&buf[..0x1000]),
+    );
+
+    addr
 }
 
 /// Load a PE section into memory.
@@ -67,27 +78,28 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
     let data_size = sec.SizeOfRawData;
     let flags = sec.characteristics().unwrap();
 
-    // Load the section contents from the file.
+    // Decide whether t load the section contents from the file.
     // Note: kkrunchy-packed files have a single section marked
     // CODE | INITIALIZED_DATA | UNINITIALIZED_DATA | MEM_EXECUTE | MEM_READ | MEM_WRITE
     // so we ignore the UNINITIALIZED_DATA flag.
     let load_data = flags.contains(pe::ImageSectionFlags::CODE)
         || flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
-    if load_data && data_size > 0 {
-        machine
-            .mem()
-            .sub(dst, data_size)
-            .as_mut_slice_todo()
-            .copy_from_slice(&buf[src..][..data_size as usize]);
-    }
-    machine.state.kernel32.mappings.add(
-        winapi::kernel32::Mapping {
-            addr: dst as u32,
-            size: sec.VirtualSize as u32,
-            desc: format!("{:?} ({:?})", sec.name(), flags),
-            flags,
+
+    let mapping = winapi::kernel32::Mapping {
+        addr: dst as u32,
+        size: sec.VirtualSize as u32,
+        desc: format!("{:?} ({:?})", sec.name(), flags),
+        flags,
+    };
+
+    map_memory(
+        machine,
+        mapping,
+        if load_data && data_size > 0 {
+            Some(&buf[src..][..data_size as usize])
+        } else {
+            None
         },
-        true,
     );
 }
 
@@ -170,7 +182,7 @@ fn load_pe(
     file: &pe::File,
     relocate: bool,
 ) -> anyhow::Result<u32> {
-    let base = load_image(machine, name, file, relocate);
+    let base = load_image(machine, name, file, buf, relocate);
 
     for sec in file.sections {
         load_section(machine, base, buf, sec);

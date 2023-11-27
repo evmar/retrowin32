@@ -37,7 +37,7 @@ impl Mappings {
         }])
     }
 
-    pub fn add(&mut self, mut mapping: Mapping, truncate_previous: bool) -> &Mapping {
+    pub fn add(&mut self, mut mapping: Mapping) -> &Mapping {
         mapping.size = round_up_to_page_granularity(mapping.size);
         let pos = self
             .0
@@ -46,12 +46,8 @@ impl Mappings {
             .unwrap_or(self.0.len());
         if pos > 0 {
             let prev = &mut self.0[pos - 1];
-            if prev.addr + prev.size >= mapping.addr {
-                if truncate_previous {
-                    prev.size = mapping.addr - prev.addr;
-                } else {
-                    panic!("mapping conflict");
-                }
+            if prev.addr + prev.size > mapping.addr {
+                panic!("mapping conflict loading {mapping:x?} conflicts with {prev:x?}",);
             }
         }
         if pos < self.0.len() {
@@ -62,46 +58,35 @@ impl Mappings {
         &self.0[pos]
     }
 
+    /// Find an address where we can create a new mapping of given size.
+    pub fn find_space(&self, size: u32) -> u32 {
+        let size = round_up_to_page_granularity(size);
+        let mut prev_end = 0;
+        for mapping in &self.0 {
+            let space = mapping.addr - prev_end;
+            if space > size {
+                break;
+            }
+            prev_end = mapping.addr + mapping.size;
+        }
+        prev_end
+    }
+
     pub fn alloc(&mut self, size: u32, desc: String, mem: &mut MemImpl) -> &Mapping {
         let size = round_up_to_page_granularity(size);
         if size > 20 << 20 {
             panic!("new mapping {:?} {size:x} bytes", desc);
         }
-        let mut prev_end = 0;
-        let pos = self
-            .0
-            .iter()
-            .position(|mapping| {
-                let space = mapping.addr - prev_end;
-                if space > size {
-                    return true;
-                }
-                prev_end = mapping.addr + mapping.size;
-                false
-            })
-            .unwrap_or_else(|| {
-                let space = if mem.len() > prev_end {
-                    mem.len() - prev_end
-                } else {
-                    0
-                };
-                if space < size {
-                    let new_size = prev_end + size;
-                    mem.resize(new_size, 0);
-                }
-                self.0.len()
-            });
-
-        self.0.insert(
-            pos,
-            Mapping {
-                addr: prev_end,
-                size,
-                desc,
-                flags: ImageSectionFlags::empty(),
-            },
-        );
-        &self.0[pos]
+        let addr = self.find_space(size);
+        if addr + size > mem.len() {
+            mem.resize(addr + size, 0);
+        }
+        self.add(Mapping {
+            addr,
+            size,
+            desc,
+            flags: ImageSectionFlags::empty(),
+        })
     }
 
     pub fn vec(&self) -> &Vec<Mapping> {
