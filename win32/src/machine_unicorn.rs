@@ -162,6 +162,33 @@ impl MachineX<Emulator> {
         let stack_pointer = self.setup_stack(exe.stack_size);
         self.setup_segments();
 
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EAX, 0xdeadbeea)
+            .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EBX, 0xdeadbeeb)
+            .unwrap();
+        // To make CPU traces match more closely, set up some registers to what their
+        // initial values appear to be from looking in a debugger.
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::ECX, exe.entry_point as u64)
+            .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EDX, exe.entry_point as u64)
+            .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::ESI, exe.entry_point as u64)
+            .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EDI, exe.entry_point as u64)
+            .unwrap();
+
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,
