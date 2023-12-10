@@ -88,19 +88,21 @@ impl<'m> Mem<'m> {
     }
 
     pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> Mem<'m> {
+        let bstart = match b.start_bound() {
+            std::ops::Bound::Included(&n) => n,
+            std::ops::Bound::Excluded(&n) => n + 1,
+            std::ops::Bound::Unbounded => 0,
+        };
+        let bend = match b.end_bound() {
+            std::ops::Bound::Included(&n) => n + 1,
+            std::ops::Bound::Excluded(&n) => n,
+            std::ops::Bound::Unbounded => self.len(),
+        };
         unsafe {
-            let ptr = self.get_ptr(match b.start_bound() {
-                std::ops::Bound::Included(&n) => n,
-                std::ops::Bound::Excluded(&n) => n + 1,
-                std::ops::Bound::Unbounded => 0,
-            });
-            let end = self.get_ptr(match b.end_bound() {
-                std::ops::Bound::Included(&n) => n + 1,
-                std::ops::Bound::Excluded(&n) => n,
-                std::ops::Bound::Unbounded => self.len(),
-            });
+            let ptr = self.get_ptr(bstart);
+            let end = self.get_ptr(bend);
             if !(self.ptr..self.end).contains(&ptr) || !(self.ptr..self.end.add(1)).contains(&end) {
-                panic!("oob");
+                panic!("oob slice: {bstart:x?}..{bend:x?}",);
             }
             Mem {
                 ptr,
