@@ -143,6 +143,11 @@ struct Args {
     #[cfg(feature = "x86-emu")]
     trace_blocks: bool,
 
+    /// log CPU state first time each point reached
+    #[argh(option)]
+    #[cfg(feature = "x86-unicorn")]
+    trace_points: Option<String>,
+
     /// exe to run
     #[argh(positional)]
     exe: String,
@@ -219,12 +224,15 @@ fn main() -> anyhow::Result<()> {
 
                     if args.trace_blocks {
                         let regs = &machine.emu.x86.cpu.regs;
+                        if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
+                            continue;
+                        }
                         if seen_blocks.contains(&regs.eip) {
                             continue;
                         }
                         eprintln!(
-                            "@{:x}\n  eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x}",
-                            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi
+                            "@{:x}\n  eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x} esp:{:x}",
+                            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi, regs.esp,
                         );
                         seen_blocks.insert(regs.eip);
                     }
@@ -244,7 +252,45 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        crate::win32::shims::unicorn_loop(&mut machine, addrs.entry_point, 0);
+        let mut trace_points = std::collections::VecDeque::new();
+        if let Some(arg) = args.trace_points {
+            for addr in arg.split(",") {
+                if addr.is_empty() {
+                    continue;
+                }
+                let addr = u32::from_str_radix(addr, 16)
+                    .map_err(|_| anyhow!("bad addr {addr:?}"))
+                    .unwrap();
+                trace_points.push_back(addr);
+            }
+        }
+
+        let mut eip = addrs.entry_point;
+        loop {
+            let end = trace_points.pop_front().unwrap_or(0);
+            crate::win32::shims::unicorn_loop(&mut machine, eip, end);
+            if end == 0 {
+                break;
+            } else {
+                println!("@{end:x}");
+                let mut line = String::from(" ");
+                for (name, reg) in [
+                    ("eax", unicorn_engine::RegisterX86::EAX),
+                    ("ebx", unicorn_engine::RegisterX86::EBX),
+                    ("ecx", unicorn_engine::RegisterX86::ECX),
+                    ("edx", unicorn_engine::RegisterX86::EDX),
+                    ("esi", unicorn_engine::RegisterX86::ESI),
+                    ("edi", unicorn_engine::RegisterX86::EDI),
+                    ("esp", unicorn_engine::RegisterX86::ESP),
+                ] {
+                    use std::fmt::Write;
+                    let val = machine.emu.unicorn.reg_read(reg).unwrap();
+                    write!(&mut line, " {name}:{val:x}").unwrap();
+                }
+                println!("{}", line);
+                eip = end;
+            }
+        }
     }
 
     Ok(())
