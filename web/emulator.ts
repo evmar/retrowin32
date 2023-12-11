@@ -87,7 +87,7 @@ export class Emulator {
   }
 
   /** Check if the current address is a break/exit point, returning true if so. */
-  checkBreak(): boolean {
+  isAtBreakpoint(): boolean {
     if (this.exitCode !== undefined) return true;
     const ip = this.emu.eip;
     const bp = this.breakpoints.get(ip);
@@ -102,10 +102,8 @@ export class Emulator {
     return false;
   }
 
-  /** Returns true if we should keep running after this (no breakpoint). */
-  step(): boolean {
+  step() {
     this.emu.single_step();
-    return !this.checkBreak();
   }
 
   /** Number of instructions to execute per stepMany, adjusted dynamically. */
@@ -129,18 +127,18 @@ export class Emulator {
       }
     }
 
-    if (this.checkBreak()) {
+    if (this.isAtBreakpoint()) {
       return false;
     }
 
-    const delta = end - start;
-    const instrPerMs = steps / delta;
+    const ms = end - start;
+    const instrPerMs = steps / ms;
     const alpha = 0.5; // smoothing factor
     this.instrPerMs = alpha * (instrPerMs) + (alpha - 1) * this.instrPerMs;
 
-    if (delta < 10) {
+    if (steps > 100 && ms < 8) {
       this.stepSize *= 2;
-      console.log('adjusted step rate', this.stepSize);
+      console.log(`${steps} instructions in ${ms.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
     }
 
     return true;

@@ -103,9 +103,9 @@ export class Page extends preact.Component<Page.Props, Page.State> {
     this.props.host.page = this;
   }
 
-  step(): boolean {
+  step() {
     try {
-      return this.props.emulator.step();
+      this.props.emulator.step();
     } finally {
       this.forceUpdate();
     }
@@ -113,8 +113,9 @@ export class Page extends preact.Component<Page.Props, Page.State> {
 
   start() {
     if (this.state.running) return;
-    if (!this.step()) { // Advance past the current breakpoint, if any.
-      return;
+    // Advance past the current breakpoint, if any.
+    if (this.props.emulator.isAtBreakpoint()) {
+      this.step();
     }
     const interval = setInterval(() => {
       this.forceUpdate();
