@@ -105,7 +105,7 @@ export class Page extends preact.Component<Page.Props, Page.State> {
 
   step(): boolean {
     try {
-      return this.props.emulator.stepPastBreak();
+      return this.props.emulator.step();
     } finally {
       this.forceUpdate();
     }

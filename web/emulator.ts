@@ -103,18 +103,6 @@ export class Emulator {
   }
 
   /** Returns true if we should keep running after this (no breakpoint). */
-  stepPastBreak(): boolean {
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      const ret = this.step();
-      return ret;
-    } else {
-      return this.step();
-    }
-  }
-
-  /** Returns true if we should keep running after this (no breakpoint). */
   step(): boolean {
     this.emu.single_step();
     return !this.checkBreak();
@@ -127,7 +115,6 @@ export class Emulator {
 
   /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
-    console.log(`stepMany ${this.stepSize}`);
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {
         this.emu.breakpoint_add(bp.addr);
