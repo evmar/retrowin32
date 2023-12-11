@@ -485,6 +485,7 @@ version = "0.1.0"
 dependencies = [
  "bitflags",
  "iced-x86",
+ "log 0.1.0",
  "memory",
  "num-traits",
  "serde",
