@@ -46,7 +46,7 @@ export class Emulator {
     if (!json) return;
     const bps = JSON.parse(json) as Breakpoint[];
     for (const bp of bps) {
-      this.addBreak(bp, /* save= */ false);
+      this.breakpoints.set(bp.addr, bp);
     }
   }
 
@@ -54,9 +54,8 @@ export class Emulator {
     window.localStorage.setItem(this.storageKey, JSON.stringify(Array.from(this.breakpoints.values())));
   }
 
-  addBreak(bp: Breakpoint, save = true) {
+  addBreak(bp: Breakpoint) {
     this.breakpoints.set(bp.addr, bp);
-    if (save) this.saveBreakpoints();
   }
 
   addBreakByName(name: string): boolean {
@@ -128,17 +127,19 @@ export class Emulator {
 
   /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
-    console.log(`stepMany ${this.stepSize}`)
+    console.log(`stepMany ${this.stepSize}`);
     for (const bp of this.breakpoints.values()) {
-      if (!bp.disabled)
+      if (!bp.disabled) {
         this.emu.breakpoint_add(bp.addr);
+      }
     }
     const start = performance.now();
     const steps = this.emu.execute_many(this.stepSize);
     const end = performance.now();
     for (const bp of this.breakpoints.values()) {
-      if (!bp.disabled)
+      if (!bp.disabled) {
         this.emu.breakpoint_clear(bp.addr);
+      }
     }
 
     if (this.checkBreak()) {
