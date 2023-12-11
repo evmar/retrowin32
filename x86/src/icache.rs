@@ -141,6 +141,7 @@ impl InstrCache {
             }
         };
         for (i, instr) in block.instrs.iter().enumerate() {
+            let ip = cpu.regs.eip;
             cpu.regs.eip = instr.next_ip() as u32;
             match cpu.run(mem, instr) {
                 Err(_) => {

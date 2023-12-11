@@ -56,9 +56,6 @@ export class Emulator {
 
   addBreak(bp: Breakpoint, save = true) {
     this.breakpoints.set(bp.addr, bp);
-    if (!bp.disabled) {
-      this.emu.breakpoint_add(bp.addr);
-    }
     if (save) this.saveBreakpoints();
   }
 
@@ -81,20 +78,12 @@ export class Emulator {
     const bp = this.breakpoints.get(addr);
     if (!bp) return;
     this.breakpoints.delete(addr);
-    if (!bp.disabled) {
-      this.emu.breakpoint_clear(addr);
-    }
     this.saveBreakpoints();
   }
 
   toggleBreak(addr: number) {
     const bp = this.breakpoints.get(addr)!;
     bp.disabled = !bp.disabled;
-    if (bp.disabled) {
-      this.emu.breakpoint_clear(addr);
-    } else {
-      this.emu.breakpoint_add(addr);
-    }
     this.saveBreakpoints();
   }
 
@@ -119,9 +108,7 @@ export class Emulator {
     const ip = this.emu.eip;
     const bp = this.breakpoints.get(ip);
     if (bp && !bp.disabled) {
-      this.emu.breakpoint_clear(ip);
       const ret = this.step();
-      this.emu.breakpoint_add(ip);
       return ret;
     } else {
       return this.step();
@@ -141,9 +128,18 @@ export class Emulator {
 
   /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
+    console.log(`stepMany ${this.stepSize}`)
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled)
+        this.emu.breakpoint_add(bp.addr);
+    }
     const start = performance.now();
     const steps = this.emu.execute_many(this.stepSize);
     const end = performance.now();
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled)
+        this.emu.breakpoint_clear(bp.addr);
+    }
 
     if (this.checkBreak()) {
       return false;
