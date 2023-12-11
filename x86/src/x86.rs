@@ -19,7 +19,7 @@ pub struct CPU {
     /// Used both for error states and for process exit.
     // TODO: this is gross because we must check it after every instruction.
     // It would be nice if there was some more clever way to thread process exit...
-    pub state: Result<bool, String>,
+    state: Result<bool, String>,
 }
 impl CPU {
     pub fn new() -> Self {
@@ -44,6 +44,9 @@ impl CPU {
         self.state = Ok(false);
     }
 
+    pub fn err(&mut self, msg: String) {
+        self.state = Err(msg);
+    }
     // fn crash(&mut self, msg: String) {
     //     self.crashed = Some(msg);
     //     self.stopped = true;
@@ -65,6 +68,7 @@ impl CPU {
 
     /// Executes an instruction, leaving eip alone.
     pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &Result<bool, String> {
+        self.state = Ok(true);
         ops::execute(self, mem, instr);
         &self.state
     }

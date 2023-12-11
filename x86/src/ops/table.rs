@@ -376,6 +376,6 @@ pub unsafe fn init_op_tab() {
 pub fn execute(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     match unsafe { OP_TAB[instr.code() as usize] } {
         Some(f) => f(cpu, mem, instr),
-        None => cpu.state = Err(format!("no dispatch for: {:?}", instr.code())),
+        None => cpu.err(format!("no dispatch for: {:?}", instr.code())),
     }
 }

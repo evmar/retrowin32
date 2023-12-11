@@ -24,7 +24,7 @@ pub fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         let y = mem.get::<u8>(cpu.regs.edi);
         sub(x, y, &mut cpu.flags);
     } else {
-        cpu.state = Err("unimpl".into());
+        cpu.err("unimpl".into());
         return;
     }
 }
@@ -42,7 +42,7 @@ fn movs(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
         *counter -= 1;
 
         if cpu.regs.edi >= mem.len() - 8 {
-            cpu.state = Err("movs overflow".into());
+            cpu.err("movs overflow".into());
             return;
         }
 
@@ -154,7 +154,7 @@ pub fn stosb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: usize) {
     if cpu.flags.contains(Flags::DF) {
-        cpu.state = Err("TODO DF".into());
+        cpu.err("TODO DF".into());
         return;
     }
 

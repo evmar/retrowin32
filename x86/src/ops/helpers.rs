@@ -171,7 +171,7 @@ pub fn x86_addr(cpu: &CPU, instr: &iced_x86::Instruction) -> u32 {
 
 pub fn x86_jmp(cpu: &mut CPU, addr: u32) {
     if addr < 0x1000 {
-        cpu.state = Err("jmp to null page".into());
+        cpu.err("jmp to null page".into());
         return;
     }
     cpu.regs.eip = addr;
