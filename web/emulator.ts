@@ -78,8 +78,12 @@ export class Emulator {
   }
 
   delBreak(addr: number) {
+    const bp = this.breakpoints.get(addr);
+    if (!bp) return;
     this.breakpoints.delete(addr);
-    this.emu.breakpoint_clear(addr);
+    if (!bp.disabled) {
+      this.emu.breakpoint_clear(addr);
+    }
     this.saveBreakpoints();
   }
 

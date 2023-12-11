@@ -16,6 +16,7 @@ namespace BreakpointsComponent {
     highlight: number;
     toggle: (addr: number) => void;
     add: (text: string) => boolean;
+    remove: (addr: number) => void;
   }
 }
 
@@ -41,6 +42,7 @@ export class BreakpointsComponent extends preact.Component<BreakpointsComponent.
               </div>
             )
             : null}
+          <button class='x' onClick={() => this.props.remove(bp.addr)}>x</button>
         </div>,
       );
     }

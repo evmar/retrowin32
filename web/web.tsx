@@ -258,6 +258,10 @@ export class Page extends preact.Component<Page.Props, Page.State> {
                     this.forceUpdate();
                     return ret;
                   }}
+                  remove={(addr) => {
+                    this.props.emulator.delBreak(addr);
+                    this.forceUpdate();
+                  }}
                 />
               ),
 
