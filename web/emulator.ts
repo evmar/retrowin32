@@ -56,6 +56,7 @@ export class Emulator {
 
   addBreak(bp: Breakpoint) {
     this.breakpoints.set(bp.addr, bp);
+    this.saveBreakpoints();
   }
 
   addBreakByName(name: string): boolean {
