@@ -145,7 +145,6 @@ struct Args {
 
     /// log CPU state first time each point reached
     #[argh(option)]
-    #[cfg(feature = "x86-unicorn")]
     trace_points: Option<String>,
 
     /// exe to run
@@ -212,6 +211,20 @@ fn main() -> anyhow::Result<()> {
     }
 
     let args: Args = argh::from_env();
+
+    let mut trace_points = std::collections::VecDeque::new();
+    if let Some(arg) = args.trace_points {
+        for addr in arg.split(",") {
+            if addr.is_empty() {
+                continue;
+            }
+            let addr = u32::from_str_radix(addr, 16)
+                .map_err(|_| anyhow!("bad addr {addr:?}"))
+                .unwrap();
+            trace_points.push_back(addr);
+        }
+    }
+
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
@@ -234,6 +247,7 @@ fn main() -> anyhow::Result<()> {
     #[cfg(feature = "x86-emu")]
     {
         let mut seen_blocks = std::collections::HashSet::new();
+        let mut next_trace = trace_points.pop_front().unwrap_or(0);
 
         _ = addrs;
         let start = std::time::Instant::now();
@@ -260,6 +274,11 @@ fn main() -> anyhow::Result<()> {
                         print_trace(&machine);
                         seen_blocks.insert(regs.eip);
                     }
+
+                    if machine.emu.x86.cpu.regs.eip == next_trace {
+                        print_trace(&machine);
+                        next_trace = trace_points.pop_front().unwrap_or(0)
+                    }
                 }
             }
         }
@@ -276,19 +295,6 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        let mut trace_points = std::collections::VecDeque::new();
-        if let Some(arg) = args.trace_points {
-            for addr in arg.split(",") {
-                if addr.is_empty() {
-                    continue;
-                }
-                let addr = u32::from_str_radix(addr, 16)
-                    .map_err(|_| anyhow!("bad addr {addr:?}"))
-                    .unwrap();
-                trace_points.push_back(addr);
-            }
-        }
-
         let mut eip = addrs.entry_point;
         loop {
             let end = trace_points.pop_front().unwrap_or(0);
