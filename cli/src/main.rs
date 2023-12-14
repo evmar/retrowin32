@@ -176,6 +176,33 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
     win32::shims::call_sync(pin);
 }
 
+fn print_trace(machine: &win32::Machine) {
+    #[cfg(feature = "x86-emu")]
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp) = {
+        let regs = &machine.emu.x86.cpu.regs;
+        (
+            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi, regs.esp,
+        )
+    };
+
+    #[cfg(feature = "x86-unicorn")]
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp) = {
+        let unicorn = &machine.emu.unicorn;
+        (
+            unicorn.reg_read(unicorn_engine::RegisterX86::EIP).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::EAX).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::EBX).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::ECX).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::EDX).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::ESI).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::EDI).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::ESP).unwrap(),
+        )
+    };
+
+    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x}");
+}
+
 fn main() -> anyhow::Result<()> {
     logging::init();
 
@@ -230,10 +257,7 @@ fn main() -> anyhow::Result<()> {
                         if seen_blocks.contains(&regs.eip) {
                             continue;
                         }
-                        eprintln!(
-                            "@{:x}\n  eax:{:x} ebx:{:x} ecx:{:x} edx:{:x} esi:{:x} edi:{:x} esp:{:x}",
-                            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi, regs.esp,
-                        );
+                        print_trace(&machine);
                         seen_blocks.insert(regs.eip);
                     }
                 }
@@ -272,22 +296,7 @@ fn main() -> anyhow::Result<()> {
             if end == 0 {
                 break;
             } else {
-                println!("@{end:x}");
-                let mut line = String::from(" ");
-                for (name, reg) in [
-                    ("eax", unicorn_engine::RegisterX86::EAX),
-                    ("ebx", unicorn_engine::RegisterX86::EBX),
-                    ("ecx", unicorn_engine::RegisterX86::ECX),
-                    ("edx", unicorn_engine::RegisterX86::EDX),
-                    ("esi", unicorn_engine::RegisterX86::ESI),
-                    ("edi", unicorn_engine::RegisterX86::EDI),
-                    ("esp", unicorn_engine::RegisterX86::ESP),
-                ] {
-                    use std::fmt::Write;
-                    let val = machine.emu.unicorn.reg_read(reg).unwrap();
-                    write!(&mut line, " {name}:{val:x}").unwrap();
-                }
-                println!("{}", line);
+                print_trace(&machine);
                 eip = end;
             }
         }
