@@ -41,10 +41,10 @@ impl Int for u8 {
 // pub(crate) for use in the test opcode impl.
 pub(crate) fn and<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x & y;
-    // XXX More flags.
     flags.set(Flags::ZF, result.is_zero());
     flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
     flags.set(Flags::OF, false);
+    flags.set(Flags::CF, false);
     result
 }
 
