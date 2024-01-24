@@ -92,7 +92,8 @@ pub fn and_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 fn or<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
     let result = x | y;
-    // XXX More flags.
+    flags.remove(Flags::OF | Flags::CF);
+    flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
     flags.set(Flags::ZF, result.is_zero());
     result
 }
