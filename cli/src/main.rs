@@ -175,6 +175,7 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
     win32::shims::call_sync(pin);
 }
 
+#[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
 fn print_trace(machine: &win32::Machine) {
     #[cfg(feature = "x86-emu")]
     let (eip, eax, ebx, ecx, edx, esi, edi, esp) = {
