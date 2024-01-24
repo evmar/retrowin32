@@ -27,7 +27,7 @@ impl Default for BasicBlock {
 }
 
 impl BasicBlock {
-    fn disassemble(buf: Mem, ip: u32, single_step: bool) -> Self {
+    fn decode(buf: Mem, ip: u32, single_step: bool) -> Option<Self> {
         let mut instrs = Vec::new();
         let mut decoder = iced_x86::Decoder::with_ip(
             32,
@@ -35,17 +35,36 @@ impl BasicBlock {
             ip as u64,
             iced_x86::DecoderOptions::NONE,
         );
+        let mut len = 0;
         while decoder.can_decode() {
             let instr = decoder.decode();
+            if instr.code() == iced_x86::Code::INVALID {
+                // We can hit invalid instruction when decoding confusing control flows.
+                // For example, this UPX code
+                // https://github.com/upx/upx/blob/d615985b8a1b68bbdc0f31e0e6e648f93c434095/src/stub/src/i386-win32.pe.S#L136-L142
+                // encodes as byte sequence b9 57 48 f2 ae, which is
+                //   mov ecx,0xaef24857
+                // but if you jmp into one byte within it, it's instead
+                //   push edi
+                //   dec eax
+                //   repne scasb
+                if len > 0 {
+                    // By truncating this BasicBlock at the invalid instruction, we give the surrounding
+                    // logic a chance to generate smaller basic blocks that will be able to toggle between
+                    // the two interpretations.
+                    break;
+                } else {
+                    // Otherwise the caller must repair this.
+                    return None;
+                }
+            }
             instrs.push(instr);
+            len += instr.len() as u32;
             if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
                 break;
             }
         }
-        BasicBlock {
-            instrs,
-            len: decoder.ip() as u32 - ip,
-        }
+        Some(BasicBlock { instrs, len })
     }
 }
 
@@ -83,18 +102,21 @@ impl InstrCache {
         None
     }
 
-    fn update_block(&mut self, mem: Mem, ip: u32, single_step: bool) {
-        // If there's a block after this location, ensure we don't disassemble over it.
-        let end = if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
-            later_ip
+    fn find_next_block_after(&self, ip: u32) -> Option<u32> {
+        if let Some((&later_ip, _)) = self.blocks.range(ip + 1..).next() {
+            Some(later_ip)
         } else {
-            mem.len()
+            None
+        }
+    }
+
+    /// Decode the instructions within ip..end and save in self.blocks.
+    /// Returns false on decode error.
+    fn decode_block(&mut self, mem: Mem, ip: u32, end: u32, single_step: bool) -> bool {
+        let block = match BasicBlock::decode(mem.slice(ip..end), ip, single_step) {
+            Some(block) => block,
+            None => return false,
         };
-
-        // Ensure we don't overlap any previous block.
-        self.kill_block(ip);
-
-        let block = BasicBlock::disassemble(mem.slice(ip..end), ip, single_step);
         // log::info!("added block {:x}..{:x}", ip, ip + block.len);
         // if block.len == 1 {
         //     log::info!(
@@ -108,6 +130,29 @@ impl InstrCache {
         //     );
         // }
         self.blocks.insert(ip, block);
+        true
+    }
+
+    /// Update the basic block found starting at ip, clearing any previous blocks.
+    fn update_block(&mut self, mem: Mem, ip: u32, single_step: bool) {
+        // If there's a block after this location, ensure we don't decode over it.
+        let next_block = self.find_next_block_after(ip);
+
+        // Ensure we don't overlap any previous block.
+        self.kill_block(ip);
+
+        if !self.decode_block(mem, ip, next_block.unwrap_or(mem.len()), single_step) {
+            // On a decode error, it's possible we needed some of the bytes of the next block to successfully decode.
+            // Try that if possible.
+            if let Some(next) = next_block {
+                self.kill_block(next);
+                let next_block = self.find_next_block_after(ip);
+                if self.decode_block(mem, ip, next_block.unwrap_or(mem.len()), single_step) {
+                    return;
+                }
+            }
+            panic!("failed to decode instruction at {ip:x}");
+        }
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
