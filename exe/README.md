@@ -1,5 +1,6 @@
 This directory contains some win32 executables used to test retrowin32.
 
+- callback: exe that calls a testing retrowin32 API that calls back to exe
 - ops: dump results of x86 operations
 - trace: Windows exe tracer using Windows debug API
 - winapi: MSVC Windows API (no C runtime)

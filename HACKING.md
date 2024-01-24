@@ -26,22 +26,24 @@ $ npm run serve
 
 ## Compile-time features matrix
 
+The above `make` commands cover the main things you'd build, but they wrap some
+more subtle configuration.
+
 To choose the x86 emulation strategy, you must pick a Rust "feature":
 
 - `x86-emu`: retrowin32's own x86 emulator
-- `x86-64`: generate x86-64 code
+- `x86-64`: generate x86-64 code, requires x86 CPU or Rosetta
 - `x86-unicorn`: use [Unicorn](https://www.unicorn-engine.org/) (effectively
   QEMU) for x86 emulation
 
-There are one further build time toggle:
+To choose the rendering strategy, there is one further toggle:
 
 - `sdl`: use sdl2 for graphics
+- otherwise
+  - non-web: headless mode, crash on any graphics calls
+  - web: render to DOM
 
 Web builds require `x86-emu` and no `sdl`.
-
-Native builds can use any emulation strategy, but `x86-64` requires an x86
-process (or Rosetta on Mac) to run. Native builds without `sdl` are headless and
-crash if they run any exe with graphics calls.
 
 ## Code layout
 
@@ -52,3 +54,4 @@ crash if they run any exe with graphics calls.
 - `web/` -- a webapp that runs the emulator in a browser
   - `web/glue/` -- wasm glue for the `win32/` API
 - `exe/` -- some sample Windows executables
+- `memory/` -- a memory abstraction shared by `x86` and `win32`
