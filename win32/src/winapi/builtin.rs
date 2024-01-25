@@ -1959,6 +1959,12 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn FindWindowA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpClassName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpWindowName = <Option<&str>>::from_stack(mem, esp + 8u32);
+            winapi::user32::FindWindowA(machine, lpClassName, lpWindowName).to_raw()
+        }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetActiveWindow(machine).to_raw()
@@ -2137,6 +2143,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: true,
         };
+        pub const FindWindowA: Shim = Shim {
+            name: "FindWindowA",
+            func: impls::FindWindowA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: impls::GetActiveWindow,
@@ -2276,7 +2288,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 29usize] = [
+    const EXPORTS: [Symbol; 30usize] = [
         Symbol {
             ordinal: None,
             shim: shims::CreateCursor,
@@ -2300,6 +2312,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::DispatchMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindWindowA,
         },
         Symbol {
             ordinal: None,
