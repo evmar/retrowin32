@@ -192,9 +192,12 @@ pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
     let mem = Mem::from_slice(buf);
     let mut r = Reader::new(mem);
 
-    let ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
-    r.seek(ofs)
-        .map_err(|err| anyhow!("seeking PE header {ofs:x}: {}", err))?;
+    let pe_header_ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
+    if pe_header_ofs as usize + std::mem::size_of::<IMAGE_FILE_HEADER>() >= buf.len() {
+        bail!("invalid PE offset in DOS header, might be a DOS executable?");
+    }
+    r.seek(pe_header_ofs)
+        .map_err(|err| anyhow!("seeking PE header {pe_header_ofs:x}: {}", err))?;
 
     let header = pe_header(&mut r).map_err(|err| anyhow!("reading PE header: {}", err))?;
     let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
@@ -211,4 +214,19 @@ pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
         data_directory,
         sections,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+
+    #[test]
+    fn dos_header() {
+        let mut buf: Vec<u8> = Vec::new();
+        buf.write(b"MZ").unwrap();
+        buf.write(&[0; 0x3a]).unwrap();
+        buf.write(&0xFFFFFFFFu32.to_le_bytes()).unwrap();
+        assert!(parse(&buf).is_err()); // no crash
+    }
 }
