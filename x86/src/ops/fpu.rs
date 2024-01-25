@@ -288,6 +288,14 @@ pub fn fcomp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
+pub fn fucomp_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let x = *cpu.regs.st_top();
+    let y = *cpu.regs.getst(instr.op1_register());
+    fcom(cpu, x, y);
+    cpu.regs.st_top += 1;
+    // TODO: raise the invalid-arithmetic-operand exception when appropriate.
+}
+
 pub fn frndint(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = cpu.regs.st_top();
     *x = x.round();
