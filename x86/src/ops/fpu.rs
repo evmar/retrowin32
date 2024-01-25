@@ -3,6 +3,10 @@ use crate::{registers::FPUStatus, x86::CPU};
 use iced_x86::Instruction;
 use memory::Mem;
 
+pub fn finit(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.regs.fpu_status = FPUStatus::empty();
+}
+
 /// Compare two values and set floating-point comparison flags.
 fn fcom<T: std::cmp::PartialOrd>(cpu: &mut CPU, x: T, y: T) {
     if x > y {
