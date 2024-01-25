@@ -2078,6 +2078,14 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
+        pub unsafe fn SetTimer(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDEvent = <u32>::from_stack(mem, esp + 8u32);
+            let uElapse = <u32>::from_stack(mem, esp + 12u32);
+            let lpTimerFunc = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::SetTimer(machine, hWnd, nIDEvent, uElapse, lpTimerFunc).to_raw()
+        }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let bShow = <bool>::from_stack(mem, esp + 4u32);
@@ -2257,6 +2265,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetTimer: Shim = Shim {
+            name: "SetTimer",
+            func: impls::SetTimer,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
@@ -2288,7 +2302,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 30usize] = [
+    const EXPORTS: [Symbol; 31usize] = [
         Symbol {
             ordinal: None,
             shim: shims::CreateCursor,
@@ -2388,6 +2402,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetForegroundWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetTimer,
         },
         Symbol {
             ordinal: None,

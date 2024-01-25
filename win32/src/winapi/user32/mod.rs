@@ -141,3 +141,21 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: u32) -> u32 {
         SystemMetric::CYFRAME => 8,
     }
 }
+
+#[win32_derive::dllexport]
+pub fn SetTimer(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    nIDEvent: u32,
+    uElapse: u32,
+    lpTimerFunc: u32,
+) -> u32 {
+    const USER_TIMER_MINIMUM: u32 = 0x0000_000A;
+    const USER_TIMER_MAXIMUM: u32 = 0x7FFF_FFFF;
+    let _uElapse = num_traits::clamp(uElapse, USER_TIMER_MINIMUM, USER_TIMER_MAXIMUM);
+    if lpTimerFunc != 0 {
+        todo!("SetTimer with callback");
+    }
+
+    0 // fail
+}
