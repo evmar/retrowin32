@@ -47,15 +47,16 @@ fn load_image(
         file.opt_header.ImageBase
     };
 
+    let first_page_size = std::cmp::min(buf.len(), 0x1000);
     map_memory(
         machine,
         winapi::kernel32::Mapping {
             addr,
-            size: 0x1000,
+            size: first_page_size as u32,
             desc: name.into(),
             flags: pe::ImageSectionFlags::MEM_READ,
         },
-        Some(&buf[..0x1000]),
+        Some(&buf[..first_page_size]),
     );
 
     addr
