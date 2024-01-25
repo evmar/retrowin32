@@ -4,4 +4,4 @@ pub mod ops;
 mod registers;
 mod x86;
 
-pub use x86::{CPU, X86};
+pub use crate::x86::{CPU, X86};
