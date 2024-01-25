@@ -126,7 +126,7 @@ fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct IMAGE_SECTION_HEADER {
     pub Name: [u8; 8],
     pub VirtualSize: u32,
@@ -142,10 +142,14 @@ pub struct IMAGE_SECTION_HEADER {
 unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
     pub fn name(&self) -> &str {
-        Mem::from_slice(&self.Name[..])
-            .slicez(0)
+        let end = self
+            .Name
+            .iter()
+            .position(|&c| c == 0)
+            .unwrap_or(self.Name.len());
+        std::str::from_utf8(&self.Name[..end])
+            .map_err(|_| format!("invalid section name {:?}", self.Name))
             .unwrap()
-            .to_ascii()
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
         ImageSectionFlags::from_bits(self.Characteristics)
@@ -228,5 +232,12 @@ mod tests {
         buf.write(&[0; 0x3a]).unwrap();
         buf.write(&0xFFFFFFFFu32.to_le_bytes()).unwrap();
         assert!(parse(&buf).is_err()); // no crash
+    }
+
+    #[test]
+    fn kkrunchy_header() {
+        let mut header = IMAGE_SECTION_HEADER::default();
+        header.Name = *b"kkrunchy";
+        assert_eq!(header.name(), "kkrunchy");
     }
 }
