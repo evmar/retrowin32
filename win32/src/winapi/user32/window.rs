@@ -49,7 +49,7 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     RegisterClassExA(machine, Some(&ex))
 }
 
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Clone, Debug)]
 pub struct WNDCLASSEXA {
     cbSize: u32,
