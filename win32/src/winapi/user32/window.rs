@@ -301,6 +301,11 @@ pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
 }
 
 #[win32_derive::dllexport]
+pub fn GetFocus(machine: &mut Machine) -> HWND {
+    HWND::from_raw(machine.state.user32.windows.len() as u32)
+}
+
+#[win32_derive::dllexport]
 pub fn DefWindowProcA(
     _machine: &mut Machine,
     hWnd: HWND,

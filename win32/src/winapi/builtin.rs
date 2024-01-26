@@ -1988,6 +1988,10 @@ pub mod user32 {
             let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
             winapi::user32::GetClientRect(machine, hWnd, lpRect).to_raw()
         }
+        pub unsafe fn GetFocus(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::user32::GetFocus(machine).to_raw()
+        }
         pub unsafe fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetForegroundWindow(machine).to_raw()
@@ -2194,6 +2198,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetFocus: Shim = Shim {
+            name: "GetFocus",
+            func: impls::GetFocus,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetForegroundWindow: Shim = Shim {
             name: "GetForegroundWindow",
             func: impls::GetForegroundWindow,
@@ -2327,7 +2337,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 33usize] = [
+    const EXPORTS: [Symbol; 34usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -2371,6 +2381,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetClientRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFocus,
         },
         Symbol {
             ordinal: None,
