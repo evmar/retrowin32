@@ -36,14 +36,21 @@ impl<'a, T: TryFrom<u32>> FromX86<'a> for Result<T, T::Error> {
     }
 }
 
+fn is_aligned<T: memory::Pod>(ptr: u32) -> bool {
+    ptr as usize % std::mem::align_of::<T>() == 0
+}
+
 impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a T> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
-            None
-        } else {
-            Some(mem.view::<T>(addr))
+            return None;
         }
+        if !is_aligned::<T>(addr) {
+            log::error!("from_stack: unaligned pointer {addr:x}");
+            return None;
+        }
+        Some(mem.view::<T>(addr))
     }
 }
 
@@ -51,10 +58,13 @@ impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a mut T> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         if addr == 0 {
-            None
-        } else {
-            Some(mem.view_mut::<T>(addr))
+            return None;
         }
+        if !is_aligned::<T>(addr) {
+            log::error!("from_stack: unaligned pointer {addr:x}");
+            return None;
+        }
+        Some(mem.view_mut::<T>(addr))
     }
 }
 
