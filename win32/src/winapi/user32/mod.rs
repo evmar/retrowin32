@@ -115,8 +115,8 @@ pub fn DialogBoxParamA(
 
 #[derive(Debug, FromPrimitive)]
 enum SystemMetric {
-    CXSCREEN = 1,
-    CYSCREEN = 2,
+    CXSCREEN = 0,
+    CYSCREEN = 1,
     CYCAPTION = 4,
     CYBORDER = 6,
     CXFRAME = 32,
