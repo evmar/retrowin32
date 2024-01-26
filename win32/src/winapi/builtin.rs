@@ -1831,6 +1831,13 @@ pub mod user32 {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::user32::*;
+        pub unsafe fn AdjustWindowRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 8u32);
+            let bMenu = <bool>::from_stack(mem, esp + 12u32);
+            winapi::user32::AdjustWindowRect(machine, lpRect, dwStyle, bMenu).to_raw()
+        }
         pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInst = <u32>::from_stack(mem, esp + 4u32);
@@ -2115,6 +2122,12 @@ pub mod user32 {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const AdjustWindowRect: Shim = Shim {
+            name: "AdjustWindowRect",
+            func: impls::AdjustWindowRect,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const CreateCursor: Shim = Shim {
             name: "CreateCursor",
             func: impls::CreateCursor,
@@ -2302,7 +2315,11 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 31usize] = [
+    const EXPORTS: [Symbol; 32usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::AdjustWindowRect,
+        },
         Symbol {
             ordinal: None,
             shim: shims::CreateCursor,

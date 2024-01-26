@@ -123,7 +123,7 @@ impl String16 {
     }
 }
 
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Debug)]
 pub struct RECT {
     pub left: DWORD,

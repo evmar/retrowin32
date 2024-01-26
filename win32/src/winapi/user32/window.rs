@@ -299,6 +299,16 @@ pub fn DefWindowProcA(
 }
 
 #[win32_derive::dllexport]
+pub fn AdjustWindowRect(
+    _machine: &mut Machine,
+    lpRect: Option<&mut RECT>,
+    dwStyle: Result<WindowStyle, u32>,
+    bMenu: bool,
+) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
     let rect = lpRect.unwrap();
     *rect = RECT {
