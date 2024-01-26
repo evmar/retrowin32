@@ -423,9 +423,12 @@ pub(super) mod IDirectDrawSurface7 {
                 surf.width * surf.height * bytes_per_pixel,
             );
         }
-        desc.dwFlags = DDSD::LPSURFACE;
+        // Unconditionally add lpSurface, because effect.exe doesn't provide this flag.
+        desc.dwFlags.insert(DDSD::LPSURFACE);
         desc.lpSurface = surf.pixels;
-        desc.lPitch_dwLinearSize = surf.width * bytes_per_pixel;
+        if desc.dwFlags.contains(DDSD::PITCH) {
+            desc.lPitch_dwLinearSize = surf.width * bytes_per_pixel;
+        }
         DD_OK
     }
 

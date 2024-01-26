@@ -215,14 +215,15 @@ pub(super) mod IDirectDrawSurface {
         if event != 0 {
             todo!()
         }
-        let mut desc2 = DDSURFACEDESC2::default();
+        let desc = desc.unwrap();
+        let mut desc2 = DDSURFACEDESC2::from_desc(desc);
         desc2.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         let ret = IDirectDrawSurface7::Lock(machine, this, rect, Some(&mut desc2), flags, 0);
         if ret != DD_OK {
             return ret;
         }
 
-        *desc.unwrap() = DDSURFACEDESC::from_desc2(&desc2);
+        *desc = DDSURFACEDESC::from_desc2(&desc2);
 
         ret
     }
