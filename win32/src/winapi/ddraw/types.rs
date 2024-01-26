@@ -129,7 +129,6 @@ pub struct DDCOLORKEY {
 unsafe impl memory::Pod for DDCOLORKEY {}
 
 #[repr(C)]
-#[derive(Debug)]
 pub struct DDSURFACEDESC {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -150,6 +149,61 @@ pub struct DDSURFACEDESC {
     pub ddsCaps: DDSCAPS,
 }
 unsafe impl memory::Pod for DDSURFACEDESC {}
+
+impl std::fmt::Debug for DDSURFACEDESC {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut st = f.debug_struct("DDSURFACEDESC");
+        st.field("dwSize", &self.dwSize);
+        st.field("dwFlags", &self.dwFlags);
+        if self.dwFlags.contains(DDSD::HEIGHT) {
+            st.field("dwHeight", &self.dwHeight);
+        }
+        if self.dwFlags.contains(DDSD::WIDTH) {
+            st.field("dwWidth", &self.dwWidth);
+        }
+        if self.dwFlags.contains(DDSD::PITCH) {
+            st.field("lPitch", &self.lPitch_dwLinearSize);
+        }
+        if self.dwFlags.contains(DDSD::LINEARSIZE) {
+            st.field("dwLinearSize", &self.lPitch_dwLinearSize);
+        }
+        if self.dwFlags.contains(DDSD::BACKBUFFERCOUNT) {
+            st.field("dwBackBufferCount", &self.dwBackBufferCount);
+        }
+        if self.dwFlags.contains(DDSD::MIPMAPCOUNT) {
+            st.field(
+                "dwMipMapCount_dwZBufferBitDepth_dwRefreshRate",
+                &self.dwMipMapCount_dwZBufferBitDepth_dwRefreshRate,
+            );
+        }
+        if self.dwFlags.contains(DDSD::ALPHABITDEPTH) {
+            st.field("dwAlphaBitDepth", &self.dwAlphaBitDepth);
+        }
+        if self.dwFlags.contains(DDSD::LPSURFACE) {
+            st.field("lpSurface", &self.lpSurface);
+        }
+        if self.dwFlags.contains(DDSD::CKDESTOVERLAY) {
+            st.field("ddckCKDestOverlay", &self.ddckCKDestOverlay);
+        }
+        if self.dwFlags.contains(DDSD::CKDESTBLT) {
+            st.field("ddckCKDestBlt", &self.ddckCKDestBlt);
+        }
+        if self.dwFlags.contains(DDSD::CKSRCOVERLAY) {
+            st.field("ddckCKSrcOverlay", &self.ddckCKSrcOverlay);
+        }
+        if self.dwFlags.contains(DDSD::CKSRCBLT) {
+            st.field("ddckCKSrcBlt", &self.ddckCKSrcBlt);
+        }
+        if self.dwFlags.contains(DDSD::PIXELFORMAT) {
+            st.field("ddpfPixelFormat", &self.ddpfPixelFormat);
+        }
+        if self.dwFlags.contains(DDSD::CAPS) {
+            st.field("ddsCaps", &self.ddsCaps);
+        }
+        st.finish()
+    }
+}
+
 impl DDSURFACEDESC {
     pub fn caps(&self) -> Option<&DDSCAPS> {
         if !self.dwFlags.contains(DDSD::CAPS) {
