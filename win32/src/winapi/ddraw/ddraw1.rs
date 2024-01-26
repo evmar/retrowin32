@@ -229,7 +229,7 @@ pub(super) mod IDirectDrawSurface {
     }
 
     #[win32_derive::dllexport]
-    fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> u32 {
-        IDirectDrawSurface7::Unlock(machine, this, rect)
+    fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> u32 {
+        IDirectDrawSurface7::Unlock(machine, this, None)
     }
 }

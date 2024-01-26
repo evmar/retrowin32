@@ -412,6 +412,7 @@ pub(super) mod IDirectDrawSurface7 {
     ) -> u32 {
         if rect.is_some() {
             // TODO: once we implement this, we need corresponding logic in Unlock.
+            // Note also ddraw1's Unlock has a different type than 7.
             todo!();
         }
         let desc = desc.unwrap();
