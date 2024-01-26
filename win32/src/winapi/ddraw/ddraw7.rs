@@ -425,12 +425,10 @@ pub(super) mod IDirectDrawSurface7 {
                 surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
             );
         }
-        // Unconditionally add lpSurface, because effect.exe doesn't provide this flag.
-        desc.dwFlags.insert(DDSD::LPSURFACE);
+        // It seems callers (effect, monolife) don't provide flags for what they want,
+        // and instead expect all fields to be included.
         desc.lpSurface = surf.pixels;
-        if desc.dwFlags.contains(DDSD::PITCH) {
-            desc.lPitch_dwLinearSize = surf.width * machine.state.ddraw.bytes_per_pixel;
-        }
+        desc.lPitch_dwLinearSize = surf.width * machine.state.ddraw.bytes_per_pixel;
         DD_OK
     }
 
