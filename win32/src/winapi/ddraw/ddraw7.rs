@@ -208,7 +208,7 @@ pub(super) mod IDirectDraw7 {
         if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
             wnd.set_size(width, height);
         }
-        machine.state.ddraw.bytes_per_pixel = bpp;
+        machine.state.ddraw.bytes_per_pixel = bpp / 8;
         DD_OK
     }
 
@@ -462,23 +462,48 @@ pub(super) mod IDirectDrawSurface7 {
             rect.right = surf.width;
             rect.bottom = surf.height;
         }
-        let phack = machine.state.ddraw.palette_hack;
-        if surf.pixels != 0 && phack != 0 {
-            let pixels = machine.memory.mem().view_n::<u8>(
-                surf.pixels,
-                surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
-            );
-            let palette = machine.state.ddraw.palettes.get(&phack).unwrap();
-            // XXX very inefficient
-            let pixels32: Vec<_> = pixels
-                .iter()
-                .map(|&i| {
-                    let p = &palette[i as usize];
-                    [p.peRed, p.peGreen, p.peBlue, 255]
-                })
-                .collect();
-            surf.host.write_pixels(&pixels32);
+        assert!(surf.pixels != 0);
+        match machine.state.ddraw.bytes_per_pixel {
+            1 => {
+                let pixels = machine
+                    .memory
+                    .mem()
+                    .view_n::<u8>(surf.pixels, surf.width * surf.height);
+                if let Some(palette) = machine
+                    .state
+                    .ddraw
+                    .palettes
+                    .get(&machine.state.ddraw.palette_hack)
+                {
+                    // XXX very inefficient
+                    let pixels32: Vec<_> = pixels
+                        .iter()
+                        .map(|&i| {
+                            let p = &palette[i as usize];
+                            [p.peRed, p.peGreen, p.peBlue, 255]
+                        })
+                        .collect();
+                    surf.host.write_pixels(&pixels32);
+                }
+            }
+            4 => {
+                let pixels = machine
+                    .memory
+                    .mem()
+                    .view_n::<[u8; 4]>(surf.pixels, surf.width * surf.height);
+                // XXX setting alpha channel manually, very inefficient :(
+                let pixels32: Vec<_> = pixels.iter().map(|&[r, g, b, _a]| [r, g, b, 255]).collect();
+                surf.host.write_pixels(&pixels32);
+            }
+            bpp => todo!("Unlock for {bpp}bpp"),
         }
+
+        // If surface is primary then updates should show immediately.
+        // XXX probably need something other than attached here
+        if surf.attached == 0 {
+            surf.host.show();
+        }
+
         DD_OK
     }
 }
