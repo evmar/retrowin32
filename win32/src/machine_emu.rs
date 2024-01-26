@@ -183,4 +183,12 @@ impl MachineX<Emulator> {
     pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
         crate::shims_emu::call_x86(self, func, args)
     }
+
+    pub fn dump_stack(&self) {
+        let esp = self.emu.x86.cpu.regs.esp;
+        for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
+            let extra = if addr == esp { " <- esp" } else { "" };
+            log::info!("{:08x} {:08x}{extra}", addr, self.mem().get::<u32>(addr));
+        }
+    }
 }
