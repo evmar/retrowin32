@@ -42,7 +42,7 @@ pub(super) mod IDirectDraw {
         RestoreDisplayMode todo,
         SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
         SetDisplayMode ok,
-        WaitForVerticalBlank todo,
+        WaitForVerticalBlank (IDirectDraw7::shims::WaitForVerticalBlank),
     ];
 
     #[win32_derive::dllexport]

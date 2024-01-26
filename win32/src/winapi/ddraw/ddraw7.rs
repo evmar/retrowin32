@@ -42,7 +42,7 @@ pub(super) mod IDirectDraw7 {
         RestoreDisplayMode todo,
         SetCooperativeLevel ok,
         SetDisplayMode ok,
-        WaitForVerticalBlank todo,
+        WaitForVerticalBlank ok,
         GetAvailableVidMem todo,
         GetSurfaceFromDC todo,
         RestoreAllSurfaces todo,
@@ -208,6 +208,18 @@ pub(super) mod IDirectDraw7 {
         if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
             wnd.set_size(width, height);
         }
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn WaitForVerticalBlank(
+        _machine: &mut Machine,
+        this: u32,
+        flags: u32,
+        _unused: u32,
+    ) -> u32 {
+        // TODO: effect.exe uses this to pace itself; actually sync to a clock here?
+        std::thread::sleep(std::time::Duration::from_millis(10));
         DD_OK
     }
 }
