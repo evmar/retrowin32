@@ -321,6 +321,11 @@ pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut REC
 }
 
 #[win32_derive::dllexport]
+pub fn ClientToScreen(_machine: &mut Machine, hWnd: HWND, lpPoint: Option<&mut POINT>) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn GetWindowDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
     HDC::null()
 }

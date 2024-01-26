@@ -132,3 +132,11 @@ pub struct RECT {
     pub bottom: DWORD,
 }
 unsafe impl memory::Pod for RECT {}
+
+#[repr(C, packed)]
+#[derive(Debug)]
+pub struct POINT {
+    pub x: DWORD,
+    pub y: DWORD,
+}
+unsafe impl memory::Pod for POINT {}

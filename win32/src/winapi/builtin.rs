@@ -1838,6 +1838,12 @@ pub mod user32 {
             let bMenu = <bool>::from_stack(mem, esp + 12u32);
             winapi::user32::AdjustWindowRect(machine, lpRect, dwStyle, bMenu).to_raw()
         }
+        pub unsafe fn ClientToScreen(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpPoint = <Option<&mut POINT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::ClientToScreen(machine, hWnd, lpPoint).to_raw()
+        }
         pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInst = <u32>::from_stack(mem, esp + 4u32);
@@ -2128,6 +2134,12 @@ pub mod user32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const ClientToScreen: Shim = Shim {
+            name: "ClientToScreen",
+            func: impls::ClientToScreen,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const CreateCursor: Shim = Shim {
             name: "CreateCursor",
             func: impls::CreateCursor,
@@ -2315,10 +2327,14 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 32usize] = [
+    const EXPORTS: [Symbol; 33usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::ClientToScreen,
         },
         Symbol {
             ordinal: None,
