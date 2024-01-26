@@ -208,6 +208,7 @@ pub(super) mod IDirectDraw7 {
         if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
             wnd.set_size(width, height);
         }
+        machine.state.ddraw.bytes_per_pixel = bpp;
         DD_OK
     }
 
@@ -417,18 +418,17 @@ pub(super) mod IDirectDrawSurface7 {
         }
         let desc = desc.unwrap();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        let bytes_per_pixel = 1; // TODO: where does this come from?
         if surf.pixels == 0 {
             surf.pixels = machine.state.ddraw.heap.alloc(
                 machine.memory.mem(),
-                surf.width * surf.height * bytes_per_pixel,
+                surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
             );
         }
         // Unconditionally add lpSurface, because effect.exe doesn't provide this flag.
         desc.dwFlags.insert(DDSD::LPSURFACE);
         desc.lpSurface = surf.pixels;
         if desc.dwFlags.contains(DDSD::PITCH) {
-            desc.lPitch_dwLinearSize = surf.width * bytes_per_pixel;
+            desc.lPitch_dwLinearSize = surf.width * machine.state.ddraw.bytes_per_pixel;
         }
         DD_OK
     }
@@ -463,11 +463,10 @@ pub(super) mod IDirectDrawSurface7 {
         }
         let phack = machine.state.ddraw.palette_hack;
         if surf.pixels != 0 && phack != 0 {
-            let bytes_per_pixel = 1; // TODO: where does this come from?
-            let pixels = machine
-                .memory
-                .mem()
-                .view_n::<u8>(surf.pixels, surf.width * surf.height * bytes_per_pixel);
+            let pixels = machine.memory.mem().view_n::<u8>(
+                surf.pixels,
+                surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
+            );
             let palette = machine.state.ddraw.palettes.get(&phack).unwrap();
             // XXX very inefficient
             let pixels32: Vec<_> = pixels

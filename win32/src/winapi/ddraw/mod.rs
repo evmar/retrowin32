@@ -91,6 +91,9 @@ pub struct State {
     // TODO: this is per-IDirectDraw state.
     hwnd: HWND,
     pub surfaces: HashMap<u32, Surface>,
+
+    bytes_per_pixel: u32,
+
     palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
     /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
     /// how surface flipping works for the palettes to work out, so this is hacked for now.
@@ -102,7 +105,7 @@ impl State {
         let mut ddraw = State::default();
         ddraw.heap = machine.state.kernel32.new_private_heap(
             &mut machine.memory,
-            1 << 20,
+            4 << 20,
             "ddraw.dll heap".into(),
         );
 
@@ -127,6 +130,7 @@ impl Default for State {
             vtable_IDirectDrawPalette: 0,
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
+            bytes_per_pixel: 4,
             palettes: HashMap::new(),
             palette_hack: 0,
         }
