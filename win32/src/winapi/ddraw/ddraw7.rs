@@ -205,15 +205,8 @@ pub(super) mod IDirectDraw7 {
         refresh: u32,
         flags: u32,
     ) -> u32 {
-        machine.state.ddraw.width = width;
-        machine.state.ddraw.height = height;
-        if !machine.state.ddraw.hwnd.is_null() {
-            machine
-                .state
-                .user32
-                .get_window(machine.state.ddraw.hwnd)
-                .host
-                .set_size(width, height);
+        if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
+            wnd.set_size(width, height);
         }
         DD_OK
     }

@@ -25,8 +25,11 @@ pub struct State {
     messages: VecDeque<MSG>,
 }
 impl State {
-    pub fn get_window(&mut self, hwnd: HWND) -> &mut Window {
-        &mut self.windows[hwnd.to_raw() as usize - 1]
+    pub fn get_window(&mut self, hwnd: HWND) -> Option<&mut Window> {
+        if hwnd.is_null() || hwnd.is_invalid() {
+            return None;
+        }
+        Some(&mut self.windows[hwnd.to_raw() as usize - 1])
     }
 }
 impl Default for State {

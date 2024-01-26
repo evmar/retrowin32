@@ -25,6 +25,9 @@ pub struct Surface {
 
 impl Surface {
     fn new(machine: &mut Machine, opts: &SurfaceOptions) -> Self {
+        if opts.width == 0 || opts.height == 0 {
+            panic!("cannot create 0-sized surface");
+        }
         Surface {
             host: machine.host.create_surface(&opts),
             width: opts.width,
@@ -52,11 +55,17 @@ impl Surface {
             log::warn!("  caps: {:?}", caps.dwCaps);
             if caps.dwCaps.contains(DDSCAPS::PRIMARYSURFACE) {
                 opts.primary = true;
-                // Take width/height from window dimensions
-                opts.width = machine.state.ddraw.width;
-                opts.height = machine.state.ddraw.height;
             }
         }
+
+        if opts.width == 0 || opts.height == 0 {
+            // Take width/height from window dimensions
+            if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
+                opts.width = wnd.width;
+                opts.height = wnd.height;
+            }
+        }
+
         surfaces.push(Surface::new(machine, &opts));
 
         if let Some(count) = desc.back_buffer_count() {
@@ -81,10 +90,6 @@ pub struct State {
 
     // TODO: this is per-IDirectDraw state.
     hwnd: HWND,
-    /// Display width, after SetDisplayMode.
-    width: u32,
-    /// Display height, after SetDisplayMode.
-    height: u32,
     pub surfaces: HashMap<u32, Surface>,
     palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
     /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
@@ -121,8 +126,6 @@ impl Default for State {
             vtable_IDirectDrawSurface7: 0,
             vtable_IDirectDrawPalette: 0,
             hwnd: HWND::null(),
-            width: 0,
-            height: 0,
             surfaces: HashMap::new(),
             palettes: HashMap::new(),
             palette_hack: 0,

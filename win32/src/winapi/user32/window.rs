@@ -5,7 +5,17 @@ use std::rc::Rc;
 
 pub struct Window {
     pub host: Box<dyn host::Window>,
+    pub width: u32,
+    pub height: u32,
     pub wndclass: Rc<WndClass>,
+}
+
+impl Window {
+    pub fn set_size(&mut self, width: u32, height: u32) {
+        self.width = width;
+        self.height = height;
+        self.host.set_size(width, height);
+    }
 }
 
 pub struct WndClass {
@@ -152,18 +162,21 @@ pub async fn CreateWindowExA(
 
     let mut host_win = machine.host.create_window();
     host_win.set_title(lpWindowName.unwrap());
-    if nWidth > 0 && nHeight > 0 {
-        let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
-        let height = if nHeight == CW_USEDEFAULT {
-            480
-        } else {
-            nHeight
-        };
-        host_win.set_size(width, height);
-    }
+    let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
+    let height = if nHeight == CW_USEDEFAULT {
+        480
+    } else {
+        nHeight
+    };
 
+    if width == 0 || height == 0 {
+        todo!("zero-sized window");
+    }
+    host_win.set_size(width, height);
     let window = Window {
         host: host_win,
+        width,
+        height,
         wndclass,
     };
     machine.state.user32.windows.push(window);
