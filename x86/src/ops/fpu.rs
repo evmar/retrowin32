@@ -166,6 +166,11 @@ pub fn faddp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
+pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get::<u16>(x86_addr(cpu, instr)) as f64;
+    *cpu.regs.st_top() += y;
+}
+
 pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
