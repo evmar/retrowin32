@@ -103,6 +103,7 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Xchg_rm32_r32 as usize] = Some(ops::xchg_rm32_r32);
     OP_TAB[iced_x86::Code::Xchg_r32_EAX as usize] = Some(ops::xchg_rm32_r32);
+    OP_TAB[iced_x86::Code::Xchg_r16_AX as usize] = Some(ops::xchg_rm16_r16);
     OP_TAB[iced_x86::Code::Xchg_rm8_r8 as usize] = Some(ops::xchg_rm8_r8);
 
     OP_TAB[iced_x86::Code::Cmpxchg_rm32_r32 as usize] = Some(ops::cmpxchg_rm32_r32);
@@ -231,6 +232,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Inc_r16 as usize] = Some(ops::inc_rm16);
     OP_TAB[iced_x86::Code::Inc_rm8 as usize] = Some(ops::inc_rm8);
     OP_TAB[iced_x86::Code::Neg_rm32 as usize] = Some(ops::neg_rm32);
+    OP_TAB[iced_x86::Code::Neg_rm16 as usize] = Some(ops::neg_rm16);
     OP_TAB[iced_x86::Code::Neg_rm8 as usize] = Some(ops::neg_rm8);
     OP_TAB[iced_x86::Code::Not_rm32 as usize] = Some(ops::not_rm32);
 

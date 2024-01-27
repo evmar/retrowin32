@@ -2,6 +2,7 @@ use super::helpers::*;
 use crate::{registers::Flags, x86::CPU};
 use iced_x86::Instruction;
 use memory::Mem;
+use num_traits::ops::overflowing::OverflowingSub;
 
 /// This trait is implemented for u32/u16/u8 and lets us write operations generically
 /// over all those bit sizes.
@@ -722,18 +723,27 @@ pub fn inc_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(inc(x.get(), &mut cpu.flags));
 }
 
+fn neg<I: Int + OverflowingSub>(x: I, flags: &mut Flags) -> I {
+    let (res, of) = I::zero().overflowing_sub(&x);
+    flags.set(Flags::ZF, res.is_zero());
+    flags.set(Flags::CF, !res.is_zero());
+    flags.set(Flags::OF, of);
+    res
+}
+
 pub fn neg_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
-    cpu.flags.set(Flags::CF, x.get() != 0);
-    // TODO: other flags registers.
-    x.set(-(x.get() as i32) as u32)
+    x.set(neg(x.get(), &mut cpu.flags));
+}
+
+pub fn neg_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm16(cpu, mem, instr);
+    x.set(neg(x.get(), &mut cpu.flags));
 }
 
 pub fn neg_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
-    cpu.flags.set(Flags::CF, x.get() != 0);
-    // TODO: other flags registers.
-    x.set(-(x.get() as i8) as u8)
+    x.set(neg(x.get(), &mut cpu.flags));
 }
 
 pub fn not_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {

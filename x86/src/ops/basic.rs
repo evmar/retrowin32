@@ -210,6 +210,15 @@ pub fn xchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.set32(r1, tmp);
 }
 
+pub fn xchg_rm16_r16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let r1 = instr.op1_register();
+    let y = cpu.regs.get16(r1);
+    let x = rm16(cpu, mem, instr);
+    let tmp = x.get();
+    x.set(y);
+    cpu.regs.set16(r1, tmp);
+}
+
 pub fn xchg_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let r1 = instr.op1_register();
     let y = cpu.regs.get8(r1);
