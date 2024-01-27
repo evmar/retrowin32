@@ -2488,26 +2488,24 @@ pub mod winmm {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::winmm::*;
+        pub unsafe fn timeBeginPeriod(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uPeriod = <u32>::from_stack(mem, esp + 4u32);
+            winapi::winmm::timeBeginPeriod(machine, uPeriod).to_raw()
+        }
         pub unsafe fn timeGetTime(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::winmm::timeGetTime(machine).to_raw()
         }
         pub unsafe fn timeSetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _uDelay = <u32>::from_stack(mem, esp + 4u32);
-            let _uResolution = <u32>::from_stack(mem, esp + 8u32);
-            let _lpTimeProc = <u32>::from_stack(mem, esp + 12u32);
-            let _dwUser = <u32>::from_stack(mem, esp + 16u32);
-            let _fuEvent = <u32>::from_stack(mem, esp + 20u32);
-            winapi::winmm::timeSetEvent(
-                machine,
-                _uDelay,
-                _uResolution,
-                _lpTimeProc,
-                _dwUser,
-                _fuEvent,
-            )
-            .to_raw()
+            let uDelay = <u32>::from_stack(mem, esp + 4u32);
+            let uResolution = <u32>::from_stack(mem, esp + 8u32);
+            let lpTimeProc = <u32>::from_stack(mem, esp + 12u32);
+            let dwUser = <u32>::from_stack(mem, esp + 16u32);
+            let fuEvent = <u32>::from_stack(mem, esp + 20u32);
+            winapi::winmm::timeSetEvent(machine, uDelay, uResolution, lpTimeProc, dwUser, fuEvent)
+                .to_raw()
         }
         pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2517,6 +2515,12 @@ pub mod winmm {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const timeBeginPeriod: Shim = Shim {
+            name: "timeBeginPeriod",
+            func: impls::timeBeginPeriod,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const timeGetTime: Shim = Shim {
             name: "timeGetTime",
             func: impls::timeGetTime,
@@ -2536,7 +2540,11 @@ pub mod winmm {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 3usize] = [
+    const EXPORTS: [Symbol; 4usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::timeBeginPeriod,
+        },
         Symbol {
             ordinal: None,
             shim: shims::timeGetTime,

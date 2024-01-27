@@ -8,11 +8,11 @@ const TRACE_CONTEXT: &'static str = "winmm";
 #[win32_derive::dllexport]
 pub fn timeSetEvent(
     _machine: &mut Machine,
-    _uDelay: u32,
-    _uResolution: u32,
-    _lpTimeProc: u32,
-    _dwUser: u32,
-    _fuEvent: u32,
+    uDelay: u32,
+    uResolution: u32,
+    lpTimeProc: u32,
+    dwUser: u32,
+    fuEvent: u32,
 ) -> u32 {
     0
 }
@@ -25,4 +25,12 @@ pub fn timeGetTime(machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn waveOutGetNumDevs(_machine: &mut Machine) -> u32 {
     0 // no sound yet
+}
+
+const TIMERR_NOERROR: u32 = 0;
+
+#[win32_derive::dllexport]
+pub fn timeBeginPeriod(_machine: &mut Machine, uPeriod: u32) -> u32 {
+    // ignore
+    TIMERR_NOERROR
 }
