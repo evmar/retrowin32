@@ -334,6 +334,14 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn TextOutA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            let lpString = <ArrayWithSize<u8>>::from_stack(mem, esp + 16u32);
+            winapi::gdi32::TextOutA(machine, hdc, x, y, lpString).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -410,8 +418,14 @@ pub mod gdi32 {
             stack_consumed: 48u32,
             is_async: false,
         };
+        pub const TextOutA: Shim = Shim {
+            name: "TextOutA",
+            func: impls::TextOutA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 12usize] = [
+    const EXPORTS: [Symbol; 13usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -459,6 +473,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::StretchBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::TextOutA,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use super::{
     kernel32,
+    stack_args::ArrayWithSize,
     types::*,
     user32::{BI, BITMAPINFOHEADER},
 };
@@ -300,4 +301,16 @@ pub fn SetBkColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
 #[win32_derive::dllexport]
 pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
     CLR_INVALID // fail
+}
+
+#[win32_derive::dllexport]
+pub fn TextOutA(
+    _machine: &mut Machine,
+    hdc: HDC,
+    x: u32,
+    y: u32,
+    lpString: ArrayWithSize<u8>,
+) -> bool {
+    let _text = std::str::from_utf8(lpString.unwrap()).unwrap();
+    true
 }
