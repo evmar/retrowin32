@@ -232,6 +232,11 @@ pub fn shr_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
+pub fn shr_rm16_1(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm16(cpu, mem, instr);
+    x.set(shr(x.get(), 1, &mut cpu.flags));
+}
+
 pub fn shr_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
