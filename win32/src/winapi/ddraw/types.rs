@@ -242,7 +242,7 @@ impl DDSURFACEDESC {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct DDSURFACEDESC2 {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -267,6 +267,64 @@ pub struct DDSURFACEDESC2 {
     pub dwTextureStage: DWORD,
 }
 unsafe impl memory::Pod for DDSURFACEDESC2 {}
+
+impl std::fmt::Debug for DDSURFACEDESC2 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut st = f.debug_struct("DDSURFACEDESC2");
+        st.field("dwSize", &self.dwSize);
+        st.field("dwFlags", &self.dwFlags);
+        if self.dwFlags.contains(DDSD::HEIGHT) {
+            st.field("dwHeight", &self.dwHeight);
+        }
+        if self.dwFlags.contains(DDSD::WIDTH) {
+            st.field("dwWidth", &self.dwWidth);
+        }
+        if self.dwFlags.contains(DDSD::PITCH) {
+            st.field("lPitch_dwLinearSize", &self.lPitch_dwLinearSize);
+        }
+        if self.dwFlags.contains(DDSD::BACKBUFFERCOUNT) {
+            st.field("dwBackBufferCount_dwDepth", &self.dwBackBufferCount_dwDepth);
+        }
+        if self.dwFlags.contains(DDSD::MIPMAPCOUNT) {
+            st.field(
+                "dwMipMapCount_dwRefreshRate_dwSrcVBHandle",
+                &self.dwMipMapCount_dwRefreshRate_dwSrcVBHandle,
+            );
+        }
+        if self.dwFlags.contains(DDSD::ALPHABITDEPTH) {
+            st.field("dwAlphaBitDepth", &self.dwAlphaBitDepth);
+        }
+        if self.dwFlags.contains(DDSD::LPSURFACE) {
+            st.field("lpSurface", &self.lpSurface);
+        }
+        if self.dwFlags.contains(DDSD::CKDESTOVERLAY) {
+            st.field(
+                "ddckCKDestOverlay_dwEmptyFaceColor",
+                &self.ddckCKDestOverlay_dwEmptyFaceColor,
+            );
+        }
+        if self.dwFlags.contains(DDSD::CKDESTBLT) {
+            st.field("ddckCKDestBlt", &self.ddckCKDestBlt);
+        }
+        if self.dwFlags.contains(DDSD::CKSRCOVERLAY) {
+            st.field("ddckCKSrcOverlay", &self.ddckCKSrcOverlay);
+        }
+        if self.dwFlags.contains(DDSD::CKSRCBLT) {
+            st.field("ddckCKSrcBlt", &self.ddckCKSrcBlt);
+        }
+        if self.dwFlags.contains(DDSD::PIXELFORMAT) {
+            st.field("ddpfPixelFormat", &self.ddpfPixelFormat);
+        }
+        if self.dwFlags.contains(DDSD::CAPS) {
+            st.field("ddsCaps", &self.ddsCaps);
+        }
+        if self.dwFlags.contains(DDSD::TEXTURESTAGE) {
+            st.field("dwTextureStage", &self.dwTextureStage);
+        }
+        st.finish()
+    }
+}
+
 impl DDSURFACEDESC2 {
     pub fn back_buffer_count(&self) -> Option<u32> {
         if !self.dwFlags.contains(DDSD::BACKBUFFERCOUNT) {
