@@ -2063,6 +2063,12 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::GetWindowDC(machine, hWnd).to_raw()
         }
+        pub unsafe fn GetWindowLongA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let nIndex = <i32>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetWindowLongA(machine, hWnd, nIndex).to_raw()
+        }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -2288,6 +2294,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetWindowLongA: Shim = Shim {
+            name: "GetWindowLongA",
+            func: impls::GetWindowLongA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: impls::LoadCursorA,
@@ -2397,7 +2409,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 35usize] = [
+    const EXPORTS: [Symbol; 36usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -2465,6 +2477,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetWindowDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetWindowLongA,
         },
         Symbol {
             ordinal: None,

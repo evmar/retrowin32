@@ -153,3 +153,8 @@ impl ToX86 for u32 {
         *self
     }
 }
+impl ToX86 for i32 {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}

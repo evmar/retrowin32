@@ -354,3 +354,16 @@ pub fn ReleaseDC(_machine: &mut Machine, hdc: HDC) -> bool {
     log::warn!("todo: ReleaseDC({hdc:x})");
     false // fail
 }
+
+#[win32_derive::dllexport]
+pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
+    match nIndex {
+        // GWL_STYLE
+        -16 => WindowStyle::empty().bits() as i32,
+
+        // GWL_EXSTYLE
+        -20 => 0,
+
+        _ => todo!("GetWindowLong({nIndex})"),
+    }
+}
