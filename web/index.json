@@ -34,5 +34,9 @@
   {
     "desc": "effect",
     "params": "dir=exe/demo/&exe=effect.exe"
+  },
+  {
+    "desc": "win003",
+    "params": "dir=exe/demo/&exe=WIN003.EXE"
   }
 ]
