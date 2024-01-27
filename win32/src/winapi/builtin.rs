@@ -2140,6 +2140,15 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
+        pub unsafe fn SetRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let xLeft = <u32>::from_stack(mem, esp + 8u32);
+            let yTop = <u32>::from_stack(mem, esp + 12u32);
+            let xRight = <u32>::from_stack(mem, esp + 16u32);
+            let yBottom = <u32>::from_stack(mem, esp + 20u32);
+            winapi::user32::SetRect(machine, lprc, xLeft, yTop, xRight, yBottom).to_raw()
+        }
         pub unsafe fn SetTimer(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -2345,6 +2354,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetRect: Shim = Shim {
+            name: "SetRect",
+            func: impls::SetRect,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const SetTimer: Shim = Shim {
             name: "SetTimer",
             func: impls::SetTimer,
@@ -2382,7 +2397,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 34usize] = [
+    const EXPORTS: [Symbol; 35usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -2494,6 +2509,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetForegroundWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetRect,
         },
         Symbol {
             ordinal: None,

@@ -162,3 +162,22 @@ pub fn SetTimer(
 
     0 // fail
 }
+
+#[win32_derive::dllexport]
+pub fn SetRect(
+    _machine: &mut Machine,
+    lprc: Option<&mut RECT>,
+    xLeft: u32,
+    yTop: u32,
+    xRight: u32,
+    yBottom: u32,
+) -> bool {
+    let rect = lprc.unwrap();
+    *rect = RECT {
+        left: xLeft,
+        top: yTop,
+        right: xRight,
+        bottom: yBottom,
+    };
+    true
+}
