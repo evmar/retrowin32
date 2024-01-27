@@ -23,7 +23,7 @@ pub struct WndClass {
     pub wndproc: u32,
 }
 
-#[repr(C)]
+#[repr(C, packed)]
 #[derive(Clone, Debug)]
 pub struct WNDCLASSA {
     style: u32,
