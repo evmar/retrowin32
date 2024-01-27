@@ -10,6 +10,7 @@ pub struct GUI {
 }
 impl GUI {
     pub fn new() -> anyhow::Result<Self> {
+        assert!(sdl2::hint::set("SDL_NO_SIGNAL_HANDLERS", "1"));
         let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
         let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
         let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
