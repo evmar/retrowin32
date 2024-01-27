@@ -260,3 +260,27 @@ pub fn CreateDIBSection(
     };
     machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
 }
+
+pub struct FONT {}
+pub type HFONT = HANDLE<FONT>;
+
+#[win32_derive::dllexport]
+pub fn CreateFontA(
+    _machine: &mut Machine,
+    cHeight: u32,
+    cWidth: u32,
+    cEscapement: u32,
+    cOrientation: u32,
+    cWeight: u32,
+    bItalic: u32,
+    bUnderline: u32,
+    bStrikeOut: u32,
+    iCharSet: u32,
+    iOutPrecision: u32,
+    iClipPrecision: u32,
+    iQuality: u32,
+    iPitchAndFamily: u32,
+    pszFaceName: Option<&str>,
+) -> HFONT {
+    HFONT::null()
+}

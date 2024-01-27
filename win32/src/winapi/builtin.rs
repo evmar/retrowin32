@@ -240,6 +240,41 @@ pub mod gdi32 {
             winapi::gdi32::CreateDIBSection(machine, hdc, pbmi, usage, ppvBits, hSection, offset)
                 .to_raw()
         }
+        pub unsafe fn CreateFontA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let cHeight = <u32>::from_stack(mem, esp + 4u32);
+            let cWidth = <u32>::from_stack(mem, esp + 8u32);
+            let cEscapement = <u32>::from_stack(mem, esp + 12u32);
+            let cOrientation = <u32>::from_stack(mem, esp + 16u32);
+            let cWeight = <u32>::from_stack(mem, esp + 20u32);
+            let bItalic = <u32>::from_stack(mem, esp + 24u32);
+            let bUnderline = <u32>::from_stack(mem, esp + 28u32);
+            let bStrikeOut = <u32>::from_stack(mem, esp + 32u32);
+            let iCharSet = <u32>::from_stack(mem, esp + 36u32);
+            let iOutPrecision = <u32>::from_stack(mem, esp + 40u32);
+            let iClipPrecision = <u32>::from_stack(mem, esp + 44u32);
+            let iQuality = <u32>::from_stack(mem, esp + 48u32);
+            let iPitchAndFamily = <u32>::from_stack(mem, esp + 52u32);
+            let pszFaceName = <Option<&str>>::from_stack(mem, esp + 56u32);
+            winapi::gdi32::CreateFontA(
+                machine,
+                cHeight,
+                cWidth,
+                cEscapement,
+                cOrientation,
+                cWeight,
+                bItalic,
+                bUnderline,
+                bStrikeOut,
+                iCharSet,
+                iOutPrecision,
+                iClipPrecision,
+                iQuality,
+                iPitchAndFamily,
+                pszFaceName,
+            )
+            .to_raw()
+        }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <u32>::from_stack(mem, esp + 4u32);
@@ -303,6 +338,12 @@ pub mod gdi32 {
             stack_consumed: 28u32,
             is_async: false,
         };
+        pub const CreateFontA: Shim = Shim {
+            name: "CreateFontA",
+            func: impls::CreateFontA,
+            stack_consumed: 60u32,
+            is_async: false,
+        };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: impls::DeleteDC,
@@ -334,7 +375,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 8usize] = [
+    const EXPORTS: [Symbol; 9usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -346,6 +387,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::CreateDIBSection,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateFontA,
         },
         Symbol {
             ordinal: None,
