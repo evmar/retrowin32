@@ -267,10 +267,10 @@ pub type HFONT = HANDLE<FONT>;
 #[win32_derive::dllexport]
 pub fn CreateFontA(
     _machine: &mut Machine,
-    cHeight: u32,
-    cWidth: u32,
-    cEscapement: u32,
-    cOrientation: u32,
+    cHeight: i32,
+    cWidth: i32,
+    cEscapement: i32,
+    cOrientation: i32,
     cWeight: u32,
     bItalic: u32,
     bUnderline: u32,

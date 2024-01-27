@@ -242,10 +242,10 @@ pub mod gdi32 {
         }
         pub unsafe fn CreateFontA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let cHeight = <u32>::from_stack(mem, esp + 4u32);
-            let cWidth = <u32>::from_stack(mem, esp + 8u32);
-            let cEscapement = <u32>::from_stack(mem, esp + 12u32);
-            let cOrientation = <u32>::from_stack(mem, esp + 16u32);
+            let cHeight = <i32>::from_stack(mem, esp + 4u32);
+            let cWidth = <i32>::from_stack(mem, esp + 8u32);
+            let cEscapement = <i32>::from_stack(mem, esp + 12u32);
+            let cOrientation = <i32>::from_stack(mem, esp + 16u32);
             let cWeight = <u32>::from_stack(mem, esp + 20u32);
             let bItalic = <u32>::from_stack(mem, esp + 24u32);
             let bUnderline = <u32>::from_stack(mem, esp + 28u32);
@@ -2149,10 +2149,10 @@ pub mod user32 {
         pub unsafe fn SetRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
-            let xLeft = <u32>::from_stack(mem, esp + 8u32);
-            let yTop = <u32>::from_stack(mem, esp + 12u32);
-            let xRight = <u32>::from_stack(mem, esp + 16u32);
-            let yBottom = <u32>::from_stack(mem, esp + 20u32);
+            let xLeft = <i32>::from_stack(mem, esp + 8u32);
+            let yTop = <i32>::from_stack(mem, esp + 12u32);
+            let xRight = <i32>::from_stack(mem, esp + 16u32);
+            let yBottom = <i32>::from_stack(mem, esp + 20u32);
             winapi::user32::SetRect(machine, lprc, xLeft, yTop, xRight, yBottom).to_raw()
         }
         pub unsafe fn SetTimer(machine: &mut Machine, esp: u32) -> u32 {

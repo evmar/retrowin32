@@ -126,10 +126,10 @@ impl String16 {
 #[repr(C, packed)]
 #[derive(Debug)]
 pub struct RECT {
-    pub left: DWORD,
-    pub top: DWORD,
-    pub right: DWORD,
-    pub bottom: DWORD,
+    pub left: i32,
+    pub top: i32,
+    pub right: i32,
+    pub bottom: i32,
 }
 unsafe impl memory::Pod for RECT {}
 

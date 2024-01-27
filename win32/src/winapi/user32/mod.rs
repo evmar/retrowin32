@@ -167,10 +167,10 @@ pub fn SetTimer(
 pub fn SetRect(
     _machine: &mut Machine,
     lprc: Option<&mut RECT>,
-    xLeft: u32,
-    yTop: u32,
-    xRight: u32,
-    yBottom: u32,
+    xLeft: i32,
+    yTop: i32,
+    xRight: i32,
+    yBottom: i32,
 ) -> bool {
     let rect = lprc.unwrap();
     *rect = RECT {

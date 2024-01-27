@@ -316,10 +316,10 @@ pub(super) mod IDirectDrawSurface7 {
             (&mut *dst, &*src)
         };
         let rect = lpRect.unwrap();
-        let sx = rect.left;
-        let w = rect.right - sx;
-        let sy = rect.top;
-        let h = rect.bottom - sy;
+        let sx = rect.left as u32;
+        let w = (rect.right - rect.left) as u32;
+        let sy = rect.top as u32;
+        let h = (rect.bottom - rect.top) as u32;
         dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
         DD_OK
     }
@@ -457,8 +457,8 @@ pub(super) mod IDirectDrawSurface7 {
             // TODO: needs to match the rect passed in Lock.
             rect.left = 0;
             rect.top = 0;
-            rect.right = surf.width;
-            rect.bottom = surf.height;
+            rect.right = surf.width as i32;
+            rect.bottom = surf.height as i32;
         }
         assert!(surf.pixels != 0);
         match machine.state.ddraw.bytes_per_pixel {
