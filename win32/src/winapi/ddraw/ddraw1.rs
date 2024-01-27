@@ -150,10 +150,10 @@ pub(super) mod IDirectDrawSurface {
         Flip (IDirectDrawSurface7::shims::Flip),
         GetAttachedSurface ok,
         GetBltStatus todo,
-        GetCaps todo,
+        GetCaps ok,
         GetClipper todo,
         GetColorKey todo,
-        GetDC todo,
+        GetDC (IDirectDrawSurface7::shims::GetDC),
         GetFlipStatus todo,
         GetOverlayPosition todo,
         GetPalette todo,
@@ -162,7 +162,7 @@ pub(super) mod IDirectDrawSurface {
         Initialize todo,
         IsLost todo,
         Lock ok,
-        ReleaseDC todo,
+        ReleaseDC (IDirectDrawSurface7::shims::ReleaseDC),
         Restore todo,
         SetClipper todo,
         SetColorKey todo,
@@ -192,6 +192,11 @@ pub(super) mod IDirectDrawSurface {
         // TODO: consider caps.
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface.unwrap() = surface.attached;
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
         DD_OK
     }
 

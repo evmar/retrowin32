@@ -245,7 +245,7 @@ pub(super) mod IDirectDrawSurface7 {
         Flip ok,
         GetAttachedSurface ok,
         GetBltStatus todo,
-        GetCaps todo,
+        GetCaps ok,
         GetClipper todo,
         GetColorKey todo,
         GetDC ok,
@@ -364,6 +364,11 @@ pub(super) mod IDirectDrawSurface7 {
         // TODO: consider caps.
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface7.unwrap() = surface.attached;
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS2: Option<&mut DDSCAPS2>) -> u32 {
         DD_OK
     }
 
