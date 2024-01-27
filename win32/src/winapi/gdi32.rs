@@ -284,3 +284,20 @@ pub fn CreateFontA(
 ) -> HFONT {
     HFONT::null()
 }
+
+#[win32_derive::dllexport]
+pub fn SetBkMode(_machine: &mut Machine, hdc: HDC, mode: i32) -> i32 {
+    0 // fail
+}
+
+const CLR_INVALID: u32 = 0xFFFF_FFFF;
+
+#[win32_derive::dllexport]
+pub fn SetBkColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
+    CLR_INVALID // fail
+}
+
+#[win32_derive::dllexport]
+pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
+    CLR_INVALID // fail
+}

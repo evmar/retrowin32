@@ -298,6 +298,24 @@ pub mod gdi32 {
             let hGdiObj = <u32>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SelectObject(machine, hdc, hGdiObj).to_raw()
         }
+        pub unsafe fn SetBkColor(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let color = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetBkColor(machine, hdc, color).to_raw()
+        }
+        pub unsafe fn SetBkMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let mode = <i32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetBkMode(machine, hdc, mode).to_raw()
+        }
+        pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let color = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetTextColor(machine, hdc, color).to_raw()
+        }
         pub unsafe fn StretchBlt(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdcDest = <u32>::from_stack(mem, esp + 4u32);
@@ -368,6 +386,24 @@ pub mod gdi32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const SetBkColor: Shim = Shim {
+            name: "SetBkColor",
+            func: impls::SetBkColor,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const SetBkMode: Shim = Shim {
+            name: "SetBkMode",
+            func: impls::SetBkMode,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const SetTextColor: Shim = Shim {
+            name: "SetTextColor",
+            func: impls::SetTextColor,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const StretchBlt: Shim = Shim {
             name: "StretchBlt",
             func: impls::StretchBlt,
@@ -375,7 +411,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 9usize] = [
+    const EXPORTS: [Symbol; 12usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -407,6 +443,18 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::SelectObject,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetBkColor,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetBkMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetTextColor,
         },
         Symbol {
             ordinal: None,
