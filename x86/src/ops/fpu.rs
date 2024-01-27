@@ -118,6 +118,13 @@ pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
+pub fn fistp_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let f = *cpu.regs.st_top();
+    let addr = x86_addr(cpu, instr);
+    mem.put::<u16>(addr, f as i16 as u16);
+    cpu.regs.st_top += 1;
+}
+
 pub fn fchs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *cpu.regs.st_top() = -*cpu.regs.st_top();
 }
@@ -201,6 +208,11 @@ pub fn fmul_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fimul_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    *cpu.regs.st_top() *= y;
+}
+
+pub fn fimul_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get::<u16>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() *= y;
 }
 
