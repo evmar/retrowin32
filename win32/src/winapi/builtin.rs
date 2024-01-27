@@ -2171,6 +2171,18 @@ pub mod user32 {
             let lpTimerFunc = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::SetTimer(machine, hWnd, nIDEvent, uElapse, lpTimerFunc).to_raw()
         }
+        pub unsafe fn SetWindowPos(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hWndInsertAfter = <HWND>::from_stack(mem, esp + 8u32);
+            let X = <i32>::from_stack(mem, esp + 12u32);
+            let Y = <i32>::from_stack(mem, esp + 16u32);
+            let cx = <i32>::from_stack(mem, esp + 20u32);
+            let cy = <i32>::from_stack(mem, esp + 24u32);
+            let uFlags = <u32>::from_stack(mem, esp + 28u32);
+            winapi::user32::SetWindowPos(machine, hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags)
+                .to_raw()
+        }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let bShow = <bool>::from_stack(mem, esp + 4u32);
@@ -2392,6 +2404,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const SetWindowPos: Shim = Shim {
+            name: "SetWindowPos",
+            func: impls::SetWindowPos,
+            stack_consumed: 32u32,
+            is_async: false,
+        };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
@@ -2423,7 +2441,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 37usize] = [
+    const EXPORTS: [Symbol; 38usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -2551,6 +2569,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetTimer,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetWindowPos,
         },
         Symbol {
             ordinal: None,

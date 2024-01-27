@@ -357,6 +357,20 @@ pub fn AdjustWindowRectEx(
 }
 
 #[win32_derive::dllexport]
+pub fn SetWindowPos(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    hWndInsertAfter: HWND,
+    X: i32,
+    Y: i32,
+    cx: i32,
+    cy: i32,
+    uFlags: u32,
+) -> bool {
+    false
+}
+
+#[win32_derive::dllexport]
 pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
     let rect = lpRect.unwrap();
     *rect = RECT {
