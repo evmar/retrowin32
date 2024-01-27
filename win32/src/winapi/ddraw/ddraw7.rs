@@ -298,15 +298,20 @@ pub(super) mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     fn Blt(
-        _machine: &mut Machine,
+        machine: &mut Machine,
         this: u32,
         lpDstRect: Option<&RECT>,
         lpSurf: u32,
         lpSrcRect: Option<&RECT>,
         flags: Result<DDBLT, u32>,
-        lpDDBLTFX: u32,
+        lpDDBLTFX: Option<&DDBLTFX>,
     ) -> u32 {
-        DDERR_GENERIC
+        if lpDstRect.is_some() || lpSrcRect.is_some() {
+            todo!()
+        }
+        log::warn!("Blt: ignoring behavioral flags");
+        BltFast(machine, this, 0, 0, lpSurf, None, 0);
+        DD_OK
     }
 
     #[win32_derive::dllexport]
@@ -328,12 +333,16 @@ pub(super) mod IDirectDrawSurface7 {
             assert_ne!(dst as *const ddraw::Surface, src);
             (&mut *dst, &*src)
         };
-        let rect = lpRect.unwrap();
-        let sx = rect.left as u32;
-        let w = (rect.right - rect.left) as u32;
-        let sy = rect.top as u32;
-        let h = (rect.bottom - rect.top) as u32;
-        dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
+        if let Some(rect) = lpRect {
+            let sx = rect.left as u32;
+            let w = (rect.right - rect.left) as u32;
+            let sy = rect.top as u32;
+            let h = (rect.bottom - rect.top) as u32;
+            dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
+        } else {
+            dst.host
+                .bit_blt(x, y, src.host.as_ref(), 0, 0, src.width, src.height);
+        }
         DD_OK
     }
 

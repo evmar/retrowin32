@@ -429,3 +429,46 @@ impl TryFrom<u32> for DDBLT {
         DDBLT::from_bits(value).ok_or(value)
     }
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct DDBLTFX {
+    pub dwSize: u32,
+    pub dwDDFX: DDBLTFXT,
+    pub dwROP: u32,
+    pub dwDDROP: u32,
+    pub dwRotationAngle: u32,
+    pub dwZBufferOpCode: u32,
+    pub dwZBufferLow: u32,
+    pub dwZBufferHigh: u32,
+    pub dwZBufferBaseDest: u32,
+    pub dwZDestConstBitDepth: u32,
+    pub zDest: u32,
+    pub dwZSrcConstBitDepth: u32,
+    pub zSrc: u32,
+    pub dwAlphaEdgeBlendBitDepth: u32,
+    pub dwAlphaEdgeBlend: u32,
+    pub dwReserved: u32,
+    pub dwAlphaDestConstBitDepth: u32,
+    pub alphaDest: u32,
+    pub dwAlphaSrcConstBitDepth: u32,
+    pub alphaSrc: u32,
+    pub fill: u32,
+    pub ddckDestColorkey: DDCOLORKEY,
+    pub ddckSrcColorkey: DDCOLORKEY,
+}
+unsafe impl memory::Pod for DDBLTFX {}
+
+bitflags! {
+    pub struct DDBLTFXT: u32 {
+        const ARITHSTRETCHY   = 0x001;
+        const MIRRORLEFTRIGHT = 0x002;
+        const MIRRORUPDOWN    = 0x004;
+        const NOTEARING       = 0x008;
+        const ROTATE180       = 0x010;
+        const ROTATE270       = 0x020;
+        const ROTATE90        = 0x040;
+        const ZBUFFERRANGE    = 0x080;
+        const ZBUFFERBASEDEST = 0x100;
+    }
+}
