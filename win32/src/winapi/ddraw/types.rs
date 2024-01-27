@@ -390,3 +390,42 @@ pub struct PALETTEENTRY {
     pub peFlags: u8,
 }
 unsafe impl memory::Pod for PALETTEENTRY {}
+
+bitflags! {
+    pub struct DDBLT: u32 {
+        const ALPHADEST                = 0x00000001;
+        const ALPHADESTCONSTOVERRIDE   = 0x00000002;
+        const ALPHADESTNEG             = 0x00000004;
+        const ALPHADESTSURFACEOVERRIDE = 0x00000008;
+        const ALPHAEDGEBLEND           = 0x00000010;
+        const ALPHASRC                 = 0x00000020;
+        const ALPHASRCCONSTOVERRIDE    = 0x00000040;
+        const ALPHASRCNEG              = 0x00000080;
+        const ALPHASRCSURFACEOVERRIDE  = 0x00000100;
+        const ASYNC                    = 0x00000200;
+        const COLORFILL                = 0x00000400;
+        const DDFX                     = 0x00000800;
+        const DDROPS                   = 0x00001000;
+        const KEYDEST                  = 0x00002000;
+        const KEYDESTOVERRIDE          = 0x00004000;
+        const KEYSRC                   = 0x00008000;
+        const KEYSRCOVERRIDE           = 0x00010000;
+        const ROP                      = 0x00020000;
+        const ROTATIONANGLE            = 0x00040000;
+        const ZBUFFER                  = 0x00080000;
+        const ZBUFFERDESTCONSTOVERRIDE = 0x00100000;
+        const ZBUFFERDESTOVERRIDE      = 0x00200000;
+        const ZBUFFERSRCCONSTOVERRIDE  = 0x00400000;
+        const ZBUFFERSRCOVERRIDE       = 0x00800000;
+        const WAIT                     = 0x01000000;
+        const DEPTHFILL                = 0x02000000;
+        const DONOTWAIT                = 0x08000000;
+  }
+}
+impl TryFrom<u32> for DDBLT {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        DDBLT::from_bits(value).ok_or(value)
+    }
+}

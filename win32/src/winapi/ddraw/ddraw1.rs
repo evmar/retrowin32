@@ -141,7 +141,7 @@ pub(super) mod IDirectDrawSurface {
         Release todo,
         AddAttachedSurface todo,
         AddOverlayDirtyRect todo,
-        Blt todo,
+        Blt (IDirectDrawSurface7::shims::Blt),
         BltBatch todo,
         BltFast todo,
         DeleteAttachedSurface todo,

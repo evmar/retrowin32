@@ -236,7 +236,7 @@ pub(super) mod IDirectDrawSurface7 {
         Release ok,
         AddAttachedSurface todo,
         AddOverlayDirtyRect todo,
-        Blt todo,
+        Blt ok,
         BltBatch todo,
         BltFast ok,
         DeleteAttachedSurface todo,
@@ -294,6 +294,19 @@ pub(super) mod IDirectDrawSurface7 {
     fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
+    }
+
+    #[win32_derive::dllexport]
+    fn Blt(
+        _machine: &mut Machine,
+        this: u32,
+        lpDstRect: Option<&RECT>,
+        lpSurf: u32,
+        lpSrcRect: Option<&RECT>,
+        flags: Result<DDBLT, u32>,
+        lpDDBLTFX: u32,
+    ) -> u32 {
+        DDERR_GENERIC
     }
 
     #[win32_derive::dllexport]
