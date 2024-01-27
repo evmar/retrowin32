@@ -124,10 +124,23 @@ impl TryFrom<u32> for WindowStyle {
     }
 }
 
+bitflags! {
+    pub struct WindowStyleEx: u32 {
+        // todo
+    }
+}
+impl TryFrom<u32> for WindowStyleEx {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        WindowStyleEx::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub async fn CreateWindowExA(
     machine: &mut Machine,
-    dwExStyle: u32,
+    dwExStyle: Result<WindowStyleEx, u32>,
     lpClassName: u32,
     lpWindowName: Option<&str>,
     dwStyle: Result<WindowStyle, u32>,
@@ -318,10 +331,27 @@ pub fn DefWindowProcA(
 
 #[win32_derive::dllexport]
 pub fn AdjustWindowRect(
+    machine: &mut Machine,
+    lpRect: Option<&mut RECT>,
+    dwStyle: Result<WindowStyle, u32>,
+    bMenu: bool,
+) -> bool {
+    AdjustWindowRectEx(
+        machine,
+        lpRect,
+        dwStyle,
+        bMenu,
+        Result::Ok(WindowStyleEx::empty()),
+    )
+}
+
+#[win32_derive::dllexport]
+pub fn AdjustWindowRectEx(
     _machine: &mut Machine,
     lpRect: Option<&mut RECT>,
     dwStyle: Result<WindowStyle, u32>,
     bMenu: bool,
+    dwExStyle: Result<WindowStyleEx, u32>,
 ) -> bool {
     true
 }
@@ -362,7 +392,7 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
         -16 => WindowStyle::empty().bits() as i32,
 
         // GWL_EXSTYLE
-        -20 => 0,
+        -20 => WindowStyleEx::empty().bits() as i32,
 
         _ => todo!("GetWindowLong({nIndex})"),
     }

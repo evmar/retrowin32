@@ -1883,6 +1883,14 @@ pub mod user32 {
             let bMenu = <bool>::from_stack(mem, esp + 12u32);
             winapi::user32::AdjustWindowRect(machine, lpRect, dwStyle, bMenu).to_raw()
         }
+        pub unsafe fn AdjustWindowRectEx(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 8u32);
+            let bMenu = <bool>::from_stack(mem, esp + 12u32);
+            let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 16u32);
+            winapi::user32::AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, dwExStyle).to_raw()
+        }
         pub unsafe fn ClientToScreen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -1905,7 +1913,7 @@ pub mod user32 {
         }
         pub unsafe fn CreateWindowExA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let dwExStyle = <u32>::from_stack(mem, esp + 4u32);
+            let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
             let lpClassName = <u32>::from_stack(mem, esp + 8u32);
             let lpWindowName = <Option<&str>>::from_stack(mem, esp + 12u32);
             let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
@@ -2198,6 +2206,12 @@ pub mod user32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const AdjustWindowRectEx: Shim = Shim {
+            name: "AdjustWindowRectEx",
+            func: impls::AdjustWindowRectEx,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const ClientToScreen: Shim = Shim {
             name: "ClientToScreen",
             func: impls::ClientToScreen,
@@ -2409,10 +2423,14 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 36usize] = [
+    const EXPORTS: [Symbol; 37usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::AdjustWindowRectEx,
         },
         Symbol {
             ordinal: None,
