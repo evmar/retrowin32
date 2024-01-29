@@ -303,6 +303,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fchs as usize] = Some(ops::fchs);
     OP_TAB[iced_x86::Code::Fcos as usize] = Some(ops::fcos);
     OP_TAB[iced_x86::Code::Fsin as usize] = Some(ops::fsin);
+    OP_TAB[iced_x86::Code::Fsincos as usize] = Some(ops::fsincos);
     OP_TAB[iced_x86::Code::Fpatan as usize] = Some(ops::fpatan);
     OP_TAB[iced_x86::Code::Fsqrt as usize] = Some(ops::fsqrt);
 

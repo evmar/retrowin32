@@ -137,6 +137,12 @@ pub fn fsin(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let reg = cpu.regs.st_top();
     *reg = reg.sin();
 }
+pub fn fsincos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let val = *cpu.regs.st_top();
+    *cpu.regs.st_top() = val.sin();
+    cpu.regs.st_top -= 1;
+    *cpu.regs.st_top() = val.cos();
+}
 pub fn fpatan(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = *cpu.regs.st_top();
     cpu.regs.st_top += 1;
