@@ -1,0 +1,3 @@
+[target.i686-pc-windows-msvc]
+linker = "rust-lld"
+rustflags = ["-C", "panic=abort"]

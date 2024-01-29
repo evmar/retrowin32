@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "cli",
+  "exe/gdi",
   "web/glue",
   "win32/derive",
 ]
