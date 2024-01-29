@@ -1,6 +1,6 @@
 #![no_std]
 #![no_main]
-#![windows_subsystem = "console"]
+#![windows_subsystem = "windows"]
 
 use core::ptr;
 use windows_sys::Win32::{
@@ -77,8 +77,8 @@ unsafe fn create_window() -> HWND {
         WS_OVERLAPPED,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
+        400,
+        300,
         0,
         0,
         0,
