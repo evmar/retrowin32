@@ -380,6 +380,8 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Paddusb_mm_mmm64 as usize] = Some(ops::paddusb_mm_mmm64);
 
     OP_TAB[iced_x86::Code::Nopd as usize] = Some(ops::nop);
+    OP_TAB[iced_x86::Code::Nop_rm16 as usize] = Some(ops::nop);
+    OP_TAB[iced_x86::Code::Nop_rm32 as usize] = Some(ops::nop);
 
     OP_TAB[iced_x86::Code::Int3 as usize] = Some(ops::int3);
 
