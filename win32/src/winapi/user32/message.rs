@@ -114,8 +114,7 @@ pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub async fn DispatchMessageA(m: *mut Machine, lpMsg: Option<&MSG>) -> u32 {
-    let machine = unsafe { &mut *m };
+pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
     let msg = lpMsg.unwrap();
     let window = &machine.state.user32.windows[msg.hwnd.to_raw() as usize - 1];
     // TODO: SetWindowLong can change the wndproc.
