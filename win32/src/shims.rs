@@ -5,9 +5,10 @@
 //! arguments off the x86 stack and transform them into Rust types, so the Rust
 //! functions can act as if they're just being called from Rust.
 //!
-//! There are two underlying implementations of Shims:
-//! 1. shims-emu.rs, which is used with the CPU emulator
+//! There are three underlying implementations of Shims:
+//! 1. shims_emu.rs, which is used with the in-tree CPU emulator
 //! 2. shims_raw.rs, which is used when executing x86 natively
+//! 3. shims_unicorn.rs, which is used with the Unicorn CPU emulator
 
 use crate::Machine;
 
