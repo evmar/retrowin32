@@ -91,7 +91,6 @@ struct EnvRef(Rc<RefCell<Env>>);
 impl win32::Host for EnvRef {
     fn exit(&self, code: u32) {
         self.0.borrow_mut().exit_code = Some(code);
-        std::process::exit(code as i32);
     }
 
     fn time(&self) -> u32 {
@@ -253,10 +252,6 @@ fn main() -> anyhow::Result<()> {
         _ = addrs;
         let start = std::time::Instant::now();
         while machine.execute_block(false) {
-            if host.0.borrow().exit_code.is_some() {
-                break;
-            }
-
             if args.trace_blocks {
                 let regs = &machine.emu.x86.cpu.regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
@@ -275,9 +270,11 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        if let Some(error) = machine.emu.x86.cpu.take_error() {
-            dump_asm(&machine);
-            log::error!("{:?}", error);
+        if host.0.borrow().exit_code.is_none() {
+            if let Some(error) = machine.emu.x86.cpu.take_error() {
+                dump_asm(&machine);
+                log::error!("{:?}", error);
+            }
         }
 
         let millis = start.elapsed().as_millis() as usize;
