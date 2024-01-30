@@ -121,7 +121,12 @@ impl win32::Host for JsHost {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 
-    fn pump_messages(&self) {}
+    fn get_message(&self, wait: bool) -> Option<win32::Message> {
+        if wait {
+            unimplemented!();
+        }
+        None
+    }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
         let file = JsHost::open(self, path);

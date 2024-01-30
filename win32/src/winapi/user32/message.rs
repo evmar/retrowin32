@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 
 use crate::{
+    host,
     winapi::{stack_args::ToX86, types::*},
     Machine,
 };
@@ -26,6 +27,7 @@ unsafe impl memory::Pod for MSG {}
 #[repr(u32)]
 pub enum WM {
     CREATE = 0x0001,
+    QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
 }
 impl TryFrom<u32> for WM {
@@ -37,6 +39,39 @@ impl TryFrom<u32> for WM {
             x if x == WM::ACTIVATEAPP as u32 => WM::ACTIVATEAPP,
             x => return Err(x),
         })
+    }
+}
+
+fn msg_from_message(message: host::Message) -> MSG {
+    match message {
+        host::Message::Quit => MSG {
+            hwnd: HWND::null(),
+            message: WM::QUIT,
+            wParam: 0,
+            lParam: 0,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+    }
+}
+
+fn fill_message_queue(machine: &mut Machine, wait: bool) {
+    if wait && machine.state.user32.messages.is_empty() {
+        let msg = machine.host.get_message(true).unwrap();
+        machine
+            .state
+            .user32
+            .messages
+            .push_back(msg_from_message(msg));
+    }
+    while let Some(msg) = machine.host.get_message(false) {
+        machine
+            .state
+            .user32
+            .messages
+            .push_back(msg_from_message(msg));
     }
 }
 
@@ -64,7 +99,10 @@ pub fn PeekMessageA(
     wMsgFilterMax: u32,
     wRemoveMsg: Result<RemoveMsg, u32>,
 ) -> bool {
-    machine.host.pump_messages();
+    assert_eq!(wMsgFilterMin, 0);
+    assert_eq!(wMsgFilterMax, 0);
+
+    fill_message_queue(machine, false);
 
     // TODO: obey HWND.
     let remove = wRemoveMsg.unwrap();
@@ -89,16 +127,13 @@ pub fn GetMessageA(
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> bool {
-    if !PeekMessageA(
-        machine,
-        lpMsg,
-        hWnd,
-        wMsgFilterMin,
-        wMsgFilterMax,
-        Ok(RemoveMsg::PM_REMOVE),
-    ) {
-        todo!();
-    }
+    assert_eq!(wMsgFilterMin, 0);
+    assert_eq!(wMsgFilterMax, 0);
+
+    fill_message_queue(machine, true);
+
+    *lpMsg.unwrap() = machine.state.user32.messages.pop_front().unwrap();
+
     return true;
 }
 
@@ -116,6 +151,10 @@ pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
 #[win32_derive::dllexport]
 pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
     let msg = lpMsg.unwrap();
+    if msg.hwnd.is_null() {
+        // No associated hwnd.
+        return 0;
+    }
     let window = &machine.state.user32.windows[msg.hwnd.to_raw() as usize - 1];
     // TODO: SetWindowLong can change the wndproc.
     machine

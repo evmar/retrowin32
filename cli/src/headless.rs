@@ -4,7 +4,7 @@ impl GUI {
     pub fn new() -> anyhow::Result<Self> {
         Ok(GUI {})
     }
-    pub fn pump_messages(&mut self) -> bool {
+    fn get_message(&self, wait: bool) -> Option<Message> {
         unimplemented!();
     }
     pub fn create_window(&mut self) -> Box<dyn win32::Window> {

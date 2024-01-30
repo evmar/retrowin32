@@ -3,6 +3,16 @@ use std::{cell::RefCell, rc::Rc};
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
+fn message_from_event(event: sdl2::event::Event) -> Option<win32::Message> {
+    Some(match event {
+        sdl2::event::Event::Quit { .. } => win32::Message::Quit,
+        _ => {
+            log::warn!("unhandled event: {:?}", event);
+            return None;
+        }
+    })
+}
+
 pub struct GUI {
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
@@ -22,15 +32,23 @@ impl GUI {
         })
     }
 
-    pub fn pump_messages(&mut self) -> bool {
-        for event in self.pump.poll_iter() {
-            match event {
-                sdl2::event::Event::Quit { .. } => return false,
-                _ => {}
+    pub fn get_message(&mut self, wait: bool) -> Option<win32::Message> {
+        if wait {
+            loop {
+                let msg = message_from_event(self.pump.wait_event());
+                if msg.is_some() {
+                    return msg;
+                }
             }
-            println!("ev {:?}", event);
+        } else {
+            loop {
+                let msg = self.pump.poll_event()?;
+                let msg = message_from_event(msg);
+                if msg.is_some() {
+                    return msg;
+                }
+            }
         }
-        true
     }
 
     pub fn create_window(&mut self) -> Box<dyn win32::Window> {

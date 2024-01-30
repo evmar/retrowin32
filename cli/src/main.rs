@@ -100,12 +100,10 @@ impl win32::Host for EnvRef {
             .as_millis() as u32
     }
 
-    fn pump_messages(&self) {
+    fn get_message(&self, wait: bool) -> Option<win32::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
-        if !gui.pump_messages() {
-            std::process::exit(0);
-        }
+        gui.get_message(wait)
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
