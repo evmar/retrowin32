@@ -23,7 +23,7 @@ pub struct MSG {
 }
 unsafe impl memory::Pod for MSG {}
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 #[repr(u32)]
 pub enum WM {
     CREATE = 0x0001,
@@ -101,6 +101,7 @@ pub fn PeekMessageA(
 ) -> bool {
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
+    let lpMsg = lpMsg.unwrap();
 
     fill_message_queue(machine, false);
 
@@ -110,7 +111,7 @@ pub fn PeekMessageA(
         Some(msg) => msg,
         None => return false,
     };
-    *lpMsg.unwrap() = msg.clone();
+    *lpMsg = msg.clone();
 
     if remove.contains(RemoveMsg::PM_REMOVE) {
         machine.state.user32.messages.pop_front();
@@ -126,15 +127,18 @@ pub fn GetMessageA(
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
-) -> bool {
+) -> i32 {
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
     fill_message_queue(machine, true);
 
-    *lpMsg.unwrap() = machine.state.user32.messages.pop_front().unwrap();
-
-    return true;
+    let msg = lpMsg.unwrap();
+    *msg = machine.state.user32.messages.pop_front().unwrap();
+    if msg.message == WM::QUIT {
+        return 0;
+    }
+    return 1;
 }
 
 #[win32_derive::dllexport]
@@ -169,4 +173,19 @@ pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32
         )
         .await;
     0
+}
+
+#[win32_derive::dllexport]
+pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
+    machine.state.user32.messages.push_back(MSG {
+        hwnd: HWND::null(),
+        message: WM::QUIT,
+        wParam: 0,
+        lParam: 0,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    });
+    0 // unused
 }
