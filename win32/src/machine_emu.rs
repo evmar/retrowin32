@@ -132,9 +132,9 @@ impl MachineX<Emulator> {
     }
 
     /// If eip points at a shim address, call the handler and update eip.
-    fn check_shim_call(&mut self) -> anyhow::Result<bool> {
+    fn check_shim_call(&mut self) -> bool {
         if self.emu.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
-            return Ok(false);
+            return false;
         }
         let shim = match self.emu.shims.get(self.emu.x86.cpu.regs.eip) {
             Ok(shim) => shim,
@@ -154,30 +154,16 @@ impl MachineX<Emulator> {
         } else {
             // Async handler will manage the return address etc.
         }
-        Ok(true)
+        true
     }
 
-    // Execute one basic block.  Returns Ok(false) if we stopped early.
-    pub fn execute_block(&mut self) -> anyhow::Result<bool> {
-        if self.check_shim_call()? {
+    // Execute one basic block.  Returns false if we stopped early.
+    pub fn execute_block(&mut self, single_step: bool) -> bool {
+        if self.check_shim_call() {
             // Treat any shim call as a single block.
-            return Ok(true);
+            return true;
         }
-        self.emu
-            .x86
-            .execute_block(self.memory.mem())
-            .map_err(|err| anyhow::anyhow!(err))
-    }
-
-    pub fn single_step(&mut self) -> anyhow::Result<()> {
-        if self.check_shim_call()? {
-            // Treat any shim call as a single block.
-            return Ok(());
-        }
-        self.emu
-            .x86
-            .single_step(self.memory.mem())
-            .map_err(|err| anyhow::anyhow!(err))
+        self.emu.x86.execute_block(self.memory.mem(), single_step)
     }
 
     pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {

@@ -438,7 +438,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
     #[cfg(feature = "x86-emu")]
-    machine.emu.x86.cpu.stop();
+    machine.emu.x86.cpu.err("ExitProcess".into());
     0
 }
 

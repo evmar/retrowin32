@@ -15,11 +15,12 @@ pub struct CPU {
     // TODO: this may no longer be necessary (?)
     pub flags: Flags,
 
-    /// True when running, false when stopped, Err when in error state.
-    /// Used both for error states and for process exit.
-    // TODO: this is gross because we must check it after every instruction.
-    // It would be nice if there was some more clever way to thread process exit...
-    state: Result<bool, String>,
+    /// Total number of instructions executed.
+    pub instr_count: usize,
+
+    /// Set when the CPU wants to stop, due to error, interrupt, or process exit.
+    /// TODO: model process exit differently somehow?
+    error: Option<String>,
 }
 impl CPU {
     pub fn new() -> Self {
@@ -36,21 +37,18 @@ impl CPU {
         CPU {
             regs,
             flags: Flags::empty(),
-            state: Ok(true),
+            instr_count: 0,
+            error: None,
         }
     }
 
-    pub fn stop(&mut self) {
-        self.state = Ok(false);
+    pub fn err(&mut self, msg: String) {
+        self.error = Some(msg);
     }
 
-    pub fn err(&mut self, msg: String) {
-        self.state = Err(msg);
+    pub fn take_error(&mut self) -> Option<String> {
+        std::mem::take(&mut self.error)
     }
-    // fn crash(&mut self, msg: String) {
-    //     self.crashed = Some(msg);
-    //     self.stopped = true;
-    // }
 
     // /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
     // fn check_oob<T>(&mut self, addr: u32) -> bool {
@@ -66,20 +64,18 @@ impl CPU {
     //     false
     // }
 
-    /// Executes an instruction, leaving eip alone.
-    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &Result<bool, String> {
-        self.state = Ok(true);
+    /// Executes an instruction, leaving eip alone.  Returns false on CPU stop.
+    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> bool {
+        self.error = None;
         ops::execute(self, mem, instr);
-        &self.state
+        self.instr_count += 1;
+        self.error.is_none()
     }
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
     pub cpu: CPU,
-
-    /// Total number of instructions executed.
-    pub instr_count: usize,
 
     #[serde(skip)]
     icache: InstrCache,
@@ -89,7 +85,6 @@ impl X86 {
     pub fn new() -> Self {
         X86 {
             cpu: CPU::new(),
-            instr_count: 0,
             icache: InstrCache::default(),
         }
     }
@@ -102,21 +97,16 @@ impl X86 {
         self.icache.clear_breakpoint(mem, addr)
     }
 
-    // Execute one basic block.  Returns Ok(false) if we stopped early.
-    pub fn execute_block(&mut self, mem: Mem) -> Result<bool, String> {
-        let count = self.icache.execute_block(&mut self.cpu, mem);
-        self.instr_count += count;
-        self.cpu.state.clone()
-    }
-
-    pub fn single_step(&mut self, mem: Mem) -> Result<(), String> {
-        let ip = self.cpu.regs.eip;
-        self.icache.make_single_step(mem, ip);
-        self.execute_block(mem)?;
-        // TODO: clear_single_step doesn't help here, because ip now points into the middle
+    // Execute one basic block.  Returns false if we stopped early.
+    pub fn execute_block(&mut self, mem: Mem, single_step: bool) -> bool {
+        if single_step {
+            let ip = self.cpu.regs.eip;
+            self.icache.make_single_step(mem, ip);
+        }
+        self.icache.execute_block(&mut self.cpu, mem)
+        // NOTE: clear_single_step doesn't help here, because ip now points into the middle
         // of some block and the next time we execute we'll just recreate the partial block anyway.
         // self.icache.clear_single_step(ip);
-        Ok(())
     }
 
     pub fn load_snapshot(&mut self, snap: X86) {

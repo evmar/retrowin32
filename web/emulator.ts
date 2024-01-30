@@ -104,7 +104,7 @@ export class Emulator {
   }
 
   step() {
-    this.emu.single_step();
+    this.emu.run(1);
   }
 
   /** Number of instructions to execute per stepMany, adjusted dynamically. */
@@ -120,7 +120,7 @@ export class Emulator {
       }
     }
     const start = performance.now();
-    const steps = this.emu.execute_many(this.stepSize);
+    const steps = this.emu.run(this.stepSize);
     const end = performance.now();
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {

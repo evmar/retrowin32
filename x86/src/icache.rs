@@ -175,8 +175,8 @@ impl InstrCache {
     }
 
     /// Executes the current basic block, updating eip.
-    /// Returns the number of instructions executed.
-    pub fn execute_block(&mut self, cpu: &mut CPU, mem: Mem) -> usize {
+    /// Returns false if the CPU stopped.
+    pub fn execute_block(&mut self, cpu: &mut CPU, mem: Mem) -> bool {
         let ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
@@ -185,20 +185,16 @@ impl InstrCache {
                 self.blocks.get(&ip).unwrap()
             }
         };
-        for (i, instr) in block.instrs.iter().enumerate() {
+        for instr in block.instrs.iter() {
             let ip = cpu.regs.eip;
             cpu.regs.eip = instr.next_ip() as u32;
-            match cpu.run(mem, instr) {
-                Err(_) => {
-                    // Point the debugger at the failed instruction.
-                    cpu.regs.eip = ip;
-                    return i;
-                }
-                Ok(false) => return i,
-                Ok(true) => {}
+            if !cpu.run(mem, instr) {
+                // Point the debugger at the failed instruction.
+                cpu.regs.eip = ip;
+                return false;
             }
         }
-        block.instrs.len()
+        true
     }
 
     /// Change cache such that there's a single basic block at ip.

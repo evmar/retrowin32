@@ -54,28 +54,22 @@ impl Emulator {
 
     #[wasm_bindgen(getter)]
     pub fn instr_count(&self) -> usize {
-        self.machine.emu.x86.instr_count
+        self.machine.emu.x86.cpu.instr_count
     }
 
     pub fn disassemble_json(&self, addr: u32) -> String {
         serde_json::to_string(&win32::disassemble(self.machine.mem(), addr)).unwrap_throw()
     }
 
-    pub fn single_step(&mut self) -> JsResult<()> {
-        self.machine.single_step().map_err(err_from_anyhow)?;
-        Ok(())
-    }
-
-    /// Execute multiple basic blocks until at least count instructions have run.
+    /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
-    pub fn execute_many(&mut self, count: usize) -> JsResult<usize> {
-        let start = self.machine.emu.x86.instr_count;
-        while self.machine.emu.x86.instr_count < start + count {
-            if !self.machine.execute_block().map_err(err_from_anyhow)? {
-                break;
-            }
+    pub fn run(&mut self, count: usize) -> JsResult<usize> {
+        let single_step = count == 1;
+        let start = self.machine.emu.x86.cpu.instr_count;
+        while self.machine.emu.x86.cpu.instr_count < start + count {
+            if !self.machine.execute_block(single_step) {}
         }
-        Ok(self.machine.emu.x86.instr_count - start)
+        Ok(self.machine.emu.x86.cpu.instr_count - start)
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {

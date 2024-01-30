@@ -368,10 +368,7 @@ pub fn cdq(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    log::warn!("debugger interrupt");
-    // Back up so we stop at the interrupt and not after.
-    cpu.regs.eip -= 1;
-    cpu.stop();
+    cpu.err("debugger interrupt".into());
 }
 
 pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {

@@ -252,44 +252,41 @@ fn main() -> anyhow::Result<()> {
 
         _ = addrs;
         let start = std::time::Instant::now();
-        loop {
-            match machine.execute_block() {
-                Err(err) => {
-                    dump_asm(&machine);
-                    log::error!("{:?}", err);
-                    break;
-                }
-                Ok(_) => {
-                    if host.0.borrow().exit_code.is_some() {
-                        break;
-                    }
+        while machine.execute_block(false) {
+            if host.0.borrow().exit_code.is_some() {
+                break;
+            }
 
-                    if args.trace_blocks {
-                        let regs = &machine.emu.x86.cpu.regs;
-                        if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
-                            continue;
-                        }
-                        if seen_blocks.contains(&regs.eip) {
-                            continue;
-                        }
-                        print_trace(&machine);
-                        seen_blocks.insert(regs.eip);
-                    }
-
-                    if machine.emu.x86.cpu.regs.eip == next_trace {
-                        print_trace(&machine);
-                        next_trace = trace_points.pop_front().unwrap_or(0)
-                    }
+            if args.trace_blocks {
+                let regs = &machine.emu.x86.cpu.regs;
+                if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
+                    continue;
                 }
+                if seen_blocks.contains(&regs.eip) {
+                    continue;
+                }
+                print_trace(&machine);
+                seen_blocks.insert(regs.eip);
+            }
+
+            if machine.emu.x86.cpu.regs.eip == next_trace {
+                print_trace(&machine);
+                next_trace = trace_points.pop_front().unwrap_or(0)
             }
         }
+
+        if let Some(error) = machine.emu.x86.cpu.take_error() {
+            dump_asm(&machine);
+            log::error!("{:?}", error);
+        }
+
         let millis = start.elapsed().as_millis() as usize;
         if millis > 0 {
             eprintln!(
                 "{} instrs in {} ms: {}m/s",
-                machine.emu.x86.instr_count,
+                machine.emu.x86.cpu.instr_count,
                 millis,
-                (machine.emu.x86.instr_count / millis) / 1000
+                (machine.emu.x86.cpu.instr_count / millis) / 1000
             );
         }
     }
