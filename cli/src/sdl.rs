@@ -7,7 +7,7 @@ fn message_from_event(event: sdl2::event::Event) -> Option<win32::Message> {
     Some(match event {
         sdl2::event::Event::Quit { .. } => win32::Message::Quit,
         _ => {
-            log::warn!("unhandled event: {:?}", event);
+            // log::warn!("unhandled event: {:?}", event);
             return None;
         }
     })
