@@ -8,7 +8,7 @@ mod heap;
 pub mod kernel32;
 mod ole32;
 mod oleaut32;
-mod retrowin32;
+mod retrowin32_test;
 mod stack_args;
 pub mod types;
 pub mod user32;
@@ -76,7 +76,7 @@ pub const DLLS: [builtin::BuiltinDLL; 10] = [
     builtin::oleaut32::DLL,
     builtin::user32::DLL,
     builtin::winmm::DLL,
-    builtin::retrowin32::DLL,
+    builtin::retrowin32_test::DLL,
 ];
 
 #[derive(serde::Serialize, serde::Deserialize)]

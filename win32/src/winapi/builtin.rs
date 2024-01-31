@@ -1880,15 +1880,15 @@ pub mod oleaut32 {
         exports: &EXPORTS,
     };
 }
-pub mod retrowin32 {
+pub mod retrowin32_test {
     use super::*;
     mod impls {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
-        use winapi::retrowin32::*;
-        pub unsafe fn retrowin32_callback1(machine: &mut Machine, esp: u32) -> u32 {
+        use winapi::retrowin32_test::*;
+        pub unsafe fn retrowin32_test_callback1(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let func = <u32>::from_stack(mem, esp + 4u32);
             let data = <u32>::from_stack(mem, esp + 8u32);
@@ -1898,7 +1898,8 @@ pub mod retrowin32 {
                 let result = async move {
                     let machine = unsafe { &mut *m };
                     let result =
-                        winapi::retrowin32::retrowin32_callback1(machine, func, data).await;
+                        winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data)
+                            .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
                     machine.emu.x86.cpu.regs.esp += 12u32;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
@@ -1908,7 +1909,7 @@ pub mod retrowin32 {
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
             {
-                let pin = std::pin::pin!(winapi::retrowin32::retrowin32_callback1(
+                let pin = std::pin::pin!(winapi::retrowin32_test::retrowin32_test_callback1(
                     machine, func, data
                 ));
                 crate::shims::call_sync(pin).to_raw()
@@ -1918,19 +1919,19 @@ pub mod retrowin32 {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
-        pub const retrowin32_callback1: Shim = Shim {
-            name: "retrowin32_callback1",
-            func: impls::retrowin32_callback1,
+        pub const retrowin32_test_callback1: Shim = Shim {
+            name: "retrowin32_test_callback1",
+            func: impls::retrowin32_test_callback1,
             stack_consumed: 12u32,
             is_async: true,
         };
     }
     const EXPORTS: [Symbol; 1usize] = [Symbol {
         ordinal: None,
-        shim: shims::retrowin32_callback1,
+        shim: shims::retrowin32_test_callback1,
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
-        file_name: "retrowin32.dll",
+        file_name: "retrowin32_test.dll",
         exports: &EXPORTS,
     };
 }

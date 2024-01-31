@@ -1,0 +1,3 @@
+LIBRARY retrowin32_test
+EXPORTS
+  retrowin32_test_callback1@8
