@@ -1040,6 +1040,28 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn retrowin32_main(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let entry_point = <u32>::from_stack(mem, esp + 4u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::kernel32::retrowin32_main(machine, entry_point));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
     }
     mod shims {
         use super::impls;
@@ -1518,8 +1540,14 @@ pub mod kernel32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const retrowin32_main: Shim = Shim {
+            name: "retrowin32_main",
+            func: impls::retrowin32_main,
+            stack_consumed: 8u32,
+            is_async: true,
+        };
     }
-    const EXPORTS: [Symbol; 79usize] = [
+    const EXPORTS: [Symbol; 80usize] = [
         Symbol {
             ordinal: None,
             shim: shims::CreateEventA,
@@ -1835,6 +1863,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::WriteFile,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::retrowin32_main,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

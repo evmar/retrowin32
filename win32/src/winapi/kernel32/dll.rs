@@ -209,7 +209,7 @@ pub fn LoadLibraryExW(
 
 /// The argument to GetProcAddress is an ImportSymbol stuffed into a u32.
 #[derive(Debug)]
-pub struct GetProcAddressArg<'a>(ImportSymbol<'a>);
+pub struct GetProcAddressArg<'a>(pub ImportSymbol<'a>);
 
 impl<'a> winapi::stack_args::FromX86<'a> for GetProcAddressArg<'a> {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {

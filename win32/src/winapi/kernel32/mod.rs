@@ -420,6 +420,34 @@ struct _EXCEPTION_REGISTRATION_RECORD {
 }
 unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
+/// This function is not part of the Windows API, but is rather just how retrowin32
+/// starts/stops a process.  It probably has some better name within ntdll.dll.
+#[win32_derive::dllexport]
+pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
+    // Iterate list of dlls by index, because in principle invoking dllmains might load more
+    // dlls(?).
+    for i in 0.. {
+        let dllmain = match machine.state.kernel32.dlls.get(i) {
+            None => break,
+            Some(m) if m.dll.entry_point == 0 => continue,
+            Some(m) => m.dll.entry_point,
+        };
+        log::info!("invoking dllmain {:x}", dllmain);
+        let hInstance = 0u32; // TODO
+        let fdwReason = 1u32; // DLL_PROCESS_ATTACH
+        let lpvReserved = 0u32;
+        machine
+            .call_x86(dllmain, vec![hInstance, fdwReason, lpvReserved])
+            .await;
+    }
+
+    machine.call_x86(entry_point, vec![]).await;
+    // TODO: if the entry point returns, the Windows behavior is to wait for any
+    // spawned threads before exiting.
+    ExitProcess(machine, 0);
+    0
+}
+
 #[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
     teb_mut(machine).LastErrorValue = dwErrCode;

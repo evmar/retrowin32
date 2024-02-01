@@ -262,7 +262,7 @@ fn main() -> anyhow::Result<()> {
                 seen_blocks.insert(regs.eip);
             }
 
-            if machine.emu.x86.cpu.regs.eip == next_trace {
+            if next_trace != 0 && machine.emu.x86.cpu.regs.eip == next_trace {
                 print_trace(&machine);
                 next_trace = trace_points.pop_front().unwrap_or(0)
             }

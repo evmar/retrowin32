@@ -73,18 +73,6 @@ impl MachineX<Emulator> {
         stack_pointer
     }
 
-    #[allow(non_snake_case)]
-    async fn invoke_dllmains(&mut self, dllmains: Vec<u32>) {
-        for dll_main in dllmains {
-            log::info!("invoking dllmain {:x}", dll_main);
-            let hInstance = 0u32; // TODO
-            let fdwReason = 1u32; // DLL_PROCESS_ATTACH
-            let lpvReserved = 0u32;
-            self.call_x86(dll_main, vec![hInstance, fdwReason, lpvReserved])
-                .await;
-        }
-    }
-
     pub fn load_exe(
         &mut self,
         buf: &[u8],
@@ -103,27 +91,15 @@ impl MachineX<Emulator> {
         self.emu.x86.cpu.regs.esi = exe.entry_point;
         self.emu.x86.cpu.regs.edi = exe.entry_point;
 
-        let mut dllmains = Vec::new();
-        for dll in &self.state.kernel32.dlls {
-            if dll.dll.entry_point != 0 {
-                dllmains.push(dll.dll.entry_point);
-            }
-        }
-
-        if dllmains.is_empty() {
-            self.emu.x86.cpu.regs.eip = exe.entry_point;
-        } else {
-            // Invoke any DllMains then jump to the entry point.
-            let m = self as *mut Machine;
-            crate::shims::become_async(
-                self,
-                Box::pin(async move {
-                    let machine = unsafe { &mut *m };
-                    machine.invoke_dllmains(dllmains).await;
-                    machine.emu.x86.cpu.regs.eip = exe.entry_point;
-                }),
-            );
-        };
+        let kernel32 = winapi::kernel32::GetModuleHandleA(self, Some("kernel32.dll"));
+        let retrowin32_main = winapi::kernel32::GetProcAddress(
+            self,
+            kernel32,
+            winapi::kernel32::GetProcAddressArg(winapi::ImportSymbol::Name("retrowin32_main")),
+        );
+        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), retrowin32_main);
+        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), 0); // return address
+        self.emu.x86.cpu.regs.eip = retrowin32_main;
 
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
