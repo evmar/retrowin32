@@ -3,16 +3,12 @@
 #![windows_subsystem = "windows"]
 
 use core::ptr;
-use windows_sys::Win32::{
-    Foundation::{HWND, LRESULT},
-    Graphics::Gdi::{BeginPaint, EndPaint, FillRect, COLOR_WINDOW, HBRUSH, PAINTSTRUCT},
-    Storage::FileSystem::WriteFile,
-    System::Console::{GetStdHandle, STD_OUTPUT_HANDLE},
-    UI::WindowsAndMessaging::{
-        CreateWindowExA, DefWindowProcA, DispatchMessageA, GetMessageA, PostQuitMessage,
-        RegisterClassA, ShowWindow, TranslateMessage, CW_USEDEFAULT, MSG, SW_NORMAL, WM_DESTROY,
-        WM_PAINT, WNDCLASSA, WS_OVERLAPPED,
-    },
+mod bindings;
+use bindings::{
+    BeginPaint, CreateWindowExA, DefWindowProcA, DispatchMessageA, EndPaint, FillRect, GetMessageA,
+    GetStdHandle, PostQuitMessage, RegisterClassA, ShowWindow, TranslateMessage, WriteFile,
+    COLOR_WINDOW, CW_USEDEFAULT, HBRUSH, HWND, LRESULT, MSG, PAINTSTRUCT, STD_OUTPUT_HANDLE,
+    SW_NORMAL, WM_DESTROY, WM_PAINT, WNDCLASSA, WS_OVERLAPPED,
 };
 
 fn print(buf: &[u8]) {
@@ -34,7 +30,7 @@ fn print(buf: &[u8]) {
 #[panic_handler]
 unsafe fn handle_panic(_: &core::panic::PanicInfo) -> ! {
     print(b"panicked");
-    windows_sys::Win32::System::Threading::ExitProcess(1);
+    bindings::ExitProcess(1);
 }
 
 unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: isize) -> LRESULT {
