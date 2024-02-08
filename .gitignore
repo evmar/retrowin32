@@ -4,3 +4,8 @@
 .DS_Store
 /.vscode
 /deploy
+
+# ghidra
+*.gpr
+*.rep
+*.lock*
