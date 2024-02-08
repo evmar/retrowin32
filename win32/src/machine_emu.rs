@@ -97,7 +97,7 @@ impl MachineX<Emulator> {
             kernel32,
             winapi::kernel32::GetProcAddressArg(winapi::ImportSymbol::Name("retrowin32_main")),
         );
-        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), retrowin32_main);
+        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), exe.entry_point);
         x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), 0); // return address
         self.emu.x86.cpu.regs.eip = retrowin32_main;
 
