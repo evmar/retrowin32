@@ -137,7 +137,8 @@ impl MachineX<Emulator> {
     pub fn execute_block(&mut self, single_step: bool) -> bool {
         if self.check_shim_call() {
             // Treat any shim call as a single block.
-            return true;
+            // error can be set in cases like calls to ExitProcess().
+            return self.emu.x86.cpu.error.is_none();
         }
         self.emu.x86.execute_block(self.memory.mem(), single_step)
     }

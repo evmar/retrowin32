@@ -20,7 +20,7 @@ pub struct CPU {
 
     /// Set when the CPU wants to stop, due to error, interrupt, or process exit.
     /// TODO: model process exit differently somehow?
-    error: Option<String>,
+    pub error: Option<String>,
 }
 impl CPU {
     pub fn new() -> Self {
@@ -44,10 +44,6 @@ impl CPU {
 
     pub fn err(&mut self, msg: String) {
         self.error = Some(msg);
-    }
-
-    pub fn take_error(&mut self) -> Option<String> {
-        std::mem::take(&mut self.error)
     }
 
     // /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.

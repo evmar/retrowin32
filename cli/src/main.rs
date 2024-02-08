@@ -269,7 +269,7 @@ fn main() -> anyhow::Result<()> {
         }
 
         if host.0.borrow().exit_code.is_none() {
-            if let Some(error) = machine.emu.x86.cpu.take_error() {
+            if let Some(error) = &machine.emu.x86.cpu.error {
                 dump_asm(&machine);
                 log::error!("{:?}", error);
             }

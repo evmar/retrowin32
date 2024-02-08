@@ -142,7 +142,8 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
     return new File(path, bytes);
   }
   write(buf: Uint8Array): number {
-    this.stdout += this.decoder.decode(buf);
+    const text = this.decoder.decode(buf);
+    this.stdout += text;
     this.page.setState({ stdout: this.stdout });
     return buf.length;
   }
