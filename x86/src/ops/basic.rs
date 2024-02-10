@@ -268,6 +268,12 @@ pub fn sete_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(value);
 }
 
+pub fn setl_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let value = (cpu.flags.contains(Flags::SF) != cpu.flags.contains(Flags::OF)) as u8;
+    let x = rm8(cpu, mem, instr);
+    x.set(value);
+}
+
 pub fn setne_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let value = !cpu.flags.contains(Flags::ZF) as u8;
     let x = rm8(cpu, mem, instr);
