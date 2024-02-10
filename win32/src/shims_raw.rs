@@ -9,11 +9,13 @@ use crate::{
     Machine,
 };
 
+type Trampoline = [u8; 16];
+
 /// A region of memory for us to generate code/etc. into.
 /// We initialize one of these structs at a low (32-bit) address.
 struct ScratchSpace {
     /// 32-bit code to trampoline up to a 64-bit call to a shim, one entry per shim.
-    trampolines: [[u8; 32]; 200],
+    trampolines: [Trampoline; 200],
 }
 
 pub struct Shims {
@@ -29,17 +31,27 @@ static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
 static mut STACK64: u64 = 0;
 
-unsafe extern "C" fn call64(shim_index: u32) -> u32 {
+unsafe extern "C" fn call64() -> u32 {
     let machine: &mut Machine = &mut *MACHINE;
+    // 32-bit stack contents:
+    //   4 bytes return address (within scratch.trampolines)
+    //   4 bytes segment selector for far return
+    //   and the callee expected stack is below that.
+
+    let ret_addr = unsafe { *(STACK32 as *const u32) };
+
+    // Map the return address back to a shim index.
+    // Though the return address points at a point after the call instruction in the
+    // trampoline, dividing by the size of a trampoline here rounds down
+    // to discard that offset.
+    let shim_index = (ret_addr - (&machine.emu.shims.scratch.trampolines[0] as *const _ as u32))
+        / std::mem::size_of::<Trampoline>() as u32;
+
     let shim = match &machine.emu.shims.shims[shim_index as usize] {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    // Stack contents:
-    //   4 bytes edi +
-    //   8 bytes far return address
-    //   and the callee expected stack is after that.
-    (shim.func)(machine, STACK32 + 12)
+    (shim.func)(machine, STACK32 + 8)
 }
 
 // trans64 is the code we jump to when transitioning from 32->64-bit.
@@ -52,9 +64,11 @@ std::arch::global_asm!(
     "_trans64:",
     "movl %esp, {stack32}(%rip)",  // save 32-bit stack
     "movq {stack64}(%rip), %rsp",  // switch to 64-bit stack
+    "pushq %rdi",                  // preserve edi
     "pushq %rsi",                  // preserve esi
     "call {call64}",               // call 64-bit Rust
     "popq %rsi",                   // restore esi
+    "popq %rdi",                   // restore edi
     "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
     "movl {stack32}(%rip), %esp",  // restore 32-bit stack
     "lret",                        // back to 32-bit
@@ -120,18 +134,11 @@ impl Shims {
 
         assert!((trans64 as u64) < 0x1_0000_0000);
         let tramp = [
-            // pushl %edi
-            b"\x57".as_slice(),
-            // movl shim_index, %edi
-            b"\xbf",
-            &(shim_index as u32).to_le_bytes(),
-            // lcalll 64_bit_selector, trans64
-            b"\x9a",
+            // lcalll transX
+            b"\x9a".as_slice(),
             &(trans64 as u32).to_le_bytes(),
             &(0x2bu16).to_le_bytes(),
-            // popl %edi
-            b"\x5f",
-            // retl <16-bit bytes to pop>
+            // retl
             b"\xc2",
             &stack_consumed.to_le_bytes(),
         ]
@@ -221,7 +228,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         _ = args;
         _ = STACK64;
         _ = tramp32;
-        call64(0);
+        call64();
         todo!()
     }
 }
