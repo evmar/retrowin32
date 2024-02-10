@@ -9,60 +9,15 @@ use crate::{
     Machine,
 };
 
-/// Wraps a region of low (32-bit) memory for us to generate code/etc. into.
+/// A region of memory for us to generate code/etc. into.
+/// We initialize one of these structs at a low (32-bit) address.
 struct ScratchSpace {
-    ptr: *mut u8,
-    len: usize,
-    ofs: usize,
-}
-
-impl Default for ScratchSpace {
-    fn default() -> Self {
-        Self {
-            ptr: std::ptr::null_mut(),
-            len: 0,
-            ofs: 0,
-        }
-    }
-}
-
-impl ScratchSpace {
-    fn new(ptr: *mut u8, len: usize) -> Self {
-        ScratchSpace { ptr, len, ofs: 0 }
-    }
-
-    /// Realign current write offset.  This probably doesn't matter but it makes
-    /// reading the output a little easier.
-    fn realign(&mut self) {
-        let align = 8;
-        self.ofs = self.ofs + (align - 1) & !(align - 1);
-        if self.ofs > self.len {
-            panic!("overflow");
-        }
-    }
-
-    /// Write some data to the scratch space, returning the address it was written to.
-    unsafe fn write(&mut self, buf: &[u8]) -> *mut u8 {
-        let ptr = self.ptr.add(self.ofs);
-        std::ptr::copy_nonoverlapping(buf.as_ptr(), ptr, buf.len());
-        self.ofs += buf.len();
-        if self.ofs > self.len {
-            panic!("overflow");
-        }
-        ptr
-    }
-
-    unsafe fn write_many(&mut self, bufs: &[&[u8]]) -> *mut u8 {
-        let ptr = self.write(bufs[0]);
-        for buf in &bufs[1..] {
-            self.write(buf);
-        }
-        ptr
-    }
+    /// 32-bit code to trampoline up to a 64-bit call to a shim, one entry per shim.
+    trampolines: [[u8; 32]; 200],
 }
 
 pub struct Shims {
-    buf: ScratchSpace,
+    scratch: &'static mut ScratchSpace,
 
     /// Segment selector for 32-bit code.
     code32_selector: u16,
@@ -131,13 +86,14 @@ extern "C" {
 }
 
 impl Shims {
-    pub fn new(ldt: &mut LDT, addr: *mut u8, size: u32) -> Self {
+    pub fn new(ldt: &mut LDT, alloc32: impl FnOnce(usize) -> u32) -> Self {
         // Wine marks all of memory as code.
         let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
 
-        let buf = ScratchSpace::new(addr, size as usize);
+        let addr = alloc32(std::mem::size_of::<ScratchSpace>());
+        let scratch = unsafe { &mut *(addr as *mut ScratchSpace) };
         Shims {
-            buf,
+            scratch,
             code32_selector,
             shims: Default::default(),
         }
@@ -161,31 +117,29 @@ impl Shims {
         };
 
         self.shims.push(shim);
-        unsafe {
-            assert!((trans64 as u64) < 0x1_0000_0000);
 
-            // trampoline_x86.s:tramp64
-            let tramp_addr = self.buf.write_many(&[
-                // pushl %edi
-                b"\x57",
-                // movl shim_index, %edi
-                b"\xbf",
-                &(shim_index as u32).to_le_bytes(),
-                // lcalll 64_bit_selector, trans64
-                b"\x9a",
-                &(trans64 as u32).to_le_bytes(),
-                &(0x2bu16).to_le_bytes(),
-                // popl %edi
-                b"\x5f",
-                // retl <16-bit bytes to pop>
-                b"\xc2",
-                &stack_consumed.to_le_bytes(),
-            ]) as u32;
+        assert!((trans64 as u64) < 0x1_0000_0000);
+        let tramp = [
+            // pushl %edi
+            b"\x57".as_slice(),
+            // movl shim_index, %edi
+            b"\xbf",
+            &(shim_index as u32).to_le_bytes(),
+            // lcalll 64_bit_selector, trans64
+            b"\x9a",
+            &(trans64 as u32).to_le_bytes(),
+            &(0x2bu16).to_le_bytes(),
+            // popl %edi
+            b"\x5f",
+            // retl <16-bit bytes to pop>
+            b"\xc2",
+            &stack_consumed.to_le_bytes(),
+        ]
+        .concat();
 
-            self.buf.realign();
+        self.scratch.trampolines[shim_index][..tramp.len()].copy_from_slice(&tramp);
 
-            tramp_addr
-        }
+        &self.scratch.trampolines[shim_index] as *const _ as u32
     }
 }
 
