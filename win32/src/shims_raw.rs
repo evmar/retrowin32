@@ -15,7 +15,7 @@ type Trampoline = [u8; 16];
 /// We initialize one of these structs at a low (32-bit) address.
 struct ScratchSpace {
     /// 32-bit code to trampoline up to a 64-bit call to a shim, one entry per shim.
-    trampolines: [Trampoline; 200],
+    trampolines: [Trampoline; 0x200],
 }
 
 pub struct Shims {
