@@ -23,6 +23,8 @@ pub struct Shims {
 
     /// Segment selector for 32-bit code.
     code32_selector: u16,
+    /// Segment selector for 64-bit code.
+    code64_selector: u16,
 
     shims: Vec<Result<&'static Shim, String>>,
 }
@@ -104,11 +106,27 @@ impl Shims {
         // Wine marks all of memory as code.
         let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
 
+        let code64_selector = {
+            #[cfg(target_arch = "x86_64")]
+            unsafe {
+                let mut cs: u16;
+                std::arch::asm!(
+                    "movw %cs,{out:x}",
+                    out = out(reg) cs,
+                    options(att_syntax)
+                );
+                cs
+            }
+            #[cfg(not(target_arch = "x86_64"))]
+            0u16
+        };
+
         let addr = alloc32(std::mem::size_of::<ScratchSpace>());
         let scratch = unsafe { &mut *(addr as *mut ScratchSpace) };
         Shims {
             scratch,
             code32_selector,
+            code64_selector,
             shims: Default::default(),
         }
     }
@@ -134,10 +152,10 @@ impl Shims {
 
         assert!((trans64 as u64) < 0x1_0000_0000);
         let tramp = [
-            // lcalll transX
+            // lcalll trans64
             b"\x9a".as_slice(),
             &(trans64 as u32).to_le_bytes(),
-            &(0x2bu16).to_le_bytes(),
+            &(self.code64_selector).to_le_bytes(),
             // retl
             b"\xc2",
             &stack_consumed.to_le_bytes(),
@@ -173,9 +191,8 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
         // Push selector and reserve space for return address.
         let mut esp = STACK32;
-        let code64_selector = 0x2b;
         esp -= 4;
-        mem.put::<u32>(esp, code64_selector);
+        mem.put::<u32>(esp, machine.emu.shims.code64_selector as u32);
         esp -= 4;
         let return_addr = esp;
 
