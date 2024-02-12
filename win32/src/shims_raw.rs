@@ -21,8 +21,6 @@ struct ScratchSpace {
 pub struct Shims {
     scratch: &'static mut ScratchSpace,
 
-    /// Segment selector for 32-bit code.
-    code32_selector: u16,
     /// Segment selector for 64-bit code.
     code64_selector: u16,
 
@@ -89,6 +87,7 @@ extern "C" {
 #[cfg(target_arch = "x86_64")]
 std::arch::global_asm!(
     ".code32", // 32-bit x86 code
+    ".global _tramp32",
     "_tramp32:",
     "calll *%eax", // regular call to user 32-bit code
     // The user 32-bit code will ret, popping off both the return address pushed by calll
@@ -98,13 +97,22 @@ std::arch::global_asm!(
 );
 
 extern "C" {
-    static tramp32: [u8; 0];
+    fn tramp32();
 }
+
+/// A known m16:32 selector+address for the tramp32 function.
+static mut TRAMP32_M1632: u64 = 0;
 
 impl Shims {
     pub fn new(ldt: &mut LDT, alloc32: impl FnOnce(usize) -> u32) -> Self {
         // Wine marks all of memory as code.
         let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
+
+        let tramp32_addr = tramp32 as u64;
+        assert!(tramp32_addr < 0x1_0000_0000);
+        unsafe {
+            TRAMP32_M1632 = ((code32_selector as u64) << 32) | tramp32_addr;
+        }
 
         let code64_selector = {
             #[cfg(target_arch = "x86_64")]
@@ -125,7 +133,6 @@ impl Shims {
         let scratch = unsafe { &mut *(addr as *mut ScratchSpace) };
         Shims {
             scratch,
-            code32_selector,
             code64_selector,
             shims: Default::default(),
         }
@@ -203,9 +210,6 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         }
         STACK32 = esp;
 
-        let m1632: u64 =
-            ((machine.emu.shims.code32_selector as u64) << 32) | (tramp32.as_ptr() as u64);
-
         std::arch::asm!(
             // We need to back up all non-scratch registers (rbx/rbp),
             // because even callee-saved registers will only be saved as 32-bit,
@@ -216,9 +220,9 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             "movl $2f, (%rcx)",            // after jmp, ret to the "2" label below
             "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
             "movl {stack32}(%rip), %esp",  // switch to 32-bit stack
-            "xorq $rbx, %rbx",
-            "xorq $rcx, %rcx",
-            "ljmpl *(%rdx)",            // jump to 32-bit tramp32
+            "xorl %ebx, %ebx",
+            "xorl %ecx, %ecx",
+            "ljmpl *{tramp32_m1632}(%rip)",            // jump to 32-bit tramp32
             // It will return here (set above in return_addr):
             "2:",
             "movl %esp, {stack32}(%rip)",  // save 32-bit stack
@@ -234,9 +238,13 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             // so mark each one as clobbered and use them above explicitly.
             inout("eax") func => _,  // passed to tramp32
             inout("ecx") return_addr as u32 => _,
-            inout("edx") &m1632 => _,
+            // ebx is preserved/restored
+            inout("edx") 0 => _,
             inout("esi") 0 => _,
             inout("edi") 0 => _,
+            // ebp is preserved/restored
+            // esp is preserved/restored
+            tramp32_m1632 = sym TRAMP32_M1632,
             stack64 = sym STACK64,
             stack32 = sym STACK32,
         );
@@ -246,7 +254,6 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused
     unsafe {
-        _ = machine.emu.shims.code32_selector;
         _ = machine;
         _ = func;
         _ = args;
