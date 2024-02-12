@@ -704,23 +704,10 @@ var Emulator = class {
       wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
     }
   }
-  single_step() {
+  run(count) {
     try {
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      wasm.emulator_single_step(retptr, this.__wbg_ptr);
-      var r0 = getInt32Memory0()[retptr / 4 + 0];
-      var r1 = getInt32Memory0()[retptr / 4 + 1];
-      if (r1) {
-        throw takeObject(r0);
-      }
-    } finally {
-      wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-  }
-  execute_many(count) {
-    try {
-      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      wasm.emulator_execute_many(retptr, this.__wbg_ptr, count);
+      wasm.emulator_run(retptr, this.__wbg_ptr, count);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
       var r2 = getInt32Memory0()[retptr / 4 + 2];
@@ -874,17 +861,6 @@ function __wbg_get_imports() {
     const ret = getObject(arg0);
     return addHeapObject(ret);
   };
-  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
-    let deferred0_0;
-    let deferred0_1;
-    try {
-      deferred0_0 = arg2;
-      deferred0_1 = arg3;
-      getObject(arg0).log(arg1, getStringFromWasm0(arg2, arg3));
-    } finally {
-      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
-    }
-  };
   imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
     getObject(arg0).exit(arg1 >>> 0);
   };
@@ -945,6 +921,17 @@ function __wbg_get_imports() {
   };
   imports.wbg.__wbg_bitblt_f5d6d8a658f61a8a = function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
     getObject(arg0).bit_blt(arg1 >>> 0, arg2 >>> 0, getObject(arg3), arg4 >>> 0, arg5 >>> 0, arg6 >>> 0, arg7 >>> 0);
+  };
+  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+      deferred0_0 = arg2;
+      deferred0_1 = arg3;
+      getObject(arg0).log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
   };
   imports.wbg.__wbg_self_1ff1d729e9aae938 = function() {
     return handleError(function() {
@@ -1146,7 +1133,7 @@ var Emulator2 = class {
     return false;
   }
   step() {
-    this.emu.single_step();
+    this.emu.run(1);
   }
   stepMany() {
     for (const bp of this.breakpoints.values()) {
@@ -1155,7 +1142,7 @@ var Emulator2 = class {
       }
     }
     const start = performance.now();
-    const steps = this.emu.execute_many(this.stepSize);
+    const steps = this.emu.run(this.stepSize);
     const end = performance.now();
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {
@@ -1305,7 +1292,8 @@ var Host = class {
     return new File(path, bytes);
   }
   write(buf) {
-    this.stdout += this.decoder.decode(buf);
+    const text = this.decoder.decode(buf);
+    this.stdout += text;
     this.page.setState({ stdout: this.stdout });
     return buf.length;
   }

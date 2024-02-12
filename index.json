@@ -13,5 +13,10 @@
     "desc": "monolife",
     "params": "dir=monolife/&exe=monolife.exe&file=monolife.dat&file=BASS.DLL",
     "notes": "by Hatha (see it on <a href='https://www.pouet.net/prod.php?which=7698'>pouet.net</a>) [Note: still buggy, but the opening sorta works!]"
+  },
+  {
+    "desc": "effect",
+    "params": "exe=effect.exe",
+    "notes": "(<a href='https://www.pouet.net/prod.php?which=17038'>pouet.net</a>) [still buggy]"
   }
 ]
