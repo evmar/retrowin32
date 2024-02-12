@@ -250,21 +250,15 @@ pub fn fdiv_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.regs.st_top() /= y;
 }
 
-pub fn fdiv_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.regs.st_top();
+pub fn fdiv_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.getst(instr.op1_register());
     let x = cpu.regs.getst(instr.op0_register());
     *x = *x / y;
 }
 
-pub fn fdivp_sti_st0(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    fdiv_sti_st0(cpu, mem, instr);
+pub fn fdivp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fdiv_sti_sti(cpu, mem, instr);
     cpu.regs.st_top += 1;
-}
-
-pub fn fdiv_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.regs.getst(instr.op1_register());
-    let x = cpu.regs.st_top();
-    *x = *x / y;
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
