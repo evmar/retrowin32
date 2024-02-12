@@ -107,36 +107,10 @@ impl MachineX<Emulator> {
         })
     }
 
-    /// If eip points at a shim address, call the handler and update eip.
-    fn check_shim_call(&mut self) -> bool {
-        if self.emu.x86.cpu.regs.eip & 0xFFFF_0000 != crate::shims_emu::SHIM_BASE {
-            return false;
-        }
-        let shim = match self.emu.shims.get(self.emu.x86.cpu.regs.eip) {
-            Ok(shim) => shim,
-            Err(name) => unimplemented!("{}", name),
-        };
-        let crate::shims::Shim {
-            func,
-            stack_consumed,
-            is_async,
-            ..
-        } = *shim;
-        let ret = unsafe { func(self, self.emu.x86.cpu.regs.esp) };
-        if !is_async {
-            self.emu.x86.cpu.regs.eip = self.mem().get::<u32>(self.emu.x86.cpu.regs.esp);
-            self.emu.x86.cpu.regs.esp += stack_consumed;
-            self.emu.x86.cpu.regs.eax = ret;
-        } else {
-            // Async handler will manage the return address etc.
-        }
-        true
-    }
-
     // Execute one basic block.  Returns false if we stopped early.
     pub fn execute_block(&mut self, single_step: bool) -> bool {
-        if self.check_shim_call() {
-            // Treat any shim call as a single block.
+        if crate::shims_emu::handle_shim_call(self) {
+            // Treat any shim call as a single block and return here.
             // error can be set in cases like calls to ExitProcess().
             return self.emu.x86.cpu.error.is_none();
         }

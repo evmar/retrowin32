@@ -41,7 +41,7 @@ use crate::{machine::Machine, shims::Shim};
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
 /// "fake IAT" => "FIAT" => "F1A7"
-pub const SHIM_BASE: u32 = 0xF1A7_0000;
+const SHIM_BASE: u32 = 0xF1A7_0000;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
@@ -85,6 +85,31 @@ impl Shims {
             None => panic!("unknown import reference at {:x}", addr),
         }
     }
+}
+
+pub fn handle_shim_call(machine: &mut Machine) -> bool {
+    if machine.emu.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
+        return false;
+    }
+    let shim = match machine.emu.shims.get(machine.emu.x86.cpu.regs.eip) {
+        Ok(shim) => shim,
+        Err(name) => unimplemented!("{}", name),
+    };
+    let crate::shims::Shim {
+        func,
+        stack_consumed,
+        is_async,
+        ..
+    } = *shim;
+    let ret = unsafe { func(machine, machine.emu.x86.cpu.regs.esp) };
+    if !is_async {
+        machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.emu.x86.cpu.regs.esp);
+        machine.emu.x86.cpu.regs.esp += stack_consumed;
+        machine.emu.x86.cpu.regs.eax = ret;
+    } else {
+        // Async handler will manage the return address etc.
+    }
+    true
 }
 
 /// Redirect x86 control to async_executor.  Note this has particular requirements on the
