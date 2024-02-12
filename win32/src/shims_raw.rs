@@ -67,8 +67,14 @@ std::arch::global_asm!(
     "pushq %rdi",                  // preserve edi
     "pushq %rsi",                  // preserve esi
     "call {call64}",               // call 64-bit Rust
+    // clear registers to make traces clean
+    // eax holds return value, leave alone
+    "xorl %ecx, %ecx",
+    // ebx: callee-saved
+    "xorl %edx, %edx",
     "popq %rsi",                   // restore esi
     "popq %rdi",                   // restore edi
+    // ebp: callee-saved
     "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
     "movl {stack32}(%rip), %esp",  // restore 32-bit stack
     "lret",                        // back to 32-bit
