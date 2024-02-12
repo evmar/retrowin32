@@ -244,13 +244,12 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-emu")]
     {
-        let mut seen_blocks = std::collections::HashSet::new();
-        let mut next_trace = trace_points.pop_front().unwrap_or(0);
-
         _ = addrs;
+
         let start = std::time::Instant::now();
-        while machine.execute_block(false) {
-            if args.trace_blocks {
+        if args.trace_blocks {
+            let mut seen_blocks = std::collections::HashSet::new();
+            while machine.execute_block(false) {
                 let regs = &machine.emu.x86.cpu.regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
                     continue;
@@ -261,11 +260,28 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
                 seen_blocks.insert(regs.eip);
             }
+        } else if !trace_points.is_empty() {
+            while let Some(next_trace) = trace_points.pop_front() {
+                machine
+                    .emu
+                    .x86
+                    .add_breakpoint(machine.memory.mem(), next_trace);
+                loop {
+                    // Ignore errors here because we will hit breakpoints.
+                    machine.execute_block(false);
+                    if machine.emu.x86.cpu.regs.eip == next_trace {
+                        break;
+                    }
+                }
+                machine
+                    .emu
+                    .x86
+                    .clear_breakpoint(machine.memory.mem(), next_trace);
 
-            if next_trace != 0 && machine.emu.x86.cpu.regs.eip == next_trace {
                 print_trace(&machine);
-                next_trace = trace_points.pop_front().unwrap_or(0)
             }
+        } else {
+            while machine.execute_block(false) {}
         }
 
         if host.0.borrow().exit_code.is_none() {
