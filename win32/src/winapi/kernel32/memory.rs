@@ -4,6 +4,7 @@ use crate::{
     winapi,
 };
 use bitflags::bitflags;
+use memory::Mem;
 use std::cmp::max;
 
 use super::peb_mut;
@@ -120,6 +121,15 @@ impl Mappings {
         );
         log::warn!("might need to grow backing memory after growth");
         growth
+    }
+
+    pub fn dump_memory(&self, mem: Mem) {
+        for map in &self.0 {
+            println!("{map:x?}");
+            for addr in (map.addr..map.addr + map.size).step_by(16) {
+                println!("{addr:x} {:x?}", mem.slice(addr..addr + 16).as_slice_todo());
+            }
+        }
     }
 }
 
