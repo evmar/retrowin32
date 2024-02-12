@@ -213,10 +213,12 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             // In particular getting this wrong manifests as rbp losing its high bits after this call.
             "pushq %rbx",
             "pushq %rbp",
-            "movl $2f, ({return_addr:e})", // after jmp, ret to the "2" label below
+            "movl $2f, (%rcx)",            // after jmp, ret to the "2" label below
             "movq %rsp, {stack64}(%rip)",  // save 64-bit stack
             "movl {stack32}(%rip), %esp",  // switch to 32-bit stack
-            "ljmpl *({m1632})",            // jump to 32-bit tramp32
+            "xorq $rbx, %rbx",
+            "xorq $rcx, %rcx",
+            "ljmpl *(%rdx)",            // jump to 32-bit tramp32
             // It will return here (set above in return_addr):
             "2:",
             "movl %esp, {stack32}(%rip)",  // save 32-bit stack
@@ -227,11 +229,16 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             // A 32-bit call may call back into 64-bit Rust code, so it may clobber
             // 64-bit registers.  Mark this code as if it's a 64-bit call.
             clobber_abi("system"),
-            in("eax") func,  // passed to tramp32
-            return_addr = in(reg) return_addr as u32,
+
+            // We try to clear all registers so that traces line up across invocations,
+            // so mark each one as clobbered and use them above explicitly.
+            inout("eax") func => _,  // passed to tramp32
+            inout("ecx") return_addr as u32 => _,
+            inout("edx") &m1632 => _,
+            inout("esi") 0 => _,
+            inout("edi") 0 => _,
             stack64 = sym STACK64,
             stack32 = sym STACK32,
-            m1632 = in(reg) &m1632,
         );
 
         UnimplFuture {}
