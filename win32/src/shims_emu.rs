@@ -106,6 +106,11 @@ pub fn handle_shim_call(machine: &mut Machine) -> bool {
         machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.emu.x86.cpu.regs.esp);
         machine.emu.x86.cpu.regs.esp += stack_consumed;
         machine.emu.x86.cpu.regs.eax = ret;
+
+        // Clear registers to make traces clean.
+        // eax holds return value; other registers are callee-saved per ABI.
+        machine.emu.x86.cpu.regs.ecx = 0;
+        machine.emu.x86.cpu.regs.edx = 0;
     } else {
         // Async handler will manage the return address etc.
     }
@@ -158,6 +163,13 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
         machine.emu.shims.async_executor,
     ); // return address
     machine.emu.x86.cpu.regs.eip = func;
+
+    // Clear registers to make traces clean.
+    // Other registers are callee-saved per ABI.
+    machine.emu.x86.cpu.regs.eax = 0;
+    machine.emu.x86.cpu.regs.ecx = 0;
+    machine.emu.x86.cpu.regs.edx = 0;
+
     X86Future { m: machine, esp }
 }
 

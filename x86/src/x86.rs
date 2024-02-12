@@ -27,15 +27,8 @@ impl CPU {
         unsafe {
             ops::init_op_tab();
         }
-        let mut regs = Registers::new();
-        regs.eax = 0xdeadbeea;
-        regs.ebx = 0xdeadbeeb;
-        regs.ecx = 0xdeadbeec;
-        regs.edx = 0xdeadbeed;
-        regs.esi = 0xdeadbe51;
-        regs.edi = 0xdeadbed1;
         CPU {
-            regs,
+            regs: Registers::new(),
             flags: Flags::empty(),
             instr_count: 0,
             error: None,
