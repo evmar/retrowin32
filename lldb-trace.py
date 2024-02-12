@@ -9,7 +9,6 @@ import lldb
 import os
 
 
-print('running')
 RETROWIN32 = './target/x86_64-apple-darwin/debug/retrowin32'
 TARGET_TRIPLE = 'x86_64-apple-macosx13.0.0'
 EXE = 'exe/demo/effect.exe'
@@ -18,7 +17,7 @@ trace_points = []
 with open('tp') as f:
     for line in f:
         if line.startswith('@'):
-            trace_points.append(line.strip()[1:])
+            trace_points.append(int(line.strip()[1:], 16))
 
 debugger = lldb.SBDebugger.Create()
 debugger.SetAsync(False)
@@ -44,8 +43,11 @@ while True:
     )
     print('@%x' % frame.reg['rip'].unsigned)
     print('  ' + vals)
+    # Note: FPU state in lldb is 80-bit floats, and for the life of me I could not
+    # get it to print those as anything other than arrays of bytes argh.
+    #print('  fpu: ' + ' '.join(('%f' % frame.reg['stmm%d' % d].data.double[0]) for d in range(0,8)))
 
     next = trace_points.pop(0)
-    bp = target.BreakpointCreateByAddress(int(next, 16))
+    bp = target.BreakpointCreateByAddress(next)
     process.Continue()
 
