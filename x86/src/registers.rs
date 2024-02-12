@@ -66,8 +66,8 @@ pub struct Registers {
     pub mm: [u64; 8],
 }
 
-impl Registers {
-    pub fn new() -> Self {
+impl Default for Registers {
+    fn default() -> Self {
         Registers {
             eax: 0,
             ebx: 0,
@@ -93,7 +93,9 @@ impl Registers {
             mm: [0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
+}
 
+impl Registers {
     pub fn get32_mut(&mut self, reg: iced_x86::Register) -> &mut u32 {
         // XXX move comments from get32 here and rename once everything moved.
         let idx = reg as usize - iced_x86::Register::EAX as usize;

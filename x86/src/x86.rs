@@ -28,7 +28,7 @@ impl CPU {
             ops::init_op_tab();
         }
         CPU {
-            regs: Registers::new(),
+            regs: Registers::default(),
             flags: Flags::empty(),
             instr_count: 0,
             error: None,
