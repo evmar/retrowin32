@@ -11,6 +11,7 @@ mod oleaut32;
 mod retrowin32_test;
 mod stack_args;
 pub mod types;
+mod ucrtbase;
 pub mod user32;
 mod winmm;
 
@@ -66,7 +67,7 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 10] = [
+pub const DLLS: [builtin::BuiltinDLL; 11] = [
     builtin::bass::DLL,
     builtin::ddraw::DLL,
     builtin::dsound::DLL,
@@ -74,10 +75,20 @@ pub const DLLS: [builtin::BuiltinDLL; 10] = [
     builtin::kernel32::DLL,
     builtin::ole32::DLL,
     builtin::oleaut32::DLL,
+    builtin::ucrtbase::DLL,
     builtin::user32::DLL,
     builtin::winmm::DLL,
     builtin::retrowin32_test::DLL,
 ];
+
+/// Maps a DLL "api set" alias to the underlying dll.
+/// https://learn.microsoft.com/en-us/windows/win32/apiindex/api-set-loader-operation
+pub fn apiset(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "api-ms-win-crt-runtime-l1-1-0.dll" => "ucrtbase.dll",
+        _ => return None,
+    })
+}
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {

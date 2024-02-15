@@ -1967,6 +1967,25 @@ pub mod retrowin32_test {
         exports: &EXPORTS,
     };
 }
+pub mod ucrtbase {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use winapi::ucrtbase::*;
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+    }
+    const EXPORTS: [Symbol; 0usize] = [];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "ucrtbase.dll",
+        exports: &EXPORTS,
+    };
+}
 pub mod user32 {
     use super::*;
     mod impls {

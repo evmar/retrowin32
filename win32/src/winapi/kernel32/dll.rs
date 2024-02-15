@@ -143,7 +143,7 @@ pub fn GetModuleHandleExW(
 
 #[win32_derive::dllexport]
 pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    let filename = filename.unwrap().to_ascii_lowercase();
+    let mut filename = filename.unwrap().to_ascii_lowercase();
 
     // See if already loaded.
     if let Some(index) = machine
@@ -154,6 +154,13 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         .position(|dll| dll.name == filename)
     {
         return HMODULE::from_dll_index(index);
+    }
+
+    if filename.starts_with("api-") {
+        match winapi::apiset(&filename) {
+            Some(name) => filename = name.to_string(),
+            None => return HMODULE::null(),
+        }
     }
 
     // Check if builtin.
