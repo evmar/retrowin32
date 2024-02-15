@@ -935,3 +935,27 @@ pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
     log::warn!("TODO: sleep");
     0
 }
+
+#[win32_derive::dllexport]
+pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: u32) -> u32 {
+    0
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct INIT_ONCE {
+    ptr: u32,
+}
+unsafe impl Pod for INIT_ONCE {}
+
+#[win32_derive::dllexport]
+pub fn InitOnceBeginInitialize(
+    _machine: &mut Machine,
+    lpInitOnce: Option<&mut INIT_ONCE>,
+    dwFlags: u32,
+    fPending: Option<&mut u32>,
+    lpContext: u32,
+) -> u32 {
+    *fPending.unwrap() = 1;
+    0
+}

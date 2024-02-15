@@ -492,6 +492,12 @@ pub mod kernel32 {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::kernel32::*;
+        pub unsafe fn AddVectoredExceptionHandler(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let first = <u32>::from_stack(mem, esp + 4u32);
+            let handler = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::AddVectoredExceptionHandler(machine, first, handler).to_raw()
+        }
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpEventAttributes = <u32>::from_stack(mem, esp + 4u32);
@@ -767,6 +773,17 @@ pub mod kernel32 {
             let dwFlags = <u32>::from_stack(mem, esp + 8u32);
             let lpMem = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem).to_raw()
+        }
+        pub unsafe fn InitOnceBeginInitialize(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let fPending = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let lpContext = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::InitOnceBeginInitialize(
+                machine, lpInitOnce, dwFlags, fPending, lpContext,
+            )
+            .to_raw()
         }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(
             machine: &mut Machine,
@@ -1066,6 +1083,12 @@ pub mod kernel32 {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const AddVectoredExceptionHandler: Shim = Shim {
+            name: "AddVectoredExceptionHandler",
+            func: impls::AddVectoredExceptionHandler,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const CreateEventA: Shim = Shim {
             name: "CreateEventA",
             func: impls::CreateEventA,
@@ -1318,6 +1341,12 @@ pub mod kernel32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const InitOnceBeginInitialize: Shim = Shim {
+            name: "InitOnceBeginInitialize",
+            func: impls::InitOnceBeginInitialize,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
@@ -1547,7 +1576,11 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 80usize] = [
+    const EXPORTS: [Symbol; 82usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::AddVectoredExceptionHandler,
+        },
         Symbol {
             ordinal: None,
             shim: shims::CreateEventA,
@@ -1715,6 +1748,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::HeapSize,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::InitOnceBeginInitialize,
         },
         Symbol {
             ordinal: None,
@@ -1975,12 +2012,87 @@ pub mod ucrtbase {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::ucrtbase::*;
+        pub unsafe fn __p___argc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::__p___argc(machine).to_raw()
+        }
+        pub unsafe fn __p___argv(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::__p___argv(machine).to_raw()
+        }
+        pub unsafe fn _get_initial_narrow_environment(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::_get_initial_narrow_environment(machine).to_raw()
+        }
+        pub unsafe fn _initterm(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let start = <u32>::from_stack(mem, esp + 4u32);
+            let end = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ucrtbase::_initterm(machine, start, end).to_raw()
+        }
+        pub unsafe fn _initterm_e(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let start = <u32>::from_stack(mem, esp + 4u32);
+            let end = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ucrtbase::_initterm_e(machine, start, end).to_raw()
+        }
     }
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const __p___argc: Shim = Shim {
+            name: "__p___argc",
+            func: impls::__p___argc,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const __p___argv: Shim = Shim {
+            name: "__p___argv",
+            func: impls::__p___argv,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const _get_initial_narrow_environment: Shim = Shim {
+            name: "_get_initial_narrow_environment",
+            func: impls::_get_initial_narrow_environment,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const _initterm: Shim = Shim {
+            name: "_initterm",
+            func: impls::_initterm,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const _initterm_e: Shim = Shim {
+            name: "_initterm_e",
+            func: impls::_initterm_e,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 0usize] = [];
+    const EXPORTS: [Symbol; 5usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::__p___argc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::__p___argv,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_get_initial_narrow_environment,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_initterm,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_initterm_e,
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ucrtbase.dll",
         exports: &EXPORTS,
