@@ -128,3 +128,11 @@ pub fn bsr_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         }
     }
 }
+
+pub fn cmove_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    if cpu.flags.contains(Flags::ZF) {
+        x.set(y);
+    }
+}
