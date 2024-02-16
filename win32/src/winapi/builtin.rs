@@ -619,6 +619,12 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetCommandLineW(machine).to_raw()
         }
+        pub unsafe fn GetConsoleMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hConsoleHandle = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpMode = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetConsoleMode(machine, hConsoleHandle, lpMode).to_raw()
+        }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentProcessId(machine).to_raw()
@@ -1200,6 +1206,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetConsoleMode: Shim = Shim {
+            name: "GetConsoleMode",
+            func: impls::GetConsoleMode,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
@@ -1633,7 +1645,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 86usize] = [
+    const EXPORTS: [Symbol; 87usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockShared,
@@ -1689,6 +1701,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetCommandLineW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetConsoleMode,
         },
         Symbol {
             ordinal: None,
