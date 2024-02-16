@@ -130,3 +130,15 @@ pub fn EnterCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u
 pub fn LeaveCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
     0
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SRWLOCK {
+    ptr: u32,
+}
+unsafe impl Pod for SRWLOCK {}
+
+#[win32_derive::dllexport]
+pub fn AcquireSRWLockShared(_machine: &mut Machine, SRWLock: Option<&mut SRWLOCK>) -> u32 {
+    0
+}

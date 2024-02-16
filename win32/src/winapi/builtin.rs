@@ -492,6 +492,11 @@ pub mod kernel32 {
             winapi::{self, stack_args::*, types::*},
         };
         use winapi::kernel32::*;
+        pub unsafe fn AcquireSRWLockShared(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::AcquireSRWLockShared(machine, SRWLock).to_raw()
+        }
         pub unsafe fn AddVectoredExceptionHandler(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let first = <u32>::from_stack(mem, esp + 4u32);
@@ -1105,6 +1110,12 @@ pub mod kernel32 {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const AcquireSRWLockShared: Shim = Shim {
+            name: "AcquireSRWLockShared",
+            func: impls::AcquireSRWLockShared,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const AddVectoredExceptionHandler: Shim = Shim {
             name: "AddVectoredExceptionHandler",
             func: impls::AddVectoredExceptionHandler,
@@ -1610,7 +1621,11 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 84usize] = [
+    const EXPORTS: [Symbol; 85usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::AcquireSRWLockShared,
+        },
         Symbol {
             ordinal: None,
             shim: shims::AddVectoredExceptionHandler,
