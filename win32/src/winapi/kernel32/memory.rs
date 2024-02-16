@@ -215,6 +215,17 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
 }
 
 #[win32_derive::dllexport]
+pub fn HeapSetInformation(
+    _machine: &mut Machine,
+    HeapHandle: u32,
+    HeapInformationClass: u32,
+    HeapInformation: u32,
+    HeapInformationLength: u32,
+) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn HeapReAlloc(
     machine: &mut Machine,
     hHeap: u32,

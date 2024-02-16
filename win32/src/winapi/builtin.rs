@@ -767,6 +767,21 @@ pub mod kernel32 {
             let dwBytes = <u32>::from_stack(mem, esp + 16u32);
             winapi::kernel32::HeapReAlloc(machine, hHeap, dwFlags, lpMem, dwBytes).to_raw()
         }
+        pub unsafe fn HeapSetInformation(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let HeapHandle = <u32>::from_stack(mem, esp + 4u32);
+            let HeapInformationClass = <u32>::from_stack(mem, esp + 8u32);
+            let HeapInformation = <u32>::from_stack(mem, esp + 12u32);
+            let HeapInformationLength = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::HeapSetInformation(
+                machine,
+                HeapHandle,
+                HeapInformationClass,
+                HeapInformation,
+                HeapInformationLength,
+            )
+            .to_raw()
+        }
         pub unsafe fn HeapSize(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hHeap = <u32>::from_stack(mem, esp + 4u32);
@@ -1335,6 +1350,12 @@ pub mod kernel32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const HeapSetInformation: Shim = Shim {
+            name: "HeapSetInformation",
+            func: impls::HeapSetInformation,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const HeapSize: Shim = Shim {
             name: "HeapSize",
             func: impls::HeapSize,
@@ -1576,7 +1597,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 82usize] = [
+    const EXPORTS: [Symbol; 83usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AddVectoredExceptionHandler,
@@ -1744,6 +1765,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::HeapReAlloc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::HeapSetInformation,
         },
         Symbol {
             ordinal: None,
