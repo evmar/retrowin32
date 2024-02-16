@@ -955,7 +955,24 @@ pub fn InitOnceBeginInitialize(
     dwFlags: u32,
     fPending: Option<&mut u32>,
     lpContext: u32,
-) -> u32 {
+) -> bool {
+    if dwFlags != 0 {
+        todo!();
+    }
     *fPending.unwrap() = 1;
-    0
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn InitOnceComplete(
+    _machine: &mut Machine,
+    lpInitOnce: Option<&mut INIT_ONCE>,
+    dwFlags: u32,
+    lpContext: u32,
+) -> bool {
+    if dwFlags != 0 {
+        todo!();
+    }
+    lpInitOnce.unwrap().ptr = lpContext;
+    true
 }

@@ -800,6 +800,13 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn InitOnceComplete(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpContext = <u32>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::InitOnceComplete(machine, lpInitOnce, dwFlags, lpContext).to_raw()
+        }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(
             machine: &mut Machine,
             esp: u32,
@@ -1368,6 +1375,12 @@ pub mod kernel32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const InitOnceComplete: Shim = Shim {
+            name: "InitOnceComplete",
+            func: impls::InitOnceComplete,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
@@ -1597,7 +1610,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 83usize] = [
+    const EXPORTS: [Symbol; 84usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AddVectoredExceptionHandler,
@@ -1777,6 +1790,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::InitOnceBeginInitialize,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::InitOnceComplete,
         },
         Symbol {
             ordinal: None,

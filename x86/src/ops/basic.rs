@@ -236,8 +236,10 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
             let addr = x86_addr(cpu, instr);
             let x = mem.get::<u32>(addr);
             if cpu.regs.eax == x {
+                cpu.flags.insert(Flags::ZF);
                 mem.put::<u32>(addr, y);
             } else {
+                cpu.flags.remove(Flags::ZF);
                 cpu.regs.eax = y;
             }
         }
