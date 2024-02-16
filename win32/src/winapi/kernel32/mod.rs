@@ -516,9 +516,17 @@ pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
     buf: ArrayWithSize<u8>,
-) -> u32 {
-    println!("name {:?} buf {:?}", name, buf);
-    0
+) -> bool {
+    false
+}
+
+#[win32_derive::dllexport]
+pub fn GetEnvironmentVariableW(
+    _machine: &mut Machine,
+    name: Option<Str16>,
+    buf: ArrayWithSize<u16>,
+) -> bool {
+    false
 }
 
 #[win32_derive::dllexport]

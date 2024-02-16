@@ -645,6 +645,12 @@ pub mod kernel32 {
             let buf = <ArrayWithSize<u8>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableA(machine, name, buf).to_raw()
         }
+        pub unsafe fn GetEnvironmentVariableW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let name = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let buf = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetEnvironmentVariableW(machine, name, buf).to_raw()
+        }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -1230,6 +1236,12 @@ pub mod kernel32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const GetEnvironmentVariableW: Shim = Shim {
+            name: "GetEnvironmentVariableW",
+            func: impls::GetEnvironmentVariableW,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
@@ -1621,7 +1633,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 85usize] = [
+    const EXPORTS: [Symbol; 86usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockShared,
@@ -1701,6 +1713,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetEnvironmentVariableA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetEnvironmentVariableW,
         },
         Symbol {
             ordinal: None,
