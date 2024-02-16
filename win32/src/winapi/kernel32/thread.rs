@@ -1,3 +1,5 @@
+use memory::Pod;
+
 use crate::machine::Machine;
 
 use super::{peb_mut, teb_mut};
@@ -65,4 +67,66 @@ pub fn InterlockedIncrement(_machine: &mut Machine, addend: Option<&mut u32>) ->
     let addend = addend.unwrap();
     *addend += 1;
     *addend
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct INIT_ONCE {
+    ptr: u32,
+}
+unsafe impl Pod for INIT_ONCE {}
+
+#[win32_derive::dllexport]
+pub fn InitOnceBeginInitialize(
+    _machine: &mut Machine,
+    lpInitOnce: Option<&mut INIT_ONCE>,
+    dwFlags: u32,
+    fPending: Option<&mut u32>,
+    lpContext: u32,
+) -> bool {
+    if dwFlags != 0 {
+        todo!();
+    }
+    *fPending.unwrap() = 1;
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn InitOnceComplete(
+    _machine: &mut Machine,
+    lpInitOnce: Option<&mut INIT_ONCE>,
+    dwFlags: u32,
+    lpContext: u32,
+) -> bool {
+    if dwFlags != 0 {
+        todo!();
+    }
+    lpInitOnce.unwrap().ptr = lpContext;
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn InitializeCriticalSectionAndSpinCount(
+    _machine: &mut Machine,
+    lpCriticalSection: u32,
+    dwSpinCount: u32,
+) -> bool {
+    // "On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero)."
+    // "This function always succeeds and returns a nonzero value."
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn DeleteCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn EnterCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn LeaveCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
+    0
 }

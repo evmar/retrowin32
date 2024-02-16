@@ -764,32 +764,6 @@ pub fn WriteConsoleA(
 }
 
 #[win32_derive::dllexport]
-pub fn InitializeCriticalSectionAndSpinCount(
-    _machine: &mut Machine,
-    _lpCriticalSection: u32,
-    _dwSpinCount: u32,
-) -> bool {
-    // "On single-processor systems, the spin count is ignored and the critical section spin count is set to 0 (zero)."
-    // "This function always succeeds and returns a nonzero value."
-    true
-}
-
-#[win32_derive::dllexport]
-pub fn DeleteCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
-    0
-}
-
-#[win32_derive::dllexport]
-pub fn EnterCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
-    0
-}
-
-#[win32_derive::dllexport]
-pub fn LeaveCriticalSection(_machine: &mut Machine, _lpCriticalSection: u32) -> u32 {
-    0
-}
-
-#[win32_derive::dllexport]
 pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
@@ -939,40 +913,4 @@ pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
 #[win32_derive::dllexport]
 pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: u32) -> u32 {
     0
-}
-
-#[repr(C)]
-#[derive(Debug)]
-pub struct INIT_ONCE {
-    ptr: u32,
-}
-unsafe impl Pod for INIT_ONCE {}
-
-#[win32_derive::dllexport]
-pub fn InitOnceBeginInitialize(
-    _machine: &mut Machine,
-    lpInitOnce: Option<&mut INIT_ONCE>,
-    dwFlags: u32,
-    fPending: Option<&mut u32>,
-    lpContext: u32,
-) -> bool {
-    if dwFlags != 0 {
-        todo!();
-    }
-    *fPending.unwrap() = 1;
-    true
-}
-
-#[win32_derive::dllexport]
-pub fn InitOnceComplete(
-    _machine: &mut Machine,
-    lpInitOnce: Option<&mut INIT_ONCE>,
-    dwFlags: u32,
-    lpContext: u32,
-) -> bool {
-    if dwFlags != 0 {
-        todo!();
-    }
-    lpInitOnce.unwrap().ptr = lpContext;
-    true
 }

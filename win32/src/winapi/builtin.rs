@@ -578,13 +578,13 @@ pub mod kernel32 {
         }
         pub unsafe fn DeleteCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::DeleteCriticalSection(machine, _lpCriticalSection).to_raw()
+            let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::DeleteCriticalSection(machine, lpCriticalSection).to_raw()
         }
         pub unsafe fn EnterCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::EnterCriticalSection(machine, _lpCriticalSection).to_raw()
+            let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::EnterCriticalSection(machine, lpCriticalSection).to_raw()
         }
         pub unsafe fn ExitProcess(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -812,12 +812,12 @@ pub mod kernel32 {
             esp: u32,
         ) -> u32 {
             let mem = machine.mem().detach();
-            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
-            let _dwSpinCount = <u32>::from_stack(mem, esp + 8u32);
+            let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            let dwSpinCount = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::InitializeCriticalSectionAndSpinCount(
                 machine,
-                _lpCriticalSection,
-                _dwSpinCount,
+                lpCriticalSection,
+                dwSpinCount,
             )
             .to_raw()
         }
@@ -859,8 +859,8 @@ pub mod kernel32 {
         }
         pub unsafe fn LeaveCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::LeaveCriticalSection(machine, _lpCriticalSection).to_raw()
+            let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::LeaveCriticalSection(machine, lpCriticalSection).to_raw()
         }
         pub unsafe fn LoadLibraryA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
