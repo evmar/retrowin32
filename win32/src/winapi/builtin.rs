@@ -978,6 +978,11 @@ pub mod kernel32 {
             let _nPriority = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw()
         }
+        pub unsafe fn SetThreadStackGuarantee(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let StackSizeInBytes = <Option<&mut u32>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::SetThreadStackGuarantee(machine, StackSizeInBytes).to_raw()
+        }
         pub unsafe fn SetUnhandledExceptionFilter(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, esp + 4u32);
@@ -1554,6 +1559,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const SetThreadStackGuarantee: Shim = Shim {
+            name: "SetThreadStackGuarantee",
+            func: impls::SetThreadStackGuarantee,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetUnhandledExceptionFilter: Shim = Shim {
             name: "SetUnhandledExceptionFilter",
             func: impls::SetUnhandledExceptionFilter,
@@ -1645,7 +1656,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 87usize] = [
+    const EXPORTS: [Symbol; 88usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockShared,
@@ -1933,6 +1944,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::SetThreadPriority,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetThreadStackGuarantee,
         },
         Symbol {
             ordinal: None,

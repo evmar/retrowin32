@@ -63,6 +63,12 @@ pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32)
 }
 
 #[win32_derive::dllexport]
+pub fn SetThreadStackGuarantee(_machine: &mut Machine, StackSizeInBytes: Option<&mut u32>) -> bool {
+    // ignore
+    true // success
+}
+
+#[win32_derive::dllexport]
 pub fn InterlockedIncrement(_machine: &mut Machine, addend: Option<&mut u32>) -> u32 {
     let addend = addend.unwrap();
     *addend += 1;
