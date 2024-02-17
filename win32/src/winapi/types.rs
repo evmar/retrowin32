@@ -40,7 +40,7 @@ impl<T> HANDLE<T> {
 
 impl<T> std::fmt::Debug for HANDLE<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("HANDLE({})", self.raw))
+        f.write_fmt(format_args!("HANDLE({:x})", self.raw))
     }
 }
 
