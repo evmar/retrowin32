@@ -939,5 +939,5 @@ pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: u32) -> u32 {
-    0
+    handler // success
 }
