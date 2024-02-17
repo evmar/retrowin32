@@ -803,20 +803,39 @@ pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_H
     0
 }
 
-/// The system default Windows ANSI code page.
-const CP_ACP: u32 = 0;
+/// Code pages
+#[derive(Debug)]
+pub enum CP {
+    /// The system default Windows ANSI code page.
+    ACP = 0,
+    WINDOWS_1252 = 1252,
+    UTF8 = 65001,
+}
+impl TryFrom<u32> for CP {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        Ok(match value {
+            0 => CP::ACP,
+            1252 => CP::WINDOWS_1252,
+            65001 => CP::UTF8,
+            _ => return Err(value),
+        })
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn MultiByteToWideChar(
     machine: &mut Machine,
-    CodePage: u32,
+    CodePage: Result<CP, u32>,
     dwFlags: u32,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
     mut lpWideCharStr: ArrayWithSizeMut<u16>,
 ) -> u32 {
-    if CodePage != CP_ACP && CodePage != 1252 {
-        unimplemented!("MultiByteToWideChar code page {CodePage}");
+    match CodePage {
+        Err(value) => unimplemented!("MultiByteToWideChar code page {value}"),
+        _ => {} // treat all others as ansi for now
     }
     // TODO: dwFlags
 

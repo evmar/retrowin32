@@ -893,7 +893,7 @@ pub mod kernel32 {
         }
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let CodePage = <u32>::from_stack(mem, esp + 4u32);
+            let CodePage = <Result<CP, u32>>::from_stack(mem, esp + 4u32);
             let dwFlags = <u32>::from_stack(mem, esp + 8u32);
             let lpMultiByteStr = <u32>::from_stack(mem, esp + 12u32);
             let cbMultiByte = <i32>::from_stack(mem, esp + 16u32);
