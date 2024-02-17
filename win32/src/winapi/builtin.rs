@@ -974,9 +974,9 @@ pub mod kernel32 {
         }
         pub unsafe fn SetThreadPriority(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _hThread = <u32>::from_stack(mem, esp + 4u32);
-            let _nPriority = <u32>::from_stack(mem, esp + 8u32);
-            winapi::kernel32::SetThreadPriority(machine, _hThread, _nPriority).to_raw()
+            let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
+            let nPriority = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetThreadPriority(machine, hThread, nPriority).to_raw()
         }
         pub unsafe fn SetThreadStackGuarantee(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();

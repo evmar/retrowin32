@@ -2,9 +2,13 @@ use memory::Pod;
 
 use crate::machine::Machine;
 
-use super::{peb_mut, teb_mut};
+use super::{peb_mut, teb_mut, HANDLE};
 
 const TRACE_CONTEXT: &'static str = "kernel32/thread";
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HTHREADT;
+pub type HTHREAD = HANDLE<HTHREADT>;
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
@@ -52,13 +56,12 @@ pub fn CreateThread(
     lpParameter: u32,
     dwCreationFlags: u32,
     lpThreadId: u32,
-) -> u32 {
-    log::warn!("CreateThread {lpThreadAttributes:x} {dwStackSize:x} {lpStartAddress:x} {lpParameter:x} {dwCreationFlags:x} {lpThreadId:x}");
-    0
+) -> HTHREAD {
+    HTHREAD::null()
 }
 
 #[win32_derive::dllexport]
-pub fn SetThreadPriority(_machine: &mut Machine, _hThread: u32, _nPriority: u32) -> bool {
+pub fn SetThreadPriority(_machine: &mut Machine, hThread: HTHREAD, nPriority: u32) -> bool {
     true // success
 }
 
