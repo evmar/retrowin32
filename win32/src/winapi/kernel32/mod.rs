@@ -918,11 +918,6 @@ pub fn SetEvent(_machine: &mut Machine, hEvent: HANDLE<()>) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn GetCurrentThread(_machine: &mut Machine) -> HANDLE<()> {
-    todo!()
-}
-
-#[win32_derive::dllexport]
 pub fn SetPriorityClass(
     _machine: &mut Machine,
     hProcess: HANDLE<()>,

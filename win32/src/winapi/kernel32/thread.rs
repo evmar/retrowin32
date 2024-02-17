@@ -11,6 +11,11 @@ pub struct HTHREADT;
 pub type HTHREAD = HANDLE<HTHREADT>;
 
 #[win32_derive::dllexport]
+pub fn GetCurrentThread(_machine: &mut Machine) -> HTHREAD {
+    HTHREAD::from_raw(1)
+}
+
+#[win32_derive::dllexport]
 pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
     1
 }
