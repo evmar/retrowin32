@@ -13,6 +13,7 @@ mod stack_args;
 pub mod types;
 mod ucrtbase;
 pub mod user32;
+mod vcruntime140;
 mod winmm;
 
 macro_rules! vtable_entry {
@@ -67,7 +68,7 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 11] = [
+pub const DLLS: [builtin::BuiltinDLL; 12] = [
     builtin::bass::DLL,
     builtin::ddraw::DLL,
     builtin::dsound::DLL,
@@ -77,6 +78,7 @@ pub const DLLS: [builtin::BuiltinDLL; 11] = [
     builtin::oleaut32::DLL,
     builtin::ucrtbase::DLL,
     builtin::user32::DLL,
+    builtin::vcruntime140::DLL,
     builtin::winmm::DLL,
     builtin::retrowin32_test::DLL,
 ];

@@ -2217,6 +2217,41 @@ pub mod ucrtbase {
         exports: &EXPORTS,
     };
 }
+pub mod vcruntime140 {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use winapi::vcruntime140::*;
+        pub unsafe fn memcpy(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dst = <u32>::from_stack(mem, esp + 4u32);
+            let src = <u32>::from_stack(mem, esp + 8u32);
+            let len = <u32>::from_stack(mem, esp + 12u32);
+            winapi::vcruntime140::memcpy(machine, dst, src, len).to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const memcpy: Shim = Shim {
+            name: "memcpy",
+            func: impls::memcpy,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        ordinal: None,
+        shim: shims::memcpy,
+    }];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "vcruntime140.dll",
+        exports: &EXPORTS,
+    };
+}
 pub mod user32 {
     use super::*;
     mod impls {
