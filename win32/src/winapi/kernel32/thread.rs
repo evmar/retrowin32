@@ -120,6 +120,11 @@ pub fn InitOnceComplete(
 }
 
 #[win32_derive::dllexport]
+pub fn InitializeCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn InitializeCriticalSectionAndSpinCount(
     _machine: &mut Machine,
     lpCriticalSection: u32,

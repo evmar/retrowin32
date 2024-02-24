@@ -829,6 +829,11 @@ pub mod kernel32 {
             let lpContext = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::InitOnceComplete(machine, lpInitOnce, dwFlags, lpContext).to_raw()
         }
+        pub unsafe fn InitializeCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::InitializeCriticalSection(machine, lpCriticalSection).to_raw()
+        }
         pub unsafe fn InitializeCriticalSectionAndSpinCount(
             machine: &mut Machine,
             esp: u32,
@@ -1432,6 +1437,12 @@ pub mod kernel32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const InitializeCriticalSection: Shim = Shim {
+            name: "InitializeCriticalSection",
+            func: impls::InitializeCriticalSection,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
@@ -1667,7 +1678,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 89usize] = [
+    const EXPORTS: [Symbol; 90usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -1867,6 +1878,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::InitOnceComplete,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::InitializeCriticalSection,
         },
         Symbol {
             ordinal: None,
