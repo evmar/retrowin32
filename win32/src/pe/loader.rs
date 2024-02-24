@@ -271,7 +271,7 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
         let dir = pe::read_exports(machine.mem(), base, dir);
         for (i, &addr) in dir.fns(image).iter().enumerate() {
             let ord = dir.Base + i as u32;
-            ordinals.insert(ord, addr);
+            ordinals.insert(ord, base + addr);
         }
         for (name, i) in dir.names(image) {
             let ord = dir.Base + i as u32;
