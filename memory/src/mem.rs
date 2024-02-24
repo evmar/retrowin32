@@ -27,6 +27,10 @@ impl<'m> Mem<'m> {
         }
     }
 
+    pub fn is_oob<T>(&self, addr: u32) -> bool {
+        self.ptr as usize + addr as usize + size_of::<T>() > self.end as usize
+    }
+
     fn get_ptr(&self, ofs: u32) -> *mut u8 {
         // Avoid using self.ptr.add here, because when self.ptr is 0 (for native Mems)
         // a later bounds check gets optimized out into always panicking.

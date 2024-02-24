@@ -83,7 +83,11 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg
             Arg(cpu.regs.get8_mut(reg))
         }
         iced_x86::OpKind::Memory => {
-            let addr = x86_addr(cpu, instr);
+            let mut addr = x86_addr(cpu, instr);
+            if mem.is_oob::<u8>(addr) {
+                cpu.err(format!("oob at {addr:x}"));
+                addr = 0;
+            }
             Arg(mem.ptr_mut::<u8>(addr))
         }
         _ => unimplemented!(),
