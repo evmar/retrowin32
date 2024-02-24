@@ -82,6 +82,10 @@ impl<'a> Str16<'a> {
         Str16(&mem[..end])
     }
 
+    pub fn buf(&self) -> &'a [u16] {
+        self.0
+    }
+
     pub fn to_string(&self) -> String {
         self.0
             .iter()

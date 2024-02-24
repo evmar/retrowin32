@@ -800,6 +800,34 @@ pub mod kernel32 {
             let lpModuleName = <Option<Str16>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetModuleHandleW(machine, lpModuleName).to_raw()
         }
+        pub unsafe fn GetPrivateProfileIntW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAppName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpKeyName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let nDefault = <u32>::from_stack(mem, esp + 12u32);
+            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetPrivateProfileIntW(
+                machine, lpAppName, lpKeyName, nDefault, lpFileName,
+            )
+            .to_raw()
+        }
+        pub unsafe fn GetPrivateProfileStringW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAppName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpKeyName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpDefault = <Option<Str16>>::from_stack(mem, esp + 12u32);
+            let lpReturnedString = <ArrayWithSizeMut<u16>>::from_stack(mem, esp + 16u32);
+            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 24u32);
+            winapi::kernel32::GetPrivateProfileStringW(
+                machine,
+                lpAppName,
+                lpKeyName,
+                lpDefault,
+                lpReturnedString,
+                lpFileName,
+            )
+            .to_raw()
+        }
         pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
@@ -1416,6 +1444,18 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetPrivateProfileIntW: Shim = Shim {
+            name: "GetPrivateProfileIntW",
+            func: impls::GetPrivateProfileIntW,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const GetPrivateProfileStringW: Shim = Shim {
+            name: "GetPrivateProfileStringW",
+            func: impls::GetPrivateProfileStringW,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
         pub const GetProcAddress: Shim = Shim {
             name: "GetProcAddress",
             func: impls::GetProcAddress,
@@ -1777,7 +1817,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 90usize] = [
+    const EXPORTS: [Symbol; 92usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -1897,6 +1937,14 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetModuleHandleW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetPrivateProfileIntW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetPrivateProfileStringW,
         },
         Symbol {
             ordinal: None,
