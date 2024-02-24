@@ -2498,6 +2498,14 @@ pub mod user32 {
             let fuLoad = <u32>::from_stack(mem, esp + 24u32);
             winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
         }
+        pub unsafe fn LoadStringW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let uID = <u32>::from_stack(mem, esp + 8u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 12u32);
+            let cchBufferMax = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::LoadStringW(machine, hInstance, uID, lpBuffer, cchBufferMax).to_raw()
+        }
         pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -2748,6 +2756,12 @@ pub mod user32 {
             stack_consumed: 28u32,
             is_async: false,
         };
+        pub const LoadStringW: Shim = Shim {
+            name: "LoadStringW",
+            func: impls::LoadStringW,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const MessageBoxA: Shim = Shim {
             name: "MessageBoxA",
             func: impls::MessageBoxA,
@@ -2851,7 +2865,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 39usize] = [
+    const EXPORTS: [Symbol; 40usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -2939,6 +2953,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadImageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadStringW,
         },
         Symbol {
             ordinal: None,

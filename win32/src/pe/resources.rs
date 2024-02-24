@@ -48,7 +48,11 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
 /// Top-level dir entry.
-pub const RT_BITMAP: u32 = 2;
+#[derive(Clone, Copy)]
+pub enum RT {
+    BITMAP = 2,
+    STRING = 6,
+}
 
 #[derive(Debug)]
 enum ResourceName {
@@ -99,24 +103,28 @@ unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
 pub fn get_resource<'a>(
-    mem: Mem<'a>,
+    image: Mem<'a>,
     section: &IMAGE_DATA_DIRECTORY,
-    query_type: u32,
+    query_type: RT,
     query_id: u32,
 ) -> Option<Mem<'a>> {
-    let section = mem.sub(section.VirtualAddress, section.Size);
+    let section = image.sub(section.VirtualAddress, section.Size);
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
     let dir = ImageResourceDirectory::read(section, 0);
 
-    let etype = dir.entries.iter().find(|entry| entry.has_id(query_type))?;
+    let etype = dir
+        .entries
+        .iter()
+        .find(|entry| entry.has_id(query_type as u32))?;
     let dir = match etype.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
 
-    let eid = dir.entries.iter().find(|entry| entry.has_id(query_id))?;
+    let eid: &IMAGE_RESOURCE_DIRECTORY_ENTRY =
+        dir.entries.iter().find(|entry| entry.has_id(query_id))?;
     let dir = match eid.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
@@ -129,6 +137,6 @@ pub fn get_resource<'a>(
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };
-    let buf = mem.sub(data.OffsetToData, data.Size);
+    let buf = image.sub(data.OffsetToData, data.Size);
     return Some(buf);
 }

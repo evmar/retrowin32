@@ -230,9 +230,10 @@ pub fn LoadImageA(
     const IMAGE_BITMAP: u32 = 0;
     match typ {
         IMAGE_BITMAP => {
-            let mem = machine.mem().slice(machine.state.kernel32.image_base..);
-            let buf = pe::get_resource(mem, &machine.state.user32.resources, pe::RT_BITMAP, name)
-                .unwrap();
+            let image = machine.mem().slice(machine.state.kernel32.image_base..);
+            let buf =
+                pe::get_resource(image, &machine.state.user32.resources, pe::RT::BITMAP, name)
+                    .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
             machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp))
         }
@@ -240,5 +241,51 @@ pub fn LoadImageA(
             log::error!("unimplemented image type {:x}", typ);
             return 0;
         }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn LoadStringW(
+    machine: &mut Machine,
+    hInstance: u32,
+    uID: u32,
+    lpBuffer: u32,
+    cchBufferMax: u32,
+) -> u32 {
+    // Strings are stored as blocks of 16 consecutive strings.
+    let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
+
+    let image = machine.mem().slice(machine.state.kernel32.image_base..);
+    let block = match pe::get_resource(
+        image,
+        &machine.state.user32.resources,
+        pe::RT::STRING,
+        resource_id,
+    ) {
+        Some(block) => block,
+        None => todo!(),
+    };
+
+    // Each block is a sequence of two byte length-prefixed strings.
+    // Iterate through them to find the requested index.
+    let mut ofs = 0;
+    for _ in 0..index {
+        let len = block.get::<u16>(ofs) as u32;
+        ofs += (1 + len) * 2;
+    }
+    let len = block.get::<u16>(ofs) as u32;
+    let str = block.sub(ofs + 2, len * 2);
+
+    if cchBufferMax == 0 {
+        machine
+            .mem()
+            .put::<u32>(lpBuffer, str.offset_from(machine.mem()));
+        len
+    } else {
+        let dst = machine.mem().sub(lpBuffer, cchBufferMax * 2);
+        let copy_len = std::cmp::min(dst.len() - 2, str.len()) as usize;
+        dst.as_mut_slice_todo()[..copy_len].copy_from_slice(&str.as_slice_todo()[..copy_len]);
+        dst.put::<u16>(copy_len as u32, 0);
+        copy_len as u32
     }
 }
