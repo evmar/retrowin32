@@ -2704,6 +2704,12 @@ pub mod user32 {
             let lpIconName = <u32>::from_stack(mem, esp + 8u32);
             winapi::user32::LoadIconA(machine, hInstance, lpIconName).to_raw()
         }
+        pub unsafe fn LoadIconW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpIconName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadIconW(machine, hInstance, lpIconName).to_raw()
+        }
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -2978,6 +2984,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const LoadIconW: Shim = Shim {
+            name: "LoadIconW",
+            func: impls::LoadIconW,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LoadImageA: Shim = Shim {
             name: "LoadImageA",
             func: impls::LoadImageA,
@@ -3093,7 +3105,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 42usize] = [
+    const EXPORTS: [Symbol; 43usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3185,6 +3197,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadIconA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadIconW,
         },
         Symbol {
             ordinal: None,

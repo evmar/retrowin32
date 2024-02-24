@@ -25,6 +25,11 @@ pub fn LoadIconA(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32
 }
 
 #[win32_derive::dllexport]
+pub fn LoadIconW(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
 pub fn LoadCursorA(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
     0
 }
