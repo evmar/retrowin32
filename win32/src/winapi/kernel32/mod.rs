@@ -804,24 +804,12 @@ pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_H
 }
 
 /// Code pages
-#[derive(Debug)]
+#[derive(Debug, win32_derive::TryFromEnum)]
 pub enum CP {
     /// The system default Windows ANSI code page.
     ACP = 0,
     WINDOWS_1252 = 1252,
     UTF8 = 65001,
-}
-impl TryFrom<u32> for CP {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value {
-            0 => CP::ACP,
-            1252 => CP::WINDOWS_1252,
-            65001 => CP::UTF8,
-            _ => return Err(value),
-        })
-    }
 }
 
 #[win32_derive::dllexport]

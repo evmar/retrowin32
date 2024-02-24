@@ -42,21 +42,9 @@ pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFI
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, win32_derive::TryFromEnum)]
 pub enum CreationDisposition {
     OPEN_EXISTING = 3,
-}
-impl TryFrom<u32> for CreationDisposition {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value {
-            x if x == CreationDisposition::OPEN_EXISTING as u32 => {
-                CreationDisposition::OPEN_EXISTING
-            }
-            _ => return Err(value),
-        })
-    }
 }
 
 pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;

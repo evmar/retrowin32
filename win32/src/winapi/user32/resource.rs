@@ -54,7 +54,7 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
 pub enum BI {
     RGB = 0,
     RLE8 = 1,
@@ -62,22 +62,6 @@ pub enum BI {
     BITFIELDS = 3,
     JPEG = 4,
     PNG = 5,
-}
-
-impl TryFrom<u32> for BI {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value {
-            0 => BI::RGB,
-            1 => BI::RLE8,
-            2 => BI::RLE4,
-            3 => BI::BITFIELDS,
-            4 => BI::JPEG,
-            5 => BI::PNG,
-            _ => return Err(value),
-        })
-    }
 }
 
 #[repr(C)]

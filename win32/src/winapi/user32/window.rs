@@ -269,7 +269,7 @@ pub fn UpdateWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
 }
 
 /// nCmdShow passed to ShowWindow().
-#[derive(Debug)]
+#[derive(Debug, win32_derive::TryFromEnum)]
 pub enum SW {
     HIDE = 0,
     NORMAL = 1,
@@ -283,27 +283,6 @@ pub enum SW {
     RESTORE = 9,
     SHOWDEFAULT = 10,
     FORCEMINIMIZE = 11,
-}
-impl TryFrom<u32> for SW {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value {
-            0 => SW::HIDE,
-            1 => SW::NORMAL,
-            2 => SW::SHOWMINIMIZED,
-            3 => SW::SHOWMAXIMIZED,
-            4 => SW::SHOWNOACTIVATE,
-            5 => SW::SHOW,
-            6 => SW::MINIMIZE,
-            7 => SW::SHOWMINNOACTIVE,
-            8 => SW::SHOWNA,
-            9 => SW::RESTORE,
-            10 => SW::SHOWDEFAULT,
-            11 => SW::FORCEMINIMIZE,
-            _ => return Err(value),
-        })
-    }
 }
 
 #[win32_derive::dllexport]

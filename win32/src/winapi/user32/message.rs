@@ -23,23 +23,12 @@ pub struct MSG {
 }
 unsafe impl memory::Pod for MSG {}
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, win32_derive::TryFromEnum)]
 #[repr(u32)]
 pub enum WM {
     CREATE = 0x0001,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
-}
-impl TryFrom<u32> for WM {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value {
-            x if x == WM::CREATE as u32 => WM::CREATE,
-            x if x == WM::ACTIVATEAPP as u32 => WM::ACTIVATEAPP,
-            x => return Err(x),
-        })
-    }
 }
 
 fn msg_from_message(message: host::Message) -> MSG {
