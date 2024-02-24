@@ -1,7 +1,5 @@
 #![allow(non_snake_case)]
 
-use std::collections::HashMap;
-
 use super::{
     kernel32,
     stack_args::ArrayWithSize,
@@ -9,6 +7,7 @@ use super::{
     user32::{BI, BITMAPINFOHEADER},
 };
 use crate::{machine::Machine, winapi::user32};
+use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "gdi32";
 
@@ -315,7 +314,55 @@ pub fn TextOutA(
     true
 }
 
+#[allow(dead_code)]
+#[derive(Debug, win32_derive::TryFromEnum)]
+#[repr(u32)]
+pub enum GetDeviceCapsArg {
+    DRIVERVERSION = 0,
+    TECHNOLOGY = 2,
+    HORZSIZE = 4,
+    VERTSIZE = 6,
+    HORZRES = 8,
+    VERTRES = 10,
+    BITSPIXEL = 12,
+    PLANES = 14,
+    NUMBRUSHES = 16,
+    NUMPENS = 18,
+    NUMMARKERS = 20,
+    NUMFONTS = 22,
+    NUMCOLORS = 24,
+    PDEVICESIZE = 26,
+    CURVECAPS = 28,
+    LINECAPS = 30,
+    POLYGONALCAPS = 32,
+    TEXTCAPS = 34,
+    CLIPCAPS = 36,
+    RASTERCAPS = 38,
+    ASPECTX = 40,
+    ASPECTY = 42,
+    ASPECTXY = 44,
+    LOGPIXELSX = 88,
+    LOGPIXELSY = 90,
+    SIZEPALETTE = 104,
+    NUMRESERVED = 106,
+    COLORRES = 108,
+    PHYSICALWIDTH = 110,
+    PHYSICALHEIGHT = 111,
+    PHYSICALOFFSETX = 112,
+    PHYSICALOFFSETY = 113,
+    SCALINGFACTORX = 114,
+    SCALINGFACTORY = 115,
+    VREFRESH = 116,
+    DESKTOPVERTRES = 117,
+    DESKTOPHORZRES = 118,
+    BLTALIGNMENT = 119,
+}
+
 #[win32_derive::dllexport]
-pub fn GetDeviceCaps(_machine: &mut Machine, hdc: HDC, index: u32) -> u32 {
+pub fn GetDeviceCaps(
+    _machine: &mut Machine,
+    hdc: HDC,
+    index: Result<GetDeviceCapsArg, u32>,
+) -> u32 {
     todo!()
 }

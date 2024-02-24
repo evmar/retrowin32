@@ -382,7 +382,7 @@ pub mod gdi32 {
         pub unsafe fn GetDeviceCaps(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let index = <u32>::from_stack(mem, esp + 8u32);
+            let index = <Result<GetDeviceCapsArg, u32>>::from_stack(mem, esp + 8u32);
             winapi::gdi32::GetDeviceCaps(machine, hdc, index).to_raw()
         }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {

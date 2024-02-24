@@ -67,3 +67,30 @@ pub fn shims_from_x86(
     // eprintln!("out {}", out);
     out.into()
 }
+
+#[proc_macro_derive(TryFromEnum)]
+pub fn try_from_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let enum_: syn::ItemEnum = syn::parse_macro_input!(item);
+
+    let name = &enum_.ident;
+    let matches = enum_.variants.iter().map(|variant| {
+        let num = &variant.discriminant.as_ref().unwrap().1;
+        let sym = &variant.ident;
+        quote! {
+            #num => #name::#sym,
+        }
+    });
+    quote! {
+        impl TryFrom<u32> for #name {
+            type Error = u32;
+
+            fn try_from(value: u32) -> Result<Self, Self::Error> {
+                Ok(match value {
+                    #(#matches)*
+                    _ => return Err(value),
+                })
+            }
+        }
+    }
+    .into()
+}
