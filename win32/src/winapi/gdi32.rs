@@ -364,5 +364,8 @@ pub fn GetDeviceCaps(
     hdc: HDC,
     index: Result<GetDeviceCapsArg, u32>,
 ) -> u32 {
-    todo!()
+    match index.unwrap() {
+        GetDeviceCapsArg::NUMCOLORS => -1i32 as u32, // true color
+        _ => unimplemented!(),
+    }
 }
