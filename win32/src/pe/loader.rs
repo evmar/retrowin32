@@ -63,7 +63,13 @@ fn load_image(
 }
 
 /// Load a PE section into memory.
-fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTION_HEADER) {
+fn load_section(
+    machine: &mut Machine,
+    name: &str,
+    base: u32,
+    buf: &[u8],
+    sec: &IMAGE_SECTION_HEADER,
+) {
     let mut src = sec.PointerToRawData as usize;
     if src == 1 {
         // Graphism (crinkler) hacks this as 1 but gets loaded as if it was zero.
@@ -89,7 +95,7 @@ fn load_section(machine: &mut Machine, base: u32, buf: &[u8], sec: &IMAGE_SECTIO
     let mapping = winapi::kernel32::Mapping {
         addr: dst as u32,
         size: sec.VirtualSize as u32,
-        desc: format!("{:?} ({:?})", sec.name(), flags),
+        desc: format!("{name} {:?} ({:?})", sec.name(), flags),
         flags,
     };
 
@@ -118,11 +124,11 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
             Some(index) => Some(&mut machine.state.kernel32.dlls[index]),
             None => None,
         };
-        for (sym, iat_addr) in dll_imports.entries(image.clone()) {
+        for (i, entry) in dll_imports.ilt(image).enumerate() {
+            let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
-            machine
-                .labels
-                .insert(base + iat_addr, format!("{}@IAT", name));
+            let iat_addr = base + dll_imports.iat_offset() + (i as u32 * 4);
+            machine.labels.insert(iat_addr, format!("{}@IAT", name));
 
             let resolved_addr = if let Some(dll) = dll.as_mut() {
                 dll.resolve(sym, |shim| machine.emu.register(shim))
@@ -130,7 +136,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
                 machine.emu.register(Err(format!("{name} not found")))
             };
             machine.labels.insert(resolved_addr, name);
-            patches.push((base + iat_addr, resolved_addr));
+            patches.push((iat_addr, resolved_addr));
         }
     }
 
@@ -186,7 +192,7 @@ fn load_pe(
     let base = load_image(machine, name, file, buf, relocate);
 
     for sec in file.sections {
-        load_section(machine, base, buf, sec);
+        load_section(machine, name, base, buf, sec);
     }
 
     if relocate {

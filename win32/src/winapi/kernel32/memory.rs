@@ -26,7 +26,7 @@ pub struct Mapping {
 
 /// The set of Mappings managed by the kernel.
 /// These get visualized in the debugger when you hover a pointer.
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Debug)]
 pub struct Mappings(Vec<Mapping>);
 impl Mappings {
     pub fn new() -> Self {
