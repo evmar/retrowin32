@@ -12,6 +12,105 @@ pub struct BuiltinDLL {
     pub file_name: &'static str,
     pub exports: &'static [Symbol],
 }
+pub mod advapi32 {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use winapi::advapi32::*;
+        pub unsafe fn RegCloseKey(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            winapi::advapi32::RegCloseKey(machine, hKey).to_raw()
+        }
+        pub unsafe fn RegCreateKeyExW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpSubKey = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let Reserved = <u32>::from_stack(mem, esp + 12u32);
+            let lpClass = <Option<Str16>>::from_stack(mem, esp + 16u32);
+            let dwOptions = <u32>::from_stack(mem, esp + 20u32);
+            let samDesired = <u32>::from_stack(mem, esp + 24u32);
+            let lpSecurityAttributes = <u32>::from_stack(mem, esp + 28u32);
+            let phkResult = <Option<&mut u32>>::from_stack(mem, esp + 32u32);
+            let lpdwDisposition = <Option<&mut u32>>::from_stack(mem, esp + 36u32);
+            winapi::advapi32::RegCreateKeyExW(
+                machine,
+                hKey,
+                lpSubKey,
+                Reserved,
+                lpClass,
+                dwOptions,
+                samDesired,
+                lpSecurityAttributes,
+                phkResult,
+                lpdwDisposition,
+            )
+            .to_raw()
+        }
+        pub unsafe fn RegQueryValueExW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
+            let lpType = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let lpcbData = <Option<&mut u32>>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegQueryValueExW(
+                machine,
+                hKey,
+                lpValueName,
+                lpReserved,
+                lpType,
+                lpData,
+                lpcbData,
+            )
+            .to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const RegCloseKey: Shim = Shim {
+            name: "RegCloseKey",
+            func: impls::RegCloseKey,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const RegCreateKeyExW: Shim = Shim {
+            name: "RegCreateKeyExW",
+            func: impls::RegCreateKeyExW,
+            stack_consumed: 40u32,
+            is_async: false,
+        };
+        pub const RegQueryValueExW: Shim = Shim {
+            name: "RegQueryValueExW",
+            func: impls::RegQueryValueExW,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
+    }
+    const EXPORTS: [Symbol; 3usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::RegCloseKey,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::RegCreateKeyExW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::RegQueryValueExW,
+        },
+    ];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "advapi32.dll",
+        exports: &EXPORTS,
+    };
+}
 pub mod bass {
     use super::*;
     mod impls {

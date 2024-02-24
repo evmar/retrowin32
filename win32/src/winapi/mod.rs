@@ -1,3 +1,4 @@
+mod advapi32;
 mod alloc;
 mod bass;
 mod builtin;
@@ -68,7 +69,8 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 12] = [
+pub const DLLS: [builtin::BuiltinDLL; 13] = [
+    builtin::advapi32::DLL,
     builtin::bass::DLL,
     builtin::ddraw::DLL,
     builtin::dsound::DLL,
