@@ -86,6 +86,10 @@ impl<'a> Str16<'a> {
         self.0
     }
 
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn to_string(&self) -> String {
         self.0
             .iter()

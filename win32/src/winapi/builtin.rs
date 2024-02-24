@@ -1283,6 +1283,11 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn lstrlenW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpString = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::lstrlenW(machine, lpString).to_raw()
+        }
         pub unsafe fn retrowin32_main(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let entry_point = <u32>::from_stack(mem, esp + 4u32);
@@ -1855,6 +1860,12 @@ pub mod kernel32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const lstrlenW: Shim = Shim {
+            name: "lstrlenW",
+            func: impls::lstrlenW,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const retrowin32_main: Shim = Shim {
             name: "retrowin32_main",
             func: impls::retrowin32_main,
@@ -1862,7 +1873,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 92usize] = [
+    const EXPORTS: [Symbol; 93usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2226,6 +2237,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::WriteFile,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::lstrlenW,
         },
         Symbol {
             ordinal: None,
