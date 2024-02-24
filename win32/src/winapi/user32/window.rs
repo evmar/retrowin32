@@ -229,6 +229,11 @@ pub fn DestroyWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
 }
 
 #[win32_derive::dllexport]
+pub fn GetDesktopWindow(_machine: &mut Machine) -> HWND {
+    HWND::null()
+}
+
+#[win32_derive::dllexport]
 pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
     HWND::from_raw(machine.state.user32.windows.len() as u32)
 }
