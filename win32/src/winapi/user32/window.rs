@@ -416,3 +416,8 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
         _ => todo!("GetWindowLong({nIndex})"),
     }
 }
+
+#[win32_derive::dllexport]
+pub fn GetDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
+    HDC::null()
+}

@@ -314,3 +314,8 @@ pub fn TextOutA(
     let _text = std::str::from_utf8(lpString.unwrap()).unwrap();
     true
 }
+
+#[win32_derive::dllexport]
+pub fn GetDeviceCaps(_machine: &mut Machine, hdc: HDC, index: u32) -> u32 {
+    todo!()
+}

@@ -379,6 +379,12 @@ pub mod gdi32 {
             let hdc = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::DeleteDC(machine, hdc).to_raw()
         }
+        pub unsafe fn GetDeviceCaps(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let index = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::GetDeviceCaps(machine, hdc, index).to_raw()
+        }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let handle = <u32>::from_stack(mem, esp + 4u32);
@@ -475,6 +481,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetDeviceCaps: Shim = Shim {
+            name: "GetDeviceCaps",
+            func: impls::GetDeviceCaps,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const GetObjectA: Shim = Shim {
             name: "GetObjectA",
             func: impls::GetObjectA,
@@ -524,7 +536,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 13usize] = [
+    const EXPORTS: [Symbol; 14usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -544,6 +556,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::DeleteDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetDeviceCaps,
         },
         Symbol {
             ordinal: None,
@@ -2587,6 +2603,11 @@ pub mod user32 {
             let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
             winapi::user32::GetClientRect(machine, hWnd, lpRect).to_raw()
         }
+        pub unsafe fn GetDC(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            winapi::user32::GetDC(machine, hWnd).to_raw()
+        }
         pub unsafe fn GetDesktopWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetDesktopWindow(machine).to_raw()
@@ -2847,6 +2868,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetDC: Shim = Shim {
+            name: "GetDC",
+            func: impls::GetDC,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetDesktopWindow: Shim = Shim {
             name: "GetDesktopWindow",
             func: impls::GetDesktopWindow,
@@ -3022,7 +3049,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 41usize] = [
+    const EXPORTS: [Symbol; 42usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3070,6 +3097,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetClientRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetDC,
         },
         Symbol {
             ordinal: None,
