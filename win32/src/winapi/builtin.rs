@@ -69,6 +69,25 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegSetValueExW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
+            let lpType = <u32>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let cbData = <u32>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegSetValueExW(
+                machine,
+                hKey,
+                lpValueName,
+                lpReserved,
+                lpType,
+                lpData,
+                cbData,
+            )
+            .to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -91,8 +110,14 @@ pub mod advapi32 {
             stack_consumed: 28u32,
             is_async: false,
         };
+        pub const RegSetValueExW: Shim = Shim {
+            name: "RegSetValueExW",
+            func: impls::RegSetValueExW,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 3usize] = [
+    const EXPORTS: [Symbol; 4usize] = [
         Symbol {
             ordinal: None,
             shim: shims::RegCloseKey,
@@ -104,6 +129,10 @@ pub mod advapi32 {
         Symbol {
             ordinal: None,
             shim: shims::RegQueryValueExW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::RegSetValueExW,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

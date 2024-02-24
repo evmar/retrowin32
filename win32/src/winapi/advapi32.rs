@@ -40,3 +40,16 @@ pub fn RegQueryValueExW(
 ) -> u32 {
     2 // ERROR_FILE_NOT_FOUND
 }
+
+#[win32_derive::dllexport]
+pub fn RegSetValueExW(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpValueName: Option<Str16>,
+    lpReserved: u32,
+    lpType: u32,
+    lpData: u32,
+    cbData: u32,
+) -> u32 {
+    0 // success
+}
