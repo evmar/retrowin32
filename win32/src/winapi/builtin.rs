@@ -2770,8 +2770,9 @@ pub mod user32 {
         }
         pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            winapi::user32::ReleaseDC(machine, hdc).to_raw()
+            let hwnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hdc = <HDC>::from_stack(mem, esp + 8u32);
+            winapi::user32::ReleaseDC(machine, hwnd, hdc).to_raw()
         }
         pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3035,7 +3036,7 @@ pub mod user32 {
         pub const ReleaseDC: Shim = Shim {
             name: "ReleaseDC",
             func: impls::ReleaseDC,
-            stack_consumed: 8u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const SetCursor: Shim = Shim {
