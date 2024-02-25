@@ -748,8 +748,8 @@ pub mod kernel32 {
         pub unsafe fn FindResourceW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let lpName = <ResourceName<&Str16>>::from_stack(mem, esp + 8u32);
-            let lpType = <Option<&Str16>>::from_stack(mem, esp + 12u32);
+            let lpName = <ResourceId<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpType = <ResourceId<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
         }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) -> u32 {
@@ -2828,7 +2828,7 @@ pub mod user32 {
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
-            let name = <u32>::from_stack(mem, esp + 8u32);
+            let name = <ResourceId<&str>>::from_stack(mem, esp + 8u32);
             let typ = <u32>::from_stack(mem, esp + 12u32);
             let cx = <u32>::from_stack(mem, esp + 16u32);
             let cy = <u32>::from_stack(mem, esp + 20u32);

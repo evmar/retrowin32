@@ -4,34 +4,11 @@ use memory::Mem;
 use crate::{
     pe,
     reader::Reader,
-    winapi::{gdi32, stack_args::FromArg, types::*},
+    winapi::{gdi32, kernel32::ResourceId, types::*},
     Machine,
 };
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
-
-fn IS_INTRESOURCE(x: u32) -> bool {
-    x >> 16 == 0
-}
-
-#[derive(Debug)]
-pub enum ResourceName<T> {
-    Id(u16),
-    Name(T),
-}
-
-impl<'a, T> FromArg<'a> for ResourceName<T>
-where
-    Option<T>: FromArg<'a>,
-{
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
-        if IS_INTRESOURCE(arg) {
-            ResourceName::Id(arg as u16)
-        } else {
-            ResourceName::Name(<Option<T>>::from_arg(mem, arg).unwrap())
-        }
-    }
-}
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
@@ -222,17 +199,13 @@ fn parse_bitmap(buf: Mem) -> anyhow::Result<Bitmap> {
 pub fn LoadImageA(
     machine: &mut Machine,
     hInstance: u32,
-    name: u32,
+    name: ResourceId<&str>,
     typ: u32,
     cx: u32,
     cy: u32,
     fuLoad: u32,
 ) -> u32 {
     assert!(hInstance == machine.state.kernel32.image_base);
-    if !IS_INTRESOURCE(name) {
-        log::error!("unimplemented image name {name:x}");
-        return 0;
-    }
 
     if fuLoad != 0 {
         log::error!("unimplemented fuLoad {:x}", fuLoad);
@@ -244,10 +217,12 @@ pub fn LoadImageA(
     const IMAGE_BITMAP: u32 = 0;
     match typ {
         IMAGE_BITMAP => {
-            let image = machine.mem().slice(machine.state.kernel32.image_base..);
-            let buf =
-                pe::get_resource(image, &machine.state.user32.resources, pe::RT::BITMAP, name)
-                    .unwrap();
+            let buf = crate::winapi::kernel32::find_resource(
+                machine,
+                ResourceId::Id(pe::RT::BITMAP as u32),
+                name,
+            )
+            .unwrap();
             let bmp = parse_bitmap(buf).unwrap();
             machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp))
         }
@@ -269,12 +244,10 @@ pub fn LoadStringW(
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
-    let image = machine.mem().slice(machine.state.kernel32.image_base..);
-    let block = match pe::get_resource(
-        image,
-        &machine.state.user32.resources,
-        pe::RT::STRING,
-        resource_id,
+    let block = match crate::winapi::kernel32::find_resource(
+        machine,
+        ResourceId::Id(pe::RT::STRING as u32),
+        ResourceId::Id(resource_id),
     ) {
         Some(block) => block,
         None => todo!(),

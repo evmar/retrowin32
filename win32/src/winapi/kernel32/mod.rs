@@ -4,6 +4,7 @@
 mod dll;
 mod file;
 mod memory;
+mod resource;
 mod thread;
 
 use super::{
@@ -23,9 +24,8 @@ use std::{collections::HashMap, io::Write};
 pub use self::memory::*;
 pub use dll::*;
 pub use file::*;
+pub use resource::*;
 pub use thread::*;
-
-pub use super::user32::ResourceName;
 
 const TRACE_CONTEXT: &'static str = "kernel32";
 
@@ -974,14 +974,4 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
         unsafe { std::slice::from_raw_parts(lpString2.buf().as_ptr() as *const u8, copy_len) };
     dst.as_mut_slice_todo().copy_from_slice(src);
     lpString1
-}
-
-#[win32_derive::dllexport]
-pub fn FindResourceW(
-    _machine: &mut Machine,
-    hModule: u32,
-    lpName: ResourceName<&Str16>,
-    lpType: Option<&Str16>,
-) -> u32 {
-    todo!()
 }

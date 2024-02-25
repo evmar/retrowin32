@@ -6,7 +6,7 @@
 
 use crate::winapi::types::{DWORD, WORD};
 use memory::Mem;
-use std::mem::size_of;
+use std::{mem::size_of, ops::Range};
 
 use super::IMAGE_DATA_DIRECTORY;
 
@@ -49,6 +49,7 @@ unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
 /// Top-level dir entry.
 #[derive(Clone, Copy)]
+#[repr(u32)]
 pub enum RT {
     BITMAP = 2,
     STRING = 6,
@@ -102,22 +103,20 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
 unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
-pub fn get_resource<'a>(
+/// Returns a the range within the image of the data.
+pub fn find_resource<'a>(
     image: Mem<'a>,
     section: &IMAGE_DATA_DIRECTORY,
-    query_type: RT,
+    query_type: u32,
     query_id: u32,
-) -> Option<Mem<'a>> {
+) -> Option<Range<u32>> {
     let section = image.sub(section.VirtualAddress, section.Size);
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
     let dir = ImageResourceDirectory::read(section, 0);
 
-    let etype = dir
-        .entries
-        .iter()
-        .find(|entry| entry.has_id(query_type as u32))?;
+    let etype = dir.entries.iter().find(|entry| entry.has_id(query_type))?;
     let dir = match etype.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
@@ -137,6 +136,5 @@ pub fn get_resource<'a>(
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };
-    let buf = image.sub(data.OffsetToData, data.Size);
-    return Some(buf);
+    Some(data.OffsetToData..data.OffsetToData + data.Size)
 }
