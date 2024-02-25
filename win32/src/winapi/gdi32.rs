@@ -401,3 +401,8 @@ pub fn SetDIBitsToDevice(
 ) -> u32 {
     0 // fail
 }
+
+#[win32_derive::dllexport]
+pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
+    0 // LTR
+}

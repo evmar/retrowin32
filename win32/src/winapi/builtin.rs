@@ -428,6 +428,11 @@ pub mod gdi32 {
             let index = <Result<GetDeviceCapsArg, u32>>::from_stack(mem, esp + 8u32);
             winapi::gdi32::GetDeviceCaps(machine, hdc, index).to_raw()
         }
+        pub unsafe fn GetLayout(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::GetLayout(machine, hdc).to_raw()
+        }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let handle = <u32>::from_stack(mem, esp + 4u32);
@@ -562,6 +567,12 @@ pub mod gdi32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetLayout: Shim = Shim {
+            name: "GetLayout",
+            func: impls::GetLayout,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetObjectA: Shim = Shim {
             name: "GetObjectA",
             func: impls::GetObjectA,
@@ -617,7 +628,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 17usize] = [
+    const EXPORTS: [Symbol; 18usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -649,6 +660,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::GetDeviceCaps,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetLayout,
         },
         Symbol {
             ordinal: None,
@@ -2959,6 +2974,16 @@ pub mod user32 {
             let uType = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw()
         }
+        pub unsafe fn MoveWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let X = <u32>::from_stack(mem, esp + 8u32);
+            let Y = <u32>::from_stack(mem, esp + 12u32);
+            let nWidth = <u32>::from_stack(mem, esp + 16u32);
+            let nHeight = <u32>::from_stack(mem, esp + 20u32);
+            let bRepaint = <bool>::from_stack(mem, esp + 24u32);
+            winapi::user32::MoveWindow(machine, hWnd, X, Y, nWidth, nHeight, bRepaint).to_raw()
+        }
         pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
@@ -3279,6 +3304,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const MoveWindow: Shim = Shim {
+            name: "MoveWindow",
+            func: impls::MoveWindow,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
         pub const PeekMessageA: Shim = Shim {
             name: "PeekMessageA",
             func: impls::PeekMessageA,
@@ -3388,7 +3419,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 51usize] = [
+    const EXPORTS: [Symbol; 52usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3520,6 +3551,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::MessageBoxA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MoveWindow,
         },
         Symbol {
             ordinal: None,

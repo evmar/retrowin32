@@ -435,6 +435,19 @@ pub fn SetWindowPos(
 }
 
 #[win32_derive::dllexport]
+pub fn MoveWindow(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    X: u32,
+    Y: u32,
+    nWidth: u32,
+    nHeight: u32,
+    bRepaint: bool,
+) -> bool {
+    true // success
+}
+
+#[win32_derive::dllexport]
 pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
     let rect = lpRect.unwrap();
     *rect = RECT {
