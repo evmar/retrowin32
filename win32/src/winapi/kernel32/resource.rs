@@ -47,7 +47,7 @@ pub fn find_resource<'a>(
     let image = machine.mem().slice(machine.state.kernel32.image_base..);
     Some(image.slice(pe::find_resource(
         image,
-        &machine.state.user32.resources,
+        &machine.state.kernel32.resources,
         typ.unwrap_id(),
         name.unwrap_id(),
     )?))
@@ -63,7 +63,7 @@ pub fn FindResourceW(
     let image = machine.mem().slice(machine.state.kernel32.image_base..);
     match pe::find_resource(
         image,
-        &machine.state.user32.resources,
+        &machine.state.kernel32.resources,
         lpType.unwrap_id(),
         lpName.unwrap_id(),
     ) {

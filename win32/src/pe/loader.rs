@@ -233,7 +233,7 @@ pub fn load_exe(
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
     {
-        machine.state.user32.resources = res_data.clone();
+        machine.state.kernel32.resources = res_data.clone();
     }
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;

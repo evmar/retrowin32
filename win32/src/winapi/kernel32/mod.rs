@@ -15,6 +15,7 @@ use super::{
 };
 use crate::{
     machine::{Machine, MemImpl},
+    pe,
     segments::SegmentDescriptor,
 };
 use ::memory::{Mem, Pod};
@@ -152,6 +153,9 @@ pub struct State {
     pub dlls: Vec<DLL>,
 
     #[serde(skip)] // TODO
+    pub resources: pe::IMAGE_DATA_DIRECTORY,
+
+    #[serde(skip)] // TODO
     files: HashMap<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)]
@@ -209,6 +213,7 @@ impl State {
             cmdline,
             #[cfg(feature = "x86-64")]
             ldt,
+            resources: pe::IMAGE_DATA_DIRECTORY::default(),
         }
     }
 

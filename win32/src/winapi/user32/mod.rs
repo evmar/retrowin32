@@ -6,7 +6,7 @@ mod window;
 
 pub use super::gdi32::HDC;
 use super::{stack_args::ToX86, types::*};
-use crate::{machine::Machine, pe};
+use crate::machine::Machine;
 pub use message::*;
 use num_traits::FromPrimitive;
 pub use resource::*;
@@ -21,7 +21,6 @@ const TRACE_CONTEXT: &'static str = "user32";
 type HINSTANCE = u32;
 
 pub struct State {
-    pub resources: pe::IMAGE_DATA_DIRECTORY,
     wndclasses: Vec<Rc<WndClass>>,
     windows: Vec<Window>,
     messages: VecDeque<MSG>,
@@ -37,7 +36,6 @@ impl State {
 impl Default for State {
     fn default() -> Self {
         State {
-            resources: pe::IMAGE_DATA_DIRECTORY::default(),
             wndclasses: Vec::new(),
             windows: Vec::new(),
             messages: VecDeque::new(),
