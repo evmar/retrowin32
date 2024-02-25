@@ -71,3 +71,13 @@ pub fn FindResourceW(
         Some(r) => machine.state.kernel32.image_base + r.start,
     }
 }
+
+#[win32_derive::dllexport]
+pub fn LoadResource(_machine: &mut Machine, hModule: u32, hResInfo: u32) -> u32 {
+    hResInfo
+}
+
+#[win32_derive::dllexport]
+pub fn LockResource(_machine: &mut Machine, hResData: u32) -> u32 {
+    hResData
+}

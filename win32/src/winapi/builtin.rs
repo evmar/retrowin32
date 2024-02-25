@@ -1080,6 +1080,17 @@ pub mod kernel32 {
             let dwFlags = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).to_raw()
         }
+        pub unsafe fn LoadResource(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hModule = <u32>::from_stack(mem, esp + 4u32);
+            let hResInfo = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::LoadResource(machine, hModule, hResInfo).to_raw()
+        }
+        pub unsafe fn LockResource(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hResData = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::LockResource(machine, hResData).to_raw()
+        }
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let CodePage = <Result<CP, u32>>::from_stack(mem, esp + 4u32);
@@ -1717,6 +1728,18 @@ pub mod kernel32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const LoadResource: Shim = Shim {
+            name: "LoadResource",
+            func: impls::LoadResource,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const LockResource: Shim = Shim {
+            name: "LockResource",
+            func: impls::LockResource,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const MultiByteToWideChar: Shim = Shim {
             name: "MultiByteToWideChar",
             func: impls::MultiByteToWideChar,
@@ -1898,7 +1921,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 95usize] = [
+    const EXPORTS: [Symbol; 97usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2158,6 +2181,14 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadLibraryExW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadResource,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LockResource,
         },
         Symbol {
             ordinal: None,
