@@ -961,3 +961,15 @@ pub fn lstrlenW(_machine: &mut Machine, lpString: Option<Str16>) -> u32 {
         Some(str) => str.len() as u32,
     }
 }
+
+#[win32_derive::dllexport]
+pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<Str16>) -> u32 {
+    let lpString2 = lpString2.unwrap();
+    // lpString1 is a buffer of unspecified size!
+    let copy_len = (lpString2.len() + 1) * 2; // include nul
+    let dst = machine.mem().sub(lpString1, copy_len as u32);
+    let src =
+        unsafe { std::slice::from_raw_parts(lpString2.buf().as_ptr() as *const u8, copy_len) };
+    dst.as_mut_slice_todo().copy_from_slice(src);
+    lpString1
+}
