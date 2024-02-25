@@ -973,3 +973,13 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<Str16>)
     dst.as_mut_slice_todo().copy_from_slice(src);
     lpString1
 }
+
+#[win32_derive::dllexport]
+pub fn FindResourceW(
+    _machine: &mut Machine,
+    hModule: u32,
+    lpName: Option<Str16>,
+    lpType: Option<Str16>,
+) -> u32 {
+    todo!()
+}
