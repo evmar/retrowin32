@@ -25,6 +25,8 @@ pub use dll::*;
 pub use file::*;
 pub use thread::*;
 
+pub use super::user32::ResourceName;
+
 const TRACE_CONTEXT: &'static str = "kernel32";
 
 /// Process command line, as exposed in GetCommandLine() and also TEB.
@@ -978,7 +980,7 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
 pub fn FindResourceW(
     _machine: &mut Machine,
     hModule: u32,
-    lpName: Option<&Str16>,
+    lpName: ResourceName<&Str16>,
     lpType: Option<&Str16>,
 ) -> u32 {
     todo!()

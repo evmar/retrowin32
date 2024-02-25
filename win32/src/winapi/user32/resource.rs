@@ -4,7 +4,7 @@ use memory::Mem;
 use crate::{
     pe,
     reader::Reader,
-    winapi::{gdi32, types::*},
+    winapi::{gdi32, stack_args::FromArg, types::*},
     Machine,
 };
 
@@ -12,6 +12,25 @@ const TRACE_CONTEXT: &'static str = "user32/resource";
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
+}
+
+#[derive(Debug)]
+pub enum ResourceName<T> {
+    Id(u16),
+    Name(T),
+}
+
+impl<'a, T> FromArg<'a> for ResourceName<T>
+where
+    Option<T>: FromArg<'a>,
+{
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        if IS_INTRESOURCE(arg) {
+            ResourceName::Id(arg as u16)
+        } else {
+            ResourceName::Name(<Option<T>>::from_arg(mem, arg).unwrap())
+        }
+    }
 }
 
 // TODO: switch to the HANDLE<T> type?

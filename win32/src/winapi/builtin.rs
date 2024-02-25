@@ -748,7 +748,7 @@ pub mod kernel32 {
         pub unsafe fn FindResourceW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let lpName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpName = <ResourceName<&Str16>>::from_stack(mem, esp + 8u32);
             let lpType = <Option<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
         }
