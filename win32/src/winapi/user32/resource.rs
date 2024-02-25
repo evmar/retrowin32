@@ -18,6 +18,7 @@ fn IS_INTRESOURCE(x: u32) -> bool {
 pub type HCURSOR = u32;
 pub type HICON = u32;
 pub type HBRUSH = u32;
+pub type HMENU = u32;
 
 #[win32_derive::dllexport]
 pub fn LoadIconA(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {
@@ -31,6 +32,11 @@ pub fn LoadIconW(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32
 
 #[win32_derive::dllexport]
 pub fn LoadCursorA(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn LoadCursorW(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
     0
 }
 
@@ -277,4 +283,14 @@ pub fn LoadStringW(
         dst.put::<u16>(copy_len as u32, 0);
         copy_len as u32
     }
+}
+
+#[win32_derive::dllexport]
+pub fn LoadMenuW(_machine: &mut Machine, hInstance: u32, lpMenuName: u32) -> HMENU {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn LoadAcceleratorsW(_machine: &mut Machine, hInstance: u32, lpTableName: u32) -> HMENU {
+    0
 }

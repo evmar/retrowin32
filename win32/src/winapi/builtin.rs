@@ -2692,11 +2692,23 @@ pub mod user32 {
             let nIndex = <i32>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowLongA(machine, hWnd, nIndex).to_raw()
         }
+        pub unsafe fn LoadAcceleratorsW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpTableName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadAcceleratorsW(machine, hInstance, lpTableName).to_raw()
+        }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
             let lpCursorName = <u32>::from_stack(mem, esp + 8u32);
             winapi::user32::LoadCursorA(machine, hInstance, lpCursorName).to_raw()
+        }
+        pub unsafe fn LoadCursorW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpCursorName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadCursorW(machine, hInstance, lpCursorName).to_raw()
         }
         pub unsafe fn LoadIconA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2719,6 +2731,12 @@ pub mod user32 {
             let cy = <u32>::from_stack(mem, esp + 20u32);
             let fuLoad = <u32>::from_stack(mem, esp + 24u32);
             winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
+        }
+        pub unsafe fn LoadMenuW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpMenuName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadMenuW(machine, hInstance, lpMenuName).to_raw()
         }
         pub unsafe fn LoadStringW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2767,6 +2785,11 @@ pub mod user32 {
             let mem = machine.mem().detach();
             let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, esp + 4u32);
             winapi::user32::RegisterClassExA(machine, lpWndClassEx).to_raw()
+        }
+        pub unsafe fn RegisterClassW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, esp + 4u32);
+            winapi::user32::RegisterClassW(machine, lpWndClass).to_raw()
         }
         pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2973,9 +2996,21 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const LoadAcceleratorsW: Shim = Shim {
+            name: "LoadAcceleratorsW",
+            func: impls::LoadAcceleratorsW,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: impls::LoadCursorA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const LoadCursorW: Shim = Shim {
+            name: "LoadCursorW",
+            func: impls::LoadCursorW,
             stack_consumed: 12u32,
             is_async: false,
         };
@@ -2995,6 +3030,12 @@ pub mod user32 {
             name: "LoadImageA",
             func: impls::LoadImageA,
             stack_consumed: 28u32,
+            is_async: false,
+        };
+        pub const LoadMenuW: Shim = Shim {
+            name: "LoadMenuW",
+            func: impls::LoadMenuW,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const LoadStringW: Shim = Shim {
@@ -3030,6 +3071,12 @@ pub mod user32 {
         pub const RegisterClassExA: Shim = Shim {
             name: "RegisterClassExA",
             func: impls::RegisterClassExA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const RegisterClassW: Shim = Shim {
+            name: "RegisterClassW",
+            func: impls::RegisterClassW,
             stack_consumed: 8u32,
             is_async: false,
         };
@@ -3106,7 +3153,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 43usize] = [
+    const EXPORTS: [Symbol; 47usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3193,7 +3240,15 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::LoadAcceleratorsW,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::LoadCursorA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadCursorW,
         },
         Symbol {
             ordinal: None,
@@ -3206,6 +3261,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadImageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadMenuW,
         },
         Symbol {
             ordinal: None,
@@ -3230,6 +3289,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::RegisterClassExA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::RegisterClassW,
         },
         Symbol {
             ordinal: None,

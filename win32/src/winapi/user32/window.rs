@@ -59,6 +59,12 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     RegisterClassExA(machine, Some(&ex))
 }
 
+#[win32_derive::dllexport]
+pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
+    // TODO: calling the *W variants tags the windows as expecting wide messages(!).
+    RegisterClassA(machine, lpWndClass)
+}
+
 #[repr(C, packed)]
 #[derive(Clone, Debug)]
 pub struct WNDCLASSEXA {
