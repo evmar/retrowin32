@@ -119,7 +119,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
 }
 
 #[win32_derive::dllexport]
-pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<Str16>) -> HMODULE {
+pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<&Str16>) -> HMODULE {
     let ascii = lpModuleName.map(|str| str.to_string());
     GetModuleHandleA(machine, ascii.as_deref())
 }
@@ -128,7 +128,7 @@ pub fn GetModuleHandleW(machine: &mut Machine, lpModuleName: Option<Str16>) -> H
 pub fn GetModuleHandleExW(
     machine: &mut Machine,
     dwFlags: u32,
-    lpModuleName: Option<Str16>,
+    lpModuleName: Option<&Str16>,
     hModule: Option<&mut HMODULE>,
 ) -> bool {
     if dwFlags != 0 {
@@ -206,7 +206,7 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
 #[win32_derive::dllexport]
 pub fn LoadLibraryExW(
     machine: &mut Machine,
-    lpLibFileName: Option<Str16>,
+    lpLibFileName: Option<&Str16>,
     hFile: HFILE,
     dwFlags: u32,
 ) -> HMODULE {

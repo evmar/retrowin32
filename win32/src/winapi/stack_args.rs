@@ -130,7 +130,7 @@ impl<'a> FromArg<'a> for Option<&'a str> {
     }
 }
 
-impl<'a> FromArg<'a> for Option<Str16<'a>> {
+impl<'a> FromArg<'a> for Option<&'a Str16> {
     unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         Str16::from_ptr(mem, arg)
     }

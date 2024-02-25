@@ -83,7 +83,7 @@ pub fn CreateFileA(
 #[win32_derive::dllexport]
 pub fn CreateFileW(
     machine: &mut Machine,
-    lpFileName: Option<Str16>,
+    lpFileName: Option<&Str16>,
     dwDesiredAccess: u32,
     dwShareMode: u32,
     lpSecurityAttributes: u32,

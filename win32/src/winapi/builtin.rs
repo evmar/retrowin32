@@ -28,9 +28,9 @@ pub mod advapi32 {
         pub unsafe fn RegCreateKeyExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
-            let lpSubKey = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpSubKey = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             let Reserved = <u32>::from_stack(mem, esp + 12u32);
-            let lpClass = <Option<Str16>>::from_stack(mem, esp + 16u32);
+            let lpClass = <Option<&Str16>>::from_stack(mem, esp + 16u32);
             let dwOptions = <u32>::from_stack(mem, esp + 20u32);
             let samDesired = <u32>::from_stack(mem, esp + 24u32);
             let lpSecurityAttributes = <u32>::from_stack(mem, esp + 28u32);
@@ -53,7 +53,7 @@ pub mod advapi32 {
         pub unsafe fn RegQueryValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
-            let lpValueName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpValueName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             let lpReserved = <u32>::from_stack(mem, esp + 12u32);
             let lpType = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
             let lpData = <u32>::from_stack(mem, esp + 20u32);
@@ -72,7 +72,7 @@ pub mod advapi32 {
         pub unsafe fn RegSetValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
-            let lpValueName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpValueName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             let lpReserved = <u32>::from_stack(mem, esp + 12u32);
             let lpType = <u32>::from_stack(mem, esp + 16u32);
             let lpData = <u32>::from_stack(mem, esp + 20u32);
@@ -691,7 +691,7 @@ pub mod kernel32 {
         }
         pub unsafe fn CreateFileW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpFileName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             let dwDesiredAccess = <u32>::from_stack(mem, esp + 8u32);
             let dwShareMode = <u32>::from_stack(mem, esp + 12u32);
             let lpSecurityAttributes = <u32>::from_stack(mem, esp + 16u32);
@@ -748,8 +748,8 @@ pub mod kernel32 {
         pub unsafe fn FindResourceW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let lpName = <Option<Str16>>::from_stack(mem, esp + 8u32);
-            let lpType = <Option<Str16>>::from_stack(mem, esp + 12u32);
+            let lpName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpType = <Option<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
         }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) -> u32 {
@@ -809,7 +809,7 @@ pub mod kernel32 {
         }
         pub unsafe fn GetEnvironmentVariableW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let name = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let name = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             let buf = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableW(machine, name, buf).to_raw()
         }
@@ -843,21 +843,21 @@ pub mod kernel32 {
         pub unsafe fn GetModuleHandleExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwFlags = <u32>::from_stack(mem, esp + 4u32);
-            let lpModuleName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpModuleName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             let hModule = <Option<&mut HMODULE>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::GetModuleHandleExW(machine, dwFlags, lpModuleName, hModule).to_raw()
         }
         pub unsafe fn GetModuleHandleW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpModuleName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpModuleName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetModuleHandleW(machine, lpModuleName).to_raw()
         }
         pub unsafe fn GetPrivateProfileIntW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpAppName = <Option<Str16>>::from_stack(mem, esp + 4u32);
-            let lpKeyName = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpAppName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            let lpKeyName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             let nDefault = <u32>::from_stack(mem, esp + 12u32);
-            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 16u32);
+            let lpFileName = <Option<&Str16>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::GetPrivateProfileIntW(
                 machine, lpAppName, lpKeyName, nDefault, lpFileName,
             )
@@ -865,11 +865,11 @@ pub mod kernel32 {
         }
         pub unsafe fn GetPrivateProfileStringW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpAppName = <Option<Str16>>::from_stack(mem, esp + 4u32);
-            let lpKeyName = <Option<Str16>>::from_stack(mem, esp + 8u32);
-            let lpDefault = <Option<Str16>>::from_stack(mem, esp + 12u32);
+            let lpAppName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            let lpKeyName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpDefault = <Option<&Str16>>::from_stack(mem, esp + 12u32);
             let lpReturnedString = <ArrayWithSizeMut<u16>>::from_stack(mem, esp + 16u32);
-            let lpFileName = <Option<Str16>>::from_stack(mem, esp + 24u32);
+            let lpFileName = <Option<&Str16>>::from_stack(mem, esp + 24u32);
             winapi::kernel32::GetPrivateProfileStringW(
                 machine,
                 lpAppName,
@@ -1075,7 +1075,7 @@ pub mod kernel32 {
         }
         pub unsafe fn LoadLibraryExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpLibFileName = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpLibFileName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             let hFile = <HFILE>::from_stack(mem, esp + 8u32);
             let dwFlags = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).to_raw()
@@ -1293,12 +1293,12 @@ pub mod kernel32 {
         pub unsafe fn lstrcpyW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString1 = <u32>::from_stack(mem, esp + 4u32);
-            let lpString2 = <Option<Str16>>::from_stack(mem, esp + 8u32);
+            let lpString2 = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::lstrcpyW(machine, lpString1, lpString2).to_raw()
         }
         pub unsafe fn lstrlenW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpString = <Option<Str16>>::from_stack(mem, esp + 4u32);
+            let lpString = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::lstrlenW(machine, lpString).to_raw()
         }
         pub unsafe fn retrowin32_main(machine: &mut Machine, esp: u32) -> u32 {
@@ -2616,7 +2616,7 @@ pub mod user32 {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
             let lpClassName = <CreateWindowClassName<'_>>::from_stack(mem, esp + 8u32);
-            let lpWindowName = <Option<Str16<'_>>>::from_stack(mem, esp + 12u32);
+            let lpWindowName = <Option<&Str16>>::from_stack(mem, esp + 12u32);
             let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
             let X = <u32>::from_stack(mem, esp + 20u32);
             let Y = <u32>::from_stack(mem, esp + 24u32);

@@ -155,14 +155,14 @@ impl TryFrom<u32> for WindowStyleEx {
 #[derive(Debug)]
 pub enum CreateWindowClassName<'a> {
     Atom(u16),
-    Name(Str16<'a>),
+    Name(&'a Str16),
 }
 impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
         } else {
-            CreateWindowClassName::Name(<Option<Str16>>::from_arg(mem, arg).unwrap())
+            CreateWindowClassName::Name(<Option<&Str16>>::from_arg(mem, arg).unwrap())
         }
     }
 }
@@ -215,7 +215,7 @@ pub async fn CreateWindowExW(
     machine: &mut Machine,
     dwExStyle: Result<WindowStyleEx, u32>,
     lpClassName: CreateWindowClassName<'_>,
-    lpWindowName: Option<Str16<'_>>,
+    lpWindowName: Option<&Str16>,
     dwStyle: Result<WindowStyle, u32>,
     X: u32,
     Y: u32,

@@ -523,7 +523,7 @@ pub fn GetEnvironmentVariableA(
 #[win32_derive::dllexport]
 pub fn GetEnvironmentVariableW(
     _machine: &mut Machine,
-    name: Option<Str16>,
+    name: Option<&Str16>,
     buf: ArrayWithSize<u16>,
 ) -> bool {
     false
@@ -928,10 +928,10 @@ pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(
     _machine: &mut Machine,
-    lpAppName: Option<Str16>,
-    lpKeyName: Option<Str16>,
+    lpAppName: Option<&Str16>,
+    lpKeyName: Option<&Str16>,
     nDefault: u32,
-    lpFileName: Option<Str16>,
+    lpFileName: Option<&Str16>,
 ) -> u32 {
     nDefault // not found
 }
@@ -939,11 +939,11 @@ pub fn GetPrivateProfileIntW(
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileStringW(
     _machine: &mut Machine,
-    lpAppName: Option<Str16>,
-    lpKeyName: Option<Str16>,
-    lpDefault: Option<Str16>,
+    lpAppName: Option<&Str16>,
+    lpKeyName: Option<&Str16>,
+    lpDefault: Option<&Str16>,
     lpReturnedString: ArrayWithSizeMut<u16>,
-    lpFileName: Option<Str16>,
+    lpFileName: Option<&Str16>,
 ) -> u32 {
     let dst = lpReturnedString.unwrap();
     let src = lpDefault.unwrap();
@@ -954,7 +954,7 @@ pub fn GetPrivateProfileStringW(
 }
 
 #[win32_derive::dllexport]
-pub fn lstrlenW(_machine: &mut Machine, lpString: Option<Str16>) -> u32 {
+pub fn lstrlenW(_machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
     match lpString {
         None => 0,
         // The mapping to Str16 already computes the string length.
@@ -963,7 +963,7 @@ pub fn lstrlenW(_machine: &mut Machine, lpString: Option<Str16>) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<Str16>) -> u32 {
+pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>) -> u32 {
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
     let copy_len = (lpString2.len() + 1) * 2; // include nul
@@ -978,8 +978,8 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<Str16>)
 pub fn FindResourceW(
     _machine: &mut Machine,
     hModule: u32,
-    lpName: Option<Str16>,
-    lpType: Option<Str16>,
+    lpName: Option<&Str16>,
+    lpType: Option<&Str16>,
 ) -> u32 {
     todo!()
 }

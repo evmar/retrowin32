@@ -2,6 +2,8 @@
 
 use std::marker::PhantomData;
 
+pub use super::str16::{Str16, String16};
+
 pub type WORD = u16;
 pub type DWORD = u32;
 
@@ -69,84 +71,6 @@ pub type HFILE = HANDLE<HFILET>;
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;
-
-/// UTF-16 string view.
-#[derive(PartialEq, Eq)]
-pub struct Str16<'a>(&'a [u16]);
-
-impl<'a> Str16<'a> {
-    pub fn from_buffer(mem: &'a [u16]) -> Self {
-        Str16(mem)
-    }
-    pub fn from_nul_term(mem: &'a [u16]) -> Self {
-        let end = mem.iter().position(|&c| c == 0).unwrap();
-        Str16(&mem[..end])
-    }
-    pub unsafe fn from_ptr(mem: memory::Mem, addr: u32) -> Option<Self> {
-        if addr == 0 {
-            return None;
-        }
-        let mem16: &[u16] = {
-            let mem = mem.slice(addr..);
-            let ptr = mem.as_slice_todo().as_ptr() as *const u16;
-            std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
-        };
-        Some(Str16::from_nul_term(mem16))
-    }
-
-    pub fn buf(&self) -> &'a [u16] {
-        self.0
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn to_string(&self) -> String {
-        self.0
-            .iter()
-            .map(|&c| {
-                if c > 0xFF {
-                    // TODO
-                    panic!("unhandled non-ascii {:?}", char::from_u32(c as u32));
-                }
-                c as u8 as char
-            })
-            .collect()
-    }
-}
-
-impl<'a> std::fmt::Debug for Str16<'a> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("{:?}", self.to_string()))
-    }
-}
-
-#[derive(PartialEq, Eq)]
-pub struct String16(pub Vec<u16>);
-
-impl String16 {
-    pub fn as_str16(&self) -> Str16 {
-        Str16(&self.0)
-    }
-
-    pub fn byte_size(&self) -> usize {
-        self.0.len() * 2
-    }
-
-    pub fn from(str: &str) -> Self {
-        String16(
-            str.chars()
-                .map(|c| {
-                    if c as u16 > 0x7f {
-                        panic!("unhandled non-ascii {:?}", c);
-                    }
-                    c as u16
-                })
-                .collect(),
-        )
-    }
-}
 
 #[repr(C, packed)]
 #[derive(Debug)]

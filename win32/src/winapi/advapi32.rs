@@ -11,9 +11,9 @@ pub type HKEY = u32;
 pub fn RegCreateKeyExW(
     _machine: &mut Machine,
     hKey: HKEY,
-    lpSubKey: Option<Str16>,
+    lpSubKey: Option<&Str16>,
     Reserved: u32,
-    lpClass: Option<Str16>,
+    lpClass: Option<&Str16>,
     dwOptions: u32,
     samDesired: u32,
     lpSecurityAttributes: u32,
@@ -32,7 +32,7 @@ pub fn RegCloseKey(_machine: &mut Machine, hKey: HKEY) -> u32 {
 pub fn RegQueryValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
-    lpValueName: Option<Str16>,
+    lpValueName: Option<&Str16>,
     lpReserved: u32,
     lpType: Option<&mut u32>,
     lpData: u32,
@@ -45,7 +45,7 @@ pub fn RegQueryValueExW(
 pub fn RegSetValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
-    lpValueName: Option<Str16>,
+    lpValueName: Option<&Str16>,
     lpReserved: u32,
     lpType: u32,
     lpData: u32,
