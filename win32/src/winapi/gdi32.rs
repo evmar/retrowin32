@@ -406,3 +406,24 @@ pub fn SetDIBitsToDevice(
 pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
     0 // LTR
 }
+
+#[win32_derive::dllexport]
+pub fn SetROP2(_machine: &mut Machine, hdc: HDC, rop2: u32) -> u32 {
+    0 // fail
+}
+
+#[win32_derive::dllexport]
+pub fn MoveToEx(
+    _machine: &mut Machine,
+    hdc: HDC,
+    x: u32,
+    y: u32,
+    lppt: Option<&mut POINT>,
+) -> bool {
+    false // fail
+}
+
+#[win32_derive::dllexport]
+pub fn LineTo(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
+    false // fail
+}

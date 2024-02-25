@@ -191,3 +191,20 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
     true // success
 }
+
+#[derive(Debug)]
+#[repr(C)]
+pub struct PAINTSTRUCT {
+    hdc: HDC,
+    fErase: u32,
+    rcPaint: RECT,
+    fRestore: u32,
+    fIncUpdate: u32,
+    rgbReserved: [u8; 32],
+}
+unsafe impl memory::Pod for PAINTSTRUCT {}
+
+#[win32_derive::dllexport]
+pub fn BeginPaint(_machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
+    HDC::null()
+}

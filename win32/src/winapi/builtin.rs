@@ -445,6 +445,21 @@ pub mod gdi32 {
             let _i = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::GetStockObject(machine, _i).to_raw()
         }
+        pub unsafe fn LineTo(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::LineTo(machine, hdc, x, y).to_raw()
+        }
+        pub unsafe fn MoveToEx(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            let lppt = <Option<&mut POINT>>::from_stack(mem, esp + 16u32);
+            winapi::gdi32::MoveToEx(machine, hdc, x, y, lppt).to_raw()
+        }
         pub unsafe fn SelectObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <u32>::from_stack(mem, esp + 4u32);
@@ -482,6 +497,12 @@ pub mod gdi32 {
                 ColorUse,
             )
             .to_raw()
+        }
+        pub unsafe fn SetROP2(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let rop2 = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetROP2(machine, hdc, rop2).to_raw()
         }
         pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -585,6 +606,18 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const LineTo: Shim = Shim {
+            name: "LineTo",
+            func: impls::LineTo,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const MoveToEx: Shim = Shim {
+            name: "MoveToEx",
+            func: impls::MoveToEx,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const SelectObject: Shim = Shim {
             name: "SelectObject",
             func: impls::SelectObject,
@@ -609,6 +642,12 @@ pub mod gdi32 {
             stack_consumed: 52u32,
             is_async: false,
         };
+        pub const SetROP2: Shim = Shim {
+            name: "SetROP2",
+            func: impls::SetROP2,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const SetTextColor: Shim = Shim {
             name: "SetTextColor",
             func: impls::SetTextColor,
@@ -628,7 +667,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 18usize] = [
+    const EXPORTS: [Symbol; 21usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -675,6 +714,14 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::LineTo,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MoveToEx,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SelectObject,
         },
         Symbol {
@@ -688,6 +735,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::SetDIBitsToDevice,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetROP2,
         },
         Symbol {
             ordinal: None,
@@ -2640,6 +2691,12 @@ pub mod user32 {
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 16u32);
             winapi::user32::AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, dwExStyle).to_raw()
         }
+        pub unsafe fn BeginPaint(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpPaint = <Option<&mut PAINTSTRUCT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::BeginPaint(machine, hWnd, lpPaint).to_raw()
+        }
         pub unsafe fn CheckMenuItem(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
@@ -3157,6 +3214,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const BeginPaint: Shim = Shim {
+            name: "BeginPaint",
+            func: impls::BeginPaint,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const CheckMenuItem: Shim = Shim {
             name: "CheckMenuItem",
             func: impls::CheckMenuItem,
@@ -3476,7 +3539,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 55usize] = [
+    const EXPORTS: [Symbol; 56usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3484,6 +3547,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRectEx,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::BeginPaint,
         },
         Symbol {
             ordinal: None,
