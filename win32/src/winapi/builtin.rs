@@ -2896,6 +2896,14 @@ pub mod user32 {
             let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
         }
+        pub unsafe fn GetMessageW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
+            let hWnd = <HWND>::from_stack(mem, esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::GetMessageW(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
+        }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let nIndex = <u32>::from_stack(mem, esp + 4u32);
@@ -3239,6 +3247,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const GetMessageW: Shim = Shim {
+            name: "GetMessageW",
+            func: impls::GetMessageW,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",
             func: impls::GetSystemMetrics,
@@ -3432,7 +3446,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 53usize] = [
+    const EXPORTS: [Symbol; 54usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3516,6 +3530,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetMessageW,
         },
         Symbol {
             ordinal: None,

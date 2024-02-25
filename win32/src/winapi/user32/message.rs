@@ -131,6 +131,17 @@ pub fn GetMessageA(
 }
 
 #[win32_derive::dllexport]
+pub fn GetMessageW(
+    machine: &mut Machine,
+    lpMsg: Option<&mut MSG>,
+    hWnd: HWND,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
+) -> i32 {
+    GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax)
+}
+
+#[win32_derive::dllexport]
 pub fn WaitMessage(_machine: &mut Machine) -> bool {
     true
 }
