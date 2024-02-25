@@ -403,6 +403,13 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn CreatePen(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let iStyle = <u32>::from_stack(mem, esp + 4u32);
+            let cWidth = <u32>::from_stack(mem, esp + 8u32);
+            let color = <u32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::CreatePen(machine, iStyle, cWidth, color).to_raw()
+        }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <u32>::from_stack(mem, esp + 4u32);
@@ -504,6 +511,12 @@ pub mod gdi32 {
             stack_consumed: 60u32,
             is_async: false,
         };
+        pub const CreatePen: Shim = Shim {
+            name: "CreatePen",
+            func: impls::CreatePen,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: impls::DeleteDC,
@@ -565,7 +578,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 14usize] = [
+    const EXPORTS: [Symbol; 15usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -581,6 +594,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::CreateFontA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreatePen,
         },
         Symbol {
             ordinal: None,

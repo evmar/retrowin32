@@ -369,3 +369,11 @@ pub fn GetDeviceCaps(
         _ => unimplemented!(),
     }
 }
+
+pub struct PEN {}
+pub type HPEN = HANDLE<PEN>;
+
+#[win32_derive::dllexport]
+pub fn CreatePen(_machine: &mut Machine, iStyle: u32, cWidth: u32, color: u32) -> HPEN {
+    HPEN::null()
+}
