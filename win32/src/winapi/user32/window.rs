@@ -492,3 +492,13 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
 pub fn GetDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
     HDC::null()
 }
+
+#[win32_derive::dllexport]
+pub fn InvalidateRect(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    lpRect: Option<&RECT>,
+    bErase: bool,
+) -> bool {
+    true // success
+}
