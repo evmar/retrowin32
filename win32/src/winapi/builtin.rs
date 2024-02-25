@@ -352,6 +352,13 @@ pub mod gdi32 {
             let rop = <u32>::from_stack(mem, esp + 36u32);
             winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop).to_raw()
         }
+        pub unsafe fn CreateCompatibleBitmap(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let cx = <u32>::from_stack(mem, esp + 8u32);
+            let cy = <u32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::CreateCompatibleBitmap(machine, hdc, cx, cy).to_raw()
+        }
         pub unsafe fn CreateCompatibleDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <u32>::from_stack(mem, esp + 4u32);
@@ -451,6 +458,26 @@ pub mod gdi32 {
             let mode = <i32>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetBkMode(machine, hdc, mode).to_raw()
         }
+        pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let xDest = <u32>::from_stack(mem, esp + 8u32);
+            let yDest = <u32>::from_stack(mem, esp + 12u32);
+            let w = <u32>::from_stack(mem, esp + 16u32);
+            let h = <u32>::from_stack(mem, esp + 20u32);
+            let xSrc = <u32>::from_stack(mem, esp + 24u32);
+            let ySrc = <u32>::from_stack(mem, esp + 28u32);
+            let StartScan = <u32>::from_stack(mem, esp + 32u32);
+            let cLines = <u32>::from_stack(mem, esp + 36u32);
+            let lpvBits = <u32>::from_stack(mem, esp + 40u32);
+            let lpbmi = <u32>::from_stack(mem, esp + 44u32);
+            let ColorUse = <u32>::from_stack(mem, esp + 48u32);
+            winapi::gdi32::SetDIBitsToDevice(
+                machine, hdc, xDest, yDest, w, h, xSrc, ySrc, StartScan, cLines, lpvBits, lpbmi,
+                ColorUse,
+            )
+            .to_raw()
+        }
         pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -491,6 +518,12 @@ pub mod gdi32 {
             name: "BitBlt",
             func: impls::BitBlt,
             stack_consumed: 40u32,
+            is_async: false,
+        };
+        pub const CreateCompatibleBitmap: Shim = Shim {
+            name: "CreateCompatibleBitmap",
+            func: impls::CreateCompatibleBitmap,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const CreateCompatibleDC: Shim = Shim {
@@ -559,6 +592,12 @@ pub mod gdi32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const SetDIBitsToDevice: Shim = Shim {
+            name: "SetDIBitsToDevice",
+            func: impls::SetDIBitsToDevice,
+            stack_consumed: 52u32,
+            is_async: false,
+        };
         pub const SetTextColor: Shim = Shim {
             name: "SetTextColor",
             func: impls::SetTextColor,
@@ -578,10 +617,14 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 15usize] = [
+    const EXPORTS: [Symbol; 17usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateCompatibleBitmap,
         },
         Symbol {
             ordinal: None,
@@ -626,6 +669,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::SetBkMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetDIBitsToDevice,
         },
         Symbol {
             ordinal: None,

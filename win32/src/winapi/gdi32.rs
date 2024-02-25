@@ -377,3 +377,27 @@ pub type HPEN = HANDLE<PEN>;
 pub fn CreatePen(_machine: &mut Machine, iStyle: u32, cWidth: u32, color: u32) -> HPEN {
     HPEN::null()
 }
+
+#[win32_derive::dllexport]
+pub fn CreateCompatibleBitmap(_machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> u32 {
+    0 // fail
+}
+
+#[win32_derive::dllexport]
+pub fn SetDIBitsToDevice(
+    _machine: &mut Machine,
+    hdc: HDC,
+    xDest: u32,
+    yDest: u32,
+    w: u32,
+    h: u32,
+    xSrc: u32,
+    ySrc: u32,
+    StartScan: u32,
+    cLines: u32,
+    lpvBits: u32,
+    lpbmi: u32,
+    ColorUse: u32,
+) -> u32 {
+    0 // fail
+}
