@@ -2625,6 +2625,13 @@ pub mod user32 {
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 16u32);
             winapi::user32::AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, dwExStyle).to_raw()
         }
+        pub unsafe fn CheckMenuItem(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let uIDCheckItem = <u32>::from_stack(mem, esp + 8u32);
+            let uCheck = <u32>::from_stack(mem, esp + 12u32);
+            winapi::user32::CheckMenuItem(machine, hMenu, uIDCheckItem, uCheck).to_raw()
+        }
         pub unsafe fn ClientToScreen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -3010,6 +3017,12 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::SetForegroundWindow(machine, hWnd).to_raw()
         }
+        pub unsafe fn SetMenu(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hMenu = <HMENU>::from_stack(mem, esp + 8u32);
+            winapi::user32::SetMenu(machine, hWnd, hMenu).to_raw()
+        }
         pub unsafe fn SetRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
@@ -3078,6 +3091,12 @@ pub mod user32 {
             name: "AdjustWindowRectEx",
             func: impls::AdjustWindowRectEx,
             stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const CheckMenuItem: Shim = Shim {
+            name: "CheckMenuItem",
+            func: impls::CheckMenuItem,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const ClientToScreen: Shim = Shim {
@@ -3314,6 +3333,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetMenu: Shim = Shim {
+            name: "SetMenu",
+            func: impls::SetMenu,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const SetRect: Shim = Shim {
             name: "SetRect",
             func: impls::SetRect,
@@ -3363,7 +3388,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 49usize] = [
+    const EXPORTS: [Symbol; 51usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3371,6 +3396,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRectEx,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CheckMenuItem,
         },
         Symbol {
             ordinal: None,
@@ -3527,6 +3556,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetForegroundWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetMenu,
         },
         Symbol {
             ordinal: None,

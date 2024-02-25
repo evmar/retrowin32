@@ -181,3 +181,13 @@ pub fn SetRect(
     };
     true
 }
+
+#[win32_derive::dllexport]
+pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uCheck: u32) -> u32 {
+    0 // previous state: unchecked
+}
+
+#[win32_derive::dllexport]
+pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
+    true // success
+}
