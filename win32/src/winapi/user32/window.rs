@@ -383,6 +383,17 @@ pub fn DefWindowProcA(
 }
 
 #[win32_derive::dllexport]
+pub fn DefWindowProcW(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    msg: Result<WM, u32>,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
 pub fn AdjustWindowRect(
     machine: &mut Machine,
     lpRect: Option<&mut RECT>,
