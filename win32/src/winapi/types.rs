@@ -50,7 +50,7 @@ impl<T> std::fmt::LowerHex for HANDLE<T> {
     }
 }
 
-impl<'a, T> crate::winapi::stack_args::FromX86<'a> for HANDLE<T> {
+impl<'a, T> crate::winapi::stack_args::FromStack<'a> for HANDLE<T> {
     unsafe fn from_stack(mem: memory::Mem, sp: u32) -> Self {
         Self::from_raw(mem.get::<u32>(sp))
     }
@@ -71,6 +71,7 @@ pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;
 
 /// UTF-16 string view.
+#[derive(PartialEq, Eq)]
 pub struct Str16<'a>(&'a [u16]);
 
 impl<'a> Str16<'a> {
@@ -80,6 +81,17 @@ impl<'a> Str16<'a> {
     pub fn from_nul_term(mem: &'a [u16]) -> Self {
         let end = mem.iter().position(|&c| c == 0).unwrap();
         Str16(&mem[..end])
+    }
+    pub unsafe fn from_ptr(mem: memory::Mem, addr: u32) -> Option<Self> {
+        if addr == 0 {
+            return None;
+        }
+        let mem16: &[u16] = {
+            let mem = mem.slice(addr..);
+            let ptr = mem.as_slice_todo().as_ptr() as *const u16;
+            std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
+        };
+        Some(Str16::from_nul_term(mem16))
     }
 
     pub fn buf(&self) -> &'a [u16] {
@@ -110,9 +122,14 @@ impl<'a> std::fmt::Debug for Str16<'a> {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub struct String16(pub Vec<u16>);
 
 impl String16 {
+    pub fn as_str16(&self) -> Str16 {
+        Str16(&self.0)
+    }
+
     pub fn byte_size(&self) -> usize {
         self.0.len() * 2
     }

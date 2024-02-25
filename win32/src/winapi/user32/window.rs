@@ -23,6 +23,12 @@ pub struct WndClass {
     pub wndproc: u32,
 }
 
+fn register_class(machine: &mut Machine, wndclass: WndClass) -> u32 {
+    let atom = machine.state.user32.wndclasses.len() as u32 + 1;
+    machine.state.user32.wndclasses.push(Rc::new(wndclass));
+    atom
+}
+
 #[repr(C, packed)]
 #[derive(Clone, Debug)]
 pub struct WNDCLASSA {
@@ -62,7 +68,13 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
 #[win32_derive::dllexport]
 pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
     // TODO: calling the *W variants tags the windows as expecting wide messages(!).
-    RegisterClassA(machine, lpWndClass)
+    let lpWndClass = lpWndClass.unwrap();
+    let name = unsafe { Str16::from_ptr(machine.mem(), lpWndClass.lpszClassName) }.unwrap();
+    let wndclass = WndClass {
+        name: name.to_string(),
+        wndproc: lpWndClass.lpfnWndProc,
+    };
+    register_class(machine, wndclass)
 }
 
 #[repr(C, packed)]
@@ -86,7 +98,6 @@ unsafe impl memory::Pod for WNDCLASSEXA {}
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let atom = machine.state.user32.wndclasses.len() as u32 + 1;
     let name = machine
         .mem()
         .slicez(lpWndClassEx.lpszClassName)
@@ -94,12 +105,10 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
         .to_ascii()
         .to_string();
     let wndclass = WndClass {
-        // atom,
         name,
         wndproc: lpWndClassEx.lpfnWndProc,
     };
-    machine.state.user32.wndclasses.push(Rc::new(wndclass));
-    atom
+    register_class(machine, wndclass)
 }
 
 bitflags! {
@@ -143,6 +152,21 @@ impl TryFrom<u32> for WindowStyleEx {
     }
 }
 
+#[derive(Debug)]
+pub enum CreateWindowClassName<'a> {
+    Atom(u16),
+    Name(Str16<'a>),
+}
+impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a> {
+    unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
+        if arg <= 0xFFFF {
+            CreateWindowClassName::Atom(arg as u16)
+        } else {
+            CreateWindowClassName::Name(<Option<Str16>>::from_arg(mem, arg).unwrap())
+        }
+    }
+}
+
 #[win32_derive::dllexport]
 pub async fn CreateWindowExA(
     machine: &mut Machine,
@@ -159,11 +183,53 @@ pub async fn CreateWindowExA(
     hInstance: u32,
     lpParam: u32,
 ) -> HWND {
-    if lpClassName < 1 << 16 {
-        todo!("numeric wndclass reference");
-    }
-    let mem = machine.mem();
-    let class_name = mem.slicez(lpClassName).unwrap().to_ascii();
+    let class_name_wide: String16;
+    let class_name = if lpClassName < 0xFFFF {
+        CreateWindowClassName::Atom(lpClassName as u16)
+    } else {
+        let class_name = machine.mem().slicez(lpClassName).unwrap().to_ascii();
+        class_name_wide = String16::from(class_name);
+        CreateWindowClassName::Name(class_name_wide.as_str16())
+    };
+    let window_name = String16::from(lpWindowName.unwrap());
+    CreateWindowExW(
+        machine,
+        dwExStyle,
+        class_name,
+        Some(window_name.as_str16()),
+        dwStyle,
+        X,
+        Y,
+        nWidth,
+        nHeight,
+        hWndParent,
+        hMenu,
+        hInstance,
+        lpParam,
+    )
+    .await
+}
+
+#[win32_derive::dllexport]
+pub async fn CreateWindowExW(
+    machine: &mut Machine,
+    dwExStyle: Result<WindowStyleEx, u32>,
+    lpClassName: CreateWindowClassName<'_>,
+    lpWindowName: Option<Str16<'_>>,
+    dwStyle: Result<WindowStyle, u32>,
+    X: u32,
+    Y: u32,
+    nWidth: u32,
+    nHeight: u32,
+    hWndParent: HWND,
+    hMenu: u32,
+    hInstance: u32,
+    lpParam: u32,
+) -> HWND {
+    let class_name = match lpClassName {
+        CreateWindowClassName::Atom(_) => unimplemented!(),
+        CreateWindowClassName::Name(name) => name.to_string(),
+    };
     let wndclass = machine
         .state
         .user32
@@ -180,7 +246,7 @@ pub async fn CreateWindowExA(
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
 
     let mut host_win = machine.host.create_window();
-    host_win.set_title(lpWindowName.unwrap());
+    host_win.set_title(&lpWindowName.unwrap().to_string());
     let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
     let height = if nHeight == CW_USEDEFAULT {
         480

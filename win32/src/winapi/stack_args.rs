@@ -8,31 +8,44 @@ use memory::Mem;
 pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
 pub type ArrayWithSizeMut<'a, T> = Option<&'a mut [T]>;
 
-pub trait FromX86<'a> {
+/// Lowest level trait: given a stack pointer, extract the argument.
+/// Implemented by argument types that read multiple things off the stack.
+pub trait FromStack<'a> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self;
 }
 
-impl<'a> FromX86<'a> for u32 {
+/// Higher level trait: given a value read from the stack, convert.
+pub trait FromArg<'a> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self;
+}
+
+impl<'a, T: FromArg<'a>> FromStack<'a> for T {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        mem.get::<u32>(sp)
+        T::from_arg(mem, mem.get::<u32>(sp))
     }
 }
 
-impl<'a> FromX86<'a> for i32 {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        mem.get::<u32>(sp) as i32
+impl<'a> FromArg<'a> for u32 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg
     }
 }
 
-impl<'a> FromX86<'a> for bool {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        mem.get::<u32>(sp) != 0
+impl<'a> FromArg<'a> for i32 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg as i32
     }
 }
 
-impl<'a, T: TryFrom<u32>> FromX86<'a> for Result<T, T::Error> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        T::try_from(mem.get::<u32>(sp))
+impl<'a> FromArg<'a> for bool {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg != 0
+    }
+}
+
+impl<'a, T: TryFrom<u32>> FromArg<'a> for Result<T, T::Error> {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        T::try_from(arg)
     }
 }
 
@@ -43,29 +56,27 @@ fn check_aligned<T: memory::Pod>(ptr: u32) {
     }
 }
 
-impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a T> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        if addr == 0 {
+impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a T> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        if arg == 0 {
             return None;
         }
-        check_aligned::<T>(addr);
-        Some(mem.view::<T>(addr))
+        check_aligned::<T>(arg);
+        Some(mem.view::<T>(arg))
     }
 }
 
-impl<'a, T: memory::Pod> FromX86<'a> for Option<&'a mut T> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        if addr == 0 {
+impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        if arg == 0 {
             return None;
         }
-        check_aligned::<T>(addr);
-        Some(mem.view_mut::<T>(addr))
+        check_aligned::<T>(arg);
+        Some(mem.view_mut::<T>(arg))
     }
 }
 
-impl<'a> FromX86<'a> for Option<&'a [u8]> {
+impl<'a> FromStack<'a> for Option<&'a [u8]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
@@ -76,7 +87,7 @@ impl<'a> FromX86<'a> for Option<&'a [u8]> {
     }
 }
 
-impl<'a> FromX86<'a> for Option<&'a mut [u8]> {
+impl<'a> FromStack<'a> for Option<&'a mut [u8]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
@@ -87,7 +98,7 @@ impl<'a> FromX86<'a> for Option<&'a mut [u8]> {
     }
 }
 
-impl<'a> FromX86<'a> for Option<&'a [u16]> {
+impl<'a> FromStack<'a> for Option<&'a [u16]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
@@ -98,7 +109,7 @@ impl<'a> FromX86<'a> for Option<&'a [u16]> {
     }
 }
 
-impl<'a> FromX86<'a> for Option<&'a mut [u16]> {
+impl<'a> FromStack<'a> for Option<&'a mut [u16]> {
     unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
         let len = mem.get::<u32>(sp + 4);
@@ -109,29 +120,19 @@ impl<'a> FromX86<'a> for Option<&'a mut [u16]> {
     }
 }
 
-impl<'a> FromX86<'a> for Option<&'a str> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        if addr == 0 {
+impl<'a> FromArg<'a> for Option<&'a str> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        if arg == 0 {
             return None;
         }
-        let strz = mem.slicez(addr).unwrap().to_ascii();
+        let strz = mem.slicez(arg).unwrap().to_ascii();
         Some(strz)
     }
 }
 
-impl<'a> FromX86<'a> for Option<Str16<'a>> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        if addr == 0 {
-            return None;
-        }
-        let mem16: &[u16] = {
-            let mem = mem.slice(addr..);
-            let ptr = mem.as_slice_todo().as_ptr() as *const u16;
-            std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
-        };
-        Some(Str16::from_nul_term(mem16))
+impl<'a> FromArg<'a> for Option<Str16<'a>> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        Str16::from_ptr(mem, arg)
     }
 }
 

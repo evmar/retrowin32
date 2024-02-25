@@ -2595,6 +2595,68 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn CreateWindowExW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
+            let lpClassName = <CreateWindowClassName<'_>>::from_stack(mem, esp + 8u32);
+            let lpWindowName = <Option<Str16<'_>>>::from_stack(mem, esp + 12u32);
+            let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
+            let X = <u32>::from_stack(mem, esp + 20u32);
+            let Y = <u32>::from_stack(mem, esp + 24u32);
+            let nWidth = <u32>::from_stack(mem, esp + 28u32);
+            let nHeight = <u32>::from_stack(mem, esp + 32u32);
+            let hWndParent = <HWND>::from_stack(mem, esp + 36u32);
+            let hMenu = <u32>::from_stack(mem, esp + 40u32);
+            let hInstance = <u32>::from_stack(mem, esp + 44u32);
+            let lpParam = <u32>::from_stack(mem, esp + 48u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::CreateWindowExW(
+                        machine,
+                        dwExStyle,
+                        lpClassName,
+                        lpWindowName,
+                        dwStyle,
+                        X,
+                        Y,
+                        nWidth,
+                        nHeight,
+                        hWndParent,
+                        hMenu,
+                        hInstance,
+                        lpParam,
+                    )
+                    .await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 52u32;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::CreateWindowExW(
+                    machine,
+                    dwExStyle,
+                    lpClassName,
+                    lpWindowName,
+                    dwStyle,
+                    X,
+                    Y,
+                    nWidth,
+                    nHeight,
+                    hWndParent,
+                    hMenu,
+                    hInstance,
+                    lpParam
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
         pub unsafe fn DefWindowProcA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -2916,6 +2978,12 @@ pub mod user32 {
             stack_consumed: 52u32,
             is_async: true,
         };
+        pub const CreateWindowExW: Shim = Shim {
+            name: "CreateWindowExW",
+            func: impls::CreateWindowExW,
+            stack_consumed: 52u32,
+            is_async: true,
+        };
         pub const DefWindowProcA: Shim = Shim {
             name: "DefWindowProcA",
             func: impls::DefWindowProcA,
@@ -3169,7 +3237,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 47usize] = [
+    const EXPORTS: [Symbol; 48usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3189,6 +3257,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::CreateWindowExA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateWindowExW,
         },
         Symbol {
             ordinal: None,

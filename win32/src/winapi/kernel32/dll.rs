@@ -218,7 +218,7 @@ pub fn LoadLibraryExW(
 #[derive(Debug)]
 pub struct GetProcAddressArg<'a>(pub ImportSymbol<'a>);
 
-impl<'a> winapi::stack_args::FromX86<'a> for GetProcAddressArg<'a> {
+impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
         let lpProcName = <u32>::from_stack(mem, sp);
         if lpProcName & 0xFFFF_0000 == 0 {
