@@ -3103,6 +3103,13 @@ pub mod user32 {
             let nCmdShow = <Result<SW, u32>>::from_stack(mem, esp + 8u32);
             winapi::user32::ShowWindow(machine, hWnd, nCmdShow).to_raw()
         }
+        pub unsafe fn TranslateAcceleratorW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hAccTable = <u32>::from_stack(mem, esp + 8u32);
+            let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 12u32);
+            winapi::user32::TranslateAcceleratorW(machine, hWnd, hAccTable, lpMsg).to_raw()
+        }
         pub unsafe fn TranslateMessage(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
@@ -3427,6 +3434,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const TranslateAcceleratorW: Shim = Shim {
+            name: "TranslateAcceleratorW",
+            func: impls::TranslateAcceleratorW,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const TranslateMessage: Shim = Shim {
             name: "TranslateMessage",
             func: impls::TranslateMessage,
@@ -3446,7 +3459,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 54usize] = [
+    const EXPORTS: [Symbol; 55usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3650,6 +3663,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::ShowWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::TranslateAcceleratorW,
         },
         Symbol {
             ordinal: None,

@@ -189,3 +189,13 @@ pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
     });
     0 // unused
 }
+
+#[win32_derive::dllexport]
+pub fn TranslateAcceleratorW(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    hAccTable: u32,
+    lpMsg: Option<&MSG>,
+) -> bool {
+    true // success
+}
