@@ -254,10 +254,7 @@ pub async fn CreateWindowExW(
         nHeight
     };
 
-    if width == 0 || height == 0 {
-        todo!("zero-sized window");
-    }
-    host_win.set_size(width, height);
+    host_win.set_size(std::cmp::max(width, 64), std::cmp::max(height, 64));
     let window = Window {
         host: host_win,
         width,
