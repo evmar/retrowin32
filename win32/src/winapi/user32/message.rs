@@ -27,6 +27,7 @@ unsafe impl memory::Pod for MSG {}
 #[repr(u32)]
 pub enum WM {
     CREATE = 0x0001,
+    PAINT = 0x000F,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
 }
@@ -47,15 +48,11 @@ fn msg_from_message(message: host::Message) -> MSG {
 }
 
 fn fill_message_queue(machine: &mut Machine, wait: bool) {
-    if wait && machine.state.user32.messages.is_empty() {
-        let msg = machine.host.get_message(true).unwrap();
-        machine
-            .state
-            .user32
-            .messages
-            .push_back(msg_from_message(msg));
+    if !machine.state.user32.messages.is_empty() {
+        return;
     }
-    while let Some(msg) = machine.host.get_message(false) {
+
+    if let Some(msg) = machine.host.get_message(wait) {
         machine
             .state
             .user32
@@ -79,6 +76,19 @@ impl TryFrom<u32> for RemoveMsg {
     }
 }
 
+fn enqueue_paint(machine: &mut Machine) {
+    machine.state.user32.messages.push_front(MSG {
+        hwnd: HWND::null(),
+        message: WM::PAINT,
+        wParam: 0,
+        lParam: 0,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    });
+}
+
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
     machine: &mut Machine,
@@ -93,10 +103,13 @@ pub fn PeekMessageA(
     let lpMsg = lpMsg.unwrap();
 
     fill_message_queue(machine, false);
+    if machine.state.user32.messages.is_empty() {
+        enqueue_paint(machine);
+    }
 
     // TODO: obey HWND.
     let remove = wRemoveMsg.unwrap();
-    let msg = match machine.state.user32.messages.front() {
+    let msg: &MSG = match machine.state.user32.messages.front() {
         Some(msg) => msg,
         None => return false,
     };
@@ -120,7 +133,12 @@ pub fn GetMessageA(
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
-    fill_message_queue(machine, true);
+    fill_message_queue(machine, false);
+    if machine.state.user32.messages.is_empty() {
+        enqueue_paint(machine);
+    } else {
+        fill_message_queue(machine, true);
+    }
 
     let msg = lpMsg.unwrap();
     *msg = machine.state.user32.messages.pop_front().unwrap();

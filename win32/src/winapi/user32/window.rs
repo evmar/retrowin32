@@ -8,6 +8,7 @@ pub struct Window {
     pub width: u32,
     pub height: u32,
     pub wndclass: Rc<WndClass>,
+    pub need_paint: bool,
 }
 
 impl Window {
@@ -260,6 +261,7 @@ pub async fn CreateWindowExW(
         width,
         height,
         wndclass,
+        need_paint: true,
     };
     machine.state.user32.windows.push(window);
     let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
@@ -332,8 +334,18 @@ pub fn FindWindowA(
 }
 
 #[win32_derive::dllexport]
-pub fn UpdateWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
-    // TODO: this should cause a synchronous WM_PAINT.
+pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
+    let msg = MSG {
+        hwnd: hWnd,
+        message: WM::PAINT,
+        wParam: 0,
+        lParam: 0,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    };
+    DispatchMessageA(machine, Some(&msg)).await;
     true // success
 }
 
@@ -495,10 +507,12 @@ pub fn GetDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
 
 #[win32_derive::dllexport]
 pub fn InvalidateRect(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
+    let window = machine.state.user32.get_window(hWnd).unwrap();
+    window.need_paint = true;
     true // success
 }
