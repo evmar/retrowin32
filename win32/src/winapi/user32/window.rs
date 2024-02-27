@@ -257,7 +257,7 @@ pub async fn CreateWindowExW(
     };
 
     host_win.set_size(std::cmp::max(width, 64), std::cmp::max(height, 64));
-    let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32 + 1);
+    let hwnd = machine.state.user32.windows.reserve();
     let window = Window {
         hwnd,
         host: host_win,
@@ -266,7 +266,7 @@ pub async fn CreateWindowExW(
         wndclass,
         need_paint: true,
     };
-    machine.state.user32.windows.push(window);
+    machine.state.user32.windows.set(hwnd, window);
 
     // Synchronously dispatch WM_CREATE.
     let msg = MSG {
@@ -308,7 +308,7 @@ pub fn GetDesktopWindow(_machine: &mut Machine) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
-    HWND::from_raw(machine.state.user32.windows.len() as u32)
+    machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
 #[win32_derive::dllexport]
@@ -318,12 +318,12 @@ pub fn SetForegroundWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
 
 #[win32_derive::dllexport]
 pub fn GetActiveWindow(machine: &mut Machine) -> HWND {
-    HWND::from_raw(machine.state.user32.windows.len() as u32)
+    machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
 #[win32_derive::dllexport]
 pub fn GetLastActivePopup(machine: &mut Machine) -> HWND {
-    HWND::from_raw(machine.state.user32.windows.len() as u32)
+    machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
 #[win32_derive::dllexport]
@@ -332,7 +332,7 @@ pub fn FindWindowA(
     lpClassName: Option<&str>,
     lpWindowName: Option<&str>,
 ) -> HWND {
-    HWND::from_raw(machine.state.user32.windows.len() as u32)
+    machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
 #[win32_derive::dllexport]
@@ -382,7 +382,7 @@ pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn GetFocus(machine: &mut Machine) -> HWND {
-    HWND::from_raw(machine.state.user32.windows.len() as u32)
+    machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
 #[win32_derive::dllexport]

@@ -1,8 +1,6 @@
-use memory::Pod;
-
-use crate::machine::Machine;
-
 use super::{peb_mut, teb_mut, HANDLE};
+use crate::machine::Machine;
+use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "kernel32/thread";
 

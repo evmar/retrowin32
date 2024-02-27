@@ -399,7 +399,7 @@ pub(super) mod IDirectDrawSurface7 {
         let mut dc = crate::winapi::gdi32::DC::new();
         dc.ddraw_surface = this;
         let handle = machine.state.gdi32.dcs.add(dc);
-        machine.mem().put::<u32>(lpHDC, handle);
+        machine.mem().put::<u32>(lpHDC, handle.to_raw());
         DD_OK
     }
 

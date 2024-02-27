@@ -5,7 +5,8 @@ mod resource;
 mod window;
 
 pub use super::gdi32::HDC;
-use super::{stack_args::ToX86, types::*};
+use super::handle::Handles;
+use super::types::*;
 use crate::machine::Machine;
 pub use message::*;
 use num_traits::FromPrimitive;
@@ -20,9 +21,10 @@ const TRACE_CONTEXT: &'static str = "user32";
 
 type HINSTANCE = u32;
 
+#[derive(Default)]
 pub struct State {
     wndclasses: Vec<Rc<WndClass>>,
-    windows: Vec<Window>,
+    windows: Handles<HWND, Window>,
     messages: VecDeque<MSG>,
 }
 impl State {
@@ -30,16 +32,7 @@ impl State {
         if hwnd.is_null() || hwnd.is_invalid() {
             return None;
         }
-        Some(&mut self.windows[hwnd.to_raw() as usize - 1])
-    }
-}
-impl Default for State {
-    fn default() -> Self {
-        State {
-            wndclasses: Vec::new(),
-            windows: Vec::new(),
-            messages: VecDeque::new(),
-        }
+        self.windows.get_mut(hwnd)
     }
 }
 

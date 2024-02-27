@@ -1,10 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{
-    host,
-    winapi::{stack_args::ToX86, types::*},
-    Machine,
-};
+use crate::{host, winapi::types::*, Machine};
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 

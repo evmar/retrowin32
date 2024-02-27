@@ -4,7 +4,11 @@ use memory::Mem;
 use crate::{
     pe,
     reader::Reader,
-    winapi::{gdi32, kernel32::ResourceId, types::*},
+    winapi::{
+        gdi32::{self, HGDIOBJ},
+        kernel32::ResourceId,
+        types::*,
+    },
     Machine,
 };
 
@@ -204,12 +208,12 @@ pub fn LoadImageA(
     cx: u32,
     cy: u32,
     fuLoad: u32,
-) -> u32 {
+) -> HGDIOBJ {
     assert!(hInstance == machine.state.kernel32.image_base);
 
     if fuLoad != 0 {
         log::error!("unimplemented fuLoad {:x}", fuLoad);
-        return 0;
+        return HGDIOBJ::null();
     }
 
     // TODO: it's unclear whether the width/height is obeyed when loading an image.
@@ -228,7 +232,7 @@ pub fn LoadImageA(
         }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
-            return 0;
+            return HGDIOBJ::null();
         }
     }
 }

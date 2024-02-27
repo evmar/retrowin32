@@ -341,12 +341,12 @@ pub mod gdi32 {
         use winapi::gdi32::*;
         pub unsafe fn BitBlt(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdc = <u32>::from_stack(mem, esp + 4u32);
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
             let x = <u32>::from_stack(mem, esp + 8u32);
             let y = <u32>::from_stack(mem, esp + 12u32);
             let cx = <u32>::from_stack(mem, esp + 16u32);
             let cy = <u32>::from_stack(mem, esp + 20u32);
-            let hdcSrc = <u32>::from_stack(mem, esp + 24u32);
+            let hdcSrc = <HDC>::from_stack(mem, esp + 24u32);
             let x1 = <u32>::from_stack(mem, esp + 28u32);
             let y1 = <u32>::from_stack(mem, esp + 32u32);
             let rop = <u32>::from_stack(mem, esp + 36u32);
@@ -361,7 +361,7 @@ pub mod gdi32 {
         }
         pub unsafe fn CreateCompatibleDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdc = <u32>::from_stack(mem, esp + 4u32);
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
             winapi::gdi32::CreateCompatibleDC(machine, hdc).to_raw()
         }
         pub unsafe fn CreateDIBSection(machine: &mut Machine, esp: u32) -> u32 {
@@ -435,7 +435,7 @@ pub mod gdi32 {
         }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let handle = <u32>::from_stack(mem, esp + 4u32);
+            let handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
             let _bytes = <u32>::from_stack(mem, esp + 8u32);
             let _out = <u32>::from_stack(mem, esp + 12u32);
             winapi::gdi32::GetObjectA(machine, handle, _bytes, _out).to_raw()
@@ -462,8 +462,8 @@ pub mod gdi32 {
         }
         pub unsafe fn SelectObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdc = <u32>::from_stack(mem, esp + 4u32);
-            let hGdiObj = <u32>::from_stack(mem, esp + 8u32);
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let hGdiObj = <HGDIOBJ>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SelectObject(machine, hdc, hGdiObj).to_raw()
         }
         pub unsafe fn SetBkColor(machine: &mut Machine, esp: u32) -> u32 {
@@ -512,12 +512,12 @@ pub mod gdi32 {
         }
         pub unsafe fn StretchBlt(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdcDest = <u32>::from_stack(mem, esp + 4u32);
+            let hdcDest = <HDC>::from_stack(mem, esp + 4u32);
             let xDest = <u32>::from_stack(mem, esp + 8u32);
             let yDest = <u32>::from_stack(mem, esp + 12u32);
             let wDest = <u32>::from_stack(mem, esp + 16u32);
             let hDest = <u32>::from_stack(mem, esp + 20u32);
-            let hdcSrc = <u32>::from_stack(mem, esp + 24u32);
+            let hdcSrc = <HDC>::from_stack(mem, esp + 24u32);
             let xSrc = <u32>::from_stack(mem, esp + 28u32);
             let ySrc = <u32>::from_stack(mem, esp + 32u32);
             let wSrc = <u32>::from_stack(mem, esp + 36u32);

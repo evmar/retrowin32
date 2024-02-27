@@ -5,6 +5,7 @@ mod builtin;
 pub mod ddraw;
 pub mod dsound;
 pub mod gdi32;
+mod handle;
 mod heap;
 pub mod kernel32;
 mod ole32;

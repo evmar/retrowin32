@@ -1,13 +1,13 @@
 #![allow(non_snake_case)]
 
 use super::{
+    handle::Handles,
     kernel32,
     stack_args::ArrayWithSize,
     types::*,
     user32::{BI, BITMAPINFOHEADER},
 };
 use crate::{machine::Machine, winapi::user32};
-use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "gdi32";
 
@@ -25,55 +25,25 @@ pub struct DC {
     // But then DirectDraw can also create a DC, and DirectDraw (as a DLL that came
     // later can't retrofit the DC type with a DirectDraw field.
     // Wine appears to use a vtable (for generic behavior) *and* per-object-type fields.
-    bitmap: u32, // HANDLE
+    bitmap: HGDIOBJ,
     pub ddraw_surface: u32,
 }
 impl DC {
     pub fn new() -> Self {
         DC {
-            bitmap: 0,
+            bitmap: HGDIOBJ::null(),
             ddraw_surface: 0,
         }
     }
 }
 
 pub type HDC = HANDLE<DC>;
-
-/// Maintains a mapping of u32 -> T, vending out new u32 ids.
-pub struct Handles<T> {
-    map: HashMap<u32, T>,
-    next: u32,
-}
-
-impl<T> Default for Handles<T> {
-    fn default() -> Self {
-        Handles {
-            map: HashMap::default(),
-            next: 1,
-        }
-    }
-}
-
-impl<T> Handles<T> {
-    pub fn add(&mut self, t: T) -> u32 {
-        let handle = self.next;
-        self.next += 1;
-        self.map.insert(handle, t);
-        handle
-    }
-
-    pub fn get(&self, handle: u32) -> Option<&T> {
-        self.map.get(&handle)
-    }
-
-    pub fn get_mut(&mut self, handle: u32) -> Option<&mut T> {
-        self.map.get_mut(&handle)
-    }
-}
+pub struct HGDIOBJT {}
+pub type HGDIOBJ = HANDLE<HGDIOBJT>;
 
 pub struct State {
-    pub dcs: Handles<DC>,
-    pub objects: Handles<Object>,
+    pub dcs: Handles<HDC, DC>,
+    pub objects: Handles<HGDIOBJ, Object>,
 }
 
 impl Default for State {
@@ -91,14 +61,14 @@ pub fn GetStockObject(_machine: &mut Machine, _i: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
+pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOBJ {
     let dc = match machine.state.gdi32.dcs.get_mut(hdc) {
-        None => return 0, // TODO: HGDI_ERROR
+        None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
         Some(dc) => dc,
     };
 
     let obj = match machine.state.gdi32.objects.get(hGdiObj) {
-        None => return 0, // TODO: HGDI_ERROR
+        None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
         Some(obj) => obj,
     };
     match obj {
@@ -107,7 +77,7 @@ pub fn SelectObject(machine: &mut Machine, hdc: u32, hGdiObj: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) -> u32 {
+pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, _bytes: u32, _out: u32) -> u32 {
     let obj = match machine.state.gdi32.objects.get(handle) {
         None => return 0, // fail
         Some(obj) => obj,
@@ -118,8 +88,8 @@ pub fn GetObjectA(machine: &mut Machine, handle: u32, _bytes: u32, _out: u32) ->
 }
 
 #[win32_derive::dllexport]
-pub fn CreateCompatibleDC(machine: &mut Machine, hdc: u32) -> u32 {
-    assert!(hdc == 0); // null means "compatible with current screen"
+pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
+    assert!(hdc.is_null()); // null means "compatible with current screen"
     let dc = DC::new();
     let handle = machine.state.gdi32.dcs.add(dc);
     handle
@@ -136,12 +106,12 @@ const SRCCOPY: u32 = 0xcc0020;
 #[win32_derive::dllexport]
 pub fn BitBlt(
     machine: &mut Machine,
-    hdc: u32,
+    hdc: HDC,
     x: u32,
     y: u32,
     cx: u32,
     cy: u32,
-    hdcSrc: u32,
+    hdcSrc: HDC,
     x1: u32,
     y1: u32,
     rop: u32,
@@ -178,12 +148,12 @@ pub fn BitBlt(
 #[win32_derive::dllexport]
 pub fn StretchBlt(
     machine: &mut Machine,
-    hdcDest: u32,
+    hdcDest: HDC,
     xDest: u32,
     yDest: u32,
     wDest: u32,
     hDest: u32,
-    hdcSrc: u32,
+    hdcSrc: HDC,
     xSrc: u32,
     ySrc: u32,
     wSrc: u32,
@@ -219,7 +189,7 @@ pub fn CreateDIBSection(
     ppvBits: Option<&mut u32>, // **void
     hSection: u32,
     offset: u32,
-) -> u32 {
+) -> HGDIOBJ {
     if usage != DIB_RGB_COLORS {
         todo!()
     }
