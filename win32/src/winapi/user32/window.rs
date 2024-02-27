@@ -269,7 +269,7 @@ pub async fn CreateWindowExW(
     // Synchronously dispatch WM_CREATE.
     let msg = MSG {
         hwnd,
-        message: WM::CREATE,
+        message: WM::CREATE as u32,
         wParam: 0,
         lParam: 0, // TODO: CREATESTRUCT
         time: 0,
@@ -282,7 +282,7 @@ pub async fn CreateWindowExW(
     // Enqueue WM_ACTIVATEAPP message.
     machine.state.user32.messages.push_back(MSG {
         hwnd,
-        message: WM::ACTIVATEAPP,
+        message: WM::ACTIVATEAPP as u32,
         wParam: true as u32, // activating
         lParam: 0,           // TODO: thread id
         time: 0,             // TODO
@@ -337,7 +337,7 @@ pub fn FindWindowA(
 pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
     let msg = MSG {
         hwnd: hWnd,
-        message: WM::PAINT,
+        message: WM::PAINT as u32,
         wParam: 0,
         lParam: 0,
         time: 0,

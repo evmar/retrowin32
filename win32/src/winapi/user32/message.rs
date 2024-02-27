@@ -9,10 +9,10 @@ use crate::{
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
 #[repr(C)]
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct MSG {
     pub hwnd: HWND,
-    pub message: WM,
+    pub message: u32,
     pub wParam: u32,
     pub lParam: u32,
     pub time: u32,
@@ -22,10 +22,25 @@ pub struct MSG {
     pub lPrivate: u32,
 }
 unsafe impl memory::Pod for MSG {}
+impl std::fmt::Debug for MSG {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let wm = WM::try_from(self.message);
+        f.debug_struct("MSG")
+            .field("hwnd", &self.hwnd)
+            .field("message", &wm)
+            .field("wParam", &self.wParam)
+            .field("lParam", &self.lParam)
+            .field("time", &self.time)
+            .field("pt_x", &self.pt_x)
+            .field("pt_y", &self.pt_y)
+            .field("lPrivate", &self.lPrivate)
+            .finish()
+    }
+}
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, win32_derive::TryFromEnum)]
-#[repr(u32)]
 pub enum WM {
+    NULL = 0,
     CREATE = 0x0001,
     PAINT = 0x000F,
     QUIT = 0x0012,
@@ -36,7 +51,7 @@ fn msg_from_message(message: host::Message) -> MSG {
     match message {
         host::Message::Quit => MSG {
             hwnd: HWND::null(),
-            message: WM::QUIT,
+            message: WM::QUIT as u32,
             wParam: 0,
             lParam: 0,
             time: 0,
@@ -79,7 +94,7 @@ impl TryFrom<u32> for RemoveMsg {
 fn enqueue_paint(machine: &mut Machine) {
     machine.state.user32.messages.push_front(MSG {
         hwnd: HWND::null(),
-        message: WM::PAINT,
+        message: WM::PAINT as u32,
         wParam: 0,
         lParam: 0,
         time: 0,
@@ -142,7 +157,7 @@ pub fn GetMessageA(
 
     let msg = lpMsg.unwrap();
     *msg = machine.state.user32.messages.pop_front().unwrap();
-    if msg.message == WM::QUIT {
+    if msg.message == WM::QUIT as u32 {
         return 0;
     }
     return 1;
@@ -197,7 +212,7 @@ pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32
 pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
     machine.state.user32.messages.push_back(MSG {
         hwnd: HWND::null(),
-        message: WM::QUIT,
+        message: WM::QUIT as u32,
         wParam: 0,
         lParam: 0,
         time: 0,
