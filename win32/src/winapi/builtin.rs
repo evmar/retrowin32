@@ -442,8 +442,8 @@ pub mod gdi32 {
         }
         pub unsafe fn GetStockObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _i = <u32>::from_stack(mem, esp + 4u32);
-            winapi::gdi32::GetStockObject(machine, _i).to_raw()
+            let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::GetStockObject(machine, i).to_raw()
         }
         pub unsafe fn LineTo(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();

@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
 
 use super::{
     handle::Handles,
@@ -47,8 +48,17 @@ impl Default for State {
     }
 }
 
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum GetStockObjectArg {
+    WHITE_BRUSH = 0,
+    LTGRAY_BRUSH = 1,
+    GRAY_BRUSH = 2,
+    DKGRAY_BRUSH = 3,
+    BLACK_BRUSH = 4,
+}
+
 #[win32_derive::dllexport]
-pub fn GetStockObject(_machine: &mut Machine, _i: u32) -> u32 {
+pub fn GetStockObject(_machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> u32 {
     0
 }
 
