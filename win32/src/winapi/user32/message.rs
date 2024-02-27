@@ -91,9 +91,21 @@ impl TryFrom<u32> for RemoveMsg {
     }
 }
 
-fn enqueue_paint(machine: &mut Machine) {
+/// Enqueues a WM_PAINT if the given hwnd (or any hwnd) needs a paint.
+fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) {
+    let hwnd = if hwnd.is_null() {
+        match machine.state.user32.windows.iter().find(|w| w.need_paint) {
+            Some(w) => w.hwnd,
+            None => return,
+        }
+    } else {
+        if !machine.state.user32.get_window(hwnd).unwrap().need_paint {
+            return;
+        }
+        hwnd
+    };
     machine.state.user32.messages.push_front(MSG {
-        hwnd: HWND::null(),
+        hwnd,
         message: WM::PAINT as u32,
         wParam: 0,
         lParam: 0,
@@ -119,17 +131,19 @@ pub fn PeekMessageA(
 
     fill_message_queue(machine, false);
     if machine.state.user32.messages.is_empty() {
-        enqueue_paint(machine);
+        enqueue_paint_if_needed(machine, hWnd);
     }
 
-    // TODO: obey HWND.
-    let remove = wRemoveMsg.unwrap();
     let msg: &MSG = match machine.state.user32.messages.front() {
         Some(msg) => msg,
         None => return false,
     };
+    if !hWnd.is_null() && (!msg.hwnd.is_null() && msg.hwnd != hWnd) {
+        todo!("message for other window");
+    }
     *lpMsg = msg.clone();
 
+    let remove = wRemoveMsg.unwrap();
     if remove.contains(RemoveMsg::PM_REMOVE) {
         machine.state.user32.messages.pop_front();
     }
@@ -150,13 +164,17 @@ pub fn GetMessageA(
 
     fill_message_queue(machine, false);
     if machine.state.user32.messages.is_empty() {
-        enqueue_paint(machine);
-    } else {
+        enqueue_paint_if_needed(machine, hWnd);
+    }
+    if machine.state.user32.messages.is_empty() {
         fill_message_queue(machine, true);
     }
 
     let msg = lpMsg.unwrap();
     *msg = machine.state.user32.messages.pop_front().unwrap();
+    if !hWnd.is_null() && (!msg.hwnd.is_null() && msg.hwnd != hWnd) {
+        todo!("message for other window");
+    }
     if msg.message == WM::QUIT as u32 {
         return 0;
     }
@@ -192,11 +210,17 @@ pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32
         // No associated hwnd.
         return 0;
     }
-    let window = &machine.state.user32.windows[msg.hwnd.to_raw() as usize - 1];
+    let wndproc = machine
+        .state
+        .user32
+        .get_window(msg.hwnd)
+        .unwrap()
+        .wndclass
+        .wndproc;
     // TODO: SetWindowLong can change the wndproc.
     machine
         .call_x86(
-            window.wndclass.wndproc,
+            wndproc,
             vec![
                 msg.hwnd.to_raw(),
                 msg.message as u32,

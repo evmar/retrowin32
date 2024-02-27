@@ -4,6 +4,7 @@ use bitflags::bitflags;
 use std::rc::Rc;
 
 pub struct Window {
+    pub hwnd: HWND,
     pub host: Box<dyn host::Window>,
     pub width: u32,
     pub height: u32,
@@ -256,7 +257,9 @@ pub async fn CreateWindowExW(
     };
 
     host_win.set_size(std::cmp::max(width, 64), std::cmp::max(height, 64));
+    let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32 + 1);
     let window = Window {
+        hwnd,
         host: host_win,
         width,
         height,
@@ -264,7 +267,6 @@ pub async fn CreateWindowExW(
         need_paint: true,
     };
     machine.state.user32.windows.push(window);
-    let hwnd = HWND::from_raw(machine.state.user32.windows.len() as u32);
 
     // Synchronously dispatch WM_CREATE.
     let msg = MSG {
@@ -385,24 +387,33 @@ pub fn GetFocus(machine: &mut Machine) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn DefWindowProcA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
+    if let Ok(msg) = msg {
+        match msg {
+            WM::PAINT => {
+                let window = machine.state.user32.get_window(hWnd).unwrap();
+                window.need_paint = false;
+            }
+            _ => {}
+        }
+    }
     0
 }
 
 #[win32_derive::dllexport]
 pub fn DefWindowProcW(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    0
+    DefWindowProcA(machine, hWnd, msg, wParam, lParam)
 }
 
 #[win32_derive::dllexport]
