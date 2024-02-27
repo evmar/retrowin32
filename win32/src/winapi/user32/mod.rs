@@ -215,3 +215,15 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
     };
     hdc
 }
+
+#[win32_derive::dllexport]
+pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
+    machine
+        .state
+        .user32
+        .windows
+        .get_mut(hWnd)
+        .unwrap()
+        .need_paint = false;
+    true
+}

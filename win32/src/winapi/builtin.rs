@@ -2908,6 +2908,12 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn EndPaint(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpPaint = <Option<&PAINTSTRUCT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::EndPaint(machine, hWnd, lpPaint).to_raw()
+        }
         pub unsafe fn FindWindowA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, esp + 4u32);
@@ -3280,6 +3286,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: true,
         };
+        pub const EndPaint: Shim = Shim {
+            name: "EndPaint",
+            func: impls::EndPaint,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const FindWindowA: Shim = Shim {
             name: "FindWindowA",
             func: impls::FindWindowA,
@@ -3539,7 +3551,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 56usize] = [
+    const EXPORTS: [Symbol; 57usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3591,6 +3603,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::DispatchMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::EndPaint,
         },
         Symbol {
             ordinal: None,

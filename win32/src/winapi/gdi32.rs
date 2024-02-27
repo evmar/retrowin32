@@ -116,6 +116,10 @@ pub fn BitBlt(
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
     let hdc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    if hdc.ddraw_surface == 0 {
+        log::error!("unimp: BitBlt with non-directdraw surface");
+        return 0;
+    }
     let surface = machine
         .state
         .ddraw
