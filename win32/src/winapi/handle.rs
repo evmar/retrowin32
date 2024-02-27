@@ -4,6 +4,11 @@ use std::{collections::HashMap, marker::PhantomData};
 
 /// A more type-safe wrapper for HWND, HDC, etc. Windows handles.
 /// The <T> parameter is purely a nominal type and not used for carrying any data.
+///
+/// Nullability: following windows, a given HWND can be null.  We don't attempt to work with
+/// Option<HWND> instead etc. for two reasons:
+/// 1. Many Windows APIs are not especially clear on nullability.
+/// 2. Handles can be either null or invalid, two different states!
 #[derive(Eq, PartialEq, Hash)]
 #[repr(transparent)]
 pub struct HANDLE<T> {
@@ -21,6 +26,14 @@ impl<T> std::clone::Clone for HANDLE<T> {
     }
 }
 impl<T> std::marker::Copy for HANDLE<T> {}
+impl<T> Default for HANDLE<T> {
+    fn default() -> Self {
+        Self {
+            raw: 0,
+            marker: PhantomData,
+        }
+    }
+}
 
 unsafe impl<T: 'static> memory::Pod for HANDLE<T> {}
 

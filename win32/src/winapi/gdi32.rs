@@ -17,7 +17,7 @@ pub enum Object {
     Bitmap(user32::Bitmap),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DC {
     // TODO: it's unclear to me what the representation of a DC ought to be.
     // The SelectObject() API returns the previously selected object of a given
@@ -27,14 +27,6 @@ pub struct DC {
     // Wine appears to use a vtable (for generic behavior) *and* per-object-type fields.
     bitmap: HGDIOBJ,
     pub ddraw_surface: u32,
-}
-impl DC {
-    pub fn new() -> Self {
-        DC {
-            bitmap: HGDIOBJ::null(),
-            ddraw_surface: 0,
-        }
-    }
 }
 
 pub type HDC = HANDLE<DC>;
@@ -90,7 +82,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, _bytes: u32, _out: u32
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
     assert!(hdc.is_null()); // null means "compatible with current screen"
-    let dc = DC::new();
+    let dc = DC::default();
     let handle = machine.state.gdi32.dcs.add(dc);
     handle
 }

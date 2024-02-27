@@ -198,6 +198,20 @@ pub struct PAINTSTRUCT {
 unsafe impl memory::Pod for PAINTSTRUCT {}
 
 #[win32_derive::dllexport]
-pub fn BeginPaint(_machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    HDC::null()
+pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
+    let hdc: HDC = machine.state.user32.windows.get(hWnd).unwrap().hdc;
+    *lpPaint.unwrap() = PAINTSTRUCT {
+        hdc: hdc,
+        fErase: 1, // todo
+        rcPaint: RECT {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+        },
+        fRestore: 0,          // reserved
+        fIncUpdate: 0,        // reserved
+        rgbReserved: [0; 32], // reserved
+    };
+    hdc
 }

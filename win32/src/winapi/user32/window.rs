@@ -5,6 +5,7 @@ use std::rc::Rc;
 
 pub struct Window {
     pub hwnd: HWND,
+    pub hdc: HDC,
     pub host: Box<dyn host::Window>,
     pub width: u32,
     pub height: u32,
@@ -260,6 +261,11 @@ pub async fn CreateWindowExW(
     let hwnd = machine.state.user32.windows.reserve();
     let window = Window {
         hwnd,
+        hdc: machine
+            .state
+            .gdi32
+            .dcs
+            .add(crate::winapi::gdi32::DC::default()),
         host: host_win,
         width,
         height,
