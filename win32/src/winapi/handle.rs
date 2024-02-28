@@ -62,6 +62,14 @@ impl<T> HANDLE<T> {
     pub fn is_invalid(&self) -> bool {
         self.raw == -1i32 as u32
     }
+
+    pub fn to_option(self) -> Option<Self> {
+        if self.is_null() || self.is_invalid() {
+            None
+        } else {
+            Some(self)
+        }
+    }
 }
 
 impl<T> std::fmt::Debug for HANDLE<T> {

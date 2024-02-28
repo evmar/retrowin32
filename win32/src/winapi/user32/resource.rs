@@ -17,7 +17,7 @@ const TRACE_CONTEXT: &'static str = "user32/resource";
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
 pub type HICON = u32;
-pub type HBRUSH = u32;
+pub type HBRUSH = HGDIOBJ;
 pub type HMENU = u32;
 
 #[win32_derive::dllexport]

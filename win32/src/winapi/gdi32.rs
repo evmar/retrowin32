@@ -15,7 +15,13 @@ const TRACE_CONTEXT: &'static str = "gdi32";
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
 pub enum Object {
+    Brush(Brush),
     Bitmap(user32::Bitmap),
+}
+
+#[derive(Debug)]
+pub struct Brush {
+    pub color: u32,
 }
 
 #[derive(Debug, Default)]
@@ -27,6 +33,7 @@ pub struct DC {
     // later can't retrofit the DC type with a DirectDraw field.
     // Wine appears to use a vtable (for generic behavior) *and* per-object-type fields.
     bitmap: HGDIOBJ,
+    pub brush: HGDIOBJ,
     pub ddraw_surface: u32,
 }
 
@@ -58,8 +65,18 @@ pub enum GetStockObjectArg {
 }
 
 #[win32_derive::dllexport]
-pub fn GetStockObject(_machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> u32 {
-    0
+pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
+    match i {
+        Ok(GetStockObjectArg::LTGRAY_BRUSH) => machine
+            .state
+            .gdi32
+            .objects
+            .add(Object::Brush(Brush { color: 0xDDDDDD })),
+        _ => {
+            log::error!("returning null stock object");
+            HGDIOBJ::null()
+        }
+    }
 }
 
 #[win32_derive::dllexport]
@@ -75,6 +92,7 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
     };
     match obj {
         Object::Bitmap(_) => std::mem::replace(&mut dc.bitmap, hGdiObj),
+        Object::Brush(_) => std::mem::replace(&mut dc.brush, hGdiObj),
     }
 }
 
@@ -91,7 +109,6 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, _bytes: u32, _out: u32
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
-    assert!(hdc.is_null()); // null means "compatible with current screen"
     let dc = DC::default();
     let handle = machine.state.gdi32.dcs.add(dc);
     handle
@@ -140,6 +157,7 @@ pub fn BitBlt(
     let obj = machine.state.gdi32.objects.get(hdcSrc.bitmap).unwrap();
     let bitmap = match obj {
         Object::Bitmap(bmp) => bmp,
+        _ => unimplemented!("{:?}", obj),
     };
     assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
     assert!(cx == surface.width && cy == surface.height);

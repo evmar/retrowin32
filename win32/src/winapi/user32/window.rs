@@ -1,5 +1,8 @@
 use super::*;
-use crate::{host, winapi::gdi32::HDC};
+use crate::{
+    host,
+    winapi::gdi32::{HDC, HGDIOBJ},
+};
 use bitflags::bitflags;
 use std::rc::Rc;
 
@@ -24,6 +27,7 @@ impl Window {
 pub struct WndClass {
     pub name: String,
     pub wndproc: u32,
+    pub background: HBRUSH,
 }
 
 fn register_class(machine: &mut Machine, wndclass: WndClass) -> u32 {
@@ -76,6 +80,7 @@ pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     let wndclass = WndClass {
         name: name.to_string(),
         wndproc: lpWndClass.lpfnWndProc,
+        background: lpWndClass.hbrBackground,
     };
     register_class(machine, wndclass)
 }
@@ -91,7 +96,7 @@ pub struct WNDCLASSEXA {
     hInstance: HINSTANCE,
     hIcon: HICON,
     hCursor: HCURSOR,
-    hbrBackground: HBRUSH,
+    hbrBackground: HGDIOBJ,
     lpszMenuName: u32,
     lpszClassName: u32,
     hIconSm: HICON,
@@ -110,6 +115,7 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
     let wndclass = WndClass {
         name,
         wndproc: lpWndClassEx.lpfnWndProc,
+        background: lpWndClassEx.hbrBackground,
     };
     register_class(machine, wndclass)
 }
@@ -518,8 +524,17 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GetDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
-    HDC::null()
+pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
+    match hWnd.to_option() {
+        Some(hWnd) => {
+            let window = machine.state.user32.windows.get(hWnd).unwrap();
+            window.hdc
+        }
+        None => {
+            log::warn!("TODO: full screen hdc");
+            HDC::null()
+        }
+    }
 }
 
 #[win32_derive::dllexport]
