@@ -13,10 +13,25 @@ pub struct Window {
     pub width: u32,
     pub height: u32,
     pub wndclass: Rc<WndClass>,
+    pub pixels: Option<Box<[[u8; 4]]>>,
     pub need_paint: bool,
 }
 
 impl Window {
+    pub fn pixels_mut(&mut self) -> &mut [[u8; 4]] {
+        match self.pixels {
+            Some(ref mut px) => px,
+            None => {
+                let size = (self.width * self.height) as usize;
+                self.pixels = Some({
+                    let mut p = Vec::with_capacity(size);
+                    p.resize(size, [0, 0, 0, 0]);
+                    p.into_boxed_slice()
+                });
+                self.pixels.as_mut().unwrap()
+            }
+        }
+    }
     pub fn set_size(&mut self, width: u32, height: u32) {
         self.width = width;
         self.height = height;
@@ -274,6 +289,7 @@ pub async fn CreateWindowExW(
         width,
         height,
         wndclass,
+        pixels: None,
         need_paint: true,
     };
     machine.state.user32.windows.set(hwnd, window);

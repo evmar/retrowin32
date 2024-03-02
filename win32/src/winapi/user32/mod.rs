@@ -206,11 +206,11 @@ unsafe impl memory::Pod for PAINTSTRUCT {}
 
 #[win32_derive::dllexport]
 pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     if let Some(hbrush) = window.wndclass.background.to_option() {
         if let super::gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap()
         {
-            log::warn!("todo: fill with {:x}", brush.color);
+            window.pixels_mut().fill(brush.color.to_pixel());
         }
     }
     let hdc = window.hdc;

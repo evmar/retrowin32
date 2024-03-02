@@ -20,8 +20,17 @@ pub enum Object {
 }
 
 #[derive(Debug)]
+pub struct COLORREF(pub (u8, u8, u8));
+impl COLORREF {
+    pub fn to_pixel(&self) -> [u8; 4] {
+        let (r, g, b) = self.0;
+        [r, g, b, 0]
+    }
+}
+
+#[derive(Debug)]
 pub struct Brush {
-    pub color: u32,
+    pub color: COLORREF,
 }
 
 /// Target device for a DC.
@@ -84,11 +93,11 @@ pub enum GetStockObjectArg {
 #[win32_derive::dllexport]
 pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
     match i {
-        Ok(GetStockObjectArg::LTGRAY_BRUSH) => machine
-            .state
-            .gdi32
-            .objects
-            .add(Object::Brush(Brush { color: 0xDDDDDD })),
+        Ok(GetStockObjectArg::LTGRAY_BRUSH) => {
+            machine.state.gdi32.objects.add(Object::Brush(Brush {
+                color: COLORREF((0xDD, 0xDD, 0xDD)),
+            }))
+        }
         _ => {
             log::error!("returning null stock object");
             HGDIOBJ::null()
