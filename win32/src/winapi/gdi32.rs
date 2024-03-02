@@ -28,7 +28,7 @@ impl COLORREF {
     }
     pub fn to_pixel(&self) -> [u8; 4] {
         let (r, g, b) = self.0;
-        [r, g, b, 0]
+        [r, g, b, 0xff]
     }
 }
 
@@ -113,7 +113,7 @@ pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) 
     match i {
         Ok(GetStockObjectArg::LTGRAY_BRUSH) => {
             machine.state.gdi32.objects.add(Object::Brush(Brush {
-                color: COLORREF((0xDD, 0xDD, 0xDD)),
+                color: COLORREF((0xc0, 0xc0, 0xc0)),
             }))
         }
         _ => {
@@ -540,14 +540,14 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
 
     let (dstX, dstY) = (x, y);
     if dstX == dc.x {
-        let (y0, y1) = ascending(dstY, dc.x);
-        for y in y0..y1 {
+        let (y0, y1) = ascending(dstY, dc.y);
+        for y in y0..=y1 {
             pixels.raw[((y * stride) + x) as usize] = color;
         }
         dc.y = dstY;
     } else if dstY == dc.y {
         let (x0, x1) = ascending(dstX, dc.x);
-        for x in x0..x1 {
+        for x in x0..=x1 {
             pixels.raw[((y * stride) + x) as usize] = color;
         }
         dc.x = dstX;
