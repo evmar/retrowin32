@@ -210,7 +210,10 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
     if let Some(hbrush) = window.wndclass.background.to_option() {
         if let super::gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap()
         {
-            window.pixels_mut().fill(brush.color.to_pixel());
+            window
+                .pixels_mut(&mut *machine.host)
+                .raw
+                .fill(brush.color.to_pixel());
         }
     }
     let hdc = window.hdc;
@@ -232,6 +235,11 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 
 #[win32_derive::dllexport]
 pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    if let Some(pixels) = &mut window.pixels {
+        pixels.surface.write_pixels(&*pixels.raw);
+        pixels.surface.show();
+    }
     machine
         .state
         .user32

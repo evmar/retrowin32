@@ -2,9 +2,31 @@ use super::*;
 use crate::{
     host,
     winapi::gdi32::{HDC, HGDIOBJ},
+    Host, SurfaceOptions,
 };
 use bitflags::bitflags;
 use std::rc::Rc;
+
+pub struct WindowPixels {
+    pub surface: Box<dyn host::Surface>,
+    pub raw: Box<[[u8; 4]]>,
+}
+impl WindowPixels {
+    pub fn new(host: &mut dyn Host, width: u32, height: u32) -> Self {
+        let size = (width * height) as usize;
+        let surface = host.create_surface(&SurfaceOptions {
+            width,
+            height,
+            primary: true,
+        });
+        let raw = {
+            let mut p = Vec::with_capacity(size);
+            p.resize(size, [0, 0, 0, 0]);
+            p.into_boxed_slice()
+        };
+        Self { surface, raw }
+    }
+}
 
 pub struct Window {
     pub hwnd: HWND,
@@ -13,29 +35,26 @@ pub struct Window {
     pub width: u32,
     pub height: u32,
     pub wndclass: Rc<WndClass>,
-    pub pixels: Option<Box<[[u8; 4]]>>,
+    pub pixels: Option<WindowPixels>,
     pub need_paint: bool,
 }
 
 impl Window {
-    pub fn pixels_mut(&mut self) -> &mut [[u8; 4]] {
+    pub fn pixels_mut(&mut self, host: &mut dyn Host) -> &mut WindowPixels {
         match self.pixels {
             Some(ref mut px) => px,
             None => {
-                let size = (self.width * self.height) as usize;
-                self.pixels = Some({
-                    let mut p = Vec::with_capacity(size);
-                    p.resize(size, [0, 0, 0, 0]);
-                    p.into_boxed_slice()
-                });
+                self.pixels = Some(WindowPixels::new(host, self.width, self.height));
                 self.pixels.as_mut().unwrap()
             }
         }
     }
+
     pub fn set_size(&mut self, width: u32, height: u32) {
         self.width = width;
         self.height = height;
         self.host.set_size(width, height);
+        self.pixels = None;
     }
 }
 
@@ -278,7 +297,7 @@ pub async fn CreateWindowExW(
         nHeight
     };
 
-    host_win.set_size(std::cmp::max(width, 64), std::cmp::max(height, 64));
+    host_win.set_size(width, height);
     let hwnd = machine.state.user32.windows.reserve();
     let window = Window {
         hwnd,
@@ -485,7 +504,7 @@ pub fn SetWindowPos(
 
 #[win32_derive::dllexport]
 pub fn MoveWindow(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     X: u32,
     Y: u32,
@@ -493,6 +512,8 @@ pub fn MoveWindow(
     nHeight: u32,
     bRepaint: bool,
 ) -> bool {
+    let window = machine.state.user32.get_window(hWnd).unwrap();
+    window.set_size(nWidth, nHeight);
     true // success
 }
 
