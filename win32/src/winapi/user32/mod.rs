@@ -134,12 +134,12 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32
     match metric {
         SystemMetric::CXSCREEN => 640,
         SystemMetric::CYSCREEN => 480,
-        SystemMetric::CYCAPTION => 3,
+        SystemMetric::CYCAPTION => 19,
         SystemMetric::CXBORDER => 1,
         SystemMetric::CYBORDER => 1,
-        SystemMetric::CYMENU => 16,
-        SystemMetric::CXFRAME => 8,
-        SystemMetric::CYFRAME => 8,
+        SystemMetric::CYMENU => 19,
+        SystemMetric::CXFRAME => 4,
+        SystemMetric::CYFRAME => 4,
         SystemMetric::CXVIRTUALSCREEN => 640,
         SystemMetric::CYVIRTUALSCREEN => 480,
     }
