@@ -401,8 +401,22 @@ pub fn CreatePen(_machine: &mut Machine, iStyle: u32, cWidth: u32, color: u32) -
 }
 
 #[win32_derive::dllexport]
-pub fn CreateCompatibleBitmap(_machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> u32 {
-    0 // fail
+pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    match dc.target {
+        DCTarget::Memory(_) => todo!(),
+        DCTarget::Window(_) => {} // screen has known format
+        DCTarget::DirectDrawSurface(_) => todo!(),
+    }
+
+    let mut pixels = Vec::new();
+    pixels.resize((cx * cy) as usize, [0; 4]);
+    let bitmap = user32::Bitmap {
+        width: cx,
+        height: cy,
+        pixels: user32::Pixels::Owned(pixels.into_boxed_slice()),
+    };
+    machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
 }
 
 #[win32_derive::dllexport]
