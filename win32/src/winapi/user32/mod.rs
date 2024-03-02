@@ -23,7 +23,7 @@ type HINSTANCE = u32;
 #[derive(Default)]
 pub struct State {
     wndclasses: Vec<Rc<WndClass>>,
-    windows: Handles<HWND, Window>,
+    pub windows: Handles<HWND, Window>,
     messages: VecDeque<MSG>,
 }
 impl State {

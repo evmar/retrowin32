@@ -49,6 +49,9 @@ pub struct DC {
     // Wine appears to use a vtable (for generic behavior).
     target: DCTarget,
 
+    pub x: u32,
+    pub y: u32,
+
     // The SelectObject() API sets a drawing-related field on the DC and returns the
     // previously selected object of a given type, which means we need a storage field
     // per object type.
@@ -59,6 +62,8 @@ impl DC {
     pub fn new(target: DCTarget) -> Self {
         DC {
             target,
+            x: 0,
+            y: 0,
             brush: Default::default(),
         }
     }
@@ -459,17 +464,51 @@ pub fn SetROP2(_machine: &mut Machine, hdc: HDC, rop2: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn MoveToEx(
-    _machine: &mut Machine,
-    hdc: HDC,
-    x: u32,
-    y: u32,
-    lppt: Option<&mut POINT>,
-) -> bool {
-    false // fail
+pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: u32, y: u32, lppt: Option<&mut POINT>) -> bool {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    if let Some(pt) = lppt {
+        *pt = POINT { x: dc.x, y: dc.y };
+    }
+    dc.x = x;
+    dc.y = y;
+    true
+}
+
+fn ascending(a: u32, b: u32) -> (u32, u32) {
+    if a > b {
+        (b, a)
+    } else {
+        (a, b)
+    }
 }
 
 #[win32_derive::dllexport]
-pub fn LineTo(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
+pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let hwnd = match dc.target {
+        DCTarget::Memory(_) => todo!(),
+        DCTarget::Window(hwnd) => hwnd,
+        DCTarget::DirectDrawSurface(_) => todo!(),
+    };
+    let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+    let stride = window.width;
+    let pixels = window.pixels_mut(&mut *machine.host);
+
+    let (dstX, dstY) = (x, y);
+    if dstX == dc.x {
+        let (y0, y1) = ascending(dstY, dc.x);
+        for y in y0..y1 {
+            pixels.raw[((y * stride) + x) as usize] = [0, 0, 0, 0];
+        }
+        dc.y = dstY;
+    } else if dstY == dc.y {
+        let (x0, x1) = ascending(dstX, dc.x);
+        for x in x0..x1 {
+            pixels.raw[((y * stride) + x) as usize] = [0, 0, 0, 0];
+        }
+        dc.x = dstX;
+    } else {
+        todo!();
+    }
     false // fail
 }
