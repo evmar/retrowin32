@@ -412,7 +412,7 @@ pub mod gdi32 {
         }
         pub unsafe fn CreatePen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let iStyle = <u32>::from_stack(mem, esp + 4u32);
+            let iStyle = <Result<PS, u32>>::from_stack(mem, esp + 4u32);
             let cWidth = <u32>::from_stack(mem, esp + 8u32);
             let color = <u32>::from_stack(mem, esp + 12u32);
             winapi::gdi32::CreatePen(machine, iStyle, cWidth, color).to_raw()

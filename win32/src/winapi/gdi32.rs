@@ -17,11 +17,15 @@ const TRACE_CONTEXT: &'static str = "gdi32";
 pub enum Object {
     Brush(Brush),
     Bitmap(user32::Bitmap),
+    Pen(Pen),
 }
 
 #[derive(Debug)]
 pub struct COLORREF(pub (u8, u8, u8));
 impl COLORREF {
+    pub fn from_u32(raw: u32) -> Self {
+        Self((raw as u8, (raw >> 8) as u8, (raw >> 16) as u8))
+    }
     pub fn to_pixel(&self) -> [u8; 4] {
         let (r, g, b) = self.0;
         [r, g, b, 0]
@@ -30,6 +34,11 @@ impl COLORREF {
 
 #[derive(Debug)]
 pub struct Brush {
+    pub color: COLORREF,
+}
+
+#[derive(Debug)]
+pub struct Pen {
     pub color: COLORREF,
 }
 
@@ -57,6 +66,7 @@ pub struct DC {
     // previously selected object of a given type, which means we need a storage field
     // per object type.
     pub brush: HGDIOBJ,
+    pub pen: HGDIOBJ,
 }
 
 impl DC {
@@ -67,6 +77,7 @@ impl DC {
             x: 0,
             y: 0,
             brush: Default::default(),
+            pen: Default::default(),
         }
     }
 }
@@ -133,6 +144,7 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
             DCTarget::DirectDrawSurface(_) => todo!(),
         },
         Object::Brush(_) => std::mem::replace(&mut dc.brush, hGdiObj),
+        Object::Pen(_) => std::mem::replace(&mut dc.pen, hGdiObj),
     }
 }
 
@@ -409,12 +421,26 @@ pub fn GetDeviceCaps(
     }
 }
 
-pub struct PEN {}
-pub type HPEN = HANDLE<PEN>;
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum PS {
+    SOLID = 0,
+}
 
 #[win32_derive::dllexport]
-pub fn CreatePen(_machine: &mut Machine, iStyle: u32, cWidth: u32, color: u32) -> HPEN {
-    HPEN::null()
+pub fn CreatePen(
+    machine: &mut Machine,
+    iStyle: Result<PS, u32>,
+    cWidth: u32,
+    color: u32,
+) -> HGDIOBJ {
+    iStyle.unwrap();
+    if cWidth != 1 {
+        todo!();
+    }
+
+    machine.state.gdi32.objects.add(Object::Pen(Pen {
+        color: COLORREF::from_u32(color),
+    }))
 }
 
 #[win32_derive::dllexport]
@@ -505,7 +531,10 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
     let pixels = window.pixels_mut(&mut *machine.host);
 
     let color = match dc.r2 {
-        R2::COPYPEN => [0, 0, 0, 0],
+        R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
+            Object::Pen(pen) => pen.color.to_pixel(),
+            _ => todo!(),
+        },
         R2::WHITE => [0xff, 0xff, 0xff, 0],
     };
 
