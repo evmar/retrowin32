@@ -49,6 +49,7 @@ pub struct DC {
     // Wine appears to use a vtable (for generic behavior).
     target: DCTarget,
 
+    r2: R2,
     pub x: u32,
     pub y: u32,
 
@@ -62,6 +63,7 @@ impl DC {
     pub fn new(target: DCTarget) -> Self {
         DC {
             target,
+            r2: R2::default(),
             x: 0,
             y: 0,
             brush: Default::default(),
@@ -458,9 +460,17 @@ pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
     0 // LTR
 }
 
+#[derive(Debug, Default, win32_derive::TryFromEnum)]
+pub enum R2 {
+    #[default]
+    COPYPEN = 13,
+    WHITE = 16,
+}
+
 #[win32_derive::dllexport]
-pub fn SetROP2(_machine: &mut Machine, hdc: HDC, rop2: u32) -> u32 {
-    0 // fail
+pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    std::mem::replace(&mut dc.r2, rop2.unwrap()) as u32
 }
 
 #[win32_derive::dllexport]
@@ -494,17 +504,22 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
     let stride = window.width;
     let pixels = window.pixels_mut(&mut *machine.host);
 
+    let color = match dc.r2 {
+        R2::COPYPEN => [0, 0, 0, 0],
+        R2::WHITE => [0xff, 0xff, 0xff, 0],
+    };
+
     let (dstX, dstY) = (x, y);
     if dstX == dc.x {
         let (y0, y1) = ascending(dstY, dc.x);
         for y in y0..y1 {
-            pixels.raw[((y * stride) + x) as usize] = [0, 0, 0, 0];
+            pixels.raw[((y * stride) + x) as usize] = color;
         }
         dc.y = dstY;
     } else if dstY == dc.y {
         let (x0, x1) = ascending(dstX, dc.x);
         for x in x0..x1 {
-            pixels.raw[((y * stride) + x) as usize] = [0, 0, 0, 0];
+            pixels.raw[((y * stride) + x) as usize] = color;
         }
         dc.x = dstX;
     } else {

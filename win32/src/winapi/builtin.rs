@@ -501,7 +501,7 @@ pub mod gdi32 {
         pub unsafe fn SetROP2(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let rop2 = <u32>::from_stack(mem, esp + 8u32);
+            let rop2 = <Result<R2, u32>>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetROP2(machine, hdc, rop2).to_raw()
         }
         pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
