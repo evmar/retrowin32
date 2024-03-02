@@ -367,7 +367,7 @@ pub mod gdi32 {
         pub unsafe fn CreateDIBSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let pbmi = <Option<&BITMAPINFO>>::from_stack(mem, esp + 8u32);
+            let pbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, esp + 8u32);
             let usage = <u32>::from_stack(mem, esp + 12u32);
             let ppvBits = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
             let hSection = <u32>::from_stack(mem, esp + 20u32);
@@ -490,7 +490,7 @@ pub mod gdi32 {
             let StartScan = <u32>::from_stack(mem, esp + 32u32);
             let cLines = <u32>::from_stack(mem, esp + 36u32);
             let lpvBits = <u32>::from_stack(mem, esp + 40u32);
-            let lpbmi = <u32>::from_stack(mem, esp + 44u32);
+            let lpbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, esp + 44u32);
             let ColorUse = <u32>::from_stack(mem, esp + 48u32);
             winapi::gdi32::SetDIBitsToDevice(
                 machine, hdc, xDest, yDest, w, h, xSrc, ySrc, StartScan, cLines, lpvBits, lpbmi,

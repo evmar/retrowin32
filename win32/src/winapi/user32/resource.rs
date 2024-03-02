@@ -1,9 +1,7 @@
-use anyhow::bail;
 use memory::Mem;
 
 use crate::{
     pe,
-    reader::Reader,
     winapi::{
         gdi32::{self, HGDIOBJ},
         kernel32::ResourceId,
@@ -108,6 +106,7 @@ impl BITMAPINFOHEADER {
 }
 
 pub enum Pixels {
+    /// RGBA
     Owned(Box<[[u8; 4]]>),
     Ptr(u32),
 }
@@ -128,6 +127,83 @@ impl Bitmap {
             }
         }
     }
+
+    /// Parse a BITMAPINFO/HEADER and pixel data.
+    /// If pixels is None, pixel data immediately follows header.
+    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<*const u8>) -> Bitmap {
+        let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
+        if header.biSize as usize != header_size {
+            panic!("bad bitmap header");
+        }
+
+        if header.biClrUsed != 0 {
+            todo!();
+        }
+
+        let palette = match header.compression().unwrap() {
+            BI::RGB => {
+                let palette_len = match header.biBitCount {
+                    8 => 256,
+                    4 => 16,
+                    _ => unimplemented!(),
+                };
+                unsafe {
+                    let ptr = (header as *const _ as *const u8).add(header_size) as *const _;
+                    std::slice::from_raw_parts(ptr as *const [u8; 4], palette_len as usize)
+                }
+            }
+            BI::RLE8 => todo!(),
+            BI::RLE4 => todo!(),
+            BI::BITFIELDS => todo!(),
+            BI::JPEG => todo!(),
+            BI::PNG => todo!(),
+        };
+
+        fn get_pixel(palette: &[[u8; 4]], val: u8) -> [u8; 4] {
+            let [r, g, b, _] = palette[val as usize];
+            [r, g, b, 255]
+        }
+
+        let width = header.width() as usize;
+        let stride = width * header.biBitCount as usize / 8;
+        let height = header.height() as usize;
+
+        let pixels = match pixels {
+            Some(ptr) => ptr,
+            None => unsafe { (palette as *const _ as *const u8).add(palette.len() * 4) },
+        };
+        let src = unsafe { std::slice::from_raw_parts(pixels, height * stride) };
+        let mut dst = Vec::with_capacity(width * height);
+
+        for y in 0..height {
+            let y_src = if header.is_top_down() {
+                y
+            } else {
+                height - y - 1
+            };
+            let row = &src[y_src * stride..][..stride];
+            match header.biBitCount {
+                8 => {
+                    for &p in row {
+                        dst.push(get_pixel(palette, p));
+                    }
+                }
+                4 => {
+                    for &p in row {
+                        dst.push(get_pixel(palette, p >> 4));
+                        dst.push(get_pixel(palette, p & 0xF));
+                    }
+                }
+                _ => unimplemented!(),
+            }
+        }
+
+        Bitmap {
+            width: header.width(),
+            height: header.height(),
+            pixels: Pixels::Owned(dst.into_boxed_slice()),
+        }
+    }
 }
 
 impl std::fmt::Debug for Bitmap {
@@ -138,65 +214,6 @@ impl std::fmt::Debug for Bitmap {
             //.field("pixels", &&self.pixels[0..16])
             .finish()
     }
-}
-
-fn parse_bitmap(buf: Mem) -> anyhow::Result<Bitmap> {
-    let mut r = Reader::new(buf);
-    let header = r.read::<BITMAPINFOHEADER>();
-    let header_size = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
-    if header.biSize != header_size {
-        bail!("bad bitmap header");
-    }
-
-    let palette_count = match header.biBitCount {
-        8 => match header.biClrUsed {
-            0 => 256,
-            _ => unimplemented!(),
-        },
-        _ => unimplemented!(),
-    };
-    let palette_buf = r.read_n::<u32>(palette_count)?;
-    let palette = unsafe {
-        std::slice::from_raw_parts(
-            palette_buf.as_ptr() as *const [u8; 4],
-            palette_count as usize,
-        )
-    };
-    let width = header.width();
-    let height = header.height();
-    let pixels = r.read_n::<u8>(width * height)?;
-    assert!(r.done());
-
-    // Bitmap pixel data is tricky.
-    // - Likely bottom-up (first row of data is bottom row of pixels)
-    // - Palette will have 0s for the 4th component, while canvas interprets those 0s
-    //   as an alpha channel.  We swap there here for 255 for now.
-    // It's plausible some software expects the pixel data within a bitmap to be
-    // exactly as in the underlying file and we ought to not monkey with it here,
-    // but for now let's just transform it into the form the canvas expects.
-
-    fn get_pixel(palette: &[[u8; 4]], val: u8) -> [u8; 4] {
-        let [r, g, b, _] = palette[val as usize];
-        [r, g, b, 255]
-    }
-
-    let pixels = if header.is_top_down() {
-        pixels.iter().map(|&p| get_pixel(palette, p)).collect()
-    } else {
-        let mut v = Vec::with_capacity(pixels.len() as usize);
-        for y in (0..height).rev() {
-            for &p in pixels[(y * width) as usize..][..width as usize].iter() {
-                v.push(get_pixel(palette, p));
-            }
-        }
-        v
-    };
-
-    Ok(Bitmap {
-        width,
-        height,
-        pixels: Pixels::Owned(pixels.into_boxed_slice()),
-    })
 }
 
 #[win32_derive::dllexport]
@@ -227,7 +244,7 @@ pub fn LoadImageA(
                 name,
             )
             .unwrap();
-            let bmp = parse_bitmap(buf).unwrap();
+            let bmp = Bitmap::parse(buf.view::<BITMAPINFOHEADER>(0), None);
             machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp))
         }
         _ => {

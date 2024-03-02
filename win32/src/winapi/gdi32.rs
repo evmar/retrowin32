@@ -1,14 +1,9 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use super::{
-    handle::Handles,
-    kernel32,
-    stack_args::ArrayWithSize,
-    types::*,
-    user32::{BI, BITMAPINFOHEADER},
-};
+use super::{handle::Handles, kernel32, stack_args::ArrayWithSize, types::*, user32::BI};
 use crate::{machine::Machine, winapi::user32};
+pub use user32::BITMAPINFOHEADER;
 
 const TRACE_CONTEXT: &'static str = "gdi32";
 
@@ -250,14 +245,6 @@ pub fn StretchBlt(
     )
 }
 
-#[repr(C)]
-#[derive(Debug)]
-pub struct BITMAPINFO {
-    bmiHeader: user32::BITMAPINFOHEADER,
-    bmiColors: [u32; 0], // TODO
-}
-unsafe impl memory::Pod for BITMAPINFO {}
-
 const DIB_RGB_COLORS: u32 = 0;
 // const DIB_PAL_COLORS: u32 = 1;
 
@@ -265,7 +252,7 @@ const DIB_RGB_COLORS: u32 = 0;
 pub fn CreateDIBSection(
     machine: &mut Machine,
     hdc: HDC,
-    pbmi: Option<&BITMAPINFO>,
+    pbmi: Option<&BITMAPINFOHEADER>,
     usage: u32,
     ppvBits: Option<&mut u32>, // **void
     hSection: u32,
@@ -278,7 +265,7 @@ pub fn CreateDIBSection(
         todo!()
     }
 
-    let bi = &pbmi.unwrap().bmiHeader;
+    let bi = &pbmi.unwrap();
     if bi.biSize != std::mem::size_of::<BITMAPINFOHEADER>() as u32 {
         todo!()
     }
@@ -464,7 +451,7 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
 
 #[win32_derive::dllexport]
 pub fn SetDIBitsToDevice(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hdc: HDC,
     xDest: u32,
     yDest: u32,
@@ -475,10 +462,55 @@ pub fn SetDIBitsToDevice(
     StartScan: u32,
     cLines: u32,
     lpvBits: u32,
-    lpbmi: u32,
+    lpbmi: Option<&BITMAPINFOHEADER>,
     ColorUse: u32,
 ) -> u32 {
-    0 // fail
+    if xSrc != 0 || ySrc != 0 {
+        todo!();
+    }
+    if xDest != 0 || yDest != 0 {
+        log::error!("todo");
+        return 0;
+    }
+    if StartScan != 0 {
+        todo!()
+    }
+    if cLines != h {
+        todo!()
+    }
+    if ColorUse != DIB_RGB_COLORS {
+        todo!();
+    }
+
+    let header = lpbmi.unwrap();
+    if header.biWidth != w {
+        todo!("unclear which width to believe");
+    }
+
+    let mem = machine.memory.mem();
+    let src = user32::Bitmap::parse(
+        header,
+        Some(machine.mem().slice(lpvBits..).as_slice_todo().as_ptr()),
+    );
+    let src = src.pixels_slice(mem);
+
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let hbitmap = match dc.target {
+        DCTarget::Memory(hbitmap) => hbitmap,
+        DCTarget::Window(_) => todo!(),
+        DCTarget::DirectDrawSurface(_) => todo!(),
+    };
+    let dst = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+        Object::Bitmap(b) => b,
+        _ => todo!(),
+    };
+    let dst = match &mut dst.pixels {
+        user32::Pixels::Owned(p) => &mut **p,
+        user32::Pixels::Ptr(_) => todo!(),
+    };
+
+    dst[..(w * h) as usize].copy_from_slice(&src[..(w * h) as usize]);
+    cLines
 }
 
 #[win32_derive::dllexport]
