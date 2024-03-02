@@ -24,22 +24,39 @@ pub struct Brush {
     pub color: u32,
 }
 
-#[derive(Debug, Default)]
+/// Target device for a DC.
+#[derive(Debug)]
+pub enum DCTarget {
+    Memory(HGDIOBJ), // aka Bitmap
+    Window(HWND),
+    DirectDrawSurface(u32),
+}
+
+#[derive(Debug)]
 pub struct DC {
     // TODO: it's unclear to me what the representation of a DC ought to be.
-    // The SelectObject() API returns the previously selected object of a given
-    // type, which implies that we need a storage field per object type.
-    // But then DirectDraw can also create a DC, and DirectDraw (as a DLL that came
-    // later can't retrofit the DC type with a DirectDraw field.
-    // Wine appears to use a vtable (for generic behavior) *and* per-object-type fields.
-    bitmap: HGDIOBJ,
+    // DirectDraw can also create a DC, and DirectDraw (as a DLL that came
+    // later) can't retrofit the DC type with a DirectDraw field.
+    // Wine appears to use a vtable (for generic behavior).
+    target: DCTarget,
+
+    // The SelectObject() API sets a drawing-related field on the DC and returns the
+    // previously selected object of a given type, which means we need a storage field
+    // per object type.
     pub brush: HGDIOBJ,
-    pub ddraw_surface: u32,
+}
+
+impl DC {
+    pub fn new(target: DCTarget) -> Self {
+        DC {
+            target,
+            brush: Default::default(),
+        }
+    }
 }
 
 pub type HDC = HANDLE<DC>;
-pub struct HGDIOBJT {}
-pub type HGDIOBJ = HANDLE<HGDIOBJT>;
+pub type HGDIOBJ = HANDLE<Object>;
 
 pub struct State {
     pub dcs: Handles<HDC, DC>,
@@ -91,7 +108,14 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
         Some(obj) => obj,
     };
     match obj {
-        Object::Bitmap(_) => std::mem::replace(&mut dc.bitmap, hGdiObj),
+        Object::Bitmap(_) => match dc.target {
+            DCTarget::Memory(prev) => {
+                dc.target = DCTarget::Memory(hGdiObj);
+                prev
+            }
+            DCTarget::Window(_) => todo!(),
+            DCTarget::DirectDrawSurface(_) => todo!(),
+        },
         Object::Brush(_) => std::mem::replace(&mut dc.brush, hGdiObj),
     }
 }
@@ -109,7 +133,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, _bytes: u32, _out: u32
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
-    let dc = DC::default();
+    let dc = DC::new(DCTarget::Memory(HGDIOBJ::null()));
     let handle = machine.state.gdi32.dcs.add(dc);
     handle
 }
@@ -142,23 +166,26 @@ pub fn BitBlt(
 
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
-    let hdc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    if hdc.ddraw_surface == 0 {
-        log::error!("unimp: BitBlt with non-directdraw surface");
-        return 0;
-    }
-    let surface = machine
-        .state
-        .ddraw
-        .surfaces
-        .get_mut(&hdc.ddraw_surface)
-        .unwrap();
-    let hdcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
-    let obj = machine.state.gdi32.objects.get(hdcSrc.bitmap).unwrap();
-    let bitmap = match obj {
-        Object::Bitmap(bmp) => bmp,
-        _ => unimplemented!("{:?}", obj),
+    let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let lpSurface = match dcDst.target {
+        DCTarget::Memory(_) => todo!(),
+        DCTarget::Window(_) => todo!(),
+        DCTarget::DirectDrawSurface(p) => p,
     };
+    let surface = machine.state.ddraw.surfaces.get_mut(&lpSurface).unwrap();
+    let dcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
+    let bitmap = match dcSrc.target {
+        DCTarget::Memory(bitmap) => {
+            let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
+            match obj {
+                Object::Bitmap(bmp) => bmp,
+                _ => unimplemented!("{:?}", obj),
+            }
+        }
+        DCTarget::Window(_) => todo!(),
+        DCTarget::DirectDrawSurface(_) => todo!(),
+    };
+
     assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
     assert!(cx == surface.width && cy == surface.height);
     assert!(surface.width == bitmap.width && surface.height == bitmap.height);

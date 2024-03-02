@@ -267,11 +267,9 @@ pub async fn CreateWindowExW(
     let hwnd = machine.state.user32.windows.reserve();
     let window = Window {
         hwnd,
-        hdc: machine
-            .state
-            .gdi32
-            .dcs
-            .add(crate::winapi::gdi32::DC::default()),
+        hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(
+            crate::winapi::gdi32::DCTarget::Window(hwnd),
+        )),
         host: host_win,
         width,
         height,
