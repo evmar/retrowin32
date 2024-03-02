@@ -158,14 +158,12 @@ pub fn BitBlt(
     x1: u32,
     y1: u32,
     rop: u32,
-) -> u32 {
+) -> bool {
+    // TODO: we special case only a few specific BitBlts.
     if rop != SRCCOPY {
-        log::error!("unimp: raster op {rop:x}");
-        return 0;
+        todo!();
     }
 
-    // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
-    // where the surface sizes match as well.
     let dcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let bitmap = match dcSrc.target {
         DCTarget::Memory(bitmap) => {
@@ -180,21 +178,25 @@ pub fn BitBlt(
     };
 
     let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let lpSurface = match dcDst.target {
+    match dcDst.target {
         DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(_) => todo!(),
-        DCTarget::DirectDrawSurface(p) => p,
-    };
-    let surface = machine.state.ddraw.surfaces.get_mut(&lpSurface).unwrap();
+        DCTarget::Window(_) => {
+            log::error!("todo: BltBlt to Window");
+            false
+        }
+        DCTarget::DirectDrawSurface(ptr) => {
+            let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
 
-    assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
-    assert!(cx == surface.width && cy == surface.height);
-    assert!(surface.width == bitmap.width && surface.height == bitmap.height);
+            assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
+            assert!(cx == surface.width && cy == surface.height);
+            assert!(surface.width == bitmap.width && surface.height == bitmap.height);
 
-    surface
-        .host
-        .write_pixels(bitmap.pixels_slice(machine.memory.mem()));
-    1 // success
+            surface
+                .host
+                .write_pixels(bitmap.pixels_slice(machine.memory.mem()));
+            true
+        }
+    }
 }
 
 #[win32_derive::dllexport]
@@ -211,10 +213,9 @@ pub fn StretchBlt(
     wSrc: u32,
     hSrc: u32,
     rop: u32,
-) -> u32 {
+) -> bool {
     if wDest != wSrc || hDest != hSrc {
-        log::error!("unimp: StretchBlt with actual stretching");
-        return 0;
+        todo!("unimp: StretchBlt with actual stretching");
     }
     BitBlt(
         machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
