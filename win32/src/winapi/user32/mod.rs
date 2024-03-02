@@ -113,9 +113,13 @@ pub enum SystemMetric {
     CXSCREEN = 0,
     CYSCREEN = 1,
     CYCAPTION = 4,
+    CXBORDER = 5,
     CYBORDER = 6,
+    CYMENU = 15,
     CXFRAME = 32,
     CYFRAME = 33,
+    CXVIRTUALSCREEN = 78,
+    CYVIRTUALSCREEN = 79,
 }
 
 #[win32_derive::dllexport]
@@ -131,9 +135,13 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32
         SystemMetric::CXSCREEN => 640,
         SystemMetric::CYSCREEN => 480,
         SystemMetric::CYCAPTION => 3,
+        SystemMetric::CXBORDER => 1,
         SystemMetric::CYBORDER => 1,
+        SystemMetric::CYMENU => 16,
         SystemMetric::CXFRAME => 8,
         SystemMetric::CYFRAME => 8,
+        SystemMetric::CXVIRTUALSCREEN => 640,
+        SystemMetric::CYVIRTUALSCREEN => 480,
     }
 }
 
