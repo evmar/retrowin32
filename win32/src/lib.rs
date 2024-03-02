@@ -28,6 +28,3 @@ pub use host::*;
 pub use machine::Machine;
 #[cfg(feature = "x86-emu")]
 pub use x86::debug::disassemble;
-
-#[macro_use]
-extern crate num_derive;

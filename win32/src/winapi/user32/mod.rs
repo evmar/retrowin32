@@ -9,7 +9,6 @@ use super::handle::Handles;
 use super::types::*;
 use crate::machine::Machine;
 pub use message::*;
-use num_traits::FromPrimitive;
 pub use resource::*;
 use std::collections::VecDeque;
 use std::rc::Rc;
@@ -109,8 +108,8 @@ pub fn DialogBoxParamA(
     0
 }
 
-#[derive(Debug, FromPrimitive)]
-enum SystemMetric {
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum SystemMetric {
     CXSCREEN = 0,
     CYSCREEN = 1,
     CYCAPTION = 4,
@@ -120,11 +119,11 @@ enum SystemMetric {
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: u32) -> u32 {
-    let metric = match SystemMetric::from_u32(nIndex) {
-        Some(metric) => metric,
-        None => {
-            log::error!("GetSystemMetrics({nIndex})");
+pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32>) -> u32 {
+    let metric = match nIndex {
+        Ok(metric) => metric,
+        Err(val) => {
+            log::error!("GetSystemMetrics({val}) => 0");
             return 0;
         }
     };

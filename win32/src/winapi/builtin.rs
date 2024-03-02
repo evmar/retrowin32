@@ -1185,7 +1185,7 @@ pub mod kernel32 {
         }
         pub unsafe fn IsProcessorFeaturePresent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let feature = <u32>::from_stack(mem, esp + 4u32);
+            let feature = <Result<ProcessorFeature, u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::IsProcessorFeaturePresent(machine, feature).to_raw()
         }
         pub unsafe fn IsValidCodePage(machine: &mut Machine, esp: u32) -> u32 {
@@ -2969,7 +2969,7 @@ pub mod user32 {
         }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let nIndex = <u32>::from_stack(mem, esp + 4u32);
+            let nIndex = <Result<SystemMetric, u32>>::from_stack(mem, esp + 4u32);
             winapi::user32::GetSystemMetrics(machine, nIndex).to_raw()
         }
         pub unsafe fn GetWindowDC(machine: &mut Machine, esp: u32) -> u32 {

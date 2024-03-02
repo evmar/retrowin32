@@ -19,7 +19,6 @@ use crate::{
     segments::SegmentDescriptor,
 };
 use ::memory::{Mem, Pod};
-use num_traits::FromPrimitive;
 use std::{collections::HashMap, io::Write};
 
 pub use self::memory::*;
@@ -604,7 +603,7 @@ pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUP
     GetStartupInfoA(machine, lpStartupInfo)
 }
 
-#[derive(Debug, FromPrimitive)]
+#[derive(Debug, win32_derive::TryFromEnum)]
 pub enum ProcessorFeature {
     FLOATING_POINT_PRECISION_ERRATA = 0,
     FLOATING_POINT_EMULATED = 1,
@@ -642,8 +641,10 @@ pub enum ProcessorFeature {
 }
 
 #[win32_derive::dllexport]
-pub fn IsProcessorFeaturePresent(_machine: &mut Machine, feature: u32) -> bool {
-    let feature = ProcessorFeature::from_u32(feature).unwrap();
+pub fn IsProcessorFeaturePresent(
+    _machine: &mut Machine,
+    feature: Result<ProcessorFeature, u32>,
+) -> bool {
     log::warn!("IsProcessorFeaturePresent({feature:?}) => false");
     false
 }
