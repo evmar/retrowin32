@@ -166,13 +166,6 @@ pub fn BitBlt(
 
     // TODO: we special case exactly one BitBlt, from a GDI bitmap to a DirectDraw surface,
     // where the surface sizes match as well.
-    let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let lpSurface = match dcDst.target {
-        DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(_) => todo!(),
-        DCTarget::DirectDrawSurface(p) => p,
-    };
-    let surface = machine.state.ddraw.surfaces.get_mut(&lpSurface).unwrap();
     let dcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let bitmap = match dcSrc.target {
         DCTarget::Memory(bitmap) => {
@@ -185,6 +178,14 @@ pub fn BitBlt(
         DCTarget::Window(_) => todo!(),
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
+
+    let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let lpSurface = match dcDst.target {
+        DCTarget::Memory(_) => todo!(),
+        DCTarget::Window(_) => todo!(),
+        DCTarget::DirectDrawSurface(p) => p,
+    };
+    let surface = machine.state.ddraw.surfaces.get_mut(&lpSurface).unwrap();
 
     assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
     assert!(cx == surface.width && cy == surface.height);
