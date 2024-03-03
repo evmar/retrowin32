@@ -49,9 +49,8 @@ pub struct Shims {
     shims: Vec<Result<&'static Shim, String>>,
     /// Address of async_executor() shim entry point.
     async_executor: u32,
-    /// Pending future for code being ran by async_executor().
-    /// TODO: we will need a stack of these to handle multiple nested callbacks.
-    future: Option<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
+    /// Pending futures for code being ran by async_executor().
+    futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
 impl Shims {
@@ -59,7 +58,7 @@ impl Shims {
         let mut shims = Shims {
             shims: Vec::new(),
             async_executor: 0,
-            future: None,
+            futures: Default::default(),
         };
         shims.async_executor = shims.add(Ok(&Shim {
             name: "retrowin32 async helper",
@@ -124,7 +123,7 @@ pub fn become_async(
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
     machine.emu.x86.cpu.regs.eip = machine.emu.shims.async_executor;
-    machine.emu.shims.future = Some(future);
+    machine.emu.shims.futures.push(future);
 }
 
 pub struct X86Future {
@@ -175,18 +174,16 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
 
 #[allow(deref_nullptr)]
 fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
-    if let Some(mut future) = machine.emu.shims.future.take() {
+    if let Some(mut future) = machine.emu.shims.futures.pop() {
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-        match future.as_mut().poll(context) {
+        let poll = future.as_mut().poll(context);
+        match poll {
             std::task::Poll::Ready(()) => {}
             std::task::Poll::Pending => {
-                if machine.emu.shims.future.is_some() {
-                    panic!("multiple pending futures");
-                }
-                machine.emu.shims.future = Some(future);
+                machine.emu.shims.futures.push(future);
             }
         }
     }
