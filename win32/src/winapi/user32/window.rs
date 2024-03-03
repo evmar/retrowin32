@@ -288,7 +288,8 @@ pub async fn CreateWindowExW(
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
 
-    let mut host_win = machine.host.create_window();
+    let hwnd = machine.state.user32.windows.reserve();
+    let mut host_win = machine.host.create_window(hwnd.to_raw());
     host_win.set_title(&lpWindowName.unwrap().to_string());
     let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
     let height = if nHeight == CW_USEDEFAULT {
@@ -298,7 +299,6 @@ pub async fn CreateWindowExW(
     };
 
     host_win.set_size(width, height);
-    let hwnd = machine.state.user32.windows.reserve();
     let window = Window {
         hwnd,
         hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(

@@ -3,9 +3,21 @@ use std::{cell::RefCell, rc::Rc};
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
-fn message_from_event(event: sdl2::event::Event) -> Option<win32::Message> {
+fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Message> {
     Some(match event {
         sdl2::event::Event::Quit { .. } => win32::Message::Quit,
+        sdl2::event::Event::MouseButtonDown {
+            mouse_btn: sdl2::mouse::MouseButton::Left,
+            x,
+            y,
+            ..
+        } => win32::Message::LButtonDown(hwnd, x as u32, y as u32),
+        sdl2::event::Event::MouseButtonUp {
+            mouse_btn: sdl2::mouse::MouseButton::Left,
+            x,
+            y,
+            ..
+        } => win32::Message::LButtonUp(hwnd, x as u32, y as u32),
         _ => {
             // log::warn!("unhandled event: {:?}", event);
             return None;
@@ -33,9 +45,13 @@ impl GUI {
     }
 
     pub fn get_message(&mut self, wait: bool) -> Option<win32::Message> {
+        let hwnd = match &self.win {
+            Some(w) => w.0.borrow().hwnd,
+            None => 0,
+        };
         if wait {
             loop {
-                let msg = message_from_event(self.pump.wait_event());
+                let msg = message_from_event(hwnd, self.pump.wait_event());
                 if msg.is_some() {
                     return msg;
                 }
@@ -43,7 +59,7 @@ impl GUI {
         } else {
             loop {
                 let msg = self.pump.poll_event()?;
-                let msg = message_from_event(msg);
+                let msg = message_from_event(hwnd, msg);
                 if msg.is_some() {
                     return msg;
                 }
@@ -51,8 +67,8 @@ impl GUI {
         }
     }
 
-    pub fn create_window(&mut self) -> Box<dyn win32::Window> {
-        let win = Window::new(&self.video);
+    pub fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
+        let win = Window::new(&self.video, hwnd);
         let win_ref = WindowRef(Rc::new(RefCell::new(win)));
         self.win = Some(win_ref.clone());
         Box::new(win_ref)
@@ -64,13 +80,14 @@ impl GUI {
 }
 
 struct Window {
+    hwnd: u32,
     canvas: sdl2::render::WindowCanvas,
 }
 impl Window {
-    fn new(video: &sdl2::VideoSubsystem) -> Self {
+    fn new(video: &sdl2::VideoSubsystem, hwnd: u32) -> Self {
         let win = video.window("retrowin32", 640, 480).build().unwrap();
         let canvas = win.into_canvas().build().unwrap();
-        Window { canvas }
+        Window { hwnd, canvas }
     }
 }
 

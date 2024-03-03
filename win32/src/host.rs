@@ -46,6 +46,8 @@ pub trait File {
 
 pub enum Message {
     Quit,
+    LButtonDown(u32, u32, u32),
+    LButtonUp(u32, u32, u32),
 }
 
 pub trait Host {
@@ -57,6 +59,6 @@ pub trait Host {
     fn open(&self, path: &str) -> Box<dyn File>;
     fn write(&self, buf: &[u8]) -> usize;
 
-    fn create_window(&mut self) -> Box<dyn Window>;
+    fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, opts: &SurfaceOptions) -> Box<dyn Surface>;
 }

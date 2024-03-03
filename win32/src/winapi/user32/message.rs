@@ -41,6 +41,8 @@ pub enum WM {
     PAINT = 0x000F,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
+    LBUTTONDOWN = 0x0201,
+    LBUTTONUP = 0x0202,
 }
 
 fn msg_from_message(message: host::Message) -> MSG {
@@ -50,6 +52,26 @@ fn msg_from_message(message: host::Message) -> MSG {
             message: WM::QUIT as u32,
             wParam: 0,
             lParam: 0,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+        host::Message::LButtonDown(hwnd, x, y) => MSG {
+            hwnd: HWND::from_raw(hwnd),
+            message: WM::LBUTTONDOWN as u32,
+            wParam: 0, // TODO: modifiers
+            lParam: (x << 16) | y,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+        host::Message::LButtonUp(hwnd, x, y) => MSG {
+            hwnd: HWND::from_raw(hwnd),
+            message: WM::LBUTTONUP as u32,
+            wParam: 0, // TODO: modifiers
+            lParam: (x << 16) | y,
             time: 0,
             pt_x: 0,
             pt_y: 0,
