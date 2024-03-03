@@ -2908,6 +2908,28 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn DispatchMessageW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::DispatchMessageW(machine, lpMsg));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
         pub unsafe fn EndPaint(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -3286,6 +3308,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: true,
         };
+        pub const DispatchMessageW: Shim = Shim {
+            name: "DispatchMessageW",
+            func: impls::DispatchMessageW,
+            stack_consumed: 8u32,
+            is_async: true,
+        };
         pub const EndPaint: Shim = Shim {
             name: "EndPaint",
             func: impls::EndPaint,
@@ -3551,7 +3579,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 57usize] = [
+    const EXPORTS: [Symbol; 58usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3603,6 +3631,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::DispatchMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DispatchMessageW,
         },
         Symbol {
             ordinal: None,

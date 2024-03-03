@@ -229,6 +229,11 @@ pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32
 }
 
 #[win32_derive::dllexport]
+pub async fn DispatchMessageW(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
+    DispatchMessageA(machine, lpMsg).await
+}
+
+#[win32_derive::dllexport]
 pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
     machine.state.user32.messages.push_back(MSG {
         hwnd: HWND::null(),
