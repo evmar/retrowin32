@@ -167,6 +167,25 @@ pub fn DeleteDC(_machine: &mut Machine, hdc: u32) -> u32 {
     0 // fail
 }
 
+fn bit_blt(
+    dst: &mut [[u8; 4]],
+    dx: usize,
+    dy: usize,
+    dstride: usize,
+    w: usize,
+    h: usize,
+    src: &[[u8; 4]],
+    sx: usize,
+    sy: usize,
+    sstride: usize,
+) {
+    for row in 0..h {
+        let dst_row = &mut dst[(((dy + row) * dstride) + dx)..][..w];
+        let src_row = &src[(((sy + row) * sstride) + sx)..][..w];
+        dst_row.copy_from_slice(src_row);
+    }
+}
+
 const SRCCOPY: u32 = 0xcc0020;
 
 #[win32_derive::dllexport]
@@ -203,9 +222,28 @@ pub fn BitBlt(
     let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dcDst.target {
         DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(_) => {
-            log::error!("todo: BltBlt to Window");
-            false
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+
+            let src = match &bitmap.pixels {
+                user32::Pixels::Owned(p) => &**p,
+                _ => todo!(),
+            };
+            let window_width = window.width;
+            let dst = &mut *window.pixels_mut(&mut *machine.host).raw;
+
+            bit_blt(
+                dst,
+                x as usize,
+                y as usize,
+                window_width as usize,
+                cx as usize,
+                cy as usize,
+                src,
+                x1 as usize,
+                y1 as usize,
+                bitmap.width as usize,
+            );
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
@@ -217,9 +255,9 @@ pub fn BitBlt(
             surface
                 .host
                 .write_pixels(bitmap.pixels_slice(machine.memory.mem()));
-            true
         }
     }
+    true
 }
 
 #[win32_derive::dllexport]
@@ -465,16 +503,6 @@ pub fn SetDIBitsToDevice(
     lpbmi: Option<&BITMAPINFOHEADER>,
     ColorUse: u32,
 ) -> u32 {
-    if xSrc != 0 || ySrc != 0 {
-        todo!();
-    }
-    if xDest != 0 || yDest != 0 {
-        log::error!("todo");
-        return 0;
-    }
-    if StartScan != 0 {
-        todo!()
-    }
     if cLines != h {
         todo!()
     }
@@ -488,28 +516,46 @@ pub fn SetDIBitsToDevice(
     }
 
     let mem = machine.memory.mem();
-    let src = user32::Bitmap::parse(
+    let src_bitmap = user32::Bitmap::parse(
         header,
         Some(machine.mem().slice(lpvBits..).as_slice_todo().as_ptr()),
     );
-    let src = src.pixels_slice(mem);
+    let src = src_bitmap.pixels_slice(mem);
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let hbitmap = match dc.target {
-        DCTarget::Memory(hbitmap) => hbitmap,
-        DCTarget::Window(_) => todo!(),
+    let (dst, dst_stride) = match dc.target {
+        DCTarget::Memory(hbitmap) => {
+            let dst_bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+                Object::Bitmap(b) => b,
+                _ => todo!(),
+            };
+            let pixels = match &mut dst_bitmap.pixels {
+                user32::Pixels::Owned(p) => &mut **p,
+                user32::Pixels::Ptr(_) => todo!(),
+            };
+            (pixels, dst_bitmap.width)
+        }
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window_width = window.width;
+            let pixels = window.pixels_mut(&mut *machine.host);
+            (&mut *pixels.raw, window_width)
+        }
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
-    let dst = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-        Object::Bitmap(b) => b,
-        _ => todo!(),
-    };
-    let dst = match &mut dst.pixels {
-        user32::Pixels::Owned(p) => &mut **p,
-        user32::Pixels::Ptr(_) => todo!(),
-    };
 
-    dst[..(w * h) as usize].copy_from_slice(&src[..(w * h) as usize]);
+    bit_blt(
+        dst,
+        xDest as usize,
+        yDest as usize,
+        dst_stride as usize,
+        w as usize,
+        h as usize,
+        src,
+        xSrc as usize,
+        ySrc as usize,
+        src_bitmap.width as usize,
+    );
     cLines
 }
 
