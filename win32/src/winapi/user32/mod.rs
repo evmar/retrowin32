@@ -20,11 +20,22 @@ const TRACE_CONTEXT: &'static str = "user32";
 
 type HINSTANCE = u32;
 
-#[derive(Default)]
 pub struct State {
     wndclasses: Vec<Rc<WndClass>>,
     pub windows: Handles<HWND, Window>,
     messages: VecDeque<MSG>,
+    /// TODO: we vend new timer ids but never fire the timers
+    next_timer: u32,
+}
+impl Default for State {
+    fn default() -> Self {
+        Self {
+            wndclasses: Default::default(),
+            windows: Default::default(),
+            messages: Default::default(),
+            next_timer: 1,
+        }
+    }
 }
 impl State {
     pub fn get_window(&mut self, hwnd: HWND) -> Option<&mut Window> {
@@ -166,7 +177,7 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32
 
 #[win32_derive::dllexport]
 pub fn SetTimer(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     nIDEvent: u32,
     uElapse: u32,
@@ -179,7 +190,10 @@ pub fn SetTimer(
         todo!("SetTimer with callback");
     }
 
-    0 // fail
+    log::warn!("registering timer that will never fire");
+    let timer = machine.state.user32.next_timer;
+    machine.state.user32.next_timer += 1;
+    timer
 }
 
 #[win32_derive::dllexport]
