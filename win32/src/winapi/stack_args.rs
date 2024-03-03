@@ -76,47 +76,33 @@ impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
     }
 }
 
-impl<'a> FromStack<'a> for Option<&'a [u8]> {
+impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
-        let len = mem.get::<u32>(sp + 4);
+        let count = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
-        Some(&mem.sub(addr, len).as_slice_todo())
+        let slice = mem.sub(addr, count).as_slice_todo();
+        Some(std::slice::from_raw_parts(
+            slice.as_ptr() as *const _,
+            count as usize,
+        ))
     }
 }
 
-impl<'a> FromStack<'a> for Option<&'a mut [u8]> {
+impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a mut [T]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get::<u32>(sp);
-        let len = mem.get::<u32>(sp + 4);
+        let count = mem.get::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
-        Some(mem.sub(addr, len).as_mut_slice_todo())
-    }
-}
-
-impl<'a> FromStack<'a> for Option<&'a [u16]> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        let len = mem.get::<u32>(sp + 4);
-        if addr == 0 {
-            return None;
-        }
-        Some(std::mem::transmute(mem.sub(addr, len).as_slice_todo()))
-    }
-}
-
-impl<'a> FromStack<'a> for Option<&'a mut [u16]> {
-    unsafe fn from_stack(mem: Mem, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        let len = mem.get::<u32>(sp + 4);
-        if addr == 0 {
-            return None;
-        }
-        Some(std::mem::transmute(mem.sub(addr, len).as_mut_slice_todo()))
+        let slice = mem.sub(addr, count).as_mut_slice_todo();
+        Some(std::slice::from_raw_parts_mut(
+            slice.as_mut_ptr() as *mut _,
+            count as usize,
+        ))
     }
 }
 

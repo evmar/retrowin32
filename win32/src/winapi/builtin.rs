@@ -3066,6 +3066,13 @@ pub mod user32 {
             let cchBufferMax = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::LoadStringW(machine, hInstance, uID, lpBuffer, cchBufferMax).to_raw()
         }
+        pub unsafe fn MapWindowPoints(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWndFrom = <HWND>::from_stack(mem, esp + 4u32);
+            let hWndTo = <HWND>::from_stack(mem, esp + 8u32);
+            let lpPoints = <ArrayWithSize<POINT>>::from_stack(mem, esp + 12u32);
+            winapi::user32::MapWindowPoints(machine, hWndFrom, hWndTo, lpPoints).to_raw()
+        }
         pub unsafe fn MessageBoxA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -3475,6 +3482,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const MapWindowPoints: Shim = Shim {
+            name: "MapWindowPoints",
+            func: impls::MapWindowPoints,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const MessageBoxA: Shim = Shim {
             name: "MessageBoxA",
             func: impls::MessageBoxA,
@@ -3626,7 +3639,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 62usize] = [
+    const EXPORTS: [Symbol; 63usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3774,6 +3787,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadStringW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MapWindowPoints,
         },
         Symbol {
             ordinal: None,

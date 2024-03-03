@@ -6,6 +6,7 @@ mod window;
 
 pub use super::gdi32::HDC;
 use super::handle::Handles;
+use super::stack_args::ArrayWithSize;
 use super::types::*;
 use crate::machine::Machine;
 pub use message::*;
@@ -285,6 +286,16 @@ pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool 
     let rect = lprc.unwrap();
     let (x, y) = (pt.x as i32, pt.y as i32);
     x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
+}
+
+#[win32_derive::dllexport]
+pub fn MapWindowPoints(
+    _machine: &mut Machine,
+    hWndFrom: HWND,
+    hWndTo: HWND,
+    lpPoints: ArrayWithSize<POINT>,
+) -> i32 {
+    todo!();
 }
 
 #[win32_derive::dllexport]
