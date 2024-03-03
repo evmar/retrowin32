@@ -130,7 +130,7 @@ impl Bitmap {
 
     /// Parse a BITMAPINFO/HEADER and pixel data.
     /// If pixels is None, pixel data immediately follows header.
-    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<*const u8>) -> Bitmap {
+    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<(&[u8], usize)>) -> Bitmap {
         let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
         if header.biSize as usize != header_size {
             panic!("bad bitmap header");
@@ -160,21 +160,26 @@ impl Bitmap {
         };
 
         fn get_pixel(palette: &[[u8; 4]], val: u8) -> [u8; 4] {
-            let [r, g, b, _] = palette[val as usize];
+            // BMP palette is BGRx
+            let [b, g, r, _] = palette[val as usize];
             [r, g, b, 255]
         }
 
         let width = header.width() as usize;
-        let stride = width * header.biBitCount as usize / 8;
-        let height = header.height() as usize;
+        // Bitmap row stride is padded out to 4 bytes per row.
+        let stride = ((width * header.biBitCount as usize / 8) + 3) & !3;
 
-        let pixels = match pixels {
-            Some(ptr) => ptr,
-            None => unsafe { (palette as *const _ as *const u8).add(palette.len() * 4) },
+        let (src, height) = match pixels {
+            Some(p) => p,
+            None => unsafe {
+                let ptr = (palette as *const _ as *const u8).add(palette.len() * 4);
+                let height = header.height() as usize;
+                let len = width * height * header.biBitCount as usize / 8;
+                (std::slice::from_raw_parts(ptr, len), height)
+            },
         };
-        let src = unsafe { std::slice::from_raw_parts(pixels, height * stride) };
-        let mut dst = Vec::with_capacity(width * height);
 
+        let mut dst = Vec::with_capacity(width * height);
         for y in 0..height {
             let y_src = if header.is_top_down() {
                 y
@@ -184,14 +189,18 @@ impl Bitmap {
             let row = &src[y_src * stride..][..stride];
             match header.biBitCount {
                 8 => {
-                    for &p in row {
+                    for &p in &row[..width] {
                         dst.push(get_pixel(palette, p));
                     }
                 }
                 4 => {
-                    for &p in row {
-                        dst.push(get_pixel(palette, p >> 4));
-                        dst.push(get_pixel(palette, p & 0xF));
+                    for i in 0..width {
+                        let p = row[i / 2];
+                        if i % 2 == 0 {
+                            dst.push(get_pixel(palette, p >> 4));
+                        } else {
+                            dst.push(get_pixel(palette, p & 0xF));
+                        }
                     }
                 }
                 _ => unimplemented!(),
@@ -200,7 +209,7 @@ impl Bitmap {
 
         Bitmap {
             width: header.width(),
-            height: header.height(),
+            height: height as u32,
             pixels: Pixels::Owned(dst.into_boxed_slice()),
         }
     }

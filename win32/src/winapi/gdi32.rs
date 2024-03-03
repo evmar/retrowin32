@@ -503,7 +503,7 @@ pub fn SetDIBitsToDevice(
     lpbmi: Option<&BITMAPINFOHEADER>,
     ColorUse: u32,
 ) -> u32 {
-    if cLines != h {
+    if StartScan != ySrc || cLines != h {
         todo!()
     }
     if ColorUse != DIB_RGB_COLORS {
@@ -518,7 +518,10 @@ pub fn SetDIBitsToDevice(
     let mem = machine.memory.mem();
     let src_bitmap = user32::Bitmap::parse(
         header,
-        Some(machine.mem().slice(lpvBits..).as_slice_todo().as_ptr()),
+        Some((
+            machine.mem().slice(lpvBits..).as_slice_todo(),
+            cLines as usize,
+        )),
     );
     let src = src_bitmap.pixels_slice(mem);
 
