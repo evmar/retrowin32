@@ -50,6 +50,13 @@ impl Window {
         }
     }
 
+    pub fn flush_pixels(&mut self) {
+        if let Some(pixels) = &mut self.pixels {
+            pixels.surface.write_pixels(&*pixels.raw);
+            pixels.surface.show();
+        }
+    }
+
     pub fn set_size(&mut self, width: u32, height: u32) {
         self.width = width;
         self.height = height;

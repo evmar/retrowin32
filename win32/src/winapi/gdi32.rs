@@ -559,6 +559,15 @@ pub fn SetDIBitsToDevice(
         ySrc as usize,
         src_bitmap.width as usize,
     );
+
+    match dc.target {
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            window.flush_pixels();
+        }
+        _ => {}
+    }
+
     cLines
 }
 

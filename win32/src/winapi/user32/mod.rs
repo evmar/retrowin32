@@ -236,10 +236,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 #[win32_derive::dllexport]
 pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    if let Some(pixels) = &mut window.pixels {
-        pixels.surface.write_pixels(&*pixels.raw);
-        pixels.surface.show();
-    }
+    window.flush_pixels();
     machine
         .state
         .user32
