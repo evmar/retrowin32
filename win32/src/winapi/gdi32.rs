@@ -244,6 +244,8 @@ pub fn BitBlt(
                 y1 as usize,
                 bitmap.width as usize,
             );
+
+            window.flush_pixels();
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
