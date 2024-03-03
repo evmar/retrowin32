@@ -3074,6 +3074,14 @@ pub mod user32 {
             let uType = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType).to_raw()
         }
+        pub unsafe fn MessageBoxW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpText = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpCaption = <Option<&Str16>>::from_stack(mem, esp + 12u32);
+            let uType = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::MessageBoxW(machine, hWnd, lpText, lpCaption, uType).to_raw()
+        }
         pub unsafe fn MoveWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -3474,6 +3482,12 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const MessageBoxW: Shim = Shim {
+            name: "MessageBoxW",
+            func: impls::MessageBoxW,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const MoveWindow: Shim = Shim {
             name: "MoveWindow",
             func: impls::MoveWindow,
@@ -3613,7 +3627,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 61usize] = [
+    const EXPORTS: [Symbol; 62usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3765,6 +3779,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::MessageBoxA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MessageBoxW,
         },
         Symbol {
             ordinal: None,

@@ -92,6 +92,25 @@ pub fn MessageBoxA(
 }
 
 #[win32_derive::dllexport]
+pub fn MessageBoxW(
+    machine: &mut Machine,
+    hWnd: HWND,
+    lpText: Option<&Str16>,
+    lpCaption: Option<&Str16>,
+    uType: u32,
+) -> u32 {
+    machine.host.write(
+        format!(
+            "MessageBox: {}\n{}",
+            lpCaption.unwrap().to_string(),
+            lpText.unwrap().to_string()
+        )
+        .as_bytes(),
+    );
+    1 // IDOK
+}
+
+#[win32_derive::dllexport]
 pub fn DialogBoxParamA(
     _machine: &mut Machine,
     hInstance: u32,
