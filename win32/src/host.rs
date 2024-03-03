@@ -44,6 +44,7 @@ pub trait File {
     fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool;
 }
 
+#[derive(Debug)]
 pub enum Message {
     Quit,
     LButtonDown(u32, u32, u32),

@@ -61,7 +61,7 @@ fn msg_from_message(message: host::Message) -> MSG {
             hwnd: HWND::from_raw(hwnd),
             message: WM::LBUTTONDOWN as u32,
             wParam: 0, // TODO: modifiers
-            lParam: (x << 16) | y,
+            lParam: (y << 16) | x,
             time: 0,
             pt_x: 0,
             pt_y: 0,
