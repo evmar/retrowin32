@@ -3137,8 +3137,7 @@ pub mod user32 {
         }
         pub unsafe fn ReleaseCapture(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hwnd = <HWND>::from_stack(mem, esp + 4u32);
-            winapi::user32::ReleaseCapture(machine, hwnd).to_raw()
+            winapi::user32::ReleaseCapture(machine).to_raw()
         }
         pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3533,7 +3532,7 @@ pub mod user32 {
         pub const ReleaseCapture: Shim = Shim {
             name: "ReleaseCapture",
             func: impls::ReleaseCapture,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const ReleaseDC: Shim = Shim {

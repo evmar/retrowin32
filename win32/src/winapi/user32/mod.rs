@@ -279,6 +279,6 @@ pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn ReleaseCapture(_machine: &mut Machine, hwnd: HWND) -> bool {
+pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
     true
 }
