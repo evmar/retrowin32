@@ -36,16 +36,22 @@ pub fn set_logger(logger: &'static dyn Log) {
     unsafe { LOGGER = logger }
 }
 
+pub fn log_record(record: &Record) {
+    unsafe {
+        LOGGER.log(record);
+    }
+}
+
 #[macro_export]
 macro_rules! log {
-    ($level:expr, $($arg:tt)+) => (unsafe {
-        $crate::LOGGER.log(&$crate::Record{
+    ($level:expr, $($arg:tt)+) => (
+        $crate::log_record(&$crate::Record{
             level: $level,
             file: std::file!(),
             line: std::line!(),
             args: format_args!($($arg)+)
         });
-    })
+    )
 }
 
 #[macro_export]

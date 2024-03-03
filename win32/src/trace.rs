@@ -84,7 +84,13 @@ pub fn enabled(context: &'static str) -> bool {
 }
 
 #[inline(never)]
-pub fn trace(context: &str, func: &str, args: &[(&str, &dyn std::fmt::Debug)]) {
+pub fn trace(
+    context: &str,
+    file: &'static str,
+    line: u32,
+    func: &str,
+    args: &[(&str, &dyn std::fmt::Debug)],
+) {
     let mut msg = format!("{}/{}(", context, func);
     for (i, arg) in args.iter().enumerate() {
         if i > 0 {
@@ -93,5 +99,10 @@ pub fn trace(context: &str, func: &str, args: &[(&str, &dyn std::fmt::Debug)]) {
         write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
     }
     msg.push_str(")");
-    log::info!("{}", msg);
+    log::log_record(&log::Record {
+        level: log::Level::Info,
+        file,
+        line,
+        args: format_args!("{}", msg),
+    });
 }

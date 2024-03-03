@@ -201,7 +201,7 @@ pub fn add_trace(func: &mut syn::ItemFn) {
     let stmt: syn::Stmt = syn::parse_quote! {
         if crate::trace::enabled(TRACE_CONTEXT) {
             let args: &[(&str, &dyn std::fmt::Debug); #arg_count] = &[#(#synargs),*];
-            crate::trace::trace(TRACE_CONTEXT, #name, args);
+            crate::trace::trace(TRACE_CONTEXT, std::file!(), std::line!(), #name, args);
         }
     };
     func.block.stmts.insert(0, stmt);
