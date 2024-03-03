@@ -249,3 +249,20 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
         .need_paint = false;
     true
 }
+
+#[win32_derive::dllexport]
+pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool {
+    let rect = lprc.unwrap();
+    let (x, y) = (pt.x as i32, pt.y as i32);
+    x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
+}
+
+#[win32_derive::dllexport]
+pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
+    HWND::null()
+}
+
+#[win32_derive::dllexport]
+pub fn ReleaseCapture(_machine: &mut Machine, hwnd: HWND) -> bool {
+    true
+}

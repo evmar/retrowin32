@@ -3106,6 +3106,12 @@ pub mod user32 {
             let nExitCode = <i32>::from_stack(mem, esp + 4u32);
             winapi::user32::PostQuitMessage(machine, nExitCode).to_raw()
         }
+        pub unsafe fn PtInRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprc = <Option<&RECT>>::from_stack(mem, esp + 4u32);
+            let pt = <POINT>::from_stack(mem, esp + 8u32);
+            winapi::user32::PtInRect(machine, lprc, pt).to_raw()
+        }
         pub unsafe fn RegisterClassA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, esp + 4u32);
@@ -3121,11 +3127,21 @@ pub mod user32 {
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, esp + 4u32);
             winapi::user32::RegisterClassW(machine, lpWndClass).to_raw()
         }
+        pub unsafe fn ReleaseCapture(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwnd = <HWND>::from_stack(mem, esp + 4u32);
+            winapi::user32::ReleaseCapture(machine, hwnd).to_raw()
+        }
         pub unsafe fn ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwnd = <HWND>::from_stack(mem, esp + 4u32);
             let hdc = <HDC>::from_stack(mem, esp + 8u32);
             winapi::user32::ReleaseDC(machine, hwnd, hdc).to_raw()
+        }
+        pub unsafe fn SetCapture(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwnd = <HWND>::from_stack(mem, esp + 4u32);
+            winapi::user32::SetCapture(machine, hwnd).to_raw()
         }
         pub unsafe fn SetCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3476,6 +3492,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const PtInRect: Shim = Shim {
+            name: "PtInRect",
+            func: impls::PtInRect,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const RegisterClassA: Shim = Shim {
             name: "RegisterClassA",
             func: impls::RegisterClassA,
@@ -3494,10 +3516,22 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const ReleaseCapture: Shim = Shim {
+            name: "ReleaseCapture",
+            func: impls::ReleaseCapture,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const ReleaseDC: Shim = Shim {
             name: "ReleaseDC",
             func: impls::ReleaseDC,
             stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const SetCapture: Shim = Shim {
+            name: "SetCapture",
+            func: impls::SetCapture,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetCursor: Shim = Shim {
@@ -3579,7 +3613,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 58usize] = [
+    const EXPORTS: [Symbol; 61usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3746,6 +3780,10 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::PtInRect,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::RegisterClassA,
         },
         Symbol {
@@ -3758,7 +3796,15 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::ReleaseCapture,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::ReleaseDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetCapture,
         },
         Symbol {
             ordinal: None,

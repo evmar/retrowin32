@@ -76,6 +76,7 @@ fn stack_consumed(ty: &syn::Type) -> u32 {
 
     if ty.path.segments[0].ident == "ArrayWithSize"
         || ty.path.segments[0].ident == "ArrayWithSizeMut"
+        || ty.path.segments[0].ident == "POINT"
     {
         8
     } else {
