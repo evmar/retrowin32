@@ -1,6 +1,6 @@
 use bitflags::bitflags;
 
-use crate::{host, winapi::types::*, Machine};
+use crate::{host, winapi::types::*, Machine, MouseButton};
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -43,41 +43,46 @@ pub enum WM {
     ACTIVATEAPP = 0x001C,
     LBUTTONDOWN = 0x0201,
     LBUTTONUP = 0x0202,
+    LBUTTONDBLCLK = 0x0203,
+    RBUTTONDOWN = 0x0204,
+    RBUTTONUP = 0x0205,
+    RBUTTONDBLCLK = 0x0206,
+    MBUTTONDOWN = 0x0207,
+    MBUTTONUP = 0x0208,
+    MBUTTONDBLCLK = 0x0209,
 }
 
 fn msg_from_message(message: host::Message) -> MSG {
-    match message {
-        host::Message::Quit => MSG {
-            hwnd: HWND::null(),
-            message: WM::QUIT as u32,
-            wParam: 0,
-            lParam: 0,
-            time: 0,
-            pt_x: 0,
-            pt_y: 0,
-            lPrivate: 0,
-        },
-        host::Message::LButtonDown(hwnd, x, y) => MSG {
-            hwnd: HWND::from_raw(hwnd),
-            message: WM::LBUTTONDOWN as u32,
-            wParam: 0, // TODO: modifiers
-            lParam: (y << 16) | x,
-            time: 0,
-            pt_x: 0,
-            pt_y: 0,
-            lPrivate: 0,
-        },
-        host::Message::LButtonUp(hwnd, x, y) => MSG {
-            hwnd: HWND::from_raw(hwnd),
-            message: WM::LBUTTONUP as u32,
-            wParam: 0, // TODO: modifiers
-            lParam: (x << 16) | y,
-            time: 0,
-            pt_x: 0,
-            pt_y: 0,
-            lPrivate: 0,
-        },
+    let mut msg = MSG {
+        hwnd: HWND::from_raw(message.hwnd),
+        message: WM::QUIT as u32, // will be overwritten
+        wParam: 0,
+        lParam: 0,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    };
+
+    match &message.detail {
+        host::MessageDetail::Quit => {
+            msg.message = WM::QUIT as u32;
+        }
+        host::MessageDetail::Mouse(mouse) => {
+            msg.message = match (mouse.button, mouse.down) {
+                (MouseButton::Left, true) => WM::LBUTTONDOWN,
+                (MouseButton::Left, false) => WM::LBUTTONUP,
+                (MouseButton::Right, true) => WM::RBUTTONDOWN,
+                (MouseButton::Right, false) => WM::RBUTTONUP,
+                (MouseButton::Middle, true) => WM::MBUTTONDOWN,
+                (MouseButton::Middle, false) => WM::MBUTTONUP,
+            } as u32;
+            msg.wParam = 0; // TODO:  modifiers
+            msg.lParam = (mouse.y << 16) | mouse.x;
+        }
     }
+
+    msg
 }
 
 fn fill_message_queue(machine: &mut Machine, wait: bool) {

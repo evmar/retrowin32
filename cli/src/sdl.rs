@@ -3,26 +3,40 @@ use std::{cell::RefCell, rc::Rc};
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
+fn map_button(b: sdl2::mouse::MouseButton) -> Option<win32::MouseButton> {
+    Some(match b {
+        sdl2::mouse::MouseButton::Left => win32::MouseButton::Left,
+        sdl2::mouse::MouseButton::Right => win32::MouseButton::Right,
+        sdl2::mouse::MouseButton::Middle => win32::MouseButton::Middle,
+        _ => return None,
+    })
+}
+
 fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Message> {
-    Some(match event {
-        sdl2::event::Event::Quit { .. } => win32::Message::Quit,
+    let detail = match event {
+        sdl2::event::Event::Quit { .. } => win32::MessageDetail::Quit,
         sdl2::event::Event::MouseButtonDown {
-            mouse_btn: sdl2::mouse::MouseButton::Left,
-            x,
-            y,
-            ..
-        } => win32::Message::LButtonDown(hwnd, x as u32, y as u32),
+            mouse_btn, x, y, ..
+        } => win32::MessageDetail::Mouse(win32::MouseMessage {
+            down: true,
+            button: map_button(mouse_btn)?,
+            x: x as u32,
+            y: y as u32,
+        }),
         sdl2::event::Event::MouseButtonUp {
-            mouse_btn: sdl2::mouse::MouseButton::Left,
-            x,
-            y,
-            ..
-        } => win32::Message::LButtonUp(hwnd, x as u32, y as u32),
+            mouse_btn, x, y, ..
+        } => win32::MessageDetail::Mouse(win32::MouseMessage {
+            down: false,
+            button: map_button(mouse_btn)?,
+            x: x as u32,
+            y: y as u32,
+        }),
         _ => {
             // log::warn!("unhandled event: {:?}", event);
             return None;
         }
-    })
+    };
+    Some(win32::Message { hwnd, detail })
 }
 
 pub struct GUI {

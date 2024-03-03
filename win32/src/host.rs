@@ -44,11 +44,31 @@ pub trait File {
     fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool;
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum MouseButton {
+    Left,
+    Middle,
+    Right,
+}
+
 #[derive(Debug)]
-pub enum Message {
+pub struct MouseMessage {
+    pub down: bool,
+    pub button: MouseButton,
+    pub x: u32,
+    pub y: u32,
+}
+
+#[derive(Debug)]
+pub enum MessageDetail {
     Quit,
-    LButtonDown(u32, u32, u32),
-    LButtonUp(u32, u32, u32),
+    Mouse(MouseMessage),
+}
+
+#[derive(Debug)]
+pub struct Message {
+    pub hwnd: u32,
+    pub detail: MessageDetail,
 }
 
 pub trait Host {
