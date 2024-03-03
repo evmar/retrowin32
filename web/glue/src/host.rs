@@ -108,7 +108,7 @@ extern "C" {
     fn write(this: &JsHost, buf: &[u8]) -> usize;
 
     #[wasm_bindgen(method)]
-    fn create_window(this: &JsHost) -> JsWindow;
+    fn create_window(this: &JsHost, hwnd: u32) -> JsWindow;
     #[wasm_bindgen(method)]
     fn create_surface(this: &JsHost, opts: win32::SurfaceOptions) -> JsSurface;
 }
@@ -136,9 +136,8 @@ impl win32::Host for JsHost {
         JsHost::write(self, buf)
     }
 
-    fn create_window(&mut self) -> Box<dyn win32::Window> {
-        let window = JsHost::create_window(self);
-        window.set_title("test");
+    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
+        let window = JsHost::create_window(self, hwnd);
         Box::new(window)
     }
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {

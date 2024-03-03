@@ -37,6 +37,6 @@ export interface JsHost {
   open(path: string): JsFile;
   write(buf: Uint8Array): number;
 
-  create_window(): JsWindow;
+  create_window(hwnd: number): JsWindow;
   create_surface(opts: SurfaceOptions): JsSurface;
 }

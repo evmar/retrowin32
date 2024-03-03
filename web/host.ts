@@ -44,11 +44,7 @@ class Surface implements glue.JsSurface {
 }
 
 class Window implements glue.JsWindow {
-  constructor(
-    readonly host: Host,
-    /** Unique ID for React purposes. */
-    readonly key: number,
-  ) {
+  constructor(readonly host: Host, readonly hwnd: number) {
   }
   title: string = '';
   width: number | undefined;
@@ -149,11 +145,11 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   }
 
   windows: Window[] = [];
-  create_window(): glue.JsWindow {
-    let id = this.windows.length + 1;
-    this.windows.push(new Window(this, id));
+  create_window(hwnd: number): glue.JsWindow {
+    let window = new Window(this, hwnd);
+    this.windows.push(window);
     this.page.forceUpdate();
-    return this.windows[id - 1];
+    return window;
   }
 
   create_surface(opts: glue.SurfaceOptions): glue.JsSurface {

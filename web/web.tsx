@@ -162,7 +162,7 @@ export class Page extends preact.Component<Page.Props, Page.State> {
     let windows = this.props.host.windows.map((window) => {
       return (
         <WindowComponent
-          key={window.key}
+          key={window.hwnd}
           title={window.title}
           size={[window.width, window.height]}
           canvas={window.canvas}
