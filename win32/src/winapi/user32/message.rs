@@ -249,6 +249,6 @@ pub fn TranslateAcceleratorW(
     hWnd: HWND,
     hAccTable: u32,
     lpMsg: Option<&MSG>,
-) -> bool {
-    true // success
+) -> u32 {
+    0 // success
 }
