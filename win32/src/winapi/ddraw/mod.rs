@@ -52,7 +52,6 @@ impl Surface {
         }
 
         if let Some(caps) = desc.caps() {
-            log::warn!("  caps: {:?}", caps.dwCaps);
             if caps.dwCaps.contains(DDSCAPS::PRIMARYSURFACE) {
                 opts.primary = true;
             }
@@ -69,7 +68,6 @@ impl Surface {
         surfaces.push(Surface::new(machine, &opts));
 
         if let Some(count) = desc.back_buffer_count() {
-            log::warn!("  back_buffer: {count:x}");
             opts.primary = false;
             for _ in 0..count {
                 surfaces.push(Surface::new(machine, &opts));

@@ -140,7 +140,11 @@ impl std::future::Future for X86Future {
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
         let machine = unsafe { &*self.m };
-        // log::info!("poll esp:{:x} want:{:x}", machine.cpu.regs.esp, self.esp);
+        // log::info!(
+        //     "poll esp:{:x} want:{:x}",
+        //     machine.emu.x86.cpu.regs.esp,
+        //     self.esp
+        // );
         if machine.emu.x86.cpu.regs.esp == self.esp {
             std::task::Poll::Ready(())
         } else {
@@ -186,6 +190,8 @@ fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
                 machine.emu.shims.futures.push(future);
             }
         }
+    } else {
+        unreachable!()
     }
     0
 }

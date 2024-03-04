@@ -360,7 +360,10 @@ pub fn GetDesktopWindow(_machine: &mut Machine) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().hwnd
+    if let Some(window) = machine.state.user32.windows.iter().next() {
+        return window.hwnd;
+    }
+    GetDesktopWindow(machine)
 }
 
 #[win32_derive::dllexport]
