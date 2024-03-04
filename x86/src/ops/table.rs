@@ -289,9 +289,12 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Finit as usize] = Some(ops::finit);
     OP_TAB[iced_x86::Code::Fninit as usize] = Some(ops::finit);
+
     OP_TAB[iced_x86::Code::Fld1 as usize] = Some(ops::fld1);
     OP_TAB[iced_x86::Code::Fldz as usize] = Some(ops::fldz);
     OP_TAB[iced_x86::Code::Fldpi as usize] = Some(ops::fldpi);
+    OP_TAB[iced_x86::Code::Fldl2e as usize] = Some(ops::fldl2e);
+
     OP_TAB[iced_x86::Code::Fld_sti as usize] = Some(ops::fld_sti);
     OP_TAB[iced_x86::Code::Fld_m64fp as usize] = Some(ops::fld_m64fp);
     OP_TAB[iced_x86::Code::Fld_m32fp as usize] = Some(ops::fld_m32fp);
@@ -306,16 +309,20 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fistp_m64int as usize] = Some(ops::fistp_m64int);
     OP_TAB[iced_x86::Code::Fistp_m32int as usize] = Some(ops::fistp_m32int);
     OP_TAB[iced_x86::Code::Fistp_m16int as usize] = Some(ops::fistp_m16int);
+
     OP_TAB[iced_x86::Code::Fchs as usize] = Some(ops::fchs);
+    OP_TAB[iced_x86::Code::Fabs as usize] = Some(ops::fabs);
     OP_TAB[iced_x86::Code::Fcos as usize] = Some(ops::fcos);
     OP_TAB[iced_x86::Code::Fsin as usize] = Some(ops::fsin);
     OP_TAB[iced_x86::Code::Fsincos as usize] = Some(ops::fsincos);
     OP_TAB[iced_x86::Code::Fpatan as usize] = Some(ops::fpatan);
     OP_TAB[iced_x86::Code::Fsqrt as usize] = Some(ops::fsqrt);
 
+    OP_TAB[iced_x86::Code::Fadd_st0_sti as usize] = Some(ops::fadd_sti_sti);
     OP_TAB[iced_x86::Code::Fadd_m64fp as usize] = Some(ops::fadd_m64fp);
     OP_TAB[iced_x86::Code::Fadd_m32fp as usize] = Some(ops::fadd_m32fp);
-    OP_TAB[iced_x86::Code::Faddp_sti_st0 as usize] = Some(ops::faddp_sti_st0);
+    OP_TAB[iced_x86::Code::Faddp_sti_st0 as usize] = Some(ops::faddp_sti_sti);
+    OP_TAB[iced_x86::Code::Fiadd_m32int as usize] = Some(ops::fiadd_m32int);
     OP_TAB[iced_x86::Code::Fiadd_m16int as usize] = Some(ops::fiadd_m16int);
 
     OP_TAB[iced_x86::Code::Fsub_m32fp as usize] = Some(ops::fsub_m32fp);
@@ -331,6 +338,8 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fmul_st0_sti as usize] = Some(ops::fmul_sti_sti);
     OP_TAB[iced_x86::Code::Fmul_sti_st0 as usize] = Some(ops::fmul_sti_sti);
     OP_TAB[iced_x86::Code::Fmulp_sti_st0 as usize] = Some(ops::fmulp_sti_st0);
+
+    OP_TAB[iced_x86::Code::F2xm1 as usize] = Some(ops::f2xm1);
 
     OP_TAB[iced_x86::Code::Fdiv_m64fp as usize] = Some(ops::fdiv_m64fp);
     OP_TAB[iced_x86::Code::Fdiv_m32fp as usize] = Some(ops::fdiv_m32fp);

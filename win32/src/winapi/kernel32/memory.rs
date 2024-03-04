@@ -278,7 +278,7 @@ pub fn HeapCreate(
     flOptions.unwrap();
     // Currently none of the flags will affect behavior, but we might need to revisit this
     // with exceptions or threads support...
-    let size = max(dwInitialSize as usize, 1 << 20);
+    let size = max(dwInitialSize as usize, 20 << 20);
     machine
         .state
         .kernel32

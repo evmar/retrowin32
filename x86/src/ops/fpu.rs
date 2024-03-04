@@ -43,6 +43,11 @@ pub fn fldpi(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *cpu.regs.st_top() = std::f64::consts::PI;
 }
 
+pub fn fldl2e(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.regs.st_top -= 1;
+    *cpu.regs.st_top() = std::f64::consts::LOG2_E;
+}
+
 pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.regs.getst(instr.op0_register());
     cpu.regs.st_top -= 1;
@@ -129,6 +134,10 @@ pub fn fchs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *cpu.regs.st_top() = -*cpu.regs.st_top();
 }
 
+pub fn fabs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    *cpu.regs.st_top() = num_traits::abs(*cpu.regs.st_top());
+}
+
 pub fn fcos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let reg = cpu.regs.st_top();
     *reg = reg.cos();
@@ -155,6 +164,12 @@ pub fn fsqrt(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *reg = reg.sqrt();
 }
 
+pub fn fadd_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.regs.getst(instr.op1_register());
+    let x = cpu.regs.getst(instr.op0_register());
+    *x += y;
+}
+
 pub fn fadd_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get::<f64>(x86_addr(cpu, instr));
     *cpu.regs.st_top() += y;
@@ -165,11 +180,14 @@ pub fn fadd_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.regs.st_top() += y;
 }
 
-pub fn faddp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.regs.getst(instr.op1_register());
-    let x = cpu.regs.getst(instr.op0_register());
-    *x += y;
+pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fadd_sti_sti(cpu, mem, instr);
     cpu.regs.st_top += 1;
+}
+
+pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    *cpu.regs.st_top() += y;
 }
 
 pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -238,6 +256,11 @@ pub fn fmulp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = cpu.regs.getst(instr.op0_register());
     *x *= y;
     cpu.regs.st_top += 1;
+}
+
+pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let x = cpu.regs.st_top();
+    *x = 2.0_f64.powf(*x) - 1.0;
 }
 
 pub fn fdiv_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
