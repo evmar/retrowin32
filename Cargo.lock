@@ -239,6 +239,7 @@ dependencies = [
  "sdl2",
  "unicorn-engine",
  "win32",
+ "x86",
 ]
 
 [[package]]

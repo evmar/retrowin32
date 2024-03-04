@@ -7,7 +7,7 @@
 //! any affected basic block into smaller pieces to maintain the invariant of
 //! always executing through a basic block's end.
 
-use crate::CPU;
+use crate::{x86::CPUState, CPU};
 use memory::Mem;
 use std::collections::{BTreeMap, HashMap};
 
@@ -176,7 +176,7 @@ impl InstrCache {
 
     /// Executes the current basic block, updating eip.
     /// Returns false if the CPU stopped.
-    pub fn execute_block(&mut self, cpu: &mut CPU, mem: Mem) -> bool {
+    pub fn execute_block<'a>(&mut self, cpu: &'a mut CPU, mem: Mem) -> &'a CPUState {
         let ip = cpu.regs.eip;
         let block = match self.blocks.get(&ip) {
             Some(b) => b,
@@ -188,13 +188,19 @@ impl InstrCache {
         for instr in block.instrs.iter() {
             let ip = cpu.regs.eip;
             cpu.regs.eip = instr.next_ip() as u32;
-            if !cpu.run(mem, instr) {
-                // Point the debugger at the failed instruction.
-                cpu.regs.eip = ip;
-                return false;
+            match cpu.run(mem, instr) {
+                CPUState::Running => {}
+                CPUState::Error(_) => {
+                    // Point the debugger at the failed instruction.
+                    cpu.regs.eip = ip;
+                    break;
+                }
+                CPUState::Exit(_) => {
+                    break;
+                }
             }
         }
-        true
+        &cpu.state
     }
 
     /// Change cache such that there's a single basic block at ip.

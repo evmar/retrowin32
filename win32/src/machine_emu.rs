@@ -108,11 +108,11 @@ impl MachineX<Emulator> {
     }
 
     // Execute one basic block.  Returns false if we stopped early.
-    pub fn execute_block(&mut self, single_step: bool) -> bool {
+    pub fn execute_block(&mut self, single_step: bool) -> &x86::CPUState {
         if crate::shims_emu::handle_shim_call(self) {
             // Treat any shim call as a single block and return here.
             // error can be set in cases like calls to ExitProcess().
-            return self.emu.x86.cpu.error.is_none();
+            return &self.emu.x86.cpu.state;
         }
         self.emu.x86.execute_block(self.memory.mem(), single_step)
     }

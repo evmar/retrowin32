@@ -249,7 +249,7 @@ fn main() -> anyhow::Result<()> {
         let start = std::time::Instant::now();
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();
-            while machine.execute_block(false) {
+            while machine.execute_block(false).is_running() {
                 let regs = &machine.emu.x86.cpu.regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
                     continue;
@@ -281,14 +281,16 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
             }
         } else {
-            while machine.execute_block(false) {}
+            while machine.execute_block(false).is_running() {}
         }
 
-        if host.0.borrow().exit_code.is_none() {
-            if let Some(error) = &machine.emu.x86.cpu.error {
+        match &machine.emu.x86.cpu.state {
+            x86::CPUState::Error(error) => {
                 dump_asm(&machine);
                 log::error!("{:?}", error);
             }
+            x86::CPUState::Exit(_) => {}
+            x86::CPUState::Running => unreachable!(),
         }
 
         let millis = start.elapsed().as_millis() as usize;

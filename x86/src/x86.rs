@@ -7,6 +7,21 @@ use crate::{
 };
 use memory::Mem;
 
+#[derive(Default, serde::Serialize, serde::Deserialize)]
+pub enum CPUState {
+    #[default]
+    Running,
+    Error(String),
+    // Blocked,
+    Exit(u32),
+}
+
+impl CPUState {
+    pub fn is_running(&self) -> bool {
+        matches!(*self, CPUState::Running)
+    }
+}
+
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CPU {
     pub regs: Registers,
@@ -18,10 +33,9 @@ pub struct CPU {
     /// Total number of instructions executed.
     pub instr_count: usize,
 
-    /// Set when the CPU wants to stop, due to error, interrupt, or process exit.
-    /// TODO: model process exit differently somehow?
-    pub error: Option<String>,
+    pub state: CPUState,
 }
+
 impl CPU {
     pub fn new() -> Self {
         unsafe {
@@ -31,12 +45,12 @@ impl CPU {
             regs: Registers::default(),
             flags: Flags::empty(),
             instr_count: 0,
-            error: None,
+            state: Default::default(),
         }
     }
 
     pub fn err(&mut self, msg: String) {
-        self.error = Some(msg);
+        self.state = CPUState::Error(msg);
     }
 
     // /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
@@ -54,11 +68,11 @@ impl CPU {
     // }
 
     /// Executes an instruction, leaving eip alone.  Returns false on CPU stop.
-    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> bool {
-        self.error = None;
+    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &CPUState {
+        self.state = CPUState::Running;
         ops::execute(self, mem, instr);
         self.instr_count += 1;
-        self.error.is_none()
+        &self.state
     }
 }
 
@@ -87,7 +101,7 @@ impl X86 {
     }
 
     // Execute one basic block.  Returns false if we stopped early.
-    pub fn execute_block(&mut self, mem: Mem, single_step: bool) -> bool {
+    pub fn execute_block(&mut self, mem: Mem, single_step: bool) -> &CPUState {
         if single_step {
             let ip = self.cpu.regs.eip;
             self.icache.make_single_step(mem, ip);

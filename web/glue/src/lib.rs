@@ -67,7 +67,7 @@ impl Emulator {
         let single_step = count == 1;
         let start = self.machine.emu.x86.cpu.instr_count;
         while self.machine.emu.x86.cpu.instr_count < start + count {
-            if !self.machine.execute_block(single_step) {
+            if !self.machine.execute_block(single_step).is_running() {
                 break;
             }
         }

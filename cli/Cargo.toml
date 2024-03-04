@@ -24,8 +24,12 @@ optional = true
 version = "2.0.0"
 optional = true
 
+[dependencies.x86]
+workspace = true
+optional = true
+
 [features]
 sdl = ["dep:sdl2"]
-x86-emu = ["dep:iced-x86", "win32/x86-emu"]
+x86-emu = ["dep:x86", "dep:iced-x86", "win32/x86-emu"]
 x86-64 = ["win32/x86-64"]
 x86-unicorn = ["dep:unicorn-engine", "win32/x86-unicorn"]
