@@ -85,12 +85,26 @@ fn msg_from_message(message: host::Message) -> MSG {
     msg
 }
 
-fn fill_message_queue(machine: &mut Machine, wait: bool) {
+fn fill_message_queue(machine: &mut Machine, hwnd: HWND, wait: bool) {
     if !machine.state.user32.messages.is_empty() {
         return;
     }
 
-    if let Some(msg) = machine.host.get_message(wait) {
+    if let Some(msg) = machine.host.get_message(false) {
+        machine
+            .state
+            .user32
+            .messages
+            .push_back(msg_from_message(msg));
+        return;
+    }
+
+    if enqueue_paint_if_needed(machine, hwnd) {
+        return;
+    }
+
+    if wait {
+        let msg = machine.host.get_message(wait).unwrap();
         machine
             .state
             .user32
@@ -115,15 +129,15 @@ impl TryFrom<u32> for RemoveMsg {
 }
 
 /// Enqueues a WM_PAINT if the given hwnd (or any hwnd) needs a paint.
-fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) {
+fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
     let hwnd = if hwnd.is_null() {
         match machine.state.user32.windows.iter().find(|w| w.need_paint) {
             Some(w) => w.hwnd,
-            None => return,
+            None => return false,
         }
     } else {
         if !machine.state.user32.get_window(hwnd).unwrap().need_paint {
-            return;
+            return false;
         }
         hwnd
     };
@@ -137,6 +151,7 @@ fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) {
         pt_y: 0,
         lPrivate: 0,
     });
+    true
 }
 
 #[win32_derive::dllexport]
@@ -152,10 +167,7 @@ pub fn PeekMessageA(
     assert_eq!(wMsgFilterMax, 0);
     let lpMsg = lpMsg.unwrap();
 
-    fill_message_queue(machine, false);
-    if machine.state.user32.messages.is_empty() {
-        enqueue_paint_if_needed(machine, hWnd);
-    }
+    fill_message_queue(machine, hWnd, false);
 
     let msg: &MSG = match machine.state.user32.messages.front() {
         Some(msg) => msg,
@@ -185,13 +197,7 @@ pub fn GetMessageA(
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
-    fill_message_queue(machine, false);
-    if machine.state.user32.messages.is_empty() {
-        enqueue_paint_if_needed(machine, hWnd);
-    }
-    if machine.state.user32.messages.is_empty() {
-        fill_message_queue(machine, true);
-    }
+    fill_message_queue(machine, hWnd, true);
 
     let msg = lpMsg.unwrap();
     *msg = machine.state.user32.messages.pop_front().unwrap();
