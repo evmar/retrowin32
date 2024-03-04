@@ -34,6 +34,8 @@ export interface JsLogger {
 export interface JsHost {
   exit(code: number): void;
 
+  get_event(): Event | undefined;
+
   open(path: string): JsFile;
   write(buf: Uint8Array): number;
 

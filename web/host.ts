@@ -45,11 +45,23 @@ class Surface implements glue.JsSurface {
 
 class Window implements glue.JsWindow {
   constructor(readonly host: Host, readonly hwnd: number) {
+    const stashEvent = (ev: Event) => {
+      (ev as any).hwnd = hwnd;
+      host.enqueueEvent(ev);
+      return false;
+    };
+    this.canvas.onmousedown = stashEvent;
+    this.canvas.onmouseup = stashEvent;
+    this.canvas.oncontextmenu = (ev) => {
+      return false;
+    };
   }
+
   title: string = '';
   width: number | undefined;
   height: number | undefined;
   canvas: HTMLCanvasElement = document.createElement('canvas');
+
   set_size(w: number, h: number) {
     this.width = w;
     this.height = h;
@@ -81,10 +93,10 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   page!: Page;
   emulator!: emulator.Emulator;
   files = new Map<string, Uint8Array>();
+  private events: Event[] = [];
 
   stdout = '';
   decoder = new TextDecoder();
-  canvas?: HTMLCanvasElement;
 
   async fetch(files: string[], dir: string = '') {
     for (const file of files) {
@@ -126,6 +138,15 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   exit(code: number) {
     console.warn('exited with code', code);
     this.emulator.exitCode = code;
+  }
+
+  enqueueEvent(event: Event) {
+    this.events.push(event);
+    this.page.start();
+  }
+
+  get_event(): Event | undefined {
+    return this.events.shift();
   }
 
   open(path: string): glue.JsFile {

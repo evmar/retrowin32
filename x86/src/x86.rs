@@ -7,7 +7,7 @@ use crate::{
 };
 use memory::Mem;
 
-#[derive(Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum CPUState {
     #[default]
     Running,

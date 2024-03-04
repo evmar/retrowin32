@@ -1,5 +1,6 @@
 //! Implementations of the traits in win32/host.rs, providing the hosting API for the emulator.
 
+use anyhow::bail;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -92,6 +93,42 @@ impl win32::File for JsFile {
     }
 }
 
+fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::MouseMessage> {
+    Ok(win32::MouseMessage {
+        down: true,
+        button: match event.button() {
+            0 => win32::MouseButton::Left,
+            1 => win32::MouseButton::Middle,
+            2 => win32::MouseButton::Right,
+            _ => bail!("unhandled button"),
+        },
+        x: event.offset_x() as u32,
+        y: event.offset_y() as u32,
+    })
+}
+
+fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
+    let hwnd = js_sys::Reflect::get(&event, &JsValue::from_str("hwnd"))
+        .unwrap()
+        .as_f64()
+        .unwrap() as u32;
+    let detail = match event.type_().as_str() {
+        "mousedown" => {
+            let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
+            event.down = true;
+            win32::MessageDetail::Mouse(event)
+        }
+        "mouseup" => {
+            let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
+            event.down = false;
+            win32::MessageDetail::Mouse(event)
+        }
+        ty => bail!("unhandled event type {ty}"),
+    };
+    log::info!("msg: {:?}", detail);
+    Ok(win32::Message { hwnd, detail })
+}
+
 #[wasm_bindgen]
 extern "C" {
     pub type JsHost;
@@ -101,6 +138,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
+
+    #[wasm_bindgen(method)]
+    fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
     fn open(this: &JsHost, path: &str) -> JsFile;
@@ -117,21 +157,27 @@ impl win32::Host for JsHost {
     fn exit(&self, exit_code: u32) {
         JsHost::exit(self, exit_code)
     }
+
     fn time(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 
     fn get_message(&self, wait: bool) -> Option<win32::Message> {
-        if wait {
-            unimplemented!();
+        assert_eq!(wait, false); // waiting implemented via async blocking
+        let event = JsHost::get_event(self);
+        if event.is_undefined() {
+            return None;
         }
-        None
+        message_from_event(event)
+            .inspect_err(|err| log::error!("failed to convert message: {err}"))
+            .ok()
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
         let file = JsHost::open(self, path);
         Box::new(file)
     }
+
     fn write(&self, buf: &[u8]) -> usize {
         JsHost::write(self, buf)
     }
@@ -140,6 +186,7 @@ impl win32::Host for JsHost {
         let window = JsHost::create_window(self, hwnd);
         Box::new(window)
     }
+
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         Box::new(JsHost::create_surface(self, opts.clone()))
     }

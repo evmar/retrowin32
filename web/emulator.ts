@@ -120,7 +120,7 @@ export class Emulator {
     const endSteps = this.emu.instr_count;
 
     const steps = endSteps - startSteps;
-    if (steps > 1000) {  // only update if we ran enough instructions to get a good measurement
+    if (steps > 1000) { // only update if we ran enough instructions to get a good measurement
       const deltaTime = endTime - startTime;
 
       const instrPerMs = steps / deltaTime;
@@ -145,9 +145,6 @@ export class Emulator {
     }
 
     const cpuState = this.runBatch();
-    if (cpuState === wasm.CPUState.Blocked) {
-      console.error('TODO: block on event');
-    }
 
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {

@@ -72,6 +72,7 @@ impl Emulator {
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
+        self.machine.emu.x86.cpu.state = x86::CPUState::Running;
         let single_step = count == 1;
         let start = self.machine.emu.x86.cpu.instr_count;
         while self.machine.emu.x86.cpu.instr_count < start + count {
