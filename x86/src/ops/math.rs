@@ -308,6 +308,12 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     result
 }
 
+pub fn rol_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = cpu.regs.ecx as u8;
+    let x = rm32(cpu, mem, instr);
+    x.set(rol(x.get(), y, &mut cpu.flags));
+}
+
 pub fn rol_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
