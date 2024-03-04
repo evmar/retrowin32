@@ -195,9 +195,8 @@ impl InstrCache {
                     cpu.regs.eip = ip;
                     break;
                 }
-                CPUState::Exit(_) => {
-                    break;
-                }
+                CPUState::Exit(_) => break,
+                CPUState::Blocked => break,
             }
         }
         &cpu.state

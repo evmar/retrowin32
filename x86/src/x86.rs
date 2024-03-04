@@ -7,12 +7,12 @@ use crate::{
 };
 use memory::Mem;
 
-#[derive(Default, serde::Serialize, serde::Deserialize)]
+#[derive(Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 pub enum CPUState {
     #[default]
     Running,
+    Blocked,
     Error(String),
-    // Blocked,
     Exit(u32),
 }
 

@@ -290,6 +290,7 @@ fn main() -> anyhow::Result<()> {
                 log::error!("{:?}", error);
             }
             x86::CPUState::Exit(_) => {}
+            x86::CPUState::Blocked => unreachable!(),
             x86::CPUState::Running => unreachable!(),
         }
 

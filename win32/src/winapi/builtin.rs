@@ -2979,7 +2979,37 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 8u32);
             let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
             let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
-            winapi::user32::GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::GetMessageA(
+                        machine,
+                        lpMsg,
+                        hWnd,
+                        wMsgFilterMin,
+                        wMsgFilterMax,
+                    )
+                    .await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 20u32;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::GetMessageA(
+                    machine,
+                    lpMsg,
+                    hWnd,
+                    wMsgFilterMin,
+                    wMsgFilterMax
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn GetMessageW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2987,7 +3017,37 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 8u32);
             let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
             let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
-            winapi::user32::GetMessageW(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::GetMessageW(
+                        machine,
+                        lpMsg,
+                        hWnd,
+                        wMsgFilterMin,
+                        wMsgFilterMax,
+                    )
+                    .await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 20u32;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::GetMessageW(
+                    machine,
+                    lpMsg,
+                    hWnd,
+                    wMsgFilterMin,
+                    wMsgFilterMax
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3402,13 +3462,13 @@ pub mod user32 {
             name: "GetMessageA",
             func: impls::GetMessageA,
             stack_consumed: 20u32,
-            is_async: false,
+            is_async: true,
         };
         pub const GetMessageW: Shim = Shim {
             name: "GetMessageW",
             func: impls::GetMessageW,
             stack_consumed: 20u32,
-            is_async: false,
+            is_async: true,
         };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",

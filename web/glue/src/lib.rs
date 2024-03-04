@@ -16,6 +16,14 @@ pub struct Emulator {
 }
 
 #[wasm_bindgen]
+pub enum CPUState {
+    Running,
+    Blocked,
+    Error,
+    Exit,
+}
+
+#[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
     pub fn load_exe(&mut self, name: String, buf: &[u8], relocate: bool) -> JsResult<()> {
@@ -63,7 +71,7 @@ impl Emulator {
 
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
-    pub fn run(&mut self, count: usize) -> JsResult<usize> {
+    pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
         let single_step = count == 1;
         let start = self.machine.emu.x86.cpu.instr_count;
         while self.machine.emu.x86.cpu.instr_count < start + count {
@@ -71,7 +79,12 @@ impl Emulator {
                 break;
             }
         }
-        Ok(self.machine.emu.x86.cpu.instr_count - start)
+        Ok(match &self.machine.emu.x86.cpu.state {
+            x86::CPUState::Running => CPUState::Running,
+            x86::CPUState::Blocked => CPUState::Blocked,
+            x86::CPUState::Error(msg) => return Err(JsError::new(msg)),
+            x86::CPUState::Exit(_) => CPUState::Exit,
+        })
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {

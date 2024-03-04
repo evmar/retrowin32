@@ -85,9 +85,9 @@ fn msg_from_message(message: host::Message) -> MSG {
     msg
 }
 
-fn fill_message_queue(machine: &mut Machine, hwnd: HWND, wait: bool) {
+fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> bool {
     if !machine.state.user32.messages.is_empty() {
-        return;
+        return true;
     }
 
     if let Some(msg) = machine.host.get_message(false) {
@@ -96,21 +96,39 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND, wait: bool) {
             .user32
             .messages
             .push_back(msg_from_message(msg));
-        return;
+        return true;
     }
 
     if enqueue_paint_if_needed(machine, hwnd) {
-        return;
+        return true;
     }
 
-    if wait {
-        let msg = machine.host.get_message(wait).unwrap();
-        machine
-            .state
-            .user32
-            .messages
-            .push_back(msg_from_message(msg));
+    false
+}
+
+#[cfg(feature = "x86-emu")]
+async fn await_message(machine: &mut Machine, _hwnd: HWND) {
+    loop {
+        crate::shims::block(machine).await;
+        if let Some(msg) = machine.host.get_message(false) {
+            machine
+                .state
+                .user32
+                .messages
+                .push_back(msg_from_message(msg));
+            return;
+        }
     }
+}
+
+#[cfg(not(feature = "x86-emu"))]
+async fn await_message(machine: &mut Machine, _hwnd: HWND) {
+    let msg = machine.host.get_message(true).unwrap();
+    machine
+        .state
+        .user32
+        .messages
+        .push_back(msg_from_message(msg));
 }
 
 bitflags! {
@@ -167,7 +185,7 @@ pub fn PeekMessageA(
     assert_eq!(wMsgFilterMax, 0);
     let lpMsg = lpMsg.unwrap();
 
-    fill_message_queue(machine, hWnd, false);
+    fill_message_queue(machine, hWnd);
 
     let msg: &MSG = match machine.state.user32.messages.front() {
         Some(msg) => msg,
@@ -187,7 +205,7 @@ pub fn PeekMessageA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetMessageA(
+pub async fn GetMessageA(
     machine: &mut Machine,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
@@ -197,7 +215,9 @@ pub fn GetMessageA(
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
-    fill_message_queue(machine, hWnd, true);
+    if !fill_message_queue(machine, hWnd) {
+        await_message(machine, hWnd).await;
+    }
 
     let msg = lpMsg.unwrap();
     *msg = machine.state.user32.messages.pop_front().unwrap();
@@ -211,14 +231,14 @@ pub fn GetMessageA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetMessageW(
+pub async fn GetMessageW(
     machine: &mut Machine,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> i32 {
-    GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax)
+    GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
 }
 
 #[win32_derive::dllexport]

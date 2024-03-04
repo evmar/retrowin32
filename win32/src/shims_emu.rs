@@ -195,3 +195,27 @@ fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
     }
     0
 }
+
+pub struct BlockMessageFuture {
+    m: *const Machine,
+}
+impl std::future::Future for BlockMessageFuture {
+    type Output = ();
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let machine = unsafe { &*self.m };
+        if machine.emu.x86.cpu.state == x86::CPUState::Blocked {
+            std::task::Poll::Pending
+        } else {
+            std::task::Poll::Ready(())
+        }
+    }
+}
+
+pub fn block(machine: &mut Machine) -> BlockMessageFuture {
+    machine.emu.x86.cpu.state = x86::CPUState::Blocked;
+    BlockMessageFuture { m: machine }
+}

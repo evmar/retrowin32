@@ -112,6 +112,30 @@ export class Emulator {
   /** Moving average of instructions executed per millisecond. */
   instrPerMs = 0;
 
+  private runBatch() {
+    const startTime = performance.now();
+    const startSteps = this.emu.instr_count;
+    const cpuState = this.emu.run(this.stepSize) as wasm.CPUState;
+    const endTime = performance.now();
+    const endSteps = this.emu.instr_count;
+
+    const steps = endSteps - startSteps;
+    if (steps > 1000) {  // only update if we ran enough instructions to get a good measurement
+      const deltaTime = endTime - startTime;
+
+      const instrPerMs = steps / deltaTime;
+      const alpha = 0.5; // smoothing factor
+      this.instrPerMs = alpha * (instrPerMs) + (1 - alpha) * this.instrPerMs;
+
+      if (deltaTime < 8) {
+        this.stepSize *= 2;
+        console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
+      }
+    }
+
+    return cpuState;
+  }
+
   /** Runs a batch of instructions.  Returns false if we should stop. */
   stepMany(): boolean {
     for (const bp of this.breakpoints.values()) {
@@ -119,9 +143,12 @@ export class Emulator {
         this.emu.breakpoint_add(bp.addr);
       }
     }
-    const start = performance.now();
-    const steps = this.emu.run(this.stepSize);
-    const end = performance.now();
+
+    const cpuState = this.runBatch();
+    if (cpuState === wasm.CPUState.Blocked) {
+      console.error('TODO: block on event');
+    }
+
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {
         this.emu.breakpoint_clear(bp.addr);
@@ -132,17 +159,7 @@ export class Emulator {
       return false;
     }
 
-    const ms = end - start;
-    const instrPerMs = steps / ms;
-    const alpha = 0.5; // smoothing factor
-    this.instrPerMs = alpha * (instrPerMs) + (alpha - 1) * this.instrPerMs;
-
-    if (steps > 100 && ms < 8) {
-      this.stepSize *= 2;
-      console.log(`${steps} instructions in ${ms.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
-    }
-
-    return true;
+    return cpuState == wasm.CPUState.Running;
   }
 
   mappings(): wasm.Mapping[] {
