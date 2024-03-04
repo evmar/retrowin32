@@ -18,5 +18,10 @@
     "desc": "effect",
     "params": "exe=effect.exe",
     "notes": "(<a href='https://www.pouet.net/prod.php?which=17038'>pouet.net</a>) [still buggy]"
+  },
+  {
+    "desc": "minesweeper",
+    "params": "file=msvcrt.dll&exe=winmine.exe",
+    "notes": "the classic windows game"
   }
 ]
