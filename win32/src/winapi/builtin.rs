@@ -1431,6 +1431,12 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn lstrcmpiA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpString1 = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpString2 = <Option<&str>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::lstrcmpiA(machine, lpString1, lpString2).to_raw()
+        }
         pub unsafe fn lstrcpyW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString1 = <u32>::from_stack(mem, esp + 4u32);
@@ -2032,6 +2038,12 @@ pub mod kernel32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const lstrcmpiA: Shim = Shim {
+            name: "lstrcmpiA",
+            func: impls::lstrcmpiA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const lstrcpyW: Shim = Shim {
             name: "lstrcpyW",
             func: impls::lstrcpyW,
@@ -2051,7 +2063,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 97usize] = [
+    const EXPORTS: [Symbol; 98usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2427,6 +2439,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::WriteFile,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::lstrcmpiA,
         },
         Symbol {
             ordinal: None,
