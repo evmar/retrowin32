@@ -295,7 +295,13 @@ pub fn MapWindowPoints(
     hWndTo: HWND,
     lpPoints: ArrayWithSize<POINT>,
 ) -> i32 {
-    todo!();
+    if !(hWndFrom.is_null() || hWndTo.is_null()) {
+        todo!()
+    }
+    // Mapping a window to/from desktop coords.
+    let delta_x = 0;
+    let delta_y = 0;
+    (delta_y << 16) | delta_x
 }
 
 #[win32_derive::dllexport]
