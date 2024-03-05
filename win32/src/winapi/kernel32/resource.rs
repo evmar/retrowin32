@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use super::Str16;
+use super::{Str16, String16};
 use crate::{pe, winapi::stack_args::FromArg, Machine};
 use memory::Mem;
 
@@ -16,12 +16,11 @@ pub enum ResourceId<T> {
     Name(T),
 }
 
-impl<T> ResourceId<T> {
-    /// Helper until we implement resources by name.
-    pub fn unwrap_id(&self) -> u32 {
+impl ResourceId<&Str16> {
+    pub fn into_pe(&self) -> pe::ResourceName {
         match *self {
-            ResourceId::Id(id) => id,
-            ResourceId::Name(_) => unimplemented!(),
+            ResourceId::Id(id) => pe::ResourceName::Id(id),
+            ResourceId::Name(name) => pe::ResourceName::Name(name.buf()),
         }
     }
 }
@@ -41,15 +40,15 @@ where
 
 pub fn find_resource<'a>(
     machine: &'a Machine,
-    typ: ResourceId<&str>,
-    name: ResourceId<&str>,
+    typ: ResourceId<&Str16>,
+    name: ResourceId<&Str16>,
 ) -> Option<Mem<'a>> {
     let image = machine.mem().slice(machine.state.kernel32.image_base..);
     Some(image.slice(pe::find_resource(
         image,
         &machine.state.kernel32.resources,
-        typ.unwrap_id(),
-        name.unwrap_id(),
+        typ.into_pe(),
+        name.into_pe(),
     )?))
 }
 
@@ -60,16 +59,23 @@ pub fn FindResourceA(
     lpName: ResourceId<&str>,
     lpType: ResourceId<&str>,
 ) -> u32 {
-    let image = machine.mem().slice(machine.state.kernel32.image_base..);
-    match pe::find_resource(
-        image,
-        &machine.state.kernel32.resources,
-        lpType.unwrap_id(),
-        lpName.unwrap_id(),
-    ) {
-        None => 0,
-        Some(r) => machine.state.kernel32.image_base + r.start,
-    }
+    let namebuf: String16;
+    let lpName = match lpName {
+        ResourceId::Id(id) => ResourceId::Id(id),
+        ResourceId::Name(name) => {
+            namebuf = String16::from(name);
+            ResourceId::Name(namebuf.as_str16())
+        }
+    };
+    let typebuf: String16;
+    let lpType = match lpType {
+        ResourceId::Id(id) => ResourceId::Id(id),
+        ResourceId::Name(name) => {
+            typebuf = String16::from(name);
+            ResourceId::Name(typebuf.as_str16())
+        }
+    };
+    FindResourceW(machine, hModule, lpName, lpType)
 }
 
 #[win32_derive::dllexport]
@@ -79,9 +85,10 @@ pub fn FindResourceW(
     lpName: ResourceId<&Str16>,
     lpType: ResourceId<&Str16>,
 ) -> u32 {
-    let lpName = ResourceId::Id(lpName.unwrap_id());
-    let lpType = ResourceId::Id(lpType.unwrap_id());
-    FindResourceA(machine, hModule, lpName, lpType)
+    match find_resource(machine, lpType, lpName) {
+        None => 0,
+        Some(mem) => mem.offset_from(machine.mem()),
+    }
 }
 
 #[win32_derive::dllexport]

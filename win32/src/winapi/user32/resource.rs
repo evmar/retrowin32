@@ -242,6 +242,15 @@ pub fn LoadImageA(
         return HGDIOBJ::null();
     }
 
+    let namebuf: String16;
+    let name = match name {
+        ResourceId::Id(id) => ResourceId::Id(id),
+        ResourceId::Name(name) => {
+            namebuf = String16::from(name);
+            ResourceId::Name(namebuf.as_str16())
+        }
+    };
+
     // TODO: it's unclear whether the width/height is obeyed when loading an image.
 
     const IMAGE_BITMAP: u32 = 0;
@@ -261,6 +270,17 @@ pub fn LoadImageA(
             return HGDIOBJ::null();
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn LoadStringA(
+    _machine: &mut Machine,
+    hInstance: u32,
+    uID: u32,
+    lpBuffer: u32,
+    cchBufferMax: u32,
+) -> u32 {
+    0 // TODO
 }
 
 #[win32_derive::dllexport]

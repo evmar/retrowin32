@@ -87,8 +87,8 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn offset_from(&self, mem: Mem) -> u32 {
-        (mem.ptr as usize - self.ptr as usize) as u32
+    pub fn offset_from(&self, origin: Mem) -> u32 {
+        (self.ptr as usize - origin.ptr as usize) as u32
     }
 
     pub fn len(&self) -> u32 {

@@ -55,9 +55,9 @@ pub enum RT {
     STRING = 6,
 }
 
-#[derive(Debug)]
-enum ResourceName {
-    Name(String),
+#[derive(Debug, PartialEq, Eq)]
+pub enum ResourceName<'a> {
+    Name(&'a [u16]),
     Id(u32),
 }
 enum ResourceValue<'a> {
@@ -70,14 +70,8 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
         if val >> 31 == 0 {
             ResourceName::Id(val)
         } else {
-            ResourceName::Name(format!("unhandled name {val:x} in res dir"))
-        }
-    }
-
-    fn has_id(&self, query: u32) -> bool {
-        match self.name() {
-            ResourceName::Id(id) if id == query => true,
-            _ => false,
+            log::error!("unhandled name {val:x} in res dir");
+            ResourceName::Name(&[])
         }
     }
 
@@ -107,8 +101,8 @@ unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 pub fn find_resource<'a>(
     image: Mem<'a>,
     section: &IMAGE_DATA_DIRECTORY,
-    query_type: u32,
-    query_id: u32,
+    query_type: ResourceName,
+    query_id: ResourceName,
 ) -> Option<Range<u32>> {
     let section = image.sub(section.VirtualAddress, section.Size);
 
@@ -116,14 +110,17 @@ pub fn find_resource<'a>(
     // are always exactly three levels with known semantics.
     let dir = ImageResourceDirectory::read(section, 0);
 
-    let etype = dir.entries.iter().find(|entry| entry.has_id(query_type))?;
+    let etype = dir
+        .entries
+        .iter()
+        .find(|entry| entry.name() == query_type)?;
     let dir = match etype.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
     };
 
     let eid: &IMAGE_RESOURCE_DIRECTORY_ENTRY =
-        dir.entries.iter().find(|entry| entry.has_id(query_id))?;
+        dir.entries.iter().find(|entry| entry.name() == query_id)?;
     let dir = match eid.value(section) {
         ResourceValue::Dir(dir) => dir,
         _ => todo!(),
