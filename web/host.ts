@@ -58,13 +58,9 @@ class Window implements glue.JsWindow {
   }
 
   title: string = '';
-  width: number | undefined;
-  height: number | undefined;
   canvas: HTMLCanvasElement = document.createElement('canvas');
 
   set_size(w: number, h: number) {
-    this.width = w;
-    this.height = h;
     this.canvas.width = w;
     this.canvas.height = h;
     this.host.page.forceUpdate();

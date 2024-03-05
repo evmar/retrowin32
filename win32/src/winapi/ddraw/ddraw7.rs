@@ -206,7 +206,7 @@ pub(super) mod IDirectDraw7 {
         flags: u32,
     ) -> u32 {
         if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
-            wnd.set_size(width, height);
+            wnd.set_client_size(width, height);
         }
         machine.state.ddraw.bytes_per_pixel = bpp / 8;
         DD_OK

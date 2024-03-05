@@ -16,7 +16,6 @@ import { Tabs } from './tabs';
 namespace WindowComponent {
   export interface Props {
     title: string;
-    size: [number | undefined, number | undefined];
     canvas: HTMLCanvasElement;
   }
   export interface State {
@@ -61,20 +60,12 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
 
   render() {
     this.ensureCanvas();
-    function pxOrUndefined(x: number | undefined): string | undefined {
-      if (x !== undefined) return `${x}px`;
-      return undefined;
-    }
     return (
       <div class='window' style={{ left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }}>
         <div class='titlebar' onPointerDown={this.beginDrag} onPointerUp={this.endDrag} onPointerMove={this.onDrag}>
           {this.props.title}
         </div>
-        <div
-          ref={this.ref}
-          style={{ width: pxOrUndefined(this.props.size[0]), height: pxOrUndefined(this.props.size[1]) }}
-        >
-        </div>
+        <div ref={this.ref} />
       </div>
     );
   }
@@ -164,7 +155,6 @@ export class Page extends preact.Component<Page.Props, Page.State> {
         <WindowComponent
           key={window.hwnd}
           title={window.title}
-          size={[window.width, window.height]}
           canvas={window.canvas}
         />
       );

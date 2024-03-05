@@ -37,6 +37,7 @@ pub struct Window {
     pub wndclass: Rc<WndClass>,
     pub pixels: Option<WindowPixels>,
     pub need_paint: bool,
+    pub style: WindowStyle,
 }
 
 impl Window {
@@ -57,7 +58,7 @@ impl Window {
         }
     }
 
-    pub fn set_size(&mut self, width: u32, height: u32) {
+    pub fn set_client_size(&mut self, width: u32, height: u32) {
         self.width = width;
         self.height = height;
         self.host.set_size(width, height);
@@ -163,22 +164,22 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
 
 bitflags! {
     pub struct WindowStyle: u32 {
-        const WS_POPUP           = 0x80000000;
-        const WS_CHILD           = 0x40000000;
-        const WS_MINIMIZE        = 0x20000000;
-        const WS_VISIBLE         = 0x10000000;
-        const WS_DISABLED        = 0x08000000;
-        const WS_CLIPSIBLINGS    = 0x04000000;
-        const WS_CLIPCHILDREN    = 0x02000000;
-        const WS_MAXIMIZE        = 0x01000000;
-        const WS_BORDER          = 0x00800000;
-        const WS_DLGFRAME        = 0x00400000;
-        const WS_VSCROLL         = 0x00200000;
-        const WS_HSCROLL         = 0x00100000;
-        const WS_SYSMENU         = 0x00080000;
-        const WS_THICKFRAME      = 0x00040000;
-        const WS_GROUP           = 0x00020000;
-        const WS_TABSTOP         = 0x00010000;
+        const POPUP           = 0x80000000;
+        const CHILD           = 0x40000000;
+        const MINIMIZE        = 0x20000000;
+        const VISIBLE         = 0x10000000;
+        const DISABLED        = 0x08000000;
+        const CLIPSIBLINGS    = 0x04000000;
+        const CLIPCHILDREN    = 0x02000000;
+        const MAXIMIZE        = 0x01000000;
+        const BORDER          = 0x00800000;
+        const DLGFRAME        = 0x00400000;
+        const VSCROLL         = 0x00200000;
+        const HSCROLL         = 0x00100000;
+        const SYSMENU         = 0x00080000;
+        const THICKFRAME      = 0x00040000;
+        const GROUP           = 0x00020000;
+        const TABSTOP         = 0x00010000;
     }
 }
 impl TryFrom<u32> for WindowStyle {
@@ -305,6 +306,9 @@ pub async fn CreateWindowExW(
         nHeight
     };
 
+    let style = dwStyle.unwrap();
+    let menu = true; // TODO
+    let (width, height) = client_size_from_window_size(style, menu, width, height);
     host_win.set_size(width, height);
     let window = Window {
         hwnd,
@@ -317,6 +321,7 @@ pub async fn CreateWindowExW(
         wndclass,
         pixels: None,
         need_paint: true,
+        style,
     };
     machine.state.user32.windows.set(hwnd, window);
 
@@ -471,6 +476,46 @@ pub fn DefWindowProcW(
     DefWindowProcA(machine, hWnd, msg, wParam, lParam)
 }
 
+/// Compute window rectangle from client rectangle.
+fn window_rect(rect: &mut RECT, style: WindowStyle, menu: bool) {
+    const CAPTION: i32 = 19;
+    rect.top = rect.top - CAPTION;
+    rect.left = rect.left;
+    rect.right = rect.right;
+    rect.bottom = rect.bottom;
+    if menu {
+        rect.top -= 19;
+    }
+    if style.contains(WindowStyle::BORDER) {
+        const BORDER: i32 = 1;
+        rect.top -= BORDER;
+        rect.left -= BORDER;
+        rect.right += BORDER;
+        rect.bottom += BORDER;
+    }
+    if style.contains(WindowStyle::THICKFRAME) {
+        const FRAME: i32 = 4;
+        rect.top -= FRAME;
+        rect.left -= FRAME;
+        rect.right += FRAME;
+        rect.bottom += FRAME;
+    }
+}
+
+fn client_size_from_window_size(
+    style: WindowStyle,
+    menu: bool,
+    width: u32,
+    height: u32,
+) -> (u32, u32) {
+    let mut r = RECT::default();
+    window_rect(&mut r, style, menu);
+    (
+        std::cmp::max(width as i32 - (r.right - r.left), 64) as u32,
+        std::cmp::max(height as i32 - (r.bottom - r.top), 64) as u32,
+    )
+}
+
 #[win32_derive::dllexport]
 pub fn AdjustWindowRect(
     machine: &mut Machine,
@@ -495,6 +540,7 @@ pub fn AdjustWindowRectEx(
     bMenu: bool,
     dwExStyle: Result<WindowStyleEx, u32>,
 ) -> bool {
+    window_rect(lpRect.unwrap(), dwStyle.unwrap(), bMenu);
     true
 }
 
@@ -523,7 +569,9 @@ pub fn MoveWindow(
     bRepaint: bool,
 ) -> bool {
     let window = machine.state.user32.get_window(hWnd).unwrap();
-    window.set_size(nWidth, nHeight);
+    let menu = true; // TODO
+    let (width, height) = client_size_from_window_size(window.style, menu, nWidth, nHeight);
+    window.set_client_size(width, height);
     true // success
 }
 
