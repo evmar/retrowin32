@@ -971,6 +971,18 @@ pub fn lstrlenW(_machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn lstrcpyA(machine: &mut Machine, lpString1: u32, lpString2: Option<&str>) -> u32 {
+    let src = lpString2.unwrap();
+    let dst = machine
+        .mem()
+        .sub(lpString1, (src.len() + 1) as u32)
+        .as_mut_slice_todo();
+    dst[..src.len()].copy_from_slice(src.as_bytes());
+    dst[src.len()] = 0;
+    lpString1
+}
+
+#[win32_derive::dllexport]
 pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>) -> u32 {
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
