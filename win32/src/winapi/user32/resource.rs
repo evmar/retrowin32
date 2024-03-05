@@ -1,10 +1,10 @@
 use memory::Mem;
 
 use crate::{
-    pe,
+    pe::{self},
     winapi::{
         gdi32::{self, HGDIOBJ},
-        kernel32::ResourceId,
+        kernel32::ResourceKey,
         types::*,
     },
     Machine,
@@ -225,11 +225,21 @@ impl std::fmt::Debug for Bitmap {
     }
 }
 
+fn load_bitmap(machine: &mut Machine, name: ResourceKey<&Str16>) -> Option<HGDIOBJ> {
+    let buf = crate::winapi::kernel32::find_resource(
+        machine,
+        ResourceKey::Id(pe::RT::BITMAP as u32),
+        name,
+    )?;
+    let bmp = Bitmap::parse(buf.view::<BITMAPINFOHEADER>(0), None);
+    Some(machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp)))
+}
+
 #[win32_derive::dllexport]
 pub fn LoadImageA(
     machine: &mut Machine,
     hInstance: u32,
-    name: ResourceId<&str>,
+    name: ResourceKey<&str>,
     typ: u32,
     cx: u32,
     cy: u32,
@@ -242,34 +252,29 @@ pub fn LoadImageA(
         return HGDIOBJ::null();
     }
 
-    let namebuf: String16;
-    let name = match name {
-        ResourceId::Id(id) => ResourceId::Id(id),
-        ResourceId::Name(name) => {
-            namebuf = String16::from(name);
-            ResourceId::Name(namebuf.as_str16())
-        }
-    };
+    let name = name.to_string16();
 
     // TODO: it's unclear whether the width/height is obeyed when loading an image.
 
     const IMAGE_BITMAP: u32 = 0;
     match typ {
-        IMAGE_BITMAP => {
-            let buf = crate::winapi::kernel32::find_resource(
-                machine,
-                ResourceId::Id(pe::RT::BITMAP as u32),
-                name,
-            )
-            .unwrap();
-            let bmp = Bitmap::parse(buf.view::<BITMAPINFOHEADER>(0), None);
-            machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp))
-        }
+        IMAGE_BITMAP => load_bitmap(machine, name.as_ref()).unwrap(),
         _ => {
             log::error!("unimplemented image type {:x}", typ);
             return HGDIOBJ::null();
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn LoadBitmapA(
+    machine: &mut Machine,
+    hInstance: u32,
+    lpBitmapName: ResourceKey<&str>,
+) -> HGDIOBJ {
+    assert!(hInstance == machine.state.kernel32.image_base);
+    let name = lpBitmapName.to_string16();
+    load_bitmap(machine, name.as_ref()).unwrap()
 }
 
 fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
@@ -278,8 +283,8 @@ fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
 
     let block = crate::winapi::kernel32::find_resource(
         machine,
-        ResourceId::Id(pe::RT::STRING as u32),
-        ResourceId::Id(resource_id),
+        ResourceKey::Id(pe::RT::STRING as u32),
+        ResourceKey::Id(resource_id),
     )?;
 
     // Each block is a sequence of two byte length-prefixed strings.

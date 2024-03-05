@@ -15,7 +15,7 @@ use std::collections::VecDeque;
 use std::rc::Rc;
 pub use window::*;
 
-pub use super::kernel32::ResourceId;
+pub use super::kernel32::ResourceKey;
 
 const TRACE_CONTEXT: &'static str = "user32";
 

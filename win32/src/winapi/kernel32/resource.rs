@@ -10,38 +10,62 @@ fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
 
+/// ResourceKey is the type of queries into the Windows resources system, including
+/// e.g. LoadResource() as well as LoadBitmap() etc.
+/// It's parameterized over the type of name to handle both A() and W() variants.
 #[derive(Debug)]
-pub enum ResourceId<T> {
+pub enum ResourceKey<T> {
     Id(u32),
     Name(T),
 }
 
-impl ResourceId<&Str16> {
-    pub fn into_pe(&self) -> pe::ResourceName {
+impl<T> ResourceKey<T> {
+    pub fn map_name<'a, R>(&'a self, f: impl Fn(&'a T) -> R) -> ResourceKey<R> {
         match *self {
-            ResourceId::Id(id) => pe::ResourceName::Id(id),
-            ResourceId::Name(name) => pe::ResourceName::Name(name.buf()),
+            ResourceKey::Id(id) => ResourceKey::Id(id),
+            ResourceKey::Name(ref name) => ResourceKey::Name(f(name)),
         }
     }
 }
 
-impl<'a, T> FromArg<'a> for ResourceId<T>
+impl ResourceKey<&str> {
+    pub fn to_string16(&self) -> ResourceKey<String16> {
+        self.map_name(|name| String16::from(name))
+    }
+}
+
+impl ResourceKey<String16> {
+    pub fn as_ref<'a>(&'a self) -> ResourceKey<&'a Str16> {
+        self.map_name(|name| name.as_str16())
+    }
+}
+
+impl ResourceKey<&Str16> {
+    pub fn into_pe(&self) -> pe::ResourceName {
+        match *self {
+            ResourceKey::Id(id) => pe::ResourceName::Id(id),
+            ResourceKey::Name(name) => pe::ResourceName::Name(name.buf()),
+        }
+    }
+}
+
+impl<'a, T> FromArg<'a> for ResourceKey<T>
 where
     Option<T>: FromArg<'a>,
 {
     unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if IS_INTRESOURCE(arg) {
-            ResourceId::Id(arg)
+            ResourceKey::Id(arg)
         } else {
-            ResourceId::Name(<Option<T>>::from_arg(mem, arg).unwrap())
+            ResourceKey::Name(<Option<T>>::from_arg(mem, arg).unwrap())
         }
     }
 }
 
 pub fn find_resource<'a>(
     machine: &'a Machine,
-    typ: ResourceId<&Str16>,
-    name: ResourceId<&Str16>,
+    typ: ResourceKey<&Str16>,
+    name: ResourceKey<&Str16>,
 ) -> Option<Mem<'a>> {
     let image = machine.mem().slice(machine.state.kernel32.image_base..);
     Some(image.slice(pe::find_resource(
@@ -56,34 +80,20 @@ pub fn find_resource<'a>(
 pub fn FindResourceA(
     machine: &mut Machine,
     hModule: u32,
-    lpName: ResourceId<&str>,
-    lpType: ResourceId<&str>,
+    lpName: ResourceKey<&str>,
+    lpType: ResourceKey<&str>,
 ) -> u32 {
-    let namebuf: String16;
-    let lpName = match lpName {
-        ResourceId::Id(id) => ResourceId::Id(id),
-        ResourceId::Name(name) => {
-            namebuf = String16::from(name);
-            ResourceId::Name(namebuf.as_str16())
-        }
-    };
-    let typebuf: String16;
-    let lpType = match lpType {
-        ResourceId::Id(id) => ResourceId::Id(id),
-        ResourceId::Name(name) => {
-            typebuf = String16::from(name);
-            ResourceId::Name(typebuf.as_str16())
-        }
-    };
-    FindResourceW(machine, hModule, lpName, lpType)
+    let name = lpName.to_string16();
+    let type_ = lpType.to_string16();
+    FindResourceW(machine, hModule, name.as_ref(), type_.as_ref())
 }
 
 #[win32_derive::dllexport]
 pub fn FindResourceW(
     machine: &mut Machine,
     hModule: u32,
-    lpName: ResourceId<&Str16>,
-    lpType: ResourceId<&Str16>,
+    lpName: ResourceKey<&Str16>,
+    lpType: ResourceKey<&Str16>,
 ) -> u32 {
     match find_resource(machine, lpType, lpName) {
         None => 0,

@@ -878,15 +878,15 @@ pub mod kernel32 {
         pub unsafe fn FindResourceA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let lpName = <ResourceId<&str>>::from_stack(mem, esp + 8u32);
-            let lpType = <ResourceId<&str>>::from_stack(mem, esp + 12u32);
+            let lpName = <ResourceKey<&str>>::from_stack(mem, esp + 8u32);
+            let lpType = <ResourceKey<&str>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceA(machine, hModule, lpName, lpType).to_raw()
         }
         pub unsafe fn FindResourceW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let lpName = <ResourceId<&Str16>>::from_stack(mem, esp + 8u32);
-            let lpType = <ResourceId<&Str16>>::from_stack(mem, esp + 12u32);
+            let lpName = <ResourceKey<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpType = <ResourceKey<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
         }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) -> u32 {
@@ -3143,6 +3143,12 @@ pub mod user32 {
             let lpTableName = <u32>::from_stack(mem, esp + 8u32);
             winapi::user32::LoadAcceleratorsW(machine, hInstance, lpTableName).to_raw()
         }
+        pub unsafe fn LoadBitmapA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpBitmapName = <ResourceKey<&str>>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadBitmapA(machine, hInstance, lpBitmapName).to_raw()
+        }
         pub unsafe fn LoadCursorA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -3170,7 +3176,7 @@ pub mod user32 {
         pub unsafe fn LoadImageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
-            let name = <ResourceId<&str>>::from_stack(mem, esp + 8u32);
+            let name = <ResourceKey<&str>>::from_stack(mem, esp + 8u32);
             let typ = <u32>::from_stack(mem, esp + 12u32);
             let cx = <u32>::from_stack(mem, esp + 16u32);
             let cy = <u32>::from_stack(mem, esp + 20u32);
@@ -3590,6 +3596,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const LoadBitmapA: Shim = Shim {
+            name: "LoadBitmapA",
+            func: impls::LoadBitmapA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: impls::LoadCursorA,
@@ -3801,7 +3813,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 65usize] = [
+    const EXPORTS: [Symbol; 66usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3921,6 +3933,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::LoadAcceleratorsW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LoadBitmapA,
         },
         Symbol {
             ordinal: None,
