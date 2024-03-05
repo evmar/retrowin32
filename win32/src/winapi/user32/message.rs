@@ -205,6 +205,25 @@ pub fn PeekMessageA(
 }
 
 #[win32_derive::dllexport]
+pub fn PeekMessageW(
+    machine: &mut Machine,
+    lpMsg: Option<&mut MSG>,
+    hWnd: HWND,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
+    wRemoveMsg: Result<RemoveMsg, u32>,
+) -> bool {
+    PeekMessageA(
+        machine,
+        lpMsg,
+        hWnd,
+        wMsgFilterMin,
+        wMsgFilterMax,
+        wRemoveMsg,
+    )
+}
+
+#[win32_derive::dllexport]
 pub async fn GetMessageA(
     machine: &mut Machine,
     lpMsg: Option<&mut MSG>,

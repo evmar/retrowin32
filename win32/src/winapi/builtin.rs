@@ -3176,6 +3176,23 @@ pub mod user32 {
             )
             .to_raw()
         }
+        pub unsafe fn PeekMessageW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
+            let hWnd = <HWND>::from_stack(mem, esp + 8u32);
+            let wMsgFilterMin = <u32>::from_stack(mem, esp + 12u32);
+            let wMsgFilterMax = <u32>::from_stack(mem, esp + 16u32);
+            let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, esp + 20u32);
+            winapi::user32::PeekMessageW(
+                machine,
+                lpMsg,
+                hWnd,
+                wMsgFilterMin,
+                wMsgFilterMax,
+                wRemoveMsg,
+            )
+            .to_raw()
+        }
         pub unsafe fn PostQuitMessage(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let nExitCode = <i32>::from_stack(mem, esp + 4u32);
@@ -3572,6 +3589,12 @@ pub mod user32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const PeekMessageW: Shim = Shim {
+            name: "PeekMessageW",
+            func: impls::PeekMessageW,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const PostQuitMessage: Shim = Shim {
             name: "PostQuitMessage",
             func: impls::PostQuitMessage,
@@ -3699,7 +3722,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 63usize] = [
+    const EXPORTS: [Symbol; 64usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3867,6 +3890,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::PeekMessageA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::PeekMessageW,
         },
         Symbol {
             ordinal: None,
