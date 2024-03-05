@@ -1,6 +1,6 @@
 # retrowin32
 
-A still-early Windows emulator for web (and non-Windows native platforms).
+retrowin32 is a still-early Windows emulator for the web (and other non-Windows platforms).
 
 Take a win32 `.exe` file and run it in a web browser or a Mac.
 
