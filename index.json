@@ -5,23 +5,23 @@
     "notes": "from <a href='https://www.codeproject.com/Articles/2370/Introduction-to-DirectDraw-and-Surface-Blitting'>this tutorial</a>"
   },
   {
+    "desc": "minesweeper",
+    "params": "file=msvcrt.dll&exe=winmine.exe",
+    "notes": "the classic windows game"
+  },
+  {
     "desc": "win4k",
     "params": "exe=win003.exe",
-    "notes": "<a href='https://www.pouet.net/prod.php?which=6568'>Win4k by Power Flower Crew</a>)"
+    "notes": "from pouet.net: <a href='https://www.pouet.net/prod.php?which=6568'>Win4k by Power Flower Crew</a>"
   },
   {
     "desc": "monolife",
     "params": "dir=monolife/&exe=monolife.exe&file=monolife.dat&file=BASS.DLL",
-    "notes": "by Hatha (see it on <a href='https://www.pouet.net/prod.php?which=7698'>pouet.net</a>) [Note: still buggy, but the opening sorta works!]"
+    "notes": "from pouet.net: <a href='https://www.pouet.net/prod.php?which=7698'>Monolife by Hatha</a>"
   },
   {
     "desc": "effect",
     "params": "exe=effect.exe",
-    "notes": "(<a href='https://www.pouet.net/prod.php?which=17038'>pouet.net</a>) [still buggy]"
-  },
-  {
-    "desc": "minesweeper",
-    "params": "file=msvcrt.dll&exe=winmine.exe",
-    "notes": "the classic windows game"
+    "notes": "from pouet.net: <a href='https://www.pouet.net/prod.php?which=17038'>effect #8 by Infuse Project & Trinity</a>"
   }
 ]

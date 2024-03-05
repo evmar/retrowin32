@@ -2,32 +2,69 @@
 <style>
     body {
         font-family: sans-serif;
-        font-size: 13px;
         width: 60ex;
         margin: 2ex auto;
+        background: #3a6ea5;
+        font-family: tahoma, sans-serif;
+        font-size: 12px;
     }
 
-    h1 {
-        font-weight: normal;
+    h1,
+    h2 {
+        font-size: 100%;
+        margin: 4px 0;
+    }
+
+    hr {
+        border: none;
+        border-top: groove;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    a:visited {
+        color: LinkText;
+    }
+
+    main {
+        border: outset 4px;
+        padding: 8px;
+        background: #c0c0c0;
+    }
+
+    dd {
+        margin-left: 16px;
     }
 </style>
 
 <body>
-    <h1>retrowin32</h1>
+    <main>
+        <div style='float: right'><a href='https://github.com/evmar/retrowin32'>on github</a></div>
+        <h1>retrowin32</h1>
+        <hr>
 
-    <p><a href='https://github.com/evmar/retrowin32'>project and documentation</a></p>
+        <p>retrowin32 is still-early Windows emulator for the web (and other non-Windows platforms).</p>
 
-    <p>demos (click 'run'):</p>
+        <p>Take a win32 `.exe` file and run it in a web browser or a Mac.</p>
+
+        <h2>demos</h2>
+        <p id='demos'>None of these fully work, but here are some demos (click 'run'):</p>
+    </main>
 </body>
 
 <script>
     async function main() {
         const demos = await (await fetch('index.json')).json();
-        const table = document.createElement('table');
+        const table = document.createElement('dl');
+        const tr = table;
         for (const demo of demos) {
-            const tr = document.createElement('tr');
-
-            let td = document.createElement('td');
+            let td = document.createElement('dt');
             const a = document.createElement('a');
             let url = `debugger.html?${demo.params}`;
             a.href = url;
@@ -35,13 +72,11 @@
             td.appendChild(a);
             tr.appendChild(td);
 
-            td = document.createElement('td');
+            td = document.createElement('dd');
             td.innerHTML = demo.notes ?? '';
             tr.appendChild(td);
-
-            table.appendChild(tr);
         }
-        document.body.appendChild(table);
+        document.getElementById('demos').appendChild(table);
     }
     main();
 </script>
