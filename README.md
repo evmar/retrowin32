@@ -1,6 +1,7 @@
 # retrowin32
 
-retrowin32 is a still-early Windows emulator for the web (and other non-Windows platforms).
+retrowin32 is a still-early Windows emulator for the web (and other non-Windows
+platforms).
 
 Take a win32 `.exe` file and run it in a web browser or a Mac.
 
@@ -43,9 +44,7 @@ Today there are all these old `.exe` files lying around that are increasingly
 hard to run. Even on Windows itself, there's a
 [32-bit Windows translation layer](https://en.wikipedia.org/wiki/WoW64) when
 running on now standard x86-64 hardware. On non-Windows the best tool is Wine,
-but it requires x86 hardware. On a recent non-x86 Mac
-[their x86 emulator](https://en.wikipedia.org/wiki/Rosetta_(software)) dropped
-32-bit support, so even Wine isn't sufficient there.
+but it still needs x86 hardware (or a CPU emulator).
 
 So my idea is this: what if you treated a win32 executable in the same way you
 treat a NES ROM -- as machine code for a CPU you no longer have, expecting
