@@ -1338,8 +1338,6 @@ var Window2 = class {
     this.host = host;
     this.hwnd = hwnd;
     __publicField(this, "title", "");
-    __publicField(this, "width");
-    __publicField(this, "height");
     __publicField(this, "canvas", document.createElement("canvas"));
     const stashEvent = (ev) => {
       ev.hwnd = hwnd;
@@ -1353,8 +1351,6 @@ var Window2 = class {
     };
   }
   set_size(w2, h2) {
-    this.width = w2;
-    this.height = h2;
     this.canvas.width = w2;
     this.canvas.height = h2;
     this.host.page.forceUpdate();
@@ -1731,11 +1727,6 @@ var WindowComponent = class extends d {
   }
   render() {
     this.ensureCanvas();
-    function pxOrUndefined(x) {
-      if (x !== void 0)
-        return `${x}px`;
-      return void 0;
-    }
     return /* @__PURE__ */ h("div", {
       class: "window",
       style: { left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }
@@ -1745,8 +1736,7 @@ var WindowComponent = class extends d {
       onPointerUp: this.endDrag,
       onPointerMove: this.onDrag
     }, this.props.title), /* @__PURE__ */ h("div", {
-      ref: this.ref,
-      style: { width: pxOrUndefined(this.props.size[0]), height: pxOrUndefined(this.props.size[1]) }
+      ref: this.ref
     }));
   }
 };
@@ -1811,7 +1801,6 @@ var Page = class extends d {
       return /* @__PURE__ */ h(WindowComponent, {
         key: window2.hwnd,
         title: window2.title,
-        size: [window2.width, window2.height],
         canvas: window2.canvas
       });
     });
