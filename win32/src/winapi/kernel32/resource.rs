@@ -54,11 +54,11 @@ pub fn find_resource<'a>(
 }
 
 #[win32_derive::dllexport]
-pub fn FindResourceW(
+pub fn FindResourceA(
     machine: &mut Machine,
     hModule: u32,
-    lpName: ResourceId<&Str16>,
-    lpType: ResourceId<&Str16>,
+    lpName: ResourceId<&str>,
+    lpType: ResourceId<&str>,
 ) -> u32 {
     let image = machine.mem().slice(machine.state.kernel32.image_base..);
     match pe::find_resource(
@@ -70,6 +70,18 @@ pub fn FindResourceW(
         None => 0,
         Some(r) => machine.state.kernel32.image_base + r.start,
     }
+}
+
+#[win32_derive::dllexport]
+pub fn FindResourceW(
+    machine: &mut Machine,
+    hModule: u32,
+    lpName: ResourceId<&Str16>,
+    lpType: ResourceId<&Str16>,
+) -> u32 {
+    let lpName = ResourceId::Id(lpName.unwrap_id());
+    let lpType = ResourceId::Id(lpType.unwrap_id());
+    FindResourceA(machine, hModule, lpName, lpType)
 }
 
 #[win32_derive::dllexport]

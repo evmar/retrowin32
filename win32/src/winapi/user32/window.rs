@@ -392,7 +392,13 @@ pub fn FindWindowA(
     lpClassName: Option<&str>,
     lpWindowName: Option<&str>,
 ) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().hwnd
+    match machine.state.user32.windows.iter().find(|_window| {
+        // TODO: obey class/window name
+        true
+    }) {
+        Some(window) => window.hwnd,
+        None => HWND::null(),
+    }
 }
 
 #[win32_derive::dllexport]
@@ -623,10 +629,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
             let window = machine.state.user32.windows.get(hWnd).unwrap();
             window.hdc
         }
-        None => {
-            log::warn!("TODO: full screen hdc");
-            HDC::null()
-        }
+        None => machine.state.gdi32.desktop_dc,
     }
 }
 

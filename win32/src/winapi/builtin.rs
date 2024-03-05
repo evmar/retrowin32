@@ -875,6 +875,13 @@ pub mod kernel32 {
             let uExitCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ExitProcess(machine, uExitCode).to_raw()
         }
+        pub unsafe fn FindResourceA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hModule = <u32>::from_stack(mem, esp + 4u32);
+            let lpName = <ResourceId<&str>>::from_stack(mem, esp + 8u32);
+            let lpType = <ResourceId<&str>>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::FindResourceA(machine, hModule, lpName, lpType).to_raw()
+        }
         pub unsafe fn FindResourceW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
@@ -1540,6 +1547,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const FindResourceA: Shim = Shim {
+            name: "FindResourceA",
+            func: impls::FindResourceA,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const FindResourceW: Shim = Shim {
             name: "FindResourceW",
             func: impls::FindResourceW,
@@ -2075,7 +2088,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 99usize] = [
+    const EXPORTS: [Symbol; 100usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2115,6 +2128,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::ExitProcess,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindResourceA,
         },
         Symbol {
             ordinal: None,

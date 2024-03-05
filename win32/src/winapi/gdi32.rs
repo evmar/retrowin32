@@ -82,13 +82,17 @@ pub type HGDIOBJ = HANDLE<Object>;
 
 pub struct State {
     pub dcs: Handles<HDC, DC>,
+    pub desktop_dc: HDC,
     pub objects: Handles<HGDIOBJ, Object>,
 }
 
 impl Default for State {
     fn default() -> Self {
+        let mut dcs: Handles<HDC, DC> = Default::default();
+        let desktop_dc = dcs.reserve();
         State {
-            dcs: Default::default(),
+            dcs,
+            desktop_dc,
             objects: Default::default(),
         }
     }
@@ -444,6 +448,8 @@ pub fn GetDeviceCaps(
 ) -> u32 {
     match index.unwrap() {
         GetDeviceCapsArg::NUMCOLORS => -1i32 as u32, // true color
+        GetDeviceCapsArg::HORZRES => 640,
+        GetDeviceCapsArg::VERTRES => 480,
         _ => unimplemented!(),
     }
 }
