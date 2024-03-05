@@ -106,7 +106,7 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> bool {
     false
 }
 
-#[cfg(feature = "x86-emu")]
+#[cfg(target_arch = "wasm32")]
 async fn await_message(machine: &mut Machine, _hwnd: HWND) {
     loop {
         crate::shims::block(machine).await;
@@ -121,7 +121,7 @@ async fn await_message(machine: &mut Machine, _hwnd: HWND) {
     }
 }
 
-#[cfg(not(feature = "x86-emu"))]
+#[cfg(not(target_arch = "wasm32"))]
 async fn await_message(machine: &mut Machine, _hwnd: HWND) {
     let msg = machine.host.get_message(true).unwrap();
     machine
