@@ -6,6 +6,12 @@
 pub struct Str16([u16]);
 
 impl Str16 {
+    pub fn from_bytes<'a>(mem: &'a [u8]) -> &'a Self {
+        Str16::from_buffer(unsafe {
+            std::slice::from_raw_parts(mem.as_ptr() as *const _, mem.len() / 2)
+        })
+    }
+
     pub fn from_buffer<'a>(mem: &'a [u16]) -> &'a Self {
         unsafe { std::mem::transmute(mem) }
     }

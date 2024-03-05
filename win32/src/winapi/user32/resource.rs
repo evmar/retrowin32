@@ -272,36 +272,15 @@ pub fn LoadImageA(
     }
 }
 
-#[win32_derive::dllexport]
-pub fn LoadStringA(
-    _machine: &mut Machine,
-    hInstance: u32,
-    uID: u32,
-    lpBuffer: u32,
-    cchBufferMax: u32,
-) -> u32 {
-    0 // TODO
-}
-
-#[win32_derive::dllexport]
-pub fn LoadStringW(
-    machine: &mut Machine,
-    hInstance: u32,
-    uID: u32,
-    lpBuffer: u32,
-    cchBufferMax: u32,
-) -> u32 {
+fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
-    let block = match crate::winapi::kernel32::find_resource(
+    let block = crate::winapi::kernel32::find_resource(
         machine,
         ResourceId::Id(pe::RT::STRING as u32),
         ResourceId::Id(resource_id),
-    ) {
-        Some(block) => block,
-        None => todo!(),
-    };
+    )?;
 
     // Each block is a sequence of two byte length-prefixed strings.
     // Iterate through them to find the requested index.
@@ -312,12 +291,52 @@ pub fn LoadStringW(
     }
     let len = block.get::<u16>(ofs) as u32;
     let str = block.sub(ofs + 2, len * 2);
+    Some(str)
+}
 
+#[win32_derive::dllexport]
+pub fn LoadStringA(
+    machine: &mut Machine,
+    hInstance: u32,
+    uID: u32,
+    lpBuffer: u32,
+    cchBufferMax: u32,
+) -> u32 {
+    let str = match find_string(machine, uID) {
+        Some(str) => Str16::from_bytes(str.as_slice_todo()),
+        None => return 0,
+    };
+    assert!(cchBufferMax != 0); // MSDN claims this is invalid
+
+    let dst = machine
+        .mem()
+        .sub(lpBuffer, cchBufferMax)
+        .as_mut_slice_todo();
+    let copy_len = std::cmp::min(dst.len() as usize - 1, str.len());
+    for i in 0..copy_len {
+        dst[i] = str.buf()[i] as u8;
+    }
+    dst[copy_len] = 0;
+    copy_len as u32
+}
+
+#[win32_derive::dllexport]
+pub fn LoadStringW(
+    machine: &mut Machine,
+    hInstance: u32,
+    uID: u32,
+    lpBuffer: u32,
+    cchBufferMax: u32,
+) -> u32 {
+    let str = match find_string(machine, uID) {
+        Some(str) => str,
+        None => return 0,
+    };
     if cchBufferMax == 0 {
         machine
             .mem()
             .put::<u32>(lpBuffer, str.offset_from(machine.mem()));
-        len
+        str.len()
     } else {
         let dst = machine.mem().sub(lpBuffer, cchBufferMax * 2);
         let copy_len = std::cmp::min(dst.len() - 2, str.len()) as usize;
