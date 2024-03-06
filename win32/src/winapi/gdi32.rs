@@ -147,15 +147,49 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
     }
 }
 
+#[allow(dead_code)]
+struct BITMAP {
+    bmType: u32,
+    bmWidth: u32,
+    bmHeight: u32,
+    bmWidthBytes: u32,
+    bmPlanes: u16,
+    bmBitsPixel: u16,
+    bmBits: u32,
+}
+unsafe impl memory::Pod for BITMAP {}
+
 #[win32_derive::dllexport]
-pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, _bytes: u32, _out: u32) -> u32 {
+pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) -> u32 {
     let obj = match machine.state.gdi32.objects.get(handle) {
         None => return 0, // fail
         Some(obj) => obj,
     };
-    log::warn!("unimp GetObjectA: got {:?}, unimplemented return", obj);
-    // TODO: it turns out BasicDD.exe doesn't depend on this working anyway.
-    0 // fail
+
+    match obj {
+        Object::Brush(_) => todo!(),
+        Object::Bitmap(bitmap) => {
+            assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
+            let out = machine.mem().view_mut::<BITMAP>(out);
+            *out = BITMAP {
+                bmType: 0,
+                bmWidth: bitmap.width,
+                bmHeight: bitmap.height,
+                bmWidthBytes: 0,
+                bmPlanes: 0,
+                bmBitsPixel: 0,
+                bmBits: 0,
+            };
+            bytes
+        }
+        Object::Pen(_) => todo!(),
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn DeleteObject(_machine: &mut Machine, handle: HGDIOBJ) -> bool {
+    // TODO: leak
+    true
 }
 
 #[win32_derive::dllexport]

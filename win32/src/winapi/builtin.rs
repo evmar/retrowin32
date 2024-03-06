@@ -422,6 +422,11 @@ pub mod gdi32 {
             let hdc = <u32>::from_stack(mem, esp + 4u32);
             winapi::gdi32::DeleteDC(machine, hdc).to_raw()
         }
+        pub unsafe fn DeleteObject(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::DeleteObject(machine, handle).to_raw()
+        }
         pub unsafe fn GetDeviceCaps(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -436,9 +441,9 @@ pub mod gdi32 {
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
-            let _bytes = <u32>::from_stack(mem, esp + 8u32);
-            let _out = <u32>::from_stack(mem, esp + 12u32);
-            winapi::gdi32::GetObjectA(machine, handle, _bytes, _out).to_raw()
+            let bytes = <u32>::from_stack(mem, esp + 8u32);
+            let out = <u32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::GetObjectA(machine, handle, bytes, out).to_raw()
         }
         pub unsafe fn GetStockObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -582,6 +587,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const DeleteObject: Shim = Shim {
+            name: "DeleteObject",
+            func: impls::DeleteObject,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetDeviceCaps: Shim = Shim {
             name: "GetDeviceCaps",
             func: impls::GetDeviceCaps,
@@ -667,7 +678,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 21usize] = [
+    const EXPORTS: [Symbol; 22usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -695,6 +706,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::DeleteDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DeleteObject,
         },
         Symbol {
             ordinal: None,

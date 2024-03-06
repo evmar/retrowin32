@@ -136,10 +136,6 @@ impl Bitmap {
             panic!("bad bitmap header");
         }
 
-        if header.biClrUsed != 0 {
-            todo!();
-        }
-
         let palette = match header.compression().unwrap() {
             BI::RGB => {
                 let palette_len = match header.biBitCount {
@@ -147,6 +143,9 @@ impl Bitmap {
                     4 => 16,
                     _ => unimplemented!(),
                 };
+                if header.biClrUsed != 0 && header.biClrUsed != palette_len {
+                    todo!();
+                }
                 unsafe {
                     let ptr = (header as *const _ as *const u8).add(header_size) as *const _;
                     std::slice::from_raw_parts(ptr as *const [u8; 4], palette_len as usize)
@@ -167,14 +166,14 @@ impl Bitmap {
 
         let width = header.width() as usize;
         // Bitmap row stride is padded out to 4 bytes per row.
-        let stride = ((width * header.biBitCount as usize / 8) + 3) & !3;
+        let stride = (((width * header.biBitCount as usize) + 31) & !31) >> 3;
 
         let (src, height) = match pixels {
             Some(p) => p,
             None => unsafe {
                 let ptr = (palette as *const _ as *const u8).add(palette.len() * 4);
                 let height = header.height() as usize;
-                let len = width * height * header.biBitCount as usize / 8;
+                let len = stride * height;
                 (std::slice::from_raw_parts(ptr, len), height)
             },
         };
