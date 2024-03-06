@@ -18,7 +18,7 @@ export class Tabs extends preact.Component<Tabs.Props> {
   render() {
     const tabs = this.props.tabs;
     return (
-      <div style={this.props.style}>
+      <section class='panel' style={this.props.style}>
         <div class='tabs-strip'>
           {Object.keys(tabs).map((name) => {
             let button = <span class='clicky' onClick={() => this.props.switchTab(name)}>{name}</span>;
@@ -29,7 +29,7 @@ export class Tabs extends preact.Component<Tabs.Props> {
           })}
         </div>
         {tabs[this.props.selected]}
-      </div>
+      </section>
     );
   }
 }

@@ -14,7 +14,7 @@ export class RegistersComponent extends preact.Component<RegistersComponent.Prop
     const { regs } = this.props;
     const st = regs.st;
     return (
-      <section>
+      <section class='panel'>
         <code>
           <div>
             eax&nbsp;<Number digits={8} {...this.props}>{regs.eax}</Number>

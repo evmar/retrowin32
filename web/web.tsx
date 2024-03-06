@@ -164,7 +164,7 @@ export class Page extends preact.Component<Page.Props, Page.State> {
     return (
       <>
         {windows}
-        <div style={{ margin: '1ex', display: 'flex', alignItems: 'baseline' }}>
+        <section class='panel' style={{ display: 'flex', alignItems: 'baseline' }}>
           <button
             onClick={() => this.state.running ? this.stop() : this.start()}
           >
@@ -186,8 +186,8 @@ export class Page extends preact.Component<Page.Props, Page.State> {
           <div>
             {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
           </div>
-        </div>
-        <div style={{ display: 'flex' }}>
+        </section>
+        <div style={{ display: 'flex', margin: '1ex' }}>
           <Code
             instrs={instrs}
             labels={this.props.emulator.labels}
@@ -207,12 +207,12 @@ export class Page extends preact.Component<Page.Props, Page.State> {
             style={{ width: '80ex' }}
             tabs={{
               output: (
-                <section>
+                <div>
                   <code>
                     {this.state.stdout}
                     {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
                   </code>
-                </section>
+                </div>
               ),
 
               memory: (
@@ -226,11 +226,11 @@ export class Page extends preact.Component<Page.Props, Page.State> {
               mappings: <Mappings mappings={this.props.emulator.mappings()} highlight={this.state.memHighlight} />,
 
               imports: (
-                <section>
+                <div>
                   <code>
                     {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
                   </code>
-                </section>
+                </div>
               ),
 
               breakpoints: (

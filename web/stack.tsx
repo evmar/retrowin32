@@ -36,7 +36,7 @@ export class Stack extends preact.Component<Stack.Props> {
       rows.push(row);
     }
     return (
-      <section>
+      <section class='panel'>
         <code>{rows}</code>
       </section>
     );
