@@ -460,6 +460,14 @@ pub mod gdi32 {
             let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, esp + 4u32);
             winapi::gdi32::GetStockObject(machine, i).to_raw()
         }
+        pub unsafe fn GetTextExtentPoint32A(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let lpString = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let c = <i32>::from_stack(mem, esp + 12u32);
+            let psizl = <Option<&mut SIZE>>::from_stack(mem, esp + 16u32);
+            winapi::gdi32::GetTextExtentPoint32A(machine, hdc, lpString, c, psizl).to_raw()
+        }
         pub unsafe fn GetTextMetricsA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -639,6 +647,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetTextExtentPoint32A: Shim = Shim {
+            name: "GetTextExtentPoint32A",
+            func: impls::GetTextExtentPoint32A,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const GetTextMetricsA: Shim = Shim {
             name: "GetTextMetricsA",
             func: impls::GetTextMetricsA,
@@ -706,7 +720,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 24usize] = [
+    const EXPORTS: [Symbol; 25usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -758,6 +772,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::GetStockObject,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetTextExtentPoint32A,
         },
         Symbol {
             ordinal: None,

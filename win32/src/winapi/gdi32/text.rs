@@ -80,3 +80,26 @@ pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTM
     tm.tmHeight = 12;
     true
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct SIZE {
+    pub cx: i32,
+    pub cy: i32,
+}
+unsafe impl memory::Pod for SIZE {}
+
+#[win32_derive::dllexport]
+pub fn GetTextExtentPoint32A(
+    _machine: &mut Machine,
+    hdc: HDC,
+    lpString: Option<&str>,
+    c: i32,
+    psizl: Option<&mut SIZE>,
+) -> bool {
+    *psizl.unwrap() = SIZE {
+        cx: lpString.unwrap().len() as i32 * 10,
+        cy: 12,
+    };
+    true
+}
