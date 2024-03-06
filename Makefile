@@ -22,9 +22,9 @@ wasm web/glue/pkg/glue.d.ts:
 	cd web/glue && ./build.sh $(wasmpackflags)
 web-check:
 	cd web && npx tsc
-web/bundle.js: web/glue/pkg/glue.d.ts
+deploy/bundle.js: web/glue/pkg/glue.d.ts
 	cd web && npm run build
-deploy: wasm web/bundle.js
+deploy: wasm deploy/bundle.js
 .PHONY: wasm deploy web-check
 
 
