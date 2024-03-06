@@ -75,6 +75,18 @@ impl DC {
             pen: Default::default(),
         }
     }
+
+    pub fn new_memory(machine: &mut Machine) -> Self {
+        // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
+        // SkiFree depends on this!
+        let bitmap = user32::Bitmap {
+            width: 1,
+            height: 1,
+            pixels: user32::Pixels::Ptr(0),
+        };
+        let hobj = machine.state.gdi32.objects.add(Object::Bitmap(bitmap));
+        Self::new(DCTarget::Memory(hobj))
+    }
 }
 
 pub type HDC = HANDLE<DC>;
@@ -194,7 +206,7 @@ pub fn DeleteObject(_machine: &mut Machine, handle: HGDIOBJ) -> bool {
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
-    let dc = DC::new(DCTarget::Memory(HGDIOBJ::null()));
+    let dc = DC::new_memory(machine);
     let handle = machine.state.gdi32.dcs.add(dc);
     handle
 }
