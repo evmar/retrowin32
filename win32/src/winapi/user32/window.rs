@@ -650,13 +650,27 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
 }
 
 #[win32_derive::dllexport]
-pub fn InvalidateRect(
-    machine: &mut Machine,
-    hWnd: HWND,
-    lpRect: Option<&RECT>,
-    bErase: bool,
-) -> bool {
-    let window = machine.state.user32.get_window(hWnd).unwrap();
-    window.need_paint = true;
-    true // success
+pub fn MapWindowPoints(
+    _machine: &mut Machine,
+    hWndFrom: HWND,
+    hWndTo: HWND,
+    lpPoints: ArrayWithSize<POINT>,
+) -> i32 {
+    if !(hWndFrom.is_null() || hWndTo.is_null()) {
+        todo!()
+    }
+    // Mapping a window to/from desktop coords.
+    let delta_x = 0;
+    let delta_y = 0;
+    (delta_y << 16) | delta_x
+}
+
+#[win32_derive::dllexport]
+pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
+    HWND::null()
+}
+
+#[win32_derive::dllexport]
+pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
+    true
 }

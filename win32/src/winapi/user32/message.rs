@@ -1,6 +1,5 @@
-use bitflags::bitflags;
-
 use crate::{host, winapi::types::*, Machine, MouseButton};
+use bitflags::bitflags;
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 

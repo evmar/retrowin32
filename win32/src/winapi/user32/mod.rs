@@ -1,21 +1,22 @@
 #![allow(non_snake_case)]
 
 mod message;
+mod paint;
 mod resource;
 mod window;
 
 pub use super::gdi32::HDC;
 use super::handle::Handles;
+pub use super::kernel32::ResourceKey;
 use super::stack_args::ArrayWithSize;
 use super::types::*;
 use crate::machine::Machine;
 pub use message::*;
+pub use paint::*;
 pub use resource::*;
 use std::collections::VecDeque;
 use std::rc::Rc;
 pub use window::*;
-
-pub use super::kernel32::ResourceKey;
 
 const TRACE_CONTEXT: &'static str = "user32";
 
@@ -226,89 +227,9 @@ pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
     true // success
 }
 
-#[derive(Debug)]
-#[repr(C)]
-pub struct PAINTSTRUCT {
-    hdc: HDC,
-    fErase: u32,
-    rcPaint: RECT,
-    fRestore: u32,
-    fIncUpdate: u32,
-    rgbReserved: [u8; 32],
-}
-unsafe impl memory::Pod for PAINTSTRUCT {}
-
-#[win32_derive::dllexport]
-pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    if let Some(hbrush) = window.wndclass.background.to_option() {
-        if let super::gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap()
-        {
-            window
-                .pixels_mut(&mut *machine.host)
-                .fill(brush.color.to_pixel());
-        }
-    }
-    let hdc = window.hdc;
-    *lpPaint.unwrap() = PAINTSTRUCT {
-        hdc: hdc,
-        fErase: 1, // todo
-        rcPaint: RECT {
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-        },
-        fRestore: 0,          // reserved
-        fIncUpdate: 0,        // reserved
-        rgbReserved: [0; 32], // reserved
-    };
-    hdc
-}
-
-#[win32_derive::dllexport]
-pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    window.flush_pixels();
-    machine
-        .state
-        .user32
-        .windows
-        .get_mut(hWnd)
-        .unwrap()
-        .need_paint = false;
-    true
-}
-
 #[win32_derive::dllexport]
 pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool {
     let rect = lprc.unwrap();
     let (x, y) = (pt.x as i32, pt.y as i32);
     x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
-}
-
-#[win32_derive::dllexport]
-pub fn MapWindowPoints(
-    _machine: &mut Machine,
-    hWndFrom: HWND,
-    hWndTo: HWND,
-    lpPoints: ArrayWithSize<POINT>,
-) -> i32 {
-    if !(hWndFrom.is_null() || hWndTo.is_null()) {
-        todo!()
-    }
-    // Mapping a window to/from desktop coords.
-    let delta_x = 0;
-    let delta_y = 0;
-    (delta_y << 16) | delta_x
-}
-
-#[win32_derive::dllexport]
-pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
-    HWND::null()
-}
-
-#[win32_derive::dllexport]
-pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
-    true
 }
