@@ -1,9 +1,11 @@
+use memory::Pod;
+
 use crate::{
     machine::{Emulator, Machine},
     pe,
-    winapi::{self, builtin::BuiltinDLL, types::*, ImportSymbol},
+    winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Write};
 
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
@@ -142,6 +144,35 @@ pub fn GetModuleHandleExW(
 }
 
 #[win32_derive::dllexport]
+pub fn GetModuleFileNameA(
+    _machine: &mut Machine,
+    hModule: HMODULE,
+    filename: ArrayWithSizeMut<u8>,
+) -> u32 {
+    assert!(hModule.is_null());
+    match filename.unwrap().write(b"TODO.exe\0") {
+        Ok(n) => n as u32,
+        Err(err) => {
+            log::warn!("GetModuleFileNameA(): {}", err);
+            0
+        }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn GetModuleFileNameW(
+    _machine: &mut Machine,
+    hModule: HMODULE,
+    _lpFilename: u32,
+    _nSize: u32,
+) -> u32 {
+    if !hModule.is_null() {
+        log::error!("unimplemented: GetModuleFileNameW(non-null)")
+    }
+    0 // fail
+}
+
+#[win32_derive::dllexport]
 pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     let mut filename = filename.unwrap().to_ascii_lowercase();
 
@@ -242,4 +273,43 @@ pub fn GetProcAddress(
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct STARTUPINFOA {
+    cb: DWORD,
+    lpReserved: DWORD,
+    lpDesktop: DWORD,
+    lpTitle: DWORD,
+    dwX: DWORD,
+    dwY: DWORD,
+    dwXSize: DWORD,
+    dwYSize: DWORD,
+    dwXCountChars: DWORD,
+    dwYCountChars: DWORD,
+    dwFillAttribute: DWORD,
+    dwFlags: DWORD,
+    wShowWindow: u16,
+    cbReserved2: u16,
+    lpReserved2: DWORD,
+    hStdInput: DWORD,
+    hStdOutput: DWORD,
+    hStdError: DWORD,
+}
+unsafe impl ::memory::Pod for STARTUPINFOA {}
+
+#[win32_derive::dllexport]
+pub fn GetStartupInfoA(_machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+    // MSVC runtime library passes in uninitialized memory for lpStartupInfo, so don't trust info.cb.
+    let info = lpStartupInfo.unwrap();
+    let len = std::cmp::min(info.cb, std::mem::size_of::<STARTUPINFOA>() as u32);
+    unsafe { info.clear_memory(len) };
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+    // STARTUPINFOA is the same shape as the W one, just the strings are different...
+    GetStartupInfoA(machine, lpStartupInfo)
 }
