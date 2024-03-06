@@ -1513,6 +1513,11 @@ pub mod kernel32 {
             let lpString2 = <Option<&Str16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::lstrcpyW(machine, lpString1, lpString2).to_raw()
         }
+        pub unsafe fn lstrlenA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpString = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::lstrlenA(machine, lpString).to_raw()
+        }
         pub unsafe fn lstrlenW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, esp + 4u32);
@@ -2138,6 +2143,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const lstrlenA: Shim = Shim {
+            name: "lstrlenA",
+            func: impls::lstrlenA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const lstrlenW: Shim = Shim {
             name: "lstrlenW",
             func: impls::lstrlenW,
@@ -2151,7 +2162,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 101usize] = [
+    const EXPORTS: [Symbol; 102usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2547,6 +2558,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::lstrcpyW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::lstrlenA,
         },
         Symbol {
             ordinal: None,

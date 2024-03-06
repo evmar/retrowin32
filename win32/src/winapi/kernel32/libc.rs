@@ -5,6 +5,15 @@ use super::*;
 const TRACE_CONTEXT: &'static str = "kernel32/libc";
 
 #[win32_derive::dllexport]
+pub fn lstrlenA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
+    match lpString {
+        None => 0,
+        // The mapping to str already computes the string length.
+        Some(str) => str.len() as u32,
+    }
+}
+
+#[win32_derive::dllexport]
 pub fn lstrlenW(_machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
     match lpString {
         None => 0,
