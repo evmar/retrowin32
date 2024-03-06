@@ -66,3 +66,9 @@ pub fn lstrcmpiA(_machine: &mut Machine, lpString1: Option<&str>, lpString2: Opt
         std::cmp::Ordering::Equal => 0,
     }
 }
+
+// Uhoh: what to do about varags?
+// #[win32_derive::dllexport]
+// pub fn wsprintfA(_machine: &mut Machine, buf: u32, fmt: Option<&Str16>) -> (u32, u32) {
+//     const BUF_LEN: u32 = 1024;
+// }
