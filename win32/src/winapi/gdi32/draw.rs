@@ -5,7 +5,7 @@ use crate::machine::Machine;
 
 const TRACE_CONTEXT: &'static str = "gdi32/draw";
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct COLORREF(pub (u8, u8, u8));
 impl COLORREF {
     pub fn from_u32(raw: u32) -> Self {
@@ -128,4 +128,18 @@ pub enum R2 {
 pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     std::mem::replace(&mut dc.r2, rop2.unwrap()) as u32
+}
+
+pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF) {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    match dc.target {
+        DCTarget::Memory(_) => todo!(),
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            // TODO: obey rect
+            window.pixels_mut(&mut *machine.host).fill(color.to_pixel());
+            window.flush_pixels();
+        }
+        DCTarget::DirectDrawSurface(_) => todo!(),
+    }
 }

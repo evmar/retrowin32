@@ -25,6 +25,13 @@ pub enum Object {
 }
 
 pub type HGDIOBJ = HANDLE<Object>;
+impl HGDIOBJ {
+    /// Some Windows APIs use low values of GDI objects as known system constants,
+    /// so start the handles higher.
+    pub fn lowest_value() -> u32 {
+        0x100
+    }
+}
 
 pub struct State {
     pub dcs: Handles<HDC, DC>,
@@ -39,7 +46,7 @@ impl Default for State {
         State {
             dcs,
             desktop_dc,
-            objects: Default::default(),
+            objects: Handles::new(HGDIOBJ::lowest_value()),
         }
     }
 }
@@ -53,20 +60,26 @@ pub enum GetStockObjectArg {
     GRAY_BRUSH = 2,
     DKGRAY_BRUSH = 3,
     BLACK_BRUSH = 4,
+    OEM_FIXED_FONT = 10,
 }
 
 #[win32_derive::dllexport]
 pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
-    match i {
-        Ok(GetStockObjectArg::LTGRAY_BRUSH) => {
-            machine.state.gdi32.objects.add(Object::Brush(Brush {
-                color: COLORREF((0xc0, 0xc0, 0xc0)),
-            }))
-        }
-        _ => {
+    match i.unwrap() {
+        GetStockObjectArg::WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+            color: COLORREF((0xff, 0xff, 0xff)),
+        })),
+        GetStockObjectArg::LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+            color: COLORREF((0xc0, 0xc0, 0xc0)),
+        })),
+        GetStockObjectArg::BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+            color: COLORREF((0x00, 0x00, 0x00)),
+        })),
+        GetStockObjectArg::OEM_FIXED_FONT => {
             log::error!("returning null stock object");
             HGDIOBJ::null()
         }
+        _ => todo!(),
     }
 }
 

@@ -117,14 +117,18 @@ pub struct Handles<H: Handle, V> {
 
 impl<H: Handle, V> Default for Handles<H, V> {
     fn default() -> Self {
-        Handles {
-            map: HashMap::default(),
-            next: H::from_raw(1),
-        }
+        Self::new(1)
     }
 }
 
 impl<H: Handle, V> Handles<H, V> {
+    pub fn new(start: u32) -> Self {
+        Handles {
+            map: HashMap::default(),
+            next: H::from_raw(start),
+        }
+    }
+
     pub fn reserve(&mut self) -> H {
         let handle = self.next;
         self.next = H::from_raw(self.next.to_raw() + 1);

@@ -3085,6 +3085,13 @@ pub mod user32 {
             let lpPaint = <Option<&PAINTSTRUCT>>::from_stack(mem, esp + 8u32);
             winapi::user32::EndPaint(machine, hWnd, lpPaint).to_raw()
         }
+        pub unsafe fn FillRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDC = <HDC>::from_stack(mem, esp + 4u32);
+            let lprc = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let hbr = <BrushOrColor>::from_stack(mem, esp + 12u32);
+            winapi::user32::FillRect(machine, hDC, lprc, hbr).to_raw()
+        }
         pub unsafe fn FindWindowA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, esp + 4u32);
@@ -3590,6 +3597,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const FillRect: Shim = Shim {
+            name: "FillRect",
+            func: impls::FillRect,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const FindWindowA: Shim = Shim {
             name: "FindWindowA",
             func: impls::FindWindowA,
@@ -3897,7 +3910,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 66usize] = [
+    const EXPORTS: [Symbol; 67usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3957,6 +3970,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::EndPaint,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FillRect,
         },
         Symbol {
             ordinal: None,
