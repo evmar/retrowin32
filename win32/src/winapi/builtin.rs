@@ -460,6 +460,12 @@ pub mod gdi32 {
             let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, esp + 4u32);
             winapi::gdi32::GetStockObject(machine, i).to_raw()
         }
+        pub unsafe fn GetTextMetricsA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let lptm = <Option<&mut TEXTMETRICA>>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::GetTextMetricsA(machine, hdc, lptm).to_raw()
+        }
         pub unsafe fn LineTo(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -633,6 +639,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetTextMetricsA: Shim = Shim {
+            name: "GetTextMetricsA",
+            func: impls::GetTextMetricsA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LineTo: Shim = Shim {
             name: "LineTo",
             func: impls::LineTo,
@@ -694,7 +706,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 23usize] = [
+    const EXPORTS: [Symbol; 24usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -746,6 +758,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::GetStockObject,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetTextMetricsA,
         },
         Symbol {
             ordinal: None,

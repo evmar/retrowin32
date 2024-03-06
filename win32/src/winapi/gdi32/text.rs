@@ -1,5 +1,6 @@
 use super::*;
 use crate::winapi::stack_args::ArrayWithSize;
+use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "gdi32/text";
 
@@ -41,5 +42,41 @@ pub fn TextOutA(
     lpString: ArrayWithSize<u8>,
 ) -> bool {
     let _text = std::str::from_utf8(lpString.unwrap()).unwrap();
+    true
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct TEXTMETRICA {
+    pub tmHeight: u32,
+    pub tmAscent: u32,
+    pub tmDescent: u32,
+    pub tmInternalLeading: u32,
+    pub tmExternalLeading: u32,
+    pub tmAveCharWidth: u32,
+    pub tmMaxCharWidth: u32,
+    pub tmWeight: u32,
+    pub tmOverhang: u32,
+    pub tmDigitizedAspectX: u32,
+    pub tmDigitizedAspectY: u32,
+    pub tmFirstChar: u8,
+    pub tmLastChar: u8,
+    pub tmDefaultChar: u8,
+    pub tmBreakChar: u8,
+    pub tmItalic: u8,
+    pub tmUnderlined: u8,
+    pub tmStruckOut: u8,
+    pub tmPitchAndFamily: u8,
+    pub tmCharSet: u8,
+}
+unsafe impl memory::Pod for TEXTMETRICA {}
+
+#[win32_derive::dllexport]
+pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
+    let tm = lptm.unwrap();
+    tm.clear_struct();
+
+    // SkiFree only cares about the height, just make something up for now.
+    tm.tmHeight = 12;
     true
 }

@@ -7,8 +7,11 @@ pub unsafe trait Pod: 'static + Sized {
         std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
     }
 
-    unsafe fn clear_struct(&mut self) {
-        std::ptr::write_bytes(self as *mut Self, 0, 1);
+    fn clear_struct(&mut self) {
+        // Safety: the all-zeroes struct is valid per Pod requirements.
+        unsafe {
+            std::ptr::write_bytes(self as *mut Self, 0, 1);
+        }
     }
 }
 

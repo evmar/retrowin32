@@ -130,7 +130,7 @@ pub(super) mod IDirectDraw7 {
             .heap
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
         let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-        unsafe { desc.clear_struct() };
+        desc.clear_struct();
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         desc.dwWidth = 320;
