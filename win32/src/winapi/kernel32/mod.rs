@@ -12,19 +12,8 @@ mod resource;
 mod sync;
 mod thread;
 
-use super::{
-    alloc::Arena,
-    heap::Heap,
-    stack_args::{ArrayWithSize, ArrayWithSizeMut},
-    types::*,
-};
-use crate::{
-    machine::{Machine, MemImpl},
-    pe,
-    segments::SegmentDescriptor,
-};
-use ::memory::{Mem, Pod};
-use std::collections::HashMap;
+use super::types::*;
+use crate::machine::Machine;
 
 pub use self::memory::*;
 pub use dll::*;

@@ -1,6 +1,9 @@
 //! kernel32 API without a better home.
 
 use super::*;
+use crate::winapi::stack_args::{ArrayWithSize, ArrayWithSizeMut};
+use ::memory::Pod;
+
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
 #[win32_derive::dllexport]

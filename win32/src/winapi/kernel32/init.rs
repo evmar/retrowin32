@@ -1,6 +1,14 @@
 //! Process initialization and startup.
 
 use super::*;
+use crate::{
+    machine::MemImpl,
+    pe,
+    segments::SegmentDescriptor,
+    winapi::{alloc::Arena, heap::Heap},
+};
+use ::memory::Mem;
+use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "kernel32/init";
 
