@@ -244,6 +244,7 @@ fn bit_blt(
 }
 
 const SRCCOPY: u32 = 0xcc0020;
+const NOTSRCCOPY: u32 = 0x330008;
 
 #[win32_derive::dllexport]
 pub fn BitBlt(
@@ -259,12 +260,14 @@ pub fn BitBlt(
     rop: u32,
 ) -> bool {
     // TODO: we special case only a few specific BitBlts.
-    if rop != SRCCOPY {
-        todo!();
+    match rop {
+        SRCCOPY => {}
+        NOTSRCCOPY => log::warn!("TODO: ignoring NOTSRCCOPY"),
+        _ => todo!(),
     }
 
-    let dcSrc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
-    let bitmap = match dcSrc.target {
+    let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
+    let src_bitmap = match src_dc.target {
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
@@ -275,15 +278,38 @@ pub fn BitBlt(
         DCTarget::Window(_) => todo!(),
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
+    assert_eq!(src_bitmap.format, PixelFormat::RGBA32);
+    let src = bitmap::bytes_as_rgba(src_bitmap.pixels_slice(machine.memory.mem()));
 
-    let dcDst = machine.state.gdi32.dcs.get(hdc).unwrap();
-    match dcDst.target {
-        DCTarget::Memory(_) => todo!(),
+    let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    match dst_dc.target {
+        DCTarget::Memory(obj) => {
+            let _bitmap = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
+                Object::Bitmap(bmp) => bmp,
+                _ => unimplemented!("{:?}", obj),
+            };
+
+            // TODO: we can't BltBlt here because of borrow checker -- can't have two
+            // bitmaps at the same time.  Need to revisit how object handles work.
+            log::warn!("TODO: BltBlt between bitmaps");
+            // assert_eq!(bitmap.format, PixelFormat::RGBA32);
+            // let dst = bitmap::bytes_as_rgba_mut(bitmap.pixels.as_slice_mut());
+            // bit_blt(
+            //     dst,
+            //     x as usize,
+            //     y as usize,
+            //     bitmap.width as usize,
+            //     cx as usize,
+            //     cy as usize,
+            //     src,
+            //     x1 as usize,
+            //     y1 as usize,
+            //     src_bitmap.width as usize,
+            // );
+        }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
 
-            assert_eq!(bitmap.format, PixelFormat::RGBA32);
-            let src = bitmap::bytes_as_rgba(&bitmap.pixels_slice(machine.memory.mem()));
             let window_width = window.width;
             let dst = window.pixels_mut(&mut *machine.host);
 
@@ -297,7 +323,7 @@ pub fn BitBlt(
                 src,
                 x1 as usize,
                 y1 as usize,
-                bitmap.width as usize,
+                src_bitmap.width as usize,
             );
 
             window.flush_pixels();
@@ -307,11 +333,9 @@ pub fn BitBlt(
 
             assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
             assert!(cx == surface.width && cy == surface.height);
-            assert!(surface.width == bitmap.width && surface.height == bitmap.height);
-            assert_eq!(bitmap.format, PixelFormat::RGBA32);
+            assert!(surface.width == src_bitmap.width && surface.height == src_bitmap.height);
 
-            let slice = bitmap.pixels_slice(machine.memory.mem());
-            surface.host.write_pixels(bitmap::bytes_as_rgba(slice));
+            surface.host.write_pixels(src);
         }
     }
     true

@@ -1,7 +1,10 @@
 use super::*;
 use crate::{
     host,
-    winapi::gdi32::{HDC, HGDIOBJ},
+    winapi::{
+        bitmap::{self, Bitmap},
+        gdi32::{HDC, HGDIOBJ},
+    },
     Host, SurfaceOptions,
 };
 use bitflags::bitflags;
@@ -9,8 +12,7 @@ use std::rc::Rc;
 
 pub struct WindowPixels {
     pub surface: Box<dyn host::Surface>,
-    // RGBA32
-    pub pixels: Box<[[u8; 4]]>,
+    pub bitmap: Bitmap,
 }
 impl WindowPixels {
     pub fn new(host: &mut dyn Host, width: u32, height: u32) -> Self {
@@ -27,7 +29,12 @@ impl WindowPixels {
         };
         Self {
             surface,
-            pixels: raw,
+            bitmap: Bitmap {
+                width,
+                height,
+                format: bitmap::PixelFormat::RGBA32,
+                pixels: bitmap::PixelData::from_rgba32(raw),
+            },
         }
     }
 }
@@ -54,13 +61,15 @@ impl Window {
             }
         }
     }
-    pub fn pixels_mut(&mut self, host: &mut dyn Host) -> &mut [[u8; 4]] {
-        &mut self.ensure_pixels(host).pixels
+    pub fn pixels_mut<'a>(&mut self, host: &mut dyn Host) -> &mut [[u8; 4]] {
+        bitmap::bytes_as_rgba_mut(self.ensure_pixels(host).bitmap.pixels.as_slice_mut())
     }
 
     pub fn flush_pixels(&mut self) {
         if let Some(pixels) = &mut self.pixels {
-            pixels.surface.write_pixels(&*pixels.pixels);
+            pixels
+                .surface
+                .write_pixels(bitmap::bytes_as_rgba(&pixels.bitmap.pixels.as_slice()));
             pixels.surface.show();
         }
     }
