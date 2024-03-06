@@ -352,6 +352,16 @@ pub mod gdi32 {
             let rop = <u32>::from_stack(mem, esp + 36u32);
             winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop).to_raw()
         }
+        pub unsafe fn CreateBitmap(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nWidth = <u32>::from_stack(mem, esp + 4u32);
+            let nHeight = <u32>::from_stack(mem, esp + 8u32);
+            let nPlanes = <u32>::from_stack(mem, esp + 12u32);
+            let nBitCount = <u32>::from_stack(mem, esp + 16u32);
+            let lpBits = <u32>::from_stack(mem, esp + 20u32);
+            winapi::gdi32::CreateBitmap(machine, nWidth, nHeight, nPlanes, nBitCount, lpBits)
+                .to_raw()
+        }
         pub unsafe fn CreateCompatibleBitmap(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -551,6 +561,12 @@ pub mod gdi32 {
             stack_consumed: 40u32,
             is_async: false,
         };
+        pub const CreateBitmap: Shim = Shim {
+            name: "CreateBitmap",
+            func: impls::CreateBitmap,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const CreateCompatibleBitmap: Shim = Shim {
             name: "CreateCompatibleBitmap",
             func: impls::CreateCompatibleBitmap,
@@ -678,10 +694,14 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 22usize] = [
+    const EXPORTS: [Symbol; 23usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateBitmap,
         },
         Symbol {
             ordinal: None,

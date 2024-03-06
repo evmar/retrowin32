@@ -9,7 +9,8 @@ use std::rc::Rc;
 
 pub struct WindowPixels {
     pub surface: Box<dyn host::Surface>,
-    pub raw: Box<[[u8; 4]]>,
+    // RGBA32
+    pub pixels: Box<[[u8; 4]]>,
 }
 impl WindowPixels {
     pub fn new(host: &mut dyn Host, width: u32, height: u32) -> Self {
@@ -21,10 +22,13 @@ impl WindowPixels {
         });
         let raw = {
             let mut p = Vec::with_capacity(size);
-            p.resize(size, [0, 0, 0, 0]);
+            p.resize(size, [0u8; 4]);
             p.into_boxed_slice()
         };
-        Self { surface, raw }
+        Self {
+            surface,
+            pixels: raw,
+        }
     }
 }
 
@@ -41,7 +45,7 @@ pub struct Window {
 }
 
 impl Window {
-    pub fn pixels_mut(&mut self, host: &mut dyn Host) -> &mut WindowPixels {
+    fn ensure_pixels(&mut self, host: &mut dyn Host) -> &mut WindowPixels {
         match self.pixels {
             Some(ref mut px) => px,
             None => {
@@ -50,10 +54,13 @@ impl Window {
             }
         }
     }
+    pub fn pixels_mut(&mut self, host: &mut dyn Host) -> &mut [[u8; 4]] {
+        &mut self.ensure_pixels(host).pixels
+    }
 
     pub fn flush_pixels(&mut self) {
         if let Some(pixels) = &mut self.pixels {
-            pixels.surface.write_pixels(&*pixels.raw);
+            pixels.surface.write_pixels(&*pixels.pixels);
             pixels.surface.show();
         }
     }

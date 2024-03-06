@@ -1,6 +1,7 @@
 mod advapi32;
 mod alloc;
 mod bass;
+mod bitmap;
 mod builtin;
 pub mod ddraw;
 pub mod dsound;

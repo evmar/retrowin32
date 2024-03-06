@@ -246,7 +246,6 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         {
             window
                 .pixels_mut(&mut *machine.host)
-                .raw
                 .fill(brush.color.to_pixel());
         }
     }
