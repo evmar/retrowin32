@@ -3098,6 +3098,13 @@ pub mod user32 {
             let lpWindowName = <Option<&str>>::from_stack(mem, esp + 8u32);
             winapi::user32::FindWindowA(machine, lpClassName, lpWindowName).to_raw()
         }
+        pub unsafe fn FrameRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDC = <HDC>::from_stack(mem, esp + 4u32);
+            let lprc = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let hbr = <HBRUSH>::from_stack(mem, esp + 12u32);
+            winapi::user32::FrameRect(machine, hDC, lprc, hbr).to_raw()
+        }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetActiveWindow(machine).to_raw()
@@ -3609,6 +3616,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const FrameRect: Shim = Shim {
+            name: "FrameRect",
+            func: impls::FrameRect,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: impls::GetActiveWindow,
@@ -3910,7 +3923,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 67usize] = [
+    const EXPORTS: [Symbol; 68usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -3978,6 +3991,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::FindWindowA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FrameRect,
         },
         Symbol {
             ordinal: None,

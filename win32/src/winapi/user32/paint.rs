@@ -101,3 +101,9 @@ pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: Brush
     gdi32::fill_rect(machine, hDC, rect, color);
     true
 }
+
+#[win32_derive::dllexport]
+pub fn FrameRect(_machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: HBRUSH) -> bool {
+    // TODO
+    true
+}
