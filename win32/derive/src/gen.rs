@@ -137,6 +137,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             }
         }
     }
+    let stack_consumed = stack_offset - 4; // don't include return address
 
     // If the function is async, we need to handle the return value a bit differently.
     let is_async = func.sig.asyncness.is_some();
@@ -152,7 +153,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
                 machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                machine.emu.x86.cpu.regs.esp += #stack_offset;
+                machine.emu.x86.cpu.regs.esp += #stack_consumed + 4;
                 machine.emu.x86.cpu.regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
@@ -178,7 +179,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
         quote!(pub const #name: Shim = Shim {
             name: #name_str,
             func: impls::#name,
-            stack_consumed: #stack_offset,
+            stack_consumed: #stack_consumed,
             is_async: #is_async,
         };),
     )

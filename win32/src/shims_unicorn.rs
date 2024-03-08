@@ -85,7 +85,7 @@ fn handle_shim_call(machine: &mut Machine) -> u32 {
         .unicorn
         .reg_write(
             unicorn_engine::RegisterX86::ESP,
-            (esp + stack_consumed) as u64,
+            (esp + stack_consumed + 4) as u64,
         )
         .unwrap();
     machine

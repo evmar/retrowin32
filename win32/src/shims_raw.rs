@@ -152,15 +152,12 @@ impl Shims {
     }
 
     pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
-        let shim_index = self.shims.len();
-
-        // TODO revisit stack_consumed, does it include eip or not?
-        // We have to -4 here to not include IP.
         let stack_consumed: u16 = match shim {
-            Ok(shim) => shim.stack_consumed as u16 - 4,
+            Ok(shim) => shim.stack_consumed,
             Err(_) => 0, // we'll crash when it's hit anyway
-        };
+        } as u16;
 
+        let shim_index = self.shims.len();
         self.shims.push(shim);
 
         assert!((trans64 as u64) < 0x1_0000_0000);

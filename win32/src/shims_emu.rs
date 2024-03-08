@@ -103,7 +103,7 @@ pub fn handle_shim_call(machine: &mut Machine) -> bool {
     let ret = unsafe { func(machine, machine.emu.x86.cpu.regs.esp) };
     if !is_async {
         machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(machine.emu.x86.cpu.regs.esp);
-        machine.emu.x86.cpu.regs.esp += stack_consumed;
+        machine.emu.x86.cpu.regs.esp += stack_consumed + 4;
         machine.emu.x86.cpu.regs.eax = ret;
 
         // Clear registers to make traces clean.

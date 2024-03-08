@@ -22,6 +22,8 @@ pub type Handler = unsafe fn(&mut Machine, u32) -> u32;
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
+    /// Number of stack bytes popped by arguments.
+    /// For cdecl calling convention (used in varargs) this is 0.
     pub stack_consumed: u32,
     pub is_async: bool,
 }

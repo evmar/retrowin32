@@ -95,25 +95,25 @@ pub mod advapi32 {
         pub const RegCloseKey: Shim = Shim {
             name: "RegCloseKey",
             func: impls::RegCloseKey,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const RegCreateKeyExW: Shim = Shim {
             name: "RegCreateKeyExW",
             func: impls::RegCreateKeyExW,
-            stack_consumed: 40u32,
+            stack_consumed: 36u32,
             is_async: false,
         };
         pub const RegQueryValueExW: Shim = Shim {
             name: "RegQueryValueExW",
             func: impls::RegQueryValueExW,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const RegSetValueExW: Shim = Shim {
             name: "RegSetValueExW",
             func: impls::RegSetValueExW,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
     }
@@ -186,31 +186,31 @@ pub mod bass {
         pub const BASS_ChannelGetPosition: Shim = Shim {
             name: "BASS_ChannelGetPosition",
             func: impls::BASS_ChannelGetPosition,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const BASS_Init: Shim = Shim {
             name: "BASS_Init",
             func: impls::BASS_Init,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const BASS_MusicLoad: Shim = Shim {
             name: "BASS_MusicLoad",
             func: impls::BASS_MusicLoad,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const BASS_MusicPlay: Shim = Shim {
             name: "BASS_MusicPlay",
             func: impls::BASS_MusicPlay,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const BASS_Start: Shim = Shim {
             name: "BASS_Start",
             func: impls::BASS_Start,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
@@ -271,13 +271,13 @@ pub mod ddraw {
         pub const DirectDrawCreate: Shim = Shim {
             name: "DirectDrawCreate",
             func: impls::DirectDrawCreate,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const DirectDrawCreateEx: Shim = Shim {
             name: "DirectDrawCreateEx",
             func: impls::DirectDrawCreateEx,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
     }
@@ -318,7 +318,7 @@ pub mod dsound {
         pub const DirectSoundCreate: Shim = Shim {
             name: "DirectSoundCreate",
             func: impls::DirectSoundCreate,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
     }
@@ -572,151 +572,151 @@ pub mod gdi32 {
         pub const BitBlt: Shim = Shim {
             name: "BitBlt",
             func: impls::BitBlt,
-            stack_consumed: 40u32,
+            stack_consumed: 36u32,
             is_async: false,
         };
         pub const CreateBitmap: Shim = Shim {
             name: "CreateBitmap",
             func: impls::CreateBitmap,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const CreateCompatibleBitmap: Shim = Shim {
             name: "CreateCompatibleBitmap",
             func: impls::CreateCompatibleBitmap,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const CreateCompatibleDC: Shim = Shim {
             name: "CreateCompatibleDC",
             func: impls::CreateCompatibleDC,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const CreateDIBSection: Shim = Shim {
             name: "CreateDIBSection",
             func: impls::CreateDIBSection,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const CreateFontA: Shim = Shim {
             name: "CreateFontA",
             func: impls::CreateFontA,
-            stack_consumed: 60u32,
+            stack_consumed: 56u32,
             is_async: false,
         };
         pub const CreatePen: Shim = Shim {
             name: "CreatePen",
             func: impls::CreatePen,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: impls::DeleteDC,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const DeleteObject: Shim = Shim {
             name: "DeleteObject",
             func: impls::DeleteObject,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetDeviceCaps: Shim = Shim {
             name: "GetDeviceCaps",
             func: impls::GetDeviceCaps,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetLayout: Shim = Shim {
             name: "GetLayout",
             func: impls::GetLayout,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetObjectA: Shim = Shim {
             name: "GetObjectA",
             func: impls::GetObjectA,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetStockObject: Shim = Shim {
             name: "GetStockObject",
             func: impls::GetStockObject,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetTextExtentPoint32A: Shim = Shim {
             name: "GetTextExtentPoint32A",
             func: impls::GetTextExtentPoint32A,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const GetTextMetricsA: Shim = Shim {
             name: "GetTextMetricsA",
             func: impls::GetTextMetricsA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LineTo: Shim = Shim {
             name: "LineTo",
             func: impls::LineTo,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const MoveToEx: Shim = Shim {
             name: "MoveToEx",
             func: impls::MoveToEx,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const SelectObject: Shim = Shim {
             name: "SelectObject",
             func: impls::SelectObject,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetBkColor: Shim = Shim {
             name: "SetBkColor",
             func: impls::SetBkColor,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetBkMode: Shim = Shim {
             name: "SetBkMode",
             func: impls::SetBkMode,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetDIBitsToDevice: Shim = Shim {
             name: "SetDIBitsToDevice",
             func: impls::SetDIBitsToDevice,
-            stack_consumed: 52u32,
+            stack_consumed: 48u32,
             is_async: false,
         };
         pub const SetROP2: Shim = Shim {
             name: "SetROP2",
             func: impls::SetROP2,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetTextColor: Shim = Shim {
             name: "SetTextColor",
             func: impls::SetTextColor,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const StretchBlt: Shim = Shim {
             name: "StretchBlt",
             func: impls::StretchBlt,
-            stack_consumed: 48u32,
+            stack_consumed: 44u32,
             is_async: false,
         };
         pub const TextOutA: Shim = Shim {
             name: "TextOutA",
             func: impls::TextOutA,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
     }
@@ -1551,7 +1551,7 @@ pub mod kernel32 {
                     let machine = unsafe { &mut *m };
                     let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -1570,613 +1570,613 @@ pub mod kernel32 {
         pub const AcquireSRWLockExclusive: Shim = Shim {
             name: "AcquireSRWLockExclusive",
             func: impls::AcquireSRWLockExclusive,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const AcquireSRWLockShared: Shim = Shim {
             name: "AcquireSRWLockShared",
             func: impls::AcquireSRWLockShared,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const AddVectoredExceptionHandler: Shim = Shim {
             name: "AddVectoredExceptionHandler",
             func: impls::AddVectoredExceptionHandler,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const CreateEventA: Shim = Shim {
             name: "CreateEventA",
             func: impls::CreateEventA,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const CreateFileA: Shim = Shim {
             name: "CreateFileA",
             func: impls::CreateFileA,
-            stack_consumed: 32u32,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const CreateFileW: Shim = Shim {
             name: "CreateFileW",
             func: impls::CreateFileW,
-            stack_consumed: 32u32,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const CreateThread: Shim = Shim {
             name: "CreateThread",
             func: impls::CreateThread,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",
             func: impls::DeleteCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const EnterCriticalSection: Shim = Shim {
             name: "EnterCriticalSection",
             func: impls::EnterCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const ExitProcess: Shim = Shim {
             name: "ExitProcess",
             func: impls::ExitProcess,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const FindResourceA: Shim = Shim {
             name: "FindResourceA",
             func: impls::FindResourceA,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const FindResourceW: Shim = Shim {
             name: "FindResourceW",
             func: impls::FindResourceW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const FreeEnvironmentStringsA: Shim = Shim {
             name: "FreeEnvironmentStringsA",
             func: impls::FreeEnvironmentStringsA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetACP: Shim = Shim {
             name: "GetACP",
             func: impls::GetACP,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetCPInfo: Shim = Shim {
             name: "GetCPInfo",
             func: impls::GetCPInfo,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetCommandLineA: Shim = Shim {
             name: "GetCommandLineA",
             func: impls::GetCommandLineA,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetCommandLineW: Shim = Shim {
             name: "GetCommandLineW",
             func: impls::GetCommandLineW,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetConsoleMode: Shim = Shim {
             name: "GetConsoleMode",
             func: impls::GetConsoleMode,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetCurrentThread: Shim = Shim {
             name: "GetCurrentThread",
             func: impls::GetCurrentThread,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetCurrentThreadId: Shim = Shim {
             name: "GetCurrentThreadId",
             func: impls::GetCurrentThreadId,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetEnvironmentStrings: Shim = Shim {
             name: "GetEnvironmentStrings",
             func: impls::GetEnvironmentStrings,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetEnvironmentStringsW: Shim = Shim {
             name: "GetEnvironmentStringsW",
             func: impls::GetEnvironmentStringsW,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetEnvironmentVariableA: Shim = Shim {
             name: "GetEnvironmentVariableA",
             func: impls::GetEnvironmentVariableA,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetEnvironmentVariableW: Shim = Shim {
             name: "GetEnvironmentVariableW",
             func: impls::GetEnvironmentVariableW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetLastError: Shim = Shim {
             name: "GetLastError",
             func: impls::GetLastError,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetModuleFileNameA: Shim = Shim {
             name: "GetModuleFileNameA",
             func: impls::GetModuleFileNameA,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetModuleFileNameW: Shim = Shim {
             name: "GetModuleFileNameW",
             func: impls::GetModuleFileNameW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetModuleHandleA: Shim = Shim {
             name: "GetModuleHandleA",
             func: impls::GetModuleHandleA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetModuleHandleExW: Shim = Shim {
             name: "GetModuleHandleExW",
             func: impls::GetModuleHandleExW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetModuleHandleW: Shim = Shim {
             name: "GetModuleHandleW",
             func: impls::GetModuleHandleW,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetPrivateProfileIntW: Shim = Shim {
             name: "GetPrivateProfileIntW",
             func: impls::GetPrivateProfileIntW,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const GetPrivateProfileStringW: Shim = Shim {
             name: "GetPrivateProfileStringW",
             func: impls::GetPrivateProfileStringW,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const GetProcAddress: Shim = Shim {
             name: "GetProcAddress",
             func: impls::GetProcAddress,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetProcessHeap: Shim = Shim {
             name: "GetProcessHeap",
             func: impls::GetProcessHeap,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetStartupInfoA: Shim = Shim {
             name: "GetStartupInfoA",
             func: impls::GetStartupInfoA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetStartupInfoW: Shim = Shim {
             name: "GetStartupInfoW",
             func: impls::GetStartupInfoW,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetStdHandle: Shim = Shim {
             name: "GetStdHandle",
             func: impls::GetStdHandle,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
             name: "GetSystemTimeAsFileTime",
             func: impls::GetSystemTimeAsFileTime,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetTickCount: Shim = Shim {
             name: "GetTickCount",
             func: impls::GetTickCount,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetVersion: Shim = Shim {
             name: "GetVersion",
             func: impls::GetVersion,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetVersionExA: Shim = Shim {
             name: "GetVersionExA",
             func: impls::GetVersionExA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GlobalAlloc: Shim = Shim {
             name: "GlobalAlloc",
             func: impls::GlobalAlloc,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GlobalFree: Shim = Shim {
             name: "GlobalFree",
             func: impls::GlobalFree,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const HeapAlloc: Shim = Shim {
             name: "HeapAlloc",
             func: impls::HeapAlloc,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const HeapCreate: Shim = Shim {
             name: "HeapCreate",
             func: impls::HeapCreate,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const HeapDestroy: Shim = Shim {
             name: "HeapDestroy",
             func: impls::HeapDestroy,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const HeapFree: Shim = Shim {
             name: "HeapFree",
             func: impls::HeapFree,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const HeapReAlloc: Shim = Shim {
             name: "HeapReAlloc",
             func: impls::HeapReAlloc,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const HeapSetInformation: Shim = Shim {
             name: "HeapSetInformation",
             func: impls::HeapSetInformation,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const HeapSize: Shim = Shim {
             name: "HeapSize",
             func: impls::HeapSize,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const InitOnceBeginInitialize: Shim = Shim {
             name: "InitOnceBeginInitialize",
             func: impls::InitOnceBeginInitialize,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const InitOnceComplete: Shim = Shim {
             name: "InitOnceComplete",
             func: impls::InitOnceComplete,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const InitializeCriticalSection: Shim = Shim {
             name: "InitializeCriticalSection",
             func: impls::InitializeCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: impls::InitializeCriticalSectionAndSpinCount,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const InitializeSListHead: Shim = Shim {
             name: "InitializeSListHead",
             func: impls::InitializeSListHead,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const InterlockedIncrement: Shim = Shim {
             name: "InterlockedIncrement",
             func: impls::InterlockedIncrement,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const IsBadReadPtr: Shim = Shim {
             name: "IsBadReadPtr",
             func: impls::IsBadReadPtr,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const IsBadWritePtr: Shim = Shim {
             name: "IsBadWritePtr",
             func: impls::IsBadWritePtr,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const IsDebuggerPresent: Shim = Shim {
             name: "IsDebuggerPresent",
             func: impls::IsDebuggerPresent,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const IsProcessorFeaturePresent: Shim = Shim {
             name: "IsProcessorFeaturePresent",
             func: impls::IsProcessorFeaturePresent,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const IsValidCodePage: Shim = Shim {
             name: "IsValidCodePage",
             func: impls::IsValidCodePage,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const LeaveCriticalSection: Shim = Shim {
             name: "LeaveCriticalSection",
             func: impls::LeaveCriticalSection,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const LoadLibraryA: Shim = Shim {
             name: "LoadLibraryA",
             func: impls::LoadLibraryA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const LoadLibraryExW: Shim = Shim {
             name: "LoadLibraryExW",
             func: impls::LoadLibraryExW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const LoadResource: Shim = Shim {
             name: "LoadResource",
             func: impls::LoadResource,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LocalAlloc: Shim = Shim {
             name: "LocalAlloc",
             func: impls::LocalAlloc,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LockResource: Shim = Shim {
             name: "LockResource",
             func: impls::LockResource,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const MultiByteToWideChar: Shim = Shim {
             name: "MultiByteToWideChar",
             func: impls::MultiByteToWideChar,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const NtCurrentTeb: Shim = Shim {
             name: "NtCurrentTeb",
             func: impls::NtCurrentTeb,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const OutputDebugStringA: Shim = Shim {
             name: "OutputDebugStringA",
             func: impls::OutputDebugStringA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const QueryPerformanceCounter: Shim = Shim {
             name: "QueryPerformanceCounter",
             func: impls::QueryPerformanceCounter,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const QueryPerformanceFrequency: Shim = Shim {
             name: "QueryPerformanceFrequency",
             func: impls::QueryPerformanceFrequency,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const ReadFile: Shim = Shim {
             name: "ReadFile",
             func: impls::ReadFile,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: impls::SetEvent,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetFilePointer: Shim = Shim {
             name: "SetFilePointer",
             func: impls::SetFilePointer,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const SetHandleCount: Shim = Shim {
             name: "SetHandleCount",
             func: impls::SetHandleCount,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetLastError: Shim = Shim {
             name: "SetLastError",
             func: impls::SetLastError,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetPriorityClass: Shim = Shim {
             name: "SetPriorityClass",
             func: impls::SetPriorityClass,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetThreadPriority: Shim = Shim {
             name: "SetThreadPriority",
             func: impls::SetThreadPriority,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetThreadStackGuarantee: Shim = Shim {
             name: "SetThreadStackGuarantee",
             func: impls::SetThreadStackGuarantee,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetUnhandledExceptionFilter: Shim = Shim {
             name: "SetUnhandledExceptionFilter",
             func: impls::SetUnhandledExceptionFilter,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const Sleep: Shim = Shim {
             name: "Sleep",
             func: impls::Sleep,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
             func: impls::TlsAlloc,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const TlsFree: Shim = Shim {
             name: "TlsFree",
             func: impls::TlsFree,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const TlsGetValue: Shim = Shim {
             name: "TlsGetValue",
             func: impls::TlsGetValue,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const TlsSetValue: Shim = Shim {
             name: "TlsSetValue",
             func: impls::TlsSetValue,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const UnhandledExceptionFilter: Shim = Shim {
             name: "UnhandledExceptionFilter",
             func: impls::UnhandledExceptionFilter,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const VirtualAlloc: Shim = Shim {
             name: "VirtualAlloc",
             func: impls::VirtualAlloc,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const VirtualFree: Shim = Shim {
             name: "VirtualFree",
             func: impls::VirtualFree,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const VirtualProtect: Shim = Shim {
             name: "VirtualProtect",
             func: impls::VirtualProtect,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const WaitForSingleObject: Shim = Shim {
             name: "WaitForSingleObject",
             func: impls::WaitForSingleObject,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const WriteConsoleA: Shim = Shim {
             name: "WriteConsoleA",
             func: impls::WriteConsoleA,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const WriteConsoleW: Shim = Shim {
             name: "WriteConsoleW",
             func: impls::WriteConsoleW,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const WriteFile: Shim = Shim {
             name: "WriteFile",
             func: impls::WriteFile,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const lstrcmpiA: Shim = Shim {
             name: "lstrcmpiA",
             func: impls::lstrcmpiA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const lstrcpyA: Shim = Shim {
             name: "lstrcpyA",
             func: impls::lstrcpyA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const lstrcpyW: Shim = Shim {
             name: "lstrcpyW",
             func: impls::lstrcpyW,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const lstrlenA: Shim = Shim {
             name: "lstrlenA",
             func: impls::lstrlenA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const lstrlenW: Shim = Shim {
             name: "lstrlenW",
             func: impls::lstrlenW,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const retrowin32_main: Shim = Shim {
             name: "retrowin32_main",
             func: impls::retrowin32_main,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: true,
         };
     }
@@ -2654,7 +2654,7 @@ pub mod retrowin32_test {
                         winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data)
                             .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 12u32;
+                    machine.emu.x86.cpu.regs.esp += 8u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -2675,7 +2675,7 @@ pub mod retrowin32_test {
         pub const retrowin32_test_callback1: Shim = Shim {
             name: "retrowin32_test_callback1",
             func: impls::retrowin32_test_callback1,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: true,
         };
     }
@@ -2727,31 +2727,31 @@ pub mod ucrtbase {
         pub const __p___argc: Shim = Shim {
             name: "__p___argc",
             func: impls::__p___argc,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const __p___argv: Shim = Shim {
             name: "__p___argv",
             func: impls::__p___argv,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const _get_initial_narrow_environment: Shim = Shim {
             name: "_get_initial_narrow_environment",
             func: impls::_get_initial_narrow_environment,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const _initterm: Shim = Shim {
             name: "_initterm",
             func: impls::_initterm,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const _initterm_e: Shim = Shim {
             name: "_initterm_e",
             func: impls::_initterm_e,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
     }
@@ -2804,7 +2804,7 @@ pub mod vcruntime140 {
         pub const memcpy: Shim = Shim {
             name: "memcpy",
             func: impls::memcpy,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
     }
@@ -2909,7 +2909,7 @@ pub mod user32 {
                     )
                     .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 52u32;
+                    machine.emu.x86.cpu.regs.esp += 48u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -2971,7 +2971,7 @@ pub mod user32 {
                     )
                     .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 52u32;
+                    machine.emu.x86.cpu.regs.esp += 48u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3045,7 +3045,7 @@ pub mod user32 {
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3067,7 +3067,7 @@ pub mod user32 {
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3156,7 +3156,7 @@ pub mod user32 {
                     )
                     .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 20u32;
+                    machine.emu.x86.cpu.regs.esp += 16u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3194,7 +3194,7 @@ pub mod user32 {
                     )
                     .await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 20u32;
+                    machine.emu.x86.cpu.regs.esp += 16u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3494,7 +3494,7 @@ pub mod user32 {
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::UpdateWindow(machine, hWnd).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32;
+                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
                     machine.emu.x86.cpu.regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
@@ -3524,415 +3524,415 @@ pub mod user32 {
         pub const AdjustWindowRect: Shim = Shim {
             name: "AdjustWindowRect",
             func: impls::AdjustWindowRect,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const AdjustWindowRectEx: Shim = Shim {
             name: "AdjustWindowRectEx",
             func: impls::AdjustWindowRectEx,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const BeginPaint: Shim = Shim {
             name: "BeginPaint",
             func: impls::BeginPaint,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const CheckMenuItem: Shim = Shim {
             name: "CheckMenuItem",
             func: impls::CheckMenuItem,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const ClientToScreen: Shim = Shim {
             name: "ClientToScreen",
             func: impls::ClientToScreen,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const CreateCursor: Shim = Shim {
             name: "CreateCursor",
             func: impls::CreateCursor,
-            stack_consumed: 32u32,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const CreateWindowExA: Shim = Shim {
             name: "CreateWindowExA",
             func: impls::CreateWindowExA,
-            stack_consumed: 52u32,
+            stack_consumed: 48u32,
             is_async: true,
         };
         pub const CreateWindowExW: Shim = Shim {
             name: "CreateWindowExW",
             func: impls::CreateWindowExW,
-            stack_consumed: 52u32,
+            stack_consumed: 48u32,
             is_async: true,
         };
         pub const DefWindowProcA: Shim = Shim {
             name: "DefWindowProcA",
             func: impls::DefWindowProcA,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const DefWindowProcW: Shim = Shim {
             name: "DefWindowProcW",
             func: impls::DefWindowProcW,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const DestroyWindow: Shim = Shim {
             name: "DestroyWindow",
             func: impls::DestroyWindow,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const DialogBoxParamA: Shim = Shim {
             name: "DialogBoxParamA",
             func: impls::DialogBoxParamA,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const DispatchMessageA: Shim = Shim {
             name: "DispatchMessageA",
             func: impls::DispatchMessageA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: true,
         };
         pub const DispatchMessageW: Shim = Shim {
             name: "DispatchMessageW",
             func: impls::DispatchMessageW,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: true,
         };
         pub const EndPaint: Shim = Shim {
             name: "EndPaint",
             func: impls::EndPaint,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const FillRect: Shim = Shim {
             name: "FillRect",
             func: impls::FillRect,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const FindWindowA: Shim = Shim {
             name: "FindWindowA",
             func: impls::FindWindowA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const FrameRect: Shim = Shim {
             name: "FrameRect",
             func: impls::FrameRect,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: impls::GetActiveWindow,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetClientRect: Shim = Shim {
             name: "GetClientRect",
             func: impls::GetClientRect,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetDC: Shim = Shim {
             name: "GetDC",
             func: impls::GetDC,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetDesktopWindow: Shim = Shim {
             name: "GetDesktopWindow",
             func: impls::GetDesktopWindow,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetFocus: Shim = Shim {
             name: "GetFocus",
             func: impls::GetFocus,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetForegroundWindow: Shim = Shim {
             name: "GetForegroundWindow",
             func: impls::GetForegroundWindow,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetLastActivePopup: Shim = Shim {
             name: "GetLastActivePopup",
             func: impls::GetLastActivePopup,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const GetMessageA: Shim = Shim {
             name: "GetMessageA",
             func: impls::GetMessageA,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: true,
         };
         pub const GetMessageW: Shim = Shim {
             name: "GetMessageW",
             func: impls::GetMessageW,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: true,
         };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",
             func: impls::GetSystemMetrics,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetWindowDC: Shim = Shim {
             name: "GetWindowDC",
             func: impls::GetWindowDC,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetWindowLongA: Shim = Shim {
             name: "GetWindowLongA",
             func: impls::GetWindowLongA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const InvalidateRect: Shim = Shim {
             name: "InvalidateRect",
             func: impls::InvalidateRect,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const LoadAcceleratorsW: Shim = Shim {
             name: "LoadAcceleratorsW",
             func: impls::LoadAcceleratorsW,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadBitmapA: Shim = Shim {
             name: "LoadBitmapA",
             func: impls::LoadBitmapA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: impls::LoadCursorA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadCursorW: Shim = Shim {
             name: "LoadCursorW",
             func: impls::LoadCursorW,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadIconA: Shim = Shim {
             name: "LoadIconA",
             func: impls::LoadIconA,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadIconW: Shim = Shim {
             name: "LoadIconW",
             func: impls::LoadIconW,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadImageA: Shim = Shim {
             name: "LoadImageA",
             func: impls::LoadImageA,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const LoadMenuW: Shim = Shim {
             name: "LoadMenuW",
             func: impls::LoadMenuW,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadStringA: Shim = Shim {
             name: "LoadStringA",
             func: impls::LoadStringA,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const LoadStringW: Shim = Shim {
             name: "LoadStringW",
             func: impls::LoadStringW,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const MapWindowPoints: Shim = Shim {
             name: "MapWindowPoints",
             func: impls::MapWindowPoints,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const MessageBoxA: Shim = Shim {
             name: "MessageBoxA",
             func: impls::MessageBoxA,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const MessageBoxW: Shim = Shim {
             name: "MessageBoxW",
             func: impls::MessageBoxW,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const MoveWindow: Shim = Shim {
             name: "MoveWindow",
             func: impls::MoveWindow,
-            stack_consumed: 28u32,
+            stack_consumed: 24u32,
             is_async: false,
         };
         pub const PeekMessageA: Shim = Shim {
             name: "PeekMessageA",
             func: impls::PeekMessageA,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const PeekMessageW: Shim = Shim {
             name: "PeekMessageW",
             func: impls::PeekMessageW,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const PostQuitMessage: Shim = Shim {
             name: "PostQuitMessage",
             func: impls::PostQuitMessage,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const PtInRect: Shim = Shim {
             name: "PtInRect",
             func: impls::PtInRect,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const RegisterClassA: Shim = Shim {
             name: "RegisterClassA",
             func: impls::RegisterClassA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const RegisterClassExA: Shim = Shim {
             name: "RegisterClassExA",
             func: impls::RegisterClassExA,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const RegisterClassW: Shim = Shim {
             name: "RegisterClassW",
             func: impls::RegisterClassW,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const ReleaseCapture: Shim = Shim {
             name: "ReleaseCapture",
             func: impls::ReleaseCapture,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const ReleaseDC: Shim = Shim {
             name: "ReleaseDC",
             func: impls::ReleaseDC,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetCapture: Shim = Shim {
             name: "SetCapture",
             func: impls::SetCapture,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetCursor: Shim = Shim {
             name: "SetCursor",
             func: impls::SetCursor,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetFocus: Shim = Shim {
             name: "SetFocus",
             func: impls::SetFocus,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetForegroundWindow: Shim = Shim {
             name: "SetForegroundWindow",
             func: impls::SetForegroundWindow,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetMenu: Shim = Shim {
             name: "SetMenu",
             func: impls::SetMenu,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetRect: Shim = Shim {
             name: "SetRect",
             func: impls::SetRect,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const SetTimer: Shim = Shim {
             name: "SetTimer",
             func: impls::SetTimer,
-            stack_consumed: 20u32,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const SetWindowPos: Shim = Shim {
             name: "SetWindowPos",
             func: impls::SetWindowPos,
-            stack_consumed: 32u32,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const ShowWindow: Shim = Shim {
             name: "ShowWindow",
             func: impls::ShowWindow,
-            stack_consumed: 12u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const TranslateAcceleratorW: Shim = Shim {
             name: "TranslateAcceleratorW",
             func: impls::TranslateAcceleratorW,
-            stack_consumed: 16u32,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const TranslateMessage: Shim = Shim {
             name: "TranslateMessage",
             func: impls::TranslateMessage,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const UpdateWindow: Shim = Shim {
             name: "UpdateWindow",
             func: impls::UpdateWindow,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: true,
         };
         pub const WaitMessage: Shim = Shim {
             name: "WaitMessage",
             func: impls::WaitMessage,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const wsprintfA: Shim = Shim {
             name: "wsprintfA",
             func: impls::wsprintfA,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
@@ -4257,25 +4257,25 @@ pub mod winmm {
         pub const timeBeginPeriod: Shim = Shim {
             name: "timeBeginPeriod",
             func: impls::timeBeginPeriod,
-            stack_consumed: 8u32,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const timeGetTime: Shim = Shim {
             name: "timeGetTime",
             func: impls::timeGetTime,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const timeSetEvent: Shim = Shim {
             name: "timeSetEvent",
             func: impls::timeSetEvent,
-            stack_consumed: 24u32,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const waveOutGetNumDevs: Shim = Shim {
             name: "waveOutGetNumDevs",
             func: impls::waveOutGetNumDevs,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
