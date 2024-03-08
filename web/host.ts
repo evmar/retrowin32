@@ -9,41 +9,6 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
   return new Uint8Array(await resp.arrayBuffer());
 }
 
-class Surface implements glue.JsSurface {
-  /** Where to render output on show() */
-  screen?: CanvasRenderingContext2D;
-
-  /** Backing pixels. */
-  canvas: HTMLCanvasElement;
-  ctx: CanvasRenderingContext2D;
-
-  constructor(width: number, height: number, primary: boolean) {
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.ctx = this.canvas.getContext('2d')!;
-    this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(0, 0, 640, 480);
-    this.ctx.fill();
-  }
-
-  write_pixels(pixels: Uint8Array): void {
-    const data = new ImageData(this.canvas.width, this.canvas.height);
-    // XXX Ew copy.  Docs suggest the ImageData ctor accepts pixel data as a param
-    // but I couldn't see it working.
-    data.data.set(pixels);
-    this.ctx.putImageData(data, 0, 0);
-  }
-
-  show() {
-    this.screen!.drawImage(this.canvas, 0, 0);
-  }
-
-  bit_blt(dx: number, dy: number, other: glue.JsSurface, sx: number, sy: number, w: number, h: number): void {
-    this.ctx.drawImage((other as unknown as Surface).canvas, sx, sy, w, h, dx, dy, w, h);
-  }
-}
-
 class Window implements glue.JsWindow {
   constructor(readonly jsHost: JsHost, readonly hwnd: number) {
     const stashEvent = (ev: Event) => {
@@ -104,7 +69,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   stdout = '';
   decoder = new TextDecoder();
 
-  constructor(public emuHost: EmulatorHost, readonly files: FileSet) {}
+  constructor(public emuHost: EmulatorHost, readonly files: FileSet) { }
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
@@ -169,16 +134,10 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     return window;
   }
 
-  create_surface(opts: glue.SurfaceOptions): glue.JsSurface {
-    const { width, height, primary } = opts;
-    opts.free();
-    const surface = new Surface(width, height, primary);
+  screen() {
     // XXX how to tie surface and window together?
     // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
     // but how to plumb that info across JS boundary?
-    console.warn('hack: attached surface to window');
-    const win = this.windows[this.windows.length - 1];
-    surface.screen = win.canvas.getContext('2d')!;
-    return surface;
+    return this.windows[this.windows.length - 1].canvas.getContext('2d');
   }
 }

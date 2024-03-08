@@ -3,37 +3,51 @@
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    pub type JsSurface;
-    #[wasm_bindgen(method)]
-    fn write_pixels(this: &JsSurface, pixels: &[u8]) -> JsSurface;
-    #[wasm_bindgen(method)]
-    fn show(this: &JsSurface);
-    #[wasm_bindgen(method)]
-    fn bit_blt(
-        this: &JsSurface,
-        dx: u32,
-        dy: u32,
-        src: &JsSurface,
-        sx: u32,
-        sy: u32,
-        w: u32,
-        h: u32,
-    );
+struct WebSurface {
+    canvas: web_sys::HtmlCanvasElement,
+    width: u32,
+    ctx: web_sys::CanvasRenderingContext2d,
+    screen: web_sys::CanvasRenderingContext2d,
 }
-
-impl win32::Surface for JsSurface {
+impl WebSurface {
+    pub fn new(opts: &win32::SurfaceOptions, screen: web_sys::CanvasRenderingContext2d) -> Self {
+        let canvas = web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap()
+            .create_element("canvas")
+            .unwrap()
+            .unchecked_into::<web_sys::HtmlCanvasElement>();
+        canvas.set_width(opts.width);
+        canvas.set_height(opts.height);
+        let ctx = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
+        Self {
+            canvas,
+            width: opts.width,
+            ctx,
+            screen,
+        }
+    }
+}
+impl win32::Surface for WebSurface {
     fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        let slice = unsafe {
-            let p = pixels.as_ptr() as *const u8;
-            std::slice::from_raw_parts(p, pixels.len() * 4)
-        };
-        JsSurface::write_pixels(self, slice);
+        let slice =
+            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const _, pixels.len() * 4) };
+        let image_data =
+            web_sys::ImageData::new_with_u8_clamped_array(wasm_bindgen::Clamped(slice), self.width)
+                .unwrap();
+        self.ctx.put_image_data(&image_data, 0.0, 0.0).unwrap();
     }
 
     fn show(&mut self) {
-        JsSurface::show(self);
+        self.screen
+            .draw_image_with_html_canvas_element(&self.canvas, 0.0, 0.0)
+            .unwrap();
     }
 
     fn bit_blt(
@@ -46,11 +60,23 @@ impl win32::Surface for JsSurface {
         w: u32,
         h: u32,
     ) {
-        // Hack: we know all surfaces are JsSurface.
+        // Hack: we know all surfaces are WebSurface.
         // I think to fix this properly I might need to make every X86 generic across all the
         // host types, eek.
-        let src = unsafe { &*(src as *const dyn win32::Surface as *const JsSurface) };
-        JsSurface::bit_blt(self, dx, dy, src, sx, sy, w, h);
+        let src = unsafe { &*(src as *const dyn win32::Surface as *const WebSurface) };
+        self.ctx
+            .draw_image_with_html_canvas_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+                &src.canvas,
+                sx as f64,
+                sy as f64,
+                w as f64,
+                h as f64,
+                dx as f64,
+                dy as f64,
+                w as f64,
+                h as f64,
+            )
+            .unwrap();
     }
 }
 
@@ -149,8 +175,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost, hwnd: u32) -> JsWindow;
+
     #[wasm_bindgen(method)]
-    fn create_surface(this: &JsHost, opts: win32::SurfaceOptions) -> JsSurface;
+    fn screen(this: &JsHost) -> web_sys::CanvasRenderingContext2d;
 }
 
 impl win32::Host for JsHost {
@@ -188,6 +215,6 @@ impl win32::Host for JsHost {
     }
 
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        Box::new(JsHost::create_surface(self, opts.clone()))
+        Box::new(WebSurface::new(opts, JsHost::screen(self)))
     }
 }

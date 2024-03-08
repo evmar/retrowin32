@@ -6,13 +6,6 @@
 import { SurfaceOptions } from './glue/pkg';
 export { SurfaceOptions };
 
-// Matches 'pub type JsSurface' in glue/host.rs.
-export interface JsSurface {
-  write_pixels(pixels: Uint8Array): void;
-  show(): void;
-  bit_blt(dx: number, dy: number, other: JsSurface, sx: number, sy: number, w: number, h: number): void;
-}
-
 // Matches 'pub type JsWindow' in glue/host.rs.
 export interface JsWindow {
   title: string;
@@ -40,5 +33,4 @@ export interface JsHost {
   write(buf: Uint8Array): number;
 
   create_window(hwnd: number): JsWindow;
-  create_surface(opts: SurfaceOptions): JsSurface;
 }
