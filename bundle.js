@@ -480,12 +480,13 @@ var Code = class extends d {
 
 // glue/pkg/glue.js
 var wasm;
-var cachedTextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }) : { decode: () => {
-  throw Error("TextDecoder not available");
-} };
-if (typeof TextDecoder !== "undefined") {
+var cachedTextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }) : {
+  decode: () => {
+    throw Error("TextDecoder not available");
+  }
+};
+if (typeof TextDecoder !== "undefined")
   cachedTextDecoder.decode();
-}
 var cachedUint8Memory0 = null;
 function getUint8Memory0() {
   if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
@@ -596,9 +597,11 @@ ${val.stack}`;
   return className;
 }
 var WASM_VECTOR_LEN = 0;
-var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : { encode: () => {
-  throw Error("TextEncoder not available");
-} };
+var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : {
+  encode: () => {
+    throw Error("TextEncoder not available");
+  }
+};
 var encodeString = typeof cachedTextEncoder.encodeInto === "function" ? function(arg, view) {
   return cachedTextEncoder.encodeInto(arg, view);
 } : function(arg, view) {
@@ -655,9 +658,21 @@ function takeObject(idx) {
   dropObject(idx);
   return ret;
 }
+function passArray8ToWasm0(arg, malloc) {
+  const ptr = malloc(arg.length * 1, 1) >>> 0;
+  getUint8Memory0().set(arg, ptr / 1);
+  WASM_VECTOR_LEN = arg.length;
+  return ptr;
+}
 function getArrayU8FromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+function new_emulator(host, cmdline) {
+  const ptr0 = passStringToWasm0(cmdline, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+  const len0 = WASM_VECTOR_LEN;
+  const ret = wasm.new_emulator(addHeapObject(host), ptr0, len0);
+  return Emulator.__wrap(ret);
 }
 function logError(f2, args) {
   try {
@@ -677,29 +692,6 @@ ${e2.stack}` : e2.toString();
     throw e2;
   }
 }
-function passArray8ToWasm0(arg, malloc) {
-  const ptr = malloc(arg.length * 1, 1) >>> 0;
-  getUint8Memory0().set(arg, ptr / 1);
-  WASM_VECTOR_LEN = arg.length;
-  return ptr;
-}
-function new_emulator(host, cmdline) {
-  try {
-    const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-    const ptr0 = passStringToWasm0(cmdline, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len0 = WASM_VECTOR_LEN;
-    wasm.new_emulator(retptr, addHeapObject(host), ptr0, len0);
-    var r0 = getInt32Memory0()[retptr / 4 + 0];
-    var r1 = getInt32Memory0()[retptr / 4 + 1];
-    var r2 = getInt32Memory0()[retptr / 4 + 2];
-    if (r2) {
-      throw takeObject(r1);
-    }
-    return Emulator.__wrap(r0);
-  } finally {
-    wasm.__wbindgen_add_to_stack_pointer(16);
-  }
-}
 function handleError(f2, args) {
   try {
     return f2.apply(this, args);
@@ -707,7 +699,27 @@ function handleError(f2, args) {
     wasm.__wbindgen_exn_store(addHeapObject(e2));
   }
 }
-var CPUState = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", Exit: 3, "3": "Exit" });
+var cachedUint8ClampedMemory0 = null;
+function getUint8ClampedMemory0() {
+  if (cachedUint8ClampedMemory0 === null || cachedUint8ClampedMemory0.byteLength === 0) {
+    cachedUint8ClampedMemory0 = new Uint8ClampedArray(wasm.memory.buffer);
+  }
+  return cachedUint8ClampedMemory0;
+}
+function getClampedArrayU8FromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
+  return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
+}
+var CPUState = Object.freeze({
+  Running: 0,
+  "0": "Running",
+  Blocked: 1,
+  "1": "Blocked",
+  Error: 2,
+  "2": "Error",
+  Exit: 3,
+  "3": "Exit"
+});
 var EmulatorFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
 }, unregister: () => {
 } } : new FinalizationRegistry((ptr) => wasm.__wbg_emulator_free(ptr >>> 0));
@@ -924,70 +936,6 @@ var Emulator = class {
 var SurfaceOptionsFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
 }, unregister: () => {
 } } : new FinalizationRegistry((ptr) => wasm.__wbg_surfaceoptions_free(ptr >>> 0));
-var SurfaceOptions = class {
-  constructor() {
-    throw new Error("cannot invoke `new` directly");
-  }
-  static __wrap(ptr) {
-    ptr = ptr >>> 0;
-    const obj = Object.create(SurfaceOptions.prototype);
-    obj.__wbg_ptr = ptr;
-    SurfaceOptionsFinalization.register(obj, obj.__wbg_ptr, obj);
-    return obj;
-  }
-  __destroy_into_raw() {
-    const ptr = this.__wbg_ptr;
-    this.__wbg_ptr = 0;
-    SurfaceOptionsFinalization.unregister(this);
-    return ptr;
-  }
-  free() {
-    const ptr = this.__destroy_into_raw();
-    wasm.__wbg_surfaceoptions_free(ptr);
-  }
-  get width() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    const ret = wasm.__wbg_get_surfaceoptions_width(this.__wbg_ptr);
-    return ret >>> 0;
-  }
-  set width(arg0) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertNum(arg0);
-    wasm.__wbg_set_surfaceoptions_width(this.__wbg_ptr, arg0);
-  }
-  get height() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    const ret = wasm.__wbg_get_surfaceoptions_height(this.__wbg_ptr);
-    return ret >>> 0;
-  }
-  set height(arg0) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertNum(arg0);
-    wasm.__wbg_set_surfaceoptions_height(this.__wbg_ptr, arg0);
-  }
-  get primary() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    const ret = wasm.__wbg_get_surfaceoptions_primary(this.__wbg_ptr);
-    return ret !== 0;
-  }
-  set primary(arg0) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertBoolean(arg0);
-    wasm.__wbg_set_surfaceoptions_primary(this.__wbg_ptr, arg0);
-  }
-};
 async function __wbg_load(module, imports) {
   if (typeof Response === "function" && module instanceof Response) {
     if (typeof WebAssembly.instantiateStreaming === "function") {
@@ -995,7 +943,10 @@ async function __wbg_load(module, imports) {
         return await WebAssembly.instantiateStreaming(module, imports);
       } catch (e2) {
         if (module.headers.get("Content-Type") != "application/wasm") {
-          console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e2);
+          console.warn(
+            "`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n",
+            e2
+          );
         } else {
           throw e2;
         }
@@ -1015,22 +966,6 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
   const imports = {};
   imports.wbg = {};
-  imports.wbg.__wbg_writepixels_491c49a49cdeb8c6 = function() {
-    return logError(function(arg0, arg1, arg2) {
-      const ret = getObject(arg0).write_pixels(getArrayU8FromWasm0(arg1, arg2));
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_show_38b1743a1aa6fb8b = function() {
-    return logError(function(arg0) {
-      getObject(arg0).show();
-    }, arguments);
-  };
-  imports.wbg.__wbg_bitblt_f5d6d8a658f61a8a = function() {
-    return logError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7) {
-      getObject(arg0).bit_blt(arg1 >>> 0, arg2 >>> 0, getObject(arg3), arg4 >>> 0, arg5 >>> 0, arg6 >>> 0, arg7 >>> 0);
-    }, arguments);
-  };
   imports.wbg.__wbg_settitle_b48ee927b9814f5c = function() {
     return logError(function(arg0, arg1, arg2) {
       getObject(arg0).title = getStringFromWasm0(arg1, arg2);
@@ -1085,9 +1020,9 @@ function __wbg_get_imports() {
       return addHeapObject(ret);
     }, arguments);
   };
-  imports.wbg.__wbg_createsurface_62a417c7e4ad98c1 = function() {
-    return logError(function(arg0, arg1) {
-      const ret = getObject(arg0).create_surface(SurfaceOptions.__wrap(arg1));
+  imports.wbg.__wbg_screen_0825c896804feac9 = function() {
+    return logError(function(arg0) {
+      const ret = getObject(arg0).screen();
       return addHeapObject(ret);
     }, arguments);
   };
@@ -1143,10 +1078,22 @@ function __wbg_get_imports() {
       return ret;
     }, arguments);
   };
+  imports.wbg.__wbg_document_5100775d18896c16 = function() {
+    return logError(function(arg0) {
+      const ret = getObject(arg0).document;
+      return isLikeNone(ret) ? 0 : addHeapObject(ret);
+    }, arguments);
+  };
   imports.wbg.__wbg_performance_3298a9628a5c8aa4 = function() {
     return logError(function(arg0) {
       const ret = getObject(arg0).performance;
       return isLikeNone(ret) ? 0 : addHeapObject(ret);
+    }, arguments);
+  };
+  imports.wbg.__wbg_createElement_8bae7856a4bb7411 = function() {
+    return handleError(function(arg0, arg1, arg2) {
+      const ret = getObject(arg0).createElement(getStringFromWasm0(arg1, arg2));
+      return addHeapObject(ret);
     }, arguments);
   };
   imports.wbg.__wbg_type_c7f33162571befe7 = function() {
@@ -1156,6 +1103,77 @@ function __wbg_get_imports() {
       const len1 = WASM_VECTOR_LEN;
       getInt32Memory0()[arg0 / 4 + 1] = len1;
       getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+    }, arguments);
+  };
+  imports.wbg.__wbg_setwidth_080107476e633963 = function() {
+    return logError(function(arg0, arg1) {
+      getObject(arg0).width = arg1 >>> 0;
+    }, arguments);
+  };
+  imports.wbg.__wbg_setheight_dc240617639f1f51 = function() {
+    return logError(function(arg0, arg1) {
+      getObject(arg0).height = arg1 >>> 0;
+    }, arguments);
+  };
+  imports.wbg.__wbg_getContext_df50fa48a8876636 = function() {
+    return handleError(function(arg0, arg1, arg2) {
+      const ret = getObject(arg0).getContext(getStringFromWasm0(arg1, arg2));
+      return isLikeNone(ret) ? 0 : addHeapObject(ret);
+    }, arguments);
+  };
+  imports.wbg.__wbg_newwithu8clampedarray_ae824147b27925fc = function() {
+    return handleError(function(arg0, arg1, arg2) {
+      const ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
+      return addHeapObject(ret);
+    }, arguments);
+  };
+  imports.wbg.__wbg_now_4e659b3d15f470d9 = function() {
+    return logError(function(arg0) {
+      const ret = getObject(arg0).now();
+      return ret;
+    }, arguments);
+  };
+  imports.wbg.__wbg_instanceof_CanvasRenderingContext2d_20bf99ccc051643b = function() {
+    return logError(function(arg0) {
+      let result;
+      try {
+        result = getObject(arg0) instanceof CanvasRenderingContext2D;
+      } catch (_2) {
+        result = false;
+      }
+      const ret = result;
+      _assertBoolean(ret);
+      return ret;
+    }, arguments);
+  };
+  imports.wbg.__wbg_setfillStyle_4de94b275f5761f2 = function() {
+    return logError(function(arg0, arg1) {
+      getObject(arg0).fillStyle = getObject(arg1);
+    }, arguments);
+  };
+  imports.wbg.__wbg_drawImage_26ad546f3bb64a22 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3) {
+      getObject(arg0).drawImage(getObject(arg1), arg2, arg3);
+    }, arguments);
+  };
+  imports.wbg.__wbg_drawImage_5a754349d9fbf4a6 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
+      getObject(arg0).drawImage(getObject(arg1), arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+    }, arguments);
+  };
+  imports.wbg.__wbg_fill_7f376d2e52c3054e = function() {
+    return logError(function(arg0) {
+      getObject(arg0).fill();
+    }, arguments);
+  };
+  imports.wbg.__wbg_putImageData_044c08ad889366e1 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3) {
+      getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
+    }, arguments);
+  };
+  imports.wbg.__wbg_fillRect_b5c8166281bac9df = function() {
+    return logError(function(arg0, arg1, arg2, arg3, arg4) {
+      getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
     }, arguments);
   };
   imports.wbg.__wbg_offsetX_1a40c03298c0d8b6 = function() {
@@ -1176,12 +1194,6 @@ function __wbg_get_imports() {
     return logError(function(arg0) {
       const ret = getObject(arg0).button;
       _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_now_4e659b3d15f470d9 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).now();
       return ret;
     }, arguments);
   };
@@ -1279,6 +1291,7 @@ function __wbg_finalize_init(instance, module) {
   cachedFloat64Memory0 = null;
   cachedInt32Memory0 = null;
   cachedUint8Memory0 = null;
+  cachedUint8ClampedMemory0 = null;
   return wasm;
 }
 async function __wbg_init(input) {
@@ -1296,6 +1309,127 @@ async function __wbg_init(input) {
   return __wbg_finalize_init(instance, module);
 }
 var glue_default = __wbg_init;
+
+// host.ts
+async function fetchBytes(path) {
+  const resp = await fetch(path);
+  if (!resp.ok)
+    throw new Error(`failed to load ${path}`);
+  return new Uint8Array(await resp.arrayBuffer());
+}
+var Window2 = class {
+  constructor(jsHost, hwnd) {
+    this.jsHost = jsHost;
+    this.hwnd = hwnd;
+    __publicField(this, "title", "");
+    __publicField(this, "canvas", document.createElement("canvas"));
+    const stashEvent = (ev) => {
+      ev.hwnd = hwnd;
+      jsHost.enqueueEvent(ev);
+      return false;
+    };
+    this.canvas.onmousedown = stashEvent;
+    this.canvas.onmouseup = stashEvent;
+    this.canvas.oncontextmenu = (ev) => {
+      return false;
+    };
+  }
+  set_size(w2, h2) {
+    this.canvas.width = w2;
+    this.canvas.height = h2;
+    this.jsHost.emuHost.onWindowChanged();
+  }
+};
+var File = class {
+  constructor(path, bytes) {
+    this.path = path;
+    this.bytes = bytes;
+    __publicField(this, "ofs", 0);
+  }
+  seek(ofs) {
+    this.ofs = ofs;
+    return true;
+  }
+  read(buf) {
+    const n2 = Math.min(buf.length, this.bytes.length - this.ofs);
+    buf.set(this.bytes.subarray(this.ofs, this.ofs + n2));
+    this.ofs += n2;
+    return n2;
+  }
+};
+async function fetchFileSet(files, dir = "") {
+  const fileset = /* @__PURE__ */ new Map();
+  for (const file of files) {
+    const path = dir + file;
+    fileset.set(file, await fetchBytes(path));
+  }
+  return fileset;
+}
+var JsHost = class {
+  constructor(emuHost, files) {
+    this.emuHost = emuHost;
+    this.files = files;
+    __publicField(this, "events", []);
+    __publicField(this, "stdout", "");
+    __publicField(this, "decoder", new TextDecoder());
+    __publicField(this, "windows", []);
+  }
+  log(level, msg) {
+    switch (level) {
+      case 5:
+        console.error(msg);
+        this.emuHost.onError(msg);
+        break;
+      case 4:
+        console.warn(msg);
+        break;
+      case 3:
+        console.info(msg);
+        break;
+      case 2:
+        console.log(msg);
+        break;
+      case 1:
+        console.debug(msg);
+        break;
+      default:
+        throw new Error(`unexpected log level #{level}`);
+    }
+  }
+  exit(code) {
+    this.emuHost.exit(code);
+  }
+  enqueueEvent(event) {
+    this.events.push(event);
+    this.start();
+  }
+  get_event() {
+    return this.events.shift();
+  }
+  open(path) {
+    let bytes = this.files.get(path);
+    if (!bytes) {
+      console.error(`unknown file ${path}, returning empty file`);
+      bytes = new Uint8Array();
+    }
+    return new File(path, bytes);
+  }
+  write(buf) {
+    const text = this.decoder.decode(buf);
+    this.stdout += text;
+    this.emuHost.onStdOut(this.stdout);
+    return buf.length;
+  }
+  create_window(hwnd) {
+    let window2 = new Window2(this, hwnd);
+    this.windows.push(window2);
+    this.emuHost.onWindowChanged();
+    return window2;
+  }
+  screen() {
+    return this.windows[this.windows.length - 1].canvas.getContext("2d");
+  }
+};
 
 // labels.ts
 function* parseCSV(text) {
@@ -1347,19 +1481,18 @@ var Labels = class {
 };
 
 // emulator.ts
-var Emulator2 = class {
-  constructor(host, storageKey, bytes, labels, relocate) {
-    this.host = host;
+var Emulator2 = class extends JsHost {
+  constructor(host, files, storageKey, bytes, labels, relocate) {
+    super(host, files);
     this.storageKey = storageKey;
     __publicField(this, "emu");
     __publicField(this, "breakpoints", /* @__PURE__ */ new Map());
     __publicField(this, "imports", []);
     __publicField(this, "labels");
-    __publicField(this, "exitCode");
+    __publicField(this, "running", false);
     __publicField(this, "stepSize", 5e3);
     __publicField(this, "instrPerMs", 0);
-    host.emulator = this;
-    this.emu = new_emulator(host, storageKey);
+    this.emu = new_emulator(this, storageKey);
     this.emu.load_exe(storageKey, bytes, relocate);
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
@@ -1414,15 +1547,13 @@ var Emulator2 = class {
     this.saveBreakpoints();
   }
   isAtBreakpoint() {
-    if (this.exitCode !== void 0)
-      return true;
     const ip = this.emu.eip;
     const bp = this.breakpoints.get(ip);
     if (bp && !bp.disabled) {
       if (bp.oneShot) {
         this.delBreak(bp.addr);
       } else {
-        this.host.showTab("breakpoints");
+        this.emuHost.showTab("breakpoints");
       }
       return true;
     }
@@ -1467,168 +1598,34 @@ var Emulator2 = class {
     }
     return cpuState == CPUState.Running;
   }
+  start() {
+    if (this.running)
+      return;
+    if (this.isAtBreakpoint()) {
+      this.step();
+    }
+    this.running = true;
+    this.runFrame();
+  }
+  runFrame() {
+    if (!this.running)
+      return;
+    if (!this.stepMany()) {
+      this.stop();
+      return;
+    }
+    requestAnimationFrame(() => this.runFrame());
+  }
+  stop() {
+    if (!this.running)
+      return;
+    this.running = false;
+  }
   mappings() {
     return JSON.parse(this.emu.mappings_json());
   }
   disassemble(addr) {
     return JSON.parse(this.emu.disassemble_json(addr));
-  }
-};
-
-// host.ts
-async function fetchBytes(path) {
-  const resp = await fetch(path);
-  if (!resp.ok)
-    throw new Error(`failed to load ${path}`);
-  return new Uint8Array(await resp.arrayBuffer());
-}
-var Surface = class {
-  constructor(width, height, primary) {
-    __publicField(this, "screen");
-    __publicField(this, "canvas");
-    __publicField(this, "ctx");
-    this.canvas = document.createElement("canvas");
-    this.canvas.width = width;
-    this.canvas.height = height;
-    this.ctx = this.canvas.getContext("2d");
-    this.ctx.fillStyle = "black";
-    this.ctx.fillRect(0, 0, 640, 480);
-    this.ctx.fill();
-  }
-  write_pixels(pixels) {
-    const data = new ImageData(this.canvas.width, this.canvas.height);
-    data.data.set(pixels);
-    this.ctx.putImageData(data, 0, 0);
-  }
-  show() {
-    this.screen.drawImage(this.canvas, 0, 0);
-  }
-  bit_blt(dx, dy, other, sx, sy, w2, h2) {
-    this.ctx.drawImage(other.canvas, sx, sy, w2, h2, dx, dy, w2, h2);
-  }
-};
-var Window2 = class {
-  constructor(host, hwnd) {
-    this.host = host;
-    this.hwnd = hwnd;
-    __publicField(this, "title", "");
-    __publicField(this, "canvas", document.createElement("canvas"));
-    const stashEvent = (ev) => {
-      ev.hwnd = hwnd;
-      host.enqueueEvent(ev);
-      return false;
-    };
-    this.canvas.onmousedown = stashEvent;
-    this.canvas.onmouseup = stashEvent;
-    this.canvas.oncontextmenu = (ev) => {
-      return false;
-    };
-  }
-  set_size(w2, h2) {
-    this.canvas.width = w2;
-    this.canvas.height = h2;
-    this.host.page.forceUpdate();
-  }
-};
-var File = class {
-  constructor(path, bytes) {
-    this.path = path;
-    this.bytes = bytes;
-    __publicField(this, "ofs", 0);
-  }
-  seek(ofs) {
-    this.ofs = ofs;
-    return true;
-  }
-  read(buf) {
-    const n2 = Math.min(buf.length, this.bytes.length - this.ofs);
-    buf.set(this.bytes.subarray(this.ofs, this.ofs + n2));
-    this.ofs += n2;
-    return n2;
-  }
-};
-var Host = class {
-  constructor() {
-    __publicField(this, "page");
-    __publicField(this, "emulator");
-    __publicField(this, "files", /* @__PURE__ */ new Map());
-    __publicField(this, "events", []);
-    __publicField(this, "stdout", "");
-    __publicField(this, "decoder", new TextDecoder());
-    __publicField(this, "windows", []);
-  }
-  async fetch(files, dir = "") {
-    for (const file of files) {
-      const path = dir + file;
-      this.files.set(file, await fetchBytes(path));
-    }
-  }
-  showTab(name) {
-    this.page.setState({ selectedTab: "breakpoints" });
-  }
-  log(level, msg) {
-    switch (level) {
-      case 5:
-        console.error(msg);
-        if (this.page) {
-          this.page.setState({ error: msg });
-        }
-        break;
-      case 4:
-        console.warn(msg);
-        break;
-      case 3:
-        console.info(msg);
-        break;
-      case 2:
-        console.log(msg);
-        break;
-      case 1:
-        console.debug(msg);
-        break;
-      default:
-        throw new Error(`unexpected log level #{level}`);
-    }
-  }
-  exit(code) {
-    console.warn("exited with code", code);
-    this.emulator.exitCode = code;
-  }
-  enqueueEvent(event) {
-    this.events.push(event);
-    this.page.start();
-  }
-  get_event() {
-    return this.events.shift();
-  }
-  open(path) {
-    let bytes = this.files.get(path);
-    if (!bytes) {
-      console.error(`unknown file ${path}, returning empty file`);
-      bytes = new Uint8Array();
-    }
-    return new File(path, bytes);
-  }
-  write(buf) {
-    const text = this.decoder.decode(buf);
-    this.stdout += text;
-    this.page.setState({ stdout: this.stdout });
-    return buf.length;
-  }
-  create_window(hwnd) {
-    let window2 = new Window2(this, hwnd);
-    this.windows.push(window2);
-    this.page.forceUpdate();
-    return window2;
-  }
-  create_surface(opts) {
-    const { width, height, primary } = opts;
-    opts.free();
-    const surface = new Surface(width, height, primary);
-    console.warn("hack: attached surface to window");
-    const win = this.windows[this.windows.length - 1];
-    surface.screen = win.canvas.getContext("2d");
-    return surface;
   }
 };
 
@@ -1919,15 +1916,45 @@ var WindowComponent = class extends d {
     }));
   }
 };
-var Page = class extends d {
+var EmulatorComponent = class extends d {
+  render() {
+    return this.props.emulator.windows.map((window2) => {
+      return /* @__PURE__ */ h(WindowComponent, {
+        key: window2.hwnd,
+        title: window2.title,
+        canvas: window2.canvas
+      });
+    });
+  }
+};
+var Debugger = class extends d {
   constructor(props) {
     super(props);
+    __publicField(this, "stdout", "");
     __publicField(this, "state", { stdout: "", error: "", memBase: 4198400, selectedTab: "output" });
     __publicField(this, "highlightMemory", (addr) => this.setState({ memHighlight: addr }));
     __publicField(this, "showMemory", (memBase) => {
       this.setState({ selectedTab: "memory", memBase });
     });
-    this.props.host.page = this;
+    this.props.emulator.emuHost = this;
+  }
+  exit(code) {
+    this.setState({ stdout: this.stdout + `
+exited with code ${code}` });
+    this.stop();
+  }
+  onWindowChanged() {
+    this.forceUpdate();
+  }
+  showTab(name) {
+    this.setState({ selectedTab: name });
+  }
+  onError(msg) {
+    this.setState({ error: msg });
+  }
+  onStdOut(msg) {
+    this.stdout = msg;
+    this.setState({ stdout: msg });
   }
   step() {
     try {
@@ -1939,52 +1966,29 @@ var Page = class extends d {
   start() {
     if (this.state.running)
       return;
-    if (this.props.emulator.isAtBreakpoint()) {
-      this.step();
-    }
-    const interval = setInterval(() => {
-      this.forceUpdate();
-    }, 500);
-    this.setState({ running: interval }, () => this.runFrame());
+    this.setState({
+      running: setInterval(() => {
+        this.forceUpdate();
+      }, 500)
+    });
+    this.props.emulator.start();
   }
   stop() {
     if (!this.state.running)
       return;
+    this.props.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: void 0 });
-  }
-  runFrame() {
-    if (!this.state.running)
-      return;
-    let stop;
-    try {
-      stop = !this.props.emulator.stepMany();
-    } catch (e2) {
-      const err = e2;
-      console.error(err);
-      this.setState({ error: err.message });
-      stop = true;
-    }
-    if (stop) {
-      this.stop();
-      return;
-    }
-    requestAnimationFrame(() => this.runFrame());
   }
   runTo(addr) {
     this.props.emulator.addBreak({ addr, oneShot: true });
     this.start();
   }
   render() {
-    let windows = this.props.host.windows.map((window2) => {
-      return /* @__PURE__ */ h(WindowComponent, {
-        key: window2.hwnd,
-        title: window2.title,
-        canvas: window2.canvas
-      });
-    });
     const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
-    return /* @__PURE__ */ h(p, null, windows, /* @__PURE__ */ h("section", {
+    return /* @__PURE__ */ h(p, null, /* @__PURE__ */ h(EmulatorComponent, {
+      emulator: this.props.emulator
+    }), /* @__PURE__ */ h("section", {
       class: "panel",
       style: { display: "flex", alignItems: "baseline" }
     }, /* @__PURE__ */ h("button", {
@@ -2080,8 +2084,7 @@ async function debuggerPage() {
   if (!params) {
     return /* @__PURE__ */ h("p", null, "invalid URL params");
   }
-  const host = new Host();
-  await host.fetch([params.exe, ...params.files], params.dir);
+  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
   await glue_default(new URL("wasm.wasm", document.location.href));
   const csvLabels = /* @__PURE__ */ new Map();
   const resp = await fetch(params.exe + ".csv");
@@ -2091,9 +2094,15 @@ async function debuggerPage() {
     }
   }
   const storageKey = (params.dir ?? "") + params.exe;
-  const emulator = new Emulator2(host, storageKey, host.files.get(params.exe), csvLabels, params.relocate ?? false);
-  return /* @__PURE__ */ h(Page, {
-    host,
+  const emulator = new Emulator2(
+    null,
+    fileset,
+    storageKey,
+    fileset.get(params.exe),
+    csvLabels,
+    params.relocate ?? false
+  );
+  return /* @__PURE__ */ h(Debugger, {
     emulator
   });
 }
@@ -2102,6 +2111,6 @@ async function main() {
 }
 main();
 export {
-  Page
+  Debugger
 };
 //# sourceMappingURL=bundle.js.map

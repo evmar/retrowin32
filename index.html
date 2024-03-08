@@ -1,11 +1,10 @@
 <!doctype html>
+<title>retrowin32</title>
+<link rel='stylesheet' href='win2k.css'>
 <style>
     body {
-        font-family: tahoma, sans-serif;
-        font-size: 12px;
         width: 60ex;
         margin: 2ex auto;
-        background: #3a6ea5;
     }
 
     h1,
@@ -33,10 +32,7 @@
 
     main {
         padding: 8px;
-        border: outset 2px;
-        background: #c0c0c0;
-        border: solid 2px #404040;
-        border-image: url("9p-inactive.png") 2;
+        background: #d0d0c8;
     }
 
     dd {
@@ -45,14 +41,14 @@
 </style>
 
 <body>
-    <main>
+    <main class='panel'>
         <div style='float: right'><a href='https://github.com/evmar/retrowin32'>on github</a></div>
         <h1>retrowin32</h1>
         <hr>
 
         <p>retrowin32 is a still-early Windows emulator for the web (and other non-Windows platforms).</p>
 
-        <p>Take a win32 `.exe` file and run it in a web browser or a Mac.</p>
+        <p>Take a win32 <code>.exe</code> file and run it in a web browser or a Mac.</p>
 
         <p>See <a href='https://github.com/evmar/retrowin32/blob/main/README.md'>the README</a> for more.</p>
 
@@ -68,7 +64,7 @@
         for (const demo of demos) {
             const dt = document.createElement('dt');
             const a = document.createElement('a');
-            const url = `debugger.html?${demo.params}`;
+            const url = `run.html?${demo.params}`;
             a.href = url;
             a.innerText = demo.desc;
             dt.appendChild(a);

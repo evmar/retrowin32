@@ -1,23 +1,7 @@
 <!doctype html>
+<title>retrowin32</title>
+<link rel='stylesheet' href='win2k.css'>
 <style>
-    body {
-        font-family: tahoma, sans-serif;
-        font-size: 12px;
-        background: #3a6ea5;
-    }
-
-    button {
-        font-family: inherit;
-        font-size: inherit;
-        background: #d4d0c8;
-        border-image: url("9p-inactive.png") 2;
-    }
-
-    button:active {
-        border: solid 2px #404040;
-        border-image: url("9p-active.png") 2;
-    }
-
     a.stealth {
         color: inherit;
         text-decoration: none;
@@ -28,9 +12,6 @@
     }
 
     section.panel {
-        background: #d4d0c8;
-        border: solid 2px;
-        border-image: url("9p-inactive.png") 2;
         margin: 1ex;
         padding: 1ex;
     }
@@ -45,7 +26,8 @@
     }
 
     .highlight {
-        background: #ddd;
+        background: white;
+        outline: solid 1px red;
     }
 
     .error {
@@ -71,23 +53,6 @@
         padding-bottom: 1ex;
     }
 
-    .window {
-        font-size: 11px;
-        position: absolute;
-        min-width: 32px;
-        min-height: 32px;
-        box-shadow: 2px 2px 16px 4px rgba(0, 0, 0, 0.3);
-        border: 2px outset;
-        cursor: default;
-        background: #c3c3c3;
-    }
-
-    .window .titlebar {
-        background-image: linear-gradient(to right, #07216c, #a5c9f2);
-        color: white;
-        padding: 2px 16px;
-    }
-
     button.x {
         padding: 1px 3px;
         font-size: 80%;
@@ -96,4 +61,7 @@
 
 <body>
 </body>
-<script type='module' src='bundle.js'></script>
+<script type='module'>
+    import { debuggerMain } from './bundle.js';
+    debuggerMain();
+</script>
