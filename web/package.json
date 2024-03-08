@@ -2,8 +2,8 @@
   "name": "web",
   "version": "1.0.0",
   "scripts": {
-    "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js web.tsx",
-    "build": "esbuild --bundle --target=es2020 --format=esm --sourcemap --outfile=../deploy/bundle.js web.tsx"
+    "serve": "esbuild --bundle --target=es2020 --format=esm --sourcemap --servedir=. --outfile=bundle.js debugger.tsx",
+    "build": "esbuild --bundle --target=es2020 --format=esm --sourcemap --outfile=../deploy/bundle.js debugger.tsx"
   },
   "devDependencies": {
     "dprint": "^0.32.1",
