@@ -211,9 +211,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
   }
 }
 
-async function main() {
+export async function main() {
   const emulator = await loadEmulator();
   preact.render(<Debugger emulator={emulator} />, document.body);
 }
-
-main();
