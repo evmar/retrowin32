@@ -4,40 +4,40 @@ import { Emulator, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
 class Runner extends preact.Component<{ emulator: Emulator }> implements EmulatorHost {
-    constructor(props: { emulator: Emulator }) {
-        super(props);
-        this.props.emulator.emuHost = this;
-    }
+  constructor(props: { emulator: Emulator }) {
+    super(props);
+    this.props.emulator.emuHost = this;
+  }
 
-    componentDidMount(): void {
-        this.props.emulator.start();
-    }
+  componentDidMount(): void {
+    this.props.emulator.start();
+  }
 
-    exit(code: number): void {
-        throw new Error('Method not implemented.');
-    }
+  exit(code: number): void {
+    throw new Error('Method not implemented.');
+  }
 
-    onWindowChanged(): void {
-        this.forceUpdate();
-    }
+  onWindowChanged(): void {
+    this.forceUpdate();
+  }
 
-    showTab(name: string): void {
-        throw new Error('Method not implemented.');
-    }
+  showTab(name: string): void {
+    throw new Error('Method not implemented.');
+  }
 
-    onError(msg: string): void {
-    }
+  onError(msg: string): void {
+  }
 
-    onStdOut(stdout: string): void {
-        throw new Error('Method not implemented.');
-    }
+  onStdOut(stdout: string): void {
+    throw new Error('Method not implemented.');
+  }
 
-    render() {
-        return <EmulatorComponent emulator={this.props.emulator} />;
-    }
+  render() {
+    return <EmulatorComponent emulator={this.props.emulator} />;
+  }
 }
 
 export async function main() {
-    const emulator = await loadEmulator();
-    preact.render(<Runner emulator={emulator} />, document.getElementById('main')!);
+  const emulator = await loadEmulator();
+  preact.render(<Runner emulator={emulator} />, document.getElementById('main')!);
 }

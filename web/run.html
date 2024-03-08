@@ -7,15 +7,15 @@
     }
 
     header {
-        padding: 2ex;
+        padding: 8px;
     }
 </style>
 
 <body>
     <header class='panel'>
         <a href=' https://evmar.github.io/retrowin32/'>retrowin32</a>: a windows emulator
-        | (reload page if it crashes)
-        | <a href=''>view in debugger</a>
+        | <button onclick='location.reload()'>reload page</button> if it crashes
+        | <button onclick='window.location.pathname = "/debugger.html"'>view in debugger</a>
     </header>
     <main id='main'></main>
 </body>
