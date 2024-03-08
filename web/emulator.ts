@@ -1,19 +1,22 @@
 import { Breakpoint } from './break';
+import { JsHost } from './glue';
 import * as wasm from './glue/pkg';
 import { Labels } from './labels';
 import { hex } from './util';
 
-export interface Host {
+export interface Host extends JsHost {
   emulator: Emulator;
   showTab(name: string): void;
 }
 
+/** Wraps wasm.Emulator, able to run in a RAF loop. */
 export class Emulator {
   emu: wasm.Emulator;
   breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Labels;
   exitCode: number | undefined = undefined;
+  running = false;
 
   constructor(
     readonly host: Host,
@@ -157,6 +160,39 @@ export class Emulator {
     }
 
     return cpuState == wasm.CPUState.Running;
+  }
+
+  start() {
+    if (this.running) return;
+    // Advance past the current breakpoint, if any.
+    if (this.isAtBreakpoint()) {
+      this.step();
+    }
+    this.running = true;
+    this.runFrame();
+  }
+
+  /** Runs a batch of instructions; called in RAF loop. */
+  private runFrame() {
+    if (!this.running) return;
+    let stop;
+    try {
+      stop = !this.stepMany();
+    } catch (e) {
+      const err = e as Error;
+      console.error(err);
+      stop = true;
+    }
+    if (stop) {
+      this.stop();
+      return;
+    }
+    requestAnimationFrame(() => this.runFrame());
+  }
+
+  stop() {
+    if (!this.running) return;
+    this.running = false;
   }
 
   mappings(): wasm.Mapping[] {

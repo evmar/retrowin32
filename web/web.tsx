@@ -71,7 +71,7 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
   }
 }
 
-namespace Page {
+namespace Debugger {
   export interface Props {
     host: Host;
     emulator: Emulator;
@@ -86,10 +86,10 @@ namespace Page {
     selectedTab: string;
   }
 }
-export class Page extends preact.Component<Page.Props, Page.State> {
-  state: Page.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
+export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
+  state: Debugger.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
-  constructor(props: Page.Props) {
+  constructor(props: Debugger.Props) {
     super(props);
     this.props.host.page = this;
   }
@@ -104,39 +104,19 @@ export class Page extends preact.Component<Page.Props, Page.State> {
 
   start() {
     if (this.state.running) return;
-    // Advance past the current breakpoint, if any.
-    if (this.props.emulator.isAtBreakpoint()) {
-      this.step();
-    }
-    const interval = setInterval(() => {
-      this.forceUpdate();
-    }, 500);
-    this.setState({ running: interval }, () => this.runFrame());
+    this.setState({
+      running: setInterval(() => {
+        this.forceUpdate();
+      }, 500),
+    });
+    this.props.emulator.start();
   }
 
   stop() {
     if (!this.state.running) return;
+    this.props.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: undefined });
-  }
-
-  /** Runs a batch of instructions; called in RAF loop. */
-  runFrame() {
-    if (!this.state.running) return;
-    let stop;
-    try {
-      stop = !this.props.emulator.stepMany();
-    } catch (e) {
-      const err = e as Error;
-      console.error(err);
-      this.setState({ error: err.message });
-      stop = true;
-    }
-    if (stop) {
-      this.stop();
-      return;
-    }
-    requestAnimationFrame(() => this.runFrame());
   }
 
   runTo(addr: number) {
@@ -325,7 +305,7 @@ async function debuggerPage() {
   const storageKey = (params.dir ?? '') + params.exe;
   const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels, params.relocate ?? false);
 
-  return <Page host={host} emulator={emulator} />;
+  return <Debugger host={host} emulator={emulator} />;
 }
 
 async function main() {

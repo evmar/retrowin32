@@ -1,6 +1,6 @@
 import * as emulator from './emulator';
 import * as glue from './glue';
-import { Page } from './web';
+import { Debugger } from './web';
 
 async function fetchBytes(path: string): Promise<Uint8Array> {
   const resp = await fetch(path);
@@ -86,7 +86,7 @@ class File implements glue.JsFile {
 
 /** Emulator host, providing the emulation=>web API. */
 export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
-  page!: Page;
+  page!: Debugger;
   emulator!: emulator.Emulator;
   files = new Map<string, Uint8Array>();
   private events: Event[] = [];
