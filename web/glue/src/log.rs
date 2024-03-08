@@ -4,8 +4,6 @@
 
 use wasm_bindgen::prelude::*;
 
-use crate::JsResult;
-
 #[wasm_bindgen]
 extern "C" {
     pub type JsLogger;
@@ -30,9 +28,8 @@ fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
 }
 
-pub fn init(host: JsLogger) -> JsResult<()> {
+pub fn init(host: JsLogger) {
     let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
     log::set_logger(logger);
     std::panic::set_hook(Box::new(panic_hook));
-    Ok(())
 }

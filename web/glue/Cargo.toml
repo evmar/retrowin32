@@ -25,10 +25,13 @@ version = "0.2.83"
 [dependencies.web-sys]
 version = "0.3.69"
 features = [
-    "CanvasRenderingContext2d",
-    "ImageData",
-    "Event", "HtmlCanvasElement", "MouseEvent", "Performance"
-    ]
+  "CanvasRenderingContext2d",
+  "ImageData",
+  "Event",
+  "HtmlCanvasElement",
+  "MouseEvent",
+  "Performance",
+]
 
 # wasm-pack --profiling mode doesn't work without this
 # https://github.com/rustwasm/wasm-pack/issues/797
