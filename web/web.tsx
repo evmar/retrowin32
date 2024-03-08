@@ -2,9 +2,9 @@ import * as preact from 'preact';
 import { Fragment, h } from 'preact';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
-import { Emulator } from './emulator';
+import { Emulator, EmulatorHost } from './emulator';
 import * as wasm from './glue/pkg';
-import { Host } from './host';
+import { fetchFileSet, JsHost } from './host';
 import { parseCSV } from './labels';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
@@ -71,9 +71,27 @@ class WindowComponent extends preact.Component<WindowComponent.Props, WindowComp
   }
 }
 
+namespace EmulatorComponent {
+  export interface Props {
+    emulator: Emulator;
+  }
+}
+class EmulatorComponent extends preact.Component<EmulatorComponent.Props> {
+  render() {
+    return this.props.emulator.windows.map((window) => {
+      return (
+        <WindowComponent
+          key={window.hwnd}
+          title={window.title}
+          canvas={window.canvas}
+        />
+      );
+    });
+  }
+}
+
 namespace Debugger {
   export interface Props {
-    host: Host;
     emulator: Emulator;
   }
   export interface State {
@@ -86,12 +104,32 @@ namespace Debugger {
     selectedTab: string;
   }
 }
-export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
+export class Debugger extends preact.Component<Debugger.Props, Debugger.State> implements EmulatorHost {
+  stdout = ''; // XXX hack for making exit() not clobber state
   state: Debugger.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
   constructor(props: Debugger.Props) {
     super(props);
-    this.props.host.page = this;
+    this.props.emulator.emuHost = this;
+  }
+
+  exit(code: number): void {
+    this.setState({ stdout: this.stdout + `\nexited with code ${code}` });
+    this.stop();
+  }
+  onWindowChanged(): void {
+    this.forceUpdate();
+  }
+  showTab(name: string): void {
+    this.setState({ selectedTab: name });
+  }
+  onError(msg: string): void {
+    this.setState({ error: msg });
+  }
+
+  onStdOut(msg: string): void {
+    this.stdout = msg;
+    this.setState({ stdout: msg });
   }
 
   step() {
@@ -130,20 +168,11 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
   };
 
   render() {
-    let windows = this.props.host.windows.map((window) => {
-      return (
-        <WindowComponent
-          key={window.hwnd}
-          title={window.title}
-          canvas={window.canvas}
-        />
-      );
-    });
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
     return (
       <>
-        {windows}
+        <EmulatorComponent emulator={this.props.emulator} />
         <section class='panel' style={{ display: 'flex', alignItems: 'baseline' }}>
           <button
             onClick={() => this.state.running ? this.stop() : this.start()}
@@ -289,8 +318,7 @@ async function debuggerPage() {
     return <p>invalid URL params</p>;
   }
 
-  const host = new Host();
-  await host.fetch([params.exe, ...params.files], params.dir);
+  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
 
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
@@ -303,9 +331,16 @@ async function debuggerPage() {
   }
 
   const storageKey = (params.dir ?? '') + params.exe;
-  const emulator = new Emulator(host, storageKey, host.files.get(params.exe)!, csvLabels, params.relocate ?? false);
+  const emulator = new Emulator(
+    null!,
+    fileset,
+    storageKey,
+    fileset.get(params.exe)!,
+    csvLabels,
+    params.relocate ?? false,
+  );
 
-  return <Debugger host={host} emulator={emulator} />;
+  return <Debugger emulator={emulator} />;
 }
 
 async function main() {

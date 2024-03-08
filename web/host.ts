@@ -1,4 +1,5 @@
 import * as emulator from './emulator';
+import { EmulatorHost } from './emulator';
 import * as glue from './glue';
 import { Debugger } from './web';
 
@@ -44,10 +45,10 @@ class Surface implements glue.JsSurface {
 }
 
 class Window implements glue.JsWindow {
-  constructor(readonly host: Host, readonly hwnd: number) {
+  constructor(readonly jsHost: JsHost, readonly hwnd: number) {
     const stashEvent = (ev: Event) => {
       (ev as any).hwnd = hwnd;
-      host.enqueueEvent(ev);
+      jsHost.enqueueEvent(ev);
       return false;
     };
     this.canvas.onmousedown = stashEvent;
@@ -63,7 +64,7 @@ class Window implements glue.JsWindow {
   set_size(w: number, h: number) {
     this.canvas.width = w;
     this.canvas.height = h;
-    this.host.page.forceUpdate();
+    this.jsHost.emuHost.onWindowChanged();
   }
 }
 
@@ -84,35 +85,33 @@ class File implements glue.JsFile {
   }
 }
 
-/** Emulator host, providing the emulation=>web API. */
-export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
-  page!: Debugger;
-  emulator!: emulator.Emulator;
-  files = new Map<string, Uint8Array>();
+/** A set of (pre)loaded files; a temporary hack until the emulator can load files itself. */
+export type FileSet = Map<string, Uint8Array>;
+
+export async function fetchFileSet(files: string[], dir: string = ''): Promise<FileSet> {
+  const fileset: FileSet = new Map();
+  for (const file of files) {
+    const path = dir + file;
+    fileset.set(file, await fetchBytes(path));
+  }
+  return fileset;
+}
+
+/** Emulator host, providing the emulation=>web API.  Extended by Emulator class. */
+export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   private events: Event[] = [];
 
   stdout = '';
   decoder = new TextDecoder();
 
-  async fetch(files: string[], dir: string = '') {
-    for (const file of files) {
-      const path = dir + file;
-      this.files.set(file, await fetchBytes(path));
-    }
-  }
-
-  showTab(name: string) {
-    this.page.setState({ selectedTab: 'breakpoints' });
-  }
+  constructor(public emuHost: EmulatorHost, readonly files: FileSet) {}
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
     switch (level) {
       case 5:
         console.error(msg);
-        if (this.page) {
-          this.page.setState({ error: msg });
-        }
+        this.emuHost.onError(msg);
         break;
       case 4:
         console.warn(msg);
@@ -132,13 +131,14 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   }
 
   exit(code: number) {
-    console.warn('exited with code', code);
-    this.emulator.exitCode = code;
+    this.emuHost.exit(code);
   }
+
+  abstract start(): void;
 
   enqueueEvent(event: Event) {
     this.events.push(event);
-    this.page.start();
+    this.start();
   }
 
   get_event(): Event | undefined {
@@ -157,7 +157,7 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   write(buf: Uint8Array): number {
     const text = this.decoder.decode(buf);
     this.stdout += text;
-    this.page.setState({ stdout: this.stdout });
+    this.emuHost.onStdOut(this.stdout);
     return buf.length;
   }
 
@@ -165,7 +165,7 @@ export class Host implements glue.JsHost, glue.JsLogger, emulator.Host {
   create_window(hwnd: number): glue.JsWindow {
     let window = new Window(this, hwnd);
     this.windows.push(window);
-    this.page.forceUpdate();
+    this.emuHost.onWindowChanged();
     return window;
   }
 

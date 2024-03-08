@@ -1,32 +1,36 @@
 import { Breakpoint } from './break';
-import { JsHost } from './glue';
 import * as wasm from './glue/pkg';
+import { FileSet, JsHost } from './host';
 import { Labels } from './labels';
 import { hex } from './util';
 
-export interface Host extends JsHost {
-  emulator: Emulator;
+/** Functions the emulator may need to call. */
+export interface EmulatorHost {
+  exit(code: number): void;
+  onWindowChanged(): void;
   showTab(name: string): void;
+  onError(msg: string): void;
+  onStdOut(stdout: string): void;
 }
 
 /** Wraps wasm.Emulator, able to run in a RAF loop. */
-export class Emulator {
+export class Emulator extends JsHost {
   emu: wasm.Emulator;
   breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Labels;
-  exitCode: number | undefined = undefined;
   running = false;
 
   constructor(
-    readonly host: Host,
+    host: EmulatorHost,
+    files: FileSet,
     readonly storageKey: string,
     bytes: Uint8Array,
     labels: Map<number, string>,
     relocate: boolean,
   ) {
-    host.emulator = this;
-    this.emu = wasm.new_emulator(host, storageKey);
+    super(host, files);
+    this.emu = wasm.new_emulator(this, storageKey);
     this.emu.load_exe(storageKey, bytes, relocate);
 
     const importsJSON = JSON.parse(this.emu.labels());
@@ -92,14 +96,13 @@ export class Emulator {
 
   /** Check if the current address is a break/exit point, returning true if so. */
   isAtBreakpoint(): boolean {
-    if (this.exitCode !== undefined) return true;
     const ip = this.emu.eip;
     const bp = this.breakpoints.get(ip);
     if (bp && !bp.disabled) {
       if (bp.oneShot) {
         this.delBreak(bp.addr);
       } else {
-        this.host.showTab('breakpoints');
+        this.emuHost.showTab('breakpoints');
       }
       return true;
     }
@@ -175,15 +178,7 @@ export class Emulator {
   /** Runs a batch of instructions; called in RAF loop. */
   private runFrame() {
     if (!this.running) return;
-    let stop;
-    try {
-      stop = !this.stepMany();
-    } catch (e) {
-      const err = e as Error;
-      console.error(err);
-      stop = true;
-    }
-    if (stop) {
+    if (!this.stepMany()) {
       this.stop();
       return;
     }
