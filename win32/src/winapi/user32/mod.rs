@@ -6,16 +6,17 @@ mod resource;
 mod window;
 
 pub use super::gdi32::HDC;
-use super::handle::Handles;
 pub use super::kernel32::ResourceKey;
-use super::stack_args::ArrayWithSize;
-use super::types::*;
+use super::{
+    handle::Handles,
+    stack_args::{ArrayWithSize, VarArgs},
+    types::*,
+};
 use crate::machine::Machine;
 pub use message::*;
 pub use paint::*;
 pub use resource::*;
-use std::collections::VecDeque;
-use std::rc::Rc;
+use std::{collections::VecDeque, io::Cursor, io::Write, rc::Rc};
 pub use window::*;
 
 const TRACE_CONTEXT: &'static str = "user32";
@@ -232,4 +233,71 @@ pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool 
     let rect = lprc.unwrap();
     let (x, y) = (pt.x as i32, pt.y as i32);
     x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
+}
+
+#[win32_derive::dllexport]
+pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: VarArgs) -> u32 {
+    const BUF_LEN: u32 = 1024;
+    let mem = machine.mem();
+    let buf = mem.sub(buf, BUF_LEN).as_mut_slice_todo();
+    let mut out = Cursor::new(buf);
+
+    fn read_number(c: u8) -> usize {
+        // TODO: multiple digits, error handling, etc.
+        assert!(c >= b'0' && c <= b'9');
+        (c - b'0') as usize
+    }
+
+    let mut i = fmt.unwrap().bytes();
+    while let Some(c) = i.next() {
+        if c == b'%' {
+            let mut c = i.next().unwrap();
+            let mut width = 0;
+            if c >= b'0' && c <= b'9' {
+                width = read_number(c);
+                c = i.next().unwrap();
+            }
+            let mut precision = 0;
+            if c == b'.' {
+                c = i.next().unwrap();
+                precision = read_number(c);
+                c = i.next().unwrap();
+            }
+
+            let mut long = false;
+            if c == b'l' {
+                long = true;
+                c = i.next().unwrap();
+            }
+            _ = long; // currently ignored
+
+            match c {
+                b'u' => write!(
+                    out,
+                    "{:width$.precision$}",
+                    args.pop::<u32>(mem),
+                    width = width,
+                    precision = precision
+                )
+                .unwrap(),
+                b'd' => write!(
+                    out,
+                    "{:width$.precision$}",
+                    args.pop::<i32>(mem),
+                    width = width,
+                    precision = precision
+                )
+                .unwrap(),
+                _ => todo!("format string character {:?}", c as char),
+            }
+        } else {
+            out.write(&[c]).unwrap();
+        }
+    }
+    out.write(&[0]).unwrap();
+    // let len = out.position() as usize;
+    // let buf = &out.into_inner()[..len];
+    // log::info!("=> {}", std::str::from_utf8(buf).unwrap());
+    // len as u32 - 1
+    out.position() as u32 - 1
 }

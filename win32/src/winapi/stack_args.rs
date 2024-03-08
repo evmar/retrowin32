@@ -122,6 +122,22 @@ impl<'a> FromArg<'a> for Option<&'a Str16> {
     }
 }
 
+/// VarArgs marks a function as cdecl and grabs the stack pointer for the callee.
+#[derive(Debug)]
+pub struct VarArgs(u32);
+impl VarArgs {
+    pub fn pop<'a, T: FromArg<'a>>(&mut self, mem: Mem<'a>) -> T {
+        let value = unsafe { T::from_stack(mem, self.0) };
+        self.0 += 4; // TODO: should expose stack_consumed for use here and switch to FromStack
+        value
+    }
+}
+impl<'a> FromStack<'a> for VarArgs {
+    unsafe fn from_stack(_mem: Mem<'a>, sp: u32) -> Self {
+        VarArgs(sp)
+    }
+}
+
 /// Types that can be returned from a winapi function, passed via EAX.
 pub trait ToX86 {
     fn to_raw(&self) -> u32;

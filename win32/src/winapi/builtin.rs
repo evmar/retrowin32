@@ -3510,6 +3510,13 @@ pub mod user32 {
             let mem = machine.mem().detach();
             winapi::user32::WaitMessage(machine).to_raw()
         }
+        pub unsafe fn wsprintfA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let buf = <u32>::from_stack(mem, esp + 4u32);
+            let fmt = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let args = <VarArgs>::from_stack(mem, esp + 12u32);
+            winapi::user32::wsprintfA(machine, buf, fmt, args).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -3922,8 +3929,14 @@ pub mod user32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const wsprintfA: Shim = Shim {
+            name: "wsprintfA",
+            func: impls::wsprintfA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 68usize] = [
+    const EXPORTS: [Symbol; 69usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4195,6 +4208,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::WaitMessage,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::wsprintfA,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

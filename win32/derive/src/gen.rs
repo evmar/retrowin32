@@ -63,9 +63,15 @@ pub fn gather_shims<'a>(
     Ok(())
 }
 
+enum Argument {
+    /// Value is amount of stack the argument uses in stdcall.
+    Ordinary(u32),
+    VarArgs,
+}
+
 /// Return the amount of stack a given stdcall argument uses.
 /// (All of them except the array+size type are 4 bytes.)
-fn stack_consumed(ty: &syn::Type) -> u32 {
+fn parse_argument_type(ty: &syn::Type) -> Argument {
     let ty = match ty {
         syn::Type::Path(ty) => ty,
         _ => panic!("unhandled type {ty:?}"),
@@ -74,13 +80,13 @@ fn stack_consumed(ty: &syn::Type) -> u32 {
         panic!("unhandled type {ty:?}");
     }
 
-    if ty.path.segments[0].ident == "ArrayWithSize"
-        || ty.path.segments[0].ident == "ArrayWithSizeMut"
-        || ty.path.segments[0].ident == "POINT"
-    {
-        8
+    let name = &ty.path.segments[0].ident;
+    if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" {
+        Argument::Ordinary(8)
+    } else if name == "VarArgs" {
+        Argument::VarArgs
     } else {
-        4
+        Argument::Ordinary(4)
     }
 }
 
@@ -123,7 +129,13 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
         fetch_args.extend(quote! {
             let #arg = <#ty>::from_stack(mem, esp + #stack_offset);
         });
-        stack_offset += stack_consumed(ty);
+        match parse_argument_type(ty) {
+            Argument::Ordinary(ofs) => stack_offset += ofs,
+            Argument::VarArgs => {
+                // VarArgs means the function is cdecl which means arguments are caller-cleaned.
+                stack_offset = 4;
+            }
+        }
     }
 
     // If the function is async, we need to handle the return value a bit differently.
