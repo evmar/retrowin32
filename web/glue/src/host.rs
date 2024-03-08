@@ -26,6 +26,9 @@ impl WebSurface {
             .unwrap()
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
+        ctx.set_fill_style(&JsValue::from_str("black"));
+        ctx.fill_rect(0.0, 0.0, opts.width as f64, opts.height as f64);
+        ctx.fill();
         Self {
             canvas,
             width: opts.width,
