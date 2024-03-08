@@ -27,8 +27,13 @@ class Window implements glue.JsWindow {
   canvas: HTMLCanvasElement = document.createElement('canvas');
 
   set_size(w: number, h: number) {
-    this.canvas.width = w;
-    this.canvas.height = h;
+    // Note: the canvas must be sized to the size of physical pixels,
+    // or else it will be scaled up and pixels will be blurry.
+    // See matching .scale() call in screen().
+    this.canvas.width = w * window.devicePixelRatio;
+    this.canvas.height = h * window.devicePixelRatio;
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
     this.jsHost.emuHost.onWindowChanged();
   }
 }
@@ -69,7 +74,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   stdout = '';
   decoder = new TextDecoder();
 
-  constructor(public emuHost: EmulatorHost, readonly files: FileSet) {}
+  constructor(public emuHost: EmulatorHost, readonly files: FileSet) { }
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
@@ -138,6 +143,9 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     // XXX how to tie surface and window together?
     // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,
     // but how to plumb that info across JS boundary?
-    return this.windows[this.windows.length - 1].canvas.getContext('2d');
+    let ctx = this.windows[this.windows.length - 1].canvas.getContext('2d')!;
+    ctx.imageSmoothingEnabled = false;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    return ctx;
   }
 }
