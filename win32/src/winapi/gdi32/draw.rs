@@ -95,7 +95,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
             Object::Pen(pen) => pen.color.to_pixel(),
             _ => todo!(),
         },
-        R2::WHITE => [0xff, 0xff, 0xff, 0],
+        R2::WHITE => COLORREF((0xff, 0xff, 0xff)).to_pixel(),
     };
 
     let (dstX, dstY) = (x, y);
