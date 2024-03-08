@@ -10,6 +10,8 @@ use crate::{
 use bitflags::bitflags;
 use std::rc::Rc;
 
+const TRACE_CONTEXT: &'static str = "user32/window";
+
 pub struct WindowPixels {
     pub surface: Box<dyn host::Surface>,
     pub bitmap: Bitmap,

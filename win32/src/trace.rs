@@ -54,7 +54,7 @@ impl State {
         if let Some(&enabled) = self.enabled.get(&context.as_ptr()) {
             return enabled;
         }
-        let mut enabled = true;
+        let mut enabled = false;
         for rule in &self.rules {
             if context.starts_with(&rule.key) {
                 enabled = rule.enabled;
