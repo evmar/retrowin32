@@ -478,15 +478,268 @@ var Code = class extends d {
   }
 };
 
-// glue/pkg/glue.js
-var wasm;
-var cachedTextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }) : {
-  decode: () => {
-    throw Error("TextDecoder not available");
+// mappings.tsx
+var Mappings = class extends d {
+  render() {
+    const rows = this.props.mappings.map((mapping) => {
+      let className;
+      const highlight = this.props.highlight;
+      if (highlight !== void 0 && highlight >= mapping.addr && highlight < mapping.addr + mapping.size) {
+        className = "highlight";
+      }
+      return /* @__PURE__ */ h("tr", {
+        class: className
+      }, /* @__PURE__ */ h("td", {
+        style: { width: "10ch" }
+      }, hex(mapping.addr, 8)), /* @__PURE__ */ h("td", {
+        style: { width: "8ch" }
+      }, hex(mapping.size)), /* @__PURE__ */ h("td", null, mapping.desc));
+    });
+    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("table", null, /* @__PURE__ */ h("thead", null, /* @__PURE__ */ h("tr", null, /* @__PURE__ */ h("td", null, "addr"), /* @__PURE__ */ h("td", null, "size"), /* @__PURE__ */ h("td", null, "desc"))), rows)));
   }
 };
-if (typeof TextDecoder !== "undefined")
+
+// registers.tsx
+var RegistersComponent = class extends d {
+  render() {
+    const { regs } = this.props;
+    const st = regs.st;
+    return /* @__PURE__ */ h("section", {
+      class: "panel"
+    }, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("div", null, "eax\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.eax), /* @__PURE__ */ h("br", null), "ebx\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ebx), /* @__PURE__ */ h("br", null), "ecx\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ecx), /* @__PURE__ */ h("br", null), "edx\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.edx), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "eip\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.eip), /* @__PURE__ */ h("br", null), "esp\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.esp), /* @__PURE__ */ h("br", null), "ebp\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ebp), /* @__PURE__ */ h("br", null), "esi\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.esi), /* @__PURE__ */ h("br", null), "edi\xA0", /* @__PURE__ */ h(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.edi), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "cs\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.cs), " ", "fs\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.fs), /* @__PURE__ */ h("br", null), "ds\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.ds), " ", "gs\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.gs), /* @__PURE__ */ h("br", null), "es\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.es), " ", "ss\xA0", /* @__PURE__ */ h(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.ss), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "flags\xA0", hex(regs.flags), " ", regs.flags_str), /* @__PURE__ */ h("br", null), st.length > 0 ? /* @__PURE__ */ h("div", null, "fpu", /* @__PURE__ */ h("br", null), Array.from(regs.st).map((n2) => /* @__PURE__ */ h("span", null, n2, /* @__PURE__ */ h("br", null)))) : null));
+  }
+};
+
+// snapshots.tsx
+function idbRequest(req) {
+  return new Promise((res, rej) => {
+    req.onerror = (err) => {
+      rej(err);
+    };
+    req.onsuccess = function() {
+      res(this.result);
+    };
+  });
+}
+function finishTransaction(t2) {
+  return new Promise((res, rej) => {
+    t2.onerror = (err) => {
+      rej(err);
+    };
+    t2.oncomplete = function() {
+      res();
+    };
+  });
+}
+var SnapshotsComponent = class extends d {
+  async load() {
+    const req = indexedDB.open("retrowin32");
+    req.onupgradeneeded = () => {
+      const db2 = req.result;
+      db2.createObjectStore("image", { autoIncrement: true });
+      db2.createObjectStore("snap", { keyPath: "idbKey" });
+    };
+    const db = await idbRequest(req);
+    const snaps = await idbRequest(db.transaction("snap").objectStore("snap").getAll());
+    const st = { db, snaps };
+    this.setState({ state: "ok", data: st });
+    db.onerror = (error) => {
+      this.setState({
+        state: "error",
+        data: error.toString()
+      });
+    };
+    return st;
+  }
+  componentDidMount() {
+    this.load();
+  }
+  render() {
+    if (this.state.state === "ok") {
+      return /* @__PURE__ */ h(Snapshots, {
+        ...this.props,
+        ...this.state.data,
+        reload: () => this.load()
+      });
+    } else if (this.state.state === "error") {
+      return /* @__PURE__ */ h("section", null, "error: ", this.state.data);
+    } else {
+      return /* @__PURE__ */ h("section", null, "loading");
+    }
+  }
+};
+var Snapshots = class extends d {
+  async save() {
+    const image = this.props.take();
+    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
+    const idbKey = await idbRequest(t2.objectStore("image").add(image));
+    const snap = { idbKey, size: image.length };
+    await idbRequest(t2.objectStore("snap").add(snap));
+    await finishTransaction(t2);
+    this.props.reload();
+  }
+  async load(key) {
+    const t2 = this.props.db.transaction(["image"], "readonly");
+    const image = await idbRequest(t2.objectStore("image").get(key));
+    await finishTransaction(t2);
+    this.props.load(image);
+  }
+  async clear() {
+    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
+    t2.objectStore("snap").clear();
+    t2.objectStore("image").clear();
+    await finishTransaction(t2);
+    this.props.reload();
+  }
+  render() {
+    let snaps = [];
+    if (this.props.snaps.length > 0) {
+      for (const snap of this.props.snaps) {
+        snaps.push(
+          /* @__PURE__ */ h("div", null, snap.size, " bytes ", /* @__PURE__ */ h("button", {
+            onClick: () => this.load(snap.idbKey)
+          }, "load"))
+        );
+      }
+      snaps.push(
+        /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
+          onClick: () => this.clear()
+        }, "clear snapshots"))
+      );
+    }
+    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
+      onClick: () => this.save()
+    }, "save snapshot")), snaps);
+  }
+};
+
+// stack.tsx
+var Stack = class extends d {
+  render() {
+    const { emu } = this.props;
+    const esp = emu.esp;
+    const memory = emu.memory();
+    const rows = [];
+    for (let addr = esp - 16; addr < esp + 32; addr += 4) {
+      const value = memory.getUint32(addr, true);
+      let label = this.props.labels.get(value);
+      if (label) {
+        label = ` ${label}`;
+      }
+      let row = /* @__PURE__ */ h("div", null, /* @__PURE__ */ h(Number, {
+        digits: 8,
+        ...this.props
+      }, addr), "\xA0", /* @__PURE__ */ h(Number, {
+        digits: 8,
+        ...this.props
+      }, value), label);
+      if (addr === esp) {
+        row = /* @__PURE__ */ h("b", null, row);
+      }
+      rows.push(row);
+    }
+    return /* @__PURE__ */ h("section", {
+      class: "panel"
+    }, /* @__PURE__ */ h("code", null, rows));
+  }
+};
+
+// tabs.tsx
+var Tabs = class extends d {
+  constructor(props) {
+    super(props);
+    this.state = { cur: Object.keys(props.tabs)[0] };
+  }
+  render() {
+    const tabs = this.props.tabs;
+    return /* @__PURE__ */ h("section", {
+      class: "panel",
+      style: this.props.style
+    }, /* @__PURE__ */ h("div", {
+      class: "tabs-strip"
+    }, Object.keys(tabs).map((name) => {
+      let button = /* @__PURE__ */ h("span", {
+        class: "clicky",
+        onClick: () => this.props.switchTab(name)
+      }, name);
+      if (name === this.props.selected) {
+        button = /* @__PURE__ */ h("b", null, button);
+      }
+      return /* @__PURE__ */ h(p, null, "\xA0|\xA0", button);
+    })), tabs[this.props.selected]);
+  }
+};
+
+// glue/pkg/glue.js
+var wasm;
+var heap = new Array(128).fill(void 0);
+heap.push(void 0, null, true, false);
+function getObject(idx) {
+  return heap[idx];
+}
+var heap_next = heap.length;
+function dropObject(idx) {
+  if (idx < 132)
+    return;
+  heap[idx] = heap_next;
+  heap_next = idx;
+}
+function takeObject(idx) {
+  const ret = getObject(idx);
+  dropObject(idx);
+  return ret;
+}
+var cachedTextDecoder = typeof TextDecoder !== "undefined" ? new TextDecoder("utf-8", { ignoreBOM: true, fatal: true }) : { decode: () => {
+  throw Error("TextDecoder not available");
+} };
+if (typeof TextDecoder !== "undefined") {
   cachedTextDecoder.decode();
+}
 var cachedUint8Memory0 = null;
 function getUint8Memory0() {
   if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
@@ -498,33 +751,16 @@ function getStringFromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
-var heap = new Array(128).fill(void 0);
-heap.push(void 0, null, true, false);
-var heap_next = heap.length;
 function addHeapObject(obj) {
   if (heap_next === heap.length)
     heap.push(heap.length + 1);
   const idx = heap_next;
   heap_next = heap[idx];
-  if (typeof heap_next !== "number")
-    throw new Error("corrupt heap");
   heap[idx] = obj;
   return idx;
 }
-function getObject(idx) {
-  return heap[idx];
-}
-function _assertBoolean(n2) {
-  if (typeof n2 !== "boolean") {
-    throw new Error(`expected a boolean argument, found ${typeof n2}`);
-  }
-}
 function isLikeNone(x) {
   return x === void 0 || x === null;
-}
-function _assertNum(n2) {
-  if (typeof n2 !== "number")
-    throw new Error(`expected a number argument, found ${typeof n2}`);
 }
 var cachedFloat64Memory0 = null;
 function getFloat64Memory0() {
@@ -597,11 +833,9 @@ ${val.stack}`;
   return className;
 }
 var WASM_VECTOR_LEN = 0;
-var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : {
-  encode: () => {
-    throw Error("TextEncoder not available");
-  }
-};
+var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : { encode: () => {
+  throw Error("TextEncoder not available");
+} };
 var encodeString = typeof cachedTextEncoder.encodeInto === "function" ? function(arg, view) {
   return cachedTextEncoder.encodeInto(arg, view);
 } : function(arg, view) {
@@ -613,8 +847,6 @@ var encodeString = typeof cachedTextEncoder.encodeInto === "function" ? function
   };
 };
 function passStringToWasm0(arg, malloc, realloc) {
-  if (typeof arg !== "string")
-    throw new Error(`expected a string argument, found ${typeof arg}`);
   if (realloc === void 0) {
     const buf = cachedTextEncoder.encode(arg);
     const ptr2 = malloc(buf.length, 1) >>> 0;
@@ -639,24 +871,11 @@ function passStringToWasm0(arg, malloc, realloc) {
     ptr = realloc(ptr, len, len = offset + arg.length * 3, 1) >>> 0;
     const view = getUint8Memory0().subarray(ptr + offset, ptr + len);
     const ret = encodeString(arg, view);
-    if (ret.read !== arg.length)
-      throw new Error("failed to pass whole string");
     offset += ret.written;
     ptr = realloc(ptr, len, offset, 1) >>> 0;
   }
   WASM_VECTOR_LEN = offset;
   return ptr;
-}
-function dropObject(idx) {
-  if (idx < 132)
-    return;
-  heap[idx] = heap_next;
-  heap_next = idx;
-}
-function takeObject(idx) {
-  const ret = getObject(idx);
-  dropObject(idx);
-  return ret;
 }
 function passArray8ToWasm0(arg, malloc) {
   const ptr = malloc(arg.length * 1, 1) >>> 0;
@@ -673,24 +892,6 @@ function new_emulator(host, cmdline) {
   const len0 = WASM_VECTOR_LEN;
   const ret = wasm.new_emulator(addHeapObject(host), ptr0, len0);
   return Emulator.__wrap(ret);
-}
-function logError(f2, args) {
-  try {
-    return f2.apply(this, args);
-  } catch (e2) {
-    let error = function() {
-      try {
-        return e2 instanceof Error ? `${e2.message}
-
-Stack:
-${e2.stack}` : e2.toString();
-      } catch (_2) {
-        return "<failed to stringify thrown value>";
-      }
-    }();
-    console.error("wasm-bindgen: imported JS function that was not marked as `catch` threw an error:", error);
-    throw e2;
-  }
 }
 function handleError(f2, args) {
   try {
@@ -710,23 +911,11 @@ function getClampedArrayU8FromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-var CPUState = Object.freeze({
-  Running: 0,
-  "0": "Running",
-  Blocked: 1,
-  "1": "Blocked",
-  Error: 2,
-  "2": "Error",
-  Exit: 3,
-  "3": "Exit"
-});
+var CPUState = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", Exit: 3, "3": "Exit" });
 var EmulatorFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
 }, unregister: () => {
 } } : new FinalizationRegistry((ptr) => wasm.__wbg_emulator_free(ptr >>> 0));
 var Emulator = class {
-  constructor() {
-    throw new Error("cannot invoke `new` directly");
-  }
   static __wrap(ptr) {
     ptr = ptr >>> 0;
     const obj = Object.create(Emulator.prototype);
@@ -746,15 +935,11 @@ var Emulator = class {
   }
   load_exe(name, buf, relocate) {
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
       const ptr0 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
       const len0 = WASM_VECTOR_LEN;
       const ptr1 = passArray8ToWasm0(buf, wasm.__wbindgen_malloc);
       const len1 = WASM_VECTOR_LEN;
-      _assertBoolean(relocate);
       wasm.emulator_load_exe(retptr, this.__wbg_ptr, ptr0, len0, ptr1, len1, relocate);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -769,10 +954,7 @@ var Emulator = class {
     let deferred2_0;
     let deferred2_1;
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
       wasm.emulator_labels(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -794,37 +976,22 @@ var Emulator = class {
     }
   }
   memory() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ret = wasm.emulator_memory(this.__wbg_ptr);
     return takeObject(ret);
   }
   get esp() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ret = wasm.emulator_esp(this.__wbg_ptr);
     return ret >>> 0;
   }
   get eip() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ret = wasm.emulator_eip(this.__wbg_ptr);
     return ret >>> 0;
   }
   regs() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ret = wasm.emulator_regs(this.__wbg_ptr);
     return takeObject(ret);
   }
   get instr_count() {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ret = wasm.emulator_instr_count(this.__wbg_ptr);
     return ret >>> 0;
   }
@@ -832,11 +999,7 @@ var Emulator = class {
     let deferred1_0;
     let deferred1_1;
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
-      _assertNum(addr);
       wasm.emulator_disassemble_json(retptr, this.__wbg_ptr, addr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -850,11 +1013,7 @@ var Emulator = class {
   }
   run(count) {
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
-      _assertNum(count);
       wasm.emulator_run(retptr, this.__wbg_ptr, count);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -868,27 +1027,16 @@ var Emulator = class {
     }
   }
   breakpoint_add(addr) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertNum(addr);
     wasm.emulator_breakpoint_add(this.__wbg_ptr, addr);
   }
   breakpoint_clear(addr) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertNum(addr);
     wasm.emulator_breakpoint_clear(this.__wbg_ptr, addr);
   }
   mappings_json() {
     let deferred1_0;
     let deferred1_1;
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
       wasm.emulator_mappings_json(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -901,19 +1049,11 @@ var Emulator = class {
     }
   }
   poke(addr, value) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
-    _assertNum(addr);
-    _assertNum(value);
     wasm.emulator_poke(this.__wbg_ptr, addr, value);
   }
   snapshot() {
     try {
-      if (this.__wbg_ptr == 0)
-        throw new Error("Attempt to use a moved value");
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      _assertNum(this.__wbg_ptr);
       wasm.emulator_snapshot(retptr, this.__wbg_ptr);
       var r0 = getInt32Memory0()[retptr / 4 + 0];
       var r1 = getInt32Memory0()[retptr / 4 + 1];
@@ -925,9 +1065,6 @@ var Emulator = class {
     }
   }
   load_snapshot(bytes) {
-    if (this.__wbg_ptr == 0)
-      throw new Error("Attempt to use a moved value");
-    _assertNum(this.__wbg_ptr);
     const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     wasm.emulator_load_snapshot(this.__wbg_ptr, ptr0, len0);
@@ -943,10 +1080,7 @@ async function __wbg_load(module, imports) {
         return await WebAssembly.instantiateStreaming(module, imports);
       } catch (e2) {
         if (module.headers.get("Content-Type") != "application/wasm") {
-          console.warn(
-            "`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n",
-            e2
-          );
+          console.warn("`WebAssembly.instantiateStreaming` failed because your server does not serve wasm with `application/wasm` MIME type. Falling back to `WebAssembly.instantiate` which is slower. Original error:\n", e2);
         } else {
           throw e2;
         }
@@ -966,129 +1100,136 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
   const imports = {};
   imports.wbg = {};
-  imports.wbg.__wbg_settitle_b48ee927b9814f5c = function() {
-    return logError(function(arg0, arg1, arg2) {
-      getObject(arg0).title = getStringFromWasm0(arg1, arg2);
-    }, arguments);
-  };
-  imports.wbg.__wbg_setsize_7bcb3132fd38238f = function() {
-    return logError(function(arg0, arg1, arg2) {
-      getObject(arg0).set_size(arg1 >>> 0, arg2 >>> 0);
-    }, arguments);
-  };
-  imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function() {
-    return logError(function(arg0, arg1) {
-      const ret = getObject(arg0).seek(arg1 >>> 0);
-      _assertBoolean(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_read_ca96830ec9aacdcf = function() {
-    return logError(function(arg0, arg1, arg2) {
-      const ret = getObject(arg0).read(getArrayU8FromWasm0(arg1, arg2));
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_exit_42080a4462444014 = function() {
-    return logError(function(arg0, arg1) {
-      getObject(arg0).exit(arg1 >>> 0);
-    }, arguments);
-  };
-  imports.wbg.__wbg_getevent_4f4de425a52104de = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).get_event();
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_open_61490d64358619c7 = function() {
-    return logError(function(arg0, arg1, arg2) {
-      const ret = getObject(arg0).open(getStringFromWasm0(arg1, arg2));
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_write_61e5d5b79d83ffda = function() {
-    return logError(function(arg0, arg1, arg2) {
-      const ret = getObject(arg0).write(getArrayU8FromWasm0(arg1, arg2));
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_createwindow_79bbfe483866ee8c = function() {
-    return logError(function(arg0, arg1) {
-      const ret = getObject(arg0).create_window(arg1 >>> 0);
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_screen_0825c896804feac9 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).screen();
-      return addHeapObject(ret);
-    }, arguments);
+  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
   };
   imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
     const ret = new Error(getStringFromWasm0(arg0, arg1));
     return addHeapObject(ret);
   };
-  imports.wbg.__wbindgen_is_undefined = function(arg0) {
-    const ret = getObject(arg0) === void 0;
-    _assertBoolean(ret);
+  imports.wbg.__wbindgen_memory = function() {
+    const ret = wasm.memory;
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_buffer_12d079cc21e14bdb = function(arg0) {
+    const ret = getObject(arg0).buffer;
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_byteLength_2e8dcbbe54bdad62 = function(arg0) {
+    const ret = getObject(arg0).byteLength;
     return ret;
   };
-  imports.wbg.__wbindgen_number_get = function(arg0, arg1) {
-    const obj = getObject(arg1);
-    const ret = typeof obj === "number" ? obj : void 0;
-    if (!isLikeNone(ret)) {
-      _assertNum(ret);
-    }
-    getFloat64Memory0()[arg0 / 8 + 1] = isLikeNone(ret) ? 0 : ret;
-    getInt32Memory0()[arg0 / 4 + 0] = !isLikeNone(ret);
-  };
-  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
+  imports.wbg.__wbg_new_6308304d72aede55 = function(arg0, arg1, arg2) {
+    const ret = new DataView(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
     return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_parse_66d1801634e099ac = function() {
+    return handleError(function(arg0, arg1) {
+      const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
+      return addHeapObject(ret);
+    }, arguments);
   };
   imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
     const ret = getObject(arg0);
     return addHeapObject(ret);
   };
-  imports.wbg.__wbg_log_21bd4d15c3d236fe = function() {
-    return logError(function(arg0, arg1, arg2, arg3) {
-      let deferred0_0;
-      let deferred0_1;
-      try {
-        deferred0_0 = arg2;
-        deferred0_1 = arg3;
-        getObject(arg0).log(arg1, getStringFromWasm0(arg2, arg3));
-      } finally {
-        wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
-      }
+  imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
+    getObject(arg0).exit(arg1 >>> 0);
+  };
+  imports.wbg.__wbg_instanceof_Window_f401953a2cf86220 = function(arg0) {
+    let result;
+    try {
+      result = getObject(arg0) instanceof Window;
+    } catch (_2) {
+      result = false;
+    }
+    const ret = result;
+    return ret;
+  };
+  imports.wbg.__wbg_performance_3298a9628a5c8aa4 = function(arg0) {
+    const ret = getObject(arg0).performance;
+    return isLikeNone(ret) ? 0 : addHeapObject(ret);
+  };
+  imports.wbg.__wbg_now_4e659b3d15f470d9 = function(arg0) {
+    const ret = getObject(arg0).now();
+    return ret;
+  };
+  imports.wbg.__wbg_getevent_4f4de425a52104de = function(arg0) {
+    const ret = getObject(arg0).get_event();
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbindgen_is_undefined = function(arg0) {
+    const ret = getObject(arg0) === void 0;
+    return ret;
+  };
+  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_get_e3c254076557e348 = function() {
+    return handleError(function(arg0, arg1) {
+      const ret = Reflect.get(getObject(arg0), getObject(arg1));
+      return addHeapObject(ret);
     }, arguments);
   };
-  imports.wbg.__wbg_instanceof_Window_f401953a2cf86220 = function() {
-    return logError(function(arg0) {
-      let result;
-      try {
-        result = getObject(arg0) instanceof Window;
-      } catch (_2) {
-        result = false;
-      }
-      const ret = result;
-      _assertBoolean(ret);
-      return ret;
-    }, arguments);
+  imports.wbg.__wbindgen_number_get = function(arg0, arg1) {
+    const obj = getObject(arg1);
+    const ret = typeof obj === "number" ? obj : void 0;
+    getFloat64Memory0()[arg0 / 8 + 1] = isLikeNone(ret) ? 0 : ret;
+    getInt32Memory0()[arg0 / 4 + 0] = !isLikeNone(ret);
   };
-  imports.wbg.__wbg_document_5100775d18896c16 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).document;
-      return isLikeNone(ret) ? 0 : addHeapObject(ret);
-    }, arguments);
+  imports.wbg.__wbg_type_c7f33162571befe7 = function(arg0, arg1) {
+    const ret = getObject(arg1).type;
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
   };
-  imports.wbg.__wbg_performance_3298a9628a5c8aa4 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).performance;
-      return isLikeNone(ret) ? 0 : addHeapObject(ret);
-    }, arguments);
+  imports.wbg.__wbg_button_367cdc7303e3cf9b = function(arg0) {
+    const ret = getObject(arg0).button;
+    return ret;
+  };
+  imports.wbg.__wbg_offsetX_1a40c03298c0d8b6 = function(arg0) {
+    const ret = getObject(arg0).offsetX;
+    return ret;
+  };
+  imports.wbg.__wbg_offsetY_f75e8c25b9d9b679 = function(arg0) {
+    const ret = getObject(arg0).offsetY;
+    return ret;
+  };
+  imports.wbg.__wbg_open_61490d64358619c7 = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).open(getStringFromWasm0(arg1, arg2));
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function(arg0, arg1) {
+    const ret = getObject(arg0).seek(arg1 >>> 0);
+    return ret;
+  };
+  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).read(getArrayU8FromWasm0(arg1, arg2));
+    return ret;
+  };
+  imports.wbg.__wbg_write_61e5d5b79d83ffda = function(arg0, arg1, arg2) {
+    const ret = getObject(arg0).write(getArrayU8FromWasm0(arg1, arg2));
+    return ret;
+  };
+  imports.wbg.__wbg_createwindow_79bbfe483866ee8c = function(arg0, arg1) {
+    const ret = getObject(arg0).create_window(arg1 >>> 0);
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_settitle_b48ee927b9814f5c = function(arg0, arg1, arg2) {
+    getObject(arg0).title = getStringFromWasm0(arg1, arg2);
+  };
+  imports.wbg.__wbg_setsize_7bcb3132fd38238f = function(arg0, arg1, arg2) {
+    getObject(arg0).set_size(arg1 >>> 0, arg2 >>> 0);
+  };
+  imports.wbg.__wbg_screen_0825c896804feac9 = function(arg0) {
+    const ret = getObject(arg0).screen();
+    return addHeapObject(ret);
+  };
+  imports.wbg.__wbg_document_5100775d18896c16 = function(arg0) {
+    const ret = getObject(arg0).document;
+    return isLikeNone(ret) ? 0 : addHeapObject(ret);
   };
   imports.wbg.__wbg_createElement_8bae7856a4bb7411 = function() {
     return handleError(function(arg0, arg1, arg2) {
@@ -1096,24 +1237,11 @@ function __wbg_get_imports() {
       return addHeapObject(ret);
     }, arguments);
   };
-  imports.wbg.__wbg_type_c7f33162571befe7 = function() {
-    return logError(function(arg0, arg1) {
-      const ret = getObject(arg1).type;
-      const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-      const len1 = WASM_VECTOR_LEN;
-      getInt32Memory0()[arg0 / 4 + 1] = len1;
-      getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-    }, arguments);
+  imports.wbg.__wbg_setwidth_080107476e633963 = function(arg0, arg1) {
+    getObject(arg0).width = arg1 >>> 0;
   };
-  imports.wbg.__wbg_setwidth_080107476e633963 = function() {
-    return logError(function(arg0, arg1) {
-      getObject(arg0).width = arg1 >>> 0;
-    }, arguments);
-  };
-  imports.wbg.__wbg_setheight_dc240617639f1f51 = function() {
-    return logError(function(arg0, arg1) {
-      getObject(arg0).height = arg1 >>> 0;
-    }, arguments);
+  imports.wbg.__wbg_setheight_dc240617639f1f51 = function(arg0, arg1) {
+    getObject(arg0).height = arg1 >>> 0;
   };
   imports.wbg.__wbg_getContext_df50fa48a8876636 = function() {
     return handleError(function(arg0, arg1, arg2) {
@@ -1121,34 +1249,34 @@ function __wbg_get_imports() {
       return isLikeNone(ret) ? 0 : addHeapObject(ret);
     }, arguments);
   };
+  imports.wbg.__wbg_instanceof_CanvasRenderingContext2d_20bf99ccc051643b = function(arg0) {
+    let result;
+    try {
+      result = getObject(arg0) instanceof CanvasRenderingContext2D;
+    } catch (_2) {
+      result = false;
+    }
+    const ret = result;
+    return ret;
+  };
+  imports.wbg.__wbg_setfillStyle_4de94b275f5761f2 = function(arg0, arg1) {
+    getObject(arg0).fillStyle = getObject(arg1);
+  };
+  imports.wbg.__wbg_fillRect_b5c8166281bac9df = function(arg0, arg1, arg2, arg3, arg4) {
+    getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
+  };
+  imports.wbg.__wbg_fill_7f376d2e52c3054e = function(arg0) {
+    getObject(arg0).fill();
+  };
   imports.wbg.__wbg_newwithu8clampedarray_ae824147b27925fc = function() {
     return handleError(function(arg0, arg1, arg2) {
       const ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
       return addHeapObject(ret);
     }, arguments);
   };
-  imports.wbg.__wbg_now_4e659b3d15f470d9 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).now();
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_instanceof_CanvasRenderingContext2d_20bf99ccc051643b = function() {
-    return logError(function(arg0) {
-      let result;
-      try {
-        result = getObject(arg0) instanceof CanvasRenderingContext2D;
-      } catch (_2) {
-        result = false;
-      }
-      const ret = result;
-      _assertBoolean(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_setfillStyle_4de94b275f5761f2 = function() {
-    return logError(function(arg0, arg1) {
-      getObject(arg0).fillStyle = getObject(arg1);
+  imports.wbg.__wbg_putImageData_044c08ad889366e1 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3) {
+      getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
     }, arguments);
   };
   imports.wbg.__wbg_drawImage_26ad546f3bb64a22 = function() {
@@ -1161,72 +1289,23 @@ function __wbg_get_imports() {
       getObject(arg0).drawImage(getObject(arg1), arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }, arguments);
   };
-  imports.wbg.__wbg_fill_7f376d2e52c3054e = function() {
-    return logError(function(arg0) {
-      getObject(arg0).fill();
-    }, arguments);
+  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+      deferred0_0 = arg2;
+      deferred0_1 = arg3;
+      getObject(arg0).log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
   };
-  imports.wbg.__wbg_putImageData_044c08ad889366e1 = function() {
-    return handleError(function(arg0, arg1, arg2, arg3) {
-      getObject(arg0).putImageData(getObject(arg1), arg2, arg3);
-    }, arguments);
-  };
-  imports.wbg.__wbg_fillRect_b5c8166281bac9df = function() {
-    return logError(function(arg0, arg1, arg2, arg3, arg4) {
-      getObject(arg0).fillRect(arg1, arg2, arg3, arg4);
-    }, arguments);
-  };
-  imports.wbg.__wbg_offsetX_1a40c03298c0d8b6 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).offsetX;
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_offsetY_f75e8c25b9d9b679 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).offsetY;
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_button_367cdc7303e3cf9b = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).button;
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_byteLength_2e8dcbbe54bdad62 = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).byteLength;
-      _assertNum(ret);
-      return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_new_6308304d72aede55 = function() {
-    return logError(function(arg0, arg1, arg2) {
-      const ret = new DataView(getObject(arg0), arg1 >>> 0, arg2 >>> 0);
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_newnoargs_e258087cd0daa0ea = function() {
-    return logError(function(arg0, arg1) {
-      const ret = new Function(getStringFromWasm0(arg0, arg1));
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_call_27c0f87801dedf93 = function() {
-    return handleError(function(arg0, arg1) {
-      const ret = getObject(arg0).call(getObject(arg1));
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbg_globalThis_d1e6af4856ba331b = function() {
-    return handleError(function() {
-      const ret = globalThis.globalThis;
-      return addHeapObject(ret);
-    }, arguments);
+  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
+    const ret = debugString(getObject(arg1));
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
   };
   imports.wbg.__wbg_self_ce0dbfc45cf2f5be = function() {
     return handleError(function() {
@@ -1240,46 +1319,30 @@ function __wbg_get_imports() {
       return addHeapObject(ret);
     }, arguments);
   };
+  imports.wbg.__wbg_globalThis_d1e6af4856ba331b = function() {
+    return handleError(function() {
+      const ret = globalThis.globalThis;
+      return addHeapObject(ret);
+    }, arguments);
+  };
   imports.wbg.__wbg_global_207b558942527489 = function() {
     return handleError(function() {
       const ret = global.global;
       return addHeapObject(ret);
     }, arguments);
   };
-  imports.wbg.__wbg_buffer_12d079cc21e14bdb = function() {
-    return logError(function(arg0) {
-      const ret = getObject(arg0).buffer;
-      return addHeapObject(ret);
-    }, arguments);
+  imports.wbg.__wbg_newnoargs_e258087cd0daa0ea = function(arg0, arg1) {
+    const ret = new Function(getStringFromWasm0(arg0, arg1));
+    return addHeapObject(ret);
   };
-  imports.wbg.__wbg_parse_66d1801634e099ac = function() {
+  imports.wbg.__wbg_call_27c0f87801dedf93 = function() {
     return handleError(function(arg0, arg1) {
-      const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
+      const ret = getObject(arg0).call(getObject(arg1));
       return addHeapObject(ret);
     }, arguments);
-  };
-  imports.wbg.__wbg_get_e3c254076557e348 = function() {
-    return handleError(function(arg0, arg1) {
-      const ret = Reflect.get(getObject(arg0), getObject(arg1));
-      return addHeapObject(ret);
-    }, arguments);
-  };
-  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
-    const ret = debugString(getObject(arg1));
-    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len1;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-  };
-  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
   };
   imports.wbg.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
-  };
-  imports.wbg.__wbindgen_memory = function() {
-    const ret = wasm.memory;
-    return addHeapObject(ret);
   };
   return imports;
 }
@@ -1335,8 +1398,14 @@ var Window2 = class {
     };
   }
   set_size(w2, h2) {
-    this.canvas.width = w2;
-    this.canvas.height = h2;
+    this.canvas.width = w2 * window.devicePixelRatio;
+    this.canvas.height = h2 * window.devicePixelRatio;
+    this.canvas.style.width = `${w2}px`;
+    this.canvas.style.height = `${h2}px`;
+    const ctx = this.canvas.getContext("2d");
+    ctx.reset();
+    ctx.imageSmoothingEnabled = false;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     this.jsHost.emuHost.onWindowChanged();
   }
 };
@@ -1629,243 +1698,6 @@ var Emulator2 = class extends JsHost {
   }
 };
 
-// mappings.tsx
-var Mappings = class extends d {
-  render() {
-    const rows = this.props.mappings.map((mapping) => {
-      let className;
-      const highlight = this.props.highlight;
-      if (highlight !== void 0 && highlight >= mapping.addr && highlight < mapping.addr + mapping.size) {
-        className = "highlight";
-      }
-      return /* @__PURE__ */ h("tr", {
-        class: className
-      }, /* @__PURE__ */ h("td", {
-        style: { width: "10ch" }
-      }, hex(mapping.addr, 8)), /* @__PURE__ */ h("td", {
-        style: { width: "8ch" }
-      }, hex(mapping.size)), /* @__PURE__ */ h("td", null, mapping.desc));
-    });
-    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("table", null, /* @__PURE__ */ h("thead", null, /* @__PURE__ */ h("tr", null, /* @__PURE__ */ h("td", null, "addr"), /* @__PURE__ */ h("td", null, "size"), /* @__PURE__ */ h("td", null, "desc"))), rows)));
-  }
-};
-
-// registers.tsx
-var RegistersComponent = class extends d {
-  render() {
-    const { regs } = this.props;
-    const st = regs.st;
-    return /* @__PURE__ */ h("section", {
-      class: "panel"
-    }, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("div", null, "eax\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.eax), /* @__PURE__ */ h("br", null), "ebx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ebx), /* @__PURE__ */ h("br", null), "ecx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ecx), /* @__PURE__ */ h("br", null), "edx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.edx), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "eip\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.eip), /* @__PURE__ */ h("br", null), "esp\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.esp), /* @__PURE__ */ h("br", null), "ebp\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ebp), /* @__PURE__ */ h("br", null), "esi\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.esi), /* @__PURE__ */ h("br", null), "edi\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.edi), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "cs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.cs), " ", "fs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.fs), /* @__PURE__ */ h("br", null), "ds\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.ds), " ", "gs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.gs), /* @__PURE__ */ h("br", null), "es\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.es), " ", "ss\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.ss), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "flags\xA0", hex(regs.flags), " ", regs.flags_str), /* @__PURE__ */ h("br", null), st.length > 0 ? /* @__PURE__ */ h("div", null, "fpu", /* @__PURE__ */ h("br", null), Array.from(regs.st).map((n2) => /* @__PURE__ */ h("span", null, n2, /* @__PURE__ */ h("br", null)))) : null));
-  }
-};
-
-// snapshots.tsx
-function idbRequest(req) {
-  return new Promise((res, rej) => {
-    req.onerror = (err) => {
-      rej(err);
-    };
-    req.onsuccess = function() {
-      res(this.result);
-    };
-  });
-}
-function finishTransaction(t2) {
-  return new Promise((res, rej) => {
-    t2.onerror = (err) => {
-      rej(err);
-    };
-    t2.oncomplete = function() {
-      res();
-    };
-  });
-}
-var SnapshotsComponent = class extends d {
-  async load() {
-    const req = indexedDB.open("retrowin32");
-    req.onupgradeneeded = () => {
-      const db2 = req.result;
-      db2.createObjectStore("image", { autoIncrement: true });
-      db2.createObjectStore("snap", { keyPath: "idbKey" });
-    };
-    const db = await idbRequest(req);
-    const snaps = await idbRequest(db.transaction("snap").objectStore("snap").getAll());
-    const st = { db, snaps };
-    this.setState({ state: "ok", data: st });
-    db.onerror = (error) => {
-      this.setState({
-        state: "error",
-        data: error.toString()
-      });
-    };
-    return st;
-  }
-  componentDidMount() {
-    this.load();
-  }
-  render() {
-    if (this.state.state === "ok") {
-      return /* @__PURE__ */ h(Snapshots, {
-        ...this.props,
-        ...this.state.data,
-        reload: () => this.load()
-      });
-    } else if (this.state.state === "error") {
-      return /* @__PURE__ */ h("section", null, "error: ", this.state.data);
-    } else {
-      return /* @__PURE__ */ h("section", null, "loading");
-    }
-  }
-};
-var Snapshots = class extends d {
-  async save() {
-    const image = this.props.take();
-    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
-    const idbKey = await idbRequest(t2.objectStore("image").add(image));
-    const snap = { idbKey, size: image.length };
-    await idbRequest(t2.objectStore("snap").add(snap));
-    await finishTransaction(t2);
-    this.props.reload();
-  }
-  async load(key) {
-    const t2 = this.props.db.transaction(["image"], "readonly");
-    const image = await idbRequest(t2.objectStore("image").get(key));
-    await finishTransaction(t2);
-    this.props.load(image);
-  }
-  async clear() {
-    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
-    t2.objectStore("snap").clear();
-    t2.objectStore("image").clear();
-    await finishTransaction(t2);
-    this.props.reload();
-  }
-  render() {
-    let snaps = [];
-    if (this.props.snaps.length > 0) {
-      for (const snap of this.props.snaps) {
-        snaps.push(
-          /* @__PURE__ */ h("div", null, snap.size, " bytes ", /* @__PURE__ */ h("button", {
-            onClick: () => this.load(snap.idbKey)
-          }, "load"))
-        );
-      }
-      snaps.push(
-        /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
-          onClick: () => this.clear()
-        }, "clear snapshots"))
-      );
-    }
-    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
-      onClick: () => this.save()
-    }, "save snapshot")), snaps);
-  }
-};
-
-// stack.tsx
-var Stack = class extends d {
-  render() {
-    const { emu } = this.props;
-    const esp = emu.esp;
-    const memory = emu.memory();
-    const rows = [];
-    for (let addr = esp - 16; addr < esp + 32; addr += 4) {
-      const value = memory.getUint32(addr, true);
-      let label = this.props.labels.get(value);
-      if (label) {
-        label = ` ${label}`;
-      }
-      let row = /* @__PURE__ */ h("div", null, /* @__PURE__ */ h(Number, {
-        digits: 8,
-        ...this.props
-      }, addr), "\xA0", /* @__PURE__ */ h(Number, {
-        digits: 8,
-        ...this.props
-      }, value), label);
-      if (addr === esp) {
-        row = /* @__PURE__ */ h("b", null, row);
-      }
-      rows.push(row);
-    }
-    return /* @__PURE__ */ h("section", {
-      class: "panel"
-    }, /* @__PURE__ */ h("code", null, rows));
-  }
-};
-
-// tabs.tsx
-var Tabs = class extends d {
-  constructor(props) {
-    super(props);
-    this.state = { cur: Object.keys(props.tabs)[0] };
-  }
-  render() {
-    const tabs = this.props.tabs;
-    return /* @__PURE__ */ h("section", {
-      class: "panel",
-      style: this.props.style
-    }, /* @__PURE__ */ h("div", {
-      class: "tabs-strip"
-    }, Object.keys(tabs).map((name) => {
-      let button = /* @__PURE__ */ h("span", {
-        class: "clicky",
-        onClick: () => this.props.switchTab(name)
-      }, name);
-      if (name === this.props.selected) {
-        button = /* @__PURE__ */ h("b", null, button);
-      }
-      return /* @__PURE__ */ h(p, null, "\xA0|\xA0", button);
-    })), tabs[this.props.selected]);
-  }
-};
-
 // web.tsx
 var WindowComponent = class extends d {
   constructor() {
@@ -1927,6 +1759,43 @@ var EmulatorComponent = class extends d {
     });
   }
 };
+function parseURL() {
+  const query = new URLSearchParams(document.location.search);
+  const exe = query.get("exe");
+  if (!exe)
+    return void 0;
+  const dir = query.get("dir") || void 0;
+  const files = query.getAll("file");
+  const relocate = query.has("relocate");
+  const params = { dir, exe, files, relocate };
+  return params;
+}
+async function loadEmulator() {
+  const params = parseURL();
+  if (!params) {
+    throw new Error("invalid URL params");
+  }
+  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
+  await glue_default(new URL("wasm.wasm", document.location.href));
+  const csvLabels = /* @__PURE__ */ new Map();
+  const resp = await fetch(params.exe + ".csv");
+  if (resp.ok) {
+    for (const [addr, name] of parseCSV(await resp.text())) {
+      csvLabels.set(addr, name);
+    }
+  }
+  const storageKey = (params.dir ?? "") + params.exe;
+  return new Emulator2(
+    null,
+    fileset,
+    storageKey,
+    fileset.get(params.exe),
+    csvLabels,
+    params.relocate ?? false
+  );
+}
+
+// debugger.tsx
 var Debugger = class extends d {
   constructor(props) {
     super(props);
@@ -2068,49 +1937,50 @@ exited with code ${code}` });
     })));
   }
 };
-function parseURL() {
-  const query = new URLSearchParams(document.location.search);
-  const exe = query.get("exe");
-  if (!exe)
-    return void 0;
-  const dir = query.get("dir") || void 0;
-  const files = query.getAll("file");
-  const relocate = query.has("relocate");
-  const params = { dir, exe, files, relocate };
-  return params;
-}
-async function debuggerPage() {
-  const params = parseURL();
-  if (!params) {
-    return /* @__PURE__ */ h("p", null, "invalid URL params");
-  }
-  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
-  await glue_default(new URL("wasm.wasm", document.location.href));
-  const csvLabels = /* @__PURE__ */ new Map();
-  const resp = await fetch(params.exe + ".csv");
-  if (resp.ok) {
-    for (const [addr, name] of parseCSV(await resp.text())) {
-      csvLabels.set(addr, name);
-    }
-  }
-  const storageKey = (params.dir ?? "") + params.exe;
-  const emulator = new Emulator2(
-    null,
-    fileset,
-    storageKey,
-    fileset.get(params.exe),
-    csvLabels,
-    params.relocate ?? false
-  );
-  return /* @__PURE__ */ h(Debugger, {
-    emulator
-  });
-}
 async function main() {
-  P(await debuggerPage(), document.body);
+  const emulator = await loadEmulator();
+  P(/* @__PURE__ */ h(Debugger, {
+    emulator
+  }), document.body);
 }
-main();
+
+// run.tsx
+var Runner = class extends d {
+  constructor(props) {
+    super(props);
+    this.props.emulator.emuHost = this;
+  }
+  componentDidMount() {
+    this.props.emulator.start();
+  }
+  exit(code) {
+    throw new Error("Method not implemented.");
+  }
+  onWindowChanged() {
+    this.forceUpdate();
+  }
+  showTab(name) {
+    throw new Error("Method not implemented.");
+  }
+  onError(msg) {
+  }
+  onStdOut(stdout) {
+    throw new Error("Method not implemented.");
+  }
+  render() {
+    return /* @__PURE__ */ h(EmulatorComponent, {
+      emulator: this.props.emulator
+    });
+  }
+};
+async function main2() {
+  const emulator = await loadEmulator();
+  P(/* @__PURE__ */ h(Runner, {
+    emulator
+  }), document.getElementById("main"));
+}
 export {
-  Debugger
+  main as debuggerMain,
+  main2 as runMain
 };
 //# sourceMappingURL=bundle.js.map
