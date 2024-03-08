@@ -1,0 +1,41 @@
+body {
+    font-family: tahoma, sans-serif;
+    font-size: 12px;
+    background: #3a6ea5;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+button,
+.panel {
+    background: #d0d0c8;
+    border: outset 2px;
+    image-rendering: pixelated;
+    border-image: url("9p-inactive.png") 2;
+}
+
+button:active {
+    border: solid 2px #404040;
+    border-image: url("9p-active.png") 2;
+}
+
+.window {
+    font-size: 11px;
+    position: absolute;
+    min-width: 32px;
+    min-height: 32px;
+    box-shadow: 2px 2px 16px 4px rgba(0, 0, 0, 0.3);
+    border: 2px outset;
+    cursor: default;
+    background: #c3c3c3;
+}
+
+.window .titlebar {
+    font-weight: bold;
+    background-image: linear-gradient(to right, #082468, #a0c8f0);
+    color: white;
+    padding: 2px 16px;
+}
