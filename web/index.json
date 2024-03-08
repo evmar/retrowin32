@@ -38,5 +38,9 @@
   {
     "desc": "win003",
     "params": "dir=exe/demo/&exe=WIN003.EXE"
+  },
+  {
+    "desc": "minesweeper",
+    "params": "dir=exe/os/win2k/&file=msvcrt.dll&exe=winmine.exe"
   }
 ]
