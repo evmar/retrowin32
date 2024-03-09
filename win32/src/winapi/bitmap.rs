@@ -58,6 +58,11 @@ pub fn bytes_as_rgba_mut(bytes: &mut [u8]) -> &mut [[u8; 4]] {
     unsafe { std::slice::from_raw_parts_mut(bytes.as_ptr() as *mut _, bytes.len() / 4) }
 }
 
+pub trait Bitmap {
+    fn width(&self) -> u32;
+    fn height(&self) -> u32;
+}
+
 pub enum PixelData<T> {
     Owned(Box<[T]>),
     Ptr(u32),
@@ -186,6 +191,16 @@ impl std::fmt::Debug for BitmapRGBA32 {
     }
 }
 
+impl Bitmap for BitmapRGBA32 {
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.height
+    }
+}
+
 pub struct BitmapMono {
     pub width: u32,
     pub height: u32,
@@ -205,5 +220,15 @@ impl std::fmt::Debug for BitmapMono {
             .field("height", &self.height)
             //.field("pixels", &&self.pixels[0..16])
             .finish()
+    }
+}
+
+impl Bitmap for BitmapMono {
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.height
     }
 }

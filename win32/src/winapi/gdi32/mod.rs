@@ -12,7 +12,7 @@ pub use text::*;
 
 pub use super::bitmap::BITMAPINFOHEADER;
 use super::{
-    bitmap::{BitmapMono, BitmapRGBA32},
+    bitmap::{Bitmap, BitmapMono, BitmapRGBA32},
     handle::Handles,
     kernel32,
     types::*,
@@ -22,22 +22,16 @@ use crate::machine::Machine;
 const TRACE_CONTEXT: &'static str = "gdi32";
 
 #[derive(Debug)]
-pub enum Bitmap {
+pub enum BitmapType {
     RGBA32(BitmapRGBA32),
     Mono(BitmapMono),
 }
 
-impl Bitmap {
-    pub fn width(&self) -> u32 {
+impl BitmapType {
+    pub fn inner(&self) -> &dyn Bitmap {
         match self {
-            Bitmap::RGBA32(b) => b.width,
-            Bitmap::Mono(b) => b.width,
-        }
-    }
-    pub fn height(&self) -> u32 {
-        match self {
-            Bitmap::RGBA32(b) => b.height,
-            Bitmap::Mono(b) => b.height,
+            BitmapType::RGBA32(b) => b,
+            BitmapType::Mono(b) => b,
         }
     }
 }
@@ -46,7 +40,7 @@ impl Bitmap {
 #[derive(Debug)]
 pub enum Object {
     Brush(Brush),
-    Bitmap(Bitmap),
+    Bitmap(BitmapType),
     Pen(Pen),
 }
 
@@ -146,6 +140,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
         Object::Bitmap(bitmap) => {
             assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
             let out = machine.mem().view_mut::<BITMAP>(out);
+            let bitmap = bitmap.inner();
             *out = BITMAP {
                 bmType: 0,
                 bmWidth: bitmap.width(),

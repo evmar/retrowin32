@@ -56,7 +56,7 @@ impl DC {
             .state
             .gdi32
             .objects
-            .add(Object::Bitmap(Bitmap::Mono(bitmap)));
+            .add(Object::Bitmap(BitmapType::Mono(bitmap)));
         Self::new(DCTarget::Memory(hobj))
     }
 }

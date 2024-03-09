@@ -65,7 +65,7 @@ pub fn BitBlt(
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
-                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
+                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
                 _ => unimplemented!("{:?}", obj),
             }
         }
@@ -178,7 +178,7 @@ pub fn CreateBitmap(
                 height: nHeight,
                 pixels: PixelData::Owned(pixels.into_boxed_slice()),
             };
-            Bitmap::Mono(bitmap)
+            BitmapType::Mono(bitmap)
         }
         _ => unimplemented!(),
     };
@@ -240,7 +240,7 @@ pub fn CreateDIBSection(
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
+        .add(Object::Bitmap(BitmapType::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
@@ -263,7 +263,7 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
+        .add(Object::Bitmap(BitmapType::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
@@ -307,7 +307,7 @@ pub fn SetDIBitsToDevice(
     let (dst, dst_stride) = match dc.target {
         DCTarget::Memory(hbitmap) => {
             let dst_bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-                Object::Bitmap(Bitmap::RGBA32(b)) => b,
+                Object::Bitmap(BitmapType::RGBA32(b)) => b,
                 _ => todo!(),
             };
             (dst_bitmap.pixels.as_slice_mut(), dst_bitmap.width)
