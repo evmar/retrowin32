@@ -12,6 +12,34 @@ use std::rc::Rc;
 
 const TRACE_CONTEXT: &'static str = "user32/window";
 
+/*
+
+## Window initalization
+
+A small test app that created a window and printed the messages received
+had this sequence of events, where the braced message lists are messages
+that were processed during the function call:
+
+CreateWindow() {
+    msg: 36 WM_GETMINMAXINFO
+    msg: 129 WM_NCCREATE
+    msg: 131 WM_NCCALCSIZE
+    msg: 1 WM_CREATE
+}
+ShowWindow() {
+    msg: 24 WM_SHOWWINDOW
+    msg: 70 WM_WINDOWPOSCHANGING
+    msg: 28 WM_ACTIVATEAPP
+    msg: 134 WM_NCACTIVATE
+    msg: 6 WM_ACTIVATE
+    msg: 7 WM_SETFOCUS
+    msg: 71 WM_WINDOWPOSCHANGED
+    msg: 5 WM_SIZE
+    msg: 3 WM_MOVE
+}
+
+*/
+
 pub struct WindowPixels {
     pub surface: Box<dyn host::Surface>,
     pub bitmap: BitmapRGBA32,
@@ -353,19 +381,7 @@ pub async fn CreateWindowExW(
         pt_y: 0,
         lPrivate: 0,
     };
-    DispatchMessageA(machine, Some(&msg)).await;
-
-    // Enqueue WM_ACTIVATEAPP message.
-    machine.state.user32.messages.push_back(MSG {
-        hwnd,
-        message: WM::ACTIVATEAPP as u32,
-        wParam: true as u32, // activating
-        lParam: 0,           // TODO: thread id
-        time: 0,             // TODO
-        pt_x: 0,             // TODO
-        pt_y: 0,             // TODO
-        lPrivate: 0,
-    });
+    dispatch_message(machine, &msg).await;
 
     hwnd
 }
@@ -452,7 +468,22 @@ pub enum SW {
 }
 
 #[win32_derive::dllexport]
-pub fn ShowWindow(_machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+    dispatch_message(
+        machine,
+        &MSG {
+            hwnd: hWnd,
+            message: WM::ACTIVATEAPP as u32,
+            wParam: true as u32, // activating
+            lParam: 0,           // TODO: thread id
+            time: 0,             // TODO
+            pt_x: 0,             // TODO
+            pt_y: 0,             // TODO
+            lPrivate: 0,
+        },
+    )
+    .await;
+
     let previously_visible = true;
     previously_visible
 }

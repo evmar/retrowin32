@@ -270,13 +270,8 @@ pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
     false // no message translated
 }
 
-#[win32_derive::dllexport]
-pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
-    let msg = lpMsg.unwrap();
-    if msg.hwnd.is_null() {
-        // No associated hwnd.
-        return 0;
-    }
+pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
+    assert!(!msg.hwnd.is_null());
     let wndproc = machine
         .state
         .user32
@@ -296,12 +291,28 @@ pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32
             ],
         )
         .await;
+}
+
+#[win32_derive::dllexport]
+pub async fn DispatchMessageA(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
+    let msg = lpMsg.unwrap();
+    if msg.hwnd.is_null() {
+        // No associated hwnd.
+        return 0;
+    }
+    dispatch_message(machine, msg).await;
     0
 }
 
 #[win32_derive::dllexport]
 pub async fn DispatchMessageW(machine: &mut Machine, lpMsg: Option<&MSG>) -> u32 {
-    DispatchMessageA(machine, lpMsg).await
+    let msg = lpMsg.unwrap();
+    if msg.hwnd.is_null() {
+        // No associated hwnd.
+        return 0;
+    }
+    dispatch_message(machine, msg).await;
+    0
 }
 
 #[win32_derive::dllexport]
