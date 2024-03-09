@@ -3,7 +3,7 @@ use memory::Mem;
 use crate::{
     pe,
     winapi::{
-        bitmap::{Bitmap, BITMAPINFOHEADER},
+        bitmap::{BitmapRGBA32, BITMAPINFOHEADER},
         gdi32::{self, HGDIOBJ},
         kernel32::ResourceKey,
         types::*,
@@ -70,8 +70,14 @@ fn load_bitmap(machine: &mut Machine, name: ResourceKey<&Str16>) -> Option<HGDIO
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
-    let bmp = Bitmap::parse(buf.view::<BITMAPINFOHEADER>(0), None);
-    Some(machine.state.gdi32.objects.add(gdi32::Object::Bitmap(bmp)))
+    let bmp = BitmapRGBA32::parse(buf.view::<BITMAPINFOHEADER>(0), None);
+    Some(
+        machine
+            .state
+            .gdi32
+            .objects
+            .add(gdi32::Object::Bitmap(gdi32::Bitmap::RGBA32(bmp))),
+    )
 }
 
 #[win32_derive::dllexport]

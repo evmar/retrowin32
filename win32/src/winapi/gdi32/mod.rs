@@ -11,10 +11,36 @@ pub use draw::*;
 pub use text::*;
 
 pub use super::bitmap::BITMAPINFOHEADER;
-use super::{bitmap::Bitmap, handle::Handles, kernel32, types::*};
+use super::{
+    bitmap::{BitmapMono, BitmapRGBA32},
+    handle::Handles,
+    kernel32,
+    types::*,
+};
 use crate::machine::Machine;
 
 const TRACE_CONTEXT: &'static str = "gdi32";
+
+#[derive(Debug)]
+pub enum Bitmap {
+    RGBA32(BitmapRGBA32),
+    Mono(BitmapMono),
+}
+
+impl Bitmap {
+    pub fn width(&self) -> u32 {
+        match self {
+            Bitmap::RGBA32(b) => b.width,
+            Bitmap::Mono(b) => b.width,
+        }
+    }
+    pub fn height(&self) -> u32 {
+        match self {
+            Bitmap::RGBA32(b) => b.height,
+            Bitmap::Mono(b) => b.height,
+        }
+    }
+}
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
@@ -122,8 +148,8 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
             let out = machine.mem().view_mut::<BITMAP>(out);
             *out = BITMAP {
                 bmType: 0,
-                bmWidth: bitmap.width,
-                bmHeight: bitmap.height,
+                bmWidth: bitmap.width(),
+                bmHeight: bitmap.height(),
                 bmWidthBytes: 0,
                 bmPlanes: 0,
                 bmBitsPixel: 0,

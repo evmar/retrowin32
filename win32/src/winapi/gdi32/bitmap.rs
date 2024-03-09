@@ -1,10 +1,7 @@
 use super::*;
 use crate::{
     machine::Machine,
-    winapi::{
-        self,
-        bitmap::{Bitmap, PixelData, PixelFormat, BI},
-    },
+    winapi::bitmap::{BitmapRGBA32, PixelData, BI},
 };
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";
@@ -68,15 +65,14 @@ pub fn BitBlt(
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
-                Object::Bitmap(bmp) => bmp,
+                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
                 _ => unimplemented!("{:?}", obj),
             }
         }
         DCTarget::Window(_) => todo!(),
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
-    assert_eq!(src_bitmap.format, PixelFormat::RGBA32);
-    let src = winapi::bitmap::bytes_as_rgba(src_bitmap.pixels_slice(machine.memory.mem()));
+    let src = src_bitmap.pixels_slice(machine.memory.mem());
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dst_dc.target {
@@ -171,20 +167,20 @@ pub fn CreateBitmap(
     lpBits: u32,
 ) -> HGDIOBJ {
     assert_eq!(nPlanes, 1);
-
-    let format = match nBitCount {
-        1 => PixelFormat::Mono,
+    let bitmap = match nBitCount {
+        1 => {
+            let stride = BitmapMono::stride(nWidth);
+            let len = (nHeight * stride) as usize;
+            let mut pixels = Vec::with_capacity(len);
+            pixels.resize(len, 0);
+            let bitmap = BitmapMono {
+                width: nWidth,
+                height: nHeight,
+                pixels: PixelData::Owned(pixels.into_boxed_slice()),
+            };
+            Bitmap::Mono(bitmap)
+        }
         _ => unimplemented!(),
-    };
-    let stride = format.aligned_stride(nWidth);
-    let len = (nHeight * stride) as usize;
-    let mut pixels = Vec::with_capacity(len);
-    pixels.resize(len, 0);
-    let bitmap = Bitmap {
-        width: nWidth,
-        height: nHeight,
-        format,
-        pixels: PixelData::Owned(pixels.into_boxed_slice()),
     };
     machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
 }
@@ -223,7 +219,6 @@ pub fn CreateDIBSection(
         todo!()
     }
     // TODO: ought to check that .bmiColors masks are the RGBX we expect.
-    let format = PixelFormat::RGBA32;
 
     let byte_count = bi.width() * bi.height() * bi.biBitCount as u32;
     let heap = kernel32::GetProcessHeap(machine);
@@ -236,33 +231,39 @@ pub fn CreateDIBSection(
 
     *ppvBits.unwrap() = pixels;
 
-    let bitmap = Bitmap {
+    let bitmap = BitmapRGBA32 {
         width: bi.width(),
         height: bi.height(),
-        format,
         pixels: PixelData::Ptr(pixels),
     };
-    machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
+    machine
+        .state
+        .gdi32
+        .objects
+        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let format = match dc.target {
+    match dc.target {
         DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(_) => PixelFormat::RGBA32, // screen has known format
+        DCTarget::Window(_) => {} // screen has known format
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
 
     let mut pixels = Vec::new();
-    pixels.resize((format.aligned_stride(cx) * cy) as usize, 0);
-    let bitmap = Bitmap {
+    pixels.resize((cx * cy) as usize, [0; 4]);
+    let bitmap = BitmapRGBA32 {
         width: cx,
         height: cy,
-        format,
         pixels: PixelData::Owned(pixels.into_boxed_slice()),
     };
-    machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
+    machine
+        .state
+        .gdi32
+        .objects
+        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
@@ -293,28 +294,23 @@ pub fn SetDIBitsToDevice(
         todo!("unclear which width to believe");
     }
 
-    let src_bitmap = Bitmap::parse(
+    let src_bitmap = BitmapRGBA32::parse(
         header,
         Some((
             machine.mem().slice(lpvBits..).as_slice_todo(),
             cLines as usize,
         )),
     );
-    assert_eq!(src_bitmap.format, PixelFormat::RGBA32);
-    let src = winapi::bitmap::bytes_as_rgba(src_bitmap.pixels_slice(machine.memory.mem()));
+    let src = src_bitmap.pixels_slice(machine.memory.mem());
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let (dst, dst_stride) = match dc.target {
         DCTarget::Memory(hbitmap) => {
             let dst_bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-                Object::Bitmap(b) => b,
+                Object::Bitmap(Bitmap::RGBA32(b)) => b,
                 _ => todo!(),
             };
-            assert_eq!(dst_bitmap.format, PixelFormat::RGBA32);
-            (
-                winapi::bitmap::bytes_as_rgba_mut(dst_bitmap.pixels.as_slice_mut()),
-                dst_bitmap.width,
-            )
+            (dst_bitmap.pixels.as_slice_mut(), dst_bitmap.width)
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();

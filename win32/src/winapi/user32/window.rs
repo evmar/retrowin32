@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     host,
     winapi::{
-        bitmap::{self, Bitmap},
+        bitmap::{self, BitmapRGBA32},
         gdi32::{HDC, HGDIOBJ},
     },
     Host, SurfaceOptions,
@@ -14,7 +14,7 @@ const TRACE_CONTEXT: &'static str = "user32/window";
 
 pub struct WindowPixels {
     pub surface: Box<dyn host::Surface>,
-    pub bitmap: Bitmap,
+    pub bitmap: BitmapRGBA32,
 }
 impl WindowPixels {
     pub fn new(host: &mut dyn Host, width: u32, height: u32) -> Self {
@@ -31,11 +31,10 @@ impl WindowPixels {
         };
         Self {
             surface,
-            bitmap: Bitmap {
+            bitmap: BitmapRGBA32 {
                 width,
                 height,
-                format: bitmap::PixelFormat::RGBA32,
-                pixels: bitmap::PixelData::from_rgba32(raw),
+                pixels: bitmap::PixelData::Owned(raw),
             },
         }
     }
@@ -64,14 +63,14 @@ impl Window {
         }
     }
     pub fn pixels_mut<'a>(&mut self, host: &mut dyn Host) -> &mut [[u8; 4]] {
-        bitmap::bytes_as_rgba_mut(self.ensure_pixels(host).bitmap.pixels.as_slice_mut())
+        self.ensure_pixels(host).bitmap.pixels.as_slice_mut()
     }
 
     pub fn flush_pixels(&mut self) {
         if let Some(pixels) = &mut self.pixels {
             pixels
                 .surface
-                .write_pixels(bitmap::bytes_as_rgba(&pixels.bitmap.pixels.as_slice()));
+                .write_pixels(&pixels.bitmap.pixels.as_slice());
             pixels.surface.show();
         }
     }

@@ -58,27 +58,20 @@ pub fn bytes_as_rgba_mut(bytes: &mut [u8]) -> &mut [[u8; 4]] {
     unsafe { std::slice::from_raw_parts_mut(bytes.as_ptr() as *mut _, bytes.len() / 4) }
 }
 
-pub enum PixelData {
-    Owned(Box<[u8]>),
+pub enum PixelData<T> {
+    Owned(Box<[T]>),
     Ptr(u32),
 }
 
-impl PixelData {
-    pub fn from_rgba32(mut pixels: Box<[[u8; 4]]>) -> Self {
-        let slice: &mut [u8] = unsafe {
-            std::slice::from_raw_parts_mut(pixels.as_mut_ptr() as *mut _, pixels.len() * 4)
-        };
-        std::mem::forget(pixels);
-        unsafe { PixelData::Owned(Box::from_raw(slice)) }
-    }
-
-    pub fn as_slice(&self) -> &[u8] {
+impl<T> PixelData<T> {
+    pub fn as_slice(&self) -> &[T] {
         match self {
             PixelData::Owned(b) => &*b,
             _ => unimplemented!(),
         }
     }
-    pub fn as_slice_mut(&mut self) -> &mut [u8] {
+
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
         match self {
             PixelData::Owned(b) => &mut *b,
             _ => unimplemented!(),
@@ -86,48 +79,20 @@ impl PixelData {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
-pub enum PixelFormat {
-    Mono,
-    BPP4,
-    RGBA32,
-}
-
-impl PixelFormat {
-    pub fn bits_per_pixel(&self) -> u32 {
-        match *self {
-            PixelFormat::Mono => 1,
-            PixelFormat::BPP4 => 4,
-            PixelFormat::RGBA32 => 32,
-        }
-    }
-
-    pub fn aligned_stride(&self, width: u32) -> u32 {
-        ((self.bits_per_pixel() * width * 8) + 31) & !31
-    }
-}
-
-pub struct Bitmap {
+pub struct BitmapRGBA32 {
     pub width: u32,
     pub height: u32,
-    pub format: PixelFormat,
-    pub pixels: PixelData,
+    pub pixels: PixelData<[u8; 4]>,
 }
 
-impl Bitmap {
-    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [u8] {
-        match self.pixels {
-            PixelData::Owned(ref slice) => &*slice,
-            PixelData::Ptr(addr) => {
-                let len = self.format.aligned_stride(self.width) * self.height;
-                mem.view_n::<u8>(addr, len)
-            }
-        }
+impl BitmapRGBA32 {
+    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+        self.pixels.as_slice()
     }
 
     /// Parse a BITMAPINFO/HEADER and pixel data.
     /// If pixels is None, pixel data immediately follows header.
-    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<(&[u8], usize)>) -> Bitmap {
+    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
         let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
         if header.biSize as usize != header_size {
             panic!("bad bitmap header");
@@ -203,16 +168,37 @@ impl Bitmap {
             }
         }
 
-        Bitmap {
+        BitmapRGBA32 {
             width: header.width(),
             height: height as u32,
-            format: PixelFormat::RGBA32,
-            pixels: PixelData::from_rgba32(dst.into_boxed_slice()),
+            pixels: PixelData::Owned(dst.into_boxed_slice()),
         }
     }
 }
 
-impl std::fmt::Debug for Bitmap {
+impl std::fmt::Debug for BitmapRGBA32 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Bitmap")
+            .field("width", &self.width)
+            .field("height", &self.height)
+            //.field("pixels", &&self.pixels[0..16])
+            .finish()
+    }
+}
+
+pub struct BitmapMono {
+    pub width: u32,
+    pub height: u32,
+    pub pixels: PixelData<u8>,
+}
+
+impl BitmapMono {
+    pub fn stride(width: u32) -> u32 {
+        ((width + 31) & !31) >> 3
+    }
+}
+
+impl std::fmt::Debug for BitmapMono {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Bitmap")
             .field("width", &self.width)

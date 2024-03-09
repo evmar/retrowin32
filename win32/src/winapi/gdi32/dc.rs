@@ -1,8 +1,5 @@
 use super::*;
-use crate::{
-    machine::Machine,
-    winapi::bitmap::{Bitmap, PixelData, PixelFormat},
-};
+use crate::{machine::Machine, winapi::bitmap::PixelData};
 
 const TRACE_CONTEXT: &'static str = "gdi32/dc";
 
@@ -50,13 +47,16 @@ impl DC {
     pub fn new_memory(machine: &mut Machine) -> Self {
         // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
         // SkiFree depends on this!
-        let bitmap = Bitmap {
+        let bitmap = BitmapMono {
             width: 1,
             height: 1,
-            format: PixelFormat::Mono,
             pixels: PixelData::Ptr(0),
         };
-        let hobj = machine.state.gdi32.objects.add(Object::Bitmap(bitmap));
+        let hobj = machine
+            .state
+            .gdi32
+            .objects
+            .add(Object::Bitmap(Bitmap::Mono(bitmap)));
         Self::new(DCTarget::Memory(hobj))
     }
 }
