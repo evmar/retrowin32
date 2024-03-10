@@ -7,8 +7,6 @@ use bitflags::bitflags;
 use memory::Mem;
 use std::cmp::max;
 
-use super::peb_mut;
-
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
 
 pub fn round_up_to_page_granularity(size: u32) -> u32 {
@@ -188,14 +186,12 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapFree flags {dwFlags:x}");
     }
-    let heap = match machine.state.kernel32.get_heap(hHeap) {
-        None => {
-            log::error!("HeapFree({hHeap:x}): no such heap");
-            return false;
-        }
-        Some(heap) => heap,
-    };
-    heap.free(machine.memory.mem(), lpMem);
+    machine
+        .state
+        .kernel32
+        .get_heap(hHeap)
+        .unwrap()
+        .free(machine.memory.mem(), lpMem);
     true
 }
 
@@ -364,10 +360,8 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
-    let heap = winapi::kernel32::GetProcessHeap(machine);
-    if !HeapFree(machine, heap, 0, hMem) {
-        return hMem;
-    }
+    let heap = machine.state.kernel32.get_process_heap(&mut machine.memory);
+    heap.free(machine.memory.mem(), hMem);
     return 0; // success
 }
 
@@ -392,15 +386,6 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    let heap = peb_mut(machine).ProcessHeap;
-    if heap != 0 {
-        return heap;
-    }
-    let size = 8 << 20;
-    let heap = machine
-        .state
-        .kernel32
-        .new_heap(&mut machine.memory, size, "process heap".into());
-    peb_mut(machine).ProcessHeap = heap;
-    heap
+    machine.state.kernel32.get_process_heap(&mut machine.memory); // lazy init process_heap
+    machine.state.kernel32.process_heap
 }

@@ -132,7 +132,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
     let peb = mem.view_mut::<PEB>(peb_addr);
     peb.ProcessParameters = params_addr;
-    peb.ProcessHeap = 0; // Initialized lazily.
+    peb.ProcessHeap = 0; // TODO: we use state.process_heap instead
     peb.TlsCount = 0;
 
     // SEH chain
@@ -176,6 +176,7 @@ pub struct State {
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, Heap>,
+    pub process_heap: u32,
 
     #[serde(skip)] // TODO
     pub dlls: Vec<DLL>,
@@ -233,6 +234,7 @@ impl State {
             arena,
             image_base: 0,
             teb,
+            process_heap: 0,
             mappings,
             heaps: HashMap::new(),
             dlls: Vec::new(),
@@ -259,6 +261,15 @@ impl State {
 
     pub fn get_heap<'a>(&'a mut self, addr: u32) -> Option<&mut Heap> {
         self.heaps.get_mut(&addr)
+    }
+
+    pub fn get_process_heap<'a>(&'a mut self, memory: &mut MemImpl) -> &mut Heap {
+        if self.process_heap == 0 {
+            let size = 8 << 20;
+            let heap = self.new_heap(memory, size, "process heap".into());
+            self.process_heap = heap;
+        }
+        self.get_heap(self.process_heap).unwrap()
     }
 
     pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
