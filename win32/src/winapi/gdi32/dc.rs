@@ -1,5 +1,11 @@
-use super::*;
-use crate::{machine::Machine, winapi::bitmap::PixelData};
+use super::{BitmapType, Object, HGDIOBJ, R2};
+use crate::{
+    machine::Machine,
+    winapi::{
+        bitmap::{BitmapMono, PixelData},
+        types::{HANDLE, HWND},
+    },
+};
 
 const TRACE_CONTEXT: &'static str = "gdi32/dc";
 

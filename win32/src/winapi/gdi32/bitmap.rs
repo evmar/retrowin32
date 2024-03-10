@@ -1,7 +1,10 @@
-use super::*;
+use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
-    winapi::bitmap::{BitmapRGBA32, PixelData, BI},
+    winapi::{
+        bitmap::{BitmapMono, BitmapRGBA32, PixelData, BI},
+        kernel32,
+    },
 };
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";

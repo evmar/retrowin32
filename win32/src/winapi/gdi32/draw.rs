@@ -1,7 +1,10 @@
 //! Pens, brushes, color.
 
-use super::*;
-use crate::machine::Machine;
+use super::{DCTarget, Object, CLR_INVALID, HDC, HGDIOBJ};
+use crate::{
+    machine::Machine,
+    winapi::types::{POINT, RECT},
+};
 
 const TRACE_CONTEXT: &'static str = "gdi32/draw";
 

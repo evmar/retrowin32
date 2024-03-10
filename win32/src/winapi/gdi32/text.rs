@@ -1,5 +1,8 @@
-use super::*;
-use crate::winapi::stack_args::ArrayWithSize;
+use super::{CLR_INVALID, HDC};
+use crate::{
+    winapi::{stack_args::ArrayWithSize, types::HANDLE},
+    Machine,
+};
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "gdi32/text";
