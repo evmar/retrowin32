@@ -243,7 +243,7 @@ impl State {
             cmdline,
             #[cfg(feature = "x86-64")]
             ldt,
-            resources: pe::IMAGE_DATA_DIRECTORY::default(),
+            resources: Default::default(),
         }
     }
 

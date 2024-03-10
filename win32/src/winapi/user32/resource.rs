@@ -66,7 +66,8 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
 
 fn load_bitmap(machine: &mut Machine, name: ResourceKey<&Str16>) -> Option<HGDIOBJ> {
     let buf = crate::winapi::kernel32::find_resource(
-        machine,
+        &machine.state.kernel32,
+        machine.mem(),
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
@@ -127,7 +128,8 @@ fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
     let block = crate::winapi::kernel32::find_resource(
-        machine,
+        &machine.state.kernel32,
+        machine.mem(),
         ResourceKey::Id(pe::RT::STRING as u32),
         ResourceKey::Id(resource_id),
     )?;

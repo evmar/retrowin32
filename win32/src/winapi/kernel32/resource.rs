@@ -1,7 +1,11 @@
 #![allow(non_snake_case)]
 
 use super::{Str16, String16};
-use crate::{pe, winapi::stack_args::FromArg, Machine};
+use crate::{
+    pe,
+    winapi::{kernel32, stack_args::FromArg},
+    Machine,
+};
 use memory::Mem;
 
 const TRACE_CONTEXT: &'static str = "kernel32/resource";
@@ -63,14 +67,15 @@ where
 }
 
 pub fn find_resource<'a>(
-    machine: &'a Machine,
+    kernel32: &kernel32::State,
+    mem: Mem<'a>,
     typ: ResourceKey<&Str16>,
     name: ResourceKey<&Str16>,
 ) -> Option<Mem<'a>> {
-    let image = machine.mem().slice(machine.state.kernel32.image_base..);
+    let image = mem.slice(kernel32.image_base..);
     Some(image.slice(pe::find_resource(
         image,
-        &machine.state.kernel32.resources,
+        &kernel32.resources,
         typ.into_pe(),
         name.into_pe(),
     )?))
@@ -95,7 +100,7 @@ pub fn FindResourceW(
     lpName: ResourceKey<&Str16>,
     lpType: ResourceKey<&Str16>,
 ) -> u32 {
-    match find_resource(machine, lpType, lpName) {
+    match find_resource(&machine.state.kernel32, machine.mem(), lpType, lpName) {
         None => 0,
         Some(mem) => mem.offset_from(machine.mem()),
     }
