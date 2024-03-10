@@ -48,16 +48,6 @@ impl BITMAPINFOHEADER {
     }
 }
 
-pub fn bytes_as_rgba(bytes: &[u8]) -> &[[u8; 4]] {
-    assert!(bytes.len() % 4 == 0);
-    unsafe { std::slice::from_raw_parts(bytes.as_ptr() as *const _, bytes.len() / 4) }
-}
-
-pub fn bytes_as_rgba_mut(bytes: &mut [u8]) -> &mut [[u8; 4]] {
-    assert!(bytes.len() % 4 == 0);
-    unsafe { std::slice::from_raw_parts_mut(bytes.as_ptr() as *mut _, bytes.len() / 4) }
-}
-
 pub trait Bitmap {
     fn width(&self) -> u32;
     fn height(&self) -> u32;
@@ -91,7 +81,7 @@ pub struct BitmapRGBA32 {
 }
 
 impl BitmapRGBA32 {
-    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+    pub fn pixels_slice<'a>(&'a self, _mem: Mem<'a>) -> &'a [[u8; 4]] {
         self.pixels.as_slice()
     }
 

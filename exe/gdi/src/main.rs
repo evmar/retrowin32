@@ -15,6 +15,7 @@ use windows_sys::Win32::{
     },
 };
 
+#[allow(dead_code)]
 fn print(buf: &[u8]) {
     unsafe {
         let stdout = GetStdHandle(STD_OUTPUT_HANDLE);
