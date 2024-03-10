@@ -40,14 +40,6 @@ impl Default for State {
         }
     }
 }
-impl State {
-    pub fn get_window(&mut self, hwnd: HWND) -> Option<&mut Window> {
-        if hwnd.is_null() || hwnd.is_invalid() {
-            return None;
-        }
-        self.windows.get_mut(hwnd)
-    }
-}
 
 /*
 pub mod MessageBoxFlags {

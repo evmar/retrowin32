@@ -13,7 +13,7 @@ pub fn InvalidateRect(
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
-    let window = machine.state.user32.get_window(hWnd).unwrap();
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     window.need_paint = true;
     true // success
 }

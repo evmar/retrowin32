@@ -153,7 +153,7 @@ fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
             None => return false,
         }
     } else {
-        if !machine.state.user32.get_window(hwnd).unwrap().need_paint {
+        if !machine.state.user32.windows.get(hwnd).unwrap().need_paint {
             return false;
         }
         hwnd
@@ -275,7 +275,8 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
     let wndproc = machine
         .state
         .user32
-        .get_window(msg.hwnd)
+        .windows
+        .get(msg.hwnd)
         .unwrap()
         .wndclass
         .wndproc;

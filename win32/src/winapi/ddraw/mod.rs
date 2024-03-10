@@ -59,7 +59,7 @@ impl Surface {
 
         if opts.width == 0 || opts.height == 0 {
             // Take width/height from window dimensions
-            if let Some(wnd) = machine.state.user32.get_window(machine.state.ddraw.hwnd) {
+            if let Some(wnd) = machine.state.user32.windows.get(machine.state.ddraw.hwnd) {
                 opts.width = wnd.width;
                 opts.height = wnd.height;
             }

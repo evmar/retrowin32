@@ -510,7 +510,7 @@ pub fn DefWindowProcA(
     if let Ok(msg) = msg {
         match msg {
             WM::PAINT => {
-                let window = machine.state.user32.get_window(hWnd).unwrap();
+                let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
                 window.need_paint = false;
             }
             _ => {}
@@ -622,7 +622,7 @@ pub fn MoveWindow(
     nHeight: u32,
     bRepaint: bool,
 ) -> bool {
-    let window = machine.state.user32.get_window(hWnd).unwrap();
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(window.style, menu, nWidth, nHeight);
     window.set_client_size(width, height);
