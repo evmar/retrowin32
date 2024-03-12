@@ -6,6 +6,7 @@ use std::mem::size_of;
 /// 1. make accesses more explicit
 /// 2. handle unaligned reads
 /// 3. expose casts to/from Pod types
+/// 4. in the case where mem literally slices from address 0, avoid making an illegal slice
 ///
 /// TODO: some of the accessors on here that return references likely violate
 /// Rust rules around aliasing.  It might be better to instead always copy from
