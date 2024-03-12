@@ -1,7 +1,7 @@
 //! Types exposed by the Windows API.
 
 pub use super::handle::HANDLE;
-pub use super::str16::{Str16, String16};
+pub use crate::str16::{Str16, String16};
 
 pub type WORD = u16;
 pub type DWORD = u32;

@@ -13,7 +13,6 @@ mod ole32;
 mod oleaut32;
 mod retrowin32_test;
 mod stack_args;
-mod str16;
 pub mod types;
 mod ucrtbase;
 pub mod user32;

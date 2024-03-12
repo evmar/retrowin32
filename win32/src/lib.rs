@@ -4,6 +4,7 @@ pub mod pe;
 mod reader;
 mod segments;
 pub mod shims;
+pub mod str16;
 pub mod trace;
 mod winapi;
 
