@@ -86,3 +86,13 @@ impl String16 {
         )
     }
 }
+
+pub fn expect_ascii(slice: &[u8]) -> &str {
+    match std::str::from_utf8(slice) {
+        Ok(str) => str,
+        Err(err) => {
+            // If we hit one of these, we ought to change the caller to not use to_ascii().
+            panic!("failed to ascii convert {:?}: {}", slice, err);
+        }
+    }
+}

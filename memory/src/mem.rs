@@ -58,21 +58,11 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn slicez(&self, ofs: u32) -> Option<Mem<'m>> {
-        let slice = self.as_slice_todo();
-        let nul = slice[ofs as usize..].iter().position(|&c| c == 0)? as u32;
-        Some(self.sub(ofs, nul))
-    }
-
-    pub fn to_ascii(&self) -> &'m str {
-        let slice = self.as_slice_todo();
-        match std::str::from_utf8(slice) {
-            Ok(str) => str,
-            Err(err) => {
-                // If we hit one of these, we ought to change the caller to not use to_ascii().
-                panic!("failed to ascii convert {:?}: {}", slice, err);
-            }
-        }
+    pub fn slicez(&self, ofs: u32) -> &'m [u8] {
+        let ofs = ofs as usize;
+        let slice = &self.as_slice_todo()[ofs..];
+        let nul = slice[ofs..].iter().position(|&c| c == 0).unwrap();
+        &slice[..nul]
     }
 
     pub fn as_slice_todo(&self) -> &'m [u8] {

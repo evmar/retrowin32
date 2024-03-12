@@ -1,6 +1,7 @@
 //! Functions to unsafely grab winapi function arguments from an x86 stack.
 
 use super::types::Str16;
+use crate::str16::expect_ascii;
 use memory::Mem;
 
 /// ArrayWithSize<&[u8]> matches a pair of C arguments like
@@ -111,7 +112,7 @@ impl<'a> FromArg<'a> for Option<&'a str> {
         if arg == 0 {
             return None;
         }
-        let strz = mem.slicez(arg).unwrap().to_ascii();
+        let strz = expect_ascii(mem.slicez(arg));
         Some(strz)
     }
 }

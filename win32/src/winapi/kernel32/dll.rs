@@ -3,6 +3,7 @@ use memory::Pod;
 use crate::{
     machine::{Emulator, Machine},
     pe,
+    str16::expect_ascii,
     winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::{collections::HashMap, io::Write};
@@ -255,7 +256,7 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
         if lpProcName & 0xFFFF_0000 == 0 {
             GetProcAddressArg(ImportSymbol::Ordinal(lpProcName))
         } else {
-            let proc_name = mem.slicez(lpProcName).unwrap().to_ascii();
+            let proc_name = expect_ascii(mem.slicez(lpProcName));
             GetProcAddressArg(ImportSymbol::Name(proc_name))
         }
     }

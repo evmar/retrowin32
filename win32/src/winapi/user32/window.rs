@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
     host,
+    str16::expect_ascii,
     winapi::{
         bitmap::{self, BitmapRGBA32},
         gdi32::{HDC, HGDIOBJ},
@@ -193,12 +194,7 @@ unsafe impl memory::Pod for WNDCLASSEXA {}
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = machine
-        .mem()
-        .slicez(lpWndClassEx.lpszClassName)
-        .unwrap()
-        .to_ascii()
-        .to_string();
+    let name = expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
     let wndclass = WndClass {
         name,
         wndproc: lpWndClassEx.lpfnWndProc,
@@ -283,7 +279,7 @@ pub async fn CreateWindowExA(
     let class_name = if lpClassName < 0xFFFF {
         CreateWindowClassName::Atom(lpClassName as u16)
     } else {
-        let class_name = machine.mem().slicez(lpClassName).unwrap().to_ascii();
+        let class_name = expect_ascii(machine.mem().slicez(lpClassName));
         class_name_wide = String16::from(class_name);
         CreateWindowClassName::Name(class_name_wide.as_str16())
     };

@@ -312,8 +312,8 @@ pub fn MultiByteToWideChar(
     // TODO: dwFlags
 
     let input_len = match cbMultiByte {
-        0 => return 0,                                                 // TODO: invalid param
-        -1 => machine.mem().slicez(lpMultiByteStr).unwrap().len() + 1, // include nul
+        0 => return 0,                                               // TODO: invalid param
+        -1 => machine.mem().slicez(lpMultiByteStr).len() as u32 + 1, // include nul
         len => len as u32,
     };
 

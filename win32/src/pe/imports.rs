@@ -3,6 +3,7 @@
 
 use crate::{
     reader::Reader,
+    str16::expect_ascii,
     winapi::{types::DWORD, ImportSymbol},
 };
 use memory::Mem;
@@ -35,7 +36,7 @@ unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn image_name<'a>(&self, image: Mem<'a>) -> &'a str {
-        image.slicez(self.Name).unwrap().to_ascii()
+        expect_ascii(image.slicez(self.Name))
     }
 
     pub fn ilt<'m>(&self, image: Mem<'m>) -> ILTITer<'m> {
@@ -110,7 +111,7 @@ impl ILTEntry {
         } else {
             // First two bytes at offset are hint/name table index, used to look up
             // the name faster in the DLL; we just skip them.
-            let sym_name = image.slicez(entry + 2).unwrap().to_ascii();
+            let sym_name = expect_ascii(image.slicez(entry + 2));
             ImportSymbol::Name(sym_name)
         }
     }

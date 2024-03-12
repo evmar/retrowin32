@@ -2,6 +2,7 @@
 #![allow(non_camel_case_types)]
 
 use super::IMAGE_DATA_DIRECTORY;
+use crate::str16::expect_ascii;
 use memory::Mem;
 
 #[derive(Debug)]
@@ -25,7 +26,7 @@ unsafe impl memory::Pod for IMAGE_EXPORT_DIRECTORY {}
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
     pub fn name<'a>(&self, image: Mem<'a>) -> &'a str {
-        image.slicez(self.Name).unwrap().to_ascii()
+        expect_ascii(image.slicez(self.Name))
     }
 
     pub fn fns<'a>(&self, image: Mem<'a>) -> &'a [u32] {
@@ -38,7 +39,7 @@ impl IMAGE_EXPORT_DIRECTORY {
 
         let ni = names
             .iter()
-            .map(move |&addr| image.slicez(addr).unwrap().to_ascii());
+            .map(move |&addr| expect_ascii(image.slicez(addr)));
         let oi = ords.iter().copied();
         ni.zip(oi)
     }
