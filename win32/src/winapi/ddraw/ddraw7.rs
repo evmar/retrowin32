@@ -123,7 +123,7 @@ pub(super) mod IDirectDraw7 {
             todo!()
         }
 
-        let mem = machine.memory.mem();
+        let mem = machine.emu.memory.mem();
         let desc_addr = machine
             .state
             .ddraw
@@ -154,7 +154,7 @@ pub(super) mod IDirectDraw7 {
             .state
             .ddraw
             .heap
-            .free(machine.memory.mem(), desc_addr);
+            .free(machine.emu.memory.mem(), desc_addr);
 
         DD_OK
     }
@@ -289,7 +289,7 @@ pub(super) mod IDirectDrawSurface7 {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawSurface7 = ddraw.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectDrawSurface7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = ddraw.vtable_IDirectDrawSurface7;
         machine.mem().put::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
@@ -453,7 +453,7 @@ pub(super) mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         if surf.pixels == 0 {
             surf.pixels = machine.state.ddraw.heap.alloc(
-                machine.memory.mem(),
+                machine.emu.memory.mem(),
                 surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
             );
         }
@@ -496,6 +496,7 @@ pub(super) mod IDirectDrawSurface7 {
         match machine.state.ddraw.bytes_per_pixel {
             1 => {
                 let pixels = machine
+                    .emu
                     .memory
                     .mem()
                     .view_n::<u8>(surf.pixels, surf.width * surf.height);
@@ -518,6 +519,7 @@ pub(super) mod IDirectDrawSurface7 {
             }
             4 => {
                 let pixels = machine
+                    .emu
                     .memory
                     .mem()
                     .view_n::<[u8; 4]>(surf.pixels, surf.width * surf.height);

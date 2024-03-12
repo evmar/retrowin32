@@ -167,7 +167,7 @@ pub fn HeapAlloc(
         }
         Some(heap) => heap,
     };
-    let addr = heap.alloc(machine.memory.mem(), dwBytes);
+    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -191,7 +191,7 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         .kernel32
         .get_heap(hHeap)
         .unwrap()
-        .free(machine.memory.mem(), lpMem);
+        .free(machine.emu.memory.mem(), lpMem);
     true
 }
 
@@ -207,7 +207,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         }
         Some(heap) => heap,
     };
-    heap.size(machine.memory.mem(), lpMem)
+    heap.size(machine.emu.memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -239,8 +239,8 @@ pub fn HeapReAlloc(
         }
         Some(heap) => heap,
     };
-    let old_size = heap.size(machine.memory.mem(), lpMem);
-    let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
+    let old_size = heap.size(machine.emu.memory.mem(), lpMem);
+    let new_addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
     machine.mem().as_mut_slice_todo().copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
@@ -278,7 +278,7 @@ pub fn HeapCreate(
     machine
         .state
         .kernel32
-        .new_heap(&mut machine.memory, size, "HeapCreate".into())
+        .new_heap(&mut machine.emu.memory, size, "HeapCreate".into())
 }
 
 #[win32_derive::dllexport]
@@ -317,12 +317,11 @@ pub fn VirtualAlloc(
     }
     // TODO round dwSize to page boundary
 
-    let mapping =
-        machine
-            .state
-            .kernel32
-            .mappings
-            .alloc(dwSize, "VirtualAlloc".into(), &mut machine.memory);
+    let mapping = machine.state.kernel32.mappings.alloc(
+        dwSize,
+        "VirtualAlloc".into(),
+        &mut machine.emu.memory,
+    );
     mapping.addr
 }
 
@@ -360,8 +359,11 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
-    let heap = machine.state.kernel32.get_process_heap(&mut machine.memory);
-    heap.free(machine.memory.mem(), hMem);
+    let heap = machine
+        .state
+        .kernel32
+        .get_process_heap(&mut machine.emu.memory);
+    heap.free(machine.emu.memory.mem(), hMem);
     return 0; // success
 }
 
@@ -386,6 +388,9 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.get_process_heap(&mut machine.memory); // lazy init process_heap
+    machine
+        .state
+        .kernel32
+        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
     machine.state.kernel32.process_heap
 }

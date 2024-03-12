@@ -265,7 +265,7 @@ fn main() -> anyhow::Result<()> {
                 machine
                     .emu
                     .x86
-                    .add_breakpoint(machine.memory.mem(), next_trace);
+                    .add_breakpoint(machine.emu.memory.mem(), next_trace);
                 loop {
                     // Ignore errors here because we will hit breakpoints.
                     machine.execute_block(false);
@@ -276,7 +276,7 @@ fn main() -> anyhow::Result<()> {
                 machine
                     .emu
                     .x86
-                    .clear_breakpoint(machine.memory.mem(), next_trace);
+                    .clear_breakpoint(machine.emu.memory.mem(), next_trace);
 
                 print_trace(&machine);
             }

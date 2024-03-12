@@ -83,7 +83,7 @@ pub(super) mod IDirectDraw {
         if lpSurfaceDesc.is_some() {
             todo!()
         }
-        let mem = machine.memory.mem();
+        let mem = machine.emu.memory.mem();
         let desc_addr = machine
             .state
             .ddraw
@@ -114,7 +114,7 @@ pub(super) mod IDirectDraw {
             .state
             .ddraw
             .heap
-            .free(machine.memory.mem(), desc_addr);
+            .free(machine.emu.memory.mem(), desc_addr);
 
         DD_OK
     }
@@ -176,7 +176,7 @@ pub(super) mod IDirectDrawSurface {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawSurface = ddraw.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectDrawSurface = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = ddraw.vtable_IDirectDrawSurface;
         machine.mem().put::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface

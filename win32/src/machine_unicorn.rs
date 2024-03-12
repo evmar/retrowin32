@@ -35,6 +35,7 @@ impl MemImpl {
 pub struct Emulator {
     pub unicorn: unicorn_engine::Unicorn<'static, ()>,
     pub shims: Shims,
+    pub memory: MemImpl,
 }
 
 impl crate::machine::Emulator for Emulator {
@@ -76,12 +77,19 @@ impl MachineX<Emulator> {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            emu: Emulator { unicorn, shims },
-            memory,
+            emu: Emulator {
+                unicorn,
+                shims,
+                memory,
+            },
             host,
             state,
             labels: HashMap::new(),
         }
+    }
+
+    pub fn mem(&self) -> Mem {
+        self.emu.memory.mem()
     }
 
     /// Initialize a memory mapping for the stack and return the initial stack pointer.
@@ -90,7 +98,7 @@ impl MachineX<Emulator> {
             self.state
                 .kernel32
                 .mappings
-                .alloc(stack_size, "stack".into(), &mut self.memory);
+                .alloc(stack_size, "stack".into(), &mut self.emu.memory);
         let stack_pointer = stack.addr + stack.size - 4;
 
         // TODO: put this init somewhere better.
@@ -112,7 +120,7 @@ impl MachineX<Emulator> {
         // for the code and data segments too.
         // https://scoding.de/setting-global-descriptor-table-unicorn
         // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
-        let gdt = self.state.kernel32.create_gdt(self.memory.mem());
+        let gdt = self.state.kernel32.create_gdt(self.emu.memory.mem());
 
         let gdtr = unicorn_engine::X86Mmr {
             selector: 0, // unused

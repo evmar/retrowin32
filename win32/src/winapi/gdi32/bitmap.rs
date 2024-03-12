@@ -75,7 +75,7 @@ pub fn BitBlt(
         DCTarget::Window(_) => todo!(),
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
-    let src = src_bitmap.pixels_slice(machine.memory.mem());
+    let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dst_dc.target {
@@ -304,7 +304,7 @@ pub fn SetDIBitsToDevice(
             cLines as usize,
         )),
     );
-    let src = src_bitmap.pixels_slice(machine.memory.mem());
+    let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let (dst, dst_stride) = match dc.target {

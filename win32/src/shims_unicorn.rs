@@ -98,7 +98,7 @@ fn handle_shim_call(machine: &mut Machine) -> u32 {
 }
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
-    let mem = machine.memory.mem();
+    let mem = machine.emu.memory.mem();
 
     let ret_addr = machine
         .emu

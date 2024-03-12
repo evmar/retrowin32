@@ -26,6 +26,7 @@ impl RawMem {
 
 pub struct Emulator {
     pub shims: Shims,
+    pub memory: RawMem,
 }
 
 impl crate::machine::Emulator for Emulator {
@@ -50,12 +51,15 @@ impl MachineX<Emulator> {
         let state = winapi::State::new(kernel32);
 
         Machine {
-            emu: Emulator { shims },
-            memory,
+            emu: Emulator { shims, memory },
             host,
             state,
             labels: HashMap::new(),
         }
+    }
+
+    pub fn mem(&self) -> Mem {
+        self.emu.memory.mem()
     }
 
     #[allow(non_snake_case)]
@@ -67,11 +71,11 @@ impl MachineX<Emulator> {
     ) -> anyhow::Result<LoadedAddrs> {
         let exe = pe::load_exe(self, buf, cmdline, relocate)?;
 
-        let stack =
-            self.state
-                .kernel32
-                .mappings
-                .alloc(exe.stack_size, "stack".into(), &mut self.memory);
+        let stack = self.state.kernel32.mappings.alloc(
+            exe.stack_size,
+            "stack".into(),
+            &mut self.emu.memory,
+        );
         let stack_pointer = stack.addr + stack.size - 4;
 
         Ok(LoadedAddrs {

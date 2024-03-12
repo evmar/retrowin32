@@ -92,13 +92,13 @@ impl Emulator {
         self.machine
             .emu
             .x86
-            .add_breakpoint(self.machine.memory.mem(), addr)
+            .add_breakpoint(self.machine.emu.memory.mem(), addr)
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
         self.machine
             .emu
             .x86
-            .clear_breakpoint(self.machine.memory.mem(), addr)
+            .clear_breakpoint(self.machine.emu.memory.mem(), addr)
     }
 
     pub fn mappings_json(&self) -> String {

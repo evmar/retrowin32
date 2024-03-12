@@ -102,7 +102,7 @@ impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut ddraw = State::default();
         ddraw.heap = machine.state.kernel32.new_private_heap(
-            &mut machine.memory,
+            &mut machine.emu.memory,
             4 << 20,
             "ddraw.dll heap".into(),
         );
@@ -155,7 +155,7 @@ mod IDirectDrawPalette {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawPalette = ddraw.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectDrawPalette = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = ddraw.vtable_IDirectDrawPalette;
         machine.mem().put::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
@@ -178,7 +178,11 @@ mod IDirectDrawPalette {
     ) -> u32 {
         let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
-        let entries = machine.memory.mem().view_n::<PALETTEENTRY>(entries, count);
+        let entries = machine
+            .emu
+            .memory
+            .mem()
+            .view_n::<PALETTEENTRY>(entries, count);
         palette[start as usize..][..count as usize].clone_from_slice(entries);
         DD_OK
     }
@@ -207,20 +211,20 @@ pub fn DirectDrawCreateEx(
 
     if iid == 0 {
         // DirectDrawCreate
-        let lpDirectDraw = ddraw.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = ddraw.vtable_IDirectDraw;
         machine.mem().put::<u32>(lpDirectDraw, vtable);
         machine.mem().put::<u32>(lplpDD, lpDirectDraw);
         return DD_OK;
     }
 
-    let iid_slice = machine.memory.mem().sub(iid, 16).as_slice_todo();
+    let iid_slice = machine.emu.memory.mem().sub(iid, 16).as_slice_todo();
     if iid_slice == ddraw7::IID_IDirectDraw7 {
         // Caller gives us:
         //   pointer (lplpDD) that they want us to fill in to point to ->
         //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
         //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-        let lpDirectDraw7 = ddraw.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectDraw7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = ddraw.vtable_IDirectDraw7;
         machine.mem().put::<u32>(lpDirectDraw7, vtable);
         machine.mem().put::<u32>(lplpDD, lpDirectDraw7);

@@ -16,8 +16,8 @@ fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Op
         *machine.state.kernel32.mappings.add(mapping);
 
     let memory_end = addr + size;
-    if memory_end > machine.memory.len() {
-        machine.memory.resize(memory_end, 0);
+    if memory_end > machine.emu.memory.len() {
+        machine.emu.memory.resize(memory_end, 0);
     }
 
     if let Some(buf) = buf {

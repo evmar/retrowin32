@@ -23,7 +23,7 @@ impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut dsound = State::default();
         dsound.heap = machine.state.kernel32.new_private_heap(
-            &mut machine.memory,
+            &mut machine.emu.memory,
             0x1000,
             "dsound.dll heap".into(),
         );
@@ -92,7 +92,7 @@ mod IDirectSoundBuffer {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectSoundBuffer = dsound.heap.alloc(machine.emu.memory.mem(), 4);
         let vtable = dsound.vtable_IDirectSoundBuffer;
         machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
@@ -173,7 +173,7 @@ pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOu
     }
     let dsound = &mut machine.state.dsound;
 
-    let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
+    let lpDirectSound = dsound.heap.alloc(machine.emu.memory.mem(), 4);
     let vtable = dsound.vtable_IDirectSound;
     machine.mem().put::<u32>(lpDirectSound, vtable);
     machine.mem().put::<u32>(ppDS, lpDirectSound);

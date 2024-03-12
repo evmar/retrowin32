@@ -25,6 +25,7 @@ impl VecMem {
 
 pub struct Emulator {
     pub x86: x86::X86,
+    pub memory: VecMem,
     pub shims: Shims,
 }
 
@@ -50,13 +51,17 @@ impl MachineX<Emulator> {
         Machine {
             emu: Emulator {
                 x86: x86::X86::new(),
+                memory,
                 shims,
             },
-            memory,
             host,
             state,
             labels: HashMap::new(),
         }
+    }
+
+    pub fn mem(&self) -> Mem {
+        self.emu.memory.mem()
     }
 
     /// Initialize a memory mapping for the stack and return the initial stack pointer.
@@ -65,7 +70,7 @@ impl MachineX<Emulator> {
             self.state
                 .kernel32
                 .mappings
-                .alloc(stack_size, "stack".into(), &mut self.memory);
+                .alloc(stack_size, "stack".into(), &mut self.emu.memory);
         let stack_pointer = stack.addr + stack.size - 4;
         self.emu.x86.cpu.regs.esp = stack_pointer;
         self.emu.x86.cpu.regs.ebp = stack_pointer;
@@ -97,8 +102,12 @@ impl MachineX<Emulator> {
             kernel32,
             winapi::kernel32::GetProcAddressArg(winapi::ImportSymbol::Name("retrowin32_main")),
         );
-        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), exe.entry_point);
-        x86::ops::push(&mut self.emu.x86.cpu, self.memory.mem(), 0); // return address
+        x86::ops::push(
+            &mut self.emu.x86.cpu,
+            self.emu.memory.mem(),
+            exe.entry_point,
+        );
+        x86::ops::push(&mut self.emu.x86.cpu, self.emu.memory.mem(), 0); // return address
         self.emu.x86.cpu.regs.eip = retrowin32_main;
 
         Ok(LoadedAddrs {
@@ -114,7 +123,9 @@ impl MachineX<Emulator> {
             // error can be set in cases like calls to ExitProcess().
             return &self.emu.x86.cpu.state;
         }
-        self.emu.x86.execute_block(self.memory.mem(), single_step)
+        self.emu
+            .x86
+            .execute_block(self.emu.memory.mem(), single_step)
     }
 
     pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {

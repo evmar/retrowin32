@@ -158,11 +158,11 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
     let esp = machine.emu.x86.cpu.regs.esp;
     // Push the args in reverse order.
     for &arg in args.iter().rev() {
-        x86::ops::push(&mut machine.emu.x86.cpu, machine.memory.mem(), arg);
+        x86::ops::push(&mut machine.emu.x86.cpu, machine.emu.memory.mem(), arg);
     }
     x86::ops::push(
         &mut machine.emu.x86.cpu,
-        machine.memory.mem(),
+        machine.emu.memory.mem(),
         machine.emu.shims.async_executor,
     ); // return address
     machine.emu.x86.cpu.regs.eip = func;
