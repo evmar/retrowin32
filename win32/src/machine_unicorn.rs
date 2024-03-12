@@ -17,9 +17,6 @@ impl MemImpl {
         Self(v.into_boxed_slice())
     }
 
-    pub fn resize(&mut self, size: u32, _value: u8) {
-        unimplemented!("resize memory {size:x}")
-    }
     pub fn len(&self) -> u32 {
         self.0.len() as u32
     }

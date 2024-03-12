@@ -19,9 +19,6 @@ impl RawMem {
     pub fn len(&self) -> u32 {
         0xFFFF_FFFF
     }
-    pub fn resize(&mut self, _size: u32, _value: u8) {
-        unreachable!()
-    }
 }
 
 pub struct Emulator {

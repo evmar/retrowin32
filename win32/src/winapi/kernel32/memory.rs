@@ -78,7 +78,10 @@ impl Mappings {
         }
         let addr = self.find_space(size);
         if addr + size > mem.len() {
-            mem.resize(addr + size, 0);
+            panic!(
+                "not enough memory reserved, need at least {}mb",
+                (addr + size) >> 20
+            );
         }
         self.add(Mapping {
             addr,

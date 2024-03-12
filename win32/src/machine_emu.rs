@@ -8,16 +8,27 @@ use crate::{
 use memory::Mem;
 use std::collections::HashMap;
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
-pub struct VecMem(#[serde(with = "serde_bytes")] Vec<u8>);
+// This is really Box<u8>, just using Vec<u8> to use serde_bytes.
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct BoxMem(#[serde(with = "serde_bytes")] Vec<u8>);
 
-impl VecMem {
-    pub fn resize(&mut self, size: u32, value: u8) {
-        self.0.resize(size as usize, value);
+impl BoxMem {
+    fn new(size: usize) -> Self {
+        let mut buf = Vec::with_capacity(size);
+        unsafe {
+            buf.set_len(size);
+        }
+        Self(buf)
     }
+
+    // TODO: we can support growing under wasm by using a custom allocator that
+    // ensures this is the last thing in the heap.
+    // pub fn grow();
+
     pub fn len(&self) -> u32 {
         self.0.len() as u32
     }
+
     pub fn mem(&self) -> Mem {
         Mem::from_slice(&self.0)
     }
@@ -25,7 +36,7 @@ impl VecMem {
 
 pub struct Emulator {
     pub x86: x86::X86,
-    pub memory: VecMem,
+    pub memory: BoxMem,
     pub shims: Shims,
 }
 
@@ -35,12 +46,12 @@ impl crate::machine::Emulator for Emulator {
     }
 }
 
-pub type MemImpl = VecMem;
+pub type MemImpl = BoxMem;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
-        let mut memory = MemImpl::default();
+        let mut memory = BoxMem::new(256 << 20);
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
         let shims = {
             kernel32 = kernel32;

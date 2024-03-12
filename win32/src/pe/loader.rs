@@ -17,7 +17,7 @@ fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Op
 
     let memory_end = addr + size;
     if memory_end > machine.emu.memory.len() {
-        machine.emu.memory.resize(memory_end, 0);
+        panic!("not enough memory reserved");
     }
 
     if let Some(buf) = buf {
