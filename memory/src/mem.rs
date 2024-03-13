@@ -6,6 +6,7 @@ pub trait Extensions<'m>: Sized {
     fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
+    fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
 
     fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T];
@@ -19,6 +20,10 @@ impl<'m> Extensions<'m> for &'m [u8] {
             }
             self.as_ptr().add(ofs as usize) as *mut T
         }
+    }
+
+    fn sub32(self, ofs: u32, len: u32) -> &'m [u8] {
+        &self[ofs as usize..][..len as usize]
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {
@@ -181,6 +186,10 @@ impl<'m> Extensions<'m> for Mem<'m> {
             panic!("oob");
         }
         self.get_ptr_unchecked(ofs) as *mut T
+    }
+
+    fn sub32(self, ofs: u32, len: u32) -> &'m [u8] {
+        self.sub(ofs, len).as_slice_todo()
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {

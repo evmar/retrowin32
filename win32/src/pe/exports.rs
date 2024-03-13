@@ -1,11 +1,10 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use super::IMAGE_DATA_DIRECTORY;
 use crate::str16::expect_ascii;
-use memory::{Extensions, Mem};
+use memory::Extensions;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 #[repr(C)]
 pub struct IMAGE_EXPORT_DIRECTORY {
     Characteristics: u32,
@@ -29,11 +28,11 @@ impl IMAGE_EXPORT_DIRECTORY {
         expect_ascii(image.slicez(self.Name))
     }
 
-    pub fn fns<'a>(&self, image: Mem<'a>) -> &'a [u32] {
+    pub fn fns<'a>(&self, image: &'a [u8]) -> &'a [u32] {
         image.view_n::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
     }
 
-    pub fn names<'a>(&self, image: Mem<'a>) -> impl Iterator<Item = (&'a str, u16)> {
+    pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
         let names = image.view_n::<u32>(self.AddressOfNames, self.NumberOfNames);
         let ords = image.view_n::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
@@ -45,11 +44,6 @@ impl IMAGE_EXPORT_DIRECTORY {
     }
 }
 
-pub fn read_exports<'a>(
-    mem: Mem<'a>,
-    base: u32,
-    exports: &IMAGE_DATA_DIRECTORY,
-) -> &'a IMAGE_EXPORT_DIRECTORY {
-    let image = mem.slice(base..);
-    exports.as_mem(image).view::<IMAGE_EXPORT_DIRECTORY>(0)
+pub fn read_exports(section: &[u8]) -> IMAGE_EXPORT_DIRECTORY {
+    section.get_pod::<IMAGE_EXPORT_DIRECTORY>(0)
 }

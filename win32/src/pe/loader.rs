@@ -262,13 +262,13 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, name, buf, &file, true)?;
-    let image = machine.mem().slice(base..);
+    let image = machine.mem().slice(base..).as_slice_todo();
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
     let mut ordinals = HashMap::new();
     let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        let dir = pe::read_exports(machine.mem(), base, dir);
+        let dir = pe::read_exports(dir.as_slice(image));
         for (i, &addr) in dir.fns(image).iter().enumerate() {
             let ord = dir.Base + i as u32;
             ordinals.insert(ord, base + addr);
