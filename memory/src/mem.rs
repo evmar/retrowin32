@@ -2,6 +2,7 @@ use crate::Pod;
 use std::mem::size_of;
 
 pub trait Extensions<'m>: Sized {
+    fn as_slice(self) -> &'m [u8];
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T;
     fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
@@ -10,11 +11,16 @@ pub trait Extensions<'m>: Sized {
     fn slicez(self, ofs: u32) -> &'m [u8];
 
     /// Create an iterator over a contiguous array of Pod types.
-    fn iter_pod<T: Clone + Pod>(self, ofs: u32, count: u32) -> Iterator<'m, T> {
+    fn into_iter_pod<T: Clone + Pod>(self) -> Iterator<'m, T> {
         Iterator {
-            buf: self.sub32(ofs, count * size_of::<T>() as u32),
+            buf: self.as_slice(),
             _marker: Default::default(),
         }
+    }
+
+    fn iter_pod<T: Clone + Pod>(self, ofs: u32, count: u32) -> Iterator<'m, T> {
+        self.sub32(ofs, count * size_of::<T>() as u32)
+            .into_iter_pod()
     }
 }
 
@@ -37,6 +43,10 @@ impl<'m, T: Pod + Clone> std::iter::Iterator for Iterator<'m, T> {
 }
 
 impl<'m> Extensions<'m> for &'m [u8] {
+    fn as_slice(self) -> &'m [u8] {
+        self
+    }
+
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         unsafe {
             if ofs as usize + size_of::<T>() > self.len() {
@@ -192,6 +202,10 @@ impl<'m> Mem<'m> {
 }
 
 impl<'m> Extensions<'m> for Mem<'m> {
+    fn as_slice(self) -> &'m [u8] {
+        self.as_slice_todo()
+    }
+
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         if ofs + size_of::<T>() as u32 > self.len() {
             panic!("oob");

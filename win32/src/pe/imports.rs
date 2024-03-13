@@ -2,11 +2,10 @@
 #![allow(non_camel_case_types)]
 
 use crate::{
-    reader::Reader,
     str16::expect_ascii,
     winapi::{types::DWORD, ImportSymbol},
 };
-use memory::{Extensions, Mem};
+use memory::Extensions;
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
 //
@@ -39,7 +38,7 @@ impl IMAGE_IMPORT_DESCRIPTOR {
         expect_ascii(image.slicez(self.Name))
     }
 
-    pub fn ilt<'m>(&self, image: &'m [u8]) -> ILTITer<'m> {
+    pub fn ilt<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = ILTEntry> + 'm {
         // Officially OriginalFirstThunk (ILT) should have all the data, but in one
         // executable they're all 0, possibly a Borland compiler thing.
         // Meanwhile, win2k's msvcrt.dll has invalid FirstThunk (IAT) data...
@@ -48,10 +47,11 @@ impl IMAGE_IMPORT_DESCRIPTOR {
         } else {
             self.FirstThunk
         };
-        ILTITer {
-            mem: &image[addr as usize..],
-            ofs: 0,
-        }
+
+        // Import Lookup Table (section 6.4.2)
+        image[addr as usize..]
+            .into_iter_pod::<ILTEntry>()
+            .take_while(|entry| entry.0 != 0)
     }
 
     pub fn iat_offset(&self) -> u32 {
@@ -59,49 +59,16 @@ impl IMAGE_IMPORT_DESCRIPTOR {
     }
 }
 
-pub struct IDTIter<'m> {
-    /// r.buf points at IDT
-    r: Reader<'m>,
-}
-impl<'m> Iterator for IDTIter<'m> {
-    type Item = IMAGE_IMPORT_DESCRIPTOR;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        // On some executables the IDT is unaligned (at offset 0x200f!) so we must
-        // clone here rather than just taking a view on the existing bytes.
-        let descriptor = self.r.read_unaligned::<IMAGE_IMPORT_DESCRIPTOR>();
-        if descriptor.Name == 0 {
-            return None;
-        }
-        Some(descriptor)
-    }
+pub fn read_imports<'m>(buf: &'m [u8]) -> impl Iterator<Item = IMAGE_IMPORT_DESCRIPTOR> + 'm {
+    buf.into_iter_pod::<IMAGE_IMPORT_DESCRIPTOR>()
+        .take_while(|desc| desc.Name != 0)
 }
 
-pub fn read_imports<'m>(buf: &'m [u8]) -> IDTIter<'m> {
-    IDTIter {
-        r: Reader::new(Mem::from_slice(buf)),
-    }
-}
-
-/// Import Lookup Table (section 6.4.2)
-pub struct ILTITer<'m> {
-    mem: &'m [u8],
-    ofs: u32,
-}
-impl<'m> Iterator for ILTITer<'m> {
-    type Item = ILTEntry;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        let entry = self.mem.get_pod::<u32>(self.ofs);
-        if entry == 0 {
-            return None;
-        }
-        self.ofs += 4;
-        Some(ILTEntry(entry))
-    }
-}
-
+#[repr(transparent)]
+#[derive(Clone)]
 pub struct ILTEntry(u32);
+unsafe impl memory::Pod for ILTEntry {}
+
 impl ILTEntry {
     pub fn as_import_symbol(self, image: &[u8]) -> ImportSymbol {
         let entry = self.0;

@@ -1,7 +1,7 @@
 use std::mem::size_of;
 
 use anyhow::bail;
-use memory::{Extensions, Mem};
+use memory::Mem;
 
 pub struct Reader<'m> {
     pub buf: Mem<'m>,
@@ -45,12 +45,6 @@ impl<'m> Reader<'m> {
     // TODO: Result<> here.
     pub fn read<T: memory::Pod>(&mut self) -> &'m T {
         let t = self.buf.view::<T>(self.pos as u32);
-        self.pos += size_of::<T>() as u32;
-        t
-    }
-
-    pub fn read_unaligned<T: memory::Pod + Clone>(&mut self) -> T {
-        let t = self.buf.get_pod::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
