@@ -35,10 +35,11 @@ impl<'m> Reader<'m> {
     }
 
     pub fn expect(&mut self, s: &str) -> anyhow::Result<()> {
-        let got = self.read_n::<u8>(s.len() as u32)?;
-        if &*got != s.as_bytes() {
+        let got = &self.buf[self.pos..][..s.len()];
+        if got != s.as_bytes() {
             bail!("expected {:?}, got {:?}", s, got);
         }
+        self.pos += s.len();
         Ok(())
     }
 
