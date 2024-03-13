@@ -270,7 +270,7 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let dir = pe::read_exports(dir.as_slice(image));
-        for (i, &addr) in dir.fns(image).iter().enumerate() {
+        for (i, addr) in dir.fns(image).enumerate() {
             let ord = dir.Base + i as u32;
             ordinals.insert(ord, base + addr);
         }

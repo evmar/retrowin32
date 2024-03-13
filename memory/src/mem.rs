@@ -9,7 +9,31 @@ pub trait Extensions<'m>: Sized {
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
 
-    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T];
+    /// Create an iterator over a contiguous array of Pod types.
+    fn iter_pod<T: Clone + Pod>(self, ofs: u32, count: u32) -> Iterator<'m, T> {
+        Iterator {
+            buf: self.sub32(ofs, count * size_of::<T>() as u32),
+            _marker: Default::default(),
+        }
+    }
+}
+
+/// See iter_pod.
+pub struct Iterator<'m, T> {
+    buf: &'m [u8],
+    _marker: std::marker::PhantomData<&'m T>,
+}
+impl<'m, T: Pod + Clone> std::iter::Iterator for Iterator<'m, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.buf.len() < size_of::<T>() {
+            return None;
+        }
+        let obj = self.buf.get_pod::<T>(0);
+        self.buf = &self.buf[size_of::<T>()..];
+        Some(obj)
+    }
 }
 
 impl<'m> Extensions<'m> for &'m [u8] {
@@ -31,19 +55,6 @@ impl<'m> Extensions<'m> for &'m [u8] {
         let slice = &self[ofs..];
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
-    }
-
-    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T] {
-        if count == 0 {
-            return &[];
-        }
-        unsafe {
-            let ptr = self.get_ptr::<T>(ofs);
-            if ptr.add(count as usize) as *const u8 > self.as_ptr().add(self.len()) {
-                panic!("oob");
-            }
-            std::slice::from_raw_parts(ptr, count as usize)
-        }
     }
 }
 
@@ -197,15 +208,5 @@ impl<'m> Extensions<'m> for Mem<'m> {
         let slice = &self.as_slice_todo()[ofs..];
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
-    }
-
-    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T] {
-        unsafe {
-            let ptr = self.get_ptr_unchecked(ofs);
-            if ptr.add(size_of::<T>() * count as usize) > self.end {
-                panic!("oob");
-            }
-            std::slice::from_raw_parts(ptr as *const T, count as usize)
-        }
     }
 }

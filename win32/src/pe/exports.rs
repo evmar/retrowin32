@@ -28,19 +28,16 @@ impl IMAGE_EXPORT_DIRECTORY {
         expect_ascii(image.slicez(self.Name))
     }
 
-    pub fn fns<'a>(&self, image: &'a [u8]) -> &'a [u32] {
-        image.view_n::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
+    pub fn fns<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = u32> + 'a {
+        image.iter_pod::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
     }
 
     pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
-        let names = image.view_n::<u32>(self.AddressOfNames, self.NumberOfNames);
-        let ords = image.view_n::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
+        let names = image.iter_pod::<u32>(self.AddressOfNames, self.NumberOfNames);
+        let ords = image.iter_pod::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
-        let ni = names
-            .iter()
-            .map(move |&addr| expect_ascii(image.slicez(addr)));
-        let oi = ords.iter().copied();
-        ni.zip(oi)
+        let ni = names.map(move |addr| expect_ascii(image.slicez(addr)));
+        ni.zip(ords)
     }
 }
 
