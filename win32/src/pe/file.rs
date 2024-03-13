@@ -15,10 +15,10 @@ use memory::{Extensions, Mem};
 fn dos_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
-    Ok(*r.read::<DWORD>())
+    Ok(r.read::<DWORD>())
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 #[repr(C)]
 pub struct IMAGE_FILE_HEADER {
     pub Machine: WORD,
@@ -48,7 +48,7 @@ bitflags! {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct IMAGE_OPTIONAL_HEADER32 {
     pub Magic: WORD,
     pub MajorLinkerVersion: u8,
@@ -118,10 +118,10 @@ pub enum IMAGE_DIRECTORY_ENTRY {
     COM_DESCRIPTOR = 14,
 }
 
-fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
+fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<IMAGE_FILE_HEADER> {
     r.expect("PE\0\0")?;
 
-    let header: &'m IMAGE_FILE_HEADER = r.read::<IMAGE_FILE_HEADER>();
+    let header = r.read::<IMAGE_FILE_HEADER>();
     if header.Machine != 0x14c {
         bail!("bad machine {:?}", header.Machine);
     }
@@ -129,7 +129,7 @@ fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<&'m IMAGE_FILE_HEADER> {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct IMAGE_SECTION_HEADER {
     pub Name: [u8; 8],
     pub VirtualSize: u32,
@@ -174,14 +174,14 @@ bitflags! {
 }
 
 #[derive(Debug)]
-pub struct File<'a> {
-    pub header: &'a IMAGE_FILE_HEADER,
-    pub opt_header: &'a IMAGE_OPTIONAL_HEADER32,
-    pub data_directory: &'a [IMAGE_DATA_DIRECTORY],
-    pub sections: &'a [IMAGE_SECTION_HEADER],
+pub struct File {
+    pub header: IMAGE_FILE_HEADER,
+    pub opt_header: IMAGE_OPTIONAL_HEADER32,
+    pub data_directory: Box<[IMAGE_DATA_DIRECTORY]>,
+    pub sections: Box<[IMAGE_SECTION_HEADER]>,
 }
 
-impl<'a> File<'a> {
+impl File {
     pub fn get_data_directory(
         &self,
         entry: IMAGE_DIRECTORY_ENTRY,
@@ -195,9 +195,8 @@ impl<'a> File<'a> {
     }
 }
 
-pub fn parse<'m>(buf: &'m [u8]) -> anyhow::Result<File<'m>> {
-    let mem = Mem::from_slice(buf);
-    let mut r = Reader::new(mem);
+pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
+    let mut r = Reader::new(buf);
 
     let pe_header_ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
     if pe_header_ofs as usize + std::mem::size_of::<IMAGE_FILE_HEADER>() >= buf.len() {

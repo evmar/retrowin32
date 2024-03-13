@@ -148,6 +148,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 
 #[repr(C)]
 #[allow(non_camel_case_types)]
+#[derive(Clone)]
 struct IMAGE_BASE_RELOCATION {
     VirtualAddress: u32,
     SizeOfBlock: u32,
@@ -160,13 +161,13 @@ fn apply_relocs(image: Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIREC
     // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
     // that appear to only apply to object files (?).
 
-    let relocs = relocs.as_mem(image);
+    let relocs = relocs.as_slice(image.as_slice_todo());
     let mut r = Reader::new(relocs);
     while !r.done() {
         let reloc = r.read::<IMAGE_BASE_RELOCATION>();
         let size = reloc.SizeOfBlock - std::mem::size_of::<IMAGE_BASE_RELOCATION>() as u32;
         for _ in 0..(size / 2) {
-            let entry = *r.read::<u16>();
+            let entry = r.read::<u16>();
             let etype = entry >> 12;
             let ofs = entry & 0x0FFF;
             match etype {
@@ -192,7 +193,7 @@ fn load_pe(
 ) -> anyhow::Result<u32> {
     let base = load_image(machine, name, file, buf, relocate);
 
-    for sec in file.sections {
+    for sec in file.sections.iter() {
         load_section(machine, name, base, buf, sec);
     }
 

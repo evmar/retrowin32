@@ -1,15 +1,15 @@
 use std::mem::size_of;
 
 use anyhow::bail;
-use memory::Mem;
+use memory::Extensions;
 
 pub struct Reader<'m> {
-    pub buf: Mem<'m>,
-    pub pos: u32,
+    pub buf: &'m [u8],
+    pub pos: usize,
 }
 
 impl<'m> Reader<'m> {
-    pub fn new(buf: Mem<'m>) -> Self {
+    pub fn new(buf: &'m [u8]) -> Self {
         Reader { buf, pos: 0 }
     }
 
@@ -25,37 +25,40 @@ impl<'m> Reader<'m> {
     }
 
     pub fn seek(&mut self, ofs: u32) -> anyhow::Result<()> {
-        self.pos = ofs;
+        self.pos = ofs as usize;
         self.check_eof()
     }
 
-    pub fn skip(&mut self, n: u32) -> anyhow::Result<()> {
+    pub fn skip(&mut self, n: usize) -> anyhow::Result<()> {
         self.pos += n;
         self.check_eof()
     }
 
     pub fn expect(&mut self, s: &str) -> anyhow::Result<()> {
         let got = self.read_n::<u8>(s.len() as u32)?;
-        if got != s.as_bytes() {
+        if &*got != s.as_bytes() {
             bail!("expected {:?}, got {:?}", s, got);
         }
         Ok(())
     }
 
-    // TODO: Result<> here.
-    pub fn read<T: memory::Pod>(&mut self) -> &'m T {
-        let t = self.buf.view::<T>(self.pos as u32);
-        self.pos += size_of::<T>() as u32;
+    pub fn read<T: memory::Pod + Clone>(&mut self) -> T {
+        let t = self.buf.get_pod::<T>(self.pos as u32);
+        self.pos += size_of::<T>();
         t
     }
 
-    pub fn read_n<T: memory::Pod>(&mut self, count: u32) -> anyhow::Result<&'m [T]> {
-        let len = size_of::<T>() as u32 * count;
+    pub fn read_n<T: memory::Pod + Clone>(&mut self, count: u32) -> anyhow::Result<Box<[T]>> {
+        let len = size_of::<T>() * count as usize;
         if self.pos + len > self.buf.len() {
             bail!("EOF");
         }
-        let slice = self.buf.view_n::<T>(self.pos as u32, count as u32);
+        let values = self
+            .buf
+            .iter_pod::<T>(self.pos as u32, count)
+            .collect::<Vec<_>>()
+            .into_boxed_slice();
         self.pos += len;
-        Ok(slice)
+        Ok(values)
     }
 }
