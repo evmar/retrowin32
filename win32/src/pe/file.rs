@@ -183,12 +183,11 @@ impl File {
         &self,
         entry: IMAGE_DIRECTORY_ENTRY,
     ) -> Option<&IMAGE_DATA_DIRECTORY> {
-        if let Some(dir) = self.data_directory.get(entry as usize) {
-            if dir.VirtualAddress != 0 {
-                return Some(dir);
-            }
+        let dir = self.data_directory.get(entry as usize)?;
+        if dir.VirtualAddress == 0 {
+            return None;
         }
-        None
+        Some(dir)
     }
 }
 
