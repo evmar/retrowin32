@@ -35,11 +35,11 @@ pub struct IMAGE_IMPORT_DESCRIPTOR {
 unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
-    pub fn image_name<'a>(&self, image: Mem<'a>) -> &'a str {
+    pub fn image_name<'m>(&self, image: &'m [u8]) -> &'m str {
         expect_ascii(image.slicez(self.Name))
     }
 
-    pub fn ilt<'m>(&self, image: Mem<'m>) -> ILTITer<'m> {
+    pub fn ilt<'m>(&self, image: &'m [u8]) -> ILTITer<'m> {
         // Officially OriginalFirstThunk (ILT) should have all the data, but in one
         // executable they're all 0, possibly a Borland compiler thing.
         // Meanwhile, win2k's msvcrt.dll has invalid FirstThunk (IAT) data...
@@ -49,7 +49,7 @@ impl IMAGE_IMPORT_DESCRIPTOR {
             self.FirstThunk
         };
         ILTITer {
-            mem: image.slice(addr..),
+            mem: &image[addr as usize..],
             ofs: 0,
         }
     }
@@ -77,15 +77,15 @@ impl<'m> Iterator for IDTIter<'m> {
     }
 }
 
-pub fn read_imports<'m>(buf: Mem<'m>) -> IDTIter<'m> {
+pub fn read_imports<'m>(buf: &'m [u8]) -> IDTIter<'m> {
     IDTIter {
-        r: Reader::new(buf),
+        r: Reader::new(Mem::from_slice(buf)),
     }
 }
 
 /// Import Lookup Table (section 6.4.2)
 pub struct ILTITer<'m> {
-    mem: Mem<'m>,
+    mem: &'m [u8],
     ofs: u32,
 }
 impl<'m> Iterator for ILTITer<'m> {
@@ -103,7 +103,7 @@ impl<'m> Iterator for ILTITer<'m> {
 
 pub struct ILTEntry(u32);
 impl ILTEntry {
-    pub fn as_import_symbol(self, image: Mem) -> ImportSymbol {
+    pub fn as_import_symbol(self, image: &[u8]) -> ImportSymbol {
         let entry = self.0;
         if entry & (1 << 31) != 0 {
             let ordinal = entry & 0xFFFF;
