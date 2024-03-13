@@ -5,13 +5,13 @@
 #![allow(non_camel_case_types)]
 
 use crate::winapi::types::{DWORD, WORD};
-use memory::Mem;
+use memory::{Extensions, Mem};
 use std::{mem::size_of, ops::Range};
 
 use super::IMAGE_DATA_DIRECTORY;
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DIRECTORY {
     Characteristics: DWORD,
     TimeDateStamp: DWORD,
@@ -22,25 +22,20 @@ struct IMAGE_RESOURCE_DIRECTORY {
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
 
-struct ImageResourceDirectory<'a> {
-    entries: &'a [IMAGE_RESOURCE_DIRECTORY_ENTRY],
-}
-
-impl<'a> ImageResourceDirectory<'a> {
-    fn read(mem: Mem<'a>, ofs: u32) -> ImageResourceDirectory<'a> {
-        let header = mem.view::<IMAGE_RESOURCE_DIRECTORY>(ofs);
+impl IMAGE_RESOURCE_DIRECTORY {
+    fn entries(mem: &[u8]) -> impl Iterator<Item = IMAGE_RESOURCE_DIRECTORY_ENTRY> + '_ {
+        let header = mem.get_pod::<IMAGE_RESOURCE_DIRECTORY>(0);
         let count = (header.NumberOfIdEntries + header.NumberOfNamedEntries) as u32;
         // Entries are in memory immediately after the directory.
-        let entries = mem.view_n::<IMAGE_RESOURCE_DIRECTORY_ENTRY>(
-            ofs + size_of::<IMAGE_RESOURCE_DIRECTORY>() as u32,
+        mem.iter_pod::<IMAGE_RESOURCE_DIRECTORY_ENTRY>(
+            size_of::<IMAGE_RESOURCE_DIRECTORY>() as u32,
             count,
-        );
-        ImageResourceDirectory { entries }
+        )
     }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
     Name: DWORD,
     OffsetToData: DWORD,
@@ -61,8 +56,8 @@ pub enum ResourceName<'a> {
     Id(u32),
 }
 enum ResourceValue<'a> {
-    Dir(ImageResourceDirectory<'a>),
-    Data(&'a IMAGE_RESOURCE_DATA_ENTRY),
+    Dir(&'a [u8]),
+    Data(IMAGE_RESOURCE_DATA_ENTRY),
 }
 impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
     fn name(&self) -> ResourceName {
@@ -75,19 +70,19 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
         }
     }
 
-    fn value<'a>(&self, section: Mem<'a>) -> ResourceValue<'a> {
+    fn value<'a>(&self, section: &'a [u8]) -> ResourceValue<'a> {
         let is_directory = self.OffsetToData >> 31 == 1;
         let offset = self.OffsetToData & 0x7FFF_FFFF;
         if is_directory {
-            ResourceValue::Dir(ImageResourceDirectory::read(section, offset))
+            ResourceValue::Dir(&section[offset as usize..])
         } else {
-            ResourceValue::Data(section.view::<IMAGE_RESOURCE_DATA_ENTRY>(offset))
+            ResourceValue::Data(section.get_pod::<IMAGE_RESOURCE_DATA_ENTRY>(offset))
         }
     }
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DATA_ENTRY {
     OffsetToData: DWORD,
     Size: DWORD,
@@ -104,32 +99,31 @@ pub fn find_resource<'a>(
     query_type: ResourceName,
     query_id: ResourceName,
 ) -> Option<Range<u32>> {
-    let section = image.sub(section.VirtualAddress, section.Size);
+    let section = image
+        .sub(section.VirtualAddress, section.Size)
+        .as_slice_todo();
 
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
-    let dir = ImageResourceDirectory::read(section, 0);
+    let mut dir = IMAGE_RESOURCE_DIRECTORY::entries(section);
 
-    let etype = dir
-        .entries
-        .iter()
-        .find(|entry| entry.name() == query_type)?;
-    let dir = match etype.value(section) {
-        ResourceValue::Dir(dir) => dir,
+    let etype = dir.find(|entry| entry.name() == query_type)?;
+    let mut dir = match etype.value(section) {
+        ResourceValue::Dir(dir) => IMAGE_RESOURCE_DIRECTORY::entries(dir),
         _ => todo!(),
     };
 
-    let eid: &IMAGE_RESOURCE_DIRECTORY_ENTRY =
-        dir.entries.iter().find(|entry| entry.name() == query_id)?;
-    let dir = match eid.value(section) {
-        ResourceValue::Dir(dir) => dir,
+    let eid = dir.find(|entry| entry.name() == query_id)?;
+    let mut dir = match eid.value(section) {
+        ResourceValue::Dir(dir) => IMAGE_RESOURCE_DIRECTORY::entries(dir),
         _ => todo!(),
     };
 
-    if dir.entries.len() > 1 {
+    let first = dir.next()?;
+    if dir.next().is_some() {
         log::warn!("multiple res entries, picking first");
     }
-    let data = match dir.entries.first()?.value(section) {
+    let data = match first.value(section) {
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };
