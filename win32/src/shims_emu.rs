@@ -36,6 +36,8 @@
 //! and runs the async state machine.  In the case of call_x86 that means the
 //! x86 code eventually invoked there will return control back to async_executor.
 
+use memory::Extensions;
+
 use crate::{machine::Machine, shims::Shim};
 
 /// Code that calls from x86 to the host will jump to addresses in this

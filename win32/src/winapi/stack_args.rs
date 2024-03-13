@@ -2,7 +2,7 @@
 
 use super::types::Str16;
 use crate::str16::expect_ascii;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 /// ArrayWithSize<&[u8]> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,

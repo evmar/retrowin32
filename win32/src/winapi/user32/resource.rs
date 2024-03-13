@@ -1,4 +1,4 @@
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 use crate::{
     pe,

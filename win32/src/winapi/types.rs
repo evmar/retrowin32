@@ -2,6 +2,7 @@
 
 pub use super::handle::HANDLE;
 pub use crate::str16::{Str16, String16};
+use memory::Extensions;
 
 pub type WORD = u16;
 pub type DWORD = u32;

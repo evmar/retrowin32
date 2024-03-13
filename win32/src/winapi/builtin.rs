@@ -19,6 +19,7 @@ pub mod advapi32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::advapi32::*;
         pub unsafe fn RegCloseKey(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -147,6 +148,7 @@ pub mod bass {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::bass::*;
         pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -248,6 +250,7 @@ pub mod ddraw {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::ddraw::*;
         pub unsafe fn DirectDrawCreate(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -303,6 +306,7 @@ pub mod dsound {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::dsound::*;
         pub unsafe fn DirectSoundCreate(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -338,6 +342,7 @@ pub mod gdi32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::gdi32::*;
         pub unsafe fn BitBlt(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -834,6 +839,7 @@ pub mod kernel32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::kernel32::*;
         pub unsafe fn AcquireSRWLockExclusive(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2602,6 +2608,7 @@ pub mod ole32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::ole32::*;
     }
     mod shims {
@@ -2621,6 +2628,7 @@ pub mod oleaut32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::oleaut32::*;
     }
     mod shims {
@@ -2640,6 +2648,7 @@ pub mod retrowin32_test {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::retrowin32_test::*;
         pub unsafe fn retrowin32_test_callback1(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2695,6 +2704,7 @@ pub mod ucrtbase {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::ucrtbase::*;
         pub unsafe fn __p___argc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2789,6 +2799,7 @@ pub mod vcruntime140 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::vcruntime140::*;
         pub unsafe fn memcpy(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2824,6 +2835,7 @@ pub mod user32 {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::user32::*;
         pub unsafe fn AdjustWindowRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4243,6 +4255,7 @@ pub mod winmm {
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
         };
+        use memory::Extensions;
         use winapi::winmm::*;
         pub unsafe fn timeBeginPeriod(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();

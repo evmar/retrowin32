@@ -1,7 +1,7 @@
 use std::mem::size_of;
 
 use anyhow::bail;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 pub struct Reader<'m> {
     pub buf: Mem<'m>,

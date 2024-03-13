@@ -6,7 +6,7 @@ use crate::{
     str16::expect_ascii,
     winapi::{types::DWORD, ImportSymbol},
 };
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
 //

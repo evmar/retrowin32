@@ -1,5 +1,5 @@
 mod mem;
 mod pod;
 
-pub use mem::Mem;
+pub use mem::{Extensions, Mem};
 pub use pod::Pod;

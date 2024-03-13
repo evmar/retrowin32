@@ -1,7 +1,7 @@
 //! Functions for common behaviors across all operations.
 
 use crate::x86::CPU;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 // TODO: maybe there are no 64-bit memory reads needed (?)
 pub fn rm64_x(

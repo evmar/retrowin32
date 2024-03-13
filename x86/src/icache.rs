@@ -8,7 +8,7 @@
 //! always executing through a basic block's end.
 
 use crate::{x86::CPUState, CPU};
-use memory::Mem;
+use memory::{Extensions, Mem};
 use std::collections::{BTreeMap, HashMap};
 
 struct BasicBlock {

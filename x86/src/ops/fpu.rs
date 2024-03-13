@@ -1,7 +1,7 @@
 use super::helpers::*;
 use crate::{registers::FPUStatus, x86::CPU};
 use iced_x86::Instruction;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 pub fn finit(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.regs.fpu_status = FPUStatus::empty();

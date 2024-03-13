@@ -279,7 +279,8 @@ pub async fn CreateWindowExA(
     let class_name = if lpClassName < 0xFFFF {
         CreateWindowClassName::Atom(lpClassName as u16)
     } else {
-        let class_name = expect_ascii(machine.mem().slicez(lpClassName));
+        let mem = machine.mem();
+        let class_name = expect_ascii(mem.slicez(lpClassName));
         class_name_wide = String16::from(class_name);
         CreateWindowClassName::Name(class_name_wide.as_str16())
     };

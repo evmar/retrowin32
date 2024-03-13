@@ -62,6 +62,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
             use super::*;
 
             mod impls {
+                use memory::Extensions;
                 use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
                 use winapi::#module::*;
                 #(#impls)*

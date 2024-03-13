@@ -3,7 +3,7 @@
 //! DirectDraw).
 
 use super::alloc::align_to;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Heap {

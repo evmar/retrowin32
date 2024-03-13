@@ -1,6 +1,32 @@
 use crate::Pod;
 use std::mem::size_of;
 
+pub trait Extensions {
+    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T;
+    fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
+        unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
+    }
+    fn slicez(&self, ofs: u32) -> &[u8];
+}
+
+impl Extensions for [u8] {
+    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T {
+        unsafe {
+            if ofs as usize + size_of::<T>() > self.len() {
+                panic!("oob");
+            }
+            self.as_ptr().add(ofs as usize) as *mut T
+        }
+    }
+
+    fn slicez(&self, ofs: u32) -> &[u8] {
+        let ofs = ofs as usize;
+        let slice = &self[ofs..];
+        let nul = slice.iter().position(|&c| c == 0).unwrap();
+        &slice[..nul]
+    }
+}
+
 /// A view into the x86 memory.
 /// Basically a slice, but using pointers to:
 /// 1. make accesses more explicit
@@ -32,28 +58,15 @@ impl<'m> Mem<'m> {
         self.ptr as usize + addr as usize + size_of::<T>() > self.end as usize
     }
 
-    fn get_ptr(&self, ofs: u32) -> *mut u8 {
+    fn get_ptr_unchecked(&self, ofs: u32) -> *mut u8 {
         // Avoid using self.ptr.add here, because when self.ptr is 0 (for native Mems)
         // a later bounds check gets optimized out into always panicking.
         ((self.ptr as usize) + ofs as usize) as *mut u8
     }
 
-    pub fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
-        unsafe {
-            let ptr = self.get_ptr(ofs);
-            if ptr.add(size_of::<T>()) > self.end {
-                panic!("oob");
-            }
-            std::ptr::read_unaligned(ptr as *const T)
-        }
-    }
-
     pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
         unsafe {
-            let ptr = self.get_ptr(ofs);
-            if ptr.add(size_of::<T>()) > self.end {
-                panic!("oob");
-            }
+            let ptr = self.get_ptr::<u8>(ofs);
             // Need write_volatile here to ensure optimizer doesn't elide the write.
             std::ptr::write_volatile(ptr as *mut T, val)
         }
@@ -62,7 +75,7 @@ impl<'m> Mem<'m> {
     pub fn slicez(&self, ofs: u32) -> &'m [u8] {
         let ofs = ofs as usize;
         let slice = &self.as_slice_todo()[ofs..];
-        let nul = slice[ofs..].iter().position(|&c| c == 0).unwrap();
+        let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
     }
 
@@ -98,8 +111,8 @@ impl<'m> Mem<'m> {
             std::ops::Bound::Unbounded => self.len(),
         };
         unsafe {
-            let ptr = self.get_ptr(bstart);
-            let end = self.get_ptr(bend);
+            let ptr = self.get_ptr_unchecked(bstart);
+            let end = self.get_ptr_unchecked(bend);
             if !(self.ptr..self.end).contains(&ptr) || !(self.ptr..self.end.add(1)).contains(&end) {
                 panic!("oob slice: {bstart:x?}..{bend:x?}",);
             }
@@ -119,10 +132,7 @@ impl<'m> Mem<'m> {
     // We need to revisit this whole "view" API...
     pub fn view<T: Pod>(&self, addr: u32) -> &'m T {
         unsafe {
-            let ptr = self.get_ptr(addr);
-            if ptr.add(size_of::<T>()) > self.end {
-                panic!("oob");
-            }
+            let ptr = self.get_ptr::<u8>(addr);
             &*(ptr as *const T)
         }
     }
@@ -131,17 +141,14 @@ impl<'m> Mem<'m> {
     // We need to revisit this whole "view" API...
     pub fn view_mut<T: Pod>(&self, addr: u32) -> &'m mut T {
         unsafe {
-            let ptr = self.get_ptr(addr);
-            if ptr.add(size_of::<T>()) > self.end {
-                panic!("oob");
-            }
+            let ptr = self.get_ptr::<u8>(addr);
             &mut *(ptr as *mut T)
         }
     }
 
     pub fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &'m [T] {
         unsafe {
-            let ptr = self.get_ptr(ofs);
+            let ptr = self.get_ptr_unchecked(ofs);
             if ptr.add(size_of::<T>() * count as usize) > self.end {
                 panic!("oob");
             }
@@ -151,17 +158,24 @@ impl<'m> Mem<'m> {
 
     /// Note: can returned unaligned pointers depending on addr.
     pub fn ptr_mut<T: Pod + Copy>(&self, addr: u32) -> *mut T {
-        unsafe {
-            let ptr = self.get_ptr(addr);
-            if ptr.add(size_of::<T>()) > self.end {
-                panic!("oob");
-            }
-            ptr as *mut T
-        }
+        self.get_ptr::<T>(addr)
     }
 
     /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in stack_args codegen.
     pub unsafe fn detach<'a, 'b>(&'a self) -> Mem<'b> {
         std::mem::transmute(*self)
+    }
+}
+
+impl<'m> Extensions for Mem<'m> {
+    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T {
+        if ofs + size_of::<T>() as u32 > self.len() {
+            panic!("oob");
+        }
+        self.get_ptr_unchecked(ofs) as *mut T
+    }
+
+    fn slicez(&self, _ofs: u32) -> &[u8] {
+        todo!()
     }
 }

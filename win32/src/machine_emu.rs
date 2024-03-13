@@ -5,7 +5,7 @@ use crate::{
     shims_emu::Shims,
     winapi,
 };
-use memory::Mem;
+use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
 // This is really Box<u8>, just using Vec<u8> to use serde_bytes.
