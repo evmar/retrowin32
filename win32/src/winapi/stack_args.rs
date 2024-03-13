@@ -22,7 +22,7 @@ pub trait FromArg<'a> {
 
 impl<'a, T: FromArg<'a>> FromStack<'a> for T {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        T::from_arg(mem, mem.get::<u32>(sp))
+        T::from_arg(mem, mem.get_pod::<u32>(sp))
     }
 }
 
@@ -79,8 +79,8 @@ impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
 
 impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        let count = mem.get::<u32>(sp + 4);
+        let addr = mem.get_pod::<u32>(sp);
+        let count = mem.get_pod::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
@@ -94,8 +94,8 @@ impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
 
 impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a mut [T]> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get::<u32>(sp);
-        let count = mem.get::<u32>(sp + 4);
+        let addr = mem.get_pod::<u32>(sp);
+        let count = mem.get_pod::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }

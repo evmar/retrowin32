@@ -152,7 +152,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             let result = async move {
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
-                machine.emu.x86.cpu.regs.eip = machine.mem().get::<u32>(esp);
+                machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
                 machine.emu.x86.cpu.regs.esp += #stack_consumed + 4;
                 machine.emu.x86.cpu.regs.eax = result.to_raw();
             };

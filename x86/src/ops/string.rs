@@ -20,8 +20,8 @@ pub fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         cpu.regs.esi += pos;
         cpu.regs.edi += pos;
         cpu.regs.ecx -= pos;
-        let x = mem.get::<u8>(cpu.regs.esi);
-        let y = mem.get::<u8>(cpu.regs.edi);
+        let x = mem.get_pod::<u8>(cpu.regs.esi);
+        let y = mem.get_pod::<u8>(cpu.regs.edi);
         sub(x, y, &mut cpu.flags);
     } else {
         cpu.err("unimpl".into());
@@ -84,15 +84,15 @@ fn scas(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
     while *counter > 0 {
         match size {
             4 => {
-                let src = mem.get::<u32>(cpu.regs.edi);
+                let src = mem.get_pod::<u32>(cpu.regs.edi);
                 sub(cpu.regs.eax, src, &mut cpu.flags);
             }
             2 => {
-                let src = mem.get::<u16>(cpu.regs.edi);
+                let src = mem.get_pod::<u16>(cpu.regs.edi);
                 sub(cpu.regs.eax as u16, src, &mut cpu.flags);
             }
             1 => {
-                let src = mem.get::<u8>(cpu.regs.edi);
+                let src = mem.get_pod::<u8>(cpu.regs.edi);
                 sub(cpu.regs.eax as u8, src, &mut cpu.flags);
             }
             _ => unimplemented!(),
@@ -161,14 +161,14 @@ pub fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: usize) {
     assert!(!instr.has_rep_prefix() && !instr.has_repe_prefix() && !instr.has_repne_prefix());
     match size {
         4 => {
-            cpu.regs.eax = mem.get::<u32>(cpu.regs.esi);
+            cpu.regs.eax = mem.get_pod::<u32>(cpu.regs.esi);
         }
         2 => {
-            let value = mem.get::<u16>(cpu.regs.esi);
+            let value = mem.get_pod::<u16>(cpu.regs.esi);
             cpu.regs.set16(iced_x86::Register::AX, value);
         }
         1 => {
-            let value = mem.get::<u8>(cpu.regs.esi);
+            let value = mem.get_pod::<u8>(cpu.regs.esi);
             cpu.regs.set8(iced_x86::Register::AL, value);
         }
         _ => unimplemented!("lods size {}", size),

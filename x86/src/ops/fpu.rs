@@ -56,27 +56,27 @@ pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fld_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get::<f64>(x86_addr(cpu, instr));
+    *cpu.regs.st_top() = mem.get_pod::<f64>(x86_addr(cpu, instr));
 }
 
 pub fn fld_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    *cpu.regs.st_top() = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
 }
 
 pub fn fild_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get::<f64>(x86_addr(cpu, instr));
+    *cpu.regs.st_top() = mem.get_pod::<f64>(x86_addr(cpu, instr));
 }
 
 pub fn fild_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    *cpu.regs.st_top() = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
 }
 
 pub fn fild_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get::<u16>(x86_addr(cpu, instr)) as i16 as f64;
+    *cpu.regs.st_top() = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
 }
 
 pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -171,12 +171,12 @@ pub fn fadd_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fadd_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     *cpu.regs.st_top() += y;
 }
 
 pub fn fadd_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() += y;
 }
 
@@ -186,17 +186,17 @@ pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() += y;
 }
 
 pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u16>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() += y;
 }
 
 pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
     *x = *x - y;
 }
@@ -208,13 +208,13 @@ pub fn fsub_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fsubr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     let x = cpu.regs.st_top();
     *x = y - *x;
 }
 
 pub fn fsubr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
     *x = y - *x;
 }
@@ -226,22 +226,22 @@ pub fn fsubr_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fmul_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     *cpu.regs.st_top() *= y;
 }
 
 pub fn fmul_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() *= y;
 }
 
 pub fn fimul_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() *= y;
 }
 
 pub fn fimul_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u16>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() *= y;
 }
 
@@ -264,12 +264,12 @@ pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn fdiv_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     *cpu.regs.st_top() /= y;
 }
 
 pub fn fdiv_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() /= y;
 }
 
@@ -285,18 +285,18 @@ pub fn fdivp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
     *cpu.regs.st_top() /= y;
 }
 
 pub fn fdivr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     let x = cpu.regs.st_top();
     *x = y / *x;
 }
 
 pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
     *x = y / *x;
 }
@@ -315,7 +315,7 @@ pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
     *x = y / *x;
 }
@@ -326,14 +326,14 @@ pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.regs.st_top();
-    let y = mem.get::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     fcom(cpu, x, y);
     cpu.regs.st_top += 1;
 }
 
 pub fn fcomp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.regs.st_top();
-    let y = mem.get::<f64>(x86_addr(cpu, instr));
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     fcom(cpu, x, y);
     cpu.regs.st_top += 1;
 }
@@ -365,5 +365,5 @@ pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fldcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: control word
-    mem.get::<u16>(x86_addr(cpu, instr));
+    mem.get_pod::<u16>(x86_addr(cpu, instr));
 }

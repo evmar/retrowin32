@@ -138,10 +138,10 @@ fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
     // Iterate through them to find the requested index.
     let mut ofs = 0;
     for _ in 0..index {
-        let len = block.get::<u16>(ofs) as u32;
+        let len = block.get_pod::<u16>(ofs) as u32;
         ofs += (1 + len) * 2;
     }
-    let len = block.get::<u16>(ofs) as u32;
+    let len = block.get_pod::<u16>(ofs) as u32;
     let str = block.sub(ofs + 2, len * 2);
     Some(str)
 }

@@ -41,12 +41,12 @@ impl Heap {
     }
 
     pub fn size(&self, mem: Mem, addr: u32) -> u32 {
-        mem.get::<u32>(addr - 4)
+        mem.get_pod::<u32>(addr - 4)
     }
 
     pub fn free(&mut self, mem: Mem, addr: u32) {
         let addr = addr - 4;
-        let size = mem.get::<u32>(addr);
+        let size = mem.get_pod::<u32>(addr);
 
         let next_i = self
             .freelist

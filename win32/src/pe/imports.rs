@@ -92,7 +92,7 @@ impl<'m> Iterator for ILTITer<'m> {
     type Item = ILTEntry;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let entry = self.mem.get::<u32>(self.ofs);
+        let entry = self.mem.get_pod::<u32>(self.ofs);
         if entry == 0 {
             return None;
         }

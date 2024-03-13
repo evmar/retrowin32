@@ -3,7 +3,7 @@ use std::mem::size_of;
 
 pub trait Extensions<'m>: Sized {
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T;
-    fn get<T: Clone + Pod>(self, ofs: u32) -> T {
+    fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
     fn slicez(self, ofs: u32) -> &'m [u8];

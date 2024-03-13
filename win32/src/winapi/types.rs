@@ -35,8 +35,8 @@ unsafe impl memory::Pod for POINT {}
 
 impl<'a> super::stack_args::FromStack<'a> for POINT {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
-        let x = mem.get::<u32>(sp + 4);
-        let y = mem.get::<u32>(sp);
+        let x = mem.get_pod::<u32>(sp + 4);
+        let y = mem.get_pod::<u32>(sp);
         POINT { x, y }
     }
 }

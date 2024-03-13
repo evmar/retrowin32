@@ -19,7 +19,7 @@ pub fn rm64_x(
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            let x = mem.get::<u64>(addr);
+            let x = mem.get_pod::<u64>(addr);
             let value = op(cpu, x);
             mem.put::<u64>(addr, value);
         }
@@ -97,7 +97,7 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg
 pub fn op1_rm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()),
-        iced_x86::OpKind::Memory => mem.get::<u32>(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get_pod::<u32>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }
@@ -105,7 +105,7 @@ pub fn op1_rm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
 pub fn op1_rm16(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u16 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get16(instr.op1_register()),
-        iced_x86::OpKind::Memory => mem.get::<u16>(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get_pod::<u16>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }
@@ -113,7 +113,7 @@ pub fn op1_rm16(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u16 {
 pub fn op1_rm8(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u8 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get8(instr.op1_register()),
-        iced_x86::OpKind::Memory => mem.get::<u8>(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get_pod::<u8>(x86_addr(cpu, instr)),
         _ => unreachable!(),
     }
 }
@@ -132,14 +132,14 @@ pub fn push16(cpu: &mut CPU, mem: Mem, value: u16) {
 
 /// Pop a u32 from the x86 stack.
 pub fn pop(cpu: &mut CPU, mem: Mem) -> u32 {
-    let value = mem.get::<u32>(cpu.regs.esp);
+    let value = mem.get_pod::<u32>(cpu.regs.esp);
     cpu.regs.esp += 4;
     value
 }
 
 /// Pop a u16 from the x86 stack.
 pub fn pop16(cpu: &mut CPU, mem: Mem) -> u16 {
-    let value = mem.get::<u16>(cpu.regs.esp);
+    let value = mem.get_pod::<u16>(cpu.regs.esp);
     cpu.regs.esp += 2;
     value
 }

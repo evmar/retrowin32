@@ -147,7 +147,11 @@ impl MachineX<Emulator> {
         let esp = self.emu.x86.cpu.regs.esp;
         for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
             let extra = if addr == esp { " <- esp" } else { "" };
-            log::info!("{:08x} {:08x}{extra}", addr, self.mem().get::<u32>(addr));
+            log::info!(
+                "{:08x} {:08x}{extra}",
+                addr,
+                self.mem().get_pod::<u32>(addr)
+            );
         }
     }
 }

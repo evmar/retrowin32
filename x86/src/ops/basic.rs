@@ -143,7 +143,7 @@ pub fn mov_sreg_r32m16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: this is supposed to do segment selector validation stuff.
     let y = match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()) as u16,
-        iced_x86::OpKind::Memory => mem.get::<u16>(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => mem.get_pod::<u16>(x86_addr(cpu, instr)),
         _ => unimplemented!(),
     };
     cpu.regs.set16(instr.op0_register(), y);
@@ -234,7 +234,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         iced_x86::OpKind::Register => todo!(),
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            let x = mem.get::<u32>(addr);
+            let x = mem.get_pod::<u32>(addr);
             if cpu.regs.eax == x {
                 cpu.flags.insert(Flags::ZF);
                 mem.put::<u32>(addr, y);
@@ -249,7 +249,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
-    let m64 = mem.get::<u64>(addr);
+    let m64 = mem.get_pod::<u64>(addr);
     let test = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
     if test == m64 {
         cpu.flags.insert(Flags::ZF);
@@ -408,5 +408,6 @@ pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
     let addr = cpu.regs.ebx + (cpu.regs.eax & 0xFF);
-    cpu.regs.set8(iced_x86::Register::AL, mem.get::<u8>(addr));
+    cpu.regs
+        .set8(iced_x86::Register::AL, mem.get_pod::<u8>(addr));
 }

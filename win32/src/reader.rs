@@ -50,7 +50,7 @@ impl<'m> Reader<'m> {
     }
 
     pub fn read_unaligned<T: memory::Pod + Clone>(&mut self) -> T {
-        let t = self.buf.get::<T>(self.pos as u32);
+        let t = self.buf.get_pod::<T>(self.pos as u32);
         self.pos += size_of::<T>() as u32;
         t
     }
