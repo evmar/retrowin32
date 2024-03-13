@@ -2,7 +2,7 @@
 
 use super::*;
 use crate::winapi::stack_args::{ArrayWithSize, ArrayWithSizeMut};
-use ::memory::Pod;
+use ::memory::{Extensions, Pod};
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 

@@ -1,16 +1,18 @@
 use crate::Pod;
 use std::mem::size_of;
 
-pub trait Extensions {
-    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T;
-    fn get<T: Clone + Pod>(&self, ofs: u32) -> T {
+pub trait Extensions<'m>: Sized {
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T;
+    fn get<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
-    fn slicez(&self, ofs: u32) -> &[u8];
+    fn slicez(self, ofs: u32) -> &'m [u8];
+
+    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T];
 }
 
-impl Extensions for [u8] {
-    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T {
+impl<'m> Extensions<'m> for &'m [u8] {
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         unsafe {
             if ofs as usize + size_of::<T>() > self.len() {
                 panic!("oob");
@@ -19,11 +21,24 @@ impl Extensions for [u8] {
         }
     }
 
-    fn slicez(&self, ofs: u32) -> &[u8] {
+    fn slicez(self, ofs: u32) -> &'m [u8] {
         let ofs = ofs as usize;
         let slice = &self[ofs..];
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
+    }
+
+    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T] {
+        if count == 0 {
+            return &[];
+        }
+        unsafe {
+            let ptr = self.get_ptr::<T>(ofs);
+            if ptr.add(count as usize) as *const u8 > self.as_ptr().add(self.len()) {
+                panic!("oob");
+            }
+            std::slice::from_raw_parts(ptr, count as usize)
+        }
     }
 }
 
@@ -70,13 +85,6 @@ impl<'m> Mem<'m> {
             // Need write_volatile here to ensure optimizer doesn't elide the write.
             std::ptr::write_volatile(ptr as *mut T, val)
         }
-    }
-
-    pub fn slicez(&self, ofs: u32) -> &'m [u8] {
-        let ofs = ofs as usize;
-        let slice = &self.as_slice_todo()[ofs..];
-        let nul = slice.iter().position(|&c| c == 0).unwrap();
-        &slice[..nul]
     }
 
     pub fn as_slice_todo(&self) -> &'m [u8] {
@@ -167,15 +175,28 @@ impl<'m> Mem<'m> {
     }
 }
 
-impl<'m> Extensions for Mem<'m> {
-    fn get_ptr<T: Pod>(&self, ofs: u32) -> *mut T {
+impl<'m> Extensions<'m> for Mem<'m> {
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         if ofs + size_of::<T>() as u32 > self.len() {
             panic!("oob");
         }
         self.get_ptr_unchecked(ofs) as *mut T
     }
 
-    fn slicez(&self, _ofs: u32) -> &[u8] {
-        todo!()
+    fn slicez(self, ofs: u32) -> &'m [u8] {
+        let ofs = ofs as usize;
+        let slice = &self.as_slice_todo()[ofs..];
+        let nul = slice.iter().position(|&c| c == 0).unwrap();
+        &slice[..nul]
+    }
+
+    fn view_n<T: Pod>(self, ofs: u32, count: u32) -> &'m [T] {
+        unsafe {
+            let ptr = self.get_ptr_unchecked(ofs);
+            if ptr.add(size_of::<T>() * count as usize) > self.end {
+                panic!("oob");
+            }
+            std::slice::from_raw_parts(ptr as *const T, count as usize)
+        }
     }
 }

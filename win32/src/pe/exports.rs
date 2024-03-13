@@ -3,7 +3,7 @@
 
 use super::IMAGE_DATA_DIRECTORY;
 use crate::str16::expect_ascii;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 #[derive(Debug)]
 #[repr(C)]
@@ -25,7 +25,7 @@ unsafe impl memory::Pod for IMAGE_EXPORT_DIRECTORY {}
 
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
-    pub fn name<'a>(&self, image: Mem<'a>) -> &'a str {
+    pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
         expect_ascii(image.slicez(self.Name))
     }
 

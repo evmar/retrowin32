@@ -1,4 +1,4 @@
-use memory::Pod;
+use memory::{Extensions, Pod};
 
 use crate::{
     machine::{Emulator, Machine},

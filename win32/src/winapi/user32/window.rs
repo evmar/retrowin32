@@ -9,6 +9,7 @@ use crate::{
     Host, SurfaceOptions,
 };
 use bitflags::bitflags;
+use memory::Extensions;
 use std::rc::Rc;
 
 const TRACE_CONTEXT: &'static str = "user32/window";
@@ -279,8 +280,7 @@ pub async fn CreateWindowExA(
     let class_name = if lpClassName < 0xFFFF {
         CreateWindowClassName::Atom(lpClassName as u16)
     } else {
-        let mem = machine.mem();
-        let class_name = expect_ascii(mem.slicez(lpClassName));
+        let class_name = expect_ascii(machine.mem().slicez(lpClassName));
         class_name_wide = String16::from(class_name);
         CreateWindowClassName::Name(class_name_wide.as_str16())
     };
