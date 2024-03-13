@@ -73,12 +73,8 @@ pub fn find_resource<'a>(
     name: ResourceKey<&Str16>,
 ) -> Option<Mem<'a>> {
     let image = mem.slice(kernel32.image_base..);
-    Some(image.slice(pe::find_resource(
-        image,
-        &kernel32.resources,
-        typ.into_pe(),
-        name.into_pe(),
-    )?))
+    let section = kernel32.resources.as_slice(image.as_slice_todo());
+    Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
 }
 
 #[win32_derive::dllexport]
