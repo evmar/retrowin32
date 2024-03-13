@@ -7,7 +7,7 @@ use crate::{
 };
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
-use memory::{Extensions, Mem};
+use memory::Extensions;
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
@@ -91,9 +91,6 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
-    pub fn as_mem<'m>(&self, image: Mem<'m>) -> Mem<'m> {
-        image.sub(self.VirtualAddress, self.Size)
-    }
     pub fn as_slice<'m>(&self, image: &'m [u8]) -> &'m [u8] {
         image.sub32(self.VirtualAddress, self.Size)
     }
