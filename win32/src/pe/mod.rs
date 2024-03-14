@@ -2,6 +2,7 @@ mod exports;
 mod file;
 mod imports;
 mod loader;
+mod reader;
 mod resources;
 
 pub use exports::*;

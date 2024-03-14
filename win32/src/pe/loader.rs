@@ -1,11 +1,9 @@
 #![allow(non_snake_case)]
 
-use super::{IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
+use super::{reader::Reader, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{
     machine::{Emulator, Machine},
-    pe,
-    reader::Reader,
-    winapi,
+    pe, winapi,
 };
 use memory::Mem;
 use std::collections::HashMap;

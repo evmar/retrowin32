@@ -1,10 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::{
-    reader::Reader,
-    winapi::types::{DWORD, WORD},
-};
+use super::reader::Reader;
+use crate::winapi::types::{DWORD, WORD};
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 use memory::Extensions;
