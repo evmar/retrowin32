@@ -1,6 +1,7 @@
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
-use super::*;
+use crate::{winapi::types::HANDLE, Machine};
+
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
 #[win32_derive::dllexport]

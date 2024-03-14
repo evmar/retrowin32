@@ -1,9 +1,12 @@
 #![allow(non_snake_case)]
 
-use super::{Str16, String16};
 use crate::{
     pe,
-    winapi::{kernel32, stack_args::FromArg},
+    winapi::{
+        kernel32,
+        stack_args::FromArg,
+        types::{Str16, String16},
+    },
     Machine,
 };
 use memory::Mem;

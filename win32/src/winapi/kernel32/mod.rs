@@ -12,9 +12,6 @@ mod resource;
 mod sync;
 mod thread;
 
-use super::types::*;
-use crate::machine::Machine;
-
 pub use self::memory::*;
 pub use dll::*;
 pub use file::*;

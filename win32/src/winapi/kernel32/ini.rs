@@ -1,7 +1,9 @@
 //! Functions that work with .ini files.
 
-use super::*;
-use crate::winapi::stack_args::ArrayWithSizeMut;
+use crate::{
+    winapi::{stack_args::ArrayWithSizeMut, types::Str16},
+    Machine,
+};
 
 const TRACE_CONTEXT: &'static str = "kernel32/ini";
 

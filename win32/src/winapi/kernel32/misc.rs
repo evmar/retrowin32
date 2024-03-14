@@ -1,7 +1,13 @@
 //! kernel32 API without a better home.
 
-use super::*;
-use crate::winapi::stack_args::{ArrayWithSize, ArrayWithSizeMut};
+use super::{teb_mut, WriteFile};
+use crate::{
+    winapi::{
+        stack_args::{ArrayWithSize, ArrayWithSizeMut},
+        types::*,
+    },
+    Machine,
+};
 use ::memory::{Extensions, Pod};
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";

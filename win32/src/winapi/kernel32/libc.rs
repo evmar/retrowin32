@@ -1,6 +1,6 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
-use super::*;
+use crate::{winapi::types::Str16, Machine};
 
 const TRACE_CONTEXT: &'static str = "kernel32/libc";
 

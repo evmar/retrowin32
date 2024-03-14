@@ -1,11 +1,12 @@
 //! Process initialization and startup.
 
-use super::*;
+use super::{ExitProcess, Mappings, DLL, STDERR_HFILE, STDOUT_HFILE};
 use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, heap::Heap},
+    winapi::{alloc::Arena, heap::Heap, types::*},
+    Machine,
 };
 use ::memory::Mem;
 use std::collections::HashMap;
