@@ -4,7 +4,8 @@ use crate::{
     str16::expect_ascii,
     winapi::{
         bitmap::{self, BitmapRGBA32},
-        gdi32::{HDC, HGDIOBJ},
+        gdi32::HDC,
+        stack_args::FromArg,
     },
     Host, SurfaceOptions,
 };
@@ -135,7 +136,7 @@ pub struct WNDCLASSA {
     hInstance: HINSTANCE,
     hIcon: HICON,
     hCursor: HCURSOR,
-    hbrBackground: HBRUSH,
+    hbrBackground: u32,
     lpszMenuName: u32,
     lpszClassName: u32,
 }
@@ -166,10 +167,11 @@ pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     // TODO: calling the *W variants tags the windows as expecting wide messages(!).
     let lpWndClass = lpWndClass.unwrap();
     let name = unsafe { Str16::from_ptr(machine.mem(), lpWndClass.lpszClassName) }.unwrap();
+    let background = unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground) };
     let wndclass = WndClass {
         name: name.to_string(),
         wndproc: lpWndClass.lpfnWndProc,
-        background: lpWndClass.hbrBackground,
+        background: background.to_brush(machine),
     };
     register_class(machine, wndclass)
 }
@@ -185,7 +187,7 @@ pub struct WNDCLASSEXA {
     hInstance: HINSTANCE,
     hIcon: HICON,
     hCursor: HCURSOR,
-    hbrBackground: HGDIOBJ,
+    hbrBackground: u32,
     lpszMenuName: u32,
     lpszClassName: u32,
     hIconSm: HICON,
@@ -199,7 +201,8 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
     let wndclass = WndClass {
         name,
         wndproc: lpWndClassEx.lpfnWndProc,
-        background: lpWndClassEx.hbrBackground,
+        background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
+            .to_brush(machine),
     };
     register_class(machine, wndclass)
 }

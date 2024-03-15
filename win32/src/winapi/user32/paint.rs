@@ -1,6 +1,6 @@
 use super::*;
 use crate::winapi::{
-    gdi32::{self, HGDIOBJ},
+    gdi32::{self, COLORREF, HGDIOBJ},
     stack_args::FromArg,
 };
 
@@ -71,32 +71,53 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
     true
 }
 
+/// COLOR_xxx for GetSysColor etc.
+#[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
+pub enum COLOR {
+    WINDOW = 5,
+}
+
 #[derive(Debug)]
 pub enum BrushOrColor {
-    Color(u32),
+    Color(COLOR),
     Brush(HBRUSH),
 }
 
 impl<'a> FromArg<'a> for BrushOrColor {
     unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg > 0 && arg < HGDIOBJ::lowest_value() {
-            BrushOrColor::Color(arg - 1)
+            BrushOrColor::Color(COLOR::try_from(arg - 1).unwrap())
         } else {
             BrushOrColor::Brush(HBRUSH::from_raw(arg))
         }
     }
 }
 
+impl BrushOrColor {
+    pub fn to_brush(&self, machine: &mut Machine) -> HGDIOBJ {
+        match self {
+            BrushOrColor::Brush(hbr) => *hbr,
+            BrushOrColor::Color(c) => {
+                let color = match c {
+                    COLOR::WINDOW => COLORREF((0xc0, 0xc0, 0xc0)),
+                };
+                machine
+                    .state
+                    .gdi32
+                    .objects
+                    .add(gdi32::Object::Brush(gdi32::Brush { color }))
+            }
+        }
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: BrushOrColor) -> bool {
-    let color = match hbr {
-        BrushOrColor::Brush(hbr) => match machine.state.gdi32.objects.get(hbr).unwrap() {
-            gdi32::Object::Brush(brush) => brush.color,
-            _ => unimplemented!(),
-        },
-        BrushOrColor::Color(_) => unimplemented!(),
+    let brush = hbr.to_brush(machine);
+    let color = match machine.state.gdi32.objects.get(brush).unwrap() {
+        gdi32::Object::Brush(brush) => brush.color,
+        _ => unimplemented!(),
     };
-
     let rect = lprc.unwrap();
     gdi32::fill_rect(machine, hDC, rect, color);
     true
