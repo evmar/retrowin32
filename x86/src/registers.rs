@@ -249,6 +249,9 @@ impl Registers {
                 iced_x86::Register::ST2 => 2,
                 iced_x86::Register::ST3 => 3,
                 iced_x86::Register::ST4 => 4,
+                iced_x86::Register::ST5 => 5,
+                iced_x86::Register::ST6 => 6,
+                iced_x86::Register::ST7 => 7,
                 _ => unreachable!("st_offset: {reg:?}"),
             }
     }
