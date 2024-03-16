@@ -66,7 +66,7 @@ pub fn fld_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fild_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top -= 1;
-    *cpu.regs.st_top() = mem.get_pod::<f64>(x86_addr(cpu, instr));
+    *cpu.regs.st_top() = mem.get_pod::<u64>(x86_addr(cpu, instr)) as u64 as f64;
 }
 
 pub fn fild_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
