@@ -213,15 +213,18 @@ pub fn CreateDIBSection(
         todo!()
     }
     if !bi.is_top_down() {
-        todo!()
+        log::warn!("CreateDIBSection: bitmap may need flipping");
     }
     if bi.biBitCount != 32 {
         todo!()
     }
-    if bi.compression().unwrap() != BI::BITFIELDS {
-        todo!()
-    }
-    // TODO: ought to check that .bmiColors masks are the RGBX we expect.
+    match bi.compression().unwrap() {
+        BI::BITFIELDS => {
+            // TODO: ought to check that .bmiColors masks are the RGBX we expect.
+        }
+        BI::RGB => {} // ok
+        _ => todo!(),
+    };
 
     let byte_count = bi.width() * bi.height() * bi.biBitCount as u32;
     let heap = kernel32::GetProcessHeap(machine);
