@@ -195,6 +195,12 @@ pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.regs.st_top() += y;
 }
 
+pub fn fsub_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
+    let x = cpu.regs.st_top();
+    *x = *x - y;
+}
+
 pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
@@ -323,6 +329,12 @@ pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.regs.st_top();
     *x = y / *x;
+}
+
+pub fn fprem(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let y = *cpu.regs.getst(iced_x86::Register::ST1);
+    let x = cpu.regs.st_top();
+    *x = *x % y;
 }
 
 pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
