@@ -201,10 +201,15 @@ pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *x = *x - y;
 }
 
-pub fn fsub_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+pub fn fsub_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.regs.getst(instr.op1_register());
-    let x = cpu.regs.st_top();
+    let x = cpu.regs.getst(instr.op0_register());
     *x -= y;
+}
+
+pub fn fsubp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fsub_sti_sti(cpu, mem, instr);
+    cpu.regs.st_top += 1;
 }
 
 pub fn fsubr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
