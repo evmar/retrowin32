@@ -1,0 +1,30 @@
+--out src/bindings.rs
+--config flatten sys
+--filter
+    Windows.Win32.Foundation.HWND
+    Windows.Win32.Foundation.LRESULT
+    Windows.Win32.Graphics.Gdi.BeginPaint
+    Windows.Win32.Graphics.Gdi.EndPaint
+    Windows.Win32.Graphics.Gdi.FillRect
+    Windows.Win32.Graphics.Gdi.COLOR_WINDOW
+    Windows.Win32.Graphics.Gdi.HBRUSH
+    Windows.Win32.Graphics.Gdi.PAINTSTRUCT
+    Windows.Win32.Storage.FileSystem.WriteFile
+    Windows.Win32.System.Console.GetStdHandle
+    Windows.Win32.System.Console.STD_OUTPUT_HANDLE
+    Windows.Win32.System.Threading.ExitProcess
+    Windows.Win32.UI.WindowsAndMessaging.CreateWindowExA
+    Windows.Win32.UI.WindowsAndMessaging.DefWindowProcA
+    Windows.Win32.UI.WindowsAndMessaging.DispatchMessageA
+    Windows.Win32.UI.WindowsAndMessaging.GetMessageA
+    Windows.Win32.UI.WindowsAndMessaging.PostQuitMessage
+    Windows.Win32.UI.WindowsAndMessaging.RegisterClassA
+    Windows.Win32.UI.WindowsAndMessaging.ShowWindow
+    Windows.Win32.UI.WindowsAndMessaging.TranslateMessage
+    Windows.Win32.UI.WindowsAndMessaging.CW_USEDEFAULT
+    Windows.Win32.UI.WindowsAndMessaging.MSG
+    Windows.Win32.UI.WindowsAndMessaging.SW_NORMAL
+    Windows.Win32.UI.WindowsAndMessaging.WM_DESTROY
+    Windows.Win32.UI.WindowsAndMessaging.WM_PAINT
+    Windows.Win32.UI.WindowsAndMessaging.WNDCLASSA
+    Windows.Win32.UI.WindowsAndMessaging.WS_OVERLAPPED
