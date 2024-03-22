@@ -111,8 +111,4 @@ impl X86 {
         // of some block and the next time we execute we'll just recreate the partial block anyway.
         // self.icache.clear_single_step(ip);
     }
-
-    pub fn load_snapshot(&mut self, snap: X86) {
-        *self = snap;
-    }
 }

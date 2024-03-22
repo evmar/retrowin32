@@ -21,6 +21,8 @@ use headless::GUI;
 #[cfg(feature = "x86-64")]
 mod resv32;
 
+static mut SNAPSHOT_REQUESTED: bool = false;
+
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine) {
     let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip);
@@ -151,6 +153,11 @@ struct Args {
     /// cmdline to pass to exe
     #[argh(positional)]
     cmdline: Option<String>,
+
+    /// load snapshot from file
+    #[cfg(feature = "x86-emu")]
+    #[argh(option)]
+    snapshot: Option<String>,
 }
 
 /// Transfer control to the executable's entry point.
@@ -246,6 +253,20 @@ fn main() -> anyhow::Result<()> {
     {
         _ = addrs;
 
+        unsafe {
+            unsafe extern "C" fn sigusr1(_sig: usize) {
+                SNAPSHOT_REQUESTED = true;
+            }
+            if libc::signal(libc::SIGUSR1, sigusr1 as *const fn(usize) as usize) != 0 {
+                log::error!("failed to install signal handler for snapshot");
+            }
+        }
+
+        if let Some(snap) = args.snapshot {
+            let bytes = std::fs::read(snap).unwrap();
+            machine.load_snapshot(&bytes);
+        }
+
         let start = std::time::Instant::now();
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();
@@ -281,7 +302,17 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
             }
         } else {
-            while machine.execute_block(false).is_running() {}
+            while machine.execute_block(false).is_running() {
+                unsafe {
+                    if SNAPSHOT_REQUESTED {
+                        let buf = machine.snapshot();
+                        let path = "snapshot";
+                        std::fs::write(path, buf).unwrap();
+                        log::info!("wrote snapshot to {path:?}");
+                        SNAPSHOT_REQUESTED = false;
+                    }
+                }
+            }
         }
 
         match &machine.emu.x86.cpu.state {

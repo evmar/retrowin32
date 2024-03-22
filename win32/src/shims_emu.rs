@@ -55,8 +55,8 @@ pub struct Shims {
     futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
-impl Shims {
-    pub fn new() -> Self {
+impl Default for Shims {
+    fn default() -> Self {
         let mut shims = Shims {
             shims: Vec::new(),
             async_executor: 0,
@@ -70,7 +70,9 @@ impl Shims {
         }));
         shims
     }
+}
 
+impl Shims {
     /// Returns the (fake) address of the registered function.
     pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
         let id = SHIM_BASE | self.shims.len() as u32;

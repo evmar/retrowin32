@@ -34,9 +34,11 @@ impl BoxMem {
     }
 }
 
+#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Emulator {
     pub x86: x86::X86,
     pub memory: BoxMem,
+    #[serde(skip)]
     pub shims: Shims,
 }
 
@@ -52,11 +54,8 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = BoxMem::new(256 << 20);
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
-        let shims = {
-            kernel32 = kernel32;
-            Shims::new()
-        };
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
+        let shims = Shims::default();
         let state = winapi::State::new(kernel32);
 
         Machine {
@@ -153,5 +152,13 @@ impl MachineX<Emulator> {
                 self.mem().get_pod::<u32>(addr)
             );
         }
+    }
+
+    pub fn snapshot(&self) -> Box<[u8]> {
+        bincode::serialize(&self.emu).unwrap().into()
+    }
+
+    pub fn load_snapshot(&mut self, bytes: &[u8]) {
+        self.emu = bincode::deserialize(bytes).unwrap();
     }
 }

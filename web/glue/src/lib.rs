@@ -110,11 +110,10 @@ impl Emulator {
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
-        bincode::serialize(&self.machine.emu.x86).unwrap().into()
+        self.machine.snapshot()
     }
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
-        let snap = bincode::deserialize(bytes).unwrap();
-        self.machine.emu.x86.load_snapshot(snap);
+        self.machine.load_snapshot(bytes)
     }
 }
 

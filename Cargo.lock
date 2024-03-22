@@ -115,7 +115,6 @@ name = "glue"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bincode",
  "js-sys",
  "log 0.1.0",
  "serde",
@@ -463,6 +462,7 @@ name = "win32"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bincode",
  "bitflags",
  "log 0.1.0",
  "memory",
