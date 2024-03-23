@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use super::{reader::Reader, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
+use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{
     machine::{Emulator, Machine},
     pe, winapi,
@@ -144,44 +144,6 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 }
 
-#[repr(C)]
-#[allow(non_camel_case_types)]
-#[derive(Clone)]
-struct IMAGE_BASE_RELOCATION {
-    VirtualAddress: u32,
-    SizeOfBlock: u32,
-}
-unsafe impl memory::Pod for IMAGE_BASE_RELOCATION {}
-
-fn apply_relocs(image: Mem, prev_base: u32, base: u32, relocs: &IMAGE_DATA_DIRECTORY) {
-    // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
-    // have a .reloc section that is invalid (?).
-    // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
-    // that appear to only apply to object files (?).
-
-    let relocs = relocs.as_slice(image.as_slice_todo());
-    let mut r = Reader::new(relocs);
-    while !r.done() {
-        let reloc = r.read::<IMAGE_BASE_RELOCATION>();
-        let size = reloc.SizeOfBlock - std::mem::size_of::<IMAGE_BASE_RELOCATION>() as u32;
-        for _ in 0..(size / 2) {
-            let entry = r.read::<u16>();
-            let etype = entry >> 12;
-            let ofs = entry & 0x0FFF;
-            match etype {
-                0 => {} // skip
-                3 => {
-                    // 32-bit
-                    let reloc = image.view_mut::<u32>(reloc.VirtualAddress + ofs as u32);
-                    *reloc -= prev_base;
-                    *reloc += base;
-                }
-                _ => panic!("unhandled relocation type {etype}"),
-            }
-        }
-    }
-}
-
 fn load_pe(
     machine: &mut Machine,
     name: &str,
@@ -197,11 +159,12 @@ fn load_pe(
 
     if relocate {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
+            let image = machine.mem().slice(base..);
             apply_relocs(
-                machine.mem().slice(base..),
+                image,
                 file.opt_header.ImageBase,
                 base,
-                relocs,
+                relocs.as_slice(image.as_slice_todo()),
             );
         }
     }

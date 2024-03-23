@@ -13,10 +13,6 @@ impl<'m> Reader<'m> {
         Reader { buf, pos: 0 }
     }
 
-    pub fn done(&self) -> bool {
-        self.pos == self.buf.len()
-    }
-
     fn check_eof(&self) -> anyhow::Result<()> {
         if self.pos > self.buf.len() {
             bail!("EOF");
