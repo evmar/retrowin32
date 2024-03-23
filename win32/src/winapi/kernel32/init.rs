@@ -1,11 +1,11 @@
 //! Process initialization and startup.
 
-use super::{ExitProcess, Mappings, DLL, STDERR_HFILE, STDOUT_HFILE};
+use super::{ExitProcess, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
 use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, heap::Heap, types::*},
+    winapi::{self, alloc::Arena, builtin::BuiltinDLL, heap::Heap, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -231,7 +231,7 @@ impl State {
             ldt
         };
 
-        State {
+        let mut state = State {
             arena,
             image_base: 0,
             teb,
@@ -245,7 +245,14 @@ impl State {
             #[cfg(feature = "x86-64")]
             ldt,
             resources: Default::default(),
-        }
+        };
+        // Always load kernel32, because we pull retrowin32_main from it.
+        let kernel32_dll = winapi::DLLS
+            .iter()
+            .find(|&dll| dll.file_name == "kernel32.dll")
+            .unwrap();
+        state.load_builtin_dll(kernel32_dll);
+        state
     }
 
     pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> Heap {
@@ -350,6 +357,19 @@ impl State {
             fs,
             ss,
         }
+    }
+
+    pub fn load_builtin_dll(&mut self, builtin: &'static BuiltinDLL) -> HMODULE {
+        self.dlls.push(DLL {
+            name: builtin.file_name.to_owned(),
+            dll: pe::DLL {
+                names: HashMap::new(),
+                ordinals: HashMap::new(),
+                entry_point: 0,
+            },
+            builtin: Some(builtin),
+        });
+        return HMODULE::from_dll_index(self.dlls.len() - 1);
     }
 }
 

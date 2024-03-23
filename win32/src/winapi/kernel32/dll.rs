@@ -6,7 +6,7 @@ use crate::{
     str16::expect_ascii,
     winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
-use std::{collections::HashMap, io::Write};
+use std::io::Write;
 
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
@@ -16,7 +16,7 @@ pub struct HMODULET;
 pub type HMODULE = HANDLE<HMODULET>;
 
 impl HMODULE {
-    fn from_dll_index(index: usize) -> Self {
+    pub fn from_dll_index(index: usize) -> Self {
         return HMODULE::from_raw((index + 1) as u32);
     }
 
@@ -34,7 +34,7 @@ pub struct DLL {
     pub dll: pe::DLL,
 
     /// If present, DLL is one defined in winapi/...
-    builtin: Option<&'static BuiltinDLL>,
+    pub builtin: Option<&'static BuiltinDLL>,
 }
 
 impl DLL {
@@ -197,16 +197,7 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
 
     // Check if builtin.
     if let Some(builtin) = winapi::DLLS.iter().find(|&dll| dll.file_name == filename) {
-        machine.state.kernel32.dlls.push(DLL {
-            name: filename,
-            dll: pe::DLL {
-                names: HashMap::new(),
-                ordinals: HashMap::new(),
-                entry_point: 0,
-            },
-            builtin: Some(builtin),
-        });
-        return HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1);
+        return machine.state.kernel32.load_builtin_dll(builtin);
     }
 
     let mut file = machine.host.open(&filename);

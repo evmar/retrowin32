@@ -93,7 +93,11 @@ fn load_section(
     let mapping = winapi::kernel32::Mapping {
         addr: dst as u32,
         size: sec.VirtualSize as u32,
-        desc: format!("{name} {:?} ({:?})", sec.name(), flags),
+        desc: format!(
+            "{name} {:?} ({:?})",
+            sec.name().unwrap_or("[invalid]"),
+            flags
+        ),
         flags,
     };
 
@@ -115,7 +119,11 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 
     let image: Mem = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
     let image = image.as_slice_todo();
-    for dll_imports in pe::read_imports(imports_data.as_slice(image)) {
+    let section = match imports_data.as_slice(image) {
+        None => return,
+        Some(s) => s,
+    };
+    for dll_imports in pe::read_imports(section) {
         let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
@@ -160,12 +168,9 @@ fn load_pe(
     if relocate {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             let image = machine.mem().slice(base..);
-            apply_relocs(
-                image,
-                file.opt_header.ImageBase,
-                base,
-                relocs.as_slice(image.as_slice_todo()),
-            );
+            if let Some(sec) = relocs.as_slice(image.as_slice_todo()) {
+                apply_relocs(image, file.opt_header.ImageBase, base, sec);
+            }
         }
     }
 
@@ -231,7 +236,10 @@ pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result
     let mut ordinals = HashMap::new();
     let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        let dir = pe::read_exports(dir.as_slice(image));
+        let section = dir
+            .as_slice(image)
+            .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
+        let dir = pe::read_exports(section);
         for (i, addr) in dir.fns(image).enumerate() {
             let ord = dir.Base + i as u32;
             ordinals.insert(ord, base + addr);

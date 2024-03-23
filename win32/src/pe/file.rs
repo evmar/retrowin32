@@ -89,8 +89,11 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
-    pub fn as_slice<'m>(&self, image: &'m [u8]) -> &'m [u8] {
-        image.sub32(self.VirtualAddress, self.Size)
+    pub fn as_slice<'m>(&self, image: &'m [u8]) -> Option<&'m [u8]> {
+        if self.VirtualAddress + self.Size > image.len() as u32 {
+            return None;
+        }
+        Some(image.sub32(self.VirtualAddress, self.Size))
     }
 }
 
@@ -139,15 +142,13 @@ pub struct IMAGE_SECTION_HEADER {
 }
 unsafe impl memory::Pod for IMAGE_SECTION_HEADER {}
 impl IMAGE_SECTION_HEADER {
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> Result<&str, std::str::Utf8Error> {
         let end = self
             .Name
             .iter()
             .position(|&c| c == 0)
             .unwrap_or(self.Name.len());
         std::str::from_utf8(&self.Name[..end])
-            .map_err(|_| format!("invalid section name {:?}", self.Name))
-            .unwrap()
     }
     pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
         ImageSectionFlags::from_bits(self.Characteristics)
@@ -234,6 +235,6 @@ mod tests {
     fn kkrunchy_header() {
         let mut header = IMAGE_SECTION_HEADER::default();
         header.Name = *b"kkrunchy";
-        assert_eq!(header.name(), "kkrunchy");
+        assert_eq!(header.name().unwrap(), "kkrunchy");
     }
 }
