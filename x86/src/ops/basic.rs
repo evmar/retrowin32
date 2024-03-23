@@ -374,6 +374,10 @@ pub fn stc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.flags.insert(Flags::CF);
 }
 
+pub fn clc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.flags.remove(Flags::CF);
+}
+
 pub fn cmc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.flags.set(Flags::CF, !cpu.flags.contains(Flags::CF));
 }
