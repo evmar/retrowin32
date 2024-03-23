@@ -924,16 +924,41 @@ pub mod kernel32 {
             let lpParameter = <u32>::from_stack(mem, esp + 16u32);
             let dwCreationFlags = <u32>::from_stack(mem, esp + 20u32);
             let lpThreadId = <u32>::from_stack(mem, esp + 24u32);
-            winapi::kernel32::CreateThread(
-                machine,
-                lpThreadAttributes,
-                dwStackSize,
-                lpStartAddress,
-                lpParameter,
-                dwCreationFlags,
-                lpThreadId,
-            )
-            .to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::kernel32::CreateThread(
+                        machine,
+                        lpThreadAttributes,
+                        dwStackSize,
+                        lpStartAddress,
+                        lpParameter,
+                        dwCreationFlags,
+                        lpThreadId,
+                    )
+                    .await;
+                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
+                    machine.emu.x86.cpu.regs.esp += 24u32 + 4;
+                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::kernel32::CreateThread(
+                    machine,
+                    lpThreadAttributes,
+                    dwStackSize,
+                    lpStartAddress,
+                    lpParameter,
+                    dwCreationFlags,
+                    lpThreadId
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn DeleteCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1613,7 +1638,7 @@ pub mod kernel32 {
             name: "CreateThread",
             func: impls::CreateThread,
             stack_consumed: 24u32,
-            is_async: false,
+            is_async: true,
         };
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",

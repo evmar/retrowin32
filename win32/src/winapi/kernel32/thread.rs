@@ -51,8 +51,8 @@ pub fn TlsGetValue(machine: &mut Machine, dwTlsIndex: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn CreateThread(
-    _machine: &mut Machine,
+pub async fn CreateThread(
+    machine: &mut Machine,
     lpThreadAttributes: u32,
     dwStackSize: u32,
     lpStartAddress: u32,
@@ -60,6 +60,8 @@ pub fn CreateThread(
     dwCreationFlags: u32,
     lpThreadId: u32,
 ) -> HTHREAD {
+    log::warn!("CreateThread running thread synchronously");
+    machine.call_x86(lpStartAddress, vec![lpParameter]).await;
     HTHREAD::null()
 }
 
