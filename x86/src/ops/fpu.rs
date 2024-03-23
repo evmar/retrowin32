@@ -274,6 +274,12 @@ pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *x = 2.0_f64.powf(*x) - 1.0;
 }
 
+pub fn fscale(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let y = *cpu.regs.getst(iced_x86::Register::ST1);
+    let x = cpu.regs.st_top();
+    *x = *x * 2f64.powf(y.floor());
+}
+
 pub fn fdiv_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     *cpu.regs.st_top() /= y;
