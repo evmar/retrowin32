@@ -392,7 +392,7 @@ pub fn xor_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-pub fn xor_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn xor_rm16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr);
     let x = rm16(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
