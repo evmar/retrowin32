@@ -1,6 +1,7 @@
 use crate::{
     machine::{Machine, MemImpl},
     pe::ImageSectionFlags,
+    winapi::stack_args,
 };
 use bitflags::bitflags;
 use memory::Mem;
@@ -345,23 +346,21 @@ pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 
 bitflags! {
     pub struct GMEM: u32 {
-        // GlobalAlloc accepted many flags, but most are obsolete.
         const MOVEABLE = 0x2;
         const ZEROINIT = 0x40;
     }
 }
-impl TryFrom<u32> for GMEM {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        GMEM::from_bits(value).ok_or(value)
+impl<'a> stack_args::FromArg<'a> for GMEM {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        // GlobalAlloc accepted many flags, but most are obsolete, so ignore
+        // anything other than the flags we have named.
+        GMEM::from_bits_truncate(arg)
     }
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalAlloc(machine: &mut Machine, uFlags: Result<GMEM, u32>, dwBytes: u32) -> u32 {
-    let flags = uFlags.unwrap();
-    if flags.contains(GMEM::MOVEABLE) {
+pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
+    if uFlags.contains(GMEM::MOVEABLE) {
         todo!("GMEM_MOVEABLE");
     }
     let heap = machine
@@ -369,7 +368,7 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: Result<GMEM, u32>, dwBytes: u3
         .kernel32
         .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
     let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
-    if flags.contains(GMEM::ZEROINIT) {
+    if uFlags.contains(GMEM::ZEROINIT) {
         machine.mem().sub(addr, dwBytes).as_mut_slice_todo().fill(0);
     }
     addr
@@ -386,7 +385,7 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LocalAlloc(machine: &mut Machine, uFlags: Result<GMEM, u32>, dwBytes: u32) -> u32 {
+pub fn LocalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     GlobalAlloc(machine, uFlags, dwBytes)
 }
 

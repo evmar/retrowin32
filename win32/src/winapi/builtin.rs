@@ -1162,7 +1162,7 @@ pub mod kernel32 {
         }
         pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let uFlags = <Result<GMEM, u32>>::from_stack(mem, esp + 4u32);
+            let uFlags = <GMEM>::from_stack(mem, esp + 4u32);
             let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GlobalAlloc(machine, uFlags, dwBytes).to_raw()
         }
@@ -1325,7 +1325,7 @@ pub mod kernel32 {
         }
         pub unsafe fn LocalAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let uFlags = <Result<GMEM, u32>>::from_stack(mem, esp + 4u32);
+            let uFlags = <GMEM>::from_stack(mem, esp + 4u32);
             let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::LocalAlloc(machine, uFlags, dwBytes).to_raw()
         }
