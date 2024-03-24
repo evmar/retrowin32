@@ -87,6 +87,12 @@ pub fn test_rm16_r16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     and(x, y, &mut cpu.flags);
 }
 
+pub fn test_rm16_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm16(cpu, mem, instr).get();
+    let y = instr.immediate16();
+    and(x, y, &mut cpu.flags);
+}
+
 pub fn test_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr).get();
     let y = cpu.regs.get8(instr.op1_register());
