@@ -76,7 +76,27 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
 /// COLOR_xxx for GetSysColor etc.
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
 pub enum COLOR {
+    SCROLLBAR = 0,
+    BACKGROUND = 1,
+    ACTIVECAPTION = 2,
+    INACTIVECAPTION = 3,
+    MENU = 4,
     WINDOW = 5,
+    WINDOWFRAME = 6,
+    MENUTEXT = 7,
+    WINDOWTEXT = 8,
+    CAPTIONTEXT = 9,
+    ACTIVEBORDER = 10,
+    INACTIVEBORDER = 11,
+    APPWORKSPACE = 12,
+    HIGHLIGHT = 13,
+    HIGHLIGHTTEXT = 14,
+    BTNFACE = 15,
+    BTNSHADOW = 16,
+    GRAYTEXT = 17,
+    BTNTEXT = 18,
+    INACTIVECAPTIONTEXT = 19,
+    BTNHIGHLIGHT = 20,
 }
 
 #[derive(Debug)]
@@ -102,6 +122,8 @@ impl BrushOrColor {
             BrushOrColor::Color(c) => {
                 let color = match c {
                     COLOR::WINDOW => Some(COLORREF((0xc0, 0xc0, 0xc0))),
+                    COLOR::MENU => Some(COLORREF((0xc0, 0xc0, 0xc0))),
+                    _ => todo!("{c:?}"),
                 };
                 machine
                     .state
