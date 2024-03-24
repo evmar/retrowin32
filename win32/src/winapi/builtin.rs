@@ -994,6 +994,11 @@ pub mod kernel32 {
             let _penv = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::FreeEnvironmentStringsA(machine, _penv).to_raw()
         }
+        pub unsafe fn FreeLibrary(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hLibModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::FreeLibrary(machine, hLibModule).to_raw()
+        }
         pub unsafe fn GetACP(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetACP(machine).to_raw()
@@ -1676,6 +1681,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const FreeLibrary: Shim = Shim {
+            name: "FreeLibrary",
+            func: impls::FreeLibrary,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetACP: Shim = Shim {
             name: "GetACP",
             func: impls::GetACP,
@@ -2211,7 +2222,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 102usize] = [
+    const EXPORTS: [Symbol; 103usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2263,6 +2274,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::FreeEnvironmentStringsA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FreeLibrary,
         },
         Symbol {
             ordinal: None,

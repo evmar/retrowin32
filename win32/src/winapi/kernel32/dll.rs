@@ -237,6 +237,11 @@ pub fn LoadLibraryExW(
     LoadLibraryA(machine, filename.as_deref())
 }
 
+#[win32_derive::dllexport]
+pub fn FreeLibrary(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
+    true // success
+}
+
 /// The argument to GetProcAddress is an ImportSymbol stuffed into a u32.
 #[derive(Debug)]
 pub struct GetProcAddressArg<'a>(pub ImportSymbol<'a>);
