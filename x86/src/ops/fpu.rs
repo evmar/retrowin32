@@ -186,7 +186,7 @@ pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
     *cpu.regs.st_top() += y;
 }
 
@@ -218,6 +218,12 @@ pub fn fsubp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
+pub fn fisub_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let x = cpu.regs.st_top();
+    *x = *x - y;
+}
+
 pub fn fsubr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     let x = cpu.regs.st_top();
@@ -247,7 +253,7 @@ pub fn fmul_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fimul_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
     *cpu.regs.st_top() *= y;
 }
 
@@ -302,7 +308,7 @@ pub fn fdivp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
     *cpu.regs.st_top() /= y;
 }
 
@@ -313,7 +319,7 @@ pub fn fdivr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as i32 as f64;
     let x = cpu.regs.st_top();
     *x = y / *x;
 }
@@ -332,7 +338,7 @@ pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
     let x = cpu.regs.st_top();
     *x = y / *x;
 }
@@ -347,10 +353,14 @@ pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.regs.st_swap(instr.op0_register(), instr.op1_register());
 }
 
-pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn fcom_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.regs.st_top();
     let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     fcom(cpu, x, y);
+}
+
+pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fcom_m32fp(cpu, mem, instr);
     cpu.regs.st_top += 1;
 }
 
@@ -361,11 +371,15 @@ pub fn fcomp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.st_top += 1;
 }
 
-pub fn fucomp_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+pub fn fcomp_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = *cpu.regs.st_top();
     let y = *cpu.regs.getst(instr.op1_register());
     fcom(cpu, x, y);
     cpu.regs.st_top += 1;
+}
+
+pub fn fucomp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fcomp_st0_sti(cpu, mem, instr);
     // TODO: raise the invalid-arithmetic-operand exception when appropriate.
 }
 
