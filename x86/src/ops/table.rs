@@ -9,7 +9,7 @@ type Op = fn(&mut CPU, Mem, &Instruction);
 
 // This table is constant and ideally would be initialized at compile time,
 // but it's too fiddly to do with const fns, so we'd likely need to codegen it.
-static mut OP_TAB: [Option<Op>; 2518] = [None; 2518];
+static mut OP_TAB: [Option<Op>; 2546] = [None; 2546];
 
 pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Enterd_imm16_imm8 as usize] = Some(ops::enterd_imm16_imm8);
@@ -393,17 +393,22 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Cdq as usize] = Some(ops::cdq);
 
     OP_TAB[iced_x86::Code::Pxor_mm_mmm64 as usize] = Some(ops::pxor_mm_mmm64);
-    OP_TAB[iced_x86::Code::Movq_mm_mmm64 as usize] = Some(ops::movq_mm_mmm64);
+    OP_TAB[iced_x86::Code::Movq_mm_mmm64 as usize] = Some(ops::movq_mmm64_mmm64);
+    OP_TAB[iced_x86::Code::Movq_mmm64_mm as usize] = Some(ops::movq_mmm64_mmm64);
     OP_TAB[iced_x86::Code::Movd_mm_rm32 as usize] = Some(ops::movd_mm_rm32);
     OP_TAB[iced_x86::Code::Movd_rm32_mm as usize] = Some(ops::movd_rm32_mm);
     OP_TAB[iced_x86::Code::Punpcklwd_mm_mmm32 as usize] = Some(ops::punpcklwd_mm_mmm32);
     OP_TAB[iced_x86::Code::Punpcklbw_mm_mmm32 as usize] = Some(ops::punpcklbw_mm_mmm32);
     OP_TAB[iced_x86::Code::Pmullw_mm_mmm64 as usize] = Some(ops::pmullw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Pmulhw_mm_mmm64 as usize] = Some(ops::pmulhw_mm_mmm64);
     OP_TAB[iced_x86::Code::Psrlw_mm_imm8 as usize] = Some(ops::psrlw_mm_imm8);
     OP_TAB[iced_x86::Code::Packuswb_mm_mmm64 as usize] = Some(ops::packuswb_mm_mmm64);
     OP_TAB[iced_x86::Code::Emms as usize] = Some(ops::emms);
     OP_TAB[iced_x86::Code::Psubusb_mm_mmm64 as usize] = Some(ops::psubusb_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddusb_mm_mmm64 as usize] = Some(ops::paddusb_mm_mmm64);
+    OP_TAB[iced_x86::Code::Psllw_mm_imm8 as usize] = Some(ops::psllw_mm_imm8);
+    OP_TAB[iced_x86::Code::Paddw_mm_mmm64 as usize] = Some(ops::paddw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Psubw_mm_mmm64 as usize] = Some(ops::psubw_mm_mmm64);
 
     OP_TAB[iced_x86::Code::Nopd as usize] = Some(ops::nop);
     OP_TAB[iced_x86::Code::Nopw as usize] = Some(ops::nop);

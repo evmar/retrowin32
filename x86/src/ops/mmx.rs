@@ -19,12 +19,31 @@ fn op1_mmm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
     }
 }
 
+// Note: looking at compiler explorer, it appears splitting into an array, iterating the
+// array, and reassembling the output all gets inlined by the compiler into the same code
+// as doing it with a bunch of bitshift expressions.
+
+#[inline(always)]
+fn words(x: u64) -> [u16; 4] {
+    [
+        (x >> 0) as u16,
+        (x >> 16) as u16,
+        (x >> 32) as u16,
+        (x >> 48) as u16,
+    ]
+}
+
+#[inline(always)]
+fn dewords(arr: [u16; 4]) -> u64 {
+    (arr[0] as u64) | ((arr[1] as u64) << 16) | ((arr[2] as u64) << 32) | ((arr[3] as u64) << 48)
+}
+
 pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| x ^ y);
 }
 
-pub fn movq_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn movq_mmm64_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, _x| y);
 }
@@ -69,11 +88,22 @@ pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let t0 = (((x >> 0) & 0xFFFF) as i16 as u32) * (((y >> 0) & 0xFFFF) as i16 as u32);
-        let t1 = (((x >> 16) & 0xFFFF) as i16 as u32) * (((y >> 16) & 0xFFFF) as i16 as u32);
-        let t2 = (((x >> 32) & 0xFFFF) as i16 as u32) * (((y >> 32) & 0xFFFF) as i16 as u32);
-        let t3 = (((x >> 48) & 0xFFFF) as i16 as u32) * (((y >> 48) & 0xFFFF) as i16 as u32);
-        (t3 as u64) << 48 | (t2 as u64) << 32 | (t1 as u64) << 16 | (t0 as u64)
+        let mut arr = words(x);
+        for (x, y) in arr.iter_mut().zip(words(y)) {
+            *x = (((*x as i32) * (y as i32)) as u32) as u16;
+        }
+        dewords(arr)
+    });
+}
+
+pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for (x, y) in arr.iter_mut().zip(words(y)) {
+            *x = (((*x as i32) * (y as i32)) as u32 >> 16) as u16;
+        }
+        dewords(arr)
     });
 }
 
@@ -148,5 +178,38 @@ pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
             | ((op((x >> 40) as u8, (y >> 40) as u8) as u64) << 40)
             | ((op((x >> 48) as u8, (y >> 48) as u8) as u64) << 48)
             | ((op((x >> 56) as u8, (y >> 56) as u8) as u64) << 56)
+    });
+}
+
+pub fn psllw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for x in arr.iter_mut() {
+            *x = *x << y;
+        }
+        dewords(arr)
+    });
+}
+
+pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for (x, y) in arr.iter_mut().zip(words(y)) {
+            *x = x.wrapping_add(y);
+        }
+        dewords(arr)
+    });
+}
+
+pub fn psubw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for (x, y) in arr.iter_mut().zip(words(y)) {
+            *x = x.wrapping_sub(y);
+        }
+        dewords(arr)
     });
 }
