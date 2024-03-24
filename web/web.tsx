@@ -1,7 +1,7 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
 import { Emulator } from './emulator';
-import * as wasm from './glue/pkg';
+import * as wasm from './glue/pkg/glue';
 import { fetchFileSet } from './host';
 import { parseCSV } from './labels';
 

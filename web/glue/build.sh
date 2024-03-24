@@ -1,6 +1,28 @@
 #!/bin/bash
 
-# run like `./build.sh --profiling` for profiling output
+# cargo install wasm-bindgen-cli
+# cargo install wasm-opt
+# target_dir="$(cargo metadata --format-version 1 --no-deps | jq -r .target_directory)"
 
-mode=${1:---dev}
-exec wasm-pack build -t web $mode
+set -e
+
+cd "$(dirname "$0")"
+
+profile="${profile:-release}"
+
+case $profile in
+debug)
+  cargo build --target wasm32-unknown-unknown --profile dev
+  wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
+    "../../target/wasm32-unknown-unknown/debug/glue.wasm"
+  ;;
+release)
+  cargo build --target wasm32-unknown-unknown --profile release
+  wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
+    "../../target/wasm32-unknown-unknown/release/glue.wasm"
+  #wasm-opt -O pkg/glue_bg.wasm 
+  ;;
+*)
+  echo "error: profile=debug or release"
+  exit 1
+esac

@@ -9,17 +9,17 @@
 
 opt?=0
 cargoflags=
-wasmpackflags=
+profile=debug
 ifeq ($(opt), 1)
 	cargoflags=--release
-	wasmpackflags=--profiling
+	profile=release
 endif
 
 all: deploy emu rosetta unicorn
 
 
 wasm web/glue/pkg/glue.d.ts:
-	cd web/glue && ./build.sh $(wasmpackflags)
+	cd web/glue && profile=$(profile) ./build.sh
 web-check:
 	cd web && npx tsc
 deploy/bundle.js: web/glue/pkg/glue.d.ts

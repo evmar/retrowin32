@@ -1,5 +1,5 @@
 import { Breakpoint } from './break';
-import * as wasm from './glue/pkg';
+import * as wasm from './glue/pkg/glue';
 import { FileSet, JsHost } from './host';
 import { Labels } from './labels';
 import { hex } from './util';

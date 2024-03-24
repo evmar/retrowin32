@@ -32,11 +32,6 @@ features = [
   "Performance",
 ]
 
-# wasm-pack --profiling mode doesn't work without this
-# https://github.com/rustwasm/wasm-pack/issues/797
-[package.metadata.wasm-pack.profile.profiling]
-wasm-opt = ['-O4', '-g']
-
 [features]
 default = ["x86-emu"]
 x86-emu = ["win32/x86-emu"]

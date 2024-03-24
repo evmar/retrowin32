@@ -3,7 +3,7 @@
  * In principle these could be codegenned by wasm-bindgen but they aren't for whatever reason.
  */
 
-import { SurfaceOptions } from './glue/pkg';
+import { SurfaceOptions } from './glue/pkg/glue';
 export { SurfaceOptions };
 
 // Matches 'pub type JsWindow' in glue/host.rs.
