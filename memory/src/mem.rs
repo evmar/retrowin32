@@ -208,7 +208,7 @@ impl<'m> Extensions<'m> for Mem<'m> {
 
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         if ofs + size_of::<T>() as u32 > self.len() {
-            panic!("oob");
+            panic!("oob at {ofs:x}+{:x}", size_of::<T>());
         }
         self.get_ptr_unchecked(ofs) as *mut T
     }
