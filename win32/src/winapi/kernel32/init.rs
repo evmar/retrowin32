@@ -273,7 +273,7 @@ impl State {
 
     pub fn get_process_heap<'a>(&'a mut self, memory: &mut MemImpl) -> &mut Heap {
         if self.process_heap == 0 {
-            let size = 8 << 20;
+            let size = 16 << 20;
             let heap = self.new_heap(memory, size, "process heap".into());
             self.process_heap = heap;
         }

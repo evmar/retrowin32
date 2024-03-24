@@ -22,6 +22,10 @@ impl Heap {
         }
     }
 
+    fn range(&self) -> std::ops::Range<u32> {
+        self.addr..self.addr + self.size
+    }
+
     pub fn alloc(&mut self, mem: Mem, size: u32) -> u32 {
         let size = align_to(size, 4) + 4;
         let i = self
@@ -41,22 +45,34 @@ impl Heap {
     }
 
     pub fn size(&self, mem: Mem, addr: u32) -> u32 {
-        mem.get_pod::<u32>(addr - 4)
+        mem.get_pod::<u32>(addr - 4) - 4
     }
 
     pub fn free(&mut self, mem: Mem, addr: u32) {
         let addr = addr - 4;
         let size = mem.get_pod::<u32>(addr);
 
-        let next_i = self
-            .freelist
-            .iter()
-            .position(|f| f.addr > addr)
-            .unwrap_or(self.freelist.len());
+        if !self.range().contains(&addr) {
+            panic!("free of addr not on heap");
+        }
+
+        let mut insert_index = 0;
+        for (i, node) in self.freelist.iter().enumerate() {
+            if node.range().contains(&addr) {
+                // address is within already free block
+                log::warn!("ignoring double free");
+                return;
+            }
+            if node.addr > addr {
+                insert_index = i;
+                break;
+            }
+        }
 
         let mut joined = false;
-        if next_i > 0 {
-            let prev_i = next_i - 1;
+        if insert_index > 0 {
+            // Check if merging with earlier block.
+            let prev_i = insert_index - 1;
             let prev = &mut self.freelist[prev_i];
             if prev.addr + prev.size == addr {
                 prev.size += size;
@@ -64,30 +80,39 @@ impl Heap {
             }
         }
 
-        let next = &mut self.freelist[next_i];
-        if addr + size == next.addr {
-            if joined {
-                let join_size = next.size;
-                let prev = &mut self.freelist[next_i - 1];
-                prev.size += join_size;
-                log::warn!("freelist chunk2 {}", self.freelist.len());
-                self.freelist.remove(next_i);
-                return;
+        if insert_index < self.freelist.len() {
+            // Check if merging with later block.
+            let next = &mut self.freelist[insert_index];
+            if addr + size == next.addr {
+                if joined {
+                    let next_size = next.size;
+                    let prev = &mut self.freelist[insert_index - 1];
+                    prev.size += next_size;
+                    self.freelist.remove(insert_index);
+                } else {
+                    next.addr -= size;
+                    next.size += size;
+                    joined = true;
+                }
             }
-            next.addr -= size;
-            next.size += size;
-            return;
         }
 
         if !joined {
             let free = FreeNode { addr, size };
-            self.freelist.insert(next_i, free);
+            self.freelist.insert(insert_index, free);
         }
     }
 }
 
+/// Entry in the FreeList.
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
 struct FreeNode {
     addr: u32,
     size: u32,
+}
+
+impl FreeNode {
+    fn range(&self) -> std::ops::Range<u32> {
+        self.addr..self.addr + self.size
+    }
 }
