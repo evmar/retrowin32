@@ -43,7 +43,9 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
     let hdc = window.hdc;
     if let Some(hbrush) = window.wndclass.background.to_option() {
         if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
-            gdi32::fill_rect(machine, hdc, &rect, brush.color);
+            if let Some(color) = brush.color {
+                gdi32::fill_rect(machine, hdc, &rect, color);
+            }
         }
     }
     *lpPaint.unwrap() = PAINTSTRUCT {
@@ -99,7 +101,7 @@ impl BrushOrColor {
             BrushOrColor::Brush(hbr) => *hbr,
             BrushOrColor::Color(c) => {
                 let color = match c {
-                    COLOR::WINDOW => COLORREF((0xc0, 0xc0, 0xc0)),
+                    COLOR::WINDOW => Some(COLORREF((0xc0, 0xc0, 0xc0))),
                 };
                 machine
                     .state
@@ -115,7 +117,10 @@ impl BrushOrColor {
 pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: BrushOrColor) -> bool {
     let brush = hbr.to_brush(machine);
     let color = match machine.state.gdi32.objects.get(brush).unwrap() {
-        gdi32::Object::Brush(brush) => brush.color,
+        gdi32::Object::Brush(brush) => match brush.color {
+            Some(color) => color,
+            None => return true,
+        },
         _ => unimplemented!(),
     };
     let rect = lprc.unwrap();

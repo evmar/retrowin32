@@ -27,7 +27,7 @@ pub struct Pen {
 
 #[derive(Debug)]
 pub struct Brush {
-    pub color: COLORREF,
+    pub color: Option<COLORREF>,
 }
 
 #[win32_derive::dllexport]

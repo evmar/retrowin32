@@ -48,6 +48,7 @@ pub enum GetStockObjectArg {
     GRAY_BRUSH = 2,
     DKGRAY_BRUSH = 3,
     BLACK_BRUSH = 4,
+    NULL_BRUSH = 5,
     OEM_FIXED_FONT = 10,
 }
 
@@ -55,14 +56,19 @@ pub enum GetStockObjectArg {
 pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
     match i.unwrap() {
         GetStockObjectArg::WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: COLORREF((0xff, 0xff, 0xff)),
+            color: Some(COLORREF((0xff, 0xff, 0xff))),
         })),
         GetStockObjectArg::LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: COLORREF((0xc0, 0xc0, 0xc0)),
+            color: Some(COLORREF((0xc0, 0xc0, 0xc0))),
         })),
         GetStockObjectArg::BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: COLORREF((0x00, 0x00, 0x00)),
+            color: Some(COLORREF((0x00, 0x00, 0x00))),
         })),
+        GetStockObjectArg::NULL_BRUSH => machine
+            .state
+            .gdi32
+            .objects
+            .add(Object::Brush(Brush { color: None })),
         GetStockObjectArg::OEM_FIXED_FONT => {
             log::error!("returning null stock object");
             HGDIOBJ::null()
