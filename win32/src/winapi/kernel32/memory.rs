@@ -1,7 +1,6 @@
 use crate::{
     machine::{Machine, MemImpl},
     pe::ImageSectionFlags,
-    winapi,
 };
 use bitflags::bitflags;
 use memory::Mem;
@@ -344,20 +343,36 @@ pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
 }
 
+bitflags! {
+    pub struct GMEM: u32 {
+        // GlobalAlloc accepted many flags, but most are obsolete.
+        const MOVEABLE = 0x2;
+        const ZEROINIT = 0x40;
+    }
+}
+impl TryFrom<u32> for GMEM {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        GMEM::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
-pub fn GlobalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
-    // GlobalAlloc accepted many flags, but most are obsolete and ignored.
-    // We only care about two in particular.
-    if uFlags & 0x2 != 0 {
+pub fn GlobalAlloc(machine: &mut Machine, uFlags: Result<GMEM, u32>, dwBytes: u32) -> u32 {
+    let flags = uFlags.unwrap();
+    if flags.contains(GMEM::MOVEABLE) {
         todo!("GMEM_MOVEABLE");
     }
-    let mut flags = HeapAllocFlags::default();
-    if uFlags & 0x40 != 0 {
-        // GMEM_ZEROINIT
-        flags.set(HeapAllocFlags::HEAP_ZERO_MEMORY, true);
+    let heap = machine
+        .state
+        .kernel32
+        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
+    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    if flags.contains(GMEM::ZEROINIT) {
+        machine.mem().sub(addr, dwBytes).as_mut_slice_todo().fill(0);
     }
-    let heap = winapi::kernel32::GetProcessHeap(machine);
-    HeapAlloc(machine, heap, Ok(flags), dwBytes)
+    addr
 }
 
 #[win32_derive::dllexport]
@@ -371,11 +386,8 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn LocalAlloc(machine: &mut Machine, uFlags: u32, dwBytes: u32) -> u32 {
-    if uFlags != 0 {
-        todo!()
-    }
-    GlobalAlloc(machine, 0, dwBytes)
+pub fn LocalAlloc(machine: &mut Machine, uFlags: Result<GMEM, u32>, dwBytes: u32) -> u32 {
+    GlobalAlloc(machine, uFlags, dwBytes)
 }
 
 #[win32_derive::dllexport]
