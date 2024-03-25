@@ -411,7 +411,10 @@ pub fn SetForegroundWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
 
 #[win32_derive::dllexport]
 pub fn GetActiveWindow(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().hwnd
+    match machine.state.user32.windows.iter().next() {
+        Some(w) => w.hwnd,
+        None => HWND::null(),
+    }
 }
 
 #[win32_derive::dllexport]
