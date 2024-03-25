@@ -91,7 +91,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
     };
     let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
     let stride = window.width;
-    let pixels = window.pixels_mut(&mut *machine.host);
+    let pixels = window.bitmap_mut(&mut *machine.host).pixels.as_slice_mut();
 
     let color = match dc.r2 {
         R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
@@ -140,7 +140,11 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             // TODO: obey rect
-            window.pixels_mut(&mut *machine.host).fill(color.to_pixel());
+            window
+                .bitmap_mut(&mut *machine.host)
+                .pixels
+                .as_slice_mut()
+                .fill(color.to_pixel());
             window.flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(_) => todo!(),

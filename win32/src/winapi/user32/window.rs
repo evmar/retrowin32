@@ -93,8 +93,9 @@ impl Window {
             }
         }
     }
-    pub fn pixels_mut<'a>(&mut self, host: &mut dyn Host) -> &mut [[u8; 4]] {
-        self.ensure_pixels(host).bitmap.pixels.as_slice_mut()
+
+    pub fn bitmap_mut<'a>(&mut self, host: &mut dyn Host) -> &mut BitmapRGBA32 {
+        &mut self.ensure_pixels(host).bitmap
     }
 
     pub fn flush_pixels(&mut self, mem: Mem) {

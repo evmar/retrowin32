@@ -21,6 +21,7 @@ pub struct BITMAP {
 }
 unsafe impl memory::Pod for BITMAP {}
 
+/// Copy pixels from src to dst.  Asserts that everything has been apprpriately clipped.
 fn bit_blt(
     dst: &mut [[u8; 4]],
     dx: usize,
@@ -33,6 +34,8 @@ fn bit_blt(
     sy: usize,
     sstride: usize,
 ) {
+    assert!(dstride >= w);
+    assert!(sstride >= w);
     for row in 0..h {
         let dst_row = &mut dst[(((dy + row) * dstride) + dx)..][..w];
         let src_row = &src[(((sy + row) * sstride) + sx)..][..w];
@@ -105,15 +108,20 @@ pub fn BitBlt(
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let dst = window.bitmap_mut(&mut *machine.host);
 
-            let window_width = window.width;
-            let dst = window.pixels_mut(&mut *machine.host);
+            // Clip to src/dst regions; this leaves a lot for doing later.
+            if x > 0 || y > 0 || x1 > 0 || y1 > 0 {
+                todo!()
+            }
+            let cx = std::cmp::min(cx, std::cmp::min(dst.width, src_bitmap.width));
+            let cy = std::cmp::min(cy, std::cmp::min(dst.height, src_bitmap.height));
 
             bit_blt(
-                dst,
+                dst.pixels.as_slice_mut(),
                 x as usize,
                 y as usize,
-                window_width as usize,
+                dst.width as usize,
                 cx as usize,
                 cy as usize,
                 src,
@@ -310,28 +318,23 @@ pub fn SetDIBitsToDevice(
     let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let (dst, dst_stride) = match dc.target {
-        DCTarget::Memory(hbitmap) => {
-            let dst_bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-                Object::Bitmap(BitmapType::RGBA32(b)) => b,
-                _ => todo!(),
-            };
-            (dst_bitmap.pixels.as_slice_mut(), dst_bitmap.width)
-        }
+    let dst = match dc.target {
+        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+            Object::Bitmap(BitmapType::RGBA32(b)) => b,
+            _ => todo!(),
+        },
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let window_width = window.width;
-            let pixels = window.pixels_mut(&mut *machine.host);
-            (pixels, window_width)
+            window.bitmap_mut(&mut *machine.host)
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
 
     bit_blt(
-        dst,
+        &mut dst.pixels.as_slice_mut(),
         xDest as usize,
         yDest as usize,
-        dst_stride as usize,
+        dst.width as usize,
         w as usize,
         h as usize,
         src,
