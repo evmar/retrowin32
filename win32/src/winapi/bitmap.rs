@@ -36,6 +36,9 @@ impl BITMAPINFOHEADER {
     pub fn width(&self) -> u32 {
         self.biWidth
     }
+    pub fn stride(&self) -> u32 {
+        (((self.biWidth * self.biBitCount as u32) + 31) & !31) >> 3
+    }
     pub fn height(&self) -> u32 {
         // Height is negative if top-down DIB.
         (self.biHeight as i32).abs() as u32
@@ -55,14 +58,22 @@ pub trait Bitmap {
 
 pub enum PixelData<T> {
     Owned(Box<[T]>),
-    Ptr(u32),
+    Ptr(u32, u32),
 }
 
 impl<T> PixelData<T> {
-    pub fn as_slice(&self) -> &[T] {
+    pub fn as_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [T] {
         match self {
             PixelData::Owned(b) => &*b,
-            _ => unimplemented!(),
+            &PixelData::Ptr(addr, len) => {
+                let bytes = mem.sub(addr, len).as_slice_todo();
+                unsafe {
+                    std::slice::from_raw_parts(
+                        bytes.as_ptr() as *const _,
+                        bytes.len() / std::mem::size_of::<T>(),
+                    )
+                }
+            }
         }
     }
 
@@ -81,8 +92,8 @@ pub struct BitmapRGBA32 {
 }
 
 impl BitmapRGBA32 {
-    pub fn pixels_slice<'a>(&'a self, _mem: Mem<'a>) -> &'a [[u8; 4]] {
-        self.pixels.as_slice()
+    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+        self.pixels.as_slice(mem)
     }
 
     /// Parse a BITMAPINFO/HEADER and pixel data.
@@ -123,7 +134,7 @@ impl BitmapRGBA32 {
 
         let width = header.width() as usize;
         // Bitmap row stride is padded out to 4 bytes per row.
-        let stride = (((width * header.biBitCount as usize) + 31) & !31) >> 3;
+        let stride = header.stride() as usize;
 
         let (src, height) = match pixels {
             Some(p) => p,

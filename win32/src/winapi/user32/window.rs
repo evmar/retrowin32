@@ -10,7 +10,7 @@ use crate::{
     Host, SurfaceOptions,
 };
 use bitflags::bitflags;
-use memory::Extensions;
+use memory::{Extensions, Mem};
 use std::rc::Rc;
 
 const TRACE_CONTEXT: &'static str = "user32/window";
@@ -97,11 +97,11 @@ impl Window {
         self.ensure_pixels(host).bitmap.pixels.as_slice_mut()
     }
 
-    pub fn flush_pixels(&mut self) {
+    pub fn flush_pixels(&mut self, mem: Mem) {
         if let Some(pixels) = &mut self.pixels {
             pixels
                 .surface
-                .write_pixels(&pixels.bitmap.pixels.as_slice());
+                .write_pixels(&pixels.bitmap.pixels.as_slice(mem));
             pixels.surface.show();
         }
     }

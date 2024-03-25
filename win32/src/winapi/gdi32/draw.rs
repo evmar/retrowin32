@@ -141,7 +141,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             // TODO: obey rect
             window.pixels_mut(&mut *machine.host).fill(color.to_pixel());
-            window.flush_pixels();
+            window.flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }

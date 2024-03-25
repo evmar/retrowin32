@@ -122,7 +122,7 @@ pub fn BitBlt(
                 src_bitmap.width as usize,
             );
 
-            window.flush_pixels();
+            window.flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
@@ -226,7 +226,7 @@ pub fn CreateDIBSection(
         _ => todo!(),
     };
 
-    let byte_count = bi.width() * bi.height() * bi.biBitCount as u32;
+    let byte_count = bi.stride() * bi.height();
     let heap = kernel32::GetProcessHeap(machine);
     let pixels = kernel32::HeapAlloc(
         machine,
@@ -240,7 +240,7 @@ pub fn CreateDIBSection(
     let bitmap = BitmapRGBA32 {
         width: bi.width(),
         height: bi.height(),
-        pixels: PixelData::Ptr(pixels),
+        pixels: PixelData::Ptr(pixels, byte_count),
     };
     machine
         .state
@@ -343,7 +343,7 @@ pub fn SetDIBitsToDevice(
     match dc.target {
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.flush_pixels();
+            window.flush_pixels(machine.emu.memory.mem());
         }
         _ => {}
     }

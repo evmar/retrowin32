@@ -56,7 +56,7 @@ impl DC {
         let bitmap = BitmapMono {
             width: 1,
             height: 1,
-            pixels: PixelData::Ptr(0),
+            pixels: PixelData::Ptr(0, 0),
         };
         let hobj = machine
             .state
