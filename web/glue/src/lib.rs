@@ -65,8 +65,8 @@ impl Emulator {
         self.machine.emu.x86.cpu.instr_count
     }
 
-    pub fn disassemble_json(&self, addr: u32) -> String {
-        serde_json::to_string(&win32::disassemble(self.machine.mem(), addr)).unwrap_throw()
+    pub fn disassemble_json(&self, addr: u32, limit: usize) -> String {
+        serde_json::to_string(&win32::disassemble(self.machine.mem(), addr, limit)).unwrap_throw()
     }
 
     /// Run code until at least count instructions have run.

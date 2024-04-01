@@ -31,7 +31,7 @@ impl iced_x86::FormatterOutput for FormatterOutput {
     }
 }
 
-pub fn disassemble(mem: Mem, addr: u32) -> Vec<Instruction> {
+pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
     if addr >= mem.len() {
         return Vec::new();
     }
@@ -44,8 +44,7 @@ pub fn disassemble(mem: Mem, addr: u32) -> Vec<Instruction> {
     let mut formatter = IntelFormatter::new();
 
     let mut instrs = Vec::new();
-    let mut i = 0;
-    for instruction in decoder {
+    for instruction in decoder.into_iter().take(limit) {
         let start_index = instruction.ip() as u32;
         let instr_bytes = mem.sub(start_index, instruction.len() as u32);
         let mut bytes = String::new();
@@ -62,10 +61,6 @@ pub fn disassemble(mem: Mem, addr: u32) -> Vec<Instruction> {
             code: output.code,
             ops: instruction.op_kinds().map(|k| format!("{:?}", k)).collect(),
         });
-        i += 1;
-        if i > 20 {
-            break;
-        }
     }
     instrs
 }

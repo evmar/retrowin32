@@ -25,9 +25,9 @@ static mut SNAPSHOT_REQUESTED: bool = false;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine) {
-    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip);
+    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip, 5);
 
-    for instr in &instrs[..std::cmp::min(instrs.len(), 5)] {
+    for instr in instrs {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
         for part in &instr.code {
             print!("{}", part.text);
