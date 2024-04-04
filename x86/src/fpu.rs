@@ -52,18 +52,18 @@ impl FPU {
 
     /// Index in self.st for a given ST0, ST1 etc reg.
     fn st_offset(&self, reg: iced_x86::Register) -> usize {
-        self.st_top
-            + match reg {
-                iced_x86::Register::ST0 => 0,
-                iced_x86::Register::ST1 => 1,
-                iced_x86::Register::ST2 => 2,
-                iced_x86::Register::ST3 => 3,
-                iced_x86::Register::ST4 => 4,
-                iced_x86::Register::ST5 => 5,
-                iced_x86::Register::ST6 => 6,
-                iced_x86::Register::ST7 => 7,
-                _ => unreachable!("st_offset: {reg:?}"),
-            }
+        let ofs = match reg {
+            iced_x86::Register::ST0 => 0,
+            iced_x86::Register::ST1 => 1,
+            iced_x86::Register::ST2 => 2,
+            iced_x86::Register::ST3 => 3,
+            iced_x86::Register::ST4 => 4,
+            iced_x86::Register::ST5 => 5,
+            iced_x86::Register::ST6 => 6,
+            iced_x86::Register::ST7 => 7,
+            _ => unreachable!("invalid reg {reg:?}"),
+        };
+        self.st_top + ofs
     }
 
     pub fn swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
