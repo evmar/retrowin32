@@ -38,6 +38,11 @@ impl FPU {
         &mut self.st[self.st_top]
     }
 
+    pub fn push(&mut self, val: f64) {
+        self.st_top -= 1;
+        self.st[self.st_top] = val;
+    }
+
     /// Index in self.st for a given ST0, ST1 etc reg.
     fn st_offset(&self, reg: iced_x86::Register) -> usize {
         self.st_top

@@ -29,54 +29,48 @@ fn fcom<T: std::cmp::PartialOrd>(cpu: &mut CPU, x: T, y: T) {
 }
 
 pub fn fld1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = 1.0;
+    cpu.fpu.push(1.0);
 }
 
 pub fn fldz(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = 0.0;
+    cpu.fpu.push(0.0);
 }
 
 pub fn fldpi(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = std::f64::consts::PI;
+    cpu.fpu.push(std::f64::consts::PI);
 }
 
 pub fn fldl2e(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = std::f64::consts::LOG2_E;
+    cpu.fpu.push(std::f64::consts::LOG2_E);
 }
 
 pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.fpu.get(instr.op0_register());
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = y;
+    cpu.fpu.push(y);
 }
 
 pub fn fld_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = mem.get_pod::<f64>(x86_addr(cpu, instr));
+    cpu.fpu.push(mem.get_pod::<f64>(x86_addr(cpu, instr)));
 }
 
 pub fn fld_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
+    cpu.fpu
+        .push(mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64);
 }
 
 pub fn fild_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = mem.get_pod::<u64>(x86_addr(cpu, instr)) as u64 as f64;
+    cpu.fpu
+        .push(mem.get_pod::<u64>(x86_addr(cpu, instr)) as u64 as f64);
 }
 
 pub fn fild_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    cpu.fpu
+        .push(mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64);
 }
 
 pub fn fild_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
+    cpu.fpu
+        .push(mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64);
 }
 
 pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -149,8 +143,7 @@ pub fn fsin(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 pub fn fsincos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let val = *cpu.fpu.st0();
     *cpu.fpu.st0() = val.sin();
-    cpu.fpu.st_top -= 1;
-    *cpu.fpu.st0() = val.cos();
+    cpu.fpu.push(val.cos());
 }
 pub fn fpatan(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = *cpu.fpu.st0();
