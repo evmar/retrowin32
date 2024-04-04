@@ -13,5 +13,6 @@ memory = { path = "memory" }
 win32 = { path = "win32" }
 x86 = { path = "x86" }
 
-[profile.release]
+[profile.lto]
+inherits = "release"
 lto = true

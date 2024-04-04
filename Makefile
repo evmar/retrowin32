@@ -11,8 +11,8 @@ opt?=0
 cargoflags=
 profile=debug
 ifeq ($(opt), 1)
-	cargoflags=--release
-	profile=release
+	profile=lto
+	cargoflags=--profile=$(profile)
 endif
 
 all: deploy emu rosetta unicorn

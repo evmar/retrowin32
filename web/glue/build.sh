@@ -16,8 +16,8 @@ debug)
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/debug/glue.wasm"
   ;;
-release)
-  cargo build --target wasm32-unknown-unknown --profile release
+release|lto)
+  cargo build --target wasm32-unknown-unknown --profile $profile
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/release/glue.wasm"
   #wasm-opt -O pkg/glue_bg.wasm 
