@@ -47,7 +47,7 @@ impl Registers {
             ss: x86.regs.ss,
             flags: x86.flags.bits(),
             flags_str: format!("{:?}", x86.flags),
-            st: x86.regs.st[x86.regs.st_top..].into(),
+            st: x86.fpu.st[x86.fpu.st_top..].into(),
         }
     }
 }

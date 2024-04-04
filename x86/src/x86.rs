@@ -1,6 +1,7 @@
 //! The central x86 machine object.
 
 use crate::{
+    fpu::FPU,
     icache::InstrCache,
     ops,
     registers::{Flags, Registers},
@@ -29,6 +30,7 @@ pub struct CPU {
     // because there are operations we want to do over mut regs and flags at the same time.
     // TODO: this may no longer be necessary (?)
     pub flags: Flags,
+    pub fpu: FPU,
 
     /// Total number of instructions executed.
     pub instr_count: usize,
@@ -44,6 +46,7 @@ impl CPU {
         CPU {
             regs: Registers::default(),
             flags: Flags::empty(),
+            fpu: FPU::default(),
             instr_count: 0,
             state: Default::default(),
         }

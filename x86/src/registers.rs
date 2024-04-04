@@ -16,16 +16,6 @@ bitflags! {
     }
 }
 
-bitflags! {
-    #[derive(serde::Serialize, serde::Deserialize)]
-    pub struct FPUStatus: u16 {
-        const C3 = 1 << 14;
-        const C2 = 1 << 10;
-        const C1 = 1 << 9;
-        const C0 = 1 << 8;
-    }
-}
-
 #[repr(C)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Registers {
@@ -54,13 +44,6 @@ pub struct Registers {
     /// Address that FS-relative accesses point to.
     pub fs_addr: u32,
 
-    /// FPU registers.
-    pub st: [f64; 8],
-    /// Top of FPU stack; 8 when stack empty.
-    pub st_top: usize,
-    /// FPU status word (TODO fold st_top in here?)
-    pub fpu_status: FPUStatus,
-
     /// MMX registers.
     // TODO: officially these should alias the FPU registers(!).
     pub mm: [u64; 8],
@@ -85,11 +68,6 @@ impl Default for Registers {
             gs: 0,
             ss: 0,
             fs_addr: 0,
-
-            st: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-            st_top: 8,
-            fpu_status: FPUStatus::empty(),
-
             mm: [0, 0, 0, 0, 0, 0, 0, 0],
         }
     }
@@ -234,34 +212,6 @@ impl Registers {
             iced_x86::Register::BH => self.ebx = (self.ebx & 0xFFFF_00FF) | ((value as u32) << 8),
             _ => unreachable!("{reg:?}"),
         }
-    }
-
-    /// Get st(0), the current top of the FPU stack.
-    pub fn st_top(&mut self) -> &mut f64 {
-        &mut self.st[self.st_top]
-    }
-    /// Offset from top of FP stack for a given ST0, ST1 etc reg.
-    fn st_offset(&self, reg: iced_x86::Register) -> usize {
-        self.st_top
-            + match reg {
-                iced_x86::Register::ST0 => 0,
-                iced_x86::Register::ST1 => 1,
-                iced_x86::Register::ST2 => 2,
-                iced_x86::Register::ST3 => 3,
-                iced_x86::Register::ST4 => 4,
-                iced_x86::Register::ST5 => 5,
-                iced_x86::Register::ST6 => 6,
-                iced_x86::Register::ST7 => 7,
-                _ => unreachable!("st_offset: {reg:?}"),
-            }
-    }
-    pub fn st_swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {
-        let o1 = self.st_offset(r1);
-        let o2 = self.st_offset(r2);
-        self.st.swap(o1, o2);
-    }
-    pub fn getst(&mut self, reg: iced_x86::Register) -> &mut f64 {
-        &mut self.st[self.st_offset(reg)]
     }
 
     pub fn get64(&self, reg: iced_x86::Register) -> u64 {
