@@ -43,6 +43,13 @@ impl FPU {
         self.st[self.st_top] = val;
     }
 
+    pub fn pop(&mut self) {
+        if self.st_top == 8 {
+            panic!("fpu pop of empty stack");
+        }
+        self.st_top += 1;
+    }
+
     /// Index in self.st for a given ST0, ST1 etc reg.
     fn st_offset(&self, reg: iced_x86::Register) -> usize {
         self.st_top

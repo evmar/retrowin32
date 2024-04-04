@@ -85,43 +85,40 @@ pub fn fst_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fstp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let f = *cpu.fpu.st0();
-    mem.put::<f64>(x86_addr(cpu, instr), f);
-    cpu.fpu.st_top += 1;
+    fst_m64fp(cpu, mem, instr);
+    cpu.fpu.pop();
 }
 
 pub fn fstp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let f = *cpu.fpu.st0();
-    let addr = x86_addr(cpu, instr);
-    mem.put::<u32>(addr, (f as f32).to_bits());
-    cpu.fpu.st_top += 1;
+    fst_m32fp(cpu, mem, instr);
+    cpu.fpu.pop();
 }
 
 pub fn fstp_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
     *cpu.fpu.get(instr.op0_register()) = f;
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fistp_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
     let addr = x86_addr(cpu, instr);
     *mem.view_mut::<u64>(addr) = f.round() as i64 as u64;
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
     let addr = x86_addr(cpu, instr);
     mem.put::<u32>(addr, f as i32 as u32);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fistp_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
     let addr = x86_addr(cpu, instr);
     mem.put::<u16>(addr, f as i16 as u16);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fchs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
@@ -147,7 +144,7 @@ pub fn fsincos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 pub fn fpatan(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = *cpu.fpu.st0();
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
     let reg = cpu.fpu.st0();
     *reg = reg.atan2(x);
 }
@@ -175,7 +172,7 @@ pub fn fadd_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fadd_sti_sti(cpu, mem, instr);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -208,7 +205,7 @@ pub fn fsub_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fsubp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fsub_sti_sti(cpu, mem, instr);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fisub_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -265,7 +262,7 @@ pub fn fmulp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.fpu.st0();
     let x = cpu.fpu.get(instr.op0_register());
     *x *= y;
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
@@ -297,7 +294,7 @@ pub fn fdiv_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fdivp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fdiv_sti_sti(cpu, mem, instr);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -327,7 +324,7 @@ pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.fpu.st0();
     let x = cpu.fpu.get(instr.op0_register());
     *x = y / *x;
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -354,21 +351,21 @@ pub fn fcom_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fcom_m32fp(cpu, mem, instr);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fcomp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.st0();
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     fcom(cpu, x, y);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fcomp_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.st0();
     let y = *cpu.fpu.get(instr.op1_register());
     fcom(cpu, x, y);
-    cpu.fpu.st_top += 1;
+    cpu.fpu.pop();
 }
 
 pub fn fucomp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
