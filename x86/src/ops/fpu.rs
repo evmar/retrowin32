@@ -4,6 +4,7 @@ use iced_x86::Instruction;
 use memory::{Extensions, Mem};
 
 pub fn finit(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.fpu.st_top = 8;
     cpu.fpu.status = fpu::Status::empty();
 }
 

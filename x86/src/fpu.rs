@@ -33,19 +33,33 @@ impl Default for FPU {
 }
 
 impl FPU {
+    fn exception(msg: &str) {
+        // TODO: modify state bits etc.
+        // At least ignoring these may allow programs to make some progress.
+        // See note in https://github.com/joncampbell123/dosbox-x/issues/94 ,
+        // "I've seen DOSBox SVN bail out on perfectly good demoscene programs because
+        // of [not allowing underflow]."
+        log::warn!("{}", msg);
+    }
+
     /// Get st(0), the current top of the FPU stack.
     pub fn st0(&mut self) -> &mut f64 {
         &mut self.st[self.st_top]
     }
 
     pub fn push(&mut self, val: f64) {
+        if self.st_top == 0 {
+            Self::exception("fpu stack overflow");
+            return;
+        }
         self.st_top -= 1;
         self.st[self.st_top] = val;
     }
 
     pub fn pop(&mut self) {
         if self.st_top == 8 {
-            panic!("fpu pop of empty stack");
+            Self::exception("fpu stack underflow");
+            return;
         }
         self.st_top += 1;
     }
@@ -63,7 +77,12 @@ impl FPU {
             iced_x86::Register::ST7 => 7,
             _ => unreachable!("invalid reg {reg:?}"),
         };
-        self.st_top + ofs
+        let new = self.st_top + ofs;
+        if new >= 8 {
+            Self::exception("fpu stack underflow");
+            return 7;
+        }
+        new
     }
 
     pub fn swap(&mut self, r1: iced_x86::Register, r2: iced_x86::Register) {

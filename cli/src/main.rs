@@ -24,8 +24,8 @@ mod resv32;
 static mut SNAPSHOT_REQUESTED: bool = false;
 
 #[cfg(feature = "x86-emu")]
-fn dump_asm(machine: &win32::Machine) {
-    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip, 5);
+fn dump_asm(machine: &win32::Machine, count: usize) {
+    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip, count);
 
     for instr in instrs {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
@@ -182,10 +182,18 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
 fn print_trace(machine: &win32::Machine) {
     #[cfg(feature = "x86-emu")]
-    let (eip, eax, ebx, ecx, edx, esi, edi, esp) = {
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp, st_top) = {
         let regs = &machine.emu.x86.cpu.regs;
         (
-            regs.eip, regs.eax, regs.ebx, regs.ecx, regs.edx, regs.esi, regs.edi, regs.esp,
+            regs.eip,
+            regs.eax,
+            regs.ebx,
+            regs.ecx,
+            regs.edx,
+            regs.esi,
+            regs.edi,
+            regs.esp,
+            machine.emu.x86.cpu.fpu.st_top,
         )
     };
 
@@ -204,7 +212,7 @@ fn print_trace(machine: &win32::Machine) {
         )
     };
 
-    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x}");
+    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} st_top:{st_top}");
 }
 
 fn main() -> anyhow::Result<()> {
@@ -317,7 +325,7 @@ fn main() -> anyhow::Result<()> {
 
         match &machine.emu.x86.cpu.state {
             x86::CPUState::Error(error) => {
-                dump_asm(&machine);
+                dump_asm(&machine, 5);
                 log::error!("{:?}", error);
             }
             x86::CPUState::Exit(_) => {}
