@@ -108,10 +108,14 @@ pub fn fistp_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.fpu.pop();
 }
 
-pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn fist_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
     let addr = x86_addr(cpu, instr);
     mem.put::<u32>(addr, f as i32 as u32);
+}
+
+pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fist_m32int(cpu, mem, instr);
     cpu.fpu.pop();
 }
 

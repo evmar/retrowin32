@@ -150,6 +150,7 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
             // At least we managed to isolate the yuck to this point.
             let m: *mut Machine = machine;
             let result = async move {
+                use memory::Extensions;
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
                 machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);

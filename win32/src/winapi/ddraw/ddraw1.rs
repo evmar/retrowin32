@@ -11,7 +11,7 @@ use crate::{
     winapi::{ddraw, types::*, vtable},
     Machine,
 };
-use memory::{Extensions, Pod};
+use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/1";
 

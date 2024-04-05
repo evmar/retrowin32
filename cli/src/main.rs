@@ -21,6 +21,7 @@ use headless::GUI;
 #[cfg(feature = "x86-64")]
 mod resv32;
 
+#[cfg(feature = "x86-emu")]
 static mut SNAPSHOT_REQUESTED: bool = false;
 
 #[cfg(feature = "x86-emu")]
