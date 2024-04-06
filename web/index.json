@@ -42,5 +42,9 @@
   {
     "desc": "minesweeper",
     "params": "dir=exe/os/win2k/&file=msvcrt.dll&exe=winmine.exe"
+  },
+  {
+    "desc": "anatyda",
+    "params": "dir=exe/demo/anatyda/&exe=ANATYDA.EXE"
   }
 ]
