@@ -199,7 +199,7 @@ fn print_trace(machine: &win32::Machine) {
     };
 
     #[cfg(feature = "x86-unicorn")]
-    let (eip, eax, ebx, ecx, edx, esi, edi, esp) = {
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp, st_top) = {
         let unicorn = &machine.emu.unicorn;
         (
             unicorn.reg_read(unicorn_engine::RegisterX86::EIP).unwrap(),
@@ -210,6 +210,7 @@ fn print_trace(machine: &win32::Machine) {
             unicorn.reg_read(unicorn_engine::RegisterX86::ESI).unwrap(),
             unicorn.reg_read(unicorn_engine::RegisterX86::EDI).unwrap(),
             unicorn.reg_read(unicorn_engine::RegisterX86::ESP).unwrap(),
+            -1,
         )
     };
 

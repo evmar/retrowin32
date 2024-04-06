@@ -9,6 +9,7 @@
 //!    and use eip to compute which shim
 
 use crate::{shims::Shim, shims::UnimplFuture, Machine};
+use memory::Extensions;
 
 #[derive(Default)]
 pub struct Shims {
@@ -74,7 +75,7 @@ fn handle_shim_call(machine: &mut Machine) -> u32 {
         .unwrap() as u32;
     let ret = unsafe { func(machine, esp) };
 
-    let ret_addr = machine.mem().get::<u32>(esp);
+    let ret_addr = machine.mem().get_pod::<u32>(esp);
     machine
         .emu
         .unicorn
