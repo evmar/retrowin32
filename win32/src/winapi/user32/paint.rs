@@ -18,6 +18,18 @@ pub fn InvalidateRect(
     true // success
 }
 
+pub type HRGN = u32;
+
+#[win32_derive::dllexport]
+pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool) -> bool {
+    if hRgn != 0 {
+        todo!("invalidate specific region");
+    }
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    window.need_paint = true;
+    true // success
+}
+
 #[derive(Debug)]
 #[repr(C)]
 pub struct PAINTSTRUCT {

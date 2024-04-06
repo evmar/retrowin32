@@ -3296,6 +3296,13 @@ pub mod user32 {
             let bErase = <bool>::from_stack(mem, esp + 12u32);
             winapi::user32::InvalidateRect(machine, hWnd, lpRect, bErase).to_raw()
         }
+        pub unsafe fn InvalidateRgn(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hRgn = <HRGN>::from_stack(mem, esp + 8u32);
+            let bErase = <bool>::from_stack(mem, esp + 12u32);
+            winapi::user32::InvalidateRgn(machine, hWnd, hRgn, bErase).to_raw()
+        }
         pub unsafe fn LoadAcceleratorsW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -3787,6 +3794,12 @@ pub mod user32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const InvalidateRgn: Shim = Shim {
+            name: "InvalidateRgn",
+            func: impls::InvalidateRgn,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const LoadAcceleratorsW: Shim = Shim {
             name: "LoadAcceleratorsW",
             func: impls::LoadAcceleratorsW,
@@ -4016,7 +4029,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 69usize] = [
+    const EXPORTS: [Symbol; 70usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4140,6 +4153,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::InvalidateRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::InvalidateRgn,
         },
         Symbol {
             ordinal: None,
