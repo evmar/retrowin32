@@ -40,6 +40,7 @@ pub enum WM {
     PAINT = 0x000F,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
+    TIMER = 0x0113,
     LBUTTONDOWN = 0x0201,
     LBUTTONUP = 0x0202,
     LBUTTONDBLCLK = 0x0203,
@@ -84,32 +85,58 @@ fn msg_from_message(message: host::Message) -> MSG {
     msg
 }
 
-fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> bool {
-    if !machine.state.user32.messages.is_empty() {
-        return true;
+/// Returns Ok if an event is enqueued.
+/// Returns Err(wait) if we need to wait for an event.
+fn enqueue_timer_event_if_ready(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u32>> {
+    if machine.state.user32.timers.is_empty() {
+        return Err(None);
     }
 
-    if let Some(msg) = machine.host.get_message(false) {
+    let now = machine.host.time();
+    if let Some(timer) = machine.state.user32.timers.find_next(hwnd, now) {
+        machine
+            .state
+            .user32
+            .messages
+            .push_back(timer.generate_wm_timer(now));
+        return Ok(());
+    }
+
+    let soonest = machine.state.user32.timers.soonest();
+    Err(Some(soonest))
+}
+
+/// Returns Ok if an event is enqueued.
+/// Returns Err(wait) if we need to wait for an event.
+fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u32>> {
+    if !machine.state.user32.messages.is_empty() {
+        return Ok(());
+    }
+
+    if let Some(msg) = machine.host.get_message(host::Wait::NoWait) {
         machine
             .state
             .user32
             .messages
             .push_back(msg_from_message(msg));
-        return true;
+        return Ok(());
     }
 
     if enqueue_paint_if_needed(machine, hwnd) {
-        return true;
+        return Ok(());
     }
 
-    false
+    enqueue_timer_event_if_ready(machine, hwnd)
 }
 
 #[cfg(target_arch = "wasm32")]
-async fn await_message(machine: &mut Machine, _hwnd: HWND) {
+async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
+    if wait.is_some() {
+        todo!();
+    }
     loop {
         crate::shims::block(machine).await;
-        if let Some(msg) = machine.host.get_message(false) {
+        if let Some(msg) = machine.host.get_message(None) {
             machine
                 .state
                 .user32
@@ -121,8 +148,13 @@ async fn await_message(machine: &mut Machine, _hwnd: HWND) {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn await_message(machine: &mut Machine, _hwnd: HWND) {
-    let msg = machine.host.get_message(true).unwrap();
+async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
+    log::info!("wait {wait:?}");
+    let wait = match wait {
+        Some(limit) => host::Wait::Until(limit),
+        None => host::Wait::Forever,
+    };
+    let msg = machine.host.get_message(wait).unwrap();
     machine
         .state
         .user32
@@ -184,7 +216,7 @@ pub fn PeekMessageA(
     assert_eq!(wMsgFilterMax, 0);
     let lpMsg = lpMsg.unwrap();
 
-    fill_message_queue(machine, hWnd);
+    let _ = fill_message_queue(machine, hWnd);
 
     let msg: &MSG = match machine.state.user32.messages.front() {
         Some(msg) => msg,
@@ -233,8 +265,9 @@ pub async fn GetMessageA(
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
-    if !fill_message_queue(machine, hWnd) {
-        await_message(machine, hWnd).await;
+    match fill_message_queue(machine, hWnd) {
+        Ok(_) => {}
+        Err(wait_until) => await_message(machine, hWnd, wait_until).await,
     }
 
     let msg = lpMsg.unwrap();

@@ -3,6 +3,7 @@
 mod message;
 mod paint;
 mod resource;
+mod timer;
 mod window;
 
 pub use super::gdi32::HDC;
@@ -17,28 +18,19 @@ pub use message::*;
 pub use paint::*;
 pub use resource::*;
 use std::{collections::VecDeque, io::Cursor, io::Write, rc::Rc};
+pub use timer::*;
 pub use window::*;
 
 const TRACE_CONTEXT: &'static str = "user32";
 
 type HINSTANCE = u32;
 
+#[derive(Default)]
 pub struct State {
     wndclasses: Vec<Rc<WndClass>>,
     pub windows: Handles<HWND, Window>,
     messages: VecDeque<MSG>,
-    /// TODO: we vend new timer ids but never fire the timers
-    next_timer: u32,
-}
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            wndclasses: Default::default(),
-            windows: Default::default(),
-            messages: Default::default(),
-            next_timer: 1,
-        }
-    }
+    timers: Timers,
 }
 
 /*
@@ -168,24 +160,6 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32
         SystemMetric::CXVIRTUALSCREEN => 640,
         SystemMetric::CYVIRTUALSCREEN => 480,
     }
-}
-
-#[win32_derive::dllexport]
-pub fn SetTimer(
-    machine: &mut Machine,
-    hWnd: HWND,
-    nIDEvent: u32,
-    uElapse: u32,
-    lpTimerFunc: u32,
-) -> u32 {
-    const USER_TIMER_MINIMUM: u32 = 0x0000_000A;
-    const USER_TIMER_MAXIMUM: u32 = 0x7FFF_FFFF;
-    let _uElapse = num_traits::clamp(uElapse, USER_TIMER_MINIMUM, USER_TIMER_MAXIMUM);
-
-    log::warn!("registering timer that will never fire");
-    let timer = machine.state.user32.next_timer;
-    machine.state.user32.next_timer += 1;
-    timer
 }
 
 #[win32_derive::dllexport]

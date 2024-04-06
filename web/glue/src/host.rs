@@ -192,8 +192,8 @@ impl win32::Host for JsHost {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 
-    fn get_message(&self, wait: bool) -> Option<win32::Message> {
-        assert_eq!(wait, false); // waiting implemented via async blocking
+    fn get_message(&self, wait: win32::Wait) -> Option<win32::Message> {
+        assert!(matches!(wait, win32::Wait::NoWait)); // waiting implemented via async blocking
         let event = JsHost::get_event(self);
         if event.is_undefined() {
             return None;

@@ -42,6 +42,7 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
 pub struct GUI {
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
+    timer: sdl2::TimerSubsystem,
     win: Option<WindowRef>,
 }
 impl GUI {
@@ -50,34 +51,51 @@ impl GUI {
         let sdl = sdl2::init().map_err(|err| anyhow::anyhow!(err))?;
         let video = sdl.video().map_err(|err| anyhow::anyhow!(err))?;
         let pump = sdl.event_pump().map_err(|err| anyhow::anyhow!(err))?;
+        let timer = sdl.timer().map_err(|err| anyhow::anyhow!(err))?;
 
         Ok(GUI {
             video,
-            pump: pump,
+            pump,
+            timer,
             win: None,
         })
     }
 
-    pub fn get_message(&mut self, wait: bool) -> Option<win32::Message> {
+    pub fn time(&self) -> u32 {
+        self.timer.ticks()
+    }
+
+    pub fn get_message(&mut self, wait: win32::Wait) -> Option<win32::Message> {
         let hwnd = match &self.win {
             Some(w) => w.0.borrow().hwnd,
             None => 0,
         };
-        if wait {
-            loop {
+        match wait {
+            win32::Wait::NoWait => loop {
+                let event = self.pump.poll_event()?;
+                let msg = message_from_event(hwnd, event);
+                if msg.is_some() {
+                    return msg;
+                }
+            },
+            win32::Wait::Until(until) => {
+                let now = self.time();
+                let delta = until - now;
+                log::info!("{until} - {now} = {delta}");
+                loop {
+                    let event = self.pump.wait_event_timeout(until - now)?;
+                    let msg = message_from_event(hwnd, event);
+                    if msg.is_some() {
+                        return msg;
+                    }
+                }
+            }
+            win32::Wait::Forever => loop {
                 let msg = message_from_event(hwnd, self.pump.wait_event());
                 if msg.is_some() {
                     return msg;
                 }
-            }
-        } else {
-            loop {
-                let msg = self.pump.poll_event()?;
-                let msg = message_from_event(hwnd, msg);
-                if msg.is_some() {
-                    return msg;
-                }
-            }
+            },
         }
     }
 

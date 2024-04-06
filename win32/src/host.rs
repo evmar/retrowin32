@@ -71,11 +71,18 @@ pub struct Message {
     pub detail: MessageDetail,
 }
 
+#[derive(Debug)]
+pub enum Wait {
+    NoWait,
+    Until(u32),
+    Forever,
+}
+
 pub trait Host {
     fn exit(&self, code: u32);
     fn time(&self) -> u32;
 
-    fn get_message(&self, wait: bool) -> Option<Message>;
+    fn get_message(&self, wait: Wait) -> Option<Message>;
 
     fn open(&self, path: &str) -> Box<dyn File>;
     fn write(&self, buf: &[u8]) -> usize;

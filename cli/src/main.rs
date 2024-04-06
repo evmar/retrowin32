@@ -97,13 +97,12 @@ impl win32::Host for EnvRef {
     }
 
     fn time(&self) -> u32 {
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap()
-            .as_millis() as u32
+        let mut env = self.0.borrow_mut();
+        let gui = env.ensure_gui().unwrap();
+        gui.time()
     }
 
-    fn get_message(&self, wait: bool) -> Option<win32::Message> {
+    fn get_message(&self, wait: win32::Wait) -> Option<win32::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
         gui.get_message(wait)
