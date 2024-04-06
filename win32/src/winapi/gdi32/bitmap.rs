@@ -22,6 +22,7 @@ pub struct BITMAP {
 unsafe impl memory::Pod for BITMAP {}
 
 /// Copy pixels from src to dst.  Asserts that everything has been apprpriately clipped.
+/// flush_alpha is true when the output drops alpha channel (e.g. Window backing store).
 fn bit_blt(
     dst: &mut [[u8; 4]],
     dx: usize,
@@ -33,6 +34,7 @@ fn bit_blt(
     sx: usize,
     sy: usize,
     sstride: usize,
+    flush_alpha: bool,
 ) {
     assert!(dstride >= w);
     assert!(sstride >= w);
@@ -40,6 +42,11 @@ fn bit_blt(
         let dst_row = &mut dst[(((dy + row) * dstride) + dx)..][..w];
         let src_row = &src[(((sy + row) * sstride) + sx)..][..w];
         dst_row.copy_from_slice(src_row);
+        if flush_alpha {
+            for p in dst_row {
+                p[3] = 0xFF;
+            }
+        }
     }
 }
 
@@ -128,6 +135,7 @@ pub fn BitBlt(
                 x1 as usize,
                 y1 as usize,
                 src_bitmap.width as usize,
+                true,
             );
 
             window.flush_pixels(machine.emu.memory.mem());
@@ -318,14 +326,14 @@ pub fn SetDIBitsToDevice(
     let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let dst = match dc.target {
+    let (dst, flush_alpha) = match dc.target {
         DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-            Object::Bitmap(BitmapType::RGBA32(b)) => b,
+            Object::Bitmap(BitmapType::RGBA32(b)) => (b, false),
             _ => todo!(),
         },
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.bitmap_mut(&mut *machine.host)
+            (window.bitmap_mut(&mut *machine.host), true)
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     };
@@ -341,6 +349,7 @@ pub fn SetDIBitsToDevice(
         xSrc as usize,
         ySrc as usize,
         src_bitmap.width as usize,
+        flush_alpha,
     );
 
     match dc.target {

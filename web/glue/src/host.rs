@@ -9,6 +9,7 @@ struct WebSurface {
     ctx: web_sys::CanvasRenderingContext2d,
     screen: web_sys::CanvasRenderingContext2d,
 }
+
 impl WebSurface {
     pub fn new(opts: &win32::SurfaceOptions, screen: web_sys::CanvasRenderingContext2d) -> Self {
         let canvas = web_sys::window()
@@ -37,6 +38,7 @@ impl WebSurface {
         }
     }
 }
+
 impl win32::Surface for WebSurface {
     fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
         let slice =
