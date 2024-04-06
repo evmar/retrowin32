@@ -928,6 +928,7 @@ pub mod kernel32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::kernel32::CreateThread(
                         machine,
@@ -1584,6 +1585,7 @@ pub mod kernel32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
@@ -2698,6 +2700,7 @@ pub mod retrowin32_test {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result =
                         winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data)
@@ -2943,6 +2946,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::CreateWindowExA(
                         machine,
@@ -3005,6 +3009,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::CreateWindowExW(
                         machine,
@@ -3094,6 +3099,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
@@ -3116,6 +3122,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
@@ -3198,6 +3205,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::GetMessageA(
                         machine,
@@ -3236,6 +3244,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::GetMessageW(
                         machine,
@@ -3526,6 +3535,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
@@ -3560,6 +3570,7 @@ pub mod user32 {
             {
                 let m: *mut Machine = machine;
                 let result = async move {
+                    use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::UpdateWindow(machine, hWnd).await;
                     machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
