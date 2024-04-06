@@ -33,13 +33,14 @@ impl Default for FPU {
 }
 
 impl FPU {
-    fn exception(msg: &str) {
+    fn exception(_msg: &str) {
         // TODO: modify state bits etc.
         // At least ignoring these may allow programs to make some progress.
         // See note in https://github.com/joncampbell123/dosbox-x/issues/94 ,
         // "I've seen DOSBox SVN bail out on perfectly good demoscene programs because
         // of [not allowing underflow]."
-        log::warn!("{}", msg);
+        // Don't log because anatyda underflows thousands of times, eek.
+        // log::warn!("{}", msg);
     }
 
     /// Get st(0), the current top of the FPU stack.
