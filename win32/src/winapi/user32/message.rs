@@ -136,7 +136,7 @@ async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
     }
     loop {
         crate::shims::block(machine).await;
-        if let Some(msg) = machine.host.get_message(None) {
+        if let Some(msg) = machine.host.get_message(host::Wait::Forever) {
             machine
                 .state
                 .user32
