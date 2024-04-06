@@ -14,7 +14,9 @@ pub fn InvalidateRect(
     bErase: bool,
 ) -> bool {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    window.need_paint = true;
+    window.dirty = Some(UpdateRegion {
+        erase_background: bErase,
+    });
     true // success
 }
 
@@ -26,7 +28,9 @@ pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool
         todo!("invalidate specific region");
     }
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    window.need_paint = true;
+    window.dirty = Some(UpdateRegion {
+        erase_background: bErase,
+    });
     true // success
 }
 
@@ -45,25 +49,33 @@ unsafe impl memory::Pod for PAINTSTRUCT {}
 #[win32_derive::dllexport]
 pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    let rect = RECT {
+    let update = window.dirty.as_ref().unwrap();
+    // TODO: take from update region
+    let dirty_rect = RECT {
         left: 0,
         top: 0,
         right: window.width as i32,
         bottom: window.height as i32,
     };
 
+    let mut background_drawn = false;
     let hdc = window.hdc;
-    if let Some(hbrush) = window.wndclass.background.to_option() {
-        if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
-            if let Some(color) = brush.color {
-                gdi32::fill_rect(machine, hdc, &rect, color);
+
+    if update.erase_background {
+        if let Some(hbrush) = window.wndclass.background.to_option() {
+            if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
+                if let Some(color) = brush.color {
+                    gdi32::fill_rect(machine, hdc, &dirty_rect, color);
+                    background_drawn = true;
+                }
             }
         }
     }
+
     *lpPaint.unwrap() = PAINTSTRUCT {
         hdc,
-        fErase: 1, // todo
-        rcPaint: rect,
+        fErase: (!background_drawn).into(),
+        rcPaint: dirty_rect,
         fRestore: 0,          // reserved
         fIncUpdate: 0,        // reserved
         rgbReserved: [0; 32], // reserved
@@ -75,13 +87,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     window.flush_pixels(machine.emu.memory.mem());
-    machine
-        .state
-        .user32
-        .windows
-        .get_mut(hWnd)
-        .unwrap()
-        .need_paint = false;
+    window.dirty = None;
     true
 }
 

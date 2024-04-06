@@ -71,6 +71,12 @@ impl WindowPixels {
     }
 }
 
+pub struct UpdateRegion {
+    /// Whether to erase background in BeginPaint.
+    pub erase_background: bool,
+    // TODO: rect
+}
+
 pub struct Window {
     pub hwnd: HWND,
     pub hdc: HDC,
@@ -79,7 +85,7 @@ pub struct Window {
     pub height: u32,
     pub wndclass: Rc<WndClass>,
     pub pixels: Option<WindowPixels>,
-    pub need_paint: bool,
+    pub dirty: Option<UpdateRegion>,
     pub style: WindowStyle,
 }
 
@@ -366,7 +372,9 @@ pub async fn CreateWindowExW(
         height,
         wndclass,
         pixels: None,
-        need_paint: true,
+        dirty: Some(UpdateRegion {
+            erase_background: true,
+        }),
         style,
     };
     machine.state.user32.windows.set(hwnd, window);
@@ -440,6 +448,10 @@ pub fn FindWindowA(
 
 #[win32_derive::dllexport]
 pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
+    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    if window.dirty.is_none() {
+        return true;
+    }
     let msg = MSG {
         hwnd: hWnd,
         message: WM::PAINT as u32,
@@ -515,7 +527,7 @@ pub fn DefWindowProcA(
         match msg {
             WM::PAINT => {
                 let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-                window.need_paint = false;
+                window.dirty = None;
             }
             _ => {}
         }

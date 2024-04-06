@@ -180,12 +180,26 @@ impl TryFrom<u32> for RemoveMsg {
 /// Enqueues a WM_PAINT if the given hwnd (or any hwnd) needs a paint.
 fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
     let hwnd = if hwnd.is_null() {
-        match machine.state.user32.windows.iter().find(|w| w.need_paint) {
+        match machine
+            .state
+            .user32
+            .windows
+            .iter()
+            .find(|w| w.dirty.is_some())
+        {
             Some(w) => w.hwnd,
             None => return false,
         }
     } else {
-        if !machine.state.user32.windows.get(hwnd).unwrap().need_paint {
+        if !machine
+            .state
+            .user32
+            .windows
+            .get(hwnd)
+            .unwrap()
+            .dirty
+            .is_some()
+        {
             return false;
         }
         hwnd
