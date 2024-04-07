@@ -179,3 +179,9 @@ pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOu
     machine.mem().put::<u32>(ppDS, lpDirectSound);
     DS_OK
 }
+
+#[win32_derive::dllexport(2)]
+pub fn DirectSoundEnumerateA(_machine: &mut Machine, lpDSEnumCallback: u32, lpContext: u32) -> u32 {
+    // No sound devices => no calling the callback.
+    DS_OK
+}

@@ -315,6 +315,12 @@ pub mod dsound {
             let _pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::dsound::DirectSoundCreate(machine, _lpGuid, ppDS, _pUnkOuter).to_raw()
         }
+        pub unsafe fn DirectSoundEnumerateA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpDSEnumCallback = <u32>::from_stack(mem, esp + 4u32);
+            let lpContext = <u32>::from_stack(mem, esp + 8u32);
+            winapi::dsound::DirectSoundEnumerateA(machine, lpDSEnumCallback, lpContext).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -325,11 +331,23 @@ pub mod dsound {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const DirectSoundEnumerateA: Shim = Shim {
+            name: "DirectSoundEnumerateA",
+            func: impls::DirectSoundEnumerateA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: Some(1usize),
-        shim: shims::DirectSoundCreate,
-    }];
+    const EXPORTS: [Symbol; 2usize] = [
+        Symbol {
+            ordinal: Some(1usize),
+            shim: shims::DirectSoundCreate,
+        },
+        Symbol {
+            ordinal: Some(2usize),
+            shim: shims::DirectSoundEnumerateA,
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "dsound.dll",
         exports: &EXPORTS,
