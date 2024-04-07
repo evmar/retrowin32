@@ -78,18 +78,15 @@ impl GUI {
                     return msg;
                 }
             },
-            win32::Wait::Until(until) => {
+            win32::Wait::Until(until) => loop {
                 let now = self.time();
                 let delta = until - now;
-                log::info!("{until} - {now} = {delta}");
-                loop {
-                    let event = self.pump.wait_event_timeout(until - now)?;
-                    let msg = message_from_event(hwnd, event);
-                    if msg.is_some() {
-                        return msg;
-                    }
+                let event = self.pump.wait_event_timeout(delta)?;
+                let msg = message_from_event(hwnd, event);
+                if msg.is_some() {
+                    return msg;
                 }
-            }
+            },
             win32::Wait::Forever => loop {
                 let msg = message_from_event(hwnd, self.pump.wait_event());
                 if msg.is_some() {

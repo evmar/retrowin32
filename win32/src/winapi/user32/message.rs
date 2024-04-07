@@ -149,12 +149,14 @@ async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
 
 #[cfg(not(target_arch = "wasm32"))]
 async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
-    log::info!("wait {wait:?}");
     let wait = match wait {
         Some(limit) => host::Wait::Until(limit),
         None => host::Wait::Forever,
     };
-    let msg = machine.host.get_message(wait).unwrap();
+    let msg = match machine.host.get_message(wait) {
+        None => return,
+        Some(msg) => msg,
+    };
     machine
         .state
         .user32
@@ -279,9 +281,11 @@ pub async fn GetMessageA(
     assert_eq!(wMsgFilterMin, 0);
     assert_eq!(wMsgFilterMax, 0);
 
-    match fill_message_queue(machine, hWnd) {
-        Ok(_) => {}
-        Err(wait_until) => await_message(machine, hWnd, wait_until).await,
+    loop {
+        match fill_message_queue(machine, hWnd) {
+            Ok(_) => break,
+            Err(wait_until) => await_message(machine, hWnd, wait_until).await,
+        }
     }
 
     let msg = lpMsg.unwrap();

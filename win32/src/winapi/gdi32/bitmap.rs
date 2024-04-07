@@ -21,7 +21,7 @@ pub struct BITMAP {
 }
 unsafe impl memory::Pod for BITMAP {}
 
-/// Copy pixels from src to dst.  Asserts that everything has been apprpriately clipped.
+/// Copy pixels from src to dst.  Asserts that everything has been appropriately clipped.
 /// flush_alpha is true when the output drops alpha channel (e.g. Window backing store).
 fn bit_blt(
     dst: &mut [[u8; 4]],
@@ -117,12 +117,16 @@ pub fn BitBlt(
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let dst = window.bitmap_mut(&mut *machine.host);
 
-            // Clip to src/dst regions; this leaves a lot for doing later.
-            if x > 0 || y > 0 || x1 > 0 || y1 > 0 {
-                todo!()
+            // Clip to src/dst regions.
+            if x >= dst.width
+                || x1 >= src_bitmap.width
+                || y >= dst.height
+                || y1 >= src_bitmap.height
+            {
+                return true;
             }
-            let cx = std::cmp::min(cx, std::cmp::min(dst.width, src_bitmap.width));
-            let cy = std::cmp::min(cy, std::cmp::min(dst.height, src_bitmap.height));
+            let cx = std::cmp::min(cx, std::cmp::min(dst.width - x, src_bitmap.width - x1));
+            let cy = std::cmp::min(cy, std::cmp::min(dst.height - y, src_bitmap.height - y1));
 
             bit_blt(
                 dst.pixels.as_slice_mut(),
