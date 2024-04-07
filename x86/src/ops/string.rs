@@ -1,7 +1,37 @@
+//! Ops that tend to loop with 'rep' prefix, e.g. movs, stos.
+
 use super::math::sub;
 use crate::{registers::Flags, x86::CPU};
 use iced_x86::Instruction;
 use memory::{Extensions, Mem};
+
+/// Width of an operation, e.g. movsb/movsw/movsd.
+#[derive(Clone, Copy)]
+enum Width {
+    Byte = 1,
+    Word = 2,
+    Dword = 4,
+}
+
+/// Looping logic of various 'rep' prefixes, generalized for different instructions.
+/// TODO: move all the implementations in this module to use this function.
+fn rep(
+    cpu: &mut CPU,
+    mem: Mem,
+    instr: &Instruction,
+    size: Width,
+    func: impl Fn(&mut CPU, Mem, Width),
+) {
+    while cpu.regs.ecx > 0 {
+        func(cpu, mem, size);
+        cpu.regs.ecx -= 1;
+        if instr.has_repne_prefix() && cpu.flags.contains(Flags::ZF) {
+            break;
+        } else if instr.has_repe_prefix() && !cpu.flags.contains(Flags::ZF) {
+            break;
+        }
+    }
+}
 
 pub fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     assert!(cpu.flags.contains(Flags::DF)); // TODO
@@ -117,39 +147,37 @@ pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, 1)
 }
 
-pub fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: u32) {
-    assert!(!cpu.flags.contains(Flags::DF)); // TODO
-
-    let mut c = 1u32; // 1 step if no rep prefix
-    let counter = if instr.has_rep_prefix() || instr.has_repe_prefix() || instr.has_repne_prefix() {
-        &mut cpu.regs.ecx
-    } else {
-        &mut c
-    };
-
-    while *counter > 0 {
-        match size {
-            1 => mem.put::<u8>(cpu.regs.edi, cpu.regs.eax as u8),
-            2 => mem.put::<u16>(cpu.regs.edi, cpu.regs.eax as u16),
-            4 => mem.put::<u32>(cpu.regs.edi, cpu.regs.eax),
-            _ => unimplemented!(),
-        }
-        cpu.regs.edi += size;
-        *counter -= 1;
+fn stos_single(cpu: &mut CPU, mem: Mem, size: Width) {
+    match size {
+        Width::Byte => mem.put::<u8>(cpu.regs.edi, cpu.regs.eax as u8),
+        Width::Word => mem.put::<u16>(cpu.regs.edi, cpu.regs.eax as u16),
+        Width::Dword => mem.put::<u32>(cpu.regs.edi, cpu.regs.eax),
     }
-    // TODO: does this modify esi?  Sources disagree (!?)
+    if cpu.flags.contains(Flags::DF) {
+        cpu.regs.edi -= size as u32;
+    } else {
+        cpu.regs.edi += size as u32;
+    };
+}
+
+fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Width) {
+    if instr.has_rep_prefix() {
+        rep(cpu, mem, instr, size, stos_single);
+    } else {
+        stos_single(cpu, mem, size);
+    }
 }
 
 pub fn stosd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    stos(cpu, mem, instr, 4)
+    stos(cpu, mem, instr, Width::Dword)
 }
 
 pub fn stosw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    stos(cpu, mem, instr, 2)
+    stos(cpu, mem, instr, Width::Word)
 }
 
 pub fn stosb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    stos(cpu, mem, instr, 1)
+    stos(cpu, mem, instr, Width::Byte)
 }
 
 pub fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: usize) {
