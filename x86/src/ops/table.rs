@@ -359,6 +359,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fdiv_st0_sti as usize] = Some(ops::fdiv_sti_sti);
     OP_TAB[iced_x86::Code::Fdivp_sti_st0 as usize] = Some(ops::fdivp_sti_sti);
     OP_TAB[iced_x86::Code::Fidiv_m32int as usize] = Some(ops::fidiv_m32int);
+    OP_TAB[iced_x86::Code::Fidiv_m16int as usize] = Some(ops::fidiv_m16int);
 
     OP_TAB[iced_x86::Code::Fdivr_m64fp as usize] = Some(ops::fdivr_m64fp);
     OP_TAB[iced_x86::Code::Fdivr_m32fp as usize] = Some(ops::fdivr_m32fp);

@@ -307,6 +307,11 @@ pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *cpu.fpu.st0() /= y;
 }
 
+pub fn fidiv_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
+    *cpu.fpu.st0() /= y;
+}
+
 pub fn fdivr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     let x = cpu.fpu.st0();

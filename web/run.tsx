@@ -39,6 +39,6 @@ class Runner extends preact.Component<{ emulator: Emulator }> implements Emulato
 
 export async function main() {
   const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme("-");
+  emulator.emu.set_tracing_scheme('-');
   preact.render(<Runner emulator={emulator} />, document.getElementById('main')!);
 }
