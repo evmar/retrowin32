@@ -181,12 +181,13 @@ impl<'m> Mem<'m> {
     }
 
     pub fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &'m [T] {
+        let ptr = self.get_ptr_unchecked(ofs) as *const T;
+        let count = count as usize;
         unsafe {
-            let ptr = self.get_ptr_unchecked(ofs);
-            if ptr.add(size_of::<T>() * count as usize) > self.end {
+            if ptr.add(count) as *const _ > self.end {
                 panic!("oob");
             }
-            std::slice::from_raw_parts(ptr as *const T, count as usize)
+            std::slice::from_raw_parts(ptr, count)
         }
     }
 
@@ -207,10 +208,13 @@ impl<'m> Extensions<'m> for Mem<'m> {
     }
 
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
-        if ofs + size_of::<T>() as u32 > self.len() {
-            panic!("oob at {ofs:x}+{:x}", size_of::<T>());
+        let ptr = self.get_ptr_unchecked(ofs) as *mut T;
+        unsafe {
+            if ptr.add(1) as *const _ > self.end {
+                panic!("oob at {ofs:x}+{:x}", size_of::<T>());
+            }
         }
-        self.get_ptr_unchecked(ofs) as *mut T
+        ptr
     }
 
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8] {
