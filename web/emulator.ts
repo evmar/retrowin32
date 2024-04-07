@@ -15,7 +15,7 @@ export interface EmulatorHost {
 
 /** Wraps wasm.Emulator, able to run in a RAF loop. */
 export class Emulator extends JsHost {
-  emu: wasm.Emulator;
+  readonly emu: wasm.Emulator;
   breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Labels;

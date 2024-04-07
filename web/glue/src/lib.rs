@@ -115,12 +115,15 @@ impl Emulator {
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         self.machine.load_snapshot(bytes)
     }
+
+    pub fn set_tracing_scheme(&self, scheme: &str) {
+        win32::trace::set_scheme(scheme);
+    }
 }
 
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost, cmdline: String) -> Emulator {
     log::init(log::JsLogger::unchecked_from_js(host.clone()));
-    win32::trace::set_scheme("*,-kernel32");
     let machine = win32::Machine::new(Box::new(host), cmdline);
     Emulator { machine }
 }
