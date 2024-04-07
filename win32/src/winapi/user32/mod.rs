@@ -14,6 +14,7 @@ use super::{
     types::*,
 };
 use crate::machine::Machine;
+use memory::Extensions;
 pub use message::*;
 pub use paint::*;
 pub use resource::*;
@@ -251,6 +252,11 @@ pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: V
                     precision = precision
                 )
                 .unwrap(),
+                b's' => {
+                    let addr = args.pop::<u32>(mem);
+                    let str = mem.slicez(addr);
+                    write!(out, "{}", std::str::from_utf8(str).unwrap()).unwrap();
+                }
                 _ => todo!("format string character {:?}", c as char),
             }
         } else {
