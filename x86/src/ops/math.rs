@@ -718,6 +718,14 @@ pub fn imul_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.eax = (res as u16) as u32;
 }
 
+pub fn imul_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm8(cpu, mem, instr).get() as i8;
+    let y = cpu.regs.eax as u16 as i8;
+    let res = (x as i16).wrapping_mul(y as i16) as u16;
+    // TODO: flags.
+    cpu.regs.set16(iced_x86::Register::AX, res);
+}
+
 fn imul_trunc(x: i32, y: i32, _flags: &mut Flags) -> i32 {
     // TODO: flags.
     x.wrapping_mul(y)
