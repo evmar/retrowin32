@@ -7,11 +7,21 @@ use crate::{machine::Emulator, machine::Machine, winapi::vtable};
 
 const TRACE_CONTEXT: &'static str = "dsound";
 
+/// Set to true to make DirectSoundCreate report no sound device available.
+/// Doing this from the beginning would have been a better idea than trying to implement stubs here...
+const DISABLE: bool = true;
+
 pub const DS_OK: u32 = 0;
 #[allow(unused)]
 const E_FAIL: u32 = 0x80004005;
 #[allow(unused)]
 pub const DSERR_GENERIC: u32 = E_FAIL;
+#[allow(unused)]
+pub const DSERR_NODRIVER: u32 = make_dhsresult(120);
+
+const fn make_dhsresult(code: u32) -> u32 {
+    (1 << 31) | (0x878 << 16) | code
+}
 
 pub struct State {
     heap: Heap,
@@ -188,6 +198,9 @@ mod IDirectSoundBuffer {
 
 #[win32_derive::dllexport(1)]
 pub fn DirectSoundCreate(machine: &mut Machine, lpGuid: u32, ppDS: u32, pUnkOuter: u32) -> u32 {
+    if DISABLE {
+        return DSERR_NODRIVER;
+    }
     if machine.state.dsound.heap.addr == 0 {
         machine.state.dsound = State::new_init(machine);
     }
