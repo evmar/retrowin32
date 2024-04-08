@@ -201,6 +201,23 @@ pub fn shl_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
+pub fn shld_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let count = instr.immediate8() % 32;
+    if count == 0 {
+        return;
+    }
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    let val = x.get();
+    // "CF flag is filled with the last bit shifted out of the destination operand"
+    cpu.flags.set(Flags::CF, ((val >> (32 - count)) & 1) != 0);
+    if count == 1 {
+        // "OF flag is set if a sign change occurred"
+        cpu.flags.set(Flags::OF, (val >> 31) != ((val >> 30) & 1));
+    }
+    x.set((val << count) | (y >> (32 - count)));
+}
+
 fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x; // Don't affect flags.
