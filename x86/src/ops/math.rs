@@ -749,7 +749,32 @@ pub fn idiv_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = rm32(cpu, mem, instr).get() as i32 as i64;
     cpu.regs.eax = (x / y) as i32 as u32;
     cpu.regs.edx = (x % y) as i32 as u32;
-    // TODO: flags.
+}
+
+pub fn idiv_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = (((cpu.regs.edx as u16 as u32) << 16) | (cpu.regs.eax as u16 as u32)) as i32;
+    let y = rm16(cpu, mem, instr).get() as i16 as i32;
+    let quotient = x / y;
+    if quotient > 0x7FFF || quotient < -0x8000 {
+        panic!("divide error");
+    }
+    cpu.regs
+        .set16(iced_x86::Register::AX, quotient as i16 as u16);
+    cpu.regs.set16(iced_x86::Register::DX, (x % y) as u16);
+}
+
+pub fn idiv_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = cpu.regs.eax as u16 as i16;
+    let y = rm8(cpu, mem, instr).get() as i8 as i16;
+    let quotient = x / y;
+    if quotient > 0x7F || quotient < -0x80 {
+        panic!("divide error");
+    }
+    let rem = x % y;
+    cpu.regs.set16(
+        iced_x86::Register::AX,
+        ((rem << 8) as u16) | (quotient as i8 as u16),
+    );
 }
 
 pub fn div_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
