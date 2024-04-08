@@ -99,6 +99,31 @@ mod IDirectSoundBuffer {
     }
 
     #[win32_derive::dllexport]
+    pub fn GetCurrentPosition(
+        _machine: &mut Machine,
+        this: u32,
+        lpdwCurrentPlayCursor: Option<&mut u32>,
+        lpdwCurrentWriteCursor: Option<&mut u32>,
+    ) -> u32 {
+        match lpdwCurrentPlayCursor {
+            Some(play) => *play = 0,
+            None => {}
+        }
+        match lpdwCurrentWriteCursor {
+            Some(write) => *write = 0,
+            None => {}
+        }
+        DS_OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn GetStatus(_machine: &mut Machine, this: u32, lpdwStatus: Option<&mut u32>) -> u32 {
+        let status = lpdwStatus.unwrap();
+        *status = 0;
+        DS_OK
+    }
+
+    #[win32_derive::dllexport]
     pub fn Lock(
         _machine: &mut Machine,
         _this: u32,
@@ -146,12 +171,12 @@ mod IDirectSoundBuffer {
         AddRef todo,
         Release todo,
         GetCaps todo,
-        GetCurrentPosition todo,
+        GetCurrentPosition ok,
         GetFormat todo,
         GetVolume todo,
         GetPan todo,
         GetFrequency todo,
-        GetStatus todo,
+        GetStatus ok,
         Initialize todo,
         Lock ok,
         Play ok,
