@@ -14,6 +14,14 @@ pub(crate) trait Int: num_traits::PrimInt {
     fn as_usize(self) -> usize;
     fn bits() -> usize;
 }
+impl Int for u64 {
+    fn as_usize(self) -> usize {
+        unimplemented!()
+    }
+    fn bits() -> usize {
+        64
+    }
+}
 impl Int for u32 {
     fn as_usize(self) -> usize {
         self as usize
@@ -659,13 +667,37 @@ pub fn sbb_r8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
 
+/// Shared impl of mul_rmXX.  The trick is to pass in a higher width int,
+/// e.g. x as u32 for the 16-bit mul, so there is enough space in the result.
+fn mul<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
+    let res = x.mul(y);
+    let tophalf = res.shr(I::bits() / 2);
+    flags.set(Flags::OF, !tophalf.is_zero());
+    flags.set(Flags::CF, !tophalf.is_zero());
+    res
+}
+
 pub fn mul_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let x = rm32(cpu, mem, instr).get();
-    let y = cpu.regs.eax;
-    let res = (x as u64).wrapping_mul(y as u64);
-    // TODO: flags.
+    let y = rm32(cpu, mem, instr).get();
+    let x = cpu.regs.eax;
+    let res = mul(x as u64, y as u64, &mut cpu.flags);
     cpu.regs.edx = (res >> 32) as u32;
     cpu.regs.eax = res as u32;
+}
+
+pub fn mul_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = rm16(cpu, mem, instr).get();
+    let x = cpu.regs.eax as u16;
+    let res = mul(x as u32, y as u32, &mut cpu.flags);
+    cpu.regs.set16(iced_x86::Register::DX, (res >> 16) as u16);
+    cpu.regs.set16(iced_x86::Register::AX, res as u16);
+}
+
+pub fn mul_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = rm8(cpu, mem, instr).get();
+    let x = cpu.regs.eax as u8;
+    let res = mul(x as u16, y as u16, &mut cpu.flags);
+    cpu.regs.set16(iced_x86::Register::AX, res);
 }
 
 pub fn imul_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
