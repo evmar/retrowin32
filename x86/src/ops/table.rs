@@ -430,6 +430,8 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Bswap_r32 as usize] = Some(ops::bswap_r32);
     OP_TAB[iced_x86::Code::Xlat_m8 as usize] = Some(ops::xlat_m8);
 
+    OP_TAB[iced_x86::Code::Cpuid as usize] = Some(ops::cpuid);
+
     // Code to print the necessary size of the table:
     // let last = OP_TAB.iter().rposition(|op| op.is_some());
     // log::info!("highest op at {}", last.unwrap());

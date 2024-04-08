@@ -13,6 +13,8 @@ bitflags! {
         const DF = 1 << 10;
         /// overflow
         const OF = 1 << 11;
+        /// cpuid
+        const ID = 1 << 21;
     }
 }
 

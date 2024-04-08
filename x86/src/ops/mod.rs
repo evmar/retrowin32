@@ -1,5 +1,6 @@
 mod basic;
 mod control;
+mod cpuid;
 mod fpu;
 mod helpers;
 mod math;
@@ -9,6 +10,7 @@ mod table;
 mod test;
 pub use basic::*;
 pub use control::*;
+pub use cpuid::*;
 pub use fpu::*;
 pub use helpers::{pop, push, x86_jmp};
 pub use math::*;
