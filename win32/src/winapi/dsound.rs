@@ -51,10 +51,10 @@ mod IDirectSound {
     #[win32_derive::dllexport]
     pub fn CreateSoundBuffer(
         machine: &mut Machine,
-        _this: u32,
-        _lpcDSBufferDesc: u32,
+        this: u32,
+        lpcDSBufferDesc: u32,
         lplpDirectSoundBuffer: u32,
-        _pUnkOuter: u32,
+        pUnkOuter: u32,
     ) -> u32 {
         let x86_buffer = IDirectSoundBuffer::new(machine);
         machine.mem().put::<u32>(lplpDirectSoundBuffer, x86_buffer);
@@ -62,12 +62,7 @@ mod IDirectSound {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetCooperativeLevel(
-        _machine: &mut Machine,
-        _this: u32,
-        _hwnd: u32,
-        _dwLevel: u32,
-    ) -> u32 {
+    pub fn SetCooperativeLevel(_machine: &mut Machine, this: u32, hwnd: u32, dwLevel: u32) -> u32 {
         DS_OK
     }
 
@@ -126,14 +121,14 @@ mod IDirectSoundBuffer {
     #[win32_derive::dllexport]
     pub fn Lock(
         _machine: &mut Machine,
-        _this: u32,
-        _dwWriteCursor: u32,
-        _dwWriteBytes: u32,
-        _lplpvAudioPtr1: u32,
-        _lpdwAudioBytes1: u32,
-        _lplpvAudioPtr2: u32,
-        _lpdwAudioBytes2: u32,
-        _dwFlags: u32,
+        this: u32,
+        dwWriteCursor: u32,
+        dwWriteBytes: u32,
+        lplpvAudioPtr1: u32,
+        lpdwAudioBytes1: u32,
+        lplpvAudioPtr2: u32,
+        lpdwAudioBytes2: u32,
+        dwFlags: u32,
     ) -> u32 {
         DS_OK
     }
@@ -141,10 +136,10 @@ mod IDirectSoundBuffer {
     #[win32_derive::dllexport]
     pub fn Play(
         _machine: &mut Machine,
-        _this: u32,
-        _dwReserved1: u32,
-        _dwReserved2: u32,
-        _dwFlags: u32,
+        this: u32,
+        dwReserved1: u32,
+        dwReserved2: u32,
+        dwFlags: u32,
     ) -> u32 {
         DS_OK
     }
@@ -157,11 +152,11 @@ mod IDirectSoundBuffer {
     #[win32_derive::dllexport]
     pub fn Unlock(
         _machine: &mut Machine,
-        _this: u32,
-        _lpvAudioPtr1: u32,
-        _dwAudioBytes1: u32,
-        _lpvAudioPtr2: u32,
-        _dwAudioBytes2: u32,
+        this: u32,
+        lpvAudioPtr1: u32,
+        dwAudioBytes1: u32,
+        lpvAudioPtr2: u32,
+        dwAudioBytes2: u32,
     ) -> u32 {
         DS_OK
     }
@@ -192,7 +187,7 @@ mod IDirectSoundBuffer {
 }
 
 #[win32_derive::dllexport(1)]
-pub fn DirectSoundCreate(machine: &mut Machine, _lpGuid: u32, ppDS: u32, _pUnkOuter: u32) -> u32 {
+pub fn DirectSoundCreate(machine: &mut Machine, lpGuid: u32, ppDS: u32, pUnkOuter: u32) -> u32 {
     if machine.state.dsound.heap.addr == 0 {
         machine.state.dsound = State::new_init(machine);
     }
