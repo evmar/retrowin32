@@ -314,6 +314,11 @@ pub(super) mod IDirectDrawSurface7 {
         if lpDstRect.is_some() || lpSrcRect.is_some() {
             todo!()
         }
+        let flags = flags.unwrap();
+        if flags.contains(DDBLT::COLORFILL) {
+            log::warn!("todo: DDBLT::COLORFILL");
+            return DD_OK;
+        }
         log::warn!("Blt: ignoring behavioral flags");
         BltFast(machine, this, 0, 0, lpSurf, None, 0);
         DD_OK

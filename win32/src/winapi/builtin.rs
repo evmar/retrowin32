@@ -3093,6 +3093,23 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             winapi::user32::DestroyWindow(machine, hWnd).to_raw()
         }
+        pub unsafe fn DialogBoxIndirectParamA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let hDialogTemplate = <u32>::from_stack(mem, esp + 8u32);
+            let hWndParent = <HWND>::from_stack(mem, esp + 12u32);
+            let lpDialogFunc = <u32>::from_stack(mem, esp + 16u32);
+            let dwInitParam = <u32>::from_stack(mem, esp + 20u32);
+            winapi::user32::DialogBoxIndirectParamA(
+                machine,
+                hInstance,
+                hDialogTemplate,
+                hWndParent,
+                lpDialogFunc,
+                dwInitParam,
+            )
+            .to_raw()
+        }
         pub unsafe fn DialogBoxParamA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -3692,6 +3709,12 @@ pub mod user32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const DialogBoxIndirectParamA: Shim = Shim {
+            name: "DialogBoxIndirectParamA",
+            func: impls::DialogBoxIndirectParamA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const DialogBoxParamA: Shim = Shim {
             name: "DialogBoxParamA",
             func: impls::DialogBoxParamA,
@@ -4047,7 +4070,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 70usize] = [
+    const EXPORTS: [Symbol; 71usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4091,6 +4114,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::DestroyWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DialogBoxIndirectParamA,
         },
         Symbol {
             ordinal: None,

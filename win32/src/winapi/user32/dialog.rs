@@ -86,10 +86,23 @@ pub fn DialogBoxParamA(
     lpDialogFunc: u32,
     dwInitParam: u32,
 ) -> u32 {
-    log::warn!("TODO: DialogBoxParamA({hInstance:x}, {lpTemplateName:x}, {hWndParent:x}, {lpDialogFunc:x}, {dwInitParam:x})");
+    log::warn!("TODO: not showing dialog");
     // TODO: this should run a nested message loop that will call back into lpDialogFunc,
     // which then will call EndDialog to end the nested message loop and return the value
     // passed to EndDialog.
     // Unfortunately we don't know what value to return here otherwise; it's application specific.
     0
+}
+
+#[win32_derive::dllexport]
+pub fn DialogBoxIndirectParamA(
+    _machine: &mut Machine,
+    hInstance: u32,
+    hDialogTemplate: u32,
+    hWndParent: HWND,
+    lpDialogFunc: u32,
+    dwInitParam: u32,
+) -> i32 {
+    log::warn!("TODO: not showing dialog");
+    -1 // error
 }
