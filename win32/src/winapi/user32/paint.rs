@@ -20,6 +20,12 @@ pub fn InvalidateRect(
     true // success
 }
 
+#[win32_derive::dllexport]
+pub fn ValidateRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
+    // Just ignore.
+    false // fail
+}
+
 pub type HRGN = u32;
 
 #[win32_derive::dllexport]
