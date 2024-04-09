@@ -27,6 +27,7 @@ export interface JsLogger {
 export interface JsHost {
   exit(code: number): void;
 
+  ensure_timer(when: number): void;
   get_event(): Event | undefined;
 
   open(path: string): JsFile;

@@ -131,20 +131,21 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u3
 
 #[cfg(target_arch = "wasm32")]
 async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
-    if wait.is_some() {
-        todo!();
+    let wait = match wait {
+        Some(limit) => host::Wait::Until(limit),
+        None => host::Wait::Forever,
+    };
+    // If no msg is immediately available this returns None and signals the host
+    // to unblock us when ready.
+    if let Some(msg) = machine.host.get_message(wait) {
+        machine
+            .state
+            .user32
+            .messages
+            .push_back(msg_from_message(msg));
+        return;
     }
-    loop {
-        crate::shims::block(machine).await;
-        if let Some(msg) = machine.host.get_message(host::Wait::Forever) {
-            machine
-                .state
-                .user32
-                .messages
-                .push_back(msg_from_message(msg));
-            return;
-        }
-    }
+    crate::shims::block(machine).await;
 }
 
 #[cfg(not(target_arch = "wasm32"))]

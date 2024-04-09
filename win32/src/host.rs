@@ -71,7 +71,7 @@ pub struct Message {
     pub detail: MessageDetail,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum Wait {
     NoWait,
     Until(u32),

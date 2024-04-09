@@ -171,6 +171,9 @@ extern "C" {
     fn exit(this: &JsHost, exit_code: u32);
 
     #[wasm_bindgen(method)]
+    fn ensure_timer(this: &JsHost, when: u32);
+
+    #[wasm_bindgen(method)]
     fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
@@ -195,7 +198,19 @@ impl win32::Host for JsHost {
     }
 
     fn get_message(&self, wait: win32::Wait) -> Option<win32::Message> {
-        assert!(matches!(wait, win32::Wait::NoWait)); // waiting implemented via async blocking
+        match wait {
+            win32::Wait::NoWait => {
+                // Return any message we already have queued.
+            }
+            win32::Wait::Until(t) => {
+                // Enqueue a timer to wake up caller.
+                JsHost::ensure_timer(self, t);
+            }
+            win32::Wait::Forever => {
+                // Return any message we already have queued.
+                // Caller will block until we wake them up again.
+            }
+        };
         let event = JsHost::get_event(self);
         if event.is_undefined() {
             return None;

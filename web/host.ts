@@ -77,6 +77,7 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 /** Emulator host, providing the emulation=>web API.  Extended by Emulator class. */
 export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   private events: Event[] = [];
+  private timer?: number;
 
   decoder = new TextDecoder();
 
@@ -115,6 +116,22 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   enqueueEvent(event: Event) {
     this.events.push(event);
     this.start();
+  }
+
+  ensure_timer(when: number): void {
+    if (this.timer) {
+      clearTimeout(this.timer);
+    }
+    const now = performance.now();
+    console.log('timer for', when - now);
+    const id = setTimeout(() => {
+      if (this.timer !== id) {
+        return;
+      }
+      this.timer = undefined;
+      this.start();
+    }, when - now);
+    this.timer = id;
   }
 
   get_event(): Event | undefined {
