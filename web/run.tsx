@@ -34,7 +34,7 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 
   onError(msg: string): void {
-    this.print(msg);
+    this.print(msg + '\n');
   }
 
   onStdOut(stdout: string): void {

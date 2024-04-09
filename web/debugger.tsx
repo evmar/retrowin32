@@ -48,7 +48,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     this.setState({ selectedTab: name });
   }
   onError(msg: string): void {
-    this.setState({ error: msg });
+    this.print(msg + '\n');
     // Note: if this was a Rust panic, then the error will never display because
     // rendering will fail due to the debugger UI accessing the Rust object after a panic.
     //
