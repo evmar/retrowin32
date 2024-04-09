@@ -222,7 +222,7 @@ fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
         }
         Size::Word => {
             let value = mem.get_pod::<u16>(cpu.regs.esi);
-            cpu.regs.set16(iced_x86::Register::AL, value)
+            cpu.regs.set16(iced_x86::Register::AX, value)
         }
         Size::Dword => {
             cpu.regs.eax = mem.get_pod::<u32>(cpu.regs.esi);

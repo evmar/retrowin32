@@ -141,6 +141,7 @@ impl BrushOrColor {
                 let color = match c {
                     COLOR::WINDOW => Some(COLORREF((0xc0, 0xc0, 0xc0))),
                     COLOR::MENU => Some(COLORREF((0xc0, 0xc0, 0xc0))),
+                    COLOR::APPWORKSPACE => Some(COLORREF((0x80, 0x80, 0x80))),
                     _ => todo!("{c:?}"),
                 };
                 machine
