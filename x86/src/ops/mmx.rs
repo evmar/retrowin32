@@ -107,13 +107,25 @@ pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for x in arr.iter_mut() {
+            *x = (*x as i16 >> y) as u16;
+        }
+        dewords(arr)
+    });
+}
+
 pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        (((x >> 0) & 0xFFFF) >> y) << 0
-            | (((x >> 16) & 0xFFFF) >> y) << 16
-            | (((x >> 32) & 0xFFFF) >> y) << 32
-            | (((x >> 48) & 0xFFFF) >> y) << 48
+        let mut arr = words(x);
+        for x in arr.iter_mut() {
+            *x = *x >> y;
+        }
+        dewords(arr)
     });
 }
 
@@ -192,12 +204,34 @@ pub fn psllw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+pub fn paddsb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = x.to_le_bytes();
+        for (x, y) in arr.iter_mut().zip(y.to_le_bytes()) {
+            *x = (*x as i8).saturating_add(y as i8) as u8;
+        }
+        u64::from_le_bytes(arr)
+    });
+}
+
 pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
         let mut arr = words(x);
         for (x, y) in arr.iter_mut().zip(words(y)) {
             *x = x.wrapping_add(y);
+        }
+        dewords(arr)
+    });
+}
+
+pub fn paddsw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let mut arr = words(x);
+        for (x, y) in arr.iter_mut().zip(words(y)) {
+            *x = (*x as i16).saturating_add(y as i16) as u16;
         }
         dewords(arr)
     });

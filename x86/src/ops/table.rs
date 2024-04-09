@@ -418,13 +418,16 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Punpcklbw_mm_mmm32 as usize] = Some(ops::punpcklbw_mm_mmm32);
     OP_TAB[iced_x86::Code::Pmullw_mm_mmm64 as usize] = Some(ops::pmullw_mm_mmm64);
     OP_TAB[iced_x86::Code::Pmulhw_mm_mmm64 as usize] = Some(ops::pmulhw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Psraw_mm_imm8 as usize] = Some(ops::psraw_mm_imm8);
     OP_TAB[iced_x86::Code::Psrlw_mm_imm8 as usize] = Some(ops::psrlw_mm_imm8);
     OP_TAB[iced_x86::Code::Packuswb_mm_mmm64 as usize] = Some(ops::packuswb_mm_mmm64);
     OP_TAB[iced_x86::Code::Emms as usize] = Some(ops::emms);
     OP_TAB[iced_x86::Code::Psubusb_mm_mmm64 as usize] = Some(ops::psubusb_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddusb_mm_mmm64 as usize] = Some(ops::paddusb_mm_mmm64);
     OP_TAB[iced_x86::Code::Psllw_mm_imm8 as usize] = Some(ops::psllw_mm_imm8);
+    OP_TAB[iced_x86::Code::Paddsb_mm_mmm64 as usize] = Some(ops::paddsb_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddw_mm_mmm64 as usize] = Some(ops::paddw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Paddsw_mm_mmm64 as usize] = Some(ops::paddsw_mm_mmm64);
     OP_TAB[iced_x86::Code::Psubw_mm_mmm64 as usize] = Some(ops::psubw_mm_mmm64);
 
     OP_TAB[iced_x86::Code::Nopd as usize] = Some(ops::nop);
