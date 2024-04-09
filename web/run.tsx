@@ -3,10 +3,18 @@ import { Fragment, h } from 'preact';
 import { Emulator, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
-class Runner extends preact.Component<{ emulator: Emulator }> implements EmulatorHost {
+interface State {
+  output?: string;
+}
+
+class Runner extends preact.Component<{ emulator: Emulator }, State> implements EmulatorHost {
   constructor(props: { emulator: Emulator }) {
     super(props);
     this.props.emulator.emuHost = this;
+  }
+
+  private print(text: string) {
+    this.setState((state) => ({ output: (state.output ?? '') + text }));
   }
 
   componentDidMount(): void {
@@ -14,7 +22,7 @@ class Runner extends preact.Component<{ emulator: Emulator }> implements Emulato
   }
 
   exit(code: number): void {
-    throw new Error('Method not implemented.');
+    this.print(`Exited with code ${code}`);
   }
 
   onWindowChanged(): void {
@@ -26,14 +34,20 @@ class Runner extends preact.Component<{ emulator: Emulator }> implements Emulato
   }
 
   onError(msg: string): void {
+    this.print(msg);
   }
 
   onStdOut(stdout: string): void {
-    throw new Error('Method not implemented.');
+    this.print(stdout);
   }
 
   render() {
-    return <EmulatorComponent emulator={this.props.emulator} />;
+    return (
+      <>
+        {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
+        <EmulatorComponent emulator={this.props.emulator} />
+      </>
+    );
   }
 }
 

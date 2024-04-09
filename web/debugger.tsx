@@ -16,7 +16,7 @@ namespace Debugger {
     emulator: Emulator;
   }
   export interface State {
-    stdout: string;
+    stdout?: string;
     error: string;
     memBase: number;
     memHighlight?: number;
@@ -26,16 +26,19 @@ namespace Debugger {
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> implements EmulatorHost {
-  stdout = ''; // XXX hack for making exit() not clobber state
-  state: Debugger.State = { stdout: '', error: '', memBase: 0x40_1000, selectedTab: 'output' };
+  state: Debugger.State = { error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
   constructor(props: Debugger.Props) {
     super(props);
     this.props.emulator.emuHost = this;
   }
 
+  private print(text: string) {
+    this.setState((state) => ({ stdout: (state.stdout ?? '') + text }));
+  }
+
   exit(code: number): void {
-    this.setState({ stdout: this.stdout + `\nexited with code ${code}` });
+    this.print(`\nexited with code ${code}`);
     this.stop();
   }
   onWindowChanged(): void {
@@ -46,11 +49,17 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
   }
   onError(msg: string): void {
     this.setState({ error: msg });
+    // Note: if this was a Rust panic, then the error will never display because
+    // rendering will fail due to the debugger UI accessing the Rust object after a panic.
+    //
+    // Even rendering synchronously as in the following won't work due to rendering
+    // accessing the object in a callback:
+    //   preact.options.debounceRendering = (cb) => { cb(); };
+    //   this.forceUpdate();
   }
 
   onStdOut(msg: string): void {
-    this.stdout = msg;
-    this.setState({ stdout: msg });
+    this.print(msg);
   }
 
   step() {

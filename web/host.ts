@@ -78,7 +78,6 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   private events: Event[] = [];
 
-  stdout = '';
   decoder = new TextDecoder();
 
   constructor(public emuHost: EmulatorHost, readonly files: FileSet) {}
@@ -131,10 +130,10 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     }
     return new File(path, bytes);
   }
+
   write(buf: Uint8Array): number {
     const text = this.decoder.decode(buf);
-    this.stdout += text;
-    this.emuHost.onStdOut(this.stdout);
+    this.emuHost.onStdOut(text);
     return buf.length;
   }
 
