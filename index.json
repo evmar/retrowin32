@@ -23,5 +23,10 @@
     "desc": "effect",
     "params": "exe=effect.exe",
     "notes": "from pouet.net: <a href='https://www.pouet.net/prod.php?which=17038'>effect #8 by Infuse Project & Trinity</a>"
+  },
+  {
+    "desc": "mofo",
+    "params": "exe=psi_mofo.exe",
+    "notes": "from pouet.net: <a href='https://www.pouet.net/prod.php?which=519'>mofo by Psikorp</a>"
   }
 ]
