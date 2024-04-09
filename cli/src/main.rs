@@ -279,7 +279,7 @@ fn main() -> anyhow::Result<()> {
         let start = std::time::Instant::now();
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();
-            while machine.execute_block(false).is_running() {
+            while machine.execute_block().is_running() {
                 let regs = &machine.emu.x86.cpu.regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
                     continue;
@@ -298,7 +298,7 @@ fn main() -> anyhow::Result<()> {
                     .add_breakpoint(machine.emu.memory.mem(), next_trace);
                 loop {
                     // Ignore errors here because we will hit breakpoints.
-                    machine.execute_block(false);
+                    machine.execute_block();
                     if machine.emu.x86.cpu.regs.eip == next_trace {
                         break;
                     }
@@ -311,7 +311,7 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
             }
         } else {
-            while machine.execute_block(false).is_running() {
+            while machine.execute_block().is_running() {
                 unsafe {
                     if SNAPSHOT_REQUESTED {
                         let buf = machine.snapshot();

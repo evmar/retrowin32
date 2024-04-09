@@ -103,12 +103,13 @@ impl X86 {
         self.icache.clear_breakpoint(mem, addr)
     }
 
+    pub fn single_step_next_block(&mut self, mem: Mem) {
+        let ip = self.cpu.regs.eip;
+        self.icache.make_single_step(mem, ip);
+    }
+
     // Execute one basic block.  Returns false if we stopped early.
-    pub fn execute_block(&mut self, mem: Mem, single_step: bool) -> &CPUState {
-        if single_step {
-            let ip = self.cpu.regs.eip;
-            self.icache.make_single_step(mem, ip);
-        }
+    pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
         self.icache.execute_block(&mut self.cpu, mem)
         // NOTE: clear_single_step doesn't help here, because ip now points into the middle
         // of some block and the next time we execute we'll just recreate the partial block anyway.

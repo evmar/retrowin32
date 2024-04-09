@@ -73,11 +73,15 @@ impl Emulator {
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
         self.machine.emu.x86.cpu.state = x86::CPUState::Running;
-        let single_step = count == 1;
-        let start = self.machine.emu.x86.cpu.instr_count;
-        while self.machine.emu.x86.cpu.instr_count < start + count {
-            if !self.machine.execute_block(single_step).is_running() {
-                break;
+        if count == 1 {
+            self.machine.single_step_next_block();
+            self.machine.execute_block();
+        } else {
+            let start = self.machine.emu.x86.cpu.instr_count;
+            while self.machine.emu.x86.cpu.instr_count < start + count {
+                if !self.machine.execute_block().is_running() {
+                    break;
+                }
             }
         }
         Ok(match &self.machine.emu.x86.cpu.state {
