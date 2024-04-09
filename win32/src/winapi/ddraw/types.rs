@@ -150,6 +150,7 @@ pub struct DDSURFACEDESC {
 }
 unsafe impl memory::Pod for DDSURFACEDESC {}
 
+/// Custom implementation of Debug that only displays the fields that have been marked present in the flags member.
 impl std::fmt::Debug for DDSURFACEDESC {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut st = f.debug_struct("DDSURFACEDESC");
@@ -268,6 +269,7 @@ pub struct DDSURFACEDESC2 {
 }
 unsafe impl memory::Pod for DDSURFACEDESC2 {}
 
+/// Custom implementation of Debug that only displays the fields that have been marked present in the flags member.
 impl std::fmt::Debug for DDSURFACEDESC2 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut st = f.debug_struct("DDSURFACEDESC2");
