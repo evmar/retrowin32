@@ -90,10 +90,11 @@ impl Shims {
     }
 }
 
-pub fn handle_shim_call(machine: &mut Machine) -> bool {
-    if machine.emu.x86.cpu.regs.eip & 0xFFFF_0000 != SHIM_BASE {
-        return false;
-    }
+pub fn is_eip_at_shim_call(machine: &mut Machine) -> bool {
+    machine.emu.x86.cpu.regs.eip & 0xFFFF_0000 == SHIM_BASE
+}
+
+pub fn handle_shim_call(machine: &mut Machine) {
     let shim = match machine.emu.shims.get(machine.emu.x86.cpu.regs.eip) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
@@ -117,7 +118,6 @@ pub fn handle_shim_call(machine: &mut Machine) -> bool {
     } else {
         // Async handler will manage the return address etc.
     }
-    true
 }
 
 /// Redirect x86 control to async_executor.  Note this has particular requirements on the
