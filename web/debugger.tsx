@@ -3,6 +3,7 @@ import { Fragment, h } from 'preact';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Emulator, EmulatorHost } from './emulator';
+import { Instruction } from './glue/pkg/glue';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
@@ -99,7 +100,23 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
   render() {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
-    const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
+    let instrs: Instruction[] = [];
+    let code;
+    const eip = this.props.emulator.emu.eip;
+    if (eip >= 0xf1a7_0000) {
+      code = <section class='code'>(in {this.props.emulator.labels.get(eip) ?? 'shim'})</section>;
+    } else {
+      instrs = this.props.emulator.disassemble(eip);
+      code = (
+        <Code
+          instrs={instrs}
+          labels={this.props.emulator.labels}
+          highlightMemory={this.highlightMemory}
+          showMemory={this.showMemory}
+          runTo={(addr: number) => this.runTo(addr)}
+        />
+      );
+    }
     return (
       <>
         <EmulatorComponent emulator={this.props.emulator} />
@@ -117,7 +134,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           </button>
           &nbsp;
           <button
-            onClick={() => this.runTo(instrs[1].addr)}
+            onClick={() => instrs ? this.runTo(instrs[1].addr) : this.step()}
           >
             step over
           </button>
@@ -127,13 +144,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           </div>
         </section>
         <div style={{ display: 'flex', margin: '1ex' }}>
-          <Code
-            instrs={instrs}
-            labels={this.props.emulator.labels}
-            highlightMemory={this.highlightMemory}
-            showMemory={this.showMemory}
-            runTo={(addr: number) => this.runTo(addr)}
-          />
+          {code}
           <div style={{ width: '12ex' }} />
           <RegistersComponent
             highlightMemory={this.highlightMemory}
@@ -176,7 +187,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                 <BreakpointsComponent
                   breakpoints={Array.from(this.props.emulator.breakpoints.values())}
                   labels={this.props.emulator.labels}
-                  highlight={this.props.emulator.emu.eip}
+                  highlight={eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                   toggle={(addr) => {

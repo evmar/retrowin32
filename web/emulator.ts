@@ -193,6 +193,7 @@ export class Emulator extends JsHost {
   mappings(): wasm.Mapping[] {
     return JSON.parse(this.emu.mappings_json()) as wasm.Mapping[];
   }
+
   disassemble(addr: number): wasm.Instruction[] {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     return JSON.parse(this.emu.disassemble_json(addr, 20)) as wasm.Instruction[];
