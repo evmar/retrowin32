@@ -99,6 +99,14 @@ impl DLL {
     }
 }
 
+fn normalize_module_name(name: &str) -> String {
+    let mut name = name.to_ascii_lowercase();
+    if !name.ends_with(".dll") && !name.ends_with(".") {
+        name.push_str(".dll");
+    }
+    name
+}
+
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
     let name = match lpModuleName {
@@ -106,7 +114,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         Some(name) => name,
     };
 
-    let name = name.to_ascii_lowercase();
+    let name = normalize_module_name(name);
 
     if let Some(index) = machine
         .state
@@ -175,7 +183,7 @@ pub fn GetModuleFileNameW(
 
 #[win32_derive::dllexport]
 pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    let mut filename = filename.unwrap().to_ascii_lowercase();
+    let mut filename = normalize_module_name(filename.unwrap());
 
     // See if already loaded.
     if let Some(index) = machine
