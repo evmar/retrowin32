@@ -85,7 +85,7 @@ impl DLL {
 
     pub fn resolve(
         &mut self,
-        sym: ImportSymbol,
+        sym: &ImportSymbol,
         register: impl FnOnce(Result<&'static crate::shims::Shim, String>) -> u32,
     ) -> u32 {
         if let Some(addr) = self.resolve_from_pe(&sym) {
@@ -266,7 +266,11 @@ pub fn GetProcAddress(
 ) -> u32 {
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
-        return dll.resolve(lpProcName.0, |shim| machine.emu.register(shim));
+        return dll.resolve(&lpProcName.0, |shim| {
+            let addr = machine.emu.register(shim);
+            machine.labels.insert(addr, format!("{}", lpProcName.0));
+            addr
+        });
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail
