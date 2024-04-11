@@ -1,5 +1,8 @@
 use super::{peb_mut, teb_mut};
-use crate::{machine::Machine, winapi::types::HANDLE};
+use crate::{
+    machine::Machine,
+    winapi::types::{Str16, HANDLE},
+};
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "kernel32/thread";
@@ -63,6 +66,11 @@ pub async fn CreateThread(
     log::warn!("CreateThread running thread synchronously");
     machine.call_x86(lpStartAddress, vec![lpParameter]).await;
     HTHREAD::null()
+}
+
+#[win32_derive::dllexport]
+pub fn SetThreadDescription(_machine: &mut Machine, lpThreadDescription: Option<&Str16>) -> bool {
+    true // success
 }
 
 #[win32_derive::dllexport]

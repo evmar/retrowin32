@@ -1439,6 +1439,11 @@ pub mod kernel32 {
             let dwPriorityClass = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetPriorityClass(machine, hProcess, dwPriorityClass).to_raw()
         }
+        pub unsafe fn SetThreadDescription(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpThreadDescription = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::SetThreadDescription(machine, lpThreadDescription).to_raw()
+        }
         pub unsafe fn SetThreadPriority(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
@@ -2109,6 +2114,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetThreadDescription: Shim = Shim {
+            name: "SetThreadDescription",
+            func: impls::SetThreadDescription,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetThreadPriority: Shim = Shim {
             name: "SetThreadPriority",
             func: impls::SetThreadPriority,
@@ -2242,7 +2253,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 103usize] = [
+    const EXPORTS: [Symbol; 104usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2566,6 +2577,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::SetPriorityClass,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetThreadDescription,
         },
         Symbol {
             ordinal: None,
