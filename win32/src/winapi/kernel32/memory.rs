@@ -244,6 +244,7 @@ pub fn HeapReAlloc(
     };
     let old_size = heap.size(machine.emu.memory.mem(), lpMem);
     let new_addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    heap.free(machine.emu.memory.mem(), lpMem);
     log::info!("realloc {lpMem:x}/{old_size:x} => {new_addr:x}/{dwBytes:x}");
     machine.mem().as_mut_slice_todo().copy_within(
         lpMem as usize..(lpMem + old_size) as usize,
