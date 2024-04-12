@@ -1,135 +1,235 @@
-#include <stdio.h>
 #include <stdint.h>
+#include <string_view>
+#include <windows.h>
 
-void print_flags(uint16_t flags) {
+namespace {
+
+HANDLE hStdout;
+
+void print(std::string_view sv) {
+  WriteFile(hStdout, sv.data(), sv.size(), nullptr, nullptr);
+}
+
+void print(uint32_t x) {
+  char buf[9];
+  size_t i = sizeof(buf);
+  buf[--i] = 0;
+  if (x == 0) {
+    buf[--i] = '0';
+  } else {
+    for (; x > 0; x >>= 4) {
+      auto nybble = (char)(x & 0xf);
+      if (nybble < 0xa) {
+        buf[--i] = '0' + nybble;
+      } else {
+        buf[--i] = 'a' + (nybble - 0xa);
+      }
+    }
+  }
+  print(std::string_view(&buf[i], sizeof(buf) - i - 1));
+}
+
+void printf(const char *fmt...) {
+  va_list args;
+  va_start(args, fmt);
+  size_t start = 0, end;
+  for (end = start; fmt[end]; end++) {
+    if (fmt[end] == '%') {
+      if (end > start) {
+        WriteFile(hStdout, &fmt[start], end - start, nullptr, nullptr);
+      }
+      auto n = static_cast<uint32_t>(va_arg(args, int));
+      print(n);
+      start = end + 1;
+    }
+  }
+  if (end > start) {
+    WriteFile(hStdout, &fmt[start], end - start, nullptr, nullptr);
+  }
+  va_end(args);
+}
+
+inline void clear_flags() {
+  asm inline("pushl $0\n"
+             "popfd"
+             :
+             :
+             : "cc" /* clobbers flags*/);
+}
+
+inline uint32_t get_flags() {
+  uint32_t flags = 0;
+  asm inline("pushfd\n"
+             "popl %[flags]"
+             : [flags] "=r"(flags));
+  return flags;
+}
+
+void print_flags(uint32_t flags) {
   if ((flags & 1) != 0)
-    printf(" CF");
-  if ((flags & (1<<6)) != 0)
-    printf(" ZF");
-  if ((flags & (1<<7)) != 0)
-    printf(" SF");
-  if ((flags & (1<<10)) != 0)
-    printf(" DF");
-  if ((flags & (1<<11)) != 0)
-    printf(" OF");
+    print(" CF");
+  if ((flags & (1 << 6)) != 0)
+    print(" ZF");
+  if ((flags & (1 << 7)) != 0)
+    print(" SF");
+  if ((flags & (1 << 10)) != 0)
+    print(" DF");
+  if ((flags & (1 << 11)) != 0)
+    print(" OF");
 }
 
-#define asm_start(desc) { \
-  printf(desc); \
-  uint32_t result; \
-  uint16_t flags = 0; \
-  __asm { \
-    __asm push flags \
-    __asm popf \
-
-#define asm_end() \
-    __asm mov result,eax \
-    __asm pushf \
-    __asm pop flags \
-  } \
-  printf(" => %x", result); \
-  print_flags(flags); \
-  printf("\n"); \
+void add(uint8_t x, uint8_t y) {
+  printf("add % % => ", x, y);
+  clear_flags();
+  asm("addb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "g"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
 }
 
-void add() {
-#define add(x,y) \
-  asm_start("add " #x "," #y) \
-    __asm mov eax,x \
-    __asm add eax,y \
-  asm_end();
+void test_add() {
   add(3, 5);
-  add(3, -3);
-  add(3, -5);
-#undef add
+  add(3, (uint8_t)(-3));
+  add(3, (uint8_t)(-5));
 }
 
-void adc() {
-#define adc(x,y) \
-  asm_start("adc (CF=1) " #x "," #y) \
-    __asm stc \
-    __asm mov al,x \
-    __asm adc al,y \
-  asm_end();
+void adc(uint8_t x, uint8_t y) {
+  printf("adc (CF=1) % % => ", x, y);
+  clear_flags();
+  asm("stc\n"
+      "adcb %[y],%[x]"
+      : [x] "+g"(x)
+      : [y] "g"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_adc() {
   adc(0xFF, 0);
   adc(0xFF, 1);
   adc(0xFF, 0xFE);
   adc(0xFF, 0xFF);
-#undef adc
 }
 
-void sbb() {
-#define sbb(x,y) \
-  asm_start("sbb (CF=1) " #x "," #y) \
-    __asm stc \
-    __asm mov al,x \
-    __asm sbb al,y \
-  asm_end();
+void sbb(uint8_t x, uint8_t y) {
+  printf("sbb (CF=1) % % => ", x, y);
+  clear_flags();
+  asm("stc\n"
+      "sbbb %[y],%[x]"
+      : [x] "+g"(x)
+      : [y] "g"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_sbb() {
   sbb(0, 0);
   sbb(0, 1);
   sbb(0, 0xFE);
   sbb(0, 0xFF);
-#undef sbb
 }
 
-void shr() {
-#define shr(x,y) \
-  asm_start("shr " #x "," #y) \
-    __asm mov eax,x \
-    __asm shr eax,y \
-  asm_end();
+void shr(uint8_t x, uint8_t y) {
+  printf("shr % % => ", x, y);
+  clear_flags();
+  asm("shrb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "c"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_shr() {
   shr(3, 0);
   shr(3, 1);
   shr(3, 2);
-  shr(0x80000000, 1);
-  shr(0x80000000, 2);
-  shr(0x80000001, 1);
-  shr(0x80000001, 2);
-#undef shr
+  shr(0x80, 1);
+  shr(0x80, 2);
+  shr(0x81, 1);
+  shr(0x81, 2);
 }
 
-void sar() {
-#define sar(x,y) \
-  asm_start("sar " #x "," #y) \
-    __asm mov eax,x \
-    __asm sar eax,y \
-  asm_end();
-  sar(3, 0);
+void sar(uint8_t x, uint8_t y) {
+  printf("sar % % => ", x, y);
+  clear_flags();
+  asm("sarb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "c"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_sar() {
   sar(3, 1);
   sar(3, 2);
-  sar(0x80000000, 1);
-  sar(0x80000000, 2);
-  sar(0x80000001, 1);
-  sar(0x80000001, 2);
-  sar(0x80000002, 1);
-  sar(0x80000002, 2);
-#undef sar
+  sar(0x80, 1);
+  sar(0x80, 2);
+  sar(0x81, 1);
+  sar(0x81, 2);
+  sar(0x82, 1);
+  sar(0x82, 2);
 }
 
-void shl() {
-#define shl(x,y) \
-  asm_start("shl " #x "," #y) \
-    __asm mov eax,x \
-    __asm shl eax,y \
-  asm_end();
+void shl(uint8_t x, uint8_t y) {
+  printf("sar % % => ", x, y);
+  clear_flags();
+  asm("shlb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "c"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_shl() {
   shl(3, 0);
   shl(3, 1);
   shl(3, 2);
-  shl(0x80000000, 1);
-  shl(0x80000000, 2);
-  shl(0xD0000001, 1);
-  shl(0xD0000001, 2);
-  shl(0xE0000002, 1);
-  shl(0xE0000002, 2);
-#undef shl
+  shl(0x80, 1);
+  shl(0x80, 2);
+  shl(0xD1, 1);
+  shl(0xD1, 2);
+  shl(0xE2, 1);
+  shl(0xE2, 2);
 }
 
-void rol() {
-#define rol(x,y) \
-  asm_start("rol " #x "," #y) \
-    __asm mov al,x \
-    __asm rol al,y \
-  asm_end();
+void rol(uint8_t x, uint8_t y) {
+  printf("rol % % => ", x, y);
+  clear_flags();
+  asm("rolb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "c"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_rol() {
   rol(0x80, 0);
   rol(0x80, 1);
   rol(0x80, 2);
@@ -139,15 +239,23 @@ void rol() {
   rol(0xA0, 2);
   rol(0x6, 1);
   rol(0x60, 2);
-#undef rol 
 }
 
-void ror() {
-#define ror(x,y) \
-  asm_start("ror " #x "," #y) \
-    __asm mov al,x \
-    __asm ror al,y \
-  asm_end();
+void ror(uint8_t x, uint8_t y) {
+  printf("ror % % => ", x, y);
+  clear_flags();
+  asm("rorb %[y],%[x]"
+      ""
+      : [x] "+g"(x)
+      : [y] "c"(y)
+      : "cc");
+  auto flags = get_flags();
+  print(x);
+  print_flags(flags);
+  print("\n");
+}
+
+void test_ror() {
   ror(0x01, 0);
   ror(0x01, 1);
   ror(0x01, 2);
@@ -157,17 +265,18 @@ void ror() {
   ror(0x02, 2);
   ror(0x06, 1);
   ror(0x06, 2);
-#undef ror
 }
+} // namespace
 
-int main(void) {
-  add();
-  adc();
-  sbb();
-  shr();
-  sar();
-  shl();
-  rol();
-  ror();
+extern "C" int mainCRTStartup() {
+  hStdout = GetStdHandle(STD_OUTPUT_HANDLE);
+  test_add();
+  test_adc();
+  test_sbb();
+  test_shr();
+  test_sar();
+  test_shl();
+  test_rol();
+  test_ror();
   return 0;
 }
