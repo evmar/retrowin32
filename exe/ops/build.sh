@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -ex
+set -e
 
 export PATH=~/.local/opt/llvm/bin:$PATH
 

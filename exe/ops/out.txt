@@ -1,54 +1,53 @@
 add 3,5 => 8
-add 3,-3 => 0 CF ZF
-add 3,-5 => fffffffe SF
-adc (CF=1) 0xFF,0 => 0 CF ZF
-adc (CF=1) 0xFF,1 => 1 CF
-adc (CF=1) 0xFF,0xFE => fe CF SF
-adc (CF=1) 0xFF,0xFF => ff CF SF
+add 3,fd => 0 CF ZF
+add 3,fb => fe SF
+adc (CF=1) ff,0 => 0 CF ZF
+adc (CF=1) ff,1 => 1 CF
+adc (CF=1) ff,fe => fe CF SF
+adc (CF=1) ff,ff => ff CF SF
 sbb (CF=1) 0,0 => ff CF SF
 sbb (CF=1) 0,1 => fe CF SF
-sbb (CF=1) 0,0xFE => 1 CF
-sbb (CF=1) 0,0xFF => 0 CF ZF
+sbb (CF=1) 0,fe => 1 CF
+sbb (CF=1) 0,ff => 0 CF ZF
 shr 3,0 => 3
 shr 3,1 => 1 CF
 shr 3,2 => 0 CF ZF
-shr 0x80000000,1 => 40000000 OF
-shr 0x80000000,2 => 20000000 OF
-shr 0x80000001,1 => 40000000 CF OF
-shr 0x80000001,2 => 20000000 OF
-sar 3,0 => 3
+shr 80,1 => 40 OF
+shr 80,2 => 20
+shr 81,1 => 40 CF OF
+shr 81,2 => 20
 sar 3,1 => 1 CF
 sar 3,2 => 0 CF ZF
-sar 0x80000000,1 => c0000000 SF
-sar 0x80000000,2 => e0000000 SF
-sar 0x80000001,1 => c0000000 CF SF
-sar 0x80000001,2 => e0000000 SF
-sar 0x80000002,1 => c0000001 SF
-sar 0x80000002,2 => e0000000 CF SF
-shl 3,0 => 3
-shl 3,1 => 6
-shl 3,2 => c
-shl 0x80000000,1 => 0 CF ZF OF
-shl 0x80000000,2 => 0 ZF OF
-shl 0xD0000001,1 => a0000002 CF SF
-shl 0xD0000001,2 => 40000004 CF
-shl 0xE0000002,1 => c0000004 CF SF
-shl 0xE0000002,2 => 80000008 CF SF
-rol 0x80,0 => 80
-rol 0x80,1 => 1 CF OF
-rol 0x80,2 => 2
-rol 0xC0,1 => 81 CF
-rol 0xC0,2 => 3 CF
-rol 0xA0,1 => 41 CF OF
-rol 0xA0,2 => 82
-rol 0x6,1 => c
-rol 0x60,2 => 81 CF
-ror 0x01,0 => 1
-ror 0x01,1 => 80 CF OF
-ror 0x01,2 => 40
-ror 0x03,1 => 81 CF OF
-ror 0x03,2 => c0 CF
-ror 0x02,1 => 1
-ror 0x02,2 => 80 CF
-ror 0x06,1 => 3
-ror 0x06,2 => 81 CF
+sar 80,1 => c0 SF
+sar 80,2 => e0 SF
+sar 81,1 => c0 CF SF
+sar 81,2 => e0 SF
+sar 82,1 => c1 SF
+sar 82,2 => e0 CF SF
+sar 3,0 => 3
+sar 3,1 => 6
+sar 3,2 => c
+sar 80,1 => 0 CF ZF OF
+sar 80,2 => 0 ZF
+sar d1,1 => a2 CF SF
+sar d1,2 => 44 CF OF
+sar e2,1 => c4 CF SF
+sar e2,2 => 88 CF SF
+rol 80,0 => 80
+rol 80,1 => 1 CF OF
+rol 80,2 => 2
+rol c0,1 => 81 CF
+rol c0,2 => 3 CF OF
+rol a0,1 => 41 CF OF
+rol a0,2 => 82 OF
+rol 6,1 => c
+rol 60,2 => 81 CF
+ror 1,0 => 1
+ror 1,1 => 80 CF OF
+ror 1,2 => 40 OF
+ror 3,1 => 81 CF OF
+ror 3,2 => c0 CF
+ror 2,1 => 1
+ror 2,2 => 80 CF OF
+ror 6,1 => 3
+ror 6,2 => 81 CF OF
