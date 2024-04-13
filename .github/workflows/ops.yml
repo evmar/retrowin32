@@ -16,4 +16,5 @@ jobs:
       - name: ops
         run: |
           cd exe\ops
-          ops > out.txt
+          ops > new.txt
+          diff out.txt new.txt

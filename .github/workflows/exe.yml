@@ -20,20 +20,10 @@ jobs:
         id: filter
         with:
           filters: |
-            ops:
-              - 'exe/ops/**'
             winapi:
               - 'exe/winapi/**'
             zip:
               - 'exe/zip/**'
-
-      - name: ops
-        if: steps.filter.outputs.ops == 'true'
-        run: |
-          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\vsdevcmd.bat"
-          cd exe\ops
-          call build.bat
-          ops > out.txt
 
       - name: winapi
         if: steps.filter.outputs.winapi == 'true'
