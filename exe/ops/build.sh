@@ -2,6 +2,7 @@
 
 set -ex
 
+
 export PATH=~/.local/opt/llvm/bin:$PATH
 
 clang_flags="-fuse-ld=lld -target i686-pc-windows-msvc"
