@@ -1,8 +1,9 @@
-name: Run exe/ops test suite
+name: exe/ops test suite
 on:
   push:
     paths:
       - 'exe/ops/**'
+      - '.github/workflows/ops.yml'
 
 defaults:
   run:
@@ -13,8 +14,17 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v3
-      - name: ops
+      - name: Build/run
         run: |
           cd exe\ops
           ops > new.txt
           diff --strip-trailing-cr -u out.txt new.txt
+          move new.txt out.txt
+
+      - name: Add results to PR
+        run: |
+          git config user.name "GitHub action"
+          git config user.email "bot@github.com"
+          git add exe
+          git commit -m "update from CI"
+          git push
