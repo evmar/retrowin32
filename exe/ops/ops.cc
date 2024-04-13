@@ -79,7 +79,7 @@ void print_flags(uint32_t flags) {
 }
 
 void add(uint8_t x, uint8_t y) {
-  printf("add % % => ", x, y);
+  printf("add %,% => ", x, y);
   clear_flags();
   asm("addb %[y],%[x]"
       ""
@@ -99,7 +99,7 @@ void test_add() {
 }
 
 void adc(uint8_t x, uint8_t y) {
-  printf("adc (CF=1) % % => ", x, y);
+  printf("adc (CF=1) %,% => ", x, y);
   clear_flags();
   asm("stc\n"
       "adcb %[y],%[x]"
@@ -120,7 +120,7 @@ void test_adc() {
 }
 
 void sbb(uint8_t x, uint8_t y) {
-  printf("sbb (CF=1) % % => ", x, y);
+  printf("sbb (CF=1) %,% => ", x, y);
   clear_flags();
   asm("stc\n"
       "sbbb %[y],%[x]"
@@ -141,7 +141,7 @@ void test_sbb() {
 }
 
 void shr(uint8_t x, uint8_t y) {
-  printf("shr % % => ", x, y);
+  printf("shr %,% => ", x, y);
   clear_flags();
   asm("shrb %[y],%[x]"
       ""
@@ -165,7 +165,7 @@ void test_shr() {
 }
 
 void sar(uint8_t x, uint8_t y) {
-  printf("sar % % => ", x, y);
+  printf("sar %,% => ", x, y);
   clear_flags();
   asm("sarb %[y],%[x]"
       ""
@@ -190,7 +190,7 @@ void test_sar() {
 }
 
 void shl(uint8_t x, uint8_t y) {
-  printf("sar % % => ", x, y);
+  printf("sar %,% => ", x, y);
   clear_flags();
   asm("shlb %[y],%[x]"
       ""
@@ -216,7 +216,7 @@ void test_shl() {
 }
 
 void rol(uint8_t x, uint8_t y) {
-  printf("rol % % => ", x, y);
+  printf("rol %,% => ", x, y);
   clear_flags();
   asm("rolb %[y],%[x]"
       ""
@@ -242,7 +242,7 @@ void test_rol() {
 }
 
 void ror(uint8_t x, uint8_t y) {
-  printf("ror % % => ", x, y);
+  printf("ror %,% => ", x, y);
   clear_flags();
   asm("rorb %[y],%[x]"
       ""
