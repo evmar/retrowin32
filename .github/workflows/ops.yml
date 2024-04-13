@@ -17,4 +17,4 @@ jobs:
         run: |
           cd exe\ops
           ops > new.txt
-          diff out.txt new.txt
+          diff --strip-trailing-cr -u out.txt new.txt
