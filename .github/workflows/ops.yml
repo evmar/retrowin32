@@ -1,0 +1,19 @@
+name: Run exe/ops test suite
+on:
+  push:
+    paths:
+      - 'exe/ops/**'
+
+defaults:
+  run:
+    shell: cmd
+
+jobs:
+  win:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v3
+      - name: ops
+        run: |
+          cd exe\ops
+          ops > out.txt
