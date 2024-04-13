@@ -4,6 +4,8 @@
 
 namespace {
 
+const uint32_t CPUFLAG_OF = 0x800;
+
 HANDLE hStdout;
 
 void print(std::string_view sv) {
@@ -149,6 +151,10 @@ void shr(uint8_t x, uint8_t y) {
       : [y] "c"(y)
       : "cc");
   auto flags = get_flags();
+  if (y != 1) {
+    // Result is undefined for shift != 1.
+    flags &= ~CPUFLAG_OF;
+  }
   print(x);
   print_flags(flags);
   print("\n");
@@ -173,6 +179,10 @@ void sar(uint8_t x, uint8_t y) {
       : [y] "c"(y)
       : "cc");
   auto flags = get_flags();
+  if (y != 1) {
+    // Result is undefined for shift != 1.
+    flags &= ~CPUFLAG_OF;
+  }
   print(x);
   print_flags(flags);
   print("\n");
@@ -198,6 +208,10 @@ void shl(uint8_t x, uint8_t y) {
       : [y] "c"(y)
       : "cc");
   auto flags = get_flags();
+  if (y != 1) {
+    // Result is undefined for shift != 1.
+    flags &= ~CPUFLAG_OF;
+  }
   print(x);
   print_flags(flags);
   print("\n");
@@ -224,6 +238,10 @@ void rol(uint8_t x, uint8_t y) {
       : [y] "c"(y)
       : "cc");
   auto flags = get_flags();
+  if (y != 1) {
+    // Result is undefined for shift != 1.
+    flags &= ~CPUFLAG_OF;
+  }
   print(x);
   print_flags(flags);
   print("\n");
@@ -250,6 +268,10 @@ void ror(uint8_t x, uint8_t y) {
       : [y] "c"(y)
       : "cc");
   auto flags = get_flags();
+  if (y != 1) {
+    // Result is undefined for shift != 1.
+    flags &= ~CPUFLAG_OF;
+  }
   print(x);
   print_flags(flags);
   print("\n");
