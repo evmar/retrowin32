@@ -9,7 +9,6 @@ void print(std::string_view sv) {
 void print(uint32_t x) {
   char buf[9];
   size_t i = sizeof(buf);
-  buf[--i] = 0;
   if (x == 0) {
     buf[--i] = '0';
   } else {
@@ -22,7 +21,37 @@ void print(uint32_t x) {
       }
     }
   }
-  print(std::string_view(&buf[i], sizeof(buf) - i - 1));
+  print(std::string_view(&buf[i], sizeof(buf) - i));
+}
+
+void print(double f) {
+  // To print a float, we multiply by 1000 and print as decimal.
+
+  // TODO: retrowin32 doesn't support the fpu op that "<" needs.
+  // bool neg = f < 0;
+  // if (f < 0)
+  //   f = -f;
+  uint32_t x = (uint32_t)(f * 1000.0);
+  char buf[64];
+  size_t i = sizeof(buf);
+  if (x == 0) {
+    buf[--i] = '0';
+  } else {
+    while (x > 0 && i > (sizeof(buf) - 5)) {
+      buf[--i] = '0' + (x % 10);
+      x /= 10;
+      if (i == sizeof(buf) - 3) {
+        buf[--i] = '.';
+        if (x == 0) {
+          buf[--i] = '0';
+        }
+      }
+    }
+  }
+  // if (neg) {
+  //   buf[--i] = '-';
+  // }
+  print(std::string_view(&buf[i], sizeof(buf) - i));
 }
 
 void printv(const char *fmt...) {
@@ -32,10 +61,19 @@ void printv(const char *fmt...) {
   for (end = start; fmt[end]; end++) {
     if (fmt[end] == '%') {
       if (end > start) {
-        WriteFile(hStdout, &fmt[start], end - start, nullptr, nullptr);
+        print(std::string_view(&fmt[start], end - start));
       }
-      auto n = static_cast<uint32_t>(va_arg(args, int));
-      print(n);
+      end++;
+      if (fmt[end] == 'x') {
+        auto n = static_cast<uint32_t>(va_arg(args, int));
+        print(n);
+      } else if (fmt[end] == 'f') {
+        auto n = va_arg(args, double);
+        print(n);
+      } else {
+        print("invalid format specifier\n");
+        __builtin_trap();
+      }
       start = end + 1;
     }
   }

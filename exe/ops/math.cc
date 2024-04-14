@@ -5,7 +5,7 @@ namespace {
 const uint32_t CPUFLAG_OF = 0x800;
 
 void add(uint8_t x, uint8_t y) {
-  printv("add %,% => ", x, y);
+  printv("add %x,%x => ", x, y);
   clear_flags();
   asm("addb %[y],%[x]"
       ""
@@ -25,7 +25,7 @@ void test_add() {
 }
 
 void adc(uint8_t x, uint8_t y) {
-  printv("adc (CF=1) %,% => ", x, y);
+  printv("adc (CF=1) %x,%x => ", x, y);
   clear_flags();
   asm("stc\n"
       "adcb %[y],%[x]"
@@ -46,7 +46,7 @@ void test_adc() {
 }
 
 void sbb(uint8_t x, uint8_t y) {
-  printv("sbb (CF=1) %,% => ", x, y);
+  printv("sbb (CF=1) %x,%x => ", x, y);
   clear_flags();
   asm("stc\n"
       "sbbb %[y],%[x]"
@@ -67,7 +67,7 @@ void test_sbb() {
 }
 
 void shr(uint8_t x, uint8_t y) {
-  printv("shr %,% => ", x, y);
+  printv("shr %x,%x => ", x, y);
   clear_flags();
   asm("shrb %[y],%[x]"
       ""
@@ -95,7 +95,7 @@ void test_shr() {
 }
 
 void sar(uint8_t x, uint8_t y) {
-  printv("sar %,% => ", x, y);
+  printv("sar %x,%x => ", x, y);
   clear_flags();
   asm("sarb %[y],%[x]"
       ""
@@ -124,7 +124,7 @@ void test_sar() {
 }
 
 void shl(uint8_t x, uint8_t y) {
-  printv("sar %,% => ", x, y);
+  printv("sar %x,%x => ", x, y);
   clear_flags();
   asm("shlb %[y],%[x]"
       ""
@@ -154,7 +154,7 @@ void test_shl() {
 }
 
 void rol(uint8_t x, uint8_t y) {
-  printv("rol %,% => ", x, y);
+  printv("rol %x,%x => ", x, y);
   clear_flags();
   asm("rolb %[y],%[x]"
       ""
@@ -184,7 +184,7 @@ void test_rol() {
 }
 
 void ror(uint8_t x, uint8_t y) {
-  printv("ror %,% => ", x, y);
+  printv("ror %x,%x => ", x, y);
   clear_flags();
   asm("rorb %[y],%[x]"
       ""
