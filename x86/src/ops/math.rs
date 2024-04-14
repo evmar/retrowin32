@@ -167,7 +167,7 @@ fn shl<I: Int + num_traits::WrappingShl>(x: I, mut y: u8, flags: &mut Flags) -> 
     flags.set(Flags::CF, cf);
     let msb = val.shr(I::bits() - 1).is_one();
     flags.set(Flags::SF, msb);
-    // OF undefined for shifts != 1, but this matches what Windows machine does, and also docs:
+    // Note: OF only defined for 1-bit rotates.
     // "For left shifts, the OF flag is set to 0 if the mostsignificant bit of the result is the
     // same as the CF flag (that is, the top two bits of the original operand were the same) [...]"
     flags.set(
@@ -235,8 +235,7 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     flags.set(Flags::SF, false); // ?
     flags.set(Flags::ZF, val.is_zero());
 
-    // Note: OF state undefined for shifts > 1 bit, but the following behavior
-    // matches what my Windows box does in practice.
+    // Note: OF state undefined for shifts > 1 bit.
     flags.set(Flags::OF, (x >> (I::bits() - 1)).is_one());
     val
 }
@@ -298,6 +297,7 @@ fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
         return x;
     }
     flags.set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
+    // Note: OF only defined for 1-bit rotates.
     flags.set(Flags::OF, false);
     // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
     let result = x.signed_shr(y.as_usize() as u32);
@@ -338,10 +338,8 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     let result = x.rotate_left(y as u32);
     let carry = (result & I::one()).is_one();
     flags.set(Flags::CF, carry);
-    // OF only defined for 1-bit rotates.
-    if y == 1 {
-        flags.set(Flags::OF, carry ^ (result >> (I::bits() - 1)).is_one());
-    }
+    // Note: OF only defined for 1-bit rotates.
+    flags.set(Flags::OF, carry ^ (result >> (I::bits() - 1)).is_one());
     result
 }
 
@@ -376,10 +374,8 @@ fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     let result = x.rotate_right(y as u32);
     let msb = (result >> (I::bits() - 1)).is_one();
     flags.set(Flags::CF, msb);
-    // OF only defined for 1-bit rotates.
-    if y == 1 {
-        flags.set(Flags::OF, msb ^ (result >> (I::bits() - 2)).is_one());
-    }
+    // Note: OF only defined for 1-bit rotates.
+    flags.set(Flags::OF, msb ^ (result >> (I::bits() - 2)).is_one());
     result
 }
 
