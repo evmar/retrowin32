@@ -14,4 +14,4 @@ xwin_path=~/redist
 sdk_flags="/vctoolsdir $xwin_path/crt /winsdkdir $xwin_path/sdk"
 link_flags="/nodefaultlib kernel32.lib /subsystem:console"
 
-exec clang-cl $clang_flags $cflags $sdk_flags ops.cc /link $link_flags
+exec clang-cl $clang_flags $cflags $sdk_flags ops.cc util.cc math.cc /link $link_flags
