@@ -1441,8 +1441,9 @@ pub mod kernel32 {
         }
         pub unsafe fn SetThreadDescription(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpThreadDescription = <Option<&Str16>>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::SetThreadDescription(machine, lpThreadDescription).to_raw()
+            let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
+            let lpThreadDescription = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetThreadDescription(machine, hThread, lpThreadDescription).to_raw()
         }
         pub unsafe fn SetThreadPriority(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2117,7 +2118,7 @@ pub mod kernel32 {
         pub const SetThreadDescription: Shim = Shim {
             name: "SetThreadDescription",
             func: impls::SetThreadDescription,
-            stack_consumed: 4u32,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetThreadPriority: Shim = Shim {

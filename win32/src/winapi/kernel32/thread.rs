@@ -69,7 +69,11 @@ pub async fn CreateThread(
 }
 
 #[win32_derive::dllexport]
-pub fn SetThreadDescription(_machine: &mut Machine, lpThreadDescription: Option<&Str16>) -> bool {
+pub fn SetThreadDescription(
+    _machine: &mut Machine,
+    hThread: HTHREAD,
+    lpThreadDescription: Option<&Str16>,
+) -> bool {
     true // success
 }
 
