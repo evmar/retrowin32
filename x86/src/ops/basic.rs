@@ -1,6 +1,6 @@
 use iced_x86::Instruction;
 
-use crate::{registers::Flags, x86::CPU};
+use crate::{registers::Flags, x86::CPU, CPUState};
 use memory::{Extensions, Mem};
 
 use super::helpers::*;
@@ -395,7 +395,9 @@ pub fn cdq(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.err("debugger interrupt".into());
+    log::warn!("debugger interrupt");
+    cpu.state = CPUState::Blocked;
+    cpu.regs.eip -= 1;
 }
 
 pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
