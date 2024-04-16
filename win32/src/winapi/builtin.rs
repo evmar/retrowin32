@@ -1403,6 +1403,11 @@ pub mod kernel32 {
             winapi::kernel32::ReadFile(machine, hFile, lpBuffer, lpNumberOfBytesRead, lpOverlapped)
                 .to_raw()
         }
+        pub unsafe fn ReleaseSRWLockExclusive(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::ReleaseSRWLockExclusive(machine, SRWLock).to_raw()
+        }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
@@ -1486,6 +1491,11 @@ pub mod kernel32 {
             let dwTlsIndex = <u32>::from_stack(mem, esp + 4u32);
             let lpTlsValue = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::TlsSetValue(machine, dwTlsIndex, lpTlsValue).to_raw()
+        }
+        pub unsafe fn TryAcquireSRWLockExclusive(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::TryAcquireSRWLockExclusive(machine, SRWLock).to_raw()
         }
         pub unsafe fn UnhandledExceptionFilter(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2085,6 +2095,12 @@ pub mod kernel32 {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const ReleaseSRWLockExclusive: Shim = Shim {
+            name: "ReleaseSRWLockExclusive",
+            func: impls::ReleaseSRWLockExclusive,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: impls::SetEvent,
@@ -2167,6 +2183,12 @@ pub mod kernel32 {
             name: "TlsSetValue",
             func: impls::TlsSetValue,
             stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const TryAcquireSRWLockExclusive: Shim = Shim {
+            name: "TryAcquireSRWLockExclusive",
+            func: impls::TryAcquireSRWLockExclusive,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const UnhandledExceptionFilter: Shim = Shim {
@@ -2254,7 +2276,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 104usize] = [
+    const EXPORTS: [Symbol; 106usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2561,6 +2583,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::ReleaseSRWLockExclusive,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SetEvent,
         },
         Symbol {
@@ -2614,6 +2640,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::TlsSetValue,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::TryAcquireSRWLockExclusive,
         },
         Symbol {
             ordinal: None,
@@ -2807,6 +2837,11 @@ pub mod ucrtbase {
             let end = <u32>::from_stack(mem, esp + 8u32);
             winapi::ucrtbase::_initterm_e(machine, start, end).to_raw()
         }
+        pub unsafe fn exit(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let status = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::exit(machine, status).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -2841,8 +2876,14 @@ pub mod ucrtbase {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const exit: Shim = Shim {
+            name: "exit",
+            func: impls::exit,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 5usize] = [
+    const EXPORTS: [Symbol; 6usize] = [
         Symbol {
             ordinal: None,
             shim: shims::__p___argc,
@@ -2862,6 +2903,10 @@ pub mod ucrtbase {
         Symbol {
             ordinal: None,
             shim: shims::_initterm_e,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::exit,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

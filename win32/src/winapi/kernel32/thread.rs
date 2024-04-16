@@ -178,3 +178,13 @@ pub fn AcquireSRWLockShared(_machine: &mut Machine, SRWLock: Option<&mut SRWLOCK
 pub fn AcquireSRWLockExclusive(_machine: &mut Machine, SRWLock: Option<&mut SRWLOCK>) -> u32 {
     0
 }
+
+#[win32_derive::dllexport]
+pub fn TryAcquireSRWLockExclusive(_machine: &mut Machine, SRWLock: Option<&mut SRWLOCK>) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn ReleaseSRWLockExclusive(_machine: &mut Machine, SRWLock: Option<&mut SRWLOCK>) -> u32 {
+    0
+}
