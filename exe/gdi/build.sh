@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec cargo build --release --target i686-pc-windows-msvc
+exec cargo build --release --target i586-pc-windows-msvc
