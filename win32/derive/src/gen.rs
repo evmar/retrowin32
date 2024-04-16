@@ -1,8 +1,15 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 
+#[derive(Clone, Copy)]
+pub enum CallConv {
+    Stdcall,
+    Cdecl,
+}
+
 pub struct DllExport {
     pub ordinal: Option<usize>,
+    pub callconv: CallConv,
 }
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
@@ -23,19 +30,29 @@ fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExport>> {
         anyhow::bail!("bad win32_derive attribute")
     }
 
-    let ordinal = match nested {
-        None => None,
-        Some(n) => {
-            if n.len() != 1 {
-                anyhow::bail!("bad dllexport");
-            }
-            match n.first().unwrap() {
-                syn::NestedMeta::Lit(syn::Lit::Int(i)) => Some(i.base10_parse::<usize>()?),
-                _ => anyhow::bail!("bad dllexport"),
+    let mut ordinal = None;
+    let mut callconv = CallConv::Stdcall;
+    if let Some(nested) = nested {
+        for n in nested.iter() {
+            match n {
+                syn::NestedMeta::Lit(syn::Lit::Int(i)) => {
+                    ordinal = Some(i.base10_parse::<usize>()?);
+                }
+                syn::NestedMeta::Meta(meta) => match meta {
+                    syn::Meta::Path(path) => {
+                        if path.is_ident("cdecl") {
+                            callconv = CallConv::Cdecl;
+                        } else {
+                            anyhow::bail!("bad path {path:?}");
+                        }
+                    }
+                    _ => anyhow::bail!("bad meta {meta:?}"),
+                },
+                n => anyhow::bail!("bad dllexport {n:?}"),
             }
         }
     };
-    Ok(Some(DllExport { ordinal }))
+    Ok(Some(DllExport { ordinal, callconv }))
 }
 
 /// Gather all the dllexport fns in a list of syn::Items (module contents).
@@ -92,14 +109,16 @@ fn parse_argument_type(ty: &syn::Type) -> Argument {
 
 /// Generate the wrapper function that calls a win32api function by taking arguments using from_x86.
 ///
-/// winapi is stdcall, which means args are pushed right to left.
-/// They are callee-cleaned which means they are popped left to right, as done here.
 /// The caller of winapi functions is responsible for pushing/popping the
 /// return address, because some callers actually 'jmp' directly.
 ///
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
-pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, TokenStream) {
+pub fn fn_wrapper(
+    module: TokenStream,
+    func: &syn::ItemFn,
+    callconv: CallConv,
+) -> (TokenStream, TokenStream) {
     let mut args = Vec::new();
     let mut tys = Vec::new();
 
@@ -132,12 +151,16 @@ pub fn fn_wrapper(module: TokenStream, func: &syn::ItemFn) -> (TokenStream, Toke
         match parse_argument_type(ty) {
             Argument::Ordinary(ofs) => stack_offset += ofs,
             Argument::VarArgs => {
-                // VarArgs means the function is cdecl which means arguments are caller-cleaned.
-                stack_offset = 4;
+                // VarArgs only works for cdecl functions
+                assert!(matches!(callconv, CallConv::Cdecl));
             }
         }
     }
-    let stack_consumed = stack_offset - 4; // don't include return address
+
+    let stack_consumed = match callconv {
+        CallConv::Stdcall => stack_offset - 4, // don't include return address
+        CallConv::Cdecl => 0,                  // caller cleaned
+    };
 
     // If the function is async, we need to handle the return value a bit differently.
     let is_async = func.sig.asyncness.is_some();

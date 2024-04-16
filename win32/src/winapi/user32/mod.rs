@@ -109,7 +109,7 @@ pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool 
     x >= rect.left && x < rect.right && y >= rect.top && y < rect.bottom
 }
 
-#[win32_derive::dllexport]
+#[win32_derive::dllexport(cdecl)]
 pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: VarArgs) -> u32 {
     const BUF_LEN: u32 = 1024;
     let mem = machine.mem();

@@ -43,7 +43,7 @@ fn process_mod(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<To
     let mut shims = Vec::new();
     let mut exports = Vec::new();
     for (func, dllexport) in dllexports {
-        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func);
+        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, func, dllexport.callconv);
         impls.push(wrapper);
         shims.push(shim);
 

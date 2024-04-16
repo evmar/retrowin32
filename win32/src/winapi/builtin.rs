@@ -2892,7 +2892,7 @@ pub mod vcruntime140 {
         pub const memcpy: Shim = Shim {
             name: "memcpy",
             func: impls::memcpy,
-            stack_consumed: 12u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
