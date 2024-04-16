@@ -82,12 +82,12 @@ pub fn gather_shims<'a>(
 
 enum Argument {
     /// Value is amount of stack the argument uses in stdcall.
+    /// (All of them except the array+size type are 4 bytes.)
     Ordinary(u32),
     VarArgs,
 }
 
-/// Return the amount of stack a given stdcall argument uses.
-/// (All of them except the array+size type are 4 bytes.)
+/// Parse a function argument type into the metadata we care about.
 fn parse_argument_type(ty: &syn::Type) -> Argument {
     let ty = match ty {
         syn::Type::Path(ty) => ty,
