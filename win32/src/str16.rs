@@ -87,6 +87,14 @@ impl String16 {
     }
 }
 
+impl std::ops::Deref for String16 {
+    type Target = Str16;
+
+    fn deref(&self) -> &Self::Target {
+        self.as_str16()
+    }
+}
+
 pub fn expect_ascii(slice: &[u8]) -> &str {
     match std::str::from_utf8(slice) {
         Ok(str) => str,

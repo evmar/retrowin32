@@ -1008,6 +1008,27 @@ pub mod kernel32 {
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
         }
+        pub unsafe fn FormatMessageW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwFlags = <Result<FormatMessageFlags, u32>>::from_stack(mem, esp + 4u32);
+            let lpSource = <u32>::from_stack(mem, esp + 8u32);
+            let dwMessageId = <u32>::from_stack(mem, esp + 12u32);
+            let dwLanguageId = <u32>::from_stack(mem, esp + 16u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 20u32);
+            let nSize = <u32>::from_stack(mem, esp + 24u32);
+            let args = <u32>::from_stack(mem, esp + 28u32);
+            winapi::kernel32::FormatMessageW(
+                machine,
+                dwFlags,
+                lpSource,
+                dwMessageId,
+                dwLanguageId,
+                lpBuffer,
+                nSize,
+                args,
+            )
+            .to_raw()
+        }
         pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _penv = <u32>::from_stack(mem, esp + 4u32);
@@ -1739,6 +1760,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const FormatMessageW: Shim = Shim {
+            name: "FormatMessageW",
+            func: impls::FormatMessageW,
+            stack_consumed: 28u32,
+            is_async: false,
+        };
         pub const FreeEnvironmentStringsA: Shim = Shim {
             name: "FreeEnvironmentStringsA",
             func: impls::FreeEnvironmentStringsA,
@@ -2316,7 +2343,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 108usize] = [
+    const EXPORTS: [Symbol; 109usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2364,6 +2391,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::FindResourceW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FormatMessageW,
         },
         Symbol {
             ordinal: None,

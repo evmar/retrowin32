@@ -9,6 +9,7 @@ use crate::{
     Machine,
 };
 use ::memory::{Extensions, Pod};
+use bitflags::bitflags;
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
@@ -388,4 +389,62 @@ pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
 #[win32_derive::dllexport]
 pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: u32) -> u32 {
     handler // success
+}
+
+bitflags! {
+    pub struct FormatMessageFlags: u32 {
+        const FROM_STRING    = 0x00000400;
+        const IGNORE_INSERTS = 0x00000200;
+        const FROM_SYSTEM    = 0x00001000;
+
+        // Low 8 bits can be used for line breaking width (!?).
+        // Not sure if this makes bitflags do the right thing...
+        const MAX_WIDTH_MASK = 0xFF;
+    }
+}
+impl TryFrom<u32> for FormatMessageFlags {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        FormatMessageFlags::from_bits(value).ok_or(value)
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn FormatMessageW(
+    machine: &mut Machine,
+    dwFlags: Result<FormatMessageFlags, u32>,
+    lpSource: u32,
+    dwMessageId: u32,
+    dwLanguageId: u32,
+    lpBuffer: u32,
+    nSize: u32,
+    args: u32,
+) -> u32 {
+    // Note args is a va_list*, not a va_list!
+
+    let flags = dwFlags.unwrap();
+
+    if dwLanguageId != 0 {
+        todo!();
+    }
+    let msg = if flags.contains(FormatMessageFlags::FROM_SYSTEM) {
+        match dwMessageId {
+            0x1c => "The printer is out of paper.",
+            id => todo!("system message {:x}", id),
+        }
+    } else {
+        todo!();
+    };
+
+    let buf: &mut [u16] = unsafe {
+        let mem = machine.mem().sub(lpBuffer, nSize).as_mut_slice_todo();
+        std::slice::from_raw_parts_mut(mem.as_mut_ptr() as *mut _, mem.len() / 2)
+    };
+    let msgw = String16::from(msg);
+
+    buf[..msgw.len()].copy_from_slice(msgw.buf());
+    buf[msgw.len()] = 0;
+
+    msgw.len() as u32
 }
