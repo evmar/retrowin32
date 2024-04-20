@@ -898,7 +898,7 @@ pub mod kernel32 {
             let lpSecurityAttributes = <u32>::from_stack(mem, esp + 16u32);
             let dwCreationDisposition =
                 <Result<CreationDisposition, u32>>::from_stack(mem, esp + 20u32);
-            let dwFlagsAndAttributes = <u32>::from_stack(mem, esp + 24u32);
+            let dwFlagsAndAttributes = <Result<FileAttribute, u32>>::from_stack(mem, esp + 24u32);
             let hTemplateFile = <HFILE>::from_stack(mem, esp + 28u32);
             winapi::kernel32::CreateFileA(
                 machine,
@@ -920,7 +920,7 @@ pub mod kernel32 {
             let lpSecurityAttributes = <u32>::from_stack(mem, esp + 16u32);
             let dwCreationDisposition =
                 <Result<CreationDisposition, u32>>::from_stack(mem, esp + 20u32);
-            let dwFlagsAndAttributes = <u32>::from_stack(mem, esp + 24u32);
+            let dwFlagsAndAttributes = <Result<FileAttribute, u32>>::from_stack(mem, esp + 24u32);
             let hTemplateFile = <HFILE>::from_stack(mem, esp + 28u32);
             winapi::kernel32::CreateFileW(
                 machine,

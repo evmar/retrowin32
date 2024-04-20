@@ -5,6 +5,7 @@ use crate::{
         types::{Str16, HFILE},
     },
 };
+use bitflags::bitflags;
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
 
@@ -47,7 +48,18 @@ pub enum CreationDisposition {
     OPEN_EXISTING = 3,
 }
 
-pub const FILE_ATTRIBUTE_NORMAL: u32 = 0x80;
+bitflags! {
+    pub struct FileAttribute: u32 {
+        const NORMAL = 0x80;
+    }
+}
+impl TryFrom<u32> for FileAttribute {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        FileAttribute::from_bits(value).ok_or(value)
+    }
+}
 
 const GENERIC_READ: u32 = 0x8000_0000;
 
@@ -59,7 +71,7 @@ pub fn CreateFileA(
     dwShareMode: u32,
     lpSecurityAttributes: u32,
     dwCreationDisposition: Result<CreationDisposition, u32>,
-    dwFlagsAndAttributes: u32,
+    dwFlagsAndAttributes: Result<FileAttribute, u32>,
     hTemplateFile: HFILE,
 ) -> HFILE {
     let file_name = lpFileName.unwrap();
@@ -67,9 +79,12 @@ pub fn CreateFileA(
         unimplemented!("CreateFile access {:x}", dwDesiredAccess);
     }
     let _dwCreationDisposition = dwCreationDisposition.unwrap();
-    if dwFlagsAndAttributes != FILE_ATTRIBUTE_NORMAL {
-        unimplemented!("dwFlagsAndAttributes {dwFlagsAndAttributes:x}");
+
+    let attr = dwFlagsAndAttributes.unwrap();
+    if attr - FileAttribute::NORMAL != FileAttribute::empty() {
+        todo!();
     }
+
     if !hTemplateFile.is_null() {
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
@@ -88,7 +103,7 @@ pub fn CreateFileW(
     dwShareMode: u32,
     lpSecurityAttributes: u32,
     dwCreationDisposition: Result<CreationDisposition, u32>,
-    dwFlagsAndAttributes: u32,
+    dwFlagsAndAttributes: Result<FileAttribute, u32>,
     hTemplateFile: HFILE,
 ) -> HFILE {
     CreateFileA(
