@@ -879,3 +879,13 @@ pub fn not_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
     x.set(!x.get())
 }
+
+pub fn not_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm16(cpu, mem, instr);
+    x.set(!x.get())
+}
+
+pub fn not_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm8(cpu, mem, instr);
+    x.set(!x.get())
+}
