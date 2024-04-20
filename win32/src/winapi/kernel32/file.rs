@@ -6,6 +6,7 @@ use crate::{
     },
 };
 use bitflags::bitflags;
+use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
 
@@ -135,6 +136,48 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
 
     log::error!("GetFileType({hFile:?}) unknown handle");
     FILE_TYPE_UNKNOWN
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct FILETIME {
+    dwLowDateTime: u32,
+    dwHighDateTime: u32,
+}
+unsafe impl memory::Pod for FILETIME {}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct BY_HANDLE_FILE_INFORMATION {
+    pub dwFileAttributes: u32,
+    pub ftCreationTime: FILETIME,
+    pub ftLastAccessTime: FILETIME,
+    pub ftLastWriteTime: FILETIME,
+    pub dwVolumeSerialNumber: u32,
+    pub nFileSizeHigh: u32,
+    pub nFileSizeLow: u32,
+    pub nNumberOfLinks: u32,
+    pub nFileIndexHigh: u32,
+    pub nFileIndexLow: u32,
+}
+unsafe impl memory::Pod for BY_HANDLE_FILE_INFORMATION {}
+
+#[win32_derive::dllexport]
+pub fn GetFileInformationByHandle(
+    machine: &mut Machine,
+    hFile: HFILE,
+    lpFileInformation: Option<&mut BY_HANDLE_FILE_INFORMATION>,
+) -> bool {
+    let file = match machine.state.kernel32.files.get(&hFile) {
+        Some(f) => f,
+        None => todo!(),
+    };
+
+    let info = lpFileInformation.unwrap();
+    info.clear_struct();
+    info.nFileSizeLow = file.info();
+
+    true
 }
 
 #[win32_derive::dllexport]

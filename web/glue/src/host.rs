@@ -107,12 +107,18 @@ impl win32::Window for JsWindow {
 extern "C" {
     pub type JsFile;
     #[wasm_bindgen(method)]
+    fn info(this: &JsFile) -> u32;
+    #[wasm_bindgen(method)]
     fn seek(this: &JsFile, ofs: u32) -> bool;
     #[wasm_bindgen(method)]
     fn read(this: &JsFile, buf: &mut [u8]) -> u32;
 }
 
 impl win32::File for JsFile {
+    fn info(&self) -> u32 {
+        JsFile::info(self)
+    }
+
     fn seek(&mut self, ofs: u32) -> bool {
         JsFile::seek(self, ofs)
     }

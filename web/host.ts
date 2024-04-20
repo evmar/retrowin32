@@ -50,10 +50,16 @@ class File implements glue.JsFile {
 
   constructor(readonly path: string, readonly bytes: Uint8Array) {
   }
+
+  info(): number {
+    return this.bytes.length;
+  }
+
   seek(ofs: number): boolean {
     this.ofs = ofs;
     return true;
   }
+
   read(buf: Uint8Array): number {
     const n = Math.min(buf.length, this.bytes.length - this.ofs);
     buf.set(this.bytes.subarray(this.ofs, this.ofs + n));

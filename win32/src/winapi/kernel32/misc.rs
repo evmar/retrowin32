@@ -1,6 +1,6 @@
 //! kernel32 API without a better home.
 
-use super::{teb_mut, WriteFile};
+use super::{teb_mut, WriteFile, FILETIME};
 use crate::{
     winapi::{
         stack_args::{ArrayWithSize, ArrayWithSizeMut},
@@ -186,13 +186,6 @@ pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> boo
     true
 }
 
-#[repr(C)]
-#[derive(Debug)]
-pub struct FILETIME {
-    dwLowDateTime: DWORD,
-    dwHighDateTime: DWORD,
-}
-unsafe impl ::memory::Pod for FILETIME {}
 #[win32_derive::dllexport]
 pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
     0

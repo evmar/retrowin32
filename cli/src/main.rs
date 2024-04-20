@@ -53,6 +53,11 @@ impl File {
     }
 }
 impl win32::File for File {
+    fn info(&self) -> u32 {
+        let meta = self.f.metadata().unwrap();
+        meta.len() as u32
+    }
+
     fn seek(&mut self, ofs: u32) -> bool {
         self.f.seek(std::io::SeekFrom::Start(ofs as u64)).unwrap();
         true

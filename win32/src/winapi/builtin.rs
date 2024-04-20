@@ -1095,6 +1095,13 @@ pub mod kernel32 {
             let buf = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableW(machine, name, buf).to_raw()
         }
+        pub unsafe fn GetFileInformationByHandle(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpFileInformation =
+                <Option<&mut BY_HANDLE_FILE_INFORMATION>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetFileInformationByHandle(machine, hFile, lpFileInformation).to_raw()
+        }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -1855,6 +1862,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetFileInformationByHandle: Shim = Shim {
+            name: "GetFileInformationByHandle",
+            func: impls::GetFileInformationByHandle,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
@@ -2354,7 +2367,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 110usize] = [
+    const EXPORTS: [Symbol; 111usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2462,6 +2475,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetEnvironmentVariableW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFileInformationByHandle,
         },
         Symbol {
             ordinal: None,
