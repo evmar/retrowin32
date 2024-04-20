@@ -20,8 +20,8 @@ fn print(buf: &[u8]) {
             stdout,
             buf.as_ptr(),
             buf.len() as u32,
-            core::ptr::null_mut(),
-            core::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
         );
     }
 }
@@ -33,7 +33,7 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
             0
         }
         WM_PAINT => {
-            let mut ps: PAINTSTRUCT = unsafe { core::mem::zeroed() };
+            let mut ps: PAINTSTRUCT = std::mem::zeroed();
             let hdc = BeginPaint(hwnd, &mut ps);
             FillRect(hdc, &ps.rcPaint, (COLOR_WINDOW + 1) as HBRUSH);
             EndPaint(hwnd, &ps);
@@ -83,7 +83,7 @@ unsafe fn create_window() -> HWND {
 fn main() {
     unsafe {
         create_window();
-        let mut msg: MSG = core::mem::zeroed();
+        let mut msg: MSG = std::mem::zeroed();
         while GetMessageA(&mut msg, 0, 0, 0) > 0 {
             TranslateMessage(&msg);
             DispatchMessageA(&msg);
