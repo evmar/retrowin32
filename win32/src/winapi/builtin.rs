@@ -1079,6 +1079,21 @@ pub mod kernel32 {
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetFileType(machine, hFile).to_raw()
         }
+        pub unsafe fn GetFullPathNameW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            let nBufferLength = <u32>::from_stack(mem, esp + 8u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 12u32);
+            let lpFilePart = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetFullPathNameW(
+                machine,
+                lpFileName,
+                nBufferLength,
+                lpBuffer,
+                lpFilePart,
+            )
+            .to_raw()
+        }
         pub unsafe fn GetLastError(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetLastError(machine).to_raw()
@@ -1814,6 +1829,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetFullPathNameW: Shim = Shim {
+            name: "GetFullPathNameW",
+            func: impls::GetFullPathNameW,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const GetLastError: Shim = Shim {
             name: "GetLastError",
             func: impls::GetLastError,
@@ -2295,7 +2316,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 107usize] = [
+    const EXPORTS: [Symbol; 108usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2403,6 +2424,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetFileType,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFullPathNameW,
         },
         Symbol {
             ordinal: None,
@@ -2953,6 +2978,13 @@ pub mod vcruntime140 {
             let len = <u32>::from_stack(mem, esp + 12u32);
             winapi::vcruntime140::memcpy(machine, dst, src, len).to_raw()
         }
+        pub unsafe fn memset(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dst = <u32>::from_stack(mem, esp + 4u32);
+            let val = <u32>::from_stack(mem, esp + 8u32);
+            let len = <u32>::from_stack(mem, esp + 12u32);
+            winapi::vcruntime140::memset(machine, dst, val, len).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -2963,11 +2995,23 @@ pub mod vcruntime140 {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const memset: Shim = Shim {
+            name: "memset",
+            func: impls::memset,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: None,
-        shim: shims::memcpy,
-    }];
+    const EXPORTS: [Symbol; 2usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::memcpy,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::memset,
+        },
+    ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "vcruntime140.dll",
         exports: &EXPORTS,

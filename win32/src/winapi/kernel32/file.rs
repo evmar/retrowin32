@@ -190,3 +190,14 @@ pub fn GetConsoleMode(
     *lpMode.unwrap() = 0;
     true
 }
+
+#[win32_derive::dllexport]
+pub fn GetFullPathNameW(
+    _machine: &mut Machine,
+    lpFileName: Option<&Str16>,
+    nBufferLength: u32,
+    lpBuffer: u32,
+    lpFilePart: u32,
+) -> u32 {
+    0 // fail
+}
