@@ -5,7 +5,7 @@ use anyhow::anyhow;
 use std::{
     cell::RefCell,
     io::{Read, Seek, Write},
-    path::{Path, PathBuf},
+    path::Path,
     rc::Rc,
 };
 
@@ -73,15 +73,13 @@ impl win32::File for File {
 struct Env {
     gui: Option<GUI>,
     exit_code: Option<u32>,
-    cwd: PathBuf,
 }
 
 impl Env {
-    pub fn new(cwd: PathBuf) -> Self {
+    pub fn new() -> Self {
         Env {
             gui: None,
             exit_code: None,
-            cwd,
         }
     }
 
@@ -114,8 +112,7 @@ impl win32::Host for EnvRef {
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
-        let env = self.0.borrow();
-        Box::new(File::open(&env.cwd.join(path)))
+        Box::new(File::open(Path::new(path)))
     }
 
     fn write(&self, buf: &[u8]) -> usize {
@@ -248,8 +245,7 @@ fn main() -> anyhow::Result<()> {
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
     let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
-    let cwd = Path::parent(Path::new(&args.exe)).unwrap();
-    let host = EnvRef(Rc::new(RefCell::new(Env::new(cwd.to_owned()))));
+    let host = EnvRef(Rc::new(RefCell::new(Env::new())));
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
 
     let addrs = machine
