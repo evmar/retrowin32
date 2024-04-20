@@ -155,11 +155,11 @@ pub fn or_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-fn shl<I: Int + num_traits::WrappingShl>(x: I, mut y: u8, flags: &mut Flags) -> I {
+fn shl<I: Int + num_traits::WrappingShl>(x: I, y: u8, flags: &mut Flags) -> I {
+    let y = y % 32;
     if y == 0 {
         return x;
     }
-    y = y & 0x1f;
 
     // Carry is the highest bit that will be shifted out.
     let cf = (x.shr(I::bits() - y as usize) & I::one()).is_one();
@@ -210,10 +210,10 @@ pub fn shl_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
+    let count = count % 32;
     if count == 0 {
         return;
     }
-    let count = count % 32;
     let val = x.get();
     // "CF flag is filled with the last bit shifted out of the destination operand"
     flags.set(Flags::CF, ((val >> (32 - count)) & 1) != 0);
@@ -239,13 +239,13 @@ pub fn shld_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
-    if y == 0 {
-        return x; // Don't affect flags.
-    }
-
     // In all modes but 64 it is correct to mask to 32 bits.
     assert!(I::bits() < 64); // 64 not implemented
     let y = y % 32;
+
+    if y == 0 {
+        return x; // Don't affect flags.
+    }
 
     flags.set(Flags::CF, ((x >> (y - 1) as usize) & I::one()).is_one());
     let val = x >> y as usize;
@@ -298,10 +298,10 @@ pub fn shr_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 fn shrd(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
+    let count = count % 32;
     if count == 0 {
         return;
     }
-    let count = count % 32;
     let val = x.get();
     // "CF flag is filled with the last bit shifted out of the destination operand"
     flags.set(Flags::CF, ((val >> (count - 1)) & 1) != 0);
