@@ -441,3 +441,9 @@ pub fn FormatMessageW(
 
     msgw.len() as u32
 }
+
+#[win32_derive::dllexport]
+pub fn CloseHandle(_machine: &mut Machine, hObject: u32) -> bool {
+    // TODO
+    true
+}

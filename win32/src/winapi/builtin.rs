@@ -875,6 +875,11 @@ pub mod kernel32 {
             let handler = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::AddVectoredExceptionHandler(machine, first, handler).to_raw()
         }
+        pub unsafe fn CloseHandle(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hObject = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::CloseHandle(machine, hObject).to_raw()
+        }
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpEventAttributes = <u32>::from_stack(mem, esp + 4u32);
@@ -1718,6 +1723,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const CloseHandle: Shim = Shim {
+            name: "CloseHandle",
+            func: impls::CloseHandle,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const CreateEventA: Shim = Shim {
             name: "CreateEventA",
             func: impls::CreateEventA,
@@ -2367,7 +2378,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 111usize] = [
+    const EXPORTS: [Symbol; 112usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2379,6 +2390,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::AddVectoredExceptionHandler,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CloseHandle,
         },
         Symbol {
             ordinal: None,
