@@ -9,6 +9,7 @@ pub mod gdi32;
 mod handle;
 mod heap;
 pub mod kernel32;
+mod ntdll;
 mod ole32;
 mod oleaut32;
 mod retrowin32_test;
@@ -71,13 +72,14 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 13] = [
+pub const DLLS: [builtin::BuiltinDLL; 14] = [
     builtin::advapi32::DLL,
     builtin::bass::DLL,
     builtin::ddraw::DLL,
     builtin::dsound::DLL,
     builtin::gdi32::DLL,
     builtin::kernel32::DLL,
+    builtin::ntdll::DLL,
     builtin::ole32::DLL,
     builtin::oleaut32::DLL,
     builtin::ucrtbase::DLL,

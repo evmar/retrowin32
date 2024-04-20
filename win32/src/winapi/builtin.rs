@@ -2818,6 +2818,58 @@ pub mod kernel32 {
         exports: &EXPORTS,
     };
 }
+pub mod ntdll {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::ntdll::*;
+        pub unsafe fn NtReadFile(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let FileHandle = <HFILE>::from_stack(mem, esp + 4u32);
+            let Event = <u32>::from_stack(mem, esp + 8u32);
+            let ApcRoutine = <u32>::from_stack(mem, esp + 12u32);
+            let ApcContext = <u32>::from_stack(mem, esp + 16u32);
+            let IoStatusBlock = <Option<&mut IO_STATUS_BLOCK>>::from_stack(mem, esp + 20u32);
+            let Buffer = <ArrayWithSizeMut<u8>>::from_stack(mem, esp + 24u32);
+            let ByteOffset = <Option<&mut u64>>::from_stack(mem, esp + 32u32);
+            let Key = <u32>::from_stack(mem, esp + 36u32);
+            winapi::ntdll::NtReadFile(
+                machine,
+                FileHandle,
+                Event,
+                ApcRoutine,
+                ApcContext,
+                IoStatusBlock,
+                Buffer,
+                ByteOffset,
+                Key,
+            )
+            .to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const NtReadFile: Shim = Shim {
+            name: "NtReadFile",
+            func: impls::NtReadFile,
+            stack_consumed: 36u32,
+            is_async: false,
+        };
+    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        ordinal: None,
+        shim: shims::NtReadFile,
+    }];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "ntdll.dll",
+        exports: &EXPORTS,
+    };
+}
 pub mod ole32 {
     use super::*;
     mod impls {

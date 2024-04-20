@@ -186,7 +186,7 @@ pub struct State {
     pub resources: pe::IMAGE_DATA_DIRECTORY,
 
     #[serde(skip)] // TODO
-    pub(super) files: HashMap<HFILE, Box<dyn crate::host::File>>,
+    pub files: HashMap<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)]
     #[cfg(feature = "x86-64")]
