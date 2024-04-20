@@ -137,6 +137,16 @@ pub fn InitializeCriticalSection(_machine: &mut Machine, lpCriticalSection: u32)
 }
 
 #[win32_derive::dllexport]
+pub fn InitializeCriticalSectionEx(
+    _machine: &mut Machine,
+    lpCriticalSection: u32,
+    dwSpinCount: u32,
+    flags: u32,
+) -> bool {
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn InitializeCriticalSectionAndSpinCount(
     _machine: &mut Machine,
     lpCriticalSection: u32,
