@@ -3017,6 +3017,12 @@ pub mod vcruntime140 {
         };
         use memory::Extensions;
         use winapi::vcruntime140::*;
+        pub unsafe fn _CxxThrowException(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let pExceptionObject = <u32>::from_stack(mem, esp + 4u32);
+            let pThrowInfo = <u32>::from_stack(mem, esp + 8u32);
+            winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo).to_raw()
+        }
         pub unsafe fn memcpy(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dst = <u32>::from_stack(mem, esp + 4u32);
@@ -3035,6 +3041,12 @@ pub mod vcruntime140 {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const _CxxThrowException: Shim = Shim {
+            name: "_CxxThrowException",
+            func: impls::_CxxThrowException,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const memcpy: Shim = Shim {
             name: "memcpy",
             func: impls::memcpy,
@@ -3048,7 +3060,11 @@ pub mod vcruntime140 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 2usize] = [
+    const EXPORTS: [Symbol; 3usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::_CxxThrowException,
+        },
         Symbol {
             ordinal: None,
             shim: shims::memcpy,
