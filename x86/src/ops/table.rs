@@ -299,6 +299,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Cmove_r32_rm32 as usize] = Some(ops::cmove_r32_rm32);
 
     OP_TAB[iced_x86::Code::Seta_rm8 as usize] = Some(ops::seta_rm8);
+    OP_TAB[iced_x86::Code::Setae_rm8 as usize] = Some(ops::setae_rm8);
     OP_TAB[iced_x86::Code::Setb_rm8 as usize] = Some(ops::setb_rm8);
     OP_TAB[iced_x86::Code::Sete_rm8 as usize] = Some(ops::sete_rm8);
     OP_TAB[iced_x86::Code::Setl_rm8 as usize] = Some(ops::setl_rm8);
@@ -445,6 +446,7 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Bswap_r32 as usize] = Some(ops::bswap_r32);
     OP_TAB[iced_x86::Code::Xlat_m8 as usize] = Some(ops::xlat_m8);
+    OP_TAB[iced_x86::Code::Bts_rm32_r32 as usize] = Some(ops::bts_rm32_r32);
 
     OP_TAB[iced_x86::Code::Cpuid as usize] = Some(ops::cpuid);
 

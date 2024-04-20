@@ -273,6 +273,12 @@ pub fn seta_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(value);
 }
 
+pub fn setae_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let value = !cpu.flags.contains(Flags::CF) as u8;
+    let x = rm8(cpu, mem, instr);
+    x.set(value);
+}
+
 pub fn setb_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let value = cpu.flags.contains(Flags::CF) as u8;
     let x = rm8(cpu, mem, instr);
@@ -416,4 +422,12 @@ pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
     let addr = cpu.regs.ebx + (cpu.regs.eax & 0xFF);
     cpu.regs
         .set8(iced_x86::Register::AL, mem.get_pod::<u8>(addr));
+}
+
+pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    let mask = 1u32 << y;
+    cpu.flags.set(Flags::CF, x.get() & mask != 0);
+    x.set(x.get() | mask);
 }
