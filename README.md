@@ -5,10 +5,14 @@ platforms).
 
 Take a win32 `.exe` file and run it in a web browser or a Mac.
 
+See [some demos](https://evmar.github.io/retrowin32/).
+
 ## Status
 
-Doesn't really work for much yet, but I'm still tinkering!
+Can run a few programs, including console, win32 GUI, and DirectX. Likely will
+fail if given a program I haven't worked on yet.
 
+- 2024/03: runs some of Minesweeper and more demoscene programs.
 - 2023/10: preliminary support for using
   [Unicorn](https://www.unicorn-engine.org/) (basically QEMU) for x86 emulation.
 - 2023/08:
@@ -16,8 +20,6 @@ Doesn't really work for much yet, but I'm still tinkering!
   about new Rosetta-based emulation support. retrowin32 now can run on web,
   native with CPU emulation, or Rosetta x86-64. (Native x86-64 ought to be
   relatively easy to add too.)
-- 2023/05:
-  [new blog post](https://neugierig.org/software/blog/2023/05/retrowin32-async-dll-tracing-zig.html).
 - 2023/04: "monolife" demo now can sorta render first scene.
 - 2023/02: can now run natively via SDL.
   [See blog post](https://neugierig.org/software/blog/2023/02/retrowin32-progress.html).
@@ -25,7 +27,9 @@ Doesn't really work for much yet, but I'm still tinkering!
   program.
   [See blog post](https://neugierig.org/software/blog/2022/10/retrowin32.html).
 
-See [some demos](https://evmar.github.io/retrowin32/).
+See
+[a list of blog posts](https://neugierig.org/software/blog/2023/09/retrowin32.html)
+for more detailed updates.
 
 ## The idea
 
