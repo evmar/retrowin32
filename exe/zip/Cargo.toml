@@ -1,0 +1,10 @@
+[package]
+name = "zip"
+version = "0.1.0"
+build = "build.rs"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+miniz_oxide = "0.7.2"

@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "cli",
   "exe/gdi",
+  "exe/zip",
   "web/glue",
   "win32/derive",
 ]
