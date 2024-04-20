@@ -452,6 +452,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Bswap_r32 as usize] = Some(ops::bswap_r32);
     OP_TAB[iced_x86::Code::Xlat_m8 as usize] = Some(ops::xlat_m8);
     OP_TAB[iced_x86::Code::Bts_rm32_r32 as usize] = Some(ops::bts_rm32_r32);
+    OP_TAB[iced_x86::Code::Tzcnt_r32_rm32 as usize] = Some(ops::tzcnt_r32_rm32);
 
     OP_TAB[iced_x86::Code::Cpuid as usize] = Some(ops::cpuid);
 

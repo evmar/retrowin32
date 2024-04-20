@@ -437,3 +437,12 @@ pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.flags.set(Flags::CF, x.get() & mask != 0);
     x.set(x.get() | mask);
 }
+
+pub fn tzcnt_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    let count = y.trailing_zeros();
+    cpu.flags.set(Flags::CF, count == 32);
+    cpu.flags.set(Flags::ZF, count == 0);
+    x.set(count);
+}
