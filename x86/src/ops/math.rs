@@ -213,6 +213,7 @@ fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
     if count == 0 {
         return;
     }
+    let count = count % 32;
     let val = x.get();
     // "CF flag is filled with the last bit shifted out of the destination operand"
     flags.set(Flags::CF, ((val >> (32 - count)) & 1) != 0);
@@ -224,14 +225,14 @@ fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
 }
 
 pub fn shld_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = instr.immediate8() % 32;
+    let count = instr.immediate8();
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shld(x, y, count, &mut cpu.flags);
 }
 
 pub fn shld_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = cpu.regs.ecx as u8 % 32;
+    let count = cpu.regs.ecx as u8;
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shld(x, y, count, &mut cpu.flags);
@@ -241,6 +242,11 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
     if y == 0 {
         return x; // Don't affect flags.
     }
+
+    // In all modes but 64 it is correct to mask to 32 bits.
+    assert!(I::bits() < 64); // 64 not implemented
+    let y = y % 32;
+
     flags.set(Flags::CF, ((x >> (y - 1) as usize) & I::one()).is_one());
     let val = x >> y as usize;
     flags.set(Flags::SF, false); // ?
@@ -295,6 +301,7 @@ fn shrd(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
     if count == 0 {
         return;
     }
+    let count = count % 32;
     let val = x.get();
     // "CF flag is filled with the last bit shifted out of the destination operand"
     flags.set(Flags::CF, ((val >> (count - 1)) & 1) != 0);
@@ -306,14 +313,14 @@ fn shrd(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
 }
 
 pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = instr.immediate8() % 32;
+    let count = instr.immediate8();
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shrd(x, y, count, &mut cpu.flags);
 }
 
 pub fn shrd_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = cpu.regs.ecx as u8 % 32;
+    let count = cpu.regs.ecx as u8;
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shrd(x, y, count, &mut cpu.flags);
