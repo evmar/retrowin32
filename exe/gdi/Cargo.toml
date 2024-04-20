@@ -1,9 +1,13 @@
 [package]
 name = "gdi"
 version = "0.1.0"
+build = "build.rs"
 edition = "2021"
 
-[dependencies]
+# Note: for compatibility with i586-pc-windows-msvc (and not just i686),
+# we need windows-sys to pick up a newer windows-targets dep:
+# https://github.com/microsoft/windows-rs/issues/3006
+# This is apparently picked up in the lock file.
 
 [dependencies.windows-sys]
 version = "0.52.0"

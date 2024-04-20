@@ -1,3 +1,2 @@
 [target.i586-pc-windows-msvc]
 linker = "rust-lld"
-rustflags = ["-C", "panic=abort", "-C", "target-feature=-sse", "-C", "opt-level=z"]
