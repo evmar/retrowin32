@@ -589,6 +589,13 @@ pub fn adc_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(addc(x.get(), y, carry as u32, &mut cpu.flags));
 }
 
+pub fn adc_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8() as u16;
+    let carry = cpu.flags.contains(Flags::CF);
+    let x = rm16(cpu, mem, instr);
+    x.set(addc(x.get(), y, carry as u16, &mut cpu.flags));
+}
+
 pub fn adc_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let carry = cpu.flags.contains(Flags::CF);
