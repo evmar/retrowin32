@@ -209,21 +209,32 @@ pub fn shl_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shld_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = instr.immediate8() % 32;
+fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
     if count == 0 {
         return;
     }
-    let y = op1_rm32(cpu, mem, instr);
-    let x = rm32(cpu, mem, instr);
     let val = x.get();
     // "CF flag is filled with the last bit shifted out of the destination operand"
-    cpu.flags.set(Flags::CF, ((val >> (32 - count)) & 1) != 0);
+    flags.set(Flags::CF, ((val >> (32 - count)) & 1) != 0);
     if count == 1 {
         // "OF flag is set if a sign change occurred"
-        cpu.flags.set(Flags::OF, (val >> 31) != ((val >> 30) & 1));
+        flags.set(Flags::OF, (val >> 31) != ((val >> 30) & 1));
     }
     x.set((val << count) | (y >> (32 - count)));
+}
+
+pub fn shld_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let count = instr.immediate8() % 32;
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    shld(x, y, count, &mut cpu.flags);
+}
+
+pub fn shld_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let count = cpu.regs.ecx as u8 % 32;
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    shld(x, y, count, &mut cpu.flags);
 }
 
 fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
@@ -280,16 +291,32 @@ pub fn shr_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
 
-pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = instr.immediate8();
+fn shrd(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
     if count == 0 {
         return;
     }
+    let val = x.get();
+    // "CF flag is filled with the last bit shifted out of the destination operand"
+    flags.set(Flags::CF, ((val >> (count - 1)) & 1) != 0);
+    if count == 1 {
+        // "OF flag is set if a sign change occurred"
+        flags.set(Flags::OF, (val >> 31) != (y & 1));
+    }
+    x.set((val >> count) | (y << (32 - count)));
+}
+
+pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let count = instr.immediate8() % 32;
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
-    let src = ((y as u64) << 32) | (x.get() as u64);
-    x.set((src >> count) as u32)
-    // TODO: flags.
+    shrd(x, y, count, &mut cpu.flags);
+}
+
+pub fn shrd_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let count = cpu.regs.ecx as u8 % 32;
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    shrd(x, y, count, &mut cpu.flags);
 }
 
 fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
