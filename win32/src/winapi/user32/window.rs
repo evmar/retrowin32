@@ -173,7 +173,8 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
 pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
     // TODO: calling the *W variants tags the windows as expecting wide messages(!).
     let lpWndClass = lpWndClass.unwrap();
-    let name = unsafe { Str16::from_ptr(machine.mem(), lpWndClass.lpszClassName) }.unwrap();
+    let name =
+        unsafe { Str16::from_nul_term_ptr(machine.mem(), lpWndClass.lpszClassName) }.unwrap();
     let background = unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground) };
     let wndclass = WndClass {
         name: name.to_string(),

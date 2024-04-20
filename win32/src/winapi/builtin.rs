@@ -1105,7 +1105,7 @@ pub mod kernel32 {
             let lpFileName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             let nBufferLength = <u32>::from_stack(mem, esp + 8u32);
             let lpBuffer = <u32>::from_stack(mem, esp + 12u32);
-            let lpFilePart = <u32>::from_stack(mem, esp + 16u32);
+            let lpFilePart = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::GetFullPathNameW(
                 machine,
                 lpFileName,

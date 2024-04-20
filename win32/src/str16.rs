@@ -6,22 +6,32 @@
 pub struct Str16([u16]);
 
 impl Str16 {
-    pub fn from_bytes<'a>(mem: &'a [u8]) -> &'a Self {
+    pub fn from_bytes(mem: &[u8]) -> &Self {
         Str16::from_buffer(unsafe {
             std::slice::from_raw_parts(mem.as_ptr() as *const _, mem.len() / 2)
         })
     }
 
-    pub fn from_buffer<'a>(mem: &'a [u16]) -> &'a Self {
+    pub fn from_bytes_mut(mem: &mut [u8]) -> &mut Self {
+        Str16::from_buffer_mut(unsafe {
+            std::slice::from_raw_parts_mut(mem.as_ptr() as *mut _, mem.len() / 2)
+        })
+    }
+
+    pub fn from_buffer(mem: &[u16]) -> &Self {
         unsafe { std::mem::transmute(mem) }
     }
 
-    pub fn from_nul_term<'a>(mem: &'a [u16]) -> &'a Self {
+    pub fn from_buffer_mut(mem: &mut [u16]) -> &mut Self {
+        unsafe { std::mem::transmute(mem) }
+    }
+
+    pub fn from_nul_term(mem: &[u16]) -> &Self {
         let end = mem.iter().position(|&c| c == 0).unwrap();
         Self::from_buffer(&mem[..end])
     }
 
-    pub unsafe fn from_ptr<'a>(mem: memory::Mem<'a>, addr: u32) -> Option<&'a Self> {
+    pub unsafe fn from_nul_term_ptr(mem: memory::Mem, addr: u32) -> Option<&Self> {
         if addr == 0 {
             return None;
         }
@@ -35,10 +45,6 @@ impl Str16 {
 
     pub fn buf(&self) -> &[u16] {
         &self.0
-    }
-
-    pub fn len(&self) -> usize {
-        self.0.len()
     }
 
     pub fn to_string(&self) -> String {
@@ -58,6 +64,20 @@ impl Str16 {
 impl<'a> std::fmt::Debug for &'a Str16 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{:?}", self.to_string()))
+    }
+}
+
+impl std::ops::Deref for Str16 {
+    type Target = [u16];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Str16 {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 

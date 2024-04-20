@@ -193,11 +193,30 @@ pub fn GetConsoleMode(
 
 #[win32_derive::dllexport]
 pub fn GetFullPathNameW(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     lpFileName: Option<&Str16>,
     nBufferLength: u32,
     lpBuffer: u32,
-    lpFilePart: u32,
+    lpFilePart: Option<&mut u32>,
 ) -> u32 {
-    0 // fail
+    let file_name = lpFileName.unwrap();
+    let buf = Str16::from_bytes_mut(
+        machine
+            .mem()
+            .sub(lpBuffer, nBufferLength * 2)
+            .as_mut_slice_todo(),
+    );
+    if let Some(_part) = lpFilePart {
+        todo!();
+    }
+
+    if buf.len() < file_name.len() + 1 {
+        // not enough space
+        return file_name.len() as u32 + 1;
+    }
+
+    buf[..file_name.len()].copy_from_slice(file_name);
+    buf[file_name.len()] = 0;
+
+    file_name.len() as u32
 }
