@@ -3040,6 +3040,13 @@ pub mod vcruntime140 {
             let pThrowInfo = <u32>::from_stack(mem, esp + 8u32);
             winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo).to_raw()
         }
+        pub unsafe fn memcmp(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lhs = <u32>::from_stack(mem, esp + 4u32);
+            let rhs = <u32>::from_stack(mem, esp + 8u32);
+            let len = <u32>::from_stack(mem, esp + 12u32);
+            winapi::vcruntime140::memcmp(machine, lhs, rhs, len).to_raw()
+        }
         pub unsafe fn memcpy(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dst = <u32>::from_stack(mem, esp + 4u32);
@@ -3064,6 +3071,12 @@ pub mod vcruntime140 {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const memcmp: Shim = Shim {
+            name: "memcmp",
+            func: impls::memcmp,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const memcpy: Shim = Shim {
             name: "memcpy",
             func: impls::memcpy,
@@ -3077,10 +3090,14 @@ pub mod vcruntime140 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 3usize] = [
+    const EXPORTS: [Symbol; 4usize] = [
         Symbol {
             ordinal: None,
             shim: shims::_CxxThrowException,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::memcmp,
         },
         Symbol {
             ordinal: None,
