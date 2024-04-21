@@ -32,9 +32,6 @@ pub struct CPU {
     pub flags: Flags,
     pub fpu: FPU,
 
-    /// Total number of instructions executed.
-    pub instr_count: usize,
-
     pub state: CPUState,
 }
 
@@ -47,7 +44,6 @@ impl CPU {
             regs: Registers::default(),
             flags: Flags::empty(),
             fpu: FPU::default(),
-            instr_count: 0,
             state: Default::default(),
         }
     }
@@ -74,7 +70,6 @@ impl CPU {
     pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &CPUState {
         self.state = CPUState::Running;
         ops::execute(self, mem, instr);
-        self.instr_count += 1;
         &self.state
     }
 }
@@ -82,6 +77,9 @@ impl CPU {
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
     pub cpu: CPU,
+
+    /// Total number of instructions executed.
+    pub instr_count: usize,
 
     #[serde(skip)]
     pub icache: InstrCache,
@@ -91,6 +89,7 @@ impl X86 {
     pub fn new() -> Self {
         X86 {
             cpu: CPU::new(),
+            instr_count: 0,
             icache: InstrCache::default(),
         }
     }
@@ -110,9 +109,23 @@ impl X86 {
 
     // Execute one basic block.  Returns false if we stopped early.
     pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
-        self.icache.execute_block(&mut self.cpu, mem)
-        // NOTE: clear_single_step doesn't help here, because ip now points into the middle
-        // of some block and the next time we execute we'll just recreate the partial block anyway.
-        // self.icache.clear_single_step(ip);
+        let ip = self.cpu.regs.eip;
+
+        let block = self.icache.get_block(mem, ip);
+        for instr in block.instrs.iter() {
+            let ip = self.cpu.regs.eip;
+            self.cpu.regs.eip = instr.next_ip() as u32;
+            match self.cpu.run(mem, instr) {
+                CPUState::Running => {}
+                CPUState::Error(_) => {
+                    // Point the debugger at the failed instruction.
+                    self.cpu.regs.eip = ip;
+                    break;
+                }
+                CPUState::Exit(_) => break,
+                CPUState::Blocked => break,
+            }
+        }
+        &self.cpu.state
     }
 }

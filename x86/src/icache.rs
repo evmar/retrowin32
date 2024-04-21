@@ -7,12 +7,11 @@
 //! any affected basic block into smaller pieces to maintain the invariant of
 //! always executing through a basic block's end.
 
-use crate::{x86::CPUState, CPU};
 use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
 #[derive(Default)]
-struct BasicBlock {
+pub struct BasicBlock {
     /// Number of x86 instruction bytes covered by this block.
     pub len: u32,
     pub instrs: Vec<iced_x86::Instruction>,
@@ -148,39 +147,20 @@ impl InstrCache {
         mem.put::<u8>(addr, prev);
     }
 
-    /// Executes the current basic block, updating eip.
-    /// Returns false if the CPU stopped.
-    pub fn execute_block<'a>(&mut self, cpu: &'a mut CPU, mem: Mem) -> &'a CPUState {
-        let ip = cpu.regs.eip;
-
-        let line = &mut self.lines[ip as usize % self.lines.len()];
-        let block = if line.ip == ip {
+    /// Gets basic block starting at a given ip.
+    pub fn get_block<'a>(&'a mut self, mem: Mem, ip: u32) -> &'a BasicBlock {
+        let index = ip as usize % self.lines.len();
+        if self.lines[index].ip == ip {
             self.hit += 1;
-            &line.block
+            return &self.lines[index].block;
         } else {
             self.miss += 1;
             self.decode_block(mem, ip, false)
-        };
-
-        for instr in block.instrs.iter() {
-            let ip = cpu.regs.eip;
-            cpu.regs.eip = instr.next_ip() as u32;
-            match cpu.run(mem, instr) {
-                CPUState::Running => {}
-                CPUState::Error(_) => {
-                    // Point the debugger at the failed instruction.
-                    cpu.regs.eip = ip;
-                    break;
-                }
-                CPUState::Exit(_) => break,
-                CPUState::Blocked => break,
-            }
         }
-        &cpu.state
     }
 
     /// Change cache such that there's a single basic block at ip.
-    /// This means executing the next execute_block() will execute a single instruction.
+    /// This means the next get_block() will get a block with a single instruction.
     pub fn make_single_step(&mut self, mem: Mem, ip: u32) {
         self.decode_block(mem, ip, true);
     }

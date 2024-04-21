@@ -62,7 +62,7 @@ impl Emulator {
 
     #[wasm_bindgen(getter)]
     pub fn instr_count(&self) -> usize {
-        self.machine.emu.x86.cpu.instr_count
+        self.machine.emu.x86.instr_count
     }
 
     pub fn disassemble_json(&self, addr: u32, limit: usize) -> String {
@@ -77,8 +77,8 @@ impl Emulator {
             self.machine.single_step_next_block();
             self.machine.execute_block();
         } else {
-            let start = self.machine.emu.x86.cpu.instr_count;
-            while self.machine.emu.x86.cpu.instr_count < start + count {
+            let start = self.machine.emu.x86.instr_count;
+            while self.machine.emu.x86.instr_count < start + count {
                 if !self.machine.execute_block().is_running() {
                     break;
                 }

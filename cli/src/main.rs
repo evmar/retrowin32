@@ -339,9 +339,9 @@ fn main() -> anyhow::Result<()> {
         if millis > 0 {
             eprintln!(
                 "{} instrs in {} ms: {}m/s",
-                machine.emu.x86.cpu.instr_count,
+                machine.emu.x86.instr_count,
                 millis,
-                (machine.emu.x86.cpu.instr_count / millis) / 1000
+                (machine.emu.x86.instr_count / millis) / 1000
             );
             eprintln!("icache: {}", machine.emu.x86.icache.stats());
         }
