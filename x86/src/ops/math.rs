@@ -669,7 +669,7 @@ pub fn sub_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
-pub fn sub_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn sub_rm16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr);
     let x = rm16(cpu, mem, instr);
     x.set(sub(x.get(), y, &mut cpu.flags));
