@@ -4696,9 +4696,39 @@ pub mod winmm {
             winapi::winmm::timeSetEvent(machine, uDelay, uResolution, lpTimeProc, dwUser, fuEvent)
                 .to_raw()
         }
+        pub unsafe fn waveOutClose(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            winapi::winmm::waveOutClose(machine, hwo).to_raw()
+        }
+        pub unsafe fn waveOutGetDevCapsA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uDeviceID = <u32>::from_stack(mem, esp + 4u32);
+            let pwoc = <Option<&mut WAVEOUTCAPS>>::from_stack(mem, esp + 8u32);
+            let cbwoc = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::waveOutGetDevCapsA(machine, uDeviceID, pwoc, cbwoc).to_raw()
+        }
         pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::winmm::waveOutGetNumDevs(machine).to_raw()
+        }
+        pub unsafe fn waveOutOpen(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let phwo = <Option<&mut HWAVEOUT>>::from_stack(mem, esp + 4u32);
+            let uDeviceID = <u32>::from_stack(mem, esp + 8u32);
+            let pwfx = <Option<&WAVEFORMATEX>>::from_stack(mem, esp + 12u32);
+            let dwCallback = <u32>::from_stack(mem, esp + 16u32);
+            let dwInstance = <u32>::from_stack(mem, esp + 20u32);
+            let fdwOpen = <Result<WaveOutOpenFlags, u32>>::from_stack(mem, esp + 24u32);
+            winapi::winmm::waveOutOpen(
+                machine, phwo, uDeviceID, pwfx, dwCallback, dwInstance, fdwOpen,
+            )
+            .to_raw()
+        }
+        pub unsafe fn waveOutReset(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            winapi::winmm::waveOutReset(machine, hwo).to_raw()
         }
     }
     mod shims {
@@ -4722,14 +4752,38 @@ pub mod winmm {
             stack_consumed: 20u32,
             is_async: false,
         };
+        pub const waveOutClose: Shim = Shim {
+            name: "waveOutClose",
+            func: impls::waveOutClose,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const waveOutGetDevCapsA: Shim = Shim {
+            name: "waveOutGetDevCapsA",
+            func: impls::waveOutGetDevCapsA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const waveOutGetNumDevs: Shim = Shim {
             name: "waveOutGetNumDevs",
             func: impls::waveOutGetNumDevs,
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const waveOutOpen: Shim = Shim {
+            name: "waveOutOpen",
+            func: impls::waveOutOpen,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const waveOutReset: Shim = Shim {
+            name: "waveOutReset",
+            func: impls::waveOutReset,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 4usize] = [
+    const EXPORTS: [Symbol; 8usize] = [
         Symbol {
             ordinal: None,
             shim: shims::timeBeginPeriod,
@@ -4744,7 +4798,23 @@ pub mod winmm {
         },
         Symbol {
             ordinal: None,
+            shim: shims::waveOutClose,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutGetDevCapsA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::waveOutGetNumDevs,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutOpen,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutReset,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
