@@ -150,3 +150,17 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
 }
+
+#[win32_derive::dllexport]
+pub fn SetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> u32 {
+    let color = COLORREF::from_u32(color);
+    // TODO: actually draw
+    u32::from_le_bytes(color.to_pixel())
+}
+
+#[win32_derive::dllexport]
+pub fn GetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
+    let color = COLORREF((0, 0, 0));
+    // TODO: actually read
+    u32::from_le_bytes(color.to_pixel())
+}

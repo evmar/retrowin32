@@ -478,6 +478,13 @@ pub mod gdi32 {
             let out = <u32>::from_stack(mem, esp + 12u32);
             winapi::gdi32::GetObjectA(machine, handle, bytes, out).to_raw()
         }
+        pub unsafe fn GetPixel(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::GetPixel(machine, hdc, x, y).to_raw()
+        }
         pub unsafe fn GetStockObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, esp + 4u32);
@@ -549,6 +556,14 @@ pub mod gdi32 {
                 ColorUse,
             )
             .to_raw()
+        }
+        pub unsafe fn SetPixel(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            let color = <u32>::from_stack(mem, esp + 16u32);
+            winapi::gdi32::SetPixel(machine, hdc, x, y, color).to_raw()
         }
         pub unsafe fn SetROP2(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -664,6 +679,12 @@ pub mod gdi32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetPixel: Shim = Shim {
+            name: "GetPixel",
+            func: impls::GetPixel,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const GetStockObject: Shim = Shim {
             name: "GetStockObject",
             func: impls::GetStockObject,
@@ -718,6 +739,12 @@ pub mod gdi32 {
             stack_consumed: 48u32,
             is_async: false,
         };
+        pub const SetPixel: Shim = Shim {
+            name: "SetPixel",
+            func: impls::SetPixel,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const SetROP2: Shim = Shim {
             name: "SetROP2",
             func: impls::SetROP2,
@@ -743,7 +770,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 25usize] = [
+    const EXPORTS: [Symbol; 27usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -794,6 +821,10 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetPixel,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetStockObject,
         },
         Symbol {
@@ -827,6 +858,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::SetDIBitsToDevice,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetPixel,
         },
         Symbol {
             ordinal: None,
@@ -1572,9 +1607,9 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let lpAddress = <u32>::from_stack(mem, esp + 4u32);
             let dwSize = <u32>::from_stack(mem, esp + 8u32);
-            let _flAllocationType = <u32>::from_stack(mem, esp + 12u32);
-            let _flProtec = <u32>::from_stack(mem, esp + 16u32);
-            winapi::kernel32::VirtualAlloc(machine, lpAddress, dwSize, _flAllocationType, _flProtec)
+            let flAllocationType = <u32>::from_stack(mem, esp + 12u32);
+            let flProtec = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::VirtualAlloc(machine, lpAddress, dwSize, flAllocationType, flProtec)
                 .to_raw()
         }
         pub unsafe fn VirtualFree(machine: &mut Machine, esp: u32) -> u32 {
