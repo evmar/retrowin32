@@ -37,6 +37,7 @@ impl Default for SurfaceOptions {
 pub trait Window {
     fn set_title(&mut self, title: &str);
     fn set_size(&mut self, width: u32, height: u32);
+    fn fullscreen(&mut self);
 }
 
 pub trait File {

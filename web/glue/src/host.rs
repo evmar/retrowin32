@@ -98,8 +98,13 @@ impl win32::Window for JsWindow {
     fn set_title(&mut self, title: &str) {
         JsWindow::set_title(self, title);
     }
+
     fn set_size(&mut self, width: u32, height: u32) {
         JsWindow::set_size(self, width, height);
+    }
+
+    fn fullscreen(&mut self) {
+        todo!()
     }
 }
 

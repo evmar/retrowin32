@@ -140,6 +140,15 @@ impl win32::Window for WindowRef {
             .set_size(width, height)
             .unwrap();
     }
+
+    fn fullscreen(&mut self) {
+        self.0
+            .borrow_mut()
+            .canvas
+            .window_mut()
+            .set_fullscreen(sdl2::video::FullscreenType::Desktop)
+            .unwrap();
+    }
 }
 
 struct Texture {
@@ -182,9 +191,10 @@ impl win32::Surface for Texture {
     }
 
     fn show(&mut self) {
-        let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
         let canvas = &mut self.window.0.borrow_mut().canvas;
-        canvas.copy(&self.texture, rect, rect).unwrap();
+        // Passing None/None for the src/dst rects means to do a scaling full copy,
+        // which is what we want for the fullscreen case in particular.
+        canvas.copy(&self.texture, None, None).unwrap();
         canvas.present();
     }
 

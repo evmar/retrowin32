@@ -161,18 +161,18 @@ pub(super) mod IDirectDraw7 {
 
     bitflags! {
         pub struct DDSCL: u32 {
-            const DDSCL_FULLSCREEN = 0x0001;
-            const DDSCL_ALLOWREBOOT = 0x0002;
-            const DDSCL_NOWINDOWCHANGES = 0x0004;
-            const DDSCL_NORMAL = 0x0008;
-            const DDSCL_EXCLUSIVE = 0x0010;
-            const DDSCL_ALLOWMODEX = 0x0040;
-            const DDSCL_SETFOCUSWINDOW = 0x0080;
-            const DDSCL_SETDEVICEWINDOW = 0x0100;
-            const DDSCL_CREATEDEVICEWINDOW = 0x0200;
-            const DDSCL_MULTITHREADED = 0x0400;
-            const DDSCL_FPUSETUP = 0x0800;
-            const DDSCL_FPUPRESERVE =  0x1000;
+            const FULLSCREEN = 0x0001;
+            const ALLOWREBOOT = 0x0002;
+            const NOWINDOWCHANGES = 0x0004;
+            const NORMAL = 0x0008;
+            const EXCLUSIVE = 0x0010;
+            const ALLOWMODEX = 0x0040;
+            const SETFOCUSWINDOW = 0x0080;
+            const SETDEVICEWINDOW = 0x0100;
+            const CREATEDEVICEWINDOW = 0x0200;
+            const MULTITHREADED = 0x0400;
+            const FPUSETUP = 0x0800;
+            const FPUPRESERVE =  0x1000;
         }
     }
     impl TryFrom<u32> for DDSCL {
@@ -192,6 +192,11 @@ pub(super) mod IDirectDraw7 {
     ) -> u32 {
         // TODO: this triggers behaviors like fullscreen.
         machine.state.ddraw.hwnd = hwnd;
+        let flags = flags.unwrap();
+        if flags.contains(DDSCL::EXCLUSIVE) {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            window.host.fullscreen();
+        }
         DD_OK
     }
 
