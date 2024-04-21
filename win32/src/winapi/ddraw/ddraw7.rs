@@ -39,7 +39,7 @@ pub(super) mod IDirectDraw7 {
         GetScanLine todo,
         GetVerticalBlankStatus todo,
         Initialize todo,
-        RestoreDisplayMode todo,
+        RestoreDisplayMode ok,
         SetCooperativeLevel ok,
         SetDisplayMode ok,
         WaitForVerticalBlank ok,
@@ -181,6 +181,11 @@ pub(super) mod IDirectDraw7 {
         fn try_from(value: u32) -> Result<Self, Self::Error> {
             DDSCL::from_bits(value).ok_or(value)
         }
+    }
+
+    #[win32_derive::dllexport]
+    pub fn RestoreDisplayMode(_machine: &mut Machine, this: u32) -> u32 {
+        0
     }
 
     #[win32_derive::dllexport]

@@ -39,7 +39,7 @@ pub(super) mod IDirectDraw {
         GetScanLine todo,
         GetVerticalBlankStatus todo,
         Initialize todo,
-        RestoreDisplayMode todo,
+        RestoreDisplayMode (IDirectDraw7::shims::RestoreDisplayMode),
         SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
         SetDisplayMode ok,
         WaitForVerticalBlank (IDirectDraw7::shims::WaitForVerticalBlank),
