@@ -154,3 +154,28 @@ pub fn waveOutGetPosition(
     mmt.u.sample = 0;
     0
 }
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct WAVEHDR {
+    lpData: u32,
+    dwBufferLength: u32,
+    dwBytesRecorded: u32,
+    dwUser: u32,
+    dwFlags: u32,
+    dwLoops: u32,
+    lpNext: u32,
+    reserved: u32,
+}
+unsafe impl memory::Pod for WAVEHDR {}
+
+#[win32_derive::dllexport]
+pub fn waveOutPrepareHeader(
+    _machine: &mut Machine,
+    hwo: HWAVEOUT,
+    pwh: Option<&WAVEHDR>,
+    cbwh: u32,
+) -> u32 {
+    assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
+    0
+}

@@ -4834,6 +4834,13 @@ pub mod winmm {
             )
             .to_raw()
         }
+        pub unsafe fn waveOutPrepareHeader(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            let pwh = <Option<&WAVEHDR>>::from_stack(mem, esp + 8u32);
+            let cbwh = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::waveOutPrepareHeader(machine, hwo, pwh, cbwh).to_raw()
+        }
         pub unsafe fn waveOutReset(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
@@ -4891,6 +4898,12 @@ pub mod winmm {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const waveOutPrepareHeader: Shim = Shim {
+            name: "waveOutPrepareHeader",
+            func: impls::waveOutPrepareHeader,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const waveOutReset: Shim = Shim {
             name: "waveOutReset",
             func: impls::waveOutReset,
@@ -4898,7 +4911,7 @@ pub mod winmm {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 9usize] = [
+    const EXPORTS: [Symbol; 10usize] = [
         Symbol {
             ordinal: None,
             shim: shims::timeBeginPeriod,
@@ -4930,6 +4943,10 @@ pub mod winmm {
         Symbol {
             ordinal: None,
             shim: shims::waveOutOpen,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutPrepareHeader,
         },
         Symbol {
             ordinal: None,
