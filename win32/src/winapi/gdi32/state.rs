@@ -1,19 +1,19 @@
-use super::{Object, DC, HDC, HGDIOBJ};
-use crate::winapi::handle::Handles;
+use super::{DCTarget, Object, DC, HDC, HGDIOBJ};
+use crate::winapi::{handle::Handles, types::HWND};
 
 pub struct State {
     pub dcs: Handles<HDC, DC>,
-    pub desktop_dc: HDC,
+    pub screen_dc: HDC,
     pub objects: Handles<HGDIOBJ, Object>,
 }
 
 impl Default for State {
     fn default() -> Self {
         let mut dcs: Handles<HDC, DC> = Default::default();
-        let desktop_dc = dcs.reserve();
+        let screen_dc = dcs.add(DC::new(DCTarget::Window(HWND::null())));
         State {
             dcs,
-            desktop_dc,
+            screen_dc,
             objects: Handles::new(HGDIOBJ::lowest_value()),
         }
     }

@@ -694,7 +694,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
             let window = machine.state.user32.windows.get(hWnd).unwrap();
             window.hdc
         }
-        None => machine.state.gdi32.desktop_dc,
+        None => machine.state.gdi32.screen_dc,
     }
 }
 

@@ -82,8 +82,7 @@ pub fn BitBlt(
                 _ => unimplemented!("{:?}", obj),
             }
         }
-        DCTarget::Window(_) => todo!(),
-        DCTarget::DirectDrawSurface(_) => todo!(),
+        _ => todo!(),
     };
     let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
@@ -273,9 +272,20 @@ pub fn CreateDIBSection(
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dc.target {
-        DCTarget::Memory(_) => todo!(),
+        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+            Object::Bitmap(BitmapType::RGBA32(_)) => {}
+            Object::Bitmap(_) => {
+                // Cryogoat does a series of:
+                //   let dc1 = GetDC(0); // desktop dc
+                //   let dc2 = CreateCompatibleDc(dc1); // memory dc
+                //   CreateCompatibleBitmap(dc2);
+                // The MSDN docs say this sequence should produce a 1bpp bitmap because
+                // the initial state of dc1 is monochrome, but I think cryogoat doesn't expect this (?)
+            }
+            _ => todo!(),
+        },
         DCTarget::Window(_) => {} // screen has known format
-        DCTarget::DirectDrawSurface(_) => todo!(),
+        _ => todo!(),
     };
 
     let mut pixels = Vec::new();
@@ -339,7 +349,7 @@ pub fn SetDIBitsToDevice(
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             (window.bitmap_mut(&mut *machine.host), true)
         }
-        DCTarget::DirectDrawSurface(_) => todo!(),
+        _ => todo!(),
     };
 
     bit_blt(

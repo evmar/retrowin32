@@ -87,7 +87,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
     let hwnd = match dc.target {
         DCTarget::Memory(_) => todo!(),
         DCTarget::Window(hwnd) => hwnd,
-        DCTarget::DirectDrawSurface(_) => todo!(),
+        _ => todo!(),
     };
     let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
     let stride = window.width;
