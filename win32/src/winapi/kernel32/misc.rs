@@ -32,7 +32,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
     #[cfg(feature = "x86-emu")]
     {
-        machine.emu.x86.cpu.state = x86::CPUState::Exit(uExitCode);
+        machine.emu.x86.cpu_mut().state = x86::CPUState::Exit(uExitCode);
     }
     0
 }

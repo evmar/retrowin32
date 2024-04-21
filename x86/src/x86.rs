@@ -68,7 +68,6 @@ impl CPU {
 
     /// Executes an instruction, leaving eip alone.  Returns false on CPU stop.
     pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &CPUState {
-        self.state = CPUState::Running;
         ops::execute(self, mem, instr);
         &self.state
     }
@@ -76,7 +75,8 @@ impl CPU {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
-    pub cpu: CPU,
+    pub cpus: Vec<CPU>,
+    pub cur_cpu: usize,
 
     /// Total number of instructions executed.
     pub instr_count: usize,
@@ -88,10 +88,19 @@ pub struct X86 {
 impl X86 {
     pub fn new() -> Self {
         X86 {
-            cpu: CPU::new(),
+            cpus: vec![CPU::new()],
+            cur_cpu: 0,
             instr_count: 0,
             icache: InstrCache::default(),
         }
+    }
+
+    pub fn cpu(&self) -> &CPU {
+        &self.cpus[self.cur_cpu]
+    }
+
+    pub fn cpu_mut(&mut self) -> &mut CPU {
+        &mut self.cpus[self.cur_cpu]
     }
 
     pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
@@ -103,27 +112,29 @@ impl X86 {
     }
 
     pub fn single_step_next_block(&mut self, mem: Mem) {
-        let ip = self.cpu.regs.eip;
+        let ip = self.cpu().regs.eip;
         self.icache.make_single_step(mem, ip);
     }
 
     /// Execute one basic block starting at current ip.
     pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
-        let block = self.icache.get_block(mem, self.cpu.regs.eip);
+        let cpu = &mut self.cpus[self.cur_cpu];
+        cpu.state = CPUState::Running; // see comment in X86::execute_block
+        let block = self.icache.get_block(mem, cpu.regs.eip);
         for instr in block.instrs.iter() {
-            let ip = self.cpu.regs.eip;
-            self.cpu.regs.eip = instr.next_ip() as u32;
-            match self.cpu.run(mem, instr) {
+            let ip = cpu.regs.eip;
+            cpu.regs.eip = instr.next_ip() as u32;
+            match cpu.run(mem, instr) {
                 CPUState::Running => {}
                 CPUState::Error(_) => {
                     // Point the debugger at the failed instruction.
-                    self.cpu.regs.eip = ip;
+                    cpu.regs.eip = ip;
                     break;
                 }
                 CPUState::Exit(_) => break,
                 CPUState::Blocked => break,
             }
         }
-        &self.cpu.state
+        &cpu.state
     }
 }

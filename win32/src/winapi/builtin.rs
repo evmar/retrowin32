@@ -998,9 +998,10 @@ pub mod kernel32 {
                         lpThreadId,
                     )
                     .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 24u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 24u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -1723,9 +1724,10 @@ pub mod kernel32 {
                     use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 4u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -2982,9 +2984,10 @@ pub mod retrowin32_test {
                     let result =
                         winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data)
                             .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 8u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3308,9 +3311,10 @@ pub mod user32 {
                         lpParam,
                     )
                     .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 48u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 48u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3371,9 +3375,10 @@ pub mod user32 {
                         lpParam,
                     )
                     .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 48u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 48u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3463,9 +3468,10 @@ pub mod user32 {
                     use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 4u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3486,9 +3492,10 @@ pub mod user32 {
                     use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 4u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3576,9 +3583,10 @@ pub mod user32 {
                         wMsgFilterMax,
                     )
                     .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 16u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 16u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3615,9 +3623,10 @@ pub mod user32 {
                         wMsgFilterMax,
                     )
                     .await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 16u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 16u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3906,9 +3915,10 @@ pub mod user32 {
                     use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 8u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 8u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0
@@ -3941,9 +3951,10 @@ pub mod user32 {
                     use memory::Extensions;
                     let machine = unsafe { &mut *m };
                     let result = winapi::user32::UpdateWindow(machine, hWnd).await;
-                    machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                    machine.emu.x86.cpu.regs.esp += 4u32 + 4;
-                    machine.emu.x86.cpu.regs.eax = result.to_raw();
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 4u32 + 4;
+                    regs.eax = result.to_raw();
                 };
                 crate::shims::become_async(machine, Box::pin(result));
                 0

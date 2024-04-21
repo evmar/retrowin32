@@ -91,11 +91,12 @@ impl Shims {
 }
 
 pub fn is_eip_at_shim_call(machine: &mut Machine) -> bool {
-    machine.emu.x86.cpu.regs.eip & 0xFFFF_0000 == SHIM_BASE
+    machine.emu.x86.cpu().regs.eip & 0xFFFF_0000 == SHIM_BASE
 }
 
 pub fn handle_shim_call(machine: &mut Machine) {
-    let shim = match machine.emu.shims.get(machine.emu.x86.cpu.regs.eip) {
+    let regs = &mut machine.emu.x86.cpu_mut().regs;
+    let shim = match machine.emu.shims.get(regs.eip) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
@@ -105,16 +106,18 @@ pub fn handle_shim_call(machine: &mut Machine) {
         is_async,
         ..
     } = *shim;
-    let ret = unsafe { func(machine, machine.emu.x86.cpu.regs.esp) };
+    let esp = regs.esp;
+    let ret = unsafe { func(machine, esp) };
     if !is_async {
-        machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(machine.emu.x86.cpu.regs.esp);
-        machine.emu.x86.cpu.regs.esp += stack_consumed + 4;
-        machine.emu.x86.cpu.regs.eax = ret;
+        let regs = &mut machine.emu.x86.cpu_mut().regs;
+        regs.eip = machine.emu.memory.mem().get_pod::<u32>(regs.esp);
+        regs.esp += stack_consumed + 4;
+        regs.eax = ret;
 
         // Clear registers to make traces clean.
         // eax holds return value; other registers are callee-saved per ABI.
-        machine.emu.x86.cpu.regs.ecx = 0;
-        machine.emu.x86.cpu.regs.edx = 0;
+        regs.ecx = 0;
+        regs.edx = 0;
     } else {
         // Async handler will manage the return address etc.
     }
@@ -126,14 +129,14 @@ pub fn become_async(
     machine: &mut Machine,
     future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
 ) {
-    machine.emu.x86.cpu.regs.eip = machine.emu.shims.async_executor;
+    machine.emu.x86.cpu_mut().regs.eip = machine.emu.shims.async_executor;
     machine.emu.shims.futures.push(future);
 }
 
 pub struct X86Future {
     // We know the Machine is around for the duration of the future execution.
     // https://github.com/rust-lang/futures-rs/issues/316
-    m: *const Machine,
+    m: *mut Machine,
     esp: u32,
 }
 impl std::future::Future for X86Future {
@@ -143,13 +146,14 @@ impl std::future::Future for X86Future {
         self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
-        let machine = unsafe { &*self.m };
+        let m = self.m;
+        let machine = unsafe { &mut *m };
         // log::info!(
         //     "poll esp:{:x} want:{:x}",
         //     machine.emu.x86.cpu.regs.esp,
         //     self.esp
         // );
-        if machine.emu.x86.cpu.regs.esp == self.esp {
+        if machine.emu.x86.cpu().regs.esp == self.esp {
             std::task::Poll::Ready(())
         } else {
             std::task::Poll::Pending
@@ -158,24 +162,25 @@ impl std::future::Future for X86Future {
 }
 
 pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
+    let mut cpu = machine.emu.x86.cpu_mut();
     // Save original esp, as that's the marker that we use to know when the call is done.
-    let esp = machine.emu.x86.cpu.regs.esp;
+    let esp = cpu.regs.esp;
     // Push the args in reverse order.
     for &arg in args.iter().rev() {
-        x86::ops::push(&mut machine.emu.x86.cpu, machine.emu.memory.mem(), arg);
+        x86::ops::push(&mut cpu, machine.emu.memory.mem(), arg);
     }
     x86::ops::push(
-        &mut machine.emu.x86.cpu,
+        cpu,
         machine.emu.memory.mem(),
         machine.emu.shims.async_executor,
     ); // return address
-    machine.emu.x86.cpu.regs.eip = func;
+    cpu.regs.eip = func;
 
     // Clear registers to make traces clean.
     // Other registers are callee-saved per ABI.
-    machine.emu.x86.cpu.regs.eax = 0;
-    machine.emu.x86.cpu.regs.ecx = 0;
-    machine.emu.x86.cpu.regs.edx = 0;
+    cpu.regs.eax = 0;
+    cpu.regs.ecx = 0;
+    cpu.regs.edx = 0;
 
     X86Future { m: machine, esp }
 }
@@ -201,7 +206,7 @@ fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
 }
 
 pub struct BlockMessageFuture {
-    m: *const Machine,
+    m: *mut Machine,
 }
 impl std::future::Future for BlockMessageFuture {
     type Output = ();
@@ -210,8 +215,9 @@ impl std::future::Future for BlockMessageFuture {
         self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
-        let machine = unsafe { &*self.m };
-        if machine.emu.x86.cpu.state == x86::CPUState::Blocked {
+        let m = self.m;
+        let machine = unsafe { &mut *m };
+        if machine.emu.x86.cpu().state == x86::CPUState::Blocked {
             std::task::Poll::Pending
         } else {
             std::task::Poll::Ready(())
@@ -220,6 +226,6 @@ impl std::future::Future for BlockMessageFuture {
 }
 
 pub fn block(machine: &mut Machine) -> BlockMessageFuture {
-    machine.emu.x86.cpu.state = x86::CPUState::Blocked;
+    machine.emu.x86.cpu_mut().state = x86::CPUState::Blocked;
     BlockMessageFuture { m: machine }
 }

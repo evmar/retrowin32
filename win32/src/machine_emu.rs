@@ -5,7 +5,7 @@ use crate::{
     shims_emu::Shims,
     winapi,
 };
-use memory::{Extensions, Mem};
+use memory::Mem;
 use std::collections::HashMap;
 
 // This is really Box<u8>, just using Vec<u8> to use serde_bytes.
@@ -82,8 +82,9 @@ impl MachineX<Emulator> {
                 .mappings
                 .alloc(stack_size, "stack".into(), &mut self.emu.memory);
         let stack_pointer = stack.addr + stack.size - 4;
-        self.emu.x86.cpu.regs.esp = stack_pointer;
-        self.emu.x86.cpu.regs.ebp = stack_pointer;
+        let regs = &mut self.emu.x86.cpu_mut().regs;
+        regs.esp = stack_pointer;
+        regs.ebp = stack_pointer;
 
         stack_pointer
     }
@@ -97,14 +98,15 @@ impl MachineX<Emulator> {
         let exe = pe::load_exe(self, buf, cmdline, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
-        self.emu.x86.cpu.regs.fs_addr = self.state.kernel32.teb;
+        let regs = &mut self.emu.x86.cpu_mut().regs;
+        regs.fs_addr = self.state.kernel32.teb;
 
         // To make CPU traces match more closely, set up some registers to what their
         // initial values appear to be from looking in a debugger.
-        self.emu.x86.cpu.regs.ecx = exe.entry_point;
-        self.emu.x86.cpu.regs.edx = exe.entry_point;
-        self.emu.x86.cpu.regs.esi = exe.entry_point;
-        self.emu.x86.cpu.regs.edi = exe.entry_point;
+        regs.ecx = exe.entry_point;
+        regs.edx = exe.entry_point;
+        regs.esi = exe.entry_point;
+        regs.edi = exe.entry_point;
 
         let kernel32 = winapi::kernel32::GetModuleHandleA(self, Some("kernel32.dll"));
         let retrowin32_main = winapi::kernel32::GetProcAddress(
@@ -112,13 +114,10 @@ impl MachineX<Emulator> {
             kernel32,
             winapi::kernel32::GetProcAddressArg(winapi::ImportSymbol::Name("retrowin32_main")),
         );
-        x86::ops::push(
-            &mut self.emu.x86.cpu,
-            self.emu.memory.mem(),
-            exe.entry_point,
-        );
-        x86::ops::push(&mut self.emu.x86.cpu, self.emu.memory.mem(), 0); // return address
-        self.emu.x86.cpu.regs.eip = retrowin32_main;
+        let cpu = self.emu.x86.cpu_mut();
+        x86::ops::push(cpu, self.emu.memory.mem(), exe.entry_point);
+        x86::ops::push(cpu, self.emu.memory.mem(), 0); // return address
+        cpu.regs.eip = retrowin32_main;
 
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
@@ -134,11 +133,14 @@ impl MachineX<Emulator> {
 
     // Execute one basic block.  Returns false if we stopped early.
     pub fn execute_block(&mut self) -> &x86::CPUState {
+        // Ugly: mark the CPU running here, because even if this execute is handled
+        // by a shim, we want it to transition the CPU out of blocked state.
+        self.emu.x86.cpu_mut().state = x86::CPUState::Running;
         if crate::shims_emu::is_eip_at_shim_call(self) {
             crate::shims_emu::handle_shim_call(self);
             // Treat any shim call as a single block and return here.
             // error can be set in cases like calls to ExitProcess().
-            return &self.emu.x86.cpu.state;
+            return &self.emu.x86.cpu().state;
         }
         self.emu.x86.execute_block(self.emu.memory.mem())
     }
@@ -147,17 +149,17 @@ impl MachineX<Emulator> {
         crate::shims_emu::call_x86(self, func, args)
     }
 
-    pub fn dump_stack(&self) {
-        let esp = self.emu.x86.cpu.regs.esp;
-        for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
-            let extra = if addr == esp { " <- esp" } else { "" };
-            log::info!(
-                "{:08x} {:08x}{extra}",
-                addr,
-                self.mem().get_pod::<u32>(addr)
-            );
-        }
-    }
+    // pub fn dump_stack(&self) {
+    //     let esp = self.emu.x86.cpu.regs.esp;
+    //     for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
+    //         let extra = if addr == esp { " <- esp" } else { "" };
+    //         log::info!(
+    //             "{:08x} {:08x}{extra}",
+    //             addr,
+    //             self.mem().get_pod::<u32>(addr)
+    //         );
+    //     }
+    // }
 
     pub fn snapshot(&self) -> Box<[u8]> {
         bincode::serialize(&self.emu).unwrap().into()

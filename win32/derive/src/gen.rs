@@ -176,9 +176,10 @@ pub fn fn_wrapper(
                 use memory::Extensions;
                 let machine = unsafe { &mut *m };
                 let result = #module::#name(machine, #(#args),*).await;
-                machine.emu.x86.cpu.regs.eip = machine.mem().get_pod::<u32>(esp);
-                machine.emu.x86.cpu.regs.esp += #stack_consumed + 4;
-                machine.emu.x86.cpu.regs.eax = result.to_raw();
+                let regs = &mut machine.emu.x86.cpu_mut().regs;
+                regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                regs.esp += #stack_consumed + 4;
+                regs.eax = result.to_raw();
             };
             crate::shims::become_async(machine, Box::pin(result));
             // async block will set up the stack and eip.

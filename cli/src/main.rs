@@ -26,7 +26,7 @@ static mut SNAPSHOT_REQUESTED: bool = false;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine, count: usize) {
-    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu.regs.eip, count);
+    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu().regs.eip, count);
 
     for instr in instrs {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
@@ -185,7 +185,7 @@ fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
 fn print_trace(machine: &win32::Machine) {
     #[cfg(feature = "x86-emu")]
     let (eip, eax, ebx, ecx, edx, esi, edi, esp, st_top) = {
-        let regs = &machine.emu.x86.cpu.regs;
+        let regs = &machine.emu.x86.cpu().regs;
         (
             regs.eip,
             regs.eax,
@@ -195,7 +195,7 @@ fn print_trace(machine: &win32::Machine) {
             regs.esi,
             regs.edi,
             regs.esp,
-            machine.emu.x86.cpu.fpu.st_top,
+            machine.emu.x86.cpu().fpu.st_top,
         )
     };
 
@@ -281,7 +281,7 @@ fn main() -> anyhow::Result<()> {
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();
             while machine.execute_block().is_running() {
-                let regs = &machine.emu.x86.cpu.regs;
+                let regs = &machine.emu.x86.cpu().regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
                     continue;
                 }
@@ -300,7 +300,7 @@ fn main() -> anyhow::Result<()> {
                 loop {
                     // Ignore errors here because we will hit breakpoints.
                     machine.execute_block();
-                    if machine.emu.x86.cpu.regs.eip == next_trace {
+                    if machine.emu.x86.cpu().regs.eip == next_trace {
                         break;
                     }
                 }
@@ -325,10 +325,10 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        match &machine.emu.x86.cpu.state {
+        match &machine.emu.x86.cpu().state {
             x86::CPUState::Error(error) => {
-                dump_asm(&machine, 5);
                 log::error!("{:?}", error);
+                dump_asm(&machine, 5);
             }
             x86::CPUState::Exit(_) => {}
             x86::CPUState::Blocked => unreachable!(),
