@@ -142,12 +142,13 @@ impl win32::Window for WindowRef {
     }
 
     fn fullscreen(&mut self) {
-        self.0
-            .borrow_mut()
-            .canvas
-            .window_mut()
-            .set_fullscreen(sdl2::video::FullscreenType::Desktop)
-            .unwrap();
+        log::info!("fullscreen request ignored for debugging ease");
+        // self.0
+        //     .borrow_mut()
+        //     .canvas
+        //     .window_mut()
+        //     .set_fullscreen(sdl2::video::FullscreenType::Desktop)
+        //     .unwrap();
     }
 }
 
