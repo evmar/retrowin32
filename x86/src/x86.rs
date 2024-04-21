@@ -124,6 +124,7 @@ impl X86 {
         for instr in block.instrs.iter() {
             let ip = cpu.regs.eip;
             cpu.regs.eip = instr.next_ip() as u32;
+            self.instr_count += 1;
             match cpu.run(mem, instr) {
                 CPUState::Running => {}
                 CPUState::Error(_) => {
