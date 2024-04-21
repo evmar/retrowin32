@@ -2,6 +2,7 @@ This directory contains some win32 executables used to test retrowin32.
 
 - callback: exe that calls a testing retrowin32 API that calls back to exe
 - ops: dump results of x86 operations
+- rust: various Windows test programs
 - trace: Windows exe tracer using Windows debug API
 - winapi: MSVC Windows API (no C runtime)
 - zig_hello: Zig hello world
@@ -22,6 +23,11 @@ This directory contains some win32 executables used to test retrowin32.
 - `/subsystem`: console binary
 - `/debug`: debug info
 - `/opt:ref`: enable optimizations despite debug info
+
+## Cross compilation
+
+- https://neugierig.org/software/blog/2024/02/cross-compile.html
+- https://neugierig.org/software/blog/2024/04/cross-compile-2.html
 
 ## Generating test programs to load an arbitrary DLL
 
