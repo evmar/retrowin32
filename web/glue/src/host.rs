@@ -104,7 +104,7 @@ impl win32::Window for JsWindow {
     }
 
     fn fullscreen(&mut self) {
-        todo!()
+        log::warn!("todo: fullscreen");
     }
 }
 
