@@ -1,7 +1,7 @@
 use crate::{host, winapi::types::*, Machine, MouseButton};
 use bitflags::bitflags;
 
-const TRACE_CONTEXT: &'static str = "user32/resource";
+const TRACE_CONTEXT: &'static str = "user32/message";
 
 #[repr(C)]
 #[derive(Clone)]
