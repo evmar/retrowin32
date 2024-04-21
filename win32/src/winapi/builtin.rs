@@ -4846,6 +4846,13 @@ pub mod winmm {
             let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
             winapi::winmm::waveOutReset(machine, hwo).to_raw()
         }
+        pub unsafe fn waveOutWrite(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            let pwh = <Option<&WAVEHDR>>::from_stack(mem, esp + 8u32);
+            let cbwh = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::waveOutWrite(machine, hwo, pwh, cbwh).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -4910,8 +4917,14 @@ pub mod winmm {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const waveOutWrite: Shim = Shim {
+            name: "waveOutWrite",
+            func: impls::waveOutWrite,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 10usize] = [
+    const EXPORTS: [Symbol; 11usize] = [
         Symbol {
             ordinal: None,
             shim: shims::timeBeginPeriod,
@@ -4951,6 +4964,10 @@ pub mod winmm {
         Symbol {
             ordinal: None,
             shim: shims::waveOutReset,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutWrite,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

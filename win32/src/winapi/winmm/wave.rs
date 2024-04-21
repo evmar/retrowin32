@@ -179,3 +179,14 @@ pub fn waveOutPrepareHeader(
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
     0
 }
+
+#[win32_derive::dllexport]
+pub fn waveOutWrite(
+    _machine: &mut Machine,
+    hwo: HWAVEOUT,
+    pwh: Option<&WAVEHDR>,
+    cbwh: u32,
+) -> u32 {
+    assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
+    0
+}
