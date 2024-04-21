@@ -851,7 +851,22 @@ pub fn div_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = rm32(cpu, mem, instr).get() as u64;
     cpu.regs.eax = (x / y) as u32;
     cpu.regs.edx = (x % y) as u32;
-    // TODO: flags.
+    // No flags.
+}
+
+pub fn div_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = (cpu.regs.edx << 16) | cpu.regs.eax;
+    let y = rm16(cpu, mem, instr).get() as u32;
+    cpu.regs.eax = ((x / y) as u16) as u32;
+    cpu.regs.edx = ((x % y) as u16) as u32;
+    // No flags.
+}
+
+pub fn div_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = cpu.regs.eax as u16;
+    let y = rm8(cpu, mem, instr).get() as u16;
+    cpu.regs.eax = (((x % y) as u32) << 16) | ((x / y) as u32);
+    // No flags.
 }
 
 pub fn dec_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
