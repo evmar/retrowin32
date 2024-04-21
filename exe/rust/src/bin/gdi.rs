@@ -3,28 +3,12 @@
 use windows_sys::Win32::{
     Foundation::{HWND, LRESULT},
     Graphics::Gdi::{BeginPaint, EndPaint, FillRect, COLOR_WINDOW, HBRUSH, PAINTSTRUCT},
-    Storage::FileSystem::WriteFile,
-    System::Console::{GetStdHandle, STD_OUTPUT_HANDLE},
     UI::WindowsAndMessaging::{
         CreateWindowExA, DefWindowProcA, DispatchMessageA, GetMessageA, PostQuitMessage,
         RegisterClassA, ShowWindow, TranslateMessage, CW_USEDEFAULT, MSG, SW_NORMAL, WM_DESTROY,
         WM_PAINT, WNDCLASSA, WS_OVERLAPPED,
     },
 };
-
-#[allow(dead_code)]
-fn print(buf: &[u8]) {
-    unsafe {
-        let stdout = GetStdHandle(STD_OUTPUT_HANDLE);
-        WriteFile(
-            stdout,
-            buf.as_ptr(),
-            buf.len() as u32,
-            std::ptr::null_mut(),
-            std::ptr::null_mut(),
-        );
-    }
-}
 
 unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: isize) -> LRESULT {
     match msg {

@@ -97,7 +97,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "gdi"
+name = "exe"
 version = "0.1.0"
 dependencies = [
  "windows-sys",
