@@ -107,11 +107,9 @@ impl X86 {
         self.icache.make_single_step(mem, ip);
     }
 
-    // Execute one basic block.  Returns false if we stopped early.
+    /// Execute one basic block starting at current ip.
     pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
-        let ip = self.cpu.regs.eip;
-
-        let block = self.icache.get_block(mem, ip);
+        let block = self.icache.get_block(mem, self.cpu.regs.eip);
         for instr in block.instrs.iter() {
             let ip = self.cpu.regs.eip;
             self.cpu.regs.eip = instr.next_ip() as u32;
