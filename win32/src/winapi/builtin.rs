@@ -4814,6 +4814,13 @@ pub mod winmm {
             let mem = machine.mem().detach();
             winapi::winmm::waveOutGetNumDevs(machine).to_raw()
         }
+        pub unsafe fn waveOutGetPosition(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            let pmmt = <Option<&mut MMTIME>>::from_stack(mem, esp + 8u32);
+            let cbmmt = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::waveOutGetPosition(machine, hwo, pmmt, cbmmt).to_raw()
+        }
         pub unsafe fn waveOutOpen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let phwo = <Option<&mut HWAVEOUT>>::from_stack(mem, esp + 4u32);
@@ -4872,6 +4879,12 @@ pub mod winmm {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const waveOutGetPosition: Shim = Shim {
+            name: "waveOutGetPosition",
+            func: impls::waveOutGetPosition,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const waveOutOpen: Shim = Shim {
             name: "waveOutOpen",
             func: impls::waveOutOpen,
@@ -4885,7 +4898,7 @@ pub mod winmm {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 8usize] = [
+    const EXPORTS: [Symbol; 9usize] = [
         Symbol {
             ordinal: None,
             shim: shims::timeBeginPeriod,
@@ -4909,6 +4922,10 @@ pub mod winmm {
         Symbol {
             ordinal: None,
             shim: shims::waveOutGetNumDevs,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::waveOutGetPosition,
         },
         Symbol {
             ordinal: None,
