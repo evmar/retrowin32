@@ -11,6 +11,8 @@ use windows_sys::Win32::{
     },
 };
 
+// TODO: can't use println!() yet because Rust wants to grab locks on stdout,
+// and I haven't implemented lock APIs yet.
 fn print(msg: String) {
     unsafe {
         let handle = GetStdHandle(STD_OUTPUT_HANDLE);
