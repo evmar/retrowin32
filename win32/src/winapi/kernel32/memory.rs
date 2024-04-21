@@ -295,8 +295,8 @@ pub fn VirtualAlloc(
     machine: &mut Machine,
     lpAddress: u32,
     dwSize: u32,
-    _flAllocationType: u32,
-    _flProtec: u32,
+    flAllocationType: u32,
+    flProtec: u32,
 ) -> u32 {
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
@@ -330,7 +330,6 @@ pub fn VirtualAlloc(
 
 #[win32_derive::dllexport]
 pub fn VirtualFree(_machine: &mut Machine, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
-    log::warn!("VirtualFree({lpAddress:x}, {dwSize:x}, {dwFreeType:x})");
     1 // success
 }
 
