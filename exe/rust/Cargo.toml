@@ -13,6 +13,7 @@ edition = "2021"
 version = "0.52.0"
 features = [
   "Win32_Foundation",
+  "Win32_Security",
   "Win32_System_Console",
   "Win32_System",
   "Win32_System_IO",

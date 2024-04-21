@@ -1,3 +1,6 @@
+//! Create a window and paint on it.
+//! Purpose: exercise some GDI basics like CreateWindow and message loop.
+
 #![windows_subsystem = "windows"]
 
 use windows_sys::Win32::{
