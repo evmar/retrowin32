@@ -376,3 +376,24 @@ pub fn SetDIBitsToDevice(
 
     cLines
 }
+
+#[win32_derive::dllexport]
+pub fn StretchDIBits(
+    _machine: &mut Machine,
+    hdc: HDC,
+    xDest: i32,
+    yDest: i32,
+    DestWidth: i32,
+    DestHeight: i32,
+    xSrc: i32,
+    ySrc: i32,
+    SrcWidth: i32,
+    SrcHeight: i32,
+    lpBits: u32,
+    lpbmi: Option<&BITMAPINFOHEADER>,
+    iUsage: u32,
+    rop: u32,
+) -> i32 {
+    log::warn!("TODO: StretchDIBits");
+    SrcHeight // success
+}

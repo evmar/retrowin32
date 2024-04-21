@@ -595,6 +595,27 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn StretchDIBits(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let xDest = <i32>::from_stack(mem, esp + 8u32);
+            let yDest = <i32>::from_stack(mem, esp + 12u32);
+            let DestWidth = <i32>::from_stack(mem, esp + 16u32);
+            let DestHeight = <i32>::from_stack(mem, esp + 20u32);
+            let xSrc = <i32>::from_stack(mem, esp + 24u32);
+            let ySrc = <i32>::from_stack(mem, esp + 28u32);
+            let SrcWidth = <i32>::from_stack(mem, esp + 32u32);
+            let SrcHeight = <i32>::from_stack(mem, esp + 36u32);
+            let lpBits = <u32>::from_stack(mem, esp + 40u32);
+            let lpbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, esp + 44u32);
+            let iUsage = <u32>::from_stack(mem, esp + 48u32);
+            let rop = <u32>::from_stack(mem, esp + 52u32);
+            winapi::gdi32::StretchDIBits(
+                machine, hdc, xDest, yDest, DestWidth, DestHeight, xSrc, ySrc, SrcWidth, SrcHeight,
+                lpBits, lpbmi, iUsage, rop,
+            )
+            .to_raw()
+        }
         pub unsafe fn TextOutA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -763,6 +784,12 @@ pub mod gdi32 {
             stack_consumed: 44u32,
             is_async: false,
         };
+        pub const StretchDIBits: Shim = Shim {
+            name: "StretchDIBits",
+            func: impls::StretchDIBits,
+            stack_consumed: 52u32,
+            is_async: false,
+        };
         pub const TextOutA: Shim = Shim {
             name: "TextOutA",
             func: impls::TextOutA,
@@ -770,7 +797,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 27usize] = [
+    const EXPORTS: [Symbol; 28usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BitBlt,
@@ -874,6 +901,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::StretchBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::StretchDIBits,
         },
         Symbol {
             ordinal: None,
