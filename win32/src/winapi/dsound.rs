@@ -59,6 +59,11 @@ mod IDirectSound {
     use super::*;
 
     #[win32_derive::dllexport]
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        0
+    }
+
+    #[win32_derive::dllexport]
     pub fn CreateSoundBuffer(
         machine: &mut Machine,
         this: u32,
@@ -79,7 +84,7 @@ mod IDirectSound {
     vtable![IDirectSound shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
         CreateSoundBuffer ok,
         GetCaps todo,
         DuplicateSoundBuffer todo,
@@ -101,6 +106,11 @@ mod IDirectSoundBuffer {
         let vtable = dsound.vtable_IDirectSoundBuffer;
         machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
+    }
+
+    #[win32_derive::dllexport]
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        0
     }
 
     #[win32_derive::dllexport]
@@ -174,7 +184,7 @@ mod IDirectSoundBuffer {
     vtable![IDirectSound shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
         GetCaps todo,
         GetCurrentPosition ok,
         GetFormat todo,

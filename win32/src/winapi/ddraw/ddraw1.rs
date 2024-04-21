@@ -138,7 +138,7 @@ pub(super) mod IDirectDrawSurface {
     vtable![IDirectDrawSurface shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
         AddAttachedSurface todo,
         AddOverlayDirtyRect todo,
         Blt (IDirectDrawSurface7::shims::Blt),
@@ -180,6 +180,11 @@ pub(super) mod IDirectDrawSurface {
         let vtable = ddraw.vtable_IDirectDrawSurface;
         machine.mem().put::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
+    }
+
+    #[win32_derive::dllexport]
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        0
     }
 
     #[win32_derive::dllexport]
