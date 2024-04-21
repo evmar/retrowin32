@@ -147,30 +147,40 @@ pub fn pop16(cpu: &mut CPU, mem: Mem) -> u16 {
 /// Compute the address found in instructions that reference memory, e.g.
 ///   mov [eax+03h],...
 pub fn x86_addr(cpu: &CPU, instr: &iced_x86::Instruction) -> u32 {
-    // TODO: see comments on regs.fs_addr.
-    let seg = match instr.segment_prefix() {
-        iced_x86::Register::FS => cpu.regs.fs_addr,
-        _ => 0,
-    };
+    let mut addr = instr.memory_displacement32();
 
-    let base = if instr.memory_base() != iced_x86::Register::None {
-        cpu.regs.get32(instr.memory_base())
-    } else {
-        0
-    };
-    let index = if instr.memory_index() != iced_x86::Register::None {
-        cpu.regs
+    // A full address is
+    //    segment:[base + index*scale + displacement]
+    // but most references don't use most of these, so we conditionally add them
+    // in the following blocks.
+    //
+    // We use wrapping_add().  In general these operations aren't written to
+    // wrap, but in some cases the components are negative which is implemented
+    // in two's complement by a wrapping add.
+
+    // TODO: see comments on regs.fs_addr.
+    match instr.segment_prefix() {
+        iced_x86::Register::FS => {
+            let seg = cpu.regs.fs_addr;
+            addr = addr.wrapping_add(seg);
+        }
+        _ => {}
+    }
+
+    if instr.memory_base() != iced_x86::Register::None {
+        let base = cpu.regs.get32(instr.memory_base());
+        addr = addr.wrapping_add(base);
+    }
+
+    if instr.memory_index() != iced_x86::Register::None {
+        let index = cpu
+            .regs
             .get32(instr.memory_index())
-            .wrapping_mul(instr.memory_index_scale())
-    } else {
-        0
-    };
-    // In general these operations aren't written to wrap, but in some cases
-    // the components are negative which is implemented in two's complement by
-    // a wrapping add.
-    seg.wrapping_add(base)
-        .wrapping_add(index)
-        .wrapping_add(instr.memory_displacement32())
+            .wrapping_mul(instr.memory_index_scale());
+        addr = addr.wrapping_add(index);
+    }
+
+    addr
 }
 
 pub fn x86_jmp(cpu: &mut CPU, addr: u32) {
