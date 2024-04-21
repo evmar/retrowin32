@@ -84,7 +84,7 @@ pub struct X86 {
     pub cpu: CPU,
 
     #[serde(skip)]
-    icache: InstrCache,
+    pub icache: InstrCache,
 }
 
 impl X86 {

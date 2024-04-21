@@ -343,6 +343,7 @@ fn main() -> anyhow::Result<()> {
                 millis,
                 (machine.emu.x86.cpu.instr_count / millis) / 1000
             );
+            eprintln!("icache: {}", machine.emu.x86.icache.stats());
         }
     }
 
