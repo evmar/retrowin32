@@ -103,6 +103,11 @@ impl X86 {
         &mut self.cpus[self.cur_cpu]
     }
 
+    pub fn new_cpu(&mut self) -> &mut CPU {
+        self.cpus.push(CPU::new());
+        self.cpus.last_mut().unwrap()
+    }
+
     pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
         self.icache.add_breakpoint(mem, addr)
     }
@@ -114,6 +119,16 @@ impl X86 {
     pub fn single_step_next_block(&mut self, mem: Mem) {
         let ip = self.cpu().regs.eip;
         self.icache.make_single_step(mem, ip);
+    }
+
+    /// Schedule the next runnable thread to run.
+    pub fn schedule(&mut self) {
+        for _ in 0..self.cpus.len() {
+            self.cur_cpu = (self.cur_cpu + 1) % self.cpus.len();
+            if self.cpu().state == CPUState::Running {
+                return;
+            }
+        }
     }
 
     /// Execute one basic block starting at current ip.

@@ -1,6 +1,7 @@
 use super::{peb_mut, teb_mut};
 use crate::{
     machine::Machine,
+    winapi,
     winapi::types::{Str16, HANDLE},
 };
 use memory::Pod;
@@ -12,13 +13,21 @@ pub struct HTHREADT;
 pub type HTHREAD = HANDLE<HTHREADT>;
 
 #[win32_derive::dllexport]
-pub fn GetCurrentThread(_machine: &mut Machine) -> HTHREAD {
-    HTHREAD::from_raw(1)
+pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
+    HTHREAD::from_raw(GetCurrentThreadId(machine))
 }
 
 #[win32_derive::dllexport]
-pub fn GetCurrentThreadId(_machine: &mut Machine) -> u32 {
-    1
+pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
+    #[cfg(feature = "x86-emu")]
+    {
+        machine.emu.x86.cur_cpu as u32
+    }
+
+    #[cfg(not(feature = "x86-emu"))]
+    {
+        1
+    }
 }
 
 #[win32_derive::dllexport]
@@ -63,9 +72,31 @@ pub async fn CreateThread(
     dwCreationFlags: u32,
     lpThreadId: u32,
 ) -> HTHREAD {
-    log::warn!("CreateThread running thread synchronously");
-    machine.call_x86(lpStartAddress, vec![lpParameter]).await;
-    HTHREAD::null()
+    #[cfg(feature = "x86-emu")]
+    {
+        let retrowin32_thread_main =
+            winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_thread_main");
+
+        let id = 1; // TODO
+        let stack_pointer = machine.create_stack(format!("thread{id} stack"), dwStackSize);
+        let cpu = machine.emu.x86.new_cpu();
+        cpu.regs.esp = stack_pointer;
+        cpu.regs.ebp = stack_pointer;
+        let mem = machine.emu.memory.mem();
+        x86::ops::push(cpu, mem, lpParameter);
+        x86::ops::push(cpu, mem, lpStartAddress);
+        x86::ops::push(cpu, mem, 0);
+        cpu.regs.eip = retrowin32_thread_main;
+
+        HTHREAD::from_raw(id)
+    }
+
+    #[cfg(not(feature = "x86-emu"))]
+    {
+        log::warn!("CreateThread running thread synchronously");
+        machine.call_x86(lpStartAddress, vec![lpParameter]).await;
+        HTHREAD::null()
+    }
 }
 
 #[win32_derive::dllexport]

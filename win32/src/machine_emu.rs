@@ -75,17 +75,13 @@ impl MachineX<Emulator> {
     }
 
     /// Initialize a memory mapping for the stack and return the initial stack pointer.
-    fn setup_stack(&mut self, stack_size: u32) -> u32 {
-        let stack =
-            self.state
-                .kernel32
-                .mappings
-                .alloc(stack_size, "stack".into(), &mut self.emu.memory);
+    pub fn create_stack(&mut self, desc: String, stack_size: u32) -> u32 {
+        let stack = self
+            .state
+            .kernel32
+            .mappings
+            .alloc(stack_size, desc, &mut self.emu.memory);
         let stack_pointer = stack.addr + stack.size - 4;
-        let regs = &mut self.emu.x86.cpu_mut().regs;
-        regs.esp = stack_pointer;
-        regs.ebp = stack_pointer;
-
         stack_pointer
     }
 
@@ -97,8 +93,10 @@ impl MachineX<Emulator> {
     ) -> anyhow::Result<LoadedAddrs> {
         let exe = pe::load_exe(self, buf, cmdline, relocate)?;
 
-        let stack_pointer = self.setup_stack(exe.stack_size);
+        let stack_pointer = self.create_stack("stack".into(), exe.stack_size);
         let regs = &mut self.emu.x86.cpu_mut().regs;
+        regs.esp = stack_pointer;
+        regs.ebp = stack_pointer;
         regs.fs_addr = self.state.kernel32.teb;
 
         // To make CPU traces match more closely, set up some registers to what their
@@ -108,12 +106,7 @@ impl MachineX<Emulator> {
         regs.esi = exe.entry_point;
         regs.edi = exe.entry_point;
 
-        let kernel32 = winapi::kernel32::GetModuleHandleA(self, Some("kernel32.dll"));
-        let retrowin32_main = winapi::kernel32::GetProcAddress(
-            self,
-            kernel32,
-            winapi::kernel32::GetProcAddressArg(winapi::ImportSymbol::Name("retrowin32_main")),
-        );
+        let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
         let cpu = self.emu.x86.cpu_mut();
         x86::ops::push(cpu, self.emu.memory.mem(), exe.entry_point);
         x86::ops::push(cpu, self.emu.memory.mem(), 0); // return address
@@ -133,6 +126,9 @@ impl MachineX<Emulator> {
 
     // Execute one basic block.  Returns false if we stopped early.
     pub fn execute_block(&mut self) -> &x86::CPUState {
+        // FIXME: this switches threads upon every basic block.
+        self.emu.x86.schedule();
+
         // Ugly: mark the CPU running here, because even if this execute is handled
         // by a shim, we want it to transition the CPU out of blocked state.
         self.emu.x86.cpu_mut().state = x86::CPUState::Running;

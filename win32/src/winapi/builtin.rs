@@ -1738,6 +1738,36 @@ pub mod kernel32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn retrowin32_thread_main(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let entry_point = <u32>::from_stack(mem, esp + 4u32);
+            let param = <u32>::from_stack(mem, esp + 8u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result =
+                        winapi::kernel32::retrowin32_thread_main(machine, entry_point, param).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 8u32 + 4;
+                    regs.eax = result.to_raw();
+                };
+                crate::shims::become_async(machine, Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::kernel32::retrowin32_thread_main(
+                    machine,
+                    entry_point,
+                    param
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
     }
     mod shims {
         use super::impls;
@@ -2414,8 +2444,14 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: true,
         };
+        pub const retrowin32_thread_main: Shim = Shim {
+            name: "retrowin32_thread_main",
+            func: impls::retrowin32_thread_main,
+            stack_consumed: 8u32,
+            is_async: true,
+        };
     }
-    const EXPORTS: [Symbol; 112usize] = [
+    const EXPORTS: [Symbol; 113usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2863,6 +2899,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::retrowin32_main,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::retrowin32_thread_main,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

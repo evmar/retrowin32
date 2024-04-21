@@ -266,6 +266,15 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
     }
 }
 
+pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
+    let dll = &mut machine.state.kernel32.dlls[0];
+    dll.resolve(&ImportSymbol::Name(name), |shim| {
+        let addr = machine.emu.register(shim);
+        machine.labels.insert(addr, format!("{}", name));
+        addr
+    })
+}
+
 #[win32_derive::dllexport]
 pub fn GetProcAddress(
     machine: &mut Machine,

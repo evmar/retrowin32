@@ -479,3 +479,10 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
     ExitProcess(machine, 0);
     0
 }
+
+#[win32_derive::dllexport]
+pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) -> u32 {
+    machine.call_x86(entry_point, vec![param]).await;
+    ExitProcess(machine, 0);
+    0
+}
