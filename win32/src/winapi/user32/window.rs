@@ -723,3 +723,17 @@ pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
 pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
     true
 }
+
+#[win32_derive::dllexport]
+pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>) -> bool {
+    match machine.state.user32.windows.get_mut(hWnd) {
+        Some(window) => {
+            window.host.set_title(lpString.unwrap());
+            true
+        }
+        None => {
+            log::error!("SetWindowText of non-window?");
+            false
+        }
+    }
+}

@@ -3939,6 +3939,12 @@ pub mod user32 {
             winapi::user32::SetWindowPos(machine, hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags)
                 .to_raw()
         }
+        pub unsafe fn SetWindowTextA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpString = <Option<&str>>::from_stack(mem, esp + 8u32);
+            winapi::user32::SetWindowTextA(machine, hWnd, lpString).to_raw()
+        }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let bShow = <bool>::from_stack(mem, esp + 4u32);
@@ -4410,6 +4416,12 @@ pub mod user32 {
             stack_consumed: 28u32,
             is_async: false,
         };
+        pub const SetWindowTextA: Shim = Shim {
+            name: "SetWindowTextA",
+            func: impls::SetWindowTextA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: impls::ShowCursor,
@@ -4459,7 +4471,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 72usize] = [
+    const EXPORTS: [Symbol; 73usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4715,6 +4727,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetWindowPos,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetWindowTextA,
         },
         Symbol {
             ordinal: None,
