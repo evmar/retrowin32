@@ -151,7 +151,9 @@ impl std::future::Future for X86Future {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
-    pub cpus: Vec<CPU>,
+    /// CPUs are boxed because their futures take pointers to self.
+    /// In theory we could use Pin here but maybe we just need to revisit how this works in general.
+    pub cpus: Vec<Box<CPU>>,
     pub cur_cpu: usize,
 
     /// Total number of instructions executed.
@@ -164,7 +166,7 @@ pub struct X86 {
 impl X86 {
     pub fn new() -> Self {
         X86 {
-            cpus: vec![CPU::new()],
+            cpus: vec![Box::new(CPU::new())],
             cur_cpu: 0,
             instr_count: 0,
             icache: InstrCache::default(),
@@ -172,15 +174,15 @@ impl X86 {
     }
 
     pub fn cpu(&self) -> &CPU {
-        &self.cpus[self.cur_cpu]
+        &*self.cpus[self.cur_cpu]
     }
 
     pub fn cpu_mut(&mut self) -> &mut CPU {
-        &mut self.cpus[self.cur_cpu]
+        &mut *self.cpus[self.cur_cpu]
     }
 
     pub fn new_cpu(&mut self) -> &mut CPU {
-        self.cpus.push(CPU::new());
+        self.cpus.push(Box::new(CPU::new()));
         self.cpus.last_mut().unwrap()
     }
 
@@ -199,17 +201,21 @@ impl X86 {
 
     /// Schedule the next runnable thread to run.
     pub fn schedule(&mut self) {
+        // let prev = self.cur_cpu;
         for _ in 0..self.cpus.len() {
             self.cur_cpu = (self.cur_cpu + 1) % self.cpus.len();
             if self.cpu().state == CPUState::Running {
-                return;
+                break;
             }
         }
+        // if self.cur_cpu != prev {
+        //     log::info!("cpu {prev}=>{}", self.cur_cpu);
+        // }
     }
 
     /// Execute one basic block starting at current ip.
     pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
-        let cpu = &mut self.cpus[self.cur_cpu];
+        let cpu = &mut *self.cpus[self.cur_cpu];
         cpu.state = CPUState::Running; // see comment in X86::execute_block
         if cpu.regs.eip == MAGIC_ADDR {
             cpu.async_executor();
