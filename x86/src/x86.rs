@@ -23,6 +23,9 @@ impl CPUState {
     }
 }
 
+/// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
+const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
+
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct CPU {
     pub regs: Registers,
@@ -33,6 +36,11 @@ pub struct CPU {
     pub fpu: FPU,
 
     pub state: CPUState,
+
+    /// If eip==MAGIC_ADDR, then the next step is to poll a future rather than
+    /// executing a basic block.
+    #[serde(skip)]
+    futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
 impl CPU {
@@ -45,6 +53,7 @@ impl CPU {
             flags: Flags::empty(),
             fpu: FPU::default(),
             state: Default::default(),
+            futures: Default::default(),
         }
     }
 
@@ -70,6 +79,73 @@ impl CPU {
     pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &CPUState {
         ops::execute(self, mem, instr);
         &self.state
+    }
+
+    /// Set up the CPU such that we are making a Rust->x86 call, returning a Future
+    /// that completes when the x86 call returns.
+    pub fn call_x86(&mut self, mem: Mem, func: u32, args: Vec<u32>) -> X86Future {
+        // Save original esp, as that's the marker that we use to know when the call is done.
+        let esp = self.regs.esp;
+        // Push the args in reverse order.
+        for &arg in args.iter().rev() {
+            ops::push(self, mem, arg);
+        }
+        ops::push(self, mem, MAGIC_ADDR); // return address
+        self.regs.eip = func;
+
+        // Clear registers to make traces clean.
+        // Other registers are callee-saved per ABI.
+        self.regs.eax = 0;
+        self.regs.ecx = 0;
+        self.regs.edx = 0;
+
+        X86Future { cpu: self, esp }
+    }
+
+    /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
+    /// that is polled the next time the CPU executes.
+    pub fn call_async(&mut self, future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>) {
+        self.regs.eip = MAGIC_ADDR;
+        self.futures.push(future);
+    }
+
+    #[allow(deref_nullptr)]
+    fn async_executor(&mut self) {
+        let mut future = self.futures.pop().unwrap();
+        // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
+        // here but it seems like nothing accesses it(?).
+        //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
+        let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
+        let poll = future.as_mut().poll(context);
+        match poll {
+            std::task::Poll::Ready(()) => {}
+            std::task::Poll::Pending => {
+                self.futures.push(future);
+            }
+        }
+    }
+}
+
+pub struct X86Future {
+    // We assume the CPU is around for the duration of the future execution.
+    // https://github.com/rust-lang/futures-rs/issues/316
+    cpu: *mut CPU,
+    esp: u32,
+}
+impl std::future::Future for X86Future {
+    type Output = ();
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let cpu = self.cpu;
+        let cpu = unsafe { &mut *cpu };
+        if cpu.regs.esp == self.esp {
+            std::task::Poll::Ready(())
+        } else {
+            std::task::Poll::Pending
+        }
     }
 }
 
@@ -135,6 +211,10 @@ impl X86 {
     pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
         let cpu = &mut self.cpus[self.cur_cpu];
         cpu.state = CPUState::Running; // see comment in X86::execute_block
+        if cpu.regs.eip == MAGIC_ADDR {
+            cpu.async_executor();
+            return &cpu.state;
+        }
         let block = self.icache.get_block(mem, cpu.regs.eip);
         for instr in block.instrs.iter() {
             let ip = cpu.regs.eip;

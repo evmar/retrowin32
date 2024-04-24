@@ -47,29 +47,9 @@ const SHIM_BASE: u32 = 0xF1A7_0000;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
+#[derive(Default)]
 pub struct Shims {
     shims: Vec<Result<&'static Shim, String>>,
-    /// Address of async_executor() shim entry point.
-    async_executor: u32,
-    /// Pending futures for code being ran by async_executor().
-    futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
-}
-
-impl Default for Shims {
-    fn default() -> Self {
-        let mut shims = Shims {
-            shims: Vec::new(),
-            async_executor: 0,
-            futures: Default::default(),
-        };
-        shims.async_executor = shims.add(Ok(&Shim {
-            name: "retrowin32 async helper",
-            func: async_executor,
-            stack_consumed: 0,
-            is_async: true,
-        }));
-        shims
-    }
 }
 
 impl Shims {
@@ -122,89 +102,6 @@ pub fn handle_shim_call(machine: &mut Machine) {
         // Async handler will manage the return address etc.
     }
 }
-
-/// Redirect x86 control to async_executor.  Note this has particular requirements on the
-/// state of the stack, and is called when a dllexport function is async.
-pub fn become_async(
-    machine: &mut Machine,
-    future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
-) {
-    machine.emu.x86.cpu_mut().regs.eip = machine.emu.shims.async_executor;
-    machine.emu.shims.futures.push(future);
-}
-
-pub struct X86Future {
-    // We know the Machine is around for the duration of the future execution.
-    // https://github.com/rust-lang/futures-rs/issues/316
-    m: *mut Machine,
-    esp: u32,
-}
-impl std::future::Future for X86Future {
-    type Output = ();
-
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        let m = self.m;
-        let machine = unsafe { &mut *m };
-        // log::info!(
-        //     "poll esp:{:x} want:{:x}",
-        //     machine.emu.x86.cpu.regs.esp,
-        //     self.esp
-        // );
-        if machine.emu.x86.cpu().regs.esp == self.esp {
-            std::task::Poll::Ready(())
-        } else {
-            std::task::Poll::Pending
-        }
-    }
-}
-
-pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> X86Future {
-    let mut cpu = machine.emu.x86.cpu_mut();
-    // Save original esp, as that's the marker that we use to know when the call is done.
-    let esp = cpu.regs.esp;
-    // Push the args in reverse order.
-    for &arg in args.iter().rev() {
-        x86::ops::push(&mut cpu, machine.emu.memory.mem(), arg);
-    }
-    x86::ops::push(
-        cpu,
-        machine.emu.memory.mem(),
-        machine.emu.shims.async_executor,
-    ); // return address
-    cpu.regs.eip = func;
-
-    // Clear registers to make traces clean.
-    // Other registers are callee-saved per ABI.
-    cpu.regs.eax = 0;
-    cpu.regs.ecx = 0;
-    cpu.regs.edx = 0;
-
-    X86Future { m: machine, esp }
-}
-
-#[allow(deref_nullptr)]
-fn async_executor(machine: &mut Machine, _stack_pointer: u32) -> u32 {
-    if let Some(mut future) = machine.emu.shims.futures.pop() {
-        // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
-        // here but it seems like nothing accesses it(?).
-        //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
-        let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
-        let poll = future.as_mut().poll(context);
-        match poll {
-            std::task::Poll::Ready(()) => {}
-            std::task::Poll::Pending => {
-                machine.emu.shims.futures.push(future);
-            }
-        }
-    } else {
-        unreachable!()
-    }
-    0
-}
-
 pub struct BlockMessageFuture {
     m: *mut Machine,
 }

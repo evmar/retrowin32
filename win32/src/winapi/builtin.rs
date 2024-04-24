@@ -1034,7 +1034,7 @@ pub mod kernel32 {
                     regs.esp += 24u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -1760,7 +1760,7 @@ pub mod kernel32 {
                     regs.esp += 4u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -1786,7 +1786,7 @@ pub mod kernel32 {
                     regs.esp += 8u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3060,7 +3060,7 @@ pub mod retrowin32_test {
                     regs.esp += 8u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3387,7 +3387,7 @@ pub mod user32 {
                     regs.esp += 48u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3451,7 +3451,7 @@ pub mod user32 {
                     regs.esp += 48u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3544,7 +3544,7 @@ pub mod user32 {
                     regs.esp += 4u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3568,7 +3568,7 @@ pub mod user32 {
                     regs.esp += 4u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3659,7 +3659,7 @@ pub mod user32 {
                     regs.esp += 16u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3699,7 +3699,7 @@ pub mod user32 {
                     regs.esp += 16u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3997,7 +3997,7 @@ pub mod user32 {
                     regs.esp += 8u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4033,7 +4033,7 @@ pub mod user32 {
                     regs.esp += 4u32 + 4;
                     regs.eax = result.to_raw();
                 };
-                crate::shims::become_async(machine, Box::pin(result));
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]

@@ -142,7 +142,10 @@ impl MachineX<Emulator> {
     }
 
     pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
-        crate::shims_emu::call_x86(self, func, args)
+        self.emu
+            .x86
+            .cpu_mut()
+            .call_x86(self.emu.memory.mem(), func, args)
     }
 
     // pub fn dump_stack(&self) {

@@ -181,7 +181,7 @@ pub fn fn_wrapper(
                 regs.esp += #stack_consumed + 4;
                 regs.eax = result.to_raw();
             };
-            crate::shims::become_async(machine, Box::pin(result));
+            machine.emu.x86.cpu_mut().call_async(Box::pin(result));
             // async block will set up the stack and eip.
             0
         }
