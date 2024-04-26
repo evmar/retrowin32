@@ -124,19 +124,37 @@ impl MachineX<Emulator> {
         }
     }
 
-    // Execute one basic block.  Returns false if we stopped early.
-    pub fn execute_block(&mut self) -> &x86::CPUState {
-        // FIXME: this switches threads upon every basic block.
-        self.emu.x86.schedule();
+    pub fn unblock(&mut self) {
+        for cpu in self.emu.x86.cpus.iter_mut() {
+            if matches!(cpu.state, x86::CPUState::Blocked(_)) {
+                cpu.state = x86::CPUState::Running;
+            }
+        }
+    }
 
-        // Ugly: mark the CPU running here, because even if this execute is handled
-        // by a shim, we want it to transition the CPU out of blocked state.
-        self.emu.x86.cpu_mut().state = x86::CPUState::Running;
+    pub fn run(&mut self) -> bool {
+        match self.emu.x86.schedule() {
+            x86::CPUState::Running => self.execute_block(),
+            x86::CPUState::Blocked(wait) => {
+                let wait = *wait;
+                if self.host.block(wait) {
+                    self.unblock();
+                } else {
+                    return false;
+                }
+            }
+            _ => return false,
+        }
+        true
+    }
+
+    // Execute one basic block.  Returns false if we stopped early.
+    fn execute_block(&mut self) {
+        assert!(self.emu.x86.cpu().state.is_running());
         if crate::shims_emu::is_eip_at_shim_call(self) {
             crate::shims_emu::handle_shim_call(self);
             // Treat any shim call as a single block and return here.
-            // error can be set in cases like calls to ExitProcess().
-            return &self.emu.x86.cpu().state;
+            return;
         }
         self.emu.x86.execute_block(self.emu.memory.mem())
     }

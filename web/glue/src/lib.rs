@@ -69,23 +69,28 @@ impl Emulator {
         serde_json::to_string(&win32::disassemble(self.machine.mem(), addr, limit)).unwrap_throw()
     }
 
+    pub fn unblock(&mut self) {
+        self.machine.unblock();
+    }
+
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
         if count == 1 {
             self.machine.single_step_next_block();
-            self.machine.execute_block();
+            self.machine.run();
         } else {
             let start = self.machine.emu.x86.instr_count;
             while self.machine.emu.x86.instr_count < start + count {
-                if !self.machine.execute_block().is_running() {
+                if !self.machine.run() {
                     break;
                 }
             }
         }
+
         Ok(match &self.machine.emu.x86.cpu().state {
             x86::CPUState::Running => CPUState::Running,
-            x86::CPUState::Blocked => CPUState::Blocked,
+            x86::CPUState::Blocked(_) => CPUState::Blocked,
             x86::CPUState::Error(msg) => return Err(JsError::new(msg)),
             x86::CPUState::Exit(_) => CPUState::Exit,
         })

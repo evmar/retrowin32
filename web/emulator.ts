@@ -167,6 +167,7 @@ export class Emulator extends JsHost {
 
   start() {
     if (this.running) return;
+    this.emu.unblock(); // Attempt to resume any blocked threads.
     // Advance past the current breakpoint, if any.
     if (this.isAtBreakpoint()) {
       this.step();

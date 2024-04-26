@@ -74,18 +74,18 @@ pub struct Message {
     pub detail: MessageDetail,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Wait {
-    NoWait,
-    Until(u32),
-    Forever,
-}
-
 pub trait Host {
     fn exit(&self, code: u32);
     fn time(&self) -> u32;
 
-    fn get_message(&self, wait: Wait) -> Option<Message>;
+    /// Get the next pending message, or None if no message waiting.
+    fn get_message(&self) -> Option<Message>;
+
+    /// Signal that the emulator is blocked awaiting a message or an (optional) timeout.
+    /// Returns true if block() synchronously blocked until the message/timeout happened,
+    /// and false otherwise, in which case it's the host's responsibility to call
+    /// unblock() when ready.
+    fn block(&self, wait: Option<u32>) -> bool;
 
     fn open(&self, path: &str) -> Box<dyn File>;
     fn write(&self, buf: &[u8]) -> usize;

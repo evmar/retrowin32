@@ -12,7 +12,7 @@ use memory::Mem;
 pub enum CPUState {
     #[default]
     Running,
-    Blocked,
+    Blocked(Option<u32>),
     Error(String),
     Exit(u32),
 }
@@ -200,7 +200,14 @@ impl X86 {
     }
 
     /// Schedule the next runnable thread to run.
-    pub fn schedule(&mut self) {
+    pub fn schedule(&mut self) -> &CPUState {
+        // log::info!(
+        //     "cpustate {:?}",
+        //     self.cpus
+        //         .iter()
+        //         .map(|cpu| format!("{:?}", cpu.state))
+        //         .collect::<Vec<_>>()
+        // );
         // let prev = self.cur_cpu;
         for _ in 0..self.cpus.len() {
             self.cur_cpu = (self.cur_cpu + 1) % self.cpus.len();
@@ -208,18 +215,22 @@ impl X86 {
                 break;
             }
         }
-        // if self.cur_cpu != prev {
-        //     log::info!("cpu {prev}=>{}", self.cur_cpu);
+        // if self.cur_cpu != prev || !self.cpu().state.is_running() {
+        //     log::info!("cpu {prev}=>{} {:?}", self.cur_cpu, self.cpu().state);
         // }
+
+        // TODO: this should pick the soonest-ready CPU because we use it to mark
+        // how long of a timer to set.
+        &self.cpu().state
     }
 
     /// Execute one basic block starting at current ip.
-    pub fn execute_block(&mut self, mem: Mem) -> &CPUState {
+    pub fn execute_block(&mut self, mem: Mem) {
         let cpu = &mut *self.cpus[self.cur_cpu];
-        cpu.state = CPUState::Running; // see comment in X86::execute_block
+        assert!(cpu.state.is_running());
         if cpu.regs.eip == MAGIC_ADDR {
             cpu.async_executor();
-            return &cpu.state;
+            return;
         }
         let block = self.icache.get_block(mem, cpu.regs.eip);
         for instr in block.instrs.iter() {
@@ -231,12 +242,11 @@ impl X86 {
                 CPUState::Error(_) => {
                     // Point the debugger at the failed instruction.
                     cpu.regs.eip = ip;
-                    break;
+                    return; // see note at top
                 }
                 CPUState::Exit(_) => break,
-                CPUState::Blocked => break,
+                CPUState::Blocked(_) => break,
             }
         }
-        &cpu.state
     }
 }

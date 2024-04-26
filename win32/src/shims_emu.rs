@@ -114,7 +114,7 @@ impl std::future::Future for BlockMessageFuture {
     ) -> std::task::Poll<Self::Output> {
         let m = self.m;
         let machine = unsafe { &mut *m };
-        if machine.emu.x86.cpu().state == x86::CPUState::Blocked {
+        if matches!(machine.emu.x86.cpu().state, x86::CPUState::Blocked(_)) {
             std::task::Poll::Pending
         } else {
             std::task::Poll::Ready(())
@@ -122,7 +122,7 @@ impl std::future::Future for BlockMessageFuture {
     }
 }
 
-pub fn block(machine: &mut Machine) -> BlockMessageFuture {
-    machine.emu.x86.cpu_mut().state = x86::CPUState::Blocked;
+pub fn block(machine: &mut Machine, wait: Option<u32>) -> BlockMessageFuture {
+    machine.emu.x86.cpu_mut().state = x86::CPUState::Blocked(wait);
     BlockMessageFuture { m: machine }
 }

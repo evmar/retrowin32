@@ -105,10 +105,16 @@ impl win32::Host for EnvRef {
         gui.time()
     }
 
-    fn get_message(&self, wait: win32::Wait) -> Option<win32::Message> {
+    fn get_message(&self) -> Option<win32::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
-        gui.get_message(wait)
+        gui.get_message()
+    }
+
+    fn block(&self, wait: Option<u32>) -> bool {
+        let mut env = self.0.borrow_mut();
+        let gui = env.gui.as_mut().unwrap();
+        gui.block(wait)
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
@@ -280,7 +286,7 @@ fn main() -> anyhow::Result<()> {
         let start = std::time::Instant::now();
         if args.trace_blocks {
             let mut seen_blocks = std::collections::HashSet::new();
-            while machine.execute_block().is_running() {
+            while machine.run() {
                 let regs = &machine.emu.x86.cpu().regs;
                 if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
                     continue;
@@ -299,7 +305,7 @@ fn main() -> anyhow::Result<()> {
                     .add_breakpoint(machine.emu.memory.mem(), next_trace);
                 loop {
                     // Ignore errors here because we will hit breakpoints.
-                    machine.execute_block();
+                    machine.run();
                     if machine.emu.x86.cpu().regs.eip == next_trace {
                         break;
                     }
@@ -312,7 +318,7 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
             }
         } else {
-            while machine.execute_block().is_running() {
+            while machine.run() {
                 unsafe {
                     if SNAPSHOT_REQUESTED {
                         let buf = machine.snapshot();
@@ -331,7 +337,7 @@ fn main() -> anyhow::Result<()> {
                 dump_asm(&machine, 5);
             }
             x86::CPUState::Exit(_) => {}
-            x86::CPUState::Blocked => unreachable!(),
+            x86::CPUState::Blocked(_) => unreachable!(),
             x86::CPUState::Running => unreachable!(),
         }
 

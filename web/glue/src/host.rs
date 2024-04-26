@@ -208,20 +208,7 @@ impl win32::Host for JsHost {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 
-    fn get_message(&self, wait: win32::Wait) -> Option<win32::Message> {
-        match wait {
-            win32::Wait::NoWait => {
-                // Return any message we already have queued.
-            }
-            win32::Wait::Until(t) => {
-                // Enqueue a timer to wake up caller.
-                JsHost::ensure_timer(self, t);
-            }
-            win32::Wait::Forever => {
-                // Return any message we already have queued.
-                // Caller will block until we wake them up again.
-            }
-        };
+    fn get_message(&self) -> Option<win32::Message> {
         let event = JsHost::get_event(self);
         if event.is_undefined() {
             return None;
@@ -229,6 +216,14 @@ impl win32::Host for JsHost {
         message_from_event(event)
             .inspect_err(|err| log::error!("failed to convert message: {err}"))
             .ok()
+    }
+
+    fn block(&self, wait: Option<u32>) -> bool {
+        if let Some(t) = wait {
+            // Enqueue a timer to wake up caller.
+            JsHost::ensure_timer(self, t);
+        }
+        false
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {

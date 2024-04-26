@@ -39,12 +39,27 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
     Some(win32::Message { hwnd, detail })
 }
 
+fn message_from_events(
+    hwnd: u32,
+    mut f: impl FnMut() -> Option<sdl2::event::Event>,
+) -> Option<win32::Message> {
+    loop {
+        let event = f()?;
+        let msg = message_from_event(hwnd, event);
+        if msg.is_some() {
+            return msg;
+        }
+    }
+}
+
 pub struct GUI {
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
     timer: sdl2::TimerSubsystem,
     win: Option<WindowRef>,
+    msg_queue: Option<win32::Message>,
 }
+
 impl GUI {
     pub fn new() -> anyhow::Result<Self> {
         assert!(sdl2::hint::set("SDL_NO_SIGNAL_HANDLERS", "1"));
@@ -58,6 +73,7 @@ impl GUI {
             pump,
             timer,
             win: None,
+            msg_queue: None,
         })
     }
 
@@ -65,35 +81,38 @@ impl GUI {
         self.timer.ticks()
     }
 
-    pub fn get_message(&mut self, wait: win32::Wait) -> Option<win32::Message> {
+    pub fn get_message(&mut self) -> Option<win32::Message> {
+        if let Some(msg) = self.msg_queue.take() {
+            return Some(msg);
+        }
         let hwnd = match &self.win {
             Some(w) => w.0.borrow().hwnd,
             None => 0,
         };
-        match wait {
-            win32::Wait::NoWait => loop {
-                let event = self.pump.poll_event()?;
-                let msg = message_from_event(hwnd, event);
-                if msg.is_some() {
-                    return msg;
-                }
-            },
-            win32::Wait::Until(until) => loop {
+        message_from_events(hwnd, || self.pump.poll_event())
+    }
+
+    pub fn block(&mut self, wait: Option<u32>) -> bool {
+        let hwnd = match &self.win {
+            Some(w) => w.0.borrow().hwnd,
+            None => 0,
+        };
+        let msg = match wait {
+            Some(until) => message_from_events(hwnd, || {
                 let now = self.time();
                 let delta = until - now;
-                let event = self.pump.wait_event_timeout(delta)?;
-                let msg = message_from_event(hwnd, event);
-                if msg.is_some() {
-                    return msg;
-                }
-            },
-            win32::Wait::Forever => loop {
+                self.pump.wait_event_timeout(delta)
+            }),
+            None => loop {
                 let msg = message_from_event(hwnd, self.pump.wait_event());
                 if msg.is_some() {
-                    return msg;
+                    break msg;
                 }
             },
-        }
+        };
+        assert!(self.msg_queue.is_none());
+        self.msg_queue = msg;
+        true
     }
 
     pub fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {

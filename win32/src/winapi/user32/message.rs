@@ -113,7 +113,7 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u3
         return Ok(());
     }
 
-    if let Some(msg) = machine.host.get_message(host::Wait::NoWait) {
+    if let Some(msg) = machine.host.get_message() {
         machine
             .state
             .user32
@@ -129,40 +129,14 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u3
     enqueue_timer_event_if_ready(machine, hwnd)
 }
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(feature = "x86-emu")]
 async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
-    let wait = match wait {
-        Some(limit) => host::Wait::Until(limit),
-        None => host::Wait::Forever,
-    };
-    // If no msg is immediately available this returns None and signals the host
-    // to unblock us when ready.
-    if let Some(msg) = machine.host.get_message(wait) {
-        machine
-            .state
-            .user32
-            .messages
-            .push_back(msg_from_message(msg));
-        return;
-    }
-    crate::shims::block(machine).await;
+    crate::shims::block(machine, wait).await;
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(feature = "x86-emu"))]
 async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
-    let wait = match wait {
-        Some(limit) => host::Wait::Until(limit),
-        None => host::Wait::Forever,
-    };
-    let msg = match machine.host.get_message(wait) {
-        None => return,
-        Some(msg) => msg,
-    };
-    machine
-        .state
-        .user32
-        .messages
-        .push_back(msg_from_message(msg));
+    machine.host.block(wait);
 }
 
 bitflags! {
