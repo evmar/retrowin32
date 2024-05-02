@@ -749,15 +749,14 @@ pub fn mul_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = rm16(cpu, mem, instr).get();
     let x = cpu.regs.eax as u16;
     let res = mul(x as u32, y as u32, &mut cpu.flags);
-    cpu.regs.set16(iced_x86::Register::DX, (res >> 16) as u16);
-    cpu.regs.set16(iced_x86::Register::AX, res as u16);
+    set_dx_ax(cpu, res);
 }
 
 pub fn mul_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = rm8(cpu, mem, instr).get();
     let x = cpu.regs.eax as u8;
     let res = mul(x as u16, y as u16, &mut cpu.flags);
-    cpu.regs.set16(iced_x86::Register::AX, res);
+    cpu.regs.set16(Register::AX, res);
 }
 
 pub fn imul_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -781,7 +780,7 @@ pub fn imul_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.eax as u16 as i8;
     let res = (x as i16).wrapping_mul(y as i16) as u16;
     // TODO: flags.
-    cpu.regs.set16(iced_x86::Register::AX, res);
+    cpu.regs.set16(Register::AX, res);
 }
 
 fn imul_trunc(x: i32, y: i32, _flags: &mut Flags) -> i32 {
@@ -824,9 +823,8 @@ pub fn idiv_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     if quotient > 0x7FFF || quotient < -0x8000 {
         panic!("divide error");
     }
-    cpu.regs
-        .set16(iced_x86::Register::AX, quotient as i16 as u16);
-    cpu.regs.set16(iced_x86::Register::DX, (x % y) as u16);
+    cpu.regs.set16(Register::AX, quotient as i16 as u16);
+    cpu.regs.set16(Register::DX, (x % y) as u16);
 }
 
 pub fn idiv_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -837,10 +835,8 @@ pub fn idiv_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         panic!("divide error");
     }
     let rem = x % y;
-    cpu.regs.set16(
-        iced_x86::Register::AX,
-        ((rem << 8) as u16) | (quotient as i8 as u16),
-    );
+    cpu.regs
+        .set16(Register::AX, ((rem << 8) as u16) | (quotient as i8 as u16));
 }
 
 pub fn div_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
