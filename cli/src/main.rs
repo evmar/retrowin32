@@ -141,6 +141,10 @@ impl win32::Host for EnvRef {
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
+    /// change working directory before running
+    #[argh(option)]
+    chdir: Option<String>,
+
     /// winapi systems to trace; see trace.rs for docs
     #[argh(option)]
     win32_trace: Option<String>,
@@ -233,6 +237,10 @@ fn main() -> anyhow::Result<()> {
     }
 
     let args: Args = argh::from_env();
+
+    if let Some(dir) = args.chdir {
+        std::env::set_current_dir(dir).unwrap();
+    }
 
     let mut trace_points = std::collections::VecDeque::new();
     if let Some(arg) = args.trace_points {
