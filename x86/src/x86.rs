@@ -124,6 +124,11 @@ impl CPU {
             }
         }
     }
+
+    pub fn block(&mut self, wait: Option<u32>) -> BlockFuture {
+        self.state = CPUState::Blocked(wait);
+        BlockFuture { cpu: self }
+    }
 }
 
 pub struct X86Future {
@@ -145,6 +150,30 @@ impl std::future::Future for X86Future {
             std::task::Poll::Ready(())
         } else {
             std::task::Poll::Pending
+        }
+    }
+}
+
+/// A future which polls until the given CPU is marked as no longer blocked.
+pub struct BlockFuture {
+    // We assume the CPU is around for the duration of the future execution.
+    // https://github.com/rust-lang/futures-rs/issues/316
+    cpu: *mut CPU,
+}
+
+impl std::future::Future for BlockFuture {
+    type Output = ();
+
+    fn poll(
+        self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let cpu = self.cpu;
+        let cpu = unsafe { &mut *cpu };
+        if matches!(cpu.state, CPUState::Blocked(_)) {
+            std::task::Poll::Pending
+        } else {
+            std::task::Poll::Ready(())
         }
     }
 }

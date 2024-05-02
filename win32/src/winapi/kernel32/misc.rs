@@ -378,7 +378,7 @@ pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
     #[cfg(feature = "x86-emu")]
     {
         let until = machine.host.time() + dwMilliseconds;
-        crate::shims::block(machine, Some(until)).await;
+        machine.emu.x86.cpu_mut().block(Some(until)).await;
     }
 
     #[cfg(not(feature = "x86-emu"))]

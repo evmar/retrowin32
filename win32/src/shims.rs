@@ -12,8 +12,6 @@
 
 use crate::Machine;
 
-#[cfg(feature = "x86-emu")]
-pub use crate::shims_emu::block;
 #[cfg(feature = "x86-unicorn")]
 pub use crate::shims_unicorn::unicorn_loop;
 
