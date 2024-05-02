@@ -1,4 +1,5 @@
 use bitflags::bitflags;
+use iced_x86::Register::*;
 
 bitflags! {
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -75,6 +76,18 @@ impl Default for Registers {
     }
 }
 
+fn r16_to_32(r16: iced_x86::Register) -> iced_x86::Register {
+    unsafe { std::mem::transmute((r16 as u8 - AX as u8) + EAX as u8) }
+}
+
+fn r8l_to_32(r8: iced_x86::Register) -> iced_x86::Register {
+    unsafe { std::mem::transmute((r8 as u8 - AL as u8) + EAX as u8) }
+}
+
+fn r8h_to_32(r8: iced_x86::Register) -> iced_x86::Register {
+    unsafe { std::mem::transmute((r8 as u8 - AH as u8) + EAX as u8) }
+}
+
 impl Registers {
     pub fn get32_mut(&mut self, reg: iced_x86::Register) -> &mut u32 {
         // XXX move comments from get32 here and rename once everything moved.
@@ -101,20 +114,14 @@ impl Registers {
 
     pub fn get16(&self, reg: iced_x86::Register) -> u16 {
         match reg {
-            iced_x86::Register::AX => self.eax as u16,
-            iced_x86::Register::CX => self.ecx as u16,
-            iced_x86::Register::DX => self.edx as u16,
-            iced_x86::Register::BX => self.ebx as u16,
-            iced_x86::Register::SP => self.esp as u16,
-            iced_x86::Register::BP => self.ebp as u16,
-            iced_x86::Register::SI => self.esi as u16,
-            iced_x86::Register::DI => self.edi as u16,
-            iced_x86::Register::ES => self.es,
-            iced_x86::Register::CS => self.cs,
-            iced_x86::Register::SS => self.ss,
-            iced_x86::Register::DS => self.ds,
-            iced_x86::Register::FS => self.fs,
-            iced_x86::Register::GS => self.gs,
+            AX | CX | DX | BX | SP | BP | SI | DI => self.get32(r16_to_32(reg)) as u16,
+
+            ES => self.es,
+            CS => self.cs,
+            SS => self.ss,
+            DS => self.ds,
+            FS => self.fs,
+            GS => self.gs,
             _ => unreachable!("{reg:?}"),
         }
     }
@@ -122,20 +129,15 @@ impl Registers {
     pub fn get16_mut(&mut self, reg: iced_x86::Register) -> &mut u16 {
         unsafe {
             match reg {
-                iced_x86::Register::AX => &mut *(&mut self.eax as *mut u32 as *mut u16),
-                iced_x86::Register::CX => &mut *(&mut self.ecx as *mut u32 as *mut u16),
-                iced_x86::Register::DX => &mut *(&mut self.edx as *mut u32 as *mut u16),
-                iced_x86::Register::BX => &mut *(&mut self.ebx as *mut u32 as *mut u16),
-                iced_x86::Register::SP => &mut *(&mut self.esp as *mut u32 as *mut u16),
-                iced_x86::Register::BP => &mut *(&mut self.ebp as *mut u32 as *mut u16),
-                iced_x86::Register::SI => &mut *(&mut self.esi as *mut u32 as *mut u16),
-                iced_x86::Register::DI => &mut *(&mut self.edi as *mut u32 as *mut u16),
-                iced_x86::Register::ES => &mut self.es,
-                iced_x86::Register::CS => &mut self.cs,
-                iced_x86::Register::SS => &mut self.ss,
-                iced_x86::Register::DS => &mut self.ds,
-                iced_x86::Register::FS => &mut self.fs,
-                iced_x86::Register::GS => &mut self.gs,
+                AX | CX | DX | BX | SP | BP | SI | DI => {
+                    &mut *(self.get32_mut(r16_to_32(reg)) as *mut u32 as *mut u16)
+                }
+                ES => &mut self.es,
+                CS => &mut self.cs,
+                SS => &mut self.ss,
+                DS => &mut self.ds,
+                FS => &mut self.fs,
+                GS => &mut self.gs,
                 _ => unreachable!("{reg:?}"),
             }
         }
@@ -143,14 +145,8 @@ impl Registers {
 
     pub fn get8(&self, reg: iced_x86::Register) -> u8 {
         match reg {
-            iced_x86::Register::AL => self.eax as u8,
-            iced_x86::Register::CL => self.ecx as u8,
-            iced_x86::Register::DL => self.edx as u8,
-            iced_x86::Register::BL => self.ebx as u8,
-            iced_x86::Register::AH => (self.eax >> 8) as u8,
-            iced_x86::Register::CH => (self.ecx >> 8) as u8,
-            iced_x86::Register::DH => (self.edx >> 8) as u8,
-            iced_x86::Register::BH => (self.ebx >> 8) as u8,
+            AL | CL | DL | BL => self.get32(r8l_to_32(reg)) as u8,
+            AH | CH | DH | BH => (self.get32(r8h_to_32(reg)) >> 8) as u8,
             _ => unreachable!("{reg:?}"),
         }
     }
@@ -158,14 +154,10 @@ impl Registers {
     pub fn get8_mut(&mut self, reg: iced_x86::Register) -> &mut u8 {
         unsafe {
             match reg {
-                iced_x86::Register::AL => &mut *(&mut self.eax as *mut u32 as *mut u8),
-                iced_x86::Register::CL => &mut *(&mut self.ecx as *mut u32 as *mut u8),
-                iced_x86::Register::DL => &mut *(&mut self.edx as *mut u32 as *mut u8),
-                iced_x86::Register::BL => &mut *(&mut self.ebx as *mut u32 as *mut u8),
-                iced_x86::Register::AH => &mut *(&mut self.eax as *mut u32 as *mut u8).add(1),
-                iced_x86::Register::CH => &mut *(&mut self.ecx as *mut u32 as *mut u8).add(1),
-                iced_x86::Register::DH => &mut *(&mut self.edx as *mut u32 as *mut u8).add(1),
-                iced_x86::Register::BH => &mut *(&mut self.ebx as *mut u32 as *mut u8).add(1),
+                AL | CL | DL | BL => &mut *(self.get32_mut(r8l_to_32(reg)) as *mut u32 as *mut u8),
+                AH | CH | DH | BH => {
+                    &mut *(self.get32_mut(r8h_to_32(reg)) as *mut u32 as *mut u8).add(1)
+                }
                 _ => unreachable!("{reg:?}"),
             }
         }
@@ -184,61 +176,59 @@ impl Registers {
 
     pub fn set16(&mut self, reg: iced_x86::Register, value: u16) {
         match reg {
-            iced_x86::Register::AX => self.eax = (self.eax & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::CX => self.ecx = (self.ecx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DX => self.edx = (self.edx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::BX => self.ebx = (self.ebx & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::SI => self.esi = (self.esi & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::DI => self.edi = (self.edi & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::BP => self.ebp = (self.ebp & 0xFFFF_0000) | value as u32,
-            iced_x86::Register::ES => self.es = value,
-            iced_x86::Register::CS => self.cs = value,
-            iced_x86::Register::SS => self.ss = value,
-            iced_x86::Register::DS => self.ds = value,
-            iced_x86::Register::FS => self.fs = value,
-            iced_x86::Register::GS => self.gs = value,
+            AX | CX | DX | BX | SI | DI | BP => {
+                let r32 = r16_to_32(reg);
+                self.set32(r32, (self.get32(r32) & 0xFFFF_0000) | value as u32);
+            }
+
+            ES => self.es = value,
+            CS => self.cs = value,
+            SS => self.ss = value,
+            DS => self.ds = value,
+            FS => self.fs = value,
+            GS => self.gs = value,
             _ => unreachable!("{reg:?}"),
         }
     }
 
     pub fn set8(&mut self, reg: iced_x86::Register, value: u8) {
         match reg {
-            iced_x86::Register::AL => self.eax = (self.eax & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::CL => self.ecx = (self.ecx & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::DL => self.edx = (self.edx & 0xFFFF_FF00) | value as u32,
-            iced_x86::Register::BL => self.ebx = (self.ebx & 0xFFFF_FF00) | value as u32,
+            AL | CL | DL | BL => {
+                let r32 = self.get32_mut(r8l_to_32(reg));
+                *r32 = (*r32 & 0xFFFF_FF00) | value as u32;
+            }
 
-            iced_x86::Register::AH => self.eax = (self.eax & 0xFFFF_00FF) | ((value as u32) << 8),
-            iced_x86::Register::CH => self.ecx = (self.ecx & 0xFFFF_00FF) | ((value as u32) << 8),
-            iced_x86::Register::DH => self.edx = (self.edx & 0xFFFF_00FF) | ((value as u32) << 8),
-            iced_x86::Register::BH => self.ebx = (self.ebx & 0xFFFF_00FF) | ((value as u32) << 8),
+            AH | CH | DH | BH => {
+                let r32 = self.get32_mut(r8h_to_32(reg));
+                *r32 = (*r32 & 0xFFFF_00FF) | ((value as u32) << 8);
+            }
             _ => unreachable!("{reg:?}"),
         }
     }
 
     pub fn get64(&self, reg: iced_x86::Register) -> u64 {
         match reg {
-            iced_x86::Register::MM0 => self.mm[0],
-            iced_x86::Register::MM1 => self.mm[1],
-            iced_x86::Register::MM2 => self.mm[2],
-            iced_x86::Register::MM3 => self.mm[3],
-            iced_x86::Register::MM4 => self.mm[4],
-            iced_x86::Register::MM5 => self.mm[5],
-            iced_x86::Register::MM6 => self.mm[6],
-            iced_x86::Register::MM7 => self.mm[7],
+            MM0 => self.mm[0],
+            MM1 => self.mm[1],
+            MM2 => self.mm[2],
+            MM3 => self.mm[3],
+            MM4 => self.mm[4],
+            MM5 => self.mm[5],
+            MM6 => self.mm[6],
+            MM7 => self.mm[7],
             _ => unimplemented!("{:?}", reg),
         }
     }
     pub fn set64(&mut self, reg: iced_x86::Register, value: u64) {
         match reg {
-            iced_x86::Register::MM0 => self.mm[0] = value,
-            iced_x86::Register::MM1 => self.mm[1] = value,
-            iced_x86::Register::MM2 => self.mm[2] = value,
-            iced_x86::Register::MM3 => self.mm[3] = value,
-            iced_x86::Register::MM4 => self.mm[4] = value,
-            iced_x86::Register::MM5 => self.mm[5] = value,
-            iced_x86::Register::MM6 => self.mm[6] = value,
-            iced_x86::Register::MM7 => self.mm[7] = value,
+            MM0 => self.mm[0] = value,
+            MM1 => self.mm[1] = value,
+            MM2 => self.mm[2] = value,
+            MM3 => self.mm[3] = value,
+            MM4 => self.mm[4] = value,
+            MM5 => self.mm[5] = value,
+            MM6 => self.mm[6] = value,
+            MM7 => self.mm[7] = value,
             _ => unimplemented!("{:?}", reg),
         }
     }
