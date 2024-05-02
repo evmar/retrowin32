@@ -406,11 +406,12 @@ pub fn cwde(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn cdq(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.regs.edx = if cpu.regs.eax >> 31 == 0 {
+    let edx = if cpu.regs.eax >> 31 == 0 {
         0
     } else {
         0xFFFF_FFFF
     };
+    cpu.regs.set32(Register::EDX, edx);
 }
 
 pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {

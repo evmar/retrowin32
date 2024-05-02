@@ -1,6 +1,6 @@
 use crate::CPU;
 use bitflags::bitflags;
-use iced_x86::Instruction;
+use iced_x86::{Instruction, Register};
 use memory::Mem;
 
 bitflags! {
@@ -14,9 +14,9 @@ pub fn cpuid(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
         1 => {
             // CPUID_GETFEATURES
             // Just enough to convince heaven7 that we support MMX.
-            cpu.regs.eax = 0;
-            cpu.regs.ecx = 0;
-            cpu.regs.edx = EDXFeatures::MMX.bits();
+            cpu.regs.set32(Register::EAX, 0);
+            cpu.regs.set32(Register::ECX, 0);
+            cpu.regs.set32(Register::EDX, EDXFeatures::MMX.bits());
         }
         mode => todo!("cpuid {mode}"),
     }

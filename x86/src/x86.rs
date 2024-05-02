@@ -96,9 +96,9 @@ impl CPU {
 
         // Clear registers to make traces clean.
         // Other registers are callee-saved per ABI.
-        self.regs.eax = 0;
-        self.regs.ecx = 0;
-        self.regs.edx = 0;
+        self.regs.set32(Register::EAX, 0);
+        self.regs.set32(Register::ECX, 0);
+        self.regs.set32(Register::EDX, 0);
 
         X86Future { cpu: self, esp }
     }

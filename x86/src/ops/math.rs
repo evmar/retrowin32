@@ -1,6 +1,6 @@
 use super::helpers::*;
 use crate::{registers::Flags, x86::CPU};
-use iced_x86::Instruction;
+use iced_x86::{Instruction, Register};
 use memory::Mem;
 use num_traits::ops::overflowing::OverflowingSub;
 
@@ -813,8 +813,8 @@ pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn idiv_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = get_edx_eax(cpu) as i64;
     let y = rm32(cpu, mem, instr).get() as i32 as i64;
-    cpu.regs.eax = (x / y) as i32 as u32;
-    cpu.regs.edx = (x % y) as i32 as u32;
+    cpu.regs.set32(Register::EAX, (x / y) as i32 as u32);
+    cpu.regs.set32(Register::EDX, (x % y) as i32 as u32);
 }
 
 pub fn idiv_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -846,16 +846,16 @@ pub fn idiv_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn div_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = get_edx_eax(cpu);
     let y = rm32(cpu, mem, instr).get() as u64;
-    cpu.regs.eax = (x / y) as u32;
-    cpu.regs.edx = (x % y) as u32;
+    cpu.regs.set32(Register::EAX, (x / y) as u32);
+    cpu.regs.set32(Register::EDX, (x % y) as u32);
     // No flags.
 }
 
 pub fn div_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = get_dx_ax(cpu);
     let y = rm16(cpu, mem, instr).get() as u32;
-    cpu.regs.eax = ((x / y) as u16) as u32;
-    cpu.regs.edx = ((x % y) as u16) as u32;
+    cpu.regs.set32(Register::EAX, ((x / y) as u16) as u32);
+    cpu.regs.set32(Register::EDX, ((x % y) as u16) as u32);
     // No flags.
 }
 

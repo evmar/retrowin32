@@ -96,12 +96,12 @@ pub fn handle_shim_call(machine: &mut Machine) {
             .mem()
             .get_pod::<u32>(regs.get32(x86::Register::ESP));
         *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
-        regs.eax = ret;
+        regs.set32(x86::Register::EAX, ret);
 
         // Clear registers to make traces clean.
         // eax holds return value; other registers are callee-saved per ABI.
-        regs.ecx = 0;
-        regs.edx = 0;
+        regs.set32(x86::Register::ECX, 0);
+        regs.set32(x86::Register::EDX, 0);
     } else {
         // Async handler will manage the return address etc.
     }
