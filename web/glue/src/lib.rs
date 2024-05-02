@@ -48,7 +48,7 @@ impl Emulator {
 
     #[wasm_bindgen(getter)]
     pub fn esp(&self) -> u32 {
-        self.machine.emu.x86.cpu().regs.esp
+        self.machine.emu.x86.cpu().regs.get32(x86::Register::ESP)
     }
 
     #[wasm_bindgen(getter)]

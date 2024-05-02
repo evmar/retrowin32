@@ -5,6 +5,7 @@ use crate::{
     icache::InstrCache,
     ops,
     registers::{Flags, Registers},
+    Register,
 };
 use memory::Mem;
 
@@ -85,7 +86,7 @@ impl CPU {
     /// that completes when the x86 call returns.
     pub fn call_x86(&mut self, mem: Mem, func: u32, args: Vec<u32>) -> X86Future {
         // Save original esp, as that's the marker that we use to know when the call is done.
-        let esp = self.regs.esp;
+        let esp = self.regs.get32(Register::ESP);
         // Push the args in reverse order.
         for &arg in args.iter().rev() {
             ops::push(self, mem, arg);
@@ -146,7 +147,7 @@ impl std::future::Future for X86Future {
     ) -> std::task::Poll<Self::Output> {
         let cpu = self.cpu;
         let cpu = unsafe { &mut *cpu };
-        if cpu.regs.esp == self.esp {
+        if cpu.regs.get32(Register::ESP) == self.esp {
             std::task::Poll::Ready(())
         } else {
             std::task::Poll::Pending

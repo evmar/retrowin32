@@ -1,4 +1,4 @@
-use crate::{registers::Flags, x86::CPU};
+use crate::{registers::Flags, x86::CPU, Register};
 use iced_x86::Instruction;
 use memory::Mem;
 
@@ -24,7 +24,7 @@ pub fn retnd(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
 pub fn retnd_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = pop(cpu, mem);
     x86_jmp(cpu, addr);
-    cpu.regs.esp += instr.immediate16() as u32;
+    *cpu.regs.get32_mut(Register::ESP) += instr.immediate16() as u32;
 }
 
 pub fn jmp(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {

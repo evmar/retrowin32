@@ -86,12 +86,16 @@ pub fn handle_shim_call(machine: &mut Machine) {
         is_async,
         ..
     } = *shim;
-    let esp = regs.esp;
+    let esp = regs.get32(x86::Register::ESP);
     let ret = unsafe { func(machine, esp) };
     if !is_async {
         let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine.emu.memory.mem().get_pod::<u32>(regs.esp);
-        regs.esp += stack_consumed + 4;
+        regs.eip = machine
+            .emu
+            .memory
+            .mem()
+            .get_pod::<u32>(regs.get32(x86::Register::ESP));
+        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
         regs.eax = ret;
 
         // Clear registers to make traces clean.

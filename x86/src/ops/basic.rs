@@ -8,12 +8,12 @@ pub fn nop(_cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {}
 
 pub fn enterd_imm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     push(cpu, mem, cpu.regs.get32(Register::EBP));
-    cpu.regs.set32(Register::EBP, cpu.regs.esp);
-    cpu.regs.esp -= instr.immediate16() as u32;
+    cpu.regs.set32(Register::EBP, cpu.regs.get32(Register::ESP));
+    *cpu.regs.get32_mut(Register::ESP) -= instr.immediate16() as u32;
 }
 
 pub fn leaved(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    cpu.regs.esp = cpu.regs.get32(Register::EBP);
+    cpu.regs.set32(Register::ESP, cpu.regs.get32(Register::EBP));
     let ebp = pop(cpu, mem);
     cpu.regs.set32(Register::EBP, ebp);
 }

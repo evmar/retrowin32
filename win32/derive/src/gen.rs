@@ -178,7 +178,7 @@ pub fn fn_wrapper(
                 let result = #module::#name(machine, #(#args),*).await;
                 let regs = &mut machine.emu.x86.cpu_mut().regs;
                 regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
-                regs.esp += #stack_consumed + 4;
+                *regs.get32_mut(x86::Register::ESP) += #stack_consumed + 4;
                 regs.eax = result.to_raw();
             };
             machine.emu.x86.cpu_mut().call_async(Box::pin(result));

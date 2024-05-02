@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::x86::CPU;
+use crate::{x86::CPU, Register};
 use memory::{Extensions, Mem};
 
 // TODO: maybe there are no 64-bit memory reads needed (?)
@@ -120,27 +120,31 @@ pub fn op1_rm8(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u8 {
 
 /// Push a u32 on the x86 stack.
 pub fn push(cpu: &mut CPU, mem: Mem, value: u32) {
-    cpu.regs.esp -= 4;
-    mem.put::<u32>(cpu.regs.esp, value);
+    let esp = cpu.regs.get32_mut(Register::ESP);
+    *esp -= 4;
+    mem.put::<u32>(*esp, value);
 }
 
 /// Push a u16 on the x86 stack.
 pub fn push16(cpu: &mut CPU, mem: Mem, value: u16) {
-    cpu.regs.esp -= 2;
-    mem.put::<u16>(cpu.regs.esp, value);
+    let esp = cpu.regs.get32_mut(Register::ESP);
+    *esp -= 2;
+    mem.put::<u16>(*esp, value);
 }
 
 /// Pop a u32 from the x86 stack.
 pub fn pop(cpu: &mut CPU, mem: Mem) -> u32 {
-    let value = mem.get_pod::<u32>(cpu.regs.esp);
-    cpu.regs.esp += 4;
+    let esp = cpu.regs.get32_mut(Register::ESP);
+    let value = mem.get_pod::<u32>(*esp);
+    *esp += 4;
     value
 }
 
 /// Pop a u16 from the x86 stack.
 pub fn pop16(cpu: &mut CPU, mem: Mem) -> u16 {
-    let value = mem.get_pod::<u16>(cpu.regs.esp);
-    cpu.regs.esp += 2;
+    let esp = cpu.regs.get32_mut(Register::ESP);
+    let value = mem.get_pod::<u16>(*esp);
+    *esp += 2;
     value
 }
 
