@@ -22,16 +22,16 @@ bitflags! {
 #[repr(C)]
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct Registers {
-    // Warning: get32 assumes the registers start with eax and are in a particular order.
-    pub eax: u32,
-    pub ecx: u32,
-    pub edx: u32,
-    pub ebx: u32,
-
-    pub esp: u32,
-    pub ebp: u32,
-    pub esi: u32,
-    pub edi: u32,
+    /// 32-bit registers, in order:
+    ///   eax ecx edx ebx esp ebp esi edi,
+    /// which matches the enums in iced_x86.
+    // Note: register access is hot in profiles.
+    // Previously we had named fields eax ebx etc., but to access them generally,
+    // if we write a match statement that maps register N to field at offset 4*N,
+    // llvm doesn't seem to optimize it to the obvious math.
+    // I tried the equivalent in C++ and that didn't optimize either.
+    // So instead we represent these as an array internally.
+    r32: [u32; 8],
 
     pub eip: u32,
 
@@ -55,14 +55,7 @@ pub struct Registers {
 impl Default for Registers {
     fn default() -> Self {
         Registers {
-            eax: 0,
-            ebx: 0,
-            ecx: 0,
-            edx: 0,
-            esp: 0,
-            ebp: 0,
-            esi: 0,
-            edi: 0,
+            r32: Default::default(),
             eip: 0,
             cs: 0,
             ds: 0,
@@ -76,40 +69,65 @@ impl Default for Registers {
     }
 }
 
+#[allow(dead_code)]
+const fn assert_enums_as_expected() {
+    assert!(ECX as u8 == EAX as u8 + 1);
+    assert!(EDX as u8 == EAX as u8 + 2);
+    assert!(EBX as u8 == EAX as u8 + 3);
+    assert!(ESP as u8 == EAX as u8 + 4);
+    assert!(EBP as u8 == EAX as u8 + 5);
+    assert!(ESI as u8 == EAX as u8 + 6);
+    assert!(EDI as u8 == EAX as u8 + 7);
+
+    assert!(CX as u8 == AX as u8 + 1);
+    assert!(DX as u8 == AX as u8 + 2);
+    assert!(BX as u8 == AX as u8 + 3);
+
+    assert!(CL as u8 == AL as u8 + 1);
+    assert!(DL as u8 == AL as u8 + 2);
+    assert!(BL as u8 == AL as u8 + 3);
+
+    assert!(CH as u8 == AH as u8 + 1);
+    assert!(DH as u8 == AH as u8 + 2);
+    assert!(BH as u8 == AH as u8 + 3);
+}
+const _: () = assert_enums_as_expected();
+
+/// Map a 16-bit register (e.g. BX) to its 32-bit underlying register (e.g. EBX).
 fn r16_to_32(r16: Register) -> Register {
+    // Safety: see check in assert_enums_as_expected.
     unsafe { std::mem::transmute((r16 as u8 - AX as u8) + EAX as u8) }
 }
 
+/// Map an 8-bit low register (e.g. BL) to its 32-bit underlying register (e.g. EBX).
 fn r8l_to_32(r8: Register) -> Register {
+    // Safety: see check in assert_enums_as_expected.
     unsafe { std::mem::transmute((r8 as u8 - AL as u8) + EAX as u8) }
 }
 
+/// Map an 8-bit high  register (e.g. BH) to its 32-bit underlying register (e.g. EBX).
 fn r8h_to_32(r8: Register) -> Register {
+    // Safety: see check in assert_enums_as_expected.
     unsafe { std::mem::transmute((r8 as u8 - AH as u8) + EAX as u8) }
 }
 
 impl Registers {
     pub fn get32_mut(&mut self, reg: Register) -> &mut u32 {
-        // XXX move comments from get32 here and rename once everything moved.
         let idx = reg as usize - Register::EAX as usize;
+        // See check in assert_enums_as_expected() -- the registers we can fetch are always < 8.
         if idx >= 8 {
             unreachable!("{reg:?}");
         }
-        unsafe { &mut *(self as *mut Registers as *mut u32).add(idx) }
+        &mut self.r32[idx]
     }
 
     pub fn get32(&self, reg: Register) -> u32 {
-        // This function is hot in profiles, and even if we write
-        // a match statement that maps register N to struct offset 4*N,
-        // llvm doesn't seem to optimize it to the obvious math.
-        // I tried the equivalent in C++ and that didn't optimize either.
-        // So instead here's some unsafe hackery.
+        // See comments in get32_mut.
         let idx = reg as usize - Register::EAX as usize;
         if idx >= 8 {
             unreachable!("{reg:?}");
         }
-        // XXX this assumes register order matches between our struct and iced_x86.
-        unsafe { *(self as *const Registers as *const u32).add(idx) }
+        self.r32[idx]
     }
 
     pub fn get16(&self, reg: Register) -> u16 {
