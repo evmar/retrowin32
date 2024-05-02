@@ -1,5 +1,5 @@
 use bitflags::bitflags;
-use iced_x86::Register::*;
+use iced_x86::Register::{self, *};
 
 bitflags! {
     #[derive(serde::Serialize, serde::Deserialize)]
@@ -76,35 +76,35 @@ impl Default for Registers {
     }
 }
 
-fn r16_to_32(r16: iced_x86::Register) -> iced_x86::Register {
+fn r16_to_32(r16: Register) -> Register {
     unsafe { std::mem::transmute((r16 as u8 - AX as u8) + EAX as u8) }
 }
 
-fn r8l_to_32(r8: iced_x86::Register) -> iced_x86::Register {
+fn r8l_to_32(r8: Register) -> Register {
     unsafe { std::mem::transmute((r8 as u8 - AL as u8) + EAX as u8) }
 }
 
-fn r8h_to_32(r8: iced_x86::Register) -> iced_x86::Register {
+fn r8h_to_32(r8: Register) -> Register {
     unsafe { std::mem::transmute((r8 as u8 - AH as u8) + EAX as u8) }
 }
 
 impl Registers {
-    pub fn get32_mut(&mut self, reg: iced_x86::Register) -> &mut u32 {
+    pub fn get32_mut(&mut self, reg: Register) -> &mut u32 {
         // XXX move comments from get32 here and rename once everything moved.
-        let idx = reg as usize - iced_x86::Register::EAX as usize;
+        let idx = reg as usize - Register::EAX as usize;
         if idx >= 8 {
             unreachable!("{reg:?}");
         }
         unsafe { &mut *(self as *mut Registers as *mut u32).add(idx) }
     }
 
-    pub fn get32(&self, reg: iced_x86::Register) -> u32 {
+    pub fn get32(&self, reg: Register) -> u32 {
         // This function is hot in profiles, and even if we write
         // a match statement that maps register N to struct offset 4*N,
         // llvm doesn't seem to optimize it to the obvious math.
         // I tried the equivalent in C++ and that didn't optimize either.
         // So instead here's some unsafe hackery.
-        let idx = reg as usize - iced_x86::Register::EAX as usize;
+        let idx = reg as usize - Register::EAX as usize;
         if idx >= 8 {
             unreachable!("{reg:?}");
         }
@@ -112,7 +112,7 @@ impl Registers {
         unsafe { *(self as *const Registers as *const u32).add(idx) }
     }
 
-    pub fn get16(&self, reg: iced_x86::Register) -> u16 {
+    pub fn get16(&self, reg: Register) -> u16 {
         match reg {
             AX | CX | DX | BX | SP | BP | SI | DI => self.get32(r16_to_32(reg)) as u16,
 
@@ -126,7 +126,7 @@ impl Registers {
         }
     }
 
-    pub fn get16_mut(&mut self, reg: iced_x86::Register) -> &mut u16 {
+    pub fn get16_mut(&mut self, reg: Register) -> &mut u16 {
         unsafe {
             match reg {
                 AX | CX | DX | BX | SP | BP | SI | DI => {
@@ -143,7 +143,7 @@ impl Registers {
         }
     }
 
-    pub fn get8(&self, reg: iced_x86::Register) -> u8 {
+    pub fn get8(&self, reg: Register) -> u8 {
         match reg {
             AL | CL | DL | BL => self.get32(r8l_to_32(reg)) as u8,
             AH | CH | DH | BH => (self.get32(r8h_to_32(reg)) >> 8) as u8,
@@ -151,7 +151,7 @@ impl Registers {
         }
     }
 
-    pub fn get8_mut(&mut self, reg: iced_x86::Register) -> &mut u8 {
+    pub fn get8_mut(&mut self, reg: Register) -> &mut u8 {
         unsafe {
             match reg {
                 AL | CL | DL | BL => &mut *(self.get32_mut(r8l_to_32(reg)) as *mut u32 as *mut u8),
@@ -163,8 +163,8 @@ impl Registers {
         }
     }
 
-    pub fn set32(&mut self, reg: iced_x86::Register, value: u32) {
-        let idx = reg as usize - iced_x86::Register::EAX as usize;
+    pub fn set32(&mut self, reg: Register, value: u32) {
+        let idx = reg as usize - Register::EAX as usize;
         if idx >= 8 {
             unreachable!("{reg:?}");
         }
@@ -174,7 +174,7 @@ impl Registers {
         }
     }
 
-    pub fn set16(&mut self, reg: iced_x86::Register, value: u16) {
+    pub fn set16(&mut self, reg: Register, value: u16) {
         match reg {
             AX | CX | DX | BX | SI | DI | BP => {
                 let r32 = r16_to_32(reg);
@@ -191,7 +191,7 @@ impl Registers {
         }
     }
 
-    pub fn set8(&mut self, reg: iced_x86::Register, value: u8) {
+    pub fn set8(&mut self, reg: Register, value: u8) {
         match reg {
             AL | CL | DL | BL => {
                 let r32 = self.get32_mut(r8l_to_32(reg));
@@ -206,7 +206,7 @@ impl Registers {
         }
     }
 
-    pub fn get64(&self, reg: iced_x86::Register) -> u64 {
+    pub fn get64(&self, reg: Register) -> u64 {
         match reg {
             MM0 => self.mm[0],
             MM1 => self.mm[1],
@@ -219,7 +219,7 @@ impl Registers {
             _ => unimplemented!("{:?}", reg),
         }
     }
-    pub fn set64(&mut self, reg: iced_x86::Register, value: u64) {
+    pub fn set64(&mut self, reg: Register, value: u64) {
         match reg {
             MM0 => self.mm[0] = value,
             MM1 => self.mm[1] = value,
