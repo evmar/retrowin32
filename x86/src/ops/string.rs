@@ -37,9 +37,9 @@ impl Rep {
 /// Note: some instructions do not have varying Reps and it is important to treat them
 /// as plain REP; e.g. "REPNE MOVS" just means "REP MOVS".
 fn rep(cpu: &mut CPU, mem: Mem, rep: Rep, size: Size, func: impl Fn(&mut CPU, Mem, Size)) {
-    while cpu.regs.ecx > 0 {
+    while cpu.regs.get32(Register::ECX) > 0 {
         func(cpu, mem, size);
-        cpu.regs.ecx -= 1;
+        *cpu.regs.get32_mut(Register::ECX) -= 1;
         match rep {
             Rep::REPE if !cpu.flags.contains(Flags::ZF) => break,
             Rep::REPNE if cpu.flags.contains(Flags::ZF) => break,

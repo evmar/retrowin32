@@ -186,7 +186,7 @@ pub fn shl_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn shl_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm32(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
@@ -198,7 +198,7 @@ pub fn shl_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn shl_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm8(cpu, mem, instr);
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
@@ -232,7 +232,7 @@ pub fn shld_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn shld_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = cpu.regs.ecx as u8;
+    let count = cpu.regs.get8(Register::CL);
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shld(x, y, count, &mut cpu.flags);
@@ -258,7 +258,7 @@ fn shr<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
 }
 
 pub fn shr_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm32(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
@@ -292,7 +292,7 @@ pub fn shr_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn shr_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm8(cpu, mem, instr);
     x.set(shr(x.get(), y, &mut cpu.flags));
 }
@@ -320,7 +320,7 @@ pub fn shrd_rm32_r32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn shrd_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let count = cpu.regs.ecx as u8;
+    let count = cpu.regs.get8(Register::CL);
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     shrd(x, y, count, &mut cpu.flags);
@@ -348,7 +348,7 @@ pub fn sar_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn sar_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8 as u32;
+    let y = cpu.regs.get8(Register::CL) as u32;
     let x = rm32(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
@@ -360,7 +360,7 @@ pub fn sar_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn sar_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm8(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
@@ -378,7 +378,7 @@ fn rol<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
 }
 
 pub fn rol_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm32(cpu, mem, instr);
     x.set(rol(x.get(), y, &mut cpu.flags));
 }
@@ -396,7 +396,7 @@ pub fn rol_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn rol_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm8(cpu, mem, instr);
     x.set(rol(x.get(), y, &mut cpu.flags));
 }
@@ -414,7 +414,7 @@ fn ror<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
 }
 
 pub fn ror_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm32(cpu, mem, instr);
     x.set(ror(x.get(), y, &mut cpu.flags));
 }
@@ -432,7 +432,7 @@ pub fn ror_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn ror_rm8_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.ecx as u8;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm8(cpu, mem, instr);
     x.set(ror(x.get(), y, &mut cpu.flags));
 }

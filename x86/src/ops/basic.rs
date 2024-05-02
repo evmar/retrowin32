@@ -253,7 +253,8 @@ pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let test = get_edx_eax(cpu);
     if test == m64 {
         cpu.flags.insert(Flags::ZF);
-        let val = ((cpu.regs.ecx as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
+        let val =
+            ((cpu.regs.get32(Register::ECX) as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
         mem.put::<u64>(addr, val);
     } else {
         cpu.flags.remove(Flags::ZF);

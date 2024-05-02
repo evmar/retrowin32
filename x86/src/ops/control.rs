@@ -67,7 +67,7 @@ pub fn je(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn jecxz(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    if cpu.regs.ecx == 0 {
+    if cpu.regs.get32(Register::ECX) == 0 {
         x86_jmp(cpu, instr.near_branch32());
     }
 }
@@ -119,8 +119,9 @@ pub fn js(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn loop_(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    cpu.regs.ecx -= 1;
-    if cpu.regs.ecx != 0 {
+    let ecx = cpu.regs.get32_mut(Register::ECX);
+    *ecx -= 1;
+    if *ecx != 0 {
         x86_jmp(cpu, instr.near_branch32());
     }
 }
