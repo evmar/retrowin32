@@ -1,6 +1,5 @@
-use iced_x86::Instruction;
-
 use crate::{registers::Flags, x86::CPU, CPUState};
+use iced_x86::{Instruction, Register};
 use memory::{Extensions, Mem};
 
 use super::helpers::*;
@@ -316,26 +315,34 @@ pub fn setge_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn pushad(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    let esp = cpu.regs.esp;
-    push(cpu, mem, cpu.regs.eax);
-    push(cpu, mem, cpu.regs.ecx);
-    push(cpu, mem, cpu.regs.edx);
-    push(cpu, mem, cpu.regs.ebx);
+    let esp = cpu.regs.get32(Register::ESP); // get before any pushes
+
+    push(cpu, mem, cpu.regs.get32(Register::EAX));
+    push(cpu, mem, cpu.regs.get32(Register::ECX));
+    push(cpu, mem, cpu.regs.get32(Register::EDX));
+    push(cpu, mem, cpu.regs.get32(Register::EBX));
     push(cpu, mem, esp);
-    push(cpu, mem, cpu.regs.ebp);
-    push(cpu, mem, cpu.regs.esi);
-    push(cpu, mem, cpu.regs.edi);
+    push(cpu, mem, cpu.regs.get32(Register::EBP));
+    push(cpu, mem, cpu.regs.get32(Register::ESI));
+    push(cpu, mem, cpu.regs.get32(Register::EDI));
 }
 
 pub fn popad(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    cpu.regs.edi = pop(cpu, mem);
-    cpu.regs.esi = pop(cpu, mem);
-    cpu.regs.ebp = pop(cpu, mem);
+    let edi = pop(cpu, mem);
+    cpu.regs.set32(Register::EDI, edi);
+    let esi = pop(cpu, mem);
+    cpu.regs.set32(Register::ESI, esi);
+    let ebp = pop(cpu, mem);
+    cpu.regs.set32(Register::EBP, ebp);
     pop(cpu, mem); // ignore esp
-    cpu.regs.ebx = pop(cpu, mem);
-    cpu.regs.edx = pop(cpu, mem);
-    cpu.regs.ecx = pop(cpu, mem);
-    cpu.regs.eax = pop(cpu, mem);
+    let ebx = pop(cpu, mem);
+    cpu.regs.set32(Register::EBX, ebx);
+    let edx = pop(cpu, mem);
+    cpu.regs.set32(Register::EDX, edx);
+    let ecx = pop(cpu, mem);
+    cpu.regs.set32(Register::ECX, ecx);
+    let eax = pop(cpu, mem);
+    cpu.regs.set32(Register::EAX, eax);
 }
 
 pub fn pushfd(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {

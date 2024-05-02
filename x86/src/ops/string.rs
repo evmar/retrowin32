@@ -2,7 +2,7 @@
 
 use super::math::sub;
 use crate::{registers::Flags, x86::CPU};
-use iced_x86::Instruction;
+use iced_x86::{Instruction, Register};
 use memory::{Extensions, Mem};
 
 /// Width of an operation, e.g. movsb/w/d.
@@ -51,27 +51,27 @@ fn rep(cpu: &mut CPU, mem: Mem, rep: Rep, size: Size, func: impl Fn(&mut CPU, Me
 fn cmps_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
-            let x = mem.get_pod::<u32>(cpu.regs.esi);
-            let y = mem.get_pod::<u32>(cpu.regs.edi);
+            let x = mem.get_pod::<u32>(cpu.regs.get32(Register::ESI));
+            let y = mem.get_pod::<u32>(cpu.regs.get32(Register::EDI));
             sub(x, y, &mut cpu.flags);
         }
         Size::Word => {
-            let x = mem.get_pod::<u16>(cpu.regs.esi);
-            let y = mem.get_pod::<u16>(cpu.regs.edi);
+            let x = mem.get_pod::<u16>(cpu.regs.get32(Register::ESI));
+            let y = mem.get_pod::<u16>(cpu.regs.get32(Register::EDI));
             sub(x, y, &mut cpu.flags);
         }
         Size::Byte => {
-            let x = mem.get_pod::<u8>(cpu.regs.esi);
-            let y = mem.get_pod::<u8>(cpu.regs.edi);
+            let x = mem.get_pod::<u8>(cpu.regs.get32(Register::ESI));
+            let y = mem.get_pod::<u8>(cpu.regs.get32(Register::EDI));
             sub(x, y, &mut cpu.flags);
         }
     }
     if cpu.flags.contains(Flags::DF) {
-        cpu.regs.edi -= size as u32;
-        cpu.regs.esi -= size as u32;
+        *cpu.regs.get32_mut(Register::EDI) -= size as u32;
+        *cpu.regs.get32_mut(Register::ESI) -= size as u32;
     } else {
-        cpu.regs.edi += size as u32;
-        cpu.regs.esi += size as u32;
+        *cpu.regs.get32_mut(Register::EDI) += size as u32;
+        *cpu.regs.get32_mut(Register::ESI) += size as u32;
     };
 }
 
@@ -98,24 +98,24 @@ pub fn cmpsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 fn movs_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
-            let src = mem.get_pod::<u32>(cpu.regs.esi);
-            mem.put::<u32>(cpu.regs.edi, src);
+            let src = mem.get_pod::<u32>(cpu.regs.get32(Register::ESI));
+            mem.put::<u32>(cpu.regs.get32(Register::EDI), src);
         }
         Size::Word => {
-            let src = mem.get_pod::<u16>(cpu.regs.esi);
-            mem.put::<u16>(cpu.regs.edi, src);
+            let src = mem.get_pod::<u16>(cpu.regs.get32(Register::ESI));
+            mem.put::<u16>(cpu.regs.get32(Register::EDI), src);
         }
         Size::Byte => {
-            let src = mem.get_pod::<u8>(cpu.regs.esi);
-            mem.put::<u8>(cpu.regs.edi, src);
+            let src = mem.get_pod::<u8>(cpu.regs.get32(Register::ESI));
+            mem.put::<u8>(cpu.regs.get32(Register::EDI), src);
         }
     }
     if cpu.flags.contains(Flags::DF) {
-        cpu.regs.edi -= size as u32;
-        cpu.regs.esi -= size as u32;
+        *cpu.regs.get32_mut(Register::EDI) -= size as u32;
+        *cpu.regs.get32_mut(Register::ESI) -= size as u32;
     } else {
-        cpu.regs.edi += size as u32;
-        cpu.regs.esi += size as u32;
+        *cpu.regs.get32_mut(Register::EDI) += size as u32;
+        *cpu.regs.get32_mut(Register::ESI) += size as u32;
     };
 }
 
@@ -142,22 +142,22 @@ pub fn movsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 fn scas_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
-            let src = mem.get_pod::<u32>(cpu.regs.edi);
+            let src = mem.get_pod::<u32>(cpu.regs.get32(Register::EDI));
             sub(cpu.regs.eax, src, &mut cpu.flags);
         }
         Size::Word => {
-            let src = mem.get_pod::<u16>(cpu.regs.edi);
+            let src = mem.get_pod::<u16>(cpu.regs.get32(Register::EDI));
             sub(cpu.regs.eax as u16, src, &mut cpu.flags);
         }
         Size::Byte => {
-            let src = mem.get_pod::<u8>(cpu.regs.edi);
+            let src = mem.get_pod::<u8>(cpu.regs.get32(Register::EDI));
             sub(cpu.regs.eax as u8, src, &mut cpu.flags);
         }
     }
     if cpu.flags.contains(Flags::DF) {
-        cpu.regs.edi -= size as u32;
+        *cpu.regs.get32_mut(Register::EDI) -= size as u32;
     } else {
-        cpu.regs.edi += size as u32;
+        *cpu.regs.get32_mut(Register::EDI) += size as u32;
     };
 }
 
@@ -183,14 +183,14 @@ pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
-        Size::Byte => mem.put::<u8>(cpu.regs.edi, cpu.regs.eax as u8),
-        Size::Word => mem.put::<u16>(cpu.regs.edi, cpu.regs.eax as u16),
-        Size::Dword => mem.put::<u32>(cpu.regs.edi, cpu.regs.eax),
+        Size::Byte => mem.put::<u8>(cpu.regs.get32(Register::EDI), cpu.regs.eax as u8),
+        Size::Word => mem.put::<u16>(cpu.regs.get32(Register::EDI), cpu.regs.eax as u16),
+        Size::Dword => mem.put::<u32>(cpu.regs.get32(Register::EDI), cpu.regs.eax),
     }
     if cpu.flags.contains(Flags::DF) {
-        cpu.regs.edi -= size as u32;
+        *cpu.regs.get32_mut(Register::EDI) -= size as u32;
     } else {
-        cpu.regs.edi += size as u32;
+        *cpu.regs.get32_mut(Register::EDI) += size as u32;
     };
 }
 
@@ -217,21 +217,21 @@ pub fn stosb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Byte => {
-            let value = mem.get_pod::<u8>(cpu.regs.esi);
+            let value = mem.get_pod::<u8>(cpu.regs.get32(Register::ESI));
             cpu.regs.set8(iced_x86::Register::AL, value)
         }
         Size::Word => {
-            let value = mem.get_pod::<u16>(cpu.regs.esi);
+            let value = mem.get_pod::<u16>(cpu.regs.get32(Register::ESI));
             cpu.regs.set16(iced_x86::Register::AX, value)
         }
         Size::Dword => {
-            cpu.regs.eax = mem.get_pod::<u32>(cpu.regs.esi);
+            cpu.regs.eax = mem.get_pod::<u32>(cpu.regs.get32(Register::ESI));
         }
     }
     if cpu.flags.contains(Flags::DF) {
-        cpu.regs.esi -= size as u32;
+        *cpu.regs.get32_mut(Register::ESI) -= size as u32;
     } else {
-        cpu.regs.esi += size as u32;
+        *cpu.regs.get32_mut(Register::ESI) += size as u32;
     };
 }
 
