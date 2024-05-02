@@ -253,7 +253,7 @@ pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let test = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
     if test == m64 {
         cpu.flags.insert(Flags::ZF);
-        let val = ((cpu.regs.ecx as u64) << 32) | (cpu.regs.ebx as u64);
+        let val = ((cpu.regs.ecx as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
         mem.put::<u64>(addr, val);
     } else {
         cpu.flags.remove(Flags::ZF);
@@ -433,7 +433,7 @@ pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    let addr = cpu.regs.ebx + (cpu.regs.eax & 0xFF);
+    let addr = cpu.regs.get32(Register::EBX) + (cpu.regs.eax & 0xFF);
     cpu.regs
         .set8(iced_x86::Register::AL, mem.get_pod::<u8>(addr));
 }
