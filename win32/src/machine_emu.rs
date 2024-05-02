@@ -95,16 +95,16 @@ impl MachineX<Emulator> {
 
         let stack_pointer = self.create_stack("stack".into(), exe.stack_size);
         let regs = &mut self.emu.x86.cpu_mut().regs;
-        regs.esp = stack_pointer;
-        regs.ebp = stack_pointer;
+        regs.set32(x86::Register::ESP, stack_pointer);
+        regs.set32(x86::Register::EBP, stack_pointer);
         regs.fs_addr = self.state.kernel32.teb;
 
         // To make CPU traces match more closely, set up some registers to what their
         // initial values appear to be from looking in a debugger.
-        regs.ecx = exe.entry_point;
-        regs.edx = exe.entry_point;
-        regs.esi = exe.entry_point;
-        regs.edi = exe.entry_point;
+        regs.set32(x86::Register::ECX, exe.entry_point);
+        regs.set32(x86::Register::EDX, exe.entry_point);
+        regs.set32(x86::Register::ESI, exe.entry_point);
+        regs.set32(x86::Register::EDI, exe.entry_point);
 
         let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
         let cpu = self.emu.x86.cpu_mut();

@@ -6,3 +6,4 @@ mod registers;
 mod x86;
 
 pub use crate::x86::{CPUState, CPU, X86};
+pub use iced_x86::Register;
