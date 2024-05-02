@@ -19,7 +19,6 @@ bitflags! {
     }
 }
 
-#[repr(C)]
 #[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Registers {
     /// 32-bit registers, in order:
