@@ -179,7 +179,7 @@ pub fn fn_wrapper(
                 let regs = &mut machine.emu.x86.cpu_mut().regs;
                 regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                 *regs.get32_mut(x86::Register::ESP) += #stack_consumed + 4;
-                regs.eax = result.to_raw();
+                regs.set32(x86::Register::EAX, result.to_raw());
             };
             machine.emu.x86.cpu_mut().call_async(Box::pin(result));
             // async block will set up the stack and eip.

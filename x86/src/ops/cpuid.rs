@@ -10,7 +10,7 @@ bitflags! {
 }
 
 pub fn cpuid(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    match cpu.regs.eax {
+    match cpu.regs.get32(Register::EAX) {
         1 => {
             // CPUID_GETFEATURES
             // Just enough to convince heaven7 that we support MMX.

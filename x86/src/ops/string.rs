@@ -143,15 +143,15 @@ fn scas_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
             let src = mem.get_pod::<u32>(cpu.regs.get32(Register::EDI));
-            sub(cpu.regs.eax, src, &mut cpu.flags);
+            sub(cpu.regs.get32(Register::EAX), src, &mut cpu.flags);
         }
         Size::Word => {
             let src = mem.get_pod::<u16>(cpu.regs.get32(Register::EDI));
-            sub(cpu.regs.eax as u16, src, &mut cpu.flags);
+            sub(cpu.regs.get32(Register::EAX) as u16, src, &mut cpu.flags);
         }
         Size::Byte => {
             let src = mem.get_pod::<u8>(cpu.regs.get32(Register::EDI));
-            sub(cpu.regs.eax as u8, src, &mut cpu.flags);
+            sub(cpu.regs.get32(Register::EAX) as u8, src, &mut cpu.flags);
         }
     }
     if cpu.flags.contains(Flags::DF) {
@@ -183,9 +183,15 @@ pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
-        Size::Byte => mem.put::<u8>(cpu.regs.get32(Register::EDI), cpu.regs.eax as u8),
-        Size::Word => mem.put::<u16>(cpu.regs.get32(Register::EDI), cpu.regs.eax as u16),
-        Size::Dword => mem.put::<u32>(cpu.regs.get32(Register::EDI), cpu.regs.eax),
+        Size::Byte => mem.put::<u8>(
+            cpu.regs.get32(Register::EDI),
+            cpu.regs.get32(Register::EAX) as u8,
+        ),
+        Size::Word => mem.put::<u16>(
+            cpu.regs.get32(Register::EDI),
+            cpu.regs.get32(Register::EAX) as u16,
+        ),
+        Size::Dword => mem.put::<u32>(cpu.regs.get32(Register::EDI), cpu.regs.get32(Register::EAX)),
     }
     if cpu.flags.contains(Flags::DF) {
         *cpu.regs.get32_mut(Register::EDI) -= size as u32;
@@ -225,7 +231,10 @@ fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
             cpu.regs.set16(iced_x86::Register::AX, value)
         }
         Size::Dword => {
-            cpu.regs.eax = mem.get_pod::<u32>(cpu.regs.get32(Register::ESI));
+            cpu.regs.set32(
+                Register::EAX,
+                mem.get_pod::<u32>(cpu.regs.get32(Register::ESI)),
+            );
         }
     }
     if cpu.flags.contains(Flags::DF) {

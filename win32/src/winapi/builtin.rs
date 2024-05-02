@@ -1032,7 +1032,7 @@ pub mod kernel32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 24u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -1613,7 +1613,7 @@ pub mod kernel32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 4u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -1777,7 +1777,7 @@ pub mod kernel32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 4u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -1803,7 +1803,7 @@ pub mod kernel32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 8u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3077,7 +3077,7 @@ pub mod retrowin32_test {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 8u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3404,7 +3404,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 48u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3468,7 +3468,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 48u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3561,7 +3561,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 4u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3585,7 +3585,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 4u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3676,7 +3676,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 16u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -3716,7 +3716,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 16u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -4014,7 +4014,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 8u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
@@ -4050,7 +4050,7 @@ pub mod user32 {
                     let regs = &mut machine.emu.x86.cpu_mut().regs;
                     regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                     *regs.get32_mut(x86::Register::ESP) += 4u32 + 4;
-                    regs.eax = result.to_raw();
+                    regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0

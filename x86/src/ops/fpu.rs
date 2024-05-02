@@ -1,6 +1,6 @@
 use super::helpers::*;
 use crate::{fpu, x86::CPU};
-use iced_x86::Instruction;
+use iced_x86::{Instruction, Register};
 use memory::{Extensions, Mem};
 
 pub fn finit(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
@@ -390,7 +390,7 @@ pub fn frndint(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 
 pub fn fnstsw_ax(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     // TODO: does this need stack top in it?
-    cpu.regs.eax = cpu.fpu.status.bits() as u32;
+    cpu.regs.set32(Register::EAX, cpu.fpu.status.bits() as u32);
 }
 
 pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {

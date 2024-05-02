@@ -122,7 +122,7 @@ pub fn mov_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn mov_moffs8_al(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
-    mem.put::<u8>(addr, cpu.regs.eax as u8);
+    mem.put::<u8>(addr, cpu.regs.get8(Register::AL));
 }
 
 pub fn mov_r32m16_sreg(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -235,12 +235,12 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
             let x = mem.get_pod::<u32>(addr);
-            if cpu.regs.eax == x {
+            if cpu.regs.get32(Register::EAX) == x {
                 cpu.flags.insert(Flags::ZF);
                 mem.put::<u32>(addr, y);
             } else {
                 cpu.flags.remove(Flags::ZF);
-                cpu.regs.eax = y;
+                cpu.regs.set32(Register::EAX, y);
             }
         }
         _ => unreachable!(),
@@ -367,7 +367,7 @@ pub fn popfw(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
 }
 
 pub fn sahf(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    let ah = (cpu.regs.eax >> 8) as u8;
+    let ah = cpu.regs.get8(Register::AH);
     cpu.flags = Flags::from_bits((cpu.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
 }
 
@@ -403,11 +403,12 @@ pub fn cmc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn cwde(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    cpu.regs.eax = cpu.regs.eax as i16 as i32 as u32;
+    let value = cpu.regs.get16(Register::AX) as i16 as i32;
+    cpu.regs.set32(Register::EAX, value as u32);
 }
 
 pub fn cdq(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    let edx = if cpu.regs.eax >> 31 == 0 {
+    let edx = if cpu.regs.get32(Register::EAX) >> 31 == 0 {
         0
     } else {
         0xFFFF_FFFF
@@ -434,9 +435,8 @@ pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    let addr = cpu.regs.get32(Register::EBX) + (cpu.regs.eax & 0xFF);
-    cpu.regs
-        .set8(iced_x86::Register::AL, mem.get_pod::<u8>(addr));
+    let addr = cpu.regs.get32(Register::EBX) + (cpu.regs.get8(Register::AL) as u32);
+    cpu.regs.set8(Register::AL, mem.get_pod::<u8>(addr));
 }
 
 pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
