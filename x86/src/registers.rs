@@ -90,6 +90,14 @@ const fn assert_enums_as_expected() {
     assert!(CH as u8 == AH as u8 + 1);
     assert!(DH as u8 == AH as u8 + 2);
     assert!(BH as u8 == AH as u8 + 3);
+
+    assert!(MM1 as u8 == MM0 as u8 + 1);
+    assert!(MM2 as u8 == MM0 as u8 + 2);
+    assert!(MM3 as u8 == MM0 as u8 + 3);
+    assert!(MM4 as u8 == MM0 as u8 + 4);
+    assert!(MM5 as u8 == MM0 as u8 + 5);
+    assert!(MM6 as u8 == MM0 as u8 + 6);
+    assert!(MM7 as u8 == MM0 as u8 + 7);
 }
 const _: () = assert_enums_as_expected();
 
@@ -225,29 +233,18 @@ impl Registers {
     }
 
     pub fn get64(&self, reg: Register) -> u64 {
-        match reg {
-            MM0 => self.mm[0],
-            MM1 => self.mm[1],
-            MM2 => self.mm[2],
-            MM3 => self.mm[3],
-            MM4 => self.mm[4],
-            MM5 => self.mm[5],
-            MM6 => self.mm[6],
-            MM7 => self.mm[7],
-            _ => unimplemented!("{:?}", reg),
+        let index = reg as usize - MM0 as usize;
+        if index >= 8 {
+            unreachable!("{reg:?}");
         }
+        self.mm[index]
     }
+
     pub fn set64(&mut self, reg: Register, value: u64) {
-        match reg {
-            MM0 => self.mm[0] = value,
-            MM1 => self.mm[1] = value,
-            MM2 => self.mm[2] = value,
-            MM3 => self.mm[3] = value,
-            MM4 => self.mm[4] = value,
-            MM5 => self.mm[5] = value,
-            MM6 => self.mm[6] = value,
-            MM7 => self.mm[7] = value,
-            _ => unimplemented!("{:?}", reg),
+        let index = reg as usize - MM0 as usize;
+        if index >= 8 {
+            unreachable!("{reg:?}");
         }
+        self.mm[index] = value;
     }
 }
