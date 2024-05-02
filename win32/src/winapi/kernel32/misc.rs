@@ -374,8 +374,17 @@ pub fn SetPriorityClass(
 }
 
 #[win32_derive::dllexport]
-pub fn Sleep(_machine: &mut Machine, dwMilliseconds: u32) -> u32 {
-    log::warn!("TODO: sleep");
+pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
+    #[cfg(feature = "x86-emu")]
+    {
+        let until = machine.host.time() + dwMilliseconds;
+        crate::shims::block(machine, Some(until)).await;
+    }
+
+    #[cfg(not(feature = "x86-emu"))]
+    {
+        log::warn!("TODO: sleep");
+    }
     0
 }
 

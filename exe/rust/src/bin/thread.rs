@@ -31,7 +31,7 @@ unsafe extern "system" fn thread_proc(param: *mut std::ffi::c_void) -> u32 {
     for i in 0..3 {
         let thread_id = GetCurrentThreadId();
         print(format!("thread={thread_id} param={param} i={i}\n"));
-        // TODO: Sleep(100);
+        Sleep(500);
     }
     let thread_id = GetCurrentThreadId();
     print(format!("thread={thread_id} param={param} returning\n"));

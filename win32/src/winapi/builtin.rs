@@ -1603,7 +1603,26 @@ pub mod kernel32 {
         pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::Sleep(machine, dwMilliseconds).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::kernel32::Sleep(machine, dwMilliseconds).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    regs.esp += 4u32 + 4;
+                    regs.eax = result.to_raw();
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::kernel32::Sleep(machine, dwMilliseconds));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2359,7 +2378,7 @@ pub mod kernel32 {
             name: "Sleep",
             func: impls::Sleep,
             stack_consumed: 4u32,
-            is_async: false,
+            is_async: true,
         };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
