@@ -80,8 +80,8 @@ pub async fn CreateThread(
         let id = 1; // TODO
         let stack_pointer = machine.create_stack(format!("thread{id} stack"), dwStackSize);
         let cpu = machine.emu.x86.new_cpu();
-        cpu.regs.esp = stack_pointer;
-        cpu.regs.ebp = stack_pointer;
+        cpu.regs.set32(x86::Register::ESP, stack_pointer);
+        cpu.regs.set32(x86::Register::EBP, stack_pointer);
         let mem = machine.emu.memory.mem();
         x86::ops::push(cpu, mem, lpParameter);
         x86::ops::push(cpu, mem, lpStartAddress);

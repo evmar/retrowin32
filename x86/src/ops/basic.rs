@@ -7,14 +7,15 @@ use super::helpers::*;
 pub fn nop(_cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {}
 
 pub fn enterd_imm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    push(cpu, mem, cpu.regs.ebp);
-    cpu.regs.ebp = cpu.regs.esp;
+    push(cpu, mem, cpu.regs.get32(Register::EBP));
+    cpu.regs.set32(Register::EBP, cpu.regs.esp);
     cpu.regs.esp -= instr.immediate16() as u32;
 }
 
 pub fn leaved(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    cpu.regs.esp = cpu.regs.ebp;
-    cpu.regs.ebp = pop(cpu, mem);
+    cpu.regs.esp = cpu.regs.get32(Register::EBP);
+    let ebp = pop(cpu, mem);
+    cpu.regs.set32(Register::EBP, ebp);
 }
 
 pub fn pushd_r16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
