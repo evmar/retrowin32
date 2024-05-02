@@ -47,7 +47,7 @@ pub struct Registers {
 
     /// MMX registers.
     // TODO: officially these should alias the FPU registers(!).
-    pub mm: [u64; 8],
+    mm: [u64; 8],
 }
 
 #[allow(dead_code)]
@@ -128,7 +128,6 @@ impl Registers {
     pub fn get16(&self, reg: Register) -> u16 {
         match reg {
             AX | CX | DX | BX | SP | BP | SI | DI => self.get32(r16_to_32(reg)) as u16,
-
             ES | CS | SS | DS | FS | GS => {
                 let idx = reg as usize - ES as usize;
                 self.segment[idx]
@@ -138,17 +137,17 @@ impl Registers {
     }
 
     pub fn get16_mut(&mut self, reg: Register) -> &mut u16 {
-        unsafe {
-            match reg {
-                AX | CX | DX | BX | SP | BP | SI | DI => {
-                    &mut *(self.get32_mut(r16_to_32(reg)) as *mut u32 as *mut u16)
-                }
-                ES | CS | SS | DS | FS | GS => {
-                    let idx = reg as usize - ES as usize;
-                    &mut self.segment[idx]
-                }
-                _ => unreachable!("{reg:?}"),
+        match reg {
+            AX | CX | DX | BX | SP | BP | SI | DI => {
+                // TODO: is this correct?  Operations that touch the lower 16 bits on a 32-bit register
+                // possibly should clear the upper bits.
+                unsafe { &mut *(self.get32_mut(r16_to_32(reg)) as *mut u32 as *mut u16) }
             }
+            ES | CS | SS | DS | FS | GS => {
+                let idx = reg as usize - ES as usize;
+                &mut self.segment[idx]
+            }
+            _ => unreachable!("{reg:?}"),
         }
     }
 
@@ -196,7 +195,6 @@ impl Registers {
                 let r32 = self.get32_mut(r8l_to_32(reg));
                 *r32 = (*r32 & 0xFFFF_FF00) | value as u32;
             }
-
             AH | CH | DH | BH => {
                 let r32 = self.get32_mut(r8h_to_32(reg));
                 *r32 = (*r32 & 0xFFFF_00FF) | ((value as u32) << 8);
