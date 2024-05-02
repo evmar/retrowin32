@@ -50,7 +50,7 @@ impl<'m> Extensions<'m> for &'m [u8] {
     fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
         unsafe {
             if ofs as usize + size_of::<T>() > self.len() {
-                panic!("oob");
+                oob_panic(ofs, size_of::<T>());
             }
             self.as_ptr().add(ofs as usize) as *mut T
         }
@@ -184,8 +184,9 @@ impl<'m> Mem<'m> {
         let ptr = self.get_ptr_unchecked(ofs) as *const T;
         let count = count as usize;
         unsafe {
-            if ptr.add(count) as *const _ > self.end {
-                panic!("oob");
+            let end = ptr.add(count);
+            if end as *const _ > self.end {
+                oob_panic(ofs, count * size_of::<T>());
             }
             std::slice::from_raw_parts(ptr, count)
         }
@@ -202,6 +203,11 @@ impl<'m> Mem<'m> {
     }
 }
 
+#[inline(never)]
+fn oob_panic(ofs: u32, size: usize) -> ! {
+    panic!("oob at {ofs:x}+{size:x}");
+}
+
 impl<'m> Extensions<'m> for Mem<'m> {
     fn as_slice(self) -> &'m [u8] {
         self.as_slice_todo()
@@ -211,7 +217,7 @@ impl<'m> Extensions<'m> for Mem<'m> {
         let ptr = self.get_ptr_unchecked(ofs) as *mut T;
         unsafe {
             if ptr.add(1) as *const _ > self.end {
-                panic!("oob at {ofs:x}+{:x}", size_of::<T>());
+                oob_panic(ofs, size_of::<T>());
             }
         }
         ptr
