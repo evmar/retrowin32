@@ -190,14 +190,7 @@ impl Registers {
     }
 
     pub fn set32(&mut self, reg: Register, value: u32) {
-        let idx = reg as usize - Register::EAX as usize;
-        if idx >= 8 {
-            unreachable!("{reg:?}");
-        }
-        // XXX this assumes register order matches between our struct and iced_x86.
-        unsafe {
-            *(self as *mut Registers as *mut u32).add(idx) = value;
-        }
+        *self.get32_mut(reg) = value;
     }
 
     pub fn set16(&mut self, reg: Register, value: u16) {
