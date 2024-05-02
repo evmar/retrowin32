@@ -20,7 +20,7 @@ bitflags! {
 }
 
 #[repr(C)]
-#[derive(serde::Serialize, serde::Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize, Default)]
 pub struct Registers {
     /// 32-bit registers, in order:
     ///   eax ecx edx ebx esp ebp esi edi,
@@ -35,12 +35,10 @@ pub struct Registers {
 
     pub eip: u32,
 
-    pub cs: u16,
-    pub ds: u16,
-    pub es: u16,
-    pub fs: u16,
-    pub gs: u16,
-    pub ss: u16,
+    /// Segment registers, in order:
+    ///   es cs ss ds fs gs
+    segment: [u16; 6],
+
     // TODO: segment registers are actually 16-bit indexes into the GDT/LDT,
     // but for our purposes all we ever care about is making FS-relative accesses point
     // at the Windows TEB.
@@ -50,23 +48,6 @@ pub struct Registers {
     /// MMX registers.
     // TODO: officially these should alias the FPU registers(!).
     pub mm: [u64; 8],
-}
-
-impl Default for Registers {
-    fn default() -> Self {
-        Registers {
-            r32: Default::default(),
-            eip: 0,
-            cs: 0,
-            ds: 0,
-            es: 0,
-            fs: 0,
-            gs: 0,
-            ss: 0,
-            fs_addr: 0,
-            mm: [0, 0, 0, 0, 0, 0, 0, 0],
-        }
-    }
 }
 
 #[allow(dead_code)]
@@ -90,6 +71,12 @@ const fn assert_enums_as_expected() {
     assert!(CH as u8 == AH as u8 + 1);
     assert!(DH as u8 == AH as u8 + 2);
     assert!(BH as u8 == AH as u8 + 3);
+
+    assert!(CS as u8 == ES as u8 + 1);
+    assert!(SS as u8 == ES as u8 + 2);
+    assert!(DS as u8 == ES as u8 + 3);
+    assert!(FS as u8 == ES as u8 + 4);
+    assert!(GS as u8 == ES as u8 + 5);
 
     assert!(MM1 as u8 == MM0 as u8 + 1);
     assert!(MM2 as u8 == MM0 as u8 + 2);
@@ -142,12 +129,10 @@ impl Registers {
         match reg {
             AX | CX | DX | BX | SP | BP | SI | DI => self.get32(r16_to_32(reg)) as u16,
 
-            ES => self.es,
-            CS => self.cs,
-            SS => self.ss,
-            DS => self.ds,
-            FS => self.fs,
-            GS => self.gs,
+            ES | CS | SS | DS | FS | GS => {
+                let idx = reg as usize - ES as usize;
+                self.segment[idx]
+            }
             _ => unreachable!("{reg:?}"),
         }
     }
@@ -158,12 +143,10 @@ impl Registers {
                 AX | CX | DX | BX | SP | BP | SI | DI => {
                     &mut *(self.get32_mut(r16_to_32(reg)) as *mut u32 as *mut u16)
                 }
-                ES => &mut self.es,
-                CS => &mut self.cs,
-                SS => &mut self.ss,
-                DS => &mut self.ds,
-                FS => &mut self.fs,
-                GS => &mut self.gs,
+                ES | CS | SS | DS | FS | GS => {
+                    let idx = reg as usize - ES as usize;
+                    &mut self.segment[idx]
+                }
                 _ => unreachable!("{reg:?}"),
             }
         }
@@ -199,13 +182,10 @@ impl Registers {
                 let r32 = r16_to_32(reg);
                 self.set32(r32, (self.get32(r32) & 0xFFFF_0000) | value as u32);
             }
-
-            ES => self.es = value,
-            CS => self.cs = value,
-            SS => self.ss = value,
-            DS => self.ds = value,
-            FS => self.fs = value,
-            GS => self.gs = value,
+            ES | CS | SS | DS | FS | GS => {
+                let idx = reg as usize - ES as usize;
+                self.segment[idx] = value;
+            }
             _ => unreachable!("{reg:?}"),
         }
     }
