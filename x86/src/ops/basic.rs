@@ -250,15 +250,14 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
     let m64 = mem.get_pod::<u64>(addr);
-    let test = ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64);
+    let test = get_edx_eax(cpu);
     if test == m64 {
         cpu.flags.insert(Flags::ZF);
         let val = ((cpu.regs.ecx as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
         mem.put::<u64>(addr, val);
     } else {
         cpu.flags.remove(Flags::ZF);
-        cpu.regs.eax = m64 as u32;
-        cpu.regs.edx = (m64 >> 32) as u32;
+        set_edx_eax(cpu, m64);
     }
 }
 

@@ -194,3 +194,21 @@ pub fn x86_jmp(cpu: &mut CPU, addr: u32) {
     }
     cpu.regs.eip = addr;
 }
+
+pub fn set_edx_eax(cpu: &mut CPU, value: u64) {
+    cpu.regs.edx = (value >> 32) as u32;
+    cpu.regs.eax = value as u32;
+}
+
+pub fn get_edx_eax(cpu: &mut CPU) -> u64 {
+    ((cpu.regs.edx as u64) << 32) | (cpu.regs.eax as u64)
+}
+
+pub fn set_dx_ax(cpu: &mut CPU, value: u32) {
+    cpu.regs.edx = (value >> 16) as u32;
+    cpu.regs.eax = (value as u16) as u32;
+}
+
+pub fn get_dx_ax(cpu: &mut CPU) -> u32 {
+    ((cpu.regs.edx as u16 as u32) << 16) | (cpu.regs.eax as u16 as u32)
+}
