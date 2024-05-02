@@ -30,14 +30,14 @@ pub struct Registers {
 impl Registers {
     pub fn from_x86(x86: &x86::CPU) -> Registers {
         Registers {
-            eax: x86.regs.eax,
-            ebx: x86.regs.ebx,
-            ecx: x86.regs.ecx,
-            edx: x86.regs.edx,
-            esp: x86.regs.esp,
-            ebp: x86.regs.ebp,
-            esi: x86.regs.esi,
-            edi: x86.regs.edi,
+            eax: x86.regs.get32(x86::Register::EAX),
+            ebx: x86.regs.get32(x86::Register::EBX),
+            ecx: x86.regs.get32(x86::Register::ECX),
+            edx: x86.regs.get32(x86::Register::EDX),
+            esp: x86.regs.get32(x86::Register::ESP),
+            ebp: x86.regs.get32(x86::Register::EBP),
+            esi: x86.regs.get32(x86::Register::ESI),
+            edi: x86.regs.get32(x86::Register::EDI),
             eip: x86.regs.eip,
             cs: x86.regs.cs,
             ds: x86.regs.ds,

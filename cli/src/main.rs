@@ -194,13 +194,13 @@ fn print_trace(machine: &win32::Machine) {
         let regs = &machine.emu.x86.cpu().regs;
         (
             regs.eip,
-            regs.eax,
-            regs.ebx,
-            regs.ecx,
-            regs.edx,
-            regs.esi,
-            regs.edi,
-            regs.esp,
+            regs.get32(x86::Register::EAX),
+            regs.get32(x86::Register::EBX),
+            regs.get32(x86::Register::ECX),
+            regs.get32(x86::Register::EDX),
+            regs.get32(x86::Register::ESI),
+            regs.get32(x86::Register::EDI),
+            regs.get32(x86::Register::ESP),
             machine.emu.x86.cpu().fpu.st_top,
         )
     };
