@@ -226,6 +226,9 @@ impl X86 {
 
     pub fn single_step_next_block(&mut self, mem: Mem) {
         let ip = self.cpu().regs.eip;
+        if ip == MAGIC_ADDR {
+            return;
+        }
         self.icache.make_single_step(mem, ip);
     }
 

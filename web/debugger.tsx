@@ -104,7 +104,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     let code;
     const eip = this.props.emulator.emu.eip;
     if (eip >= 0xf1a7_0000) {
-      code = <section class='code'>(in {this.props.emulator.labels.get(eip) ?? 'shim'})</section>;
+      const label = eip == 0xffff_fff0 ? 'async' : this.props.emulator.labels.get(eip) ?? 'shim';
+      code = <section class='code'>(in {label})</section>;
     } else {
       instrs = this.props.emulator.disassemble(eip);
       code = (
