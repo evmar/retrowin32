@@ -46,5 +46,9 @@
   {
     "desc": "anatyda",
     "params": "dir=exe/demo/anatyda/&exe=ANATYDA.EXE"
+  },
+  {
+    "desc": "chillin",
+    "params": "exe=exe/demo/chillin.exe"
   }
 ]
