@@ -6,20 +6,30 @@
 //! a basic block.  To implement single-stepping and breakpoints, we break
 //! any affected basic block into smaller pieces to maintain the invariant of
 //! always executing through a basic block's end.
+//!
+//! Some good notes on how to make this kind of thing perform well:
+//! http://www.emulators.com/docs/nx25_nostradamus.htm
 
 use memory::{Extensions, Mem};
 use std::collections::HashMap;
+
+pub struct Op {
+    pub instr: iced_x86::Instruction,
+    /// The function that implements instr.  Cached here to avoid looking it up;
+    /// this was worth about 10% performance in a quick test.
+    pub op: crate::ops::Op,
+}
 
 #[derive(Default)]
 pub struct BasicBlock {
     /// Number of x86 instruction bytes covered by this block.
     pub len: u32,
-    pub instrs: Vec<iced_x86::Instruction>,
+    pub ops: Vec<Op>,
 }
 
 impl BasicBlock {
     fn decode(buf: Mem, ip: u32, single_step: bool) -> Option<Self> {
-        let mut instrs = Vec::new();
+        let mut ops = Vec::new();
         let mut decoder = iced_x86::Decoder::with_ip(
             32,
             buf.as_slice_todo(),
@@ -49,13 +59,16 @@ impl BasicBlock {
                     return None;
                 }
             }
-            instrs.push(instr);
+            ops.push(Op {
+                op: crate::ops::decode(&instr)?,
+                instr,
+            });
             len += instr.len() as u32;
             if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
                 break;
             }
         }
-        Some(BasicBlock { instrs, len })
+        Some(BasicBlock { ops, len })
     }
 }
 

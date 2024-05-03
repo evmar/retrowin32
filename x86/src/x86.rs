@@ -76,12 +76,6 @@ impl CPU {
     //     false
     // }
 
-    /// Executes an instruction, leaving eip alone.  Returns false on CPU stop.
-    pub fn run(&mut self, mem: Mem, instr: &iced_x86::Instruction) -> &CPUState {
-        ops::execute(self, mem, instr);
-        &self.state
-    }
-
     /// Set up the CPU such that we are making a Rust->x86 call, returning a Future
     /// that completes when the x86 call returns.
     pub fn call_x86(&mut self, mem: Mem, func: u32, args: Vec<u32>) -> X86Future {
@@ -266,11 +260,12 @@ impl X86 {
             return;
         }
         let block = self.icache.get_block(mem, cpu.regs.eip);
-        for instr in block.instrs.iter() {
+        for op in block.ops.iter() {
             let ip = cpu.regs.eip;
-            cpu.regs.eip = instr.next_ip() as u32;
+            cpu.regs.eip = op.instr.next_ip() as u32;
             self.instr_count += 1;
-            match cpu.run(mem, instr) {
+            (op.op)(cpu, mem, &op.instr);
+            match cpu.state {
                 CPUState::Running => {}
                 CPUState::Error(_) => {
                     // Point the debugger at the failed instruction.

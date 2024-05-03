@@ -16,5 +16,5 @@ pub use helpers::{pop, push, x86_jmp};
 pub use math::*;
 pub use mmx::*;
 pub use string::*;
-pub use table::{execute, init_op_tab};
+pub use table::{decode, init_op_tab, Op};
 pub use test::*;
