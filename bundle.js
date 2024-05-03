@@ -734,6 +734,23 @@ function getStringFromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
+function isLikeNone(x) {
+  return x === void 0 || x === null;
+}
+var cachedFloat64Memory0 = null;
+function getFloat64Memory0() {
+  if (cachedFloat64Memory0 === null || cachedFloat64Memory0.byteLength === 0) {
+    cachedFloat64Memory0 = new Float64Array(wasm.memory.buffer);
+  }
+  return cachedFloat64Memory0;
+}
+var cachedInt32Memory0 = null;
+function getInt32Memory0() {
+  if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
+    cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
+  }
+  return cachedInt32Memory0;
+}
 function debugString(val) {
   const type = typeof val;
   if (type == "number" || type == "boolean" || val == null) {
@@ -834,23 +851,6 @@ function passStringToWasm0(arg, malloc, realloc) {
   }
   WASM_VECTOR_LEN = offset;
   return ptr;
-}
-var cachedInt32Memory0 = null;
-function getInt32Memory0() {
-  if (cachedInt32Memory0 === null || cachedInt32Memory0.byteLength === 0) {
-    cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
-  }
-  return cachedInt32Memory0;
-}
-function isLikeNone(x) {
-  return x === void 0 || x === null;
-}
-var cachedFloat64Memory0 = null;
-function getFloat64Memory0() {
-  if (cachedFloat64Memory0 === null || cachedFloat64Memory0.byteLength === 0) {
-    cachedFloat64Memory0 = new Float64Array(wasm.memory.buffer);
-  }
-  return cachedFloat64Memory0;
 }
 function passArray8ToWasm0(arg, malloc) {
   const ptr = malloc(arg.length * 1, 1) >>> 0;
@@ -997,6 +997,9 @@ var Emulator = class {
       wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
     }
   }
+  unblock() {
+    wasm.emulator_unblock(this.__wbg_ptr);
+  }
   run(count) {
     try {
       const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
@@ -1117,24 +1120,6 @@ function __wbg_get_imports() {
       return ret;
     }, arguments);
   };
-  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
-    let deferred0_0;
-    let deferred0_1;
-    try {
-      deferred0_0 = arg2;
-      deferred0_1 = arg3;
-      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
-    } finally {
-      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
-    }
-  };
-  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
-    const ret = debugString(arg1);
-    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len1;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-  };
   imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
     arg0.exit(arg1 >>> 0);
   };
@@ -1155,9 +1140,6 @@ function __wbg_get_imports() {
   imports.wbg.__wbg_now_4e659b3d15f470d9 = function(arg0) {
     const ret = arg0.now();
     return ret;
-  };
-  imports.wbg.__wbg_ensuretimer_752ace6fb471cdd4 = function(arg0, arg1) {
-    arg0.ensure_timer(arg1 >>> 0);
   };
   imports.wbg.__wbg_getevent_4f4de425a52104de = function(arg0) {
     const ret = arg0.get_event();
@@ -1202,8 +1184,15 @@ function __wbg_get_imports() {
     const ret = arg0.offsetY;
     return ret;
   };
+  imports.wbg.__wbg_ensuretimer_752ace6fb471cdd4 = function(arg0, arg1) {
+    arg0.ensure_timer(arg1 >>> 0);
+  };
   imports.wbg.__wbg_open_61490d64358619c7 = function(arg0, arg1, arg2) {
     const ret = arg0.open(getStringFromWasm0(arg1, arg2));
+    return ret;
+  };
+  imports.wbg.__wbg_info_2551d10805917111 = function(arg0) {
+    const ret = arg0.info();
     return ret;
   };
   imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function(arg0, arg1) {
@@ -1293,6 +1282,24 @@ function __wbg_get_imports() {
     return handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
       arg0.drawImage(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }, arguments);
+  };
+  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+      deferred0_0 = arg2;
+      deferred0_1 = arg3;
+      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
+  };
+  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
+    const ret = debugString(arg1);
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
   };
   imports.wbg.__wbg_self_ce0dbfc45cf2f5be = function() {
     return handleError(function() {
@@ -1412,6 +1419,9 @@ var File = class {
     this.path = path;
     this.bytes = bytes;
     __publicField(this, "ofs", 0);
+  }
+  info() {
+    return this.bytes.length;
   }
   seek(ofs) {
     this.ofs = ofs;
@@ -1682,6 +1692,7 @@ var Emulator2 = class extends JsHost {
   start() {
     if (this.running)
       return;
+    this.emu.unblock();
     if (this.isAtBreakpoint()) {
       this.step();
     }
@@ -1867,7 +1878,24 @@ exited with code ${code}`);
     this.start();
   }
   render() {
-    const instrs = this.props.emulator.disassemble(this.props.emulator.emu.eip);
+    let instrs = [];
+    let code;
+    const eip = this.props.emulator.emu.eip;
+    if (eip >= 4054253568) {
+      const label = eip == 4294967280 ? "async" : this.props.emulator.labels.get(eip) ?? "shim";
+      code = /* @__PURE__ */ h("section", {
+        class: "code"
+      }, "(in ", label, ")");
+    } else {
+      instrs = this.props.emulator.disassemble(eip);
+      code = /* @__PURE__ */ h(Code, {
+        instrs,
+        labels: this.props.emulator.labels,
+        highlightMemory: this.highlightMemory,
+        showMemory: this.showMemory,
+        runTo: (addr) => this.runTo(addr)
+      });
+    }
     return /* @__PURE__ */ h(p, null, /* @__PURE__ */ h(EmulatorComponent, {
       emulator: this.props.emulator
     }), /* @__PURE__ */ h("section", {
@@ -1878,16 +1906,10 @@ exited with code ${code}`);
     }, this.state.running ? "stop" : "run"), "\xA0", /* @__PURE__ */ h("button", {
       onClick: () => this.step()
     }, "step"), "\xA0", /* @__PURE__ */ h("button", {
-      onClick: () => this.runTo(instrs[1].addr)
+      onClick: () => instrs ? this.runTo(instrs[1].addr) : this.step()
     }, "step over"), "\xA0", /* @__PURE__ */ h("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
       style: { display: "flex", margin: "1ex" }
-    }, /* @__PURE__ */ h(Code, {
-      instrs,
-      labels: this.props.emulator.labels,
-      highlightMemory: this.highlightMemory,
-      showMemory: this.showMemory,
-      runTo: (addr) => this.runTo(addr)
-    }), /* @__PURE__ */ h("div", {
+    }, code, /* @__PURE__ */ h("div", {
       style: { width: "12ex" }
     }), /* @__PURE__ */ h(RegistersComponent, {
       highlightMemory: this.highlightMemory,
@@ -1915,7 +1937,7 @@ exited with code ${code}`);
         breakpoints: /* @__PURE__ */ h(BreakpointsComponent, {
           breakpoints: Array.from(this.props.emulator.breakpoints.values()),
           labels: this.props.emulator.labels,
-          highlight: this.props.emulator.emu.eip,
+          highlight: eip,
           highlightMemory: this.highlightMemory,
           showMemory: this.showMemory,
           toggle: (addr) => {
