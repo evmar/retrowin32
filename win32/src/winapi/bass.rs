@@ -1,11 +1,14 @@
+//! This module stubs bass.dll as found in monolife.
+//! monolife ships its own bass.dll, but I wrote this module before
+//! retrowin32 could load external dlls.
+//!
+//! Today retrowin32 is capable of loading the dll, but it appears
+//! to be packed with some packer that fails when we load it.
+
 #![allow(non_snake_case)]
 
-//! bass.dll found in monolife.
-//! TODO: DLL loading, eek.
-
-use crate::machine::Machine;
-
 use super::kernel32;
+use crate::machine::Machine;
 
 /// Hack: time since BASS_Start etc. was called.
 static mut T: u32 = 0;
