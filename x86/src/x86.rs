@@ -259,22 +259,23 @@ impl X86 {
             cpu.async_executor();
             return;
         }
-        let block = self.icache.get_block(mem, cpu.regs.eip);
+        let mut prev_ip = cpu.regs.eip;
+        let block = self.icache.get_block(mem, prev_ip);
         for op in block.ops.iter() {
-            let ip = cpu.regs.eip;
+            prev_ip = cpu.regs.eip;
             cpu.regs.eip = op.instr.next_ip() as u32;
             self.instr_count += 1;
             (op.op)(cpu, mem, &op.instr);
-            match cpu.state {
-                CPUState::Running => {}
-                CPUState::Error(_) => {
-                    // Point the debugger at the failed instruction.
-                    cpu.regs.eip = ip;
-                    return; // see note at top
-                }
-                CPUState::Exit(_) => break,
-                CPUState::Blocked(_) => break,
+            if !cpu.state.is_running() {
+                break;
             }
+        }
+        match cpu.state {
+            CPUState::Error(_) => {
+                // Point the debugger at the failed instruction.
+                cpu.regs.eip = prev_ip;
+            }
+            _ => {}
         }
     }
 }
