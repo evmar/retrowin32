@@ -150,7 +150,7 @@ impl MachineX<Emulator> {
 
     // Execute one basic block.  Returns false if we stopped early.
     fn execute_block(&mut self) {
-        assert!(self.emu.x86.cpu().state.is_running());
+        debug_assert!(self.emu.x86.cpu().state.is_running());
         if crate::shims_emu::is_eip_at_shim_call(self) {
             crate::shims_emu::handle_shim_call(self);
             // Treat any shim call as a single block and return here.

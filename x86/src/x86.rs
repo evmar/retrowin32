@@ -254,7 +254,7 @@ impl X86 {
     /// Execute one basic block starting at current ip.
     pub fn execute_block(&mut self, mem: Mem) {
         let cpu = &mut *self.cpus[self.cur_cpu];
-        assert!(cpu.state.is_running());
+        debug_assert!(cpu.state.is_running());
         if cpu.regs.eip == MAGIC_ADDR {
             cpu.async_executor();
             return;
