@@ -13,6 +13,8 @@
 use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
+const CACHE_LINES: usize = 2 << 10;
+
 pub struct Op {
     pub instr: iced_x86::Instruction,
     /// The function that implements instr.  Cached here to avoid looking it up;
@@ -80,7 +82,7 @@ struct CacheLine {
 
 /// Cache of decoded instructions as basic blocks.
 pub struct InstrCache {
-    lines: Box<[CacheLine]>,
+    lines: Box<[CacheLine; CACHE_LINES]>,
     hit: usize,
     miss: usize,
 
@@ -91,11 +93,10 @@ pub struct InstrCache {
 
 impl Default for InstrCache {
     fn default() -> Self {
-        let cap = 2 << 10;
-        let mut lines = Vec::with_capacity(cap);
-        lines.resize_with(cap, || Default::default());
+        let mut lines = Vec::with_capacity(CACHE_LINES);
+        lines.resize_with(CACHE_LINES, || Default::default());
         InstrCache {
-            lines: lines.into_boxed_slice(),
+            lines: lines.try_into().unwrap_or_else(|_| panic!()),
             hit: 0,
             miss: 0,
             breakpoints: HashMap::new(),
