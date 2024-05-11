@@ -2,7 +2,8 @@ name: exe/ops test suite
 on:
   push:
     paths:
-      - 'exe/ops/**'
+      - 'exe/ops/ops.exe'
+      - 'exe/ops/out.txt'
       - '.github/workflows/ops.yml'
     branches-ignore:
       - main
