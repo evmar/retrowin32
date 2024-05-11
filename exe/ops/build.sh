@@ -5,8 +5,7 @@ set -e
 export PATH=~/.local/opt/llvm/bin:$PATH
 
 clang_flags="-fuse-ld=lld -target i686-pc-windows-msvc -mno-sse"
-warning_flags="-Wall -Wno-nonportable-system-include-path -Wno-c++98-compat
-    -Wno-unsafe-buffer-usage -Wno-old-style-cast -Wno-missing-prototypes"
+warning_flags="/W4"
 # reproducible builds, optimize for size, no security cookies
 # note: /Zi for debug info (useful for ghidra) but it breaks build reproducibility
 cflags="/Brepro /Os /GS- /std:c++17 $warning_flags"
