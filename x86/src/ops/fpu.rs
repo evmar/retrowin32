@@ -61,17 +61,17 @@ pub fn fld_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fild_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.fpu
-        .push(mem.get_pod::<u64>(x86_addr(cpu, instr)) as i64 as f64);
+        .push(mem.get_pod::<i64>(x86_addr(cpu, instr)) as f64);
 }
 
 pub fn fild_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.fpu
-        .push(mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64);
+        .push(mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64);
 }
 
 pub fn fild_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.fpu
-        .push(mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64);
+        .push(mem.get_pod::<i16>(x86_addr(cpu, instr)) as f64);
 }
 
 pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -102,13 +102,13 @@ pub fn fstp_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<u64>(x86_addr(cpu, instr), f as i64 as u64);
+    mem.put::<i64>(x86_addr(cpu, instr), f as i64);
     cpu.fpu.pop();
 }
 
 pub fn fist_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<u32>(x86_addr(cpu, instr), f as i32 as u32);
+    mem.put::<i32>(x86_addr(cpu, instr), f as i32);
 }
 
 pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -118,7 +118,7 @@ pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<u16>(x86_addr(cpu, instr), f as i16 as u16);
+    mem.put::<i16>(x86_addr(cpu, instr), f as i16);
     cpu.fpu.pop();
 }
 
@@ -180,12 +180,12 @@ pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() += y;
 }
 
 pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
+    let y = mem.get_pod::<i16>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() += y;
 }
 
@@ -213,7 +213,7 @@ pub fn fsubp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fisub_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.fpu.st0();
     *x = *x - y;
 }
@@ -247,12 +247,12 @@ pub fn fmul_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fimul_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() *= y;
 }
 
 pub fn fimul_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<i16>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() *= y;
 }
 
@@ -302,12 +302,12 @@ pub fn fdivp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidiv_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() /= y;
 }
 
 pub fn fidiv_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
+    let y = mem.get_pod::<i16>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() /= y;
 }
 
@@ -318,7 +318,7 @@ pub fn fdivr_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.fpu.st0();
     *x = y / *x;
 }
@@ -337,7 +337,7 @@ pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 }
 
 pub fn fidivr_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u32>(x86_addr(cpu, instr)) as i32 as f64;
+    let y = mem.get_pod::<i32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.fpu.st0();
     *x = y / *x;
 }
