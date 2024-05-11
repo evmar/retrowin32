@@ -46,8 +46,8 @@ pub fn fldl2e(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.fpu.get(instr.op0_register());
-    cpu.fpu.push(y);
+    let x = *cpu.fpu.get(instr.op0_register());
+    cpu.fpu.push(x);
 }
 
 pub fn fld_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
