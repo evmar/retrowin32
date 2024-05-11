@@ -10,19 +10,18 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::winapi::types::{DWORD, WORD};
 use memory::Extensions;
 use std::{mem::size_of, ops::Range};
 
 #[repr(C)]
 #[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DIRECTORY {
-    Characteristics: DWORD,
-    TimeDateStamp: DWORD,
-    MajorVersion: WORD,
-    MinorVersion: WORD,
-    NumberOfNamedEntries: WORD,
-    NumberOfIdEntries: WORD,
+    Characteristics: u32,
+    TimeDateStamp: u32,
+    MajorVersion: u16,
+    MinorVersion: u16,
+    NumberOfNamedEntries: u16,
+    NumberOfIdEntries: u16,
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY {}
 
@@ -41,8 +40,8 @@ impl IMAGE_RESOURCE_DIRECTORY {
 #[repr(C)]
 #[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
-    Name: DWORD,
-    OffsetToData: DWORD,
+    Name: u32,
+    OffsetToData: u32,
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
@@ -88,10 +87,10 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
 #[repr(C)]
 #[derive(Debug, Clone)]
 struct IMAGE_RESOURCE_DATA_ENTRY {
-    OffsetToData: DWORD,
-    Size: DWORD,
-    CodePage: DWORD,
-    Reserved: DWORD,
+    OffsetToData: u32,
+    Size: u32,
+    CodePage: u32,
+    Reserved: u32,
 }
 unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
