@@ -1,5 +1,5 @@
 use super::helpers::*;
-use crate::{fpu, x86::CPU};
+use crate::{fpu, registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
 use memory::{Extensions, Mem};
 
@@ -382,6 +382,32 @@ pub fn fucomp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: raise the invalid-arithmetic-operand exception when appropriate.
 }
 
+pub fn fcomi_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    let y = *cpu.fpu.get(instr.op1_register());
+    //cpu.flags.set(Flags::PF, false);
+    if x > y {
+        cpu.flags.set(Flags::ZF, false);
+        cpu.flags.set(Flags::CF, false);
+    } else if x < y {
+        cpu.flags.set(Flags::ZF, false);
+        cpu.flags.set(Flags::CF, true);
+    } else {
+        cpu.flags.set(Flags::ZF, true);
+        cpu.flags.set(Flags::CF, false);
+    }
+}
+
+pub fn fucomi_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fcomi_st0_sti(cpu, mem, instr);
+    // TODO: raise the invalid-arithmetic-operand exception when appropriate.
+}
+
+pub fn fucomip_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fucomi_st0_sti(cpu, mem, instr);
+    cpu.fpu.pop();
+}
+
 pub fn frndint(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = cpu.fpu.st0();
     *x = x.round();
@@ -402,4 +428,11 @@ pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn fldcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: control word
     mem.get_pod::<u16>(x86_addr(cpu, instr));
+}
+
+pub fn fcmovnbe_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    if !cpu.flags.contains(Flags::CF) && !cpu.flags.contains(Flags::ZF) {
+        let y = *cpu.fpu.get(instr.op1_register());
+        *cpu.fpu.st0() = y;
+    }
 }

@@ -400,12 +400,19 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fcomp_m64fp as usize] = Some(ops::fcomp_m64fp);
     OP_TAB[iced_x86::Code::Fcomp_st0_sti as usize] = Some(ops::fcomp_st0_sti);
     OP_TAB[iced_x86::Code::Fucomp_st0_sti as usize] = Some(ops::fucomp_st0_sti);
+    OP_TAB[iced_x86::Code::Fcomi_st0_sti as usize] = Some(ops::fcomi_st0_sti);
+    OP_TAB[iced_x86::Code::Fucomi_st0_sti as usize] = Some(ops::fucomi_st0_sti);
+    OP_TAB[iced_x86::Code::Fucomip_st0_sti as usize] = Some(ops::fucomip_st0_sti);
+
     OP_TAB[iced_x86::Code::Frndint as usize] = Some(ops::frndint);
     OP_TAB[iced_x86::Code::Fnstsw_AX as usize] = Some(ops::fnstsw_ax);
     OP_TAB[iced_x86::Code::Fnstcw_m2byte as usize] = Some(ops::fnstcw_m2byte);
     OP_TAB[iced_x86::Code::Fldcw_m2byte as usize] = Some(ops::fldcw_m2byte);
     OP_TAB[iced_x86::Code::Fclex as usize] = Some(ops::nop);
     OP_TAB[iced_x86::Code::Fnclex as usize] = Some(ops::nop);
+
+    OP_TAB[iced_x86::Code::Fcmovnbe_st0_sti as usize] = Some(ops::fcmovnbe_st0_sti);
+
     OP_TAB[iced_x86::Code::Wait as usize] = Some(ops::nop);
 
     OP_TAB[iced_x86::Code::Pushad as usize] = Some(ops::pushad);

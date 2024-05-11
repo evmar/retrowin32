@@ -27,10 +27,9 @@ void print(uint32_t x) {
 void print(double f) {
   // To print a float, we multiply by 1000 and print as decimal.
 
-  // TODO: retrowin32 doesn't support the fpu op that "<" needs.
-  // bool neg = f < 0;
-  // if (f < 0)
-  //   f = -f;
+  bool neg = f < 0;
+  if (f < 0)
+    f = -f;
   uint32_t x = (uint32_t)(f * 1000.0);
   char buf[64];
   size_t i = sizeof(buf);
@@ -48,9 +47,9 @@ void print(double f) {
       }
     }
   }
-  // if (neg) {
-  //   buf[--i] = '-';
-  // }
+  if (neg) {
+    buf[--i] = '-';
+  }
   print(std::string_view(&buf[i], sizeof(buf) - i));
 }
 
