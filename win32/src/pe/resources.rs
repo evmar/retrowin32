@@ -1,5 +1,11 @@
 //! Windows resources section:
 //! https://learn.microsoft.com/en-us/windows/win32/debug/pe-format#the-rsrc-section
+//!
+//! Section contains a series of IMAGE_RESOURCE_DIRECTORY.
+//! Each IMAGE_RESOURCE_DIRECTORY is a header followed by series of IMAGE_RESOURCE_DIRECTORY_ENTRY.
+//! Each IMAGE_RESOURCE_DIRECTORY_ENTRY is a name or id and pointer to either
+//! another IMAGE_RESOURCE_DIRECTORY or resource data in IMAGE_RESOURCE_DATA_ENTRY.
+//! IMAGE_RESOURCE_DATA_ENTRY measures a span of data.
 
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
