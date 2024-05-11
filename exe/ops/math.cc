@@ -7,12 +7,11 @@ const uint32_t CPUFLAG_OF = 0x800;
 void add(uint8_t x, uint8_t y) {
   printv("add %x,%x => ", x, y);
   clear_flags();
-  asm("addb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "g"(y)
-      : "cc");
-  auto flags = get_flags();
+  __asm {
+    mov al, y
+    add x, al
+  }
+  get_flags();
   print(x);
   print_flags(flags);
   print("\n");
@@ -32,7 +31,7 @@ void adc(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "g"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   print(x);
   print_flags(flags);
   print("\n");
@@ -53,7 +52,7 @@ void sbb(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "g"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   print(x);
   print_flags(flags);
   print("\n");
@@ -74,7 +73,7 @@ void shr(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "c"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
     flags &= ~CPUFLAG_OF;
@@ -102,7 +101,7 @@ void sar(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "c"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
     flags &= ~CPUFLAG_OF;
@@ -131,7 +130,7 @@ void shl(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "c"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
     flags &= ~CPUFLAG_OF;
@@ -161,7 +160,7 @@ void rol(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "c"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
     flags &= ~CPUFLAG_OF;
@@ -191,7 +190,7 @@ void ror(uint8_t x, uint8_t y) {
       : [x] "+g"(x)
       : [y] "c"(y)
       : "cc");
-  auto flags = get_flags();
+  get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
     flags &= ~CPUFLAG_OF;
