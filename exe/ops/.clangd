@@ -3,5 +3,15 @@
 # pass /TP to make it believe our .h files are C++.
 
 CompileFlags:
-    Compiler: "clang-cl"
-    Add: ["-I.", "/TP", "-target", "i686-pc-windows-msvc", "/W4", "/std:c++17", "/vctoolsdir", "/Users/evmar/redist/crt", "/winsdkdir", "/Users/evmar/redist/sdk"]
+    Compiler: clang-cl
+    Add: 
+        - -I.
+        - /TP
+        - -target
+        - i686-pc-windows-msvc
+        - /W4
+        - /std:c++17
+        - /vctoolsdir
+        - /Users/evmar/redist/crt
+        - /winsdkdir
+        - /Users/evmar/redist/sdk
