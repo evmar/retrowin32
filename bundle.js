@@ -1651,6 +1651,7 @@ var Emulator2 = class extends JsHost {
     return false;
   }
   step() {
+    this.emu.unblock();
     this.emu.run(1);
   }
   runBatch() {
