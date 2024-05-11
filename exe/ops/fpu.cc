@@ -7,16 +7,16 @@ namespace {
 
 void test_fld_constants() {
   double out = 0;
-  asm("fld1\n"
-      "fldz\n"
-      "fldpi\n"
-      "fldl2e\n"
-      "faddp\n"
-      "faddp\n"
-      "faddp\n"
-      "fstpl %[out]\n"
-      ""
-      : [out] "=m"(out));
+  __asm {
+      fld1
+      fldz
+      fldpi
+      fldl2e
+      faddp
+      faddp
+      faddp
+      fstp [out]
+  }
   printv("1+0+pi+l2e = %f\n", out);
 }
 
