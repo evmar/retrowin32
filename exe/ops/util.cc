@@ -37,7 +37,7 @@ void print(double f) {
   if (x == 0) {
     buf[--i] = '0';
   } else {
-    while (x > 0 && i > (sizeof(buf) - 5)) {
+    while (x > 0 || i > (sizeof(buf) - 5)) {
       buf[--i] = '0' + (x % 10);
       x /= 10;
       if (i == sizeof(buf) - 3) {

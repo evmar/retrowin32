@@ -81,8 +81,7 @@ pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fst_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    let addr = x86_addr(cpu, instr);
-    mem.put::<u32>(addr, (f as f32).to_bits());
+    mem.put::<f32>(x86_addr(cpu, instr), f as f32);
 }
 
 pub fn fstp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -103,15 +102,13 @@ pub fn fstp_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    let addr = x86_addr(cpu, instr);
-    *mem.view_mut::<u64>(addr) = f.round() as i64 as u64;
+    mem.put::<u64>(x86_addr(cpu, instr), f as i64 as u64);
     cpu.fpu.pop();
 }
 
 pub fn fist_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    let addr = x86_addr(cpu, instr);
-    mem.put::<u32>(addr, f as i32 as u32);
+    mem.put::<u32>(x86_addr(cpu, instr), f as i32 as u32);
 }
 
 pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -121,8 +118,7 @@ pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    let addr = x86_addr(cpu, instr);
-    mem.put::<u16>(addr, f as i16 as u16);
+    mem.put::<u16>(x86_addr(cpu, instr), f as i16 as u16);
     cpu.fpu.pop();
 }
 
@@ -138,15 +134,18 @@ pub fn fcos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let reg = cpu.fpu.st0();
     *reg = reg.cos();
 }
+
 pub fn fsin(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let reg = cpu.fpu.st0();
     *reg = reg.sin();
 }
+
 pub fn fsincos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let val = *cpu.fpu.st0();
     *cpu.fpu.st0() = val.sin();
     cpu.fpu.push(val.cos());
 }
+
 pub fn fpatan(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let x = *cpu.fpu.st0();
     cpu.fpu.pop();
