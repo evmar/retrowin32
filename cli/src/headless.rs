@@ -9,7 +9,11 @@ impl GUI {
         0
     }
 
-    pub fn get_message(&self, _wait: win32::Wait) -> Option<win32::Message> {
+    pub fn get_message(&mut self) -> Option<win32::Message> {
+        unimplemented!();
+    }
+
+    pub fn block(&mut self, _wait: Option<u32>) -> bool {
         unimplemented!();
     }
 
