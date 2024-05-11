@@ -10,6 +10,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use crate::str16::Str16;
 use memory::Extensions;
 use std::{mem::size_of, ops::Range};
 
@@ -55,21 +56,25 @@ pub enum RT {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ResourceName<'a> {
-    Name(&'a [u16]),
+    Name(&'a Str16),
     Id(u32),
 }
+
 enum ResourceValue<'a> {
     Dir(&'a [u8]),
     Data(IMAGE_RESOURCE_DATA_ENTRY),
 }
+
 impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
-    fn name(&self) -> ResourceName {
-        let val = self.Name;
-        if val >> 31 == 0 {
+    fn name<'a>(&self, section: &'a [u8]) -> ResourceName<'a> {
+        let is_id = self.Name >> 31 == 0;
+        let val = self.Name & 0x7FFF_FFFF;
+        if is_id {
             ResourceName::Id(val)
         } else {
-            log::error!("unhandled name {val:x} in res dir");
-            ResourceName::Name(&[])
+            let len = section.get_pod::<u16>(val);
+            let name = Str16::from_bytes(section.sub32(val + 2, len as u32 * 2).as_slice());
+            ResourceName::Name(name)
         }
     }
 
@@ -105,13 +110,13 @@ pub fn find_resource(
     // are always exactly three levels with known semantics.
     let mut dir = IMAGE_RESOURCE_DIRECTORY::entries(section);
 
-    let etype = dir.find(|entry| entry.name() == query_type)?;
+    let etype = dir.find(|entry| entry.name(section) == query_type)?;
     let mut dir = match etype.value(section) {
         ResourceValue::Dir(dir) => IMAGE_RESOURCE_DIRECTORY::entries(dir),
         _ => todo!(),
     };
 
-    let eid = dir.find(|entry| entry.name() == query_id)?;
+    let eid = dir.find(|entry| entry.name(section) == query_id)?;
     let mut dir = match eid.value(section) {
         ResourceValue::Dir(dir) => IMAGE_RESOURCE_DIRECTORY::entries(dir),
         _ => todo!(),

@@ -51,7 +51,7 @@ impl ResourceKey<&Str16> {
     pub fn into_pe(&self) -> pe::ResourceName {
         match *self {
             ResourceKey::Id(id) => pe::ResourceName::Id(id),
-            ResourceKey::Name(name) => pe::ResourceName::Name(name.buf()),
+            ResourceKey::Name(name) => pe::ResourceName::Name(name),
         }
     }
 }
