@@ -110,6 +110,7 @@ export class Emulator extends JsHost {
   }
 
   step() {
+    this.emu.unblock(); // Attempt to resume any blocked threads.
     this.emu.run(1);
   }
 
