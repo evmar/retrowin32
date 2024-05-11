@@ -268,6 +268,30 @@ void test_fsub_mem() {
   print_fpu_stack(1);
 }
 
+void test_f2xm1() {
+  // Input must be in range -1..1.
+  float neg7 = -0.7;
+  float pos7 = 0.7;
+  __asm {
+    fld neg7
+    f2xm1
+    fld pos7
+    f2xm1
+  }
+  print("f2xm1 =>");
+  print_fpu_stack(2);
+}
+
+void test_fscale() {
+  __asm {
+    fldpi
+    fldl2e
+    fscale
+  }
+  print("fscale =>");
+  print_fpu_stack(1);
+}
+
 } // anonymous namespace
 
 void fpu_tests() {
@@ -289,4 +313,6 @@ void fpu_tests() {
   test_fiadd();
   test_fiadd_neg();
   test_fsub_mem();
+  test_f2xm1();
+  test_fscale();
 }
