@@ -323,16 +323,14 @@ pub fn fdivr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *x = y / *x;
 }
 
-pub fn fdivr_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.fpu.get(instr.op0_register());
-    let x = cpu.fpu.st0();
+pub fn fdivr_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+    let y = *cpu.fpu.get(instr.op1_register());
+    let x = cpu.fpu.get(instr.op0_register());
     *x = y / *x;
 }
 
-pub fn fdivrp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.fpu.st0();
-    let x = cpu.fpu.get(instr.op0_register());
-    *x = y / *x;
+pub fn fdivrp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fdivr_sti_sti(cpu, mem, instr);
     cpu.fpu.pop();
 }
 
