@@ -5,19 +5,19 @@
   },
   {
     "desc": "zip/unzip round trip test",
-    "params": "exe=exe/zip/zip.exe"
+    "params": "exe=exe/rust-out/zip.exe"
+  },
+  {
+    "desc": "gdi test",
+    "params": "exe=exe/rust-out/gdi.exe"
   },
   {
     "desc": "basic DirectDraw",
-    "params": "exe=exe/BasicDD.exe"
+    "params": "exe=exe/deploy/BasicDD.exe"
   },
   {
     "desc": "monolife",
     "params": "dir=exe/demo/monolife/&exe=monolife.exe&file=monolife.dat&file=bass.dll"
-  },
-  {
-    "desc": "bass.dll debug",
-    "params": "dir=exe/bass/&exe=bass.exe&file=bass.dll"
   },
   {
     "desc": "win32 tracer",
