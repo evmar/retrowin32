@@ -42,6 +42,18 @@ void test_fld() {
   print_fpu_stack(3);
 }
 
+void test_fld_neg() {
+  float f32 = -1.1;
+  double f64 = -2.2;
+  __asm {
+    fld f32
+    fld f64
+    fld st(1)
+  }
+  printv("fld negative =>");
+  print_fpu_stack(3);
+}
+
 void test_fild() {
   uint16_t i16 = 4321;
   uint32_t i32 = 44321;
@@ -52,6 +64,19 @@ void test_fild() {
     fild i64
   }
   printv("fild =>");
+  print_fpu_stack(3);
+}
+
+void test_fild_neg() {
+  uint16_t i16 = -4321;
+  uint32_t i32 = -44321;
+  uint64_t i64 = -454321;
+  __asm {
+    fild i16
+    fild i32
+    fild i64
+  }
+  printv("fild neg =>");
   print_fpu_stack(3);
 }
 
@@ -67,6 +92,20 @@ void test_fst() {
   printv("fst => %f %f\n", f32, f64);
 }
 
+void test_fst_neg() {
+  float f32;
+  double f64;
+  __asm {
+    fldpi
+    fchs
+    fstp f32
+    fldpi
+    fchs
+    fstp f64
+  }
+  printv("fst neg => %f %f\n", f32, f64);
+}
+
 void test_fist() {
   uint16_t i16;
   uint32_t i32;
@@ -80,6 +119,24 @@ void test_fist() {
     fistp qword ptr [i64]
   }
   printv("fist => %x %x %x\n", i16, i32, i64);
+}
+
+void test_fist_neg() {
+  uint16_t i16;
+  uint32_t i32;
+  uint64_t i64;
+  __asm {
+    fldpi
+    fchs
+    fistp word ptr [i16]
+    fldpi
+    fchs
+    fistp dword ptr [i32]
+    fldpi
+    fchs
+    fistp qword ptr [i64]
+  }
+  printv("fist neg => %x %x %x\n", i16, i32, i64);
 }
 
 void test_fchs() {
@@ -188,9 +245,13 @@ void test_fsub_mem() {
 void fpu_tests() {
   test_fld_constants();
   test_fld();
+  test_fld_neg();
   test_fild();
+  test_fild_neg();
   test_fst();
+  test_fst_neg();
   test_fist();
+  test_fist_neg();
   test_fchs();
   test_fabs();
   test_trig();

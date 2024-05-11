@@ -61,7 +61,7 @@ pub fn fld_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fild_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.fpu
-        .push(mem.get_pod::<u64>(x86_addr(cpu, instr)) as u64 as f64);
+        .push(mem.get_pod::<u64>(x86_addr(cpu, instr)) as i64 as f64);
 }
 
 pub fn fild_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
