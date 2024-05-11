@@ -61,10 +61,8 @@ impl BasicBlock {
                     return None;
                 }
             }
-            ops.push(Op {
-                op: crate::ops::decode(&instr)?,
-                instr,
-            });
+            let op = crate::ops::decode(&instr).unwrap_or_else(|| todo!("{instr}"));
+            ops.push(Op { op, instr });
             len += instr.len() as u32;
             if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
                 break;
