@@ -26,11 +26,11 @@ void test_add() {
 void adc(uint8_t x, uint8_t y) {
   printv("adc (CF=1) %x,%x => ", x, y);
   clear_flags();
-  asm("stc\n"
-      "adcb %[y],%[x]"
-      : [x] "+g"(x)
-      : [y] "g"(y)
-      : "cc");
+  __asm {
+    stc
+    mov al, y
+    adc x, al
+  }
   get_flags();
   print(x);
   print_flags(flags);
@@ -47,11 +47,13 @@ void test_adc() {
 void sbb(uint8_t x, uint8_t y) {
   printv("sbb (CF=1) %x,%x => ", x, y);
   clear_flags();
-  asm("stc\n"
-      "sbbb %[y],%[x]"
-      : [x] "+g"(x)
-      : [y] "g"(y)
-      : "cc");
+  __asm {
+    stc
+             // TODO: sbb against x directly
+    mov al, x
+    sbb al, y
+    mov x, al
+  }
   get_flags();
   print(x);
   print_flags(flags);
@@ -68,11 +70,10 @@ void test_sbb() {
 void shr(uint8_t x, uint8_t y) {
   printv("shr %x,%x => ", x, y);
   clear_flags();
-  asm("shrb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "c"(y)
-      : "cc");
+  __asm {
+    mov cl, y
+    shr x, cl
+  }
   get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
@@ -96,11 +97,10 @@ void test_shr() {
 void sar(uint8_t x, uint8_t y) {
   printv("sar %x,%x => ", x, y);
   clear_flags();
-  asm("sarb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "c"(y)
-      : "cc");
+  __asm {
+    mov cl, y
+    sar x, cl
+  }
   get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
@@ -125,11 +125,10 @@ void test_sar() {
 void shl(uint8_t x, uint8_t y) {
   printv("sar %x,%x => ", x, y);
   clear_flags();
-  asm("shlb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "c"(y)
-      : "cc");
+  __asm {
+    mov cl, y
+    shl x, cl
+  }
   get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
@@ -155,11 +154,10 @@ void test_shl() {
 void rol(uint8_t x, uint8_t y) {
   printv("rol %x,%x => ", x, y);
   clear_flags();
-  asm("rolb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "c"(y)
-      : "cc");
+  __asm {
+    mov cl, y
+    rol x, cl
+  }
   get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.
@@ -185,11 +183,10 @@ void test_rol() {
 void ror(uint8_t x, uint8_t y) {
   printv("ror %x,%x => ", x, y);
   clear_flags();
-  asm("rorb %[y],%[x]"
-      ""
-      : [x] "+g"(x)
-      : [y] "c"(y)
-      : "cc");
+  __asm {
+    mov cl, y
+    ror x, cl
+  }
   get_flags();
   if (y != 1) {
     // Result is undefined for shift != 1.

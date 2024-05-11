@@ -61,7 +61,8 @@ impl BasicBlock {
                     return None;
                 }
             }
-            let op = crate::ops::decode(&instr).unwrap_or_else(|| todo!("{instr}"));
+            let op =
+                crate::ops::decode(&instr).unwrap_or_else(|| todo!("{instr} ({:?})", instr.code()));
             ops.push(Op { op, instr });
             len += instr.len() as u32;
             if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
