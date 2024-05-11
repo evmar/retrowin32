@@ -214,6 +214,20 @@ void test_fadd_mem() {
   print_fpu_stack(2);
 }
 
+void test_fadd_mem_neg() {
+  float f32 = -43.21;
+  double f64 = -432.1;
+  __asm {
+    fldpi
+    fadd f32
+
+    fldpi
+    fadd f64
+  }
+  print("fadd mem neg =>");
+  print_fpu_stack(2);
+}
+
 void test_fiadd() {
   uint16_t i16 = 43;
   uint32_t i32 = 44;
@@ -225,6 +239,20 @@ void test_fiadd() {
     fiadd i32
   }
   print("fiadd =>");
+  print_fpu_stack(2);
+}
+
+void test_fiadd_neg() {
+  uint16_t i16 = -43;
+  uint32_t i32 = -44;
+  __asm {
+    fldpi
+    fiadd i16
+
+    fldpi
+    fiadd i32
+  }
+  print("fiadd neg =>");
   print_fpu_stack(2);
 }
 
@@ -257,6 +285,8 @@ void fpu_tests() {
   test_trig();
   test_fadd_st();
   test_fadd_mem();
+  test_fadd_mem_neg();
   test_fiadd();
+  test_fiadd_neg();
   test_fsub_mem();
 }

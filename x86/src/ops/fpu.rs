@@ -185,7 +185,7 @@ pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as f64;
+    let y = mem.get_pod::<u16>(x86_addr(cpu, instr)) as i16 as f64;
     *cpu.fpu.st0() += y;
 }
 
