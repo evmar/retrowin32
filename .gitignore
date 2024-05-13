@@ -1,13 +1,17 @@
 /target
+/deploy
+
+/.vscode
 
 # mac so annoying
 .DS_Store
-/.vscode
-/deploy
 
 # ghidra
 *.gpr
 *.rep
 *.lock*
 
+# Visual Studio (for use in profiling)
+/.vs
+# For running on Windows
 /SDL2.dll
