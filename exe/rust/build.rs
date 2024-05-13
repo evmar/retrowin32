@@ -1,3 +1,4 @@
+#[cfg(target_family = "unix")]
 fn main() {
     println!("cargo:rerun-if-env-changed=XWIN");
     let xwin = std::env::var("XWIN").unwrap();
@@ -5,3 +6,6 @@ fn main() {
         println!(r"cargo:rustc-link-search={xwin}/{dir}");
     }
 }
+
+#[cfg(target_family = "windows")]
+fn main() {}

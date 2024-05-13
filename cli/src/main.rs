@@ -46,7 +46,14 @@ impl File {
             Ok(f) => f,
             Err(err) => {
                 log::error!("opening {:?}: {}", path, err);
-                std::fs::File::open("/dev/null").unwrap()
+                let path = if cfg!(target_family = "unix") {
+                    "/dev/null"
+                } else if cfg!(target_family = "windows") {
+                    "nul"
+                } else {
+                    panic!()
+                };
+                std::fs::File::open(path).unwrap()
             }
         };
         File { f }
