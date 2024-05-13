@@ -5,6 +5,7 @@
 //!   --win32-trace=kernel32/,-kernel32/file
 //! Pass '*' to enable all.
 
+use std::cell::UnsafeCell;
 use std::collections::HashMap;
 use std::fmt::Write;
 
@@ -66,21 +67,20 @@ impl State {
     }
 }
 
-static mut STATE: Option<State> = None;
+static mut STATE: UnsafeCell<Option<State>> = UnsafeCell::new(None);
 
 pub fn set_scheme(scheme: &str) {
-    unsafe { STATE = Some(State::new(scheme)) };
+    unsafe { *STATE.get_mut() = Some(State::new(scheme)) };
 }
 
 #[inline(never)]
 pub fn enabled(context: &'static str) -> bool {
-    let state = unsafe {
-        match &mut STATE {
+    unsafe {
+        match STATE.get_mut() {
             None => return false,
-            Some(state) => state,
+            Some(state) => state.lookup(context),
         }
-    };
-    state.lookup(context)
+    }
 }
 
 #[inline(never)]
