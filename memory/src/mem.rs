@@ -108,8 +108,7 @@ impl<'m> Mem<'m> {
     pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
         unsafe {
             let ptr = self.get_ptr::<u8>(ofs);
-            // Need write_volatile here to ensure optimizer doesn't elide the write.
-            std::ptr::write_volatile(ptr as *mut T, val)
+            std::ptr::write_unaligned(ptr as *mut T, val)
         }
     }
 
