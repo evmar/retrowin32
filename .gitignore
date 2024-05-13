@@ -9,3 +9,5 @@
 *.gpr
 *.rep
 *.lock*
+
+/SDL2.dll
