@@ -277,6 +277,7 @@ fn main() -> anyhow::Result<()> {
     {
         _ = addrs;
 
+        #[cfg(target_family = "unix")]
         unsafe {
             unsafe extern "C" fn sigusr1(_sig: usize) {
                 SNAPSHOT_REQUESTED = true;
