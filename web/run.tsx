@@ -1,7 +1,7 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { EmulatorComponent } from './web';
 import { Emulator, EmulatorHost } from './emulator';
+import { EmulatorComponent } from './web';
 
 interface State {
   output?: string;

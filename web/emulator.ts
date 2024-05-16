@@ -1,5 +1,5 @@
-import { messageProxy, setOnMessage } from './worker/proxy';
 import * as glue from './worker/glue';
+import { messageProxy, setOnMessage } from './worker/proxy';
 
 /** Functions the emulator may need to call. */
 export interface EmulatorHost {
@@ -25,7 +25,6 @@ class Window {
 
   title: string = '';
   //   canvas: HTMLCanvasElement = document.createElement('canvas');
-
 }
 
 // class File implements glue.JsFile {

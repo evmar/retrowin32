@@ -92,7 +92,6 @@ import * as glue from '../glue/pkg/glue';
 //     this.workerHost.onStdOut(text);
 //   }
 
-
 //   screen() {
 //     // XXX how to tie surface and window together?
 //     // The DirectDraw calls SetCooperativeLevel() on the hwnd, and then CreateSurface with primary,

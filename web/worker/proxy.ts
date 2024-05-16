@@ -16,14 +16,14 @@ export function messageProxy(target: Worker | Window): object {
           }
         }
         target.postMessage([prop, args], { transfer: transfers });
-      }
+      };
     },
   });
 }
 
 /** Sets the onmessage handler to receive postMessage calls from a proxy and forward them to the handler. */
 export function setOnMessage(target: Worker | Window, handler: object) {
-  target.onmessage = function (e: MessageEvent<[string, {}[]]>) {
+  target.onmessage = function(e: MessageEvent<[string, {}[]]>) {
     const [fn, params] = e.data;
     (handler as any)[fn](...params);
   };

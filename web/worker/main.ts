@@ -1,5 +1,5 @@
 import * as glue from '../glue/pkg/glue';
-import { messageProxy, setOnMessage } from "./proxy";
+import { messageProxy, setOnMessage } from './proxy';
 
 async function fetchBytes(path: string): Promise<Uint8Array> {
   const resp = await fetch(path);
@@ -21,15 +21,17 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 
 export async function main() {
   const params = {
-    exe: "exe/rust-out/gdi.exe",
+    exe: 'exe/rust-out/gdi.exe',
     files: [],
-    dir: "",
+    dir: '',
   };
 
   const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
 
-  await glue.default("wasm.wasm");
-  self.onmessage = (e) => { console.error('BUG: dropped message', e.data); };
+  await glue.default('wasm.wasm');
+  self.onmessage = (e) => {
+    console.error('BUG: dropped message', e.data);
+  };
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
   const emu = glue.new_emulator(workerHost, params.exe, fileset.get(params.exe)!);
