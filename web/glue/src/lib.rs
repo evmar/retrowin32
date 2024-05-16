@@ -124,13 +124,18 @@ pub fn set_tracing_scheme(scheme: &str) {
 }
 
 #[wasm_bindgen]
-pub fn new_emulator(host: JsHost, cmdline: String, buf: &[u8]) -> JsResult<Emulator> {
+pub fn new_emulator(
+    host: JsHost,
+    cmdline: String,
+    filename: &str,
+    buf: &[u8],
+) -> JsResult<Emulator> {
     set_tracing_scheme("*");
     log::init(log::HostLogger::unchecked_from_js(host.clone()));
     let mut machine = win32::Machine::new(Box::new(Host::new(host)), cmdline.clone());
 
     machine
-        .load_exe(buf, cmdline, false)
+        .load_exe(buf, filename, false)
         .map_err(err_from_anyhow)?;
 
     Ok(Emulator { machine })

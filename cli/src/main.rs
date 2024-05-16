@@ -263,7 +263,7 @@ fn main() -> anyhow::Result<()> {
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
 
     let addrs = machine
-        .load_exe(&buf, cmdline.clone(), false)
+        .load_exe(&buf, &args.exe, false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     #[cfg(feature = "x86-64")]
