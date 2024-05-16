@@ -159,10 +159,10 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        cmdline: String,
+        filename: &str,
         relocate: bool,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, cmdline, relocate)?;
+        let exe = pe::load_exe(self, buf, filename, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
         self.setup_segments();

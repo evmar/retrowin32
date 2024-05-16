@@ -26,7 +26,7 @@ pub enum CPUState {
 #[wasm_bindgen]
 impl Emulator {
     #[wasm_bindgen]
-    pub fn load_exe(&mut self, name: String, buf: &[u8], relocate: bool) -> JsResult<()> {
+    pub fn load_exe(&mut self, name: &str, buf: &[u8], relocate: bool) -> JsResult<()> {
         self.machine
             .load_exe(buf, name, relocate)
             .map_err(err_from_anyhow)?;
