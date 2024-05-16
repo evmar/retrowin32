@@ -24,12 +24,13 @@ version = "0.2.83"
 [dependencies.web-sys]
 version = "0.3.69"
 features = [
-  "CanvasRenderingContext2d",
   "ImageData",
   "Event",
-  "HtmlCanvasElement",
   "MouseEvent",
   "Performance",
+  "WorkerGlobalScope",
+  "OffscreenCanvas",
+  "OffscreenCanvasRenderingContext2d",
 ]
 
 [features]

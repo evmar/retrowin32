@@ -1,31 +1,24 @@
 //! Implementations of the traits in win32/host.rs, providing the hosting API for the emulator.
 
+use std::collections::VecDeque;
+
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
 
 struct WebSurface {
-    canvas: web_sys::HtmlCanvasElement,
+    canvas: web_sys::OffscreenCanvas,
     width: u32,
-    ctx: web_sys::CanvasRenderingContext2d,
-    screen: web_sys::CanvasRenderingContext2d,
+    ctx: web_sys::OffscreenCanvasRenderingContext2d,
 }
 
 impl WebSurface {
-    pub fn new(opts: &win32::SurfaceOptions, screen: web_sys::CanvasRenderingContext2d) -> Self {
-        let canvas = web_sys::window()
-            .unwrap()
-            .document()
-            .unwrap()
-            .create_element("canvas")
-            .unwrap()
-            .unchecked_into::<web_sys::HtmlCanvasElement>();
-        canvas.set_width(opts.width);
-        canvas.set_height(opts.height);
+    pub fn new(opts: &win32::SurfaceOptions) -> Self {
+        let canvas = web_sys::OffscreenCanvas::new(opts.width, opts.height).unwrap();
         let ctx = canvas
             .get_context("2d")
             .unwrap()
             .unwrap()
-            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .dyn_into::<web_sys::OffscreenCanvasRenderingContext2d>()
             .unwrap();
         ctx.set_fill_style(&JsValue::from_str("black"));
         ctx.fill_rect(0.0, 0.0, opts.width as f64, opts.height as f64);
@@ -34,7 +27,6 @@ impl WebSurface {
             canvas,
             width: opts.width,
             ctx,
-            screen,
         }
     }
 }
@@ -50,9 +42,10 @@ impl win32::Surface for WebSurface {
     }
 
     fn show(&mut self) {
-        self.screen
-            .draw_image_with_html_canvas_element(&self.canvas, 0.0, 0.0)
-            .unwrap();
+        // self.screen
+        //     .draw_image_with_html_canvas_element(&self.canvas, 0.0, 0.0)
+        //     .unwrap();
+        //todo!()
     }
 
     fn bit_blt(
@@ -70,7 +63,7 @@ impl win32::Surface for WebSurface {
         // host types, eek.
         let src = unsafe { &*(src as *const dyn win32::Surface as *const WebSurface) };
         self.ctx
-            .draw_image_with_html_canvas_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+            .draw_image_with_offscreen_canvas_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &src.canvas,
                 sx as f64,
                 sy as f64,
@@ -85,28 +78,32 @@ impl win32::Surface for WebSurface {
     }
 }
 
-#[wasm_bindgen]
-extern "C" {
-    pub type JsWindow;
-    #[wasm_bindgen(method, setter)]
-    fn set_title(this: &JsWindow, title: &str);
-    #[wasm_bindgen(method)]
-    fn set_size(this: &JsWindow, width: u32, height: u32);
+struct Window {
+    js_host: JsHost,
+    hwnd: u32,
 }
 
-impl win32::Window for JsWindow {
+impl win32::Window for Window {
     fn set_title(&mut self, title: &str) {
-        JsWindow::set_title(self, title);
+        self.js_host.window_set_title(self.hwnd, title);
     }
 
     fn set_size(&mut self, width: u32, height: u32) {
-        JsWindow::set_size(self, width, height);
+        self.js_host.window_set_size(self.hwnd, width, height);
     }
 
     fn fullscreen(&mut self) {
         log::warn!("todo: fullscreen");
     }
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const HOST_TS: &'static str = r#"
+interface JsFile {
+    seek(ofs: number): boolean;
+    read(buf: Uint8Array): number;
+}
+"#;
 
 #[wasm_bindgen]
 extern "C" {
@@ -171,76 +168,115 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
     Ok(win32::Message { hwnd, detail })
 }
 
+#[wasm_bindgen(typescript_custom_section)]
+const HOST_TS: &'static str = r#"
+export interface JsHost {
+    exit(code: number): void;
+    write(buf: Uint8Array);
+    window_create(hwnd: number);
+    window_set_title(hwnd: number, title: string);
+    window_set_size(hwnd: number, w: number, h: number);
+}
+"#;
+
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "JsHost")]
     pub type JsHost;
-
-    #[wasm_bindgen(method)]
-    fn log(this: &JsHost, level: u8, msg: String);
 
     #[wasm_bindgen(method)]
     fn exit(this: &JsHost, exit_code: u32);
 
-    #[wasm_bindgen(method)]
-    fn ensure_timer(this: &JsHost, when: u32);
+    // #[wasm_bindgen(method)]
+    // fn ensure_timer(this: &Host, when: u32);
 
-    #[wasm_bindgen(method)]
-    fn get_event(this: &JsHost) -> web_sys::Event;
+    // #[wasm_bindgen(method)]
+    // fn get_event(this: &Host) -> web_sys::Event;
 
-    #[wasm_bindgen(method)]
-    fn open(this: &JsHost, path: &str) -> JsFile;
+    // #[wasm_bindgen(method)]
+    // fn open(this: &Host, path: &str) -> JsFile;
+
     #[wasm_bindgen(method)]
     fn write(this: &JsHost, buf: &[u8]) -> usize;
 
     #[wasm_bindgen(method)]
-    fn create_window(this: &JsHost, hwnd: u32) -> JsWindow;
-
+    fn window_create(this: &JsHost, hwnd: u32);
     #[wasm_bindgen(method)]
-    fn screen(this: &JsHost) -> web_sys::CanvasRenderingContext2d;
+    fn window_set_title(this: &JsHost, hwnd: u32, title: &str);
+    #[wasm_bindgen(method)]
+    fn window_set_size(this: &JsHost, hwnd: u32, w: u32, h: u32);
+
+    // #[wasm_bindgen(method)]
+    // fn screen(this: &Host) -> web_sys::CanvasRenderingContext2d;
 }
 
-impl win32::Host for JsHost {
+pub struct Host {
+    js_host: JsHost,
+    messages: VecDeque<win32::Message>,
+}
+
+impl Host {
+    pub fn new(js_host: JsHost) -> Self {
+        Host {
+            js_host,
+            messages: Default::default(),
+        }
+    }
+}
+
+impl win32::Host for Host {
     fn exit(&self, exit_code: u32) {
-        JsHost::exit(self, exit_code)
+        self.js_host.exit(exit_code)
     }
 
     fn time(&self) -> u32 {
-        web_sys::window().unwrap().performance().unwrap().now() as u32
+        let global = js_sys::global()
+            .dyn_into::<web_sys::WorkerGlobalScope>()
+            .unwrap();
+        global.performance().unwrap().now() as u32
     }
 
     fn get_message(&self) -> Option<win32::Message> {
-        let event = JsHost::get_event(self);
-        if event.is_undefined() {
-            return None;
-        }
-        message_from_event(event)
-            .inspect_err(|err| log::error!("failed to convert message: {err}"))
-            .ok()
+        None
+        // self.messages.pop_front()
+        // let event = Host::get_event(self);
+        // if event.is_undefined() {
+        //     return None;
+        // }
+        // message_from_event(event)
+        //     .inspect_err(|err| log::error!("failed to convert message: {err}"))
+        //     .ok()
     }
 
     fn block(&self, wait: Option<u32>) -> bool {
         if let Some(t) = wait {
             // Enqueue a timer to wake up caller.
-            JsHost::ensure_timer(self, t);
+            todo!();
+            //Host::ensure_timer(self, t);
         }
         false
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
-        let file = JsHost::open(self, path);
-        Box::new(file)
+        todo!()
+        // let file = Host::open(self, path);
+        // Box::new(file)
     }
 
     fn write(&self, buf: &[u8]) -> usize {
-        JsHost::write(self, buf)
+        self.js_host.write(buf);
+        buf.len()
     }
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
-        let window = JsHost::create_window(self, hwnd);
-        Box::new(window)
+        self.js_host.window_create(hwnd);
+        Box::new(Window {
+            js_host: self.js_host.clone().unchecked_into::<JsHost>(),
+            hwnd,
+        })
     }
 
     fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        Box::new(WebSurface::new(opts, JsHost::screen(self)))
+        Box::new(WebSurface::new(opts))
     }
 }

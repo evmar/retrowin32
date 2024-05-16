@@ -3,6 +3,7 @@ mod host;
 mod log;
 
 use crate::host::JsHost;
+use host::Host;
 use wasm_bindgen::prelude::*;
 
 pub type JsResult<T> = Result<T, JsError>;
@@ -25,14 +26,6 @@ pub enum CPUState {
 
 #[wasm_bindgen]
 impl Emulator {
-    #[wasm_bindgen]
-    pub fn load_exe(&mut self, name: String, buf: &[u8], relocate: bool) -> JsResult<()> {
-        self.machine
-            .load_exe(buf, name, relocate)
-            .map_err(err_from_anyhow)?;
-        Ok(())
-    }
-
     #[wasm_bindgen]
     pub fn labels(&self) -> JsResult<String> {
         let str = serde_json::to_string(&self.machine.labels)?;
@@ -123,15 +116,22 @@ impl Emulator {
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         self.machine.load_snapshot(bytes)
     }
-
-    pub fn set_tracing_scheme(&self, scheme: &str) {
-        win32::trace::set_scheme(scheme);
-    }
 }
 
 #[wasm_bindgen]
-pub fn new_emulator(host: JsHost, cmdline: String) -> Emulator {
-    log::init(log::JsLogger::unchecked_from_js(host.clone()));
-    let machine = win32::Machine::new(Box::new(host), cmdline);
-    Emulator { machine }
+pub fn set_tracing_scheme(scheme: &str) {
+    win32::trace::set_scheme(scheme);
+}
+
+#[wasm_bindgen]
+pub fn new_emulator(host: JsHost, cmdline: String, buf: &[u8]) -> JsResult<Emulator> {
+    set_tracing_scheme("*");
+    log::init(log::HostLogger::unchecked_from_js(host.clone()));
+    let mut machine = win32::Machine::new(Box::new(Host::new(host)), cmdline.clone());
+
+    machine
+        .load_exe(buf, cmdline, false)
+        .map_err(err_from_anyhow)?;
+
+    Ok(Emulator { machine })
 }

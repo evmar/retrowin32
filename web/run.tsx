@@ -1,16 +1,18 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
+import { EmulatorComponent } from './web';
 import { Emulator, EmulatorHost } from './emulator';
-import { EmulatorComponent, loadEmulator } from './web';
 
 interface State {
   output?: string;
 }
 
-class Runner extends preact.Component<{ emulator: Emulator }, State> implements EmulatorHost {
-  constructor(props: { emulator: Emulator }) {
+class Runner extends preact.Component<{ worker: Worker }, State> implements EmulatorHost {
+  emulator: Emulator;
+
+  constructor(props: { worker: Worker }) {
     super(props);
-    this.props.emulator.emuHost = this;
+    this.emulator = new Emulator(this.props.worker, this);
   }
 
   private print(text: string) {
@@ -18,7 +20,7 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 
   componentDidMount(): void {
-    this.props.emulator.start();
+    this.emulator.start();
   }
 
   exit(code: number): void {
@@ -45,14 +47,13 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
     return (
       <>
         {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
-        <EmulatorComponent emulator={this.props.emulator} />
+        <EmulatorComponent emulator={this.emulator} />
       </>
     );
   }
 }
 
 export async function main() {
-  const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme('-');
-  preact.render(<Runner emulator={emulator} />, document.getElementById('main')!);
+  const worker = await Emulator.initWorker();
+  preact.render(<Runner worker={worker} />, document.getElementById('main')!);
 }

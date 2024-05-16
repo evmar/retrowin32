@@ -88,10 +88,10 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        cmdline: String,
+        name: String,
         relocate: bool,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, cmdline, relocate)?;
+        let exe = pe::load_exe(self, buf, name, relocate)?;
 
         let stack_pointer = self.create_stack("stack".into(), exe.stack_size);
         let regs = &mut self.emu.x86.cpu_mut().regs;

@@ -189,12 +189,12 @@ pub struct EXEFields {
 pub fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
-    cmdline: String,
+    name: String,
     relocate: bool,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
-    let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
+    let base = load_pe(machine, &name, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
 
     if let Some(res_data) = file

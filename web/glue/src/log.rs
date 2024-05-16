@@ -4,23 +4,29 @@
 
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(typescript_custom_section)]
+const TS: &'static str = r#"
+export interface HostLogger {
+    log(level: number, msg: string);
+}
+"#;
+
 #[wasm_bindgen]
 extern "C" {
-    pub type JsLogger;
+    #[wasm_bindgen(typescript_type = "HostLogger")]
+    pub type HostLogger;
 
     #[wasm_bindgen(method)]
-    fn log(this: &JsLogger, level: u8, msg: String);
+    fn log(this: &HostLogger, level: u8, msg: &str);
 }
 
-struct HostLogger {
-    host: JsLogger,
+struct GlueLogger {
+    host: HostLogger,
 }
-impl log::Log for HostLogger {
+impl log::Log for GlueLogger {
     fn log(&self, record: &log::Record) {
-        self.host.log(
-            record.level as u8,
-            format!("{}:{} {}", record.file, record.line, record.args),
-        );
+        let msg = format!("{}:{} {}", record.file, record.line, record.args);
+        self.host.log(record.level as u8, &msg);
     }
 }
 
@@ -28,8 +34,8 @@ fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
 }
 
-pub fn init(host: JsLogger) {
-    let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
+pub fn init(host: HostLogger) {
+    let logger: &'static mut GlueLogger = Box::leak(Box::new(GlueLogger { host }));
     log::set_logger(logger);
     std::panic::set_hook(Box::new(panic_hook));
 }

@@ -15,6 +15,7 @@ debug)
   cargo build --target wasm32-unknown-unknown --profile dev
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/debug/glue.wasm"
+  sed -i. -e '/import.meta/d' pkg/glue.js
   ;;
 release|lto)
   cargo build --target wasm32-unknown-unknown --profile $profile
