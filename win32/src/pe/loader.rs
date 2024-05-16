@@ -30,7 +30,7 @@ fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Op
 /// Copy the file header itself into memory, choosing a base address.
 fn load_image(
     machine: &mut Machine,
-    name: &str,
+    filename: &str,
     file: &pe::File,
     buf: &[u8],
     relocate: bool,
@@ -51,7 +51,7 @@ fn load_image(
         winapi::kernel32::Mapping {
             addr,
             size: first_page_size as u32,
-            desc: name.into(),
+            desc: filename.into(),
             flags: pe::ImageSectionFlags::MEM_READ,
         },
         Some(&buf[..first_page_size]),
@@ -63,7 +63,7 @@ fn load_image(
 /// Load a PE section into memory.
 fn load_section(
     machine: &mut Machine,
-    name: &str,
+    filename: &str,
     base: u32,
     buf: &[u8],
     sec: &IMAGE_SECTION_HEADER,
@@ -94,7 +94,7 @@ fn load_section(
         addr: dst as u32,
         size: sec.VirtualSize as u32,
         desc: format!(
-            "{name} {:?} ({:?})",
+            "{filename} {:?} ({:?})",
             sec.name().unwrap_or("[invalid]"),
             flags
         ),
@@ -154,15 +154,15 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
 
 fn load_pe(
     machine: &mut Machine,
-    name: &str,
+    filename: &str,
     buf: &[u8],
     file: &pe::File,
     relocate: bool,
 ) -> anyhow::Result<u32> {
-    let base = load_image(machine, name, file, buf, relocate);
+    let base = load_image(machine, filename, file, buf, relocate);
 
     for sec in file.sections.iter() {
-        load_section(machine, name, base, buf, sec);
+        load_section(machine, filename, base, buf, sec);
     }
 
     if relocate {
@@ -189,12 +189,12 @@ pub struct EXEFields {
 pub fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
-    cmdline: String,
+    filename: &str,
     relocate: bool,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
-    let base = load_pe(machine, &cmdline, buf, &file, relocate)?;
+    let base = load_pe(machine, filename, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
 
     if let Some(res_data) = file
@@ -226,10 +226,10 @@ pub struct DLL {
     pub entry_point: u32,
 }
 
-pub fn load_dll(machine: &mut Machine, name: &str, buf: &[u8]) -> anyhow::Result<DLL> {
+pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<DLL> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, name, buf, &file, true)?;
+    let base = load_pe(machine, filename, buf, &file, true)?;
     let image = machine.mem().slice(base..).as_slice_todo();
 
     let entry_point = base + file.opt_header.AddressOfEntryPoint;
