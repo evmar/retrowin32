@@ -221,7 +221,7 @@ pub(super) mod IDirectDraw7 {
             .windows
             .get_mut(machine.state.ddraw.hwnd)
         {
-            wnd.set_client_size(width, height);
+            wnd.set_client_size(&mut *machine.host, width, height);
         }
         machine.state.ddraw.bytes_per_pixel = bpp / 8;
         DD_OK
