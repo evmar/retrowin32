@@ -1,5 +1,17 @@
 import * as glue from './worker/glue';
 import { messageProxy, setOnMessage } from './worker/proxy';
+import type { Params } from './worker/main';
+
+export function parseURL(): Params | undefined {
+  const query = new URLSearchParams(document.location.search);
+  const exe = query.get('exe');
+  if (!exe) return undefined;
+  const dir = query.get('dir') || undefined;
+  const files = query.getAll('file');
+  const relocate = query.has('relocate');
+  const params: Params = { dir, exe, files, relocate };
+  return params;
+}
 
 /** Functions the emulator may need to call. */
 export interface EmulatorHost {
@@ -27,29 +39,6 @@ class Window {
   canvas: HTMLCanvasElement = document.createElement('canvas');
 }
 
-// class File implements glue.JsFile {
-//   ofs = 0;
-
-//   constructor(readonly path: string, readonly bytes: Uint8Array) {
-//   }
-
-//   info(): number {
-//     return this.bytes.length;
-//   }
-
-//   seek(ofs: number): boolean {
-//     this.ofs = ofs;
-//     return true;
-//   }
-
-//   read(buf: Uint8Array): number {
-//     const n = Math.min(buf.length, this.bytes.length - this.ofs);
-//     buf.set(this.bytes.subarray(this.ofs, this.ofs + n));
-//     this.ofs += n;
-//     return n;
-//   }
-// }
-
 /** Emulator host, providing the emulation worker=>web API. */
 export class Emulator implements glue.JsHost, glue.HostLogger {
   private events: Event[] = [];
@@ -59,10 +48,11 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   private decoder = new TextDecoder();
 
   static async initWorker(): Promise<Worker> {
+    const params = parseURL();
     const worker = new Worker('worker-main.js');
+    worker.postMessage(params);
     return new Promise((res) => {
       worker.onmessage = (e) => {
-        // TODO send init here to worker
         worker.onmessage = null;
         res(worker);
       };

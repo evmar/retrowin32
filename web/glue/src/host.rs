@@ -99,37 +99,27 @@ impl win32::Window for Window {
     }
 }
 
-#[wasm_bindgen(typescript_custom_section)]
-const HOST_TS: &'static str = r#"
-interface JsFile {
-    seek(ofs: number): boolean;
-    read(buf: Uint8Array): number;
-}
-"#;
-
-#[wasm_bindgen]
-extern "C" {
-    pub type JsFile;
-    #[wasm_bindgen(method)]
-    fn info(this: &JsFile) -> u32;
-    #[wasm_bindgen(method)]
-    fn seek(this: &JsFile, ofs: u32) -> bool;
-    #[wasm_bindgen(method)]
-    fn read(this: &JsFile, buf: &mut [u8]) -> u32;
+pub struct File {
+    content: Box<[u8]>,
+    ofs: usize,
 }
 
-impl win32::File for JsFile {
+impl win32::File for File {
     fn info(&self) -> u32 {
-        JsFile::info(self)
+        log::info!("len {}", self.content.len());
+        self.content.len() as u32
     }
 
     fn seek(&mut self, ofs: u32) -> bool {
-        JsFile::seek(self, ofs)
+        self.ofs = ofs as usize;
+        true
     }
 
     fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
-        let n = JsFile::read(self, buf);
-        *len = n;
+        let n = std::cmp::min(buf.len(), self.content.len() - self.ofs);
+        buf[..n].copy_from_slice(&self.content[self.ofs..][..n]);
+        self.ofs += n;
+        *len = n as u32;
         true
     }
 }
@@ -196,9 +186,6 @@ extern "C" {
     // #[wasm_bindgen(method)]
     // fn get_event(this: &Host) -> web_sys::Event;
 
-    // #[wasm_bindgen(method)]
-    // fn open(this: &Host, path: &str) -> JsFile;
-
     #[wasm_bindgen(method)]
     fn write(this: &JsHost, buf: &[u8]) -> usize;
 
@@ -217,15 +204,21 @@ extern "C" {
 
 pub struct Host {
     js_host: JsHost,
+    files: Vec<(String, Box<[u8]>)>,
     messages: VecDeque<win32::Message>,
 }
 
 impl Host {
-    pub fn new(js_host: JsHost) -> Self {
+    pub fn new(js_host: JsHost, files: Vec<(String, Box<[u8]>)>) -> Self {
         Host {
             js_host,
+            files,
             messages: Default::default(),
         }
+    }
+
+    pub fn open(&self, path: &str) -> Option<&[u8]> {
+        Some(&*self.files.iter().find(|f| f.0 == path)?.1)
     }
 }
 
@@ -263,9 +256,15 @@ impl win32::Host for Host {
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
-        todo!()
-        // let file = Host::open(self, path);
-        // Box::new(file)
+        let content = match Host::open(self, path) {
+            // XXX copies
+            Some(content) => content.to_vec().into_boxed_slice(),
+            None => {
+                log::error!("unknown file {path}, returning empty file");
+                Box::new([])
+            }
+        };
+        Box::new(File { content, ofs: 0 })
     }
 
     fn write(&self, buf: &[u8]) -> usize {

@@ -80,28 +80,6 @@ export class EmulatorComponent extends preact.Component<EmulatorComponent.Props>
   }
 }
 
-interface URLParams {
-  /** URL directory that all other paths are resolved relative to. */
-  dir?: string;
-  /** Executable to run. */
-  exe: string;
-  /** Other data files to load.  TODO: we should fetch these dynamically instead. */
-  files: string[];
-  /** If true, relocate the exe on load. */
-  relocate?: boolean;
-}
-
-function parseURL(): URLParams | undefined {
-  const query = new URLSearchParams(document.location.search);
-  const exe = query.get('exe');
-  if (!exe) return undefined;
-  const dir = query.get('dir') || undefined;
-  const files = query.getAll('file');
-  const relocate = query.has('relocate');
-  const params: URLParams = { dir, exe, files, relocate };
-  return params;
-}
-
 // export async function loadEmulator() {
 //   const params = parseURL();
 //   if (!params) {

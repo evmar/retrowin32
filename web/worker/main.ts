@@ -19,34 +19,47 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
   return fileset;
 }
 
+export interface Params {
+  /** URL directory that all other paths are resolved relative to. */
+  dir?: string;
+  /** Executable to run. */
+  exe: string;
+  /** Other data files to load.  TODO: we should fetch these dynamically instead. */
+  files: string[];
+  /** If true, relocate the exe on load. */
+  relocate?: boolean;
+}
+
 export async function main() {
-  let params;
-  if (false) {
-    params = {
-      exe: 'exe/rust-out/gdi.exe',
-      files: [],
-      dir: '',
+  // It appears if we register onmessage before any 'await' we will receive any initial
+  // messages sent from the host.  StackOverflow etc claim this but I can't figure out where
+  // the spec it guarantees this...
+  const params = await new Promise<Params>((res) => {
+    self.onmessage = (e) => {
+      self.onmessage = (e) => {
+        // catch any onmessage sent before ready
+        console.error('BUG: dropped message', e.data);
+      };
+      res(e.data);
     };
-  } else {
-    //params = { exe: 'winmine.exe', dir: 'exe/os/win2k/', files: ['msvcrt.dll'] };
-    params = { dir: 'exe/demo/', exe: 'effect.exe', files: [] };
-  }
+  });
 
-  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
-
+  const files: Array<[string, Uint8Array]> = await Promise.all([params.exe, ...params.files].map(async f => {
+    return [f, await fetchBytes(params.dir + f)]
+  }));
   await glue.default('wasm.wasm');
-  self.onmessage = (e) => {
-    console.error('BUG: dropped message', e.data);
-  };
+
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
-  const emu = glue.new_emulator(workerHost, params.exe, params.exe, fileset.get(params.exe)!);
+  const emu = glue.new_emulator(workerHost, params.exe, params.exe, files);
   emu.start = () => {
     const channel = new MessageChannel();
     channel.port2.onmessage = () => {
-      emu.run(100_000); // XXX adjust dynamically
+      emu.run(100_000);
+      // XXX adjust dynamically
+      // XXX check return code
       channel.port1.postMessage(null);
-    }
+    };
     channel.port1.postMessage(null);
   };
   setOnMessage(self, emu);

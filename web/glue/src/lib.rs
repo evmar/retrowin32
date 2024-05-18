@@ -134,14 +134,25 @@ pub fn new_emulator(
     host: JsHost,
     cmdline: String,
     filename: &str,
-    buf: &[u8],
+    js_files: js_sys::Array,
 ) -> JsResult<Emulator> {
     set_tracing_scheme("*");
     log::init(log::HostLogger::unchecked_from_js(host.clone()));
-    let mut machine = win32::Machine::new(Box::new(Host::new(host)), cmdline.clone());
+
+    let mut files = Vec::new();
+    for file in js_files.iter() {
+        let pair = file.dyn_into::<js_sys::Array>().unwrap();
+        let name = pair.get(0).as_string().unwrap();
+        let content = pair.get(1).dyn_into::<js_sys::Uint8Array>().unwrap();
+        files.push((name, content.to_vec().into_boxed_slice()));
+    }
+
+    let host = Box::new(Host::new(host, files));
+    let buf = host.open(filename).unwrap().to_vec();
+    let mut machine = win32::Machine::new(host, cmdline.clone());
 
     machine
-        .load_exe(buf, filename, false)
+        .load_exe(&buf, filename, false)
         .map_err(err_from_anyhow)?;
 
     Ok(Emulator::new(machine))
