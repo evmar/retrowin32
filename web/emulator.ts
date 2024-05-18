@@ -1,6 +1,6 @@
 import * as glue from './worker/glue';
-import { messageProxy, setOnMessage } from './worker/proxy';
 import type { Params } from './worker/main';
+import { messageProxy, setOnMessage } from './worker/proxy';
 
 export function parseURL(): Params | undefined {
   const query = new URLSearchParams(document.location.search);

@@ -197,9 +197,6 @@ extern "C" {
     fn window_set_size(this: &JsHost, hwnd: u32, w: u32, h: u32);
     #[wasm_bindgen(method)]
     fn window_show(this: &JsHost, hwnd: u32, pixels: web_sys::ImageBitmap);
-
-    // #[wasm_bindgen(method)]
-    // fn screen(this: &Host) -> web_sys::CanvasRenderingContext2d;
 }
 
 pub struct Host {

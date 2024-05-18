@@ -70,6 +70,7 @@ impl Emulator {
         self.machine.unblock();
     }
 
+    /// Declared here so it shows up in TS type; actually implemented in worker/main.ts
     pub fn start(&mut self) {}
 
     /// Run code until at least count instructions have run.

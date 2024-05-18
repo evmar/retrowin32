@@ -45,7 +45,7 @@ export async function main() {
   });
 
   const files: Array<[string, Uint8Array]> = await Promise.all([params.exe, ...params.files].map(async f => {
-    return [f, await fetchBytes(params.dir + f)]
+    return [f, await fetchBytes(params.dir + f)];
   }));
   await glue.default('wasm.wasm');
 
