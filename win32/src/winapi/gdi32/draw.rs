@@ -91,7 +91,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
     };
     let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
     let stride = window.width;
-    let pixels = window.bitmap_mut(&mut *machine.host).pixels.as_slice_mut();
+    let pixels = window.bitmap_mut().pixels.as_slice_mut();
 
     let color = match dc.r2 {
         R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
@@ -141,7 +141,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             // TODO: obey rect
             window
-                .bitmap_mut(&mut *machine.host)
+                .bitmap_mut()
                 .pixels
                 .as_slice_mut()
                 .fill(color.to_pixel());
