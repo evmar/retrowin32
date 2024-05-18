@@ -1,5 +1,8 @@
 //! Interfaces expected of the x86 host.
 
+// https://github.com/madonoharu/tsify/issues/42
+#![allow(non_snake_case)]
+
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// DirectDraw surface.
@@ -47,14 +50,14 @@ pub trait File {
     fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool;
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, tsify::Tsify)]
 pub enum MouseButton {
     Left,
     Middle,
     Right,
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, tsify::Tsify)]
 pub struct MouseMessage {
     pub down: bool,
     pub button: MouseButton,
@@ -62,13 +65,14 @@ pub struct MouseMessage {
     pub y: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, tsify::Tsify)]
 pub enum MessageDetail {
     Quit,
     Mouse(MouseMessage),
 }
 
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, tsify::Tsify)]
+#[tsify(from_wasm_abi)]
 pub struct Message {
     pub hwnd: u32,
     pub detail: MessageDetail,

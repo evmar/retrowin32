@@ -1,8 +1,6 @@
 //! Implementations of the traits in win32/host.rs, providing the hosting API for the emulator.
 
-use std::collections::VecDeque;
-
-use anyhow::bail;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use wasm_bindgen::prelude::*;
 
 struct WebSurface {
@@ -124,42 +122,6 @@ impl win32::File for File {
     }
 }
 
-fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::MouseMessage> {
-    Ok(win32::MouseMessage {
-        down: true,
-        button: match event.button() {
-            0 => win32::MouseButton::Left,
-            1 => win32::MouseButton::Middle,
-            2 => win32::MouseButton::Right,
-            _ => bail!("unhandled button"),
-        },
-        x: event.offset_x() as u32,
-        y: event.offset_y() as u32,
-    })
-}
-
-fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
-    let hwnd = js_sys::Reflect::get(&event, &JsValue::from_str("hwnd"))
-        .unwrap()
-        .as_f64()
-        .unwrap() as u32;
-    let detail = match event.type_().as_str() {
-        "mousedown" => {
-            let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
-            event.down = true;
-            win32::MessageDetail::Mouse(event)
-        }
-        "mouseup" => {
-            let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
-            event.down = false;
-            win32::MessageDetail::Mouse(event)
-        }
-        ty => bail!("unhandled event type {ty}"),
-    };
-    log::info!("msg: {:?}", detail);
-    Ok(win32::Message { hwnd, detail })
-}
-
 #[wasm_bindgen(typescript_custom_section)]
 const HOST_TS: &'static str = r#"
 export interface JsHost {
@@ -202,7 +164,8 @@ extern "C" {
 pub struct Host {
     js_host: JsHost,
     files: Vec<(String, Box<[u8]>)>,
-    messages: VecDeque<win32::Message>,
+    // XXX Rc business is a hack because of Host/glue split
+    pub messages: Rc<RefCell<VecDeque<win32::Message>>>,
 }
 
 impl Host {
@@ -232,21 +195,13 @@ impl win32::Host for Host {
     }
 
     fn get_message(&self) -> Option<win32::Message> {
-        None
-        // self.messages.pop_front()
-        // let event = Host::get_event(self);
-        // if event.is_undefined() {
-        //     return None;
-        // }
-        // message_from_event(event)
-        //     .inspect_err(|err| log::error!("failed to convert message: {err}"))
-        //     .ok()
+        self.messages.borrow_mut().pop_front()
     }
 
     fn block(&self, wait: Option<u32>) -> bool {
         if let Some(t) = wait {
             // Enqueue a timer to wake up caller.
-            todo!();
+            //todo!();
             //Host::ensure_timer(self, t);
         }
         false

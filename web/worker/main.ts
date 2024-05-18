@@ -49,16 +49,20 @@ export async function main() {
   }));
   await glue.default('wasm.wasm');
 
+  const channel = new MessageChannel();
+
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
-  const emu = glue.new_emulator(workerHost, params.exe, params.exe, files);
+  const emu = glue.new_emulator(workerHost, params.exe, params.exe, files, channel.port1);
   emu.start = () => {
-    const channel = new MessageChannel();
     channel.port2.onmessage = () => {
-      emu.run(100_000);
+      console.log('msg');
+      const state = emu.run(100_000);
       // XXX adjust dynamically
       // XXX check return code
-      channel.port1.postMessage(null);
+      if (state === glue.CPUState.Running) {
+        channel.port1.postMessage(null);
+      }
     };
     channel.port1.postMessage(null);
   };

@@ -1,7 +1,7 @@
 /** Creates an object that makes any obj.foo() call into a postMessage onto the target. */
 export function messageProxy(target: Worker | Window): object {
-  return new Proxy({}, {
-    get(_target, prop, _receiver) {
+  return new Proxy(target, {
+    get(target, prop, _receiver) {
       return (...args: {}[]) => {
         const transfers = [];
         for (let i = 0; i < args.length; i++) {
@@ -13,6 +13,8 @@ export function messageProxy(target: Worker | Window): object {
               args[i] = slice;
               transfers.push(slice.buffer);
             }
+          } else if (arg instanceof ImageBitmap) {
+            transfers.push(arg);
           }
         }
         target.postMessage([prop, args], { transfer: transfers });

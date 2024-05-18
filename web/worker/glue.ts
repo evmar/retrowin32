@@ -1,1 +1,1 @@
-export { Emulator, HostLogger, JsHost } from '../glue/pkg/glue';
+export * from '../glue/pkg/glue';

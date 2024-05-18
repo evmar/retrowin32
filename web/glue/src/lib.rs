@@ -4,6 +4,7 @@ mod log;
 
 use crate::host::JsHost;
 use host::Host;
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 use wasm_bindgen::prelude::*;
 
 pub type JsResult<T> = Result<T, JsError>;
@@ -14,6 +15,9 @@ fn err_from_anyhow(err: anyhow::Error) -> JsError {
 #[wasm_bindgen]
 pub struct Emulator {
     machine: win32::Machine,
+    // XXX Rc business is a hack because of Host/glue split
+    messages: Rc<RefCell<VecDeque<win32::Message>>>,
+    waker: web_sys::MessagePort,
 }
 
 #[wasm_bindgen]
@@ -26,8 +30,16 @@ pub enum CPUState {
 
 #[wasm_bindgen]
 impl Emulator {
-    fn new(machine: win32::Machine) -> Self {
-        Self { machine }
+    fn new(
+        machine: win32::Machine,
+        messages: Rc<RefCell<VecDeque<win32::Message>>>,
+        waker: web_sys::MessagePort,
+    ) -> Self {
+        Self {
+            machine,
+            messages,
+            waker,
+        }
     }
 
     #[wasm_bindgen]
@@ -68,6 +80,14 @@ impl Emulator {
 
     pub fn unblock(&mut self) {
         self.machine.unblock();
+    }
+
+    pub fn post_win32_message(&mut self, msg: win32::Message) {
+        ::log::info!("posted {:?}", msg);
+        self.messages.borrow_mut().push_back(msg);
+        ::log::info!("msgs {}", self.messages.borrow_mut().len());
+        self.unblock();
+        self.waker.post_message(&JsValue::null()).unwrap();
     }
 
     /// Declared here so it shows up in TS type; actually implemented in worker/main.ts
@@ -132,13 +152,14 @@ pub fn set_tracing_scheme(scheme: &str) {
 
 #[wasm_bindgen]
 pub fn new_emulator(
-    host: JsHost,
+    js_host: JsHost,
     cmdline: String,
     filename: &str,
     js_files: js_sys::Array,
+    waker: web_sys::MessagePort,
 ) -> JsResult<Emulator> {
-    set_tracing_scheme("*");
-    log::init(log::HostLogger::unchecked_from_js(host.clone()));
+    win32::trace::set_scheme("*");
+    log::init(js_host.clone().into());
 
     let mut files = Vec::new();
     for file in js_files.iter() {
@@ -148,13 +169,14 @@ pub fn new_emulator(
         files.push((name, content.to_vec().into_boxed_slice()));
     }
 
-    let host = Box::new(Host::new(host, files));
-    let buf = host.open(filename).unwrap().to_vec();
+    let host = Box::new(Host::new(js_host, files));
+    let messages = host.messages.clone();
+    let buf = host.open(filename).unwrap().to_vec(); // XXX copy
     let mut machine = win32::Machine::new(host, cmdline.clone());
 
     machine
         .load_exe(&buf, filename, false)
         .map_err(err_from_anyhow)?;
 
-    Ok(Emulator::new(machine))
+    Ok(Emulator::new(machine, messages, waker))
 }

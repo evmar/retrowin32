@@ -22,28 +22,44 @@ export interface EmulatorHost {
 }
 
 class Window {
-  constructor(readonly hwnd: number) {
-    //     const stashEvent = (ev: Event) => {
-    //       (ev as any).hwnd = hwnd;
-    //       emulator.enqueueEvent(ev);
-    //       return false;
-    //     };
-    //     this.canvas.onmousedown = stashEvent;
-    //     this.canvas.onmouseup = stashEvent;
-    //     this.canvas.oncontextmenu = (ev) => {
-    //       return false;
-    //     };
+  constructor(private emulator: Emulator, readonly hwnd: number) {
+    this.canvas.onmousedown = this.onMouseEvent;
+    this.canvas.onmouseup = this.onMouseEvent;
+    this.canvas.oncontextmenu = (ev) => {
+      return false;
+    };
   }
 
   title: string = '';
   canvas: HTMLCanvasElement = document.createElement('canvas');
+
+  private postWin32Message(detail: glue.MessageDetail) {
+    const msg: glue.Message = { hwnd: this.hwnd, detail };
+    this.emulator.postWin32Message(msg);
+    return false;
+  }
+
+  private onMouseEvent = (ev: MouseEvent) => {
+    let button = {
+      0: 'Left',
+      1: 'Middle',
+      2: 'Right'
+    }[ev.button] as glue.MouseButton | undefined;
+    const msg: glue.MouseMessage = {
+      down: ev.type == 'mousedown',
+      button: button!,
+      x: ev.offsetX,
+      y: ev.offsetY,
+    };
+    this.postWin32Message({ Mouse: msg });
+  }
 }
 
-/** Emulator host, providing the emulation worker=>web API. */
+/** Emulator host, providing the emulation worker<=>web API. */
 export class Emulator implements glue.JsHost, glue.HostLogger {
   private events: Event[] = [];
   private timer?: number;
-  private glueProxy: glue.Emulator;
+  private worker: glue.Emulator;
   windows = new Map<number, Window>();
   private decoder = new TextDecoder();
 
@@ -59,9 +75,13 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
     });
   }
 
-  constructor(readonly worker: Worker, private emuHost: EmulatorHost) {
-    this.glueProxy = messageProxy(worker) as glue.Emulator;
+  constructor(worker: Worker, private emuHost: EmulatorHost) {
+    this.worker = messageProxy(worker) as glue.Emulator;
     setOnMessage(worker, this);
+  }
+
+  postWin32Message(msg: glue.Message) {
+    this.worker.post_win32_message(msg);
   }
 
   log(level: number, msg: string) {
@@ -98,7 +118,7 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   }
 
   window_create(hwnd: number) {
-    const win = new Window(hwnd);
+    const win = new Window(this, hwnd);
     this.windows.set(hwnd, win);
     this.emuHost.onWindowChanged();
     return win;
@@ -139,6 +159,6 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   }
 
   start() {
-    this.glueProxy.start();
+    this.worker.start();
   }
 }
