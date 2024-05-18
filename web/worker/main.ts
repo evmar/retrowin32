@@ -34,6 +34,6 @@ export async function main() {
   };
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
-  const emu = glue.new_emulator(workerHost, params.exe, fileset.get(params.exe)!);
+  const emu = glue.new_emulator(workerHost, params.exe, params.exe, fileset.get(params.exe)!);
   setOnMessage(self, emu);
 }
