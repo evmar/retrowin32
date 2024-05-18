@@ -20,11 +20,17 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 }
 
 export async function main() {
-  const params = {
-    exe: 'exe/rust-out/gdi.exe',
-    files: [],
-    dir: '',
-  };
+  let params;
+  if (false) {
+    params = {
+      exe: 'exe/rust-out/gdi.exe',
+      files: [],
+      dir: '',
+    };
+  } else {
+    //params = { exe: 'winmine.exe', dir: 'exe/os/win2k/', files: ['msvcrt.dll'] };
+    params = { dir: 'exe/demo/', exe: 'effect.exe', files: [] };
+  }
 
   const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
 
@@ -35,5 +41,13 @@ export async function main() {
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
   const emu = glue.new_emulator(workerHost, params.exe, params.exe, fileset.get(params.exe)!);
+  emu.start = () => {
+    const channel = new MessageChannel();
+    channel.port2.onmessage = () => {
+      emu.run(100_000); // XXX adjust dynamically
+      channel.port1.postMessage(null);
+    }
+    channel.port1.postMessage(null);
+  };
   setOnMessage(self, emu);
 }

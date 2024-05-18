@@ -21,6 +21,7 @@ release|lto)
   cargo build --target wasm32-unknown-unknown --profile $profile
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/$profile/glue.wasm"
+  sed -i. -e '/import.meta/d' pkg/glue.js
   #wasm-opt -O pkg/glue_bg.wasm 
   ;;
 *)

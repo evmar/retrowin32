@@ -24,7 +24,7 @@ class Window {
   }
 
   title: string = '';
-  //   canvas: HTMLCanvasElement = document.createElement('canvas');
+  canvas: HTMLCanvasElement = document.createElement('canvas');
 }
 
 // class File implements glue.JsFile {
@@ -108,38 +108,47 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   }
 
   window_create(hwnd: number) {
-    const window = new Window(hwnd);
-    this.windows.set(hwnd, window);
+    const win = new Window(hwnd);
+    this.windows.set(hwnd, win);
     this.emuHost.onWindowChanged();
-    return window;
+    return win;
   }
 
   window_set_title(hwnd: number, title: string) {
-    const window = this.windows.get(hwnd)!;
-    window.title = title;
+    const win = this.windows.get(hwnd)!;
+    win.title = title;
     this.emuHost.onWindowChanged();
   }
 
-  window_set_size(w: number, h: number) {
-    //     // Note: the canvas must be sized to the size of physical pixels,
-    //     // or else it will be scaled up and pixels will be blurry.
-    //     this.canvas.width = w * window.devicePixelRatio;
-    //     this.canvas.height = h * window.devicePixelRatio;
-    //     this.canvas.style.width = `${w}px`;
-    //     this.canvas.style.height = `${h}px`;
+  window_set_size(hwnd: number, w: number, h: number) {
+    const win = this.windows.get(hwnd)!;
 
-    //     // The context scale seems preserved across calls to getContext, but then also
-    //     // lost when the canvas is resized.  Rather than relying on this, always reset
-    //     // and scale the context immediately on resize.
-    //     const ctx = this.canvas.getContext('2d')!;
-    //     ctx.reset();
-    //     ctx.imageSmoothingEnabled = false;
-    //     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    // Note: the canvas must be sized to the size of physical pixels,
+    // or else it will be scaled up and pixels will be blurry.
+    const devicePixelRatio = window.devicePixelRatio;
+    win.canvas.width = w * devicePixelRatio;
+    win.canvas.height = h * devicePixelRatio;
+    win.canvas.style.width = `${w}px`;
+    win.canvas.style.height = `${h}px`;
+
+    // The context scale seems preserved across calls to getContext, but then also
+    // lost when the canvas is resized.  Rather than relying on this, always reset
+    // and scale the context immediately on resize.
+    const ctx = win.canvas.getContext('2d')!;
+    ctx.reset();
+    ctx.imageSmoothingEnabled = false;
+    ctx.scale(devicePixelRatio, devicePixelRatio);
 
     this.emuHost.onWindowChanged();
+  }
+
+  window_show(hwnd: number, bitmap: ImageBitmap) {
+    const win = this.windows.get(hwnd)!;
+    const ctx = win.canvas.getContext('2d')!;
+    ctx.drawImage(bitmap, 0, 0);
   }
 
   start() {
-    this.glueProxy.run(10000);
+    this.glueProxy.start();
   }
 }

@@ -26,6 +26,10 @@ pub enum CPUState {
 
 #[wasm_bindgen]
 impl Emulator {
+    fn new(machine: win32::Machine) -> Self {
+        Self { machine }
+    }
+
     #[wasm_bindgen]
     pub fn labels(&self) -> JsResult<String> {
         let str = serde_json::to_string(&self.machine.labels)?;
@@ -65,6 +69,8 @@ impl Emulator {
     pub fn unblock(&mut self) {
         self.machine.unblock();
     }
+
+    pub fn start(&mut self) {}
 
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
@@ -138,5 +144,5 @@ pub fn new_emulator(
         .load_exe(buf, filename, false)
         .map_err(err_from_anyhow)?;
 
-    Ok(Emulator { machine })
+    Ok(Emulator::new(machine))
 }
