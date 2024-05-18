@@ -114,7 +114,7 @@ pub fn BitBlt(
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let dst = window.bitmap_mut(&mut *machine.host);
+            let dst = window.bitmap_mut();
 
             // Clip to src/dst regions.
             if x >= dst.width
@@ -347,7 +347,7 @@ pub fn SetDIBitsToDevice(
         },
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            (window.bitmap_mut(&mut *machine.host), true)
+            (window.bitmap_mut(), true)
         }
         _ => todo!(),
     };

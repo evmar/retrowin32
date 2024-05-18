@@ -44,24 +44,17 @@ ShowWindow() {
 */
 
 pub struct WindowPixels {
-    pub surface: Box<dyn host::Surface>,
     pub bitmap: BitmapRGBA32,
 }
 impl WindowPixels {
-    pub fn new(host: &mut dyn Host, width: u32, height: u32) -> Self {
+    pub fn new(width: u32, height: u32) -> Self {
         let size = (width * height) as usize;
-        let surface = host.create_surface(&SurfaceOptions {
-            width,
-            height,
-            primary: true,
-        });
         let raw = {
             let mut p = Vec::with_capacity(size);
             p.resize(size, [0u8; 4]);
             p.into_boxed_slice()
         };
         Self {
-            surface,
             bitmap: BitmapRGBA32 {
                 width,
                 height,
@@ -81,6 +74,7 @@ pub struct Window {
     pub hwnd: HWND,
     pub hdc: HDC,
     pub host: Box<dyn host::Window>,
+    pub surface: Box<dyn host::Surface>,
     pub width: u32,
     pub height: u32,
     pub wndclass: Rc<WndClass>,
@@ -90,34 +84,38 @@ pub struct Window {
 }
 
 impl Window {
-    fn ensure_pixels(&mut self, host: &mut dyn Host) -> &mut WindowPixels {
+    fn ensure_pixels(&mut self) -> &mut WindowPixels {
         match self.pixels {
             Some(ref mut px) => px,
             None => {
-                self.pixels = Some(WindowPixels::new(host, self.width, self.height));
+                self.pixels = Some(WindowPixels::new(self.width, self.height));
                 self.pixels.as_mut().unwrap()
             }
         }
     }
 
-    pub fn bitmap_mut<'a>(&mut self, host: &mut dyn Host) -> &mut BitmapRGBA32 {
-        &mut self.ensure_pixels(host).bitmap
+    pub fn bitmap_mut<'a>(&mut self) -> &mut BitmapRGBA32 {
+        &mut self.ensure_pixels().bitmap
     }
 
     pub fn flush_pixels(&mut self, mem: Mem) {
         if let Some(pixels) = &mut self.pixels {
-            pixels
-                .surface
+            self.surface
                 .write_pixels(&pixels.bitmap.pixels.as_slice(mem));
-            pixels.surface.show();
+            self.surface.show();
         }
     }
 
-    pub fn set_client_size(&mut self, width: u32, height: u32) {
+    pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
         self.width = width;
         self.height = height;
         self.host.set_size(width, height);
-        self.pixels = None;
+        self.surface = host.create_surface(&host::SurfaceOptions {
+            width,
+            height,
+            primary: true,
+        });
+        self.pixels = None; // recreate lazily
     }
 }
 
@@ -363,12 +361,19 @@ pub async fn CreateWindowExW(
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(style, menu, width, height);
     host_win.set_size(width, height);
+    let surface = machine.host.create_surface(&SurfaceOptions {
+        width,
+        height,
+        primary: true,
+    });
+
     let window = Window {
         hwnd,
         hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(
             crate::winapi::gdi32::DCTarget::Window(hwnd),
         )),
         host: host_win,
+        surface,
         width,
         height,
         wndclass,
@@ -642,7 +647,7 @@ pub fn MoveWindow(
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(window.style, menu, nWidth, nHeight);
-    window.set_client_size(width, height);
+    window.set_client_size(&mut *machine.host, width, height);
     true // success
 }
 
