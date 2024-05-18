@@ -6,13 +6,15 @@ use anyhow::bail;
 use wasm_bindgen::prelude::*;
 
 struct WebSurface {
+    js_host: JsHost,
+    hwnd: u32,
     canvas: web_sys::OffscreenCanvas,
     width: u32,
     ctx: web_sys::OffscreenCanvasRenderingContext2d,
 }
 
 impl WebSurface {
-    pub fn new(opts: &win32::SurfaceOptions) -> Self {
+    pub fn new(js_host: JsHost, hwnd: u32, opts: &win32::SurfaceOptions) -> Self {
         let canvas = web_sys::OffscreenCanvas::new(opts.width, opts.height).unwrap();
         let ctx = canvas
             .get_context("2d")
@@ -24,6 +26,8 @@ impl WebSurface {
         ctx.fill_rect(0.0, 0.0, opts.width as f64, opts.height as f64);
         ctx.fill();
         Self {
+            js_host,
+            hwnd,
             canvas,
             width: opts.width,
             ctx,
@@ -42,10 +46,8 @@ impl win32::Surface for WebSurface {
     }
 
     fn show(&mut self) {
-        // self.screen
-        //     .draw_image_with_html_canvas_element(&self.canvas, 0.0, 0.0)
-        //     .unwrap();
-        //todo!()
+        let bitmap = self.canvas.transfer_to_image_bitmap().unwrap();
+        self.js_host.window_show(self.hwnd, bitmap);
     }
 
     fn bit_blt(
@@ -176,6 +178,7 @@ export interface JsHost {
     window_create(hwnd: number);
     window_set_title(hwnd: number, title: string);
     window_set_size(hwnd: number, w: number, h: number);
+    window_show(hwnd: number, pixels: ImageBitmap);
 }
 "#;
 
@@ -205,6 +208,8 @@ extern "C" {
     fn window_set_title(this: &JsHost, hwnd: u32, title: &str);
     #[wasm_bindgen(method)]
     fn window_set_size(this: &JsHost, hwnd: u32, w: u32, h: u32);
+    #[wasm_bindgen(method)]
+    fn window_show(this: &JsHost, hwnd: u32, pixels: web_sys::ImageBitmap);
 
     // #[wasm_bindgen(method)]
     // fn screen(this: &Host) -> web_sys::CanvasRenderingContext2d;
@@ -276,7 +281,15 @@ impl win32::Host for Host {
         })
     }
 
-    fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        Box::new(WebSurface::new(opts))
+    fn create_surface(
+        &mut self,
+        hwnd: u32,
+        opts: &win32::SurfaceOptions,
+    ) -> Box<dyn win32::Surface> {
+        Box::new(WebSurface::new(
+            self.js_host.clone().unchecked_into::<JsHost>(),
+            hwnd,
+            opts,
+        ))
     }
 }

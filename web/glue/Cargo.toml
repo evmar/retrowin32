@@ -24,6 +24,7 @@ version = "0.2.83"
 [dependencies.web-sys]
 version = "0.3.69"
 features = [
+  "ImageBitmap",
   "ImageData",
   "Event",
   "MouseEvent",

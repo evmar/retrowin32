@@ -24,12 +24,12 @@ pub struct Surface {
 }
 
 impl Surface {
-    fn new(machine: &mut Machine, opts: &SurfaceOptions) -> Self {
+    fn new(machine: &mut Machine, hwnd: HWND, opts: &SurfaceOptions) -> Self {
         if opts.width == 0 || opts.height == 0 {
             panic!("cannot create 0-sized surface");
         }
         Surface {
-            host: machine.host.create_surface(&opts),
+            host: machine.host.create_surface(hwnd.to_raw(), &opts),
             width: opts.width,
             height: opts.height,
             palette: 0,
@@ -38,7 +38,7 @@ impl Surface {
         }
     }
 
-    pub fn create(machine: &mut Machine, desc: &DDSURFACEDESC2) -> Vec<Surface> {
+    pub fn create(machine: &mut Machine, hwnd: HWND, desc: &DDSURFACEDESC2) -> Vec<Surface> {
         assert!(std::mem::size_of::<DDSURFACEDESC2>() == desc.dwSize as usize);
 
         let mut surfaces = Vec::new();
@@ -65,12 +65,12 @@ impl Surface {
             }
         }
 
-        surfaces.push(Surface::new(machine, &opts));
+        surfaces.push(Surface::new(machine, hwnd, &opts));
 
         if let Some(count) = desc.back_buffer_count() {
             opts.primary = false;
             for _ in 0..count {
-                surfaces.push(Surface::new(machine, &opts));
+                surfaces.push(Surface::new(machine, hwnd, &opts));
             }
         }
 
