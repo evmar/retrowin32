@@ -25,7 +25,7 @@ export function messageProxy(target: Worker | Window): object {
 
 /** Sets the onmessage handler to receive postMessage calls from a proxy and forward them to the handler. */
 export function setOnMessage(source: Worker | Window, handler: object) {
-  source.onmessage = function (e: MessageEvent<[string, {}[]]>) {
+  source.onmessage = function(e: MessageEvent<[string, {}[]]>) {
     const [fn, params] = e.data;
     (handler as any)[fn](...params);
   };

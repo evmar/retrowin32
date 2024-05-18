@@ -33,7 +33,7 @@ export interface Params {
 export async function main() {
   // It appears if we register onmessage before any 'await' we will receive any initial
   // messages sent from the host.  StackOverflow etc claim this but I can't figure out where
-  // the spec it guarantees this...
+  // the spec guarantees this...
   const params = await new Promise<Params>((res) => {
     self.onmessage = (e) => {
       self.onmessage = (e) => {
@@ -56,7 +56,6 @@ export async function main() {
   const emu = glue.new_emulator(workerHost, params.exe, params.exe, files, channel.port1);
   emu.start = () => {
     channel.port2.onmessage = () => {
-      console.log('msg');
       const state = emu.run(100_000);
       // XXX adjust dynamically
       // XXX check return code

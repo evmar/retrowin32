@@ -201,7 +201,7 @@ impl win32::Host for Host {
     fn block(&self, wait: Option<u32>) -> bool {
         if let Some(t) = wait {
             // Enqueue a timer to wake up caller.
-            //todo!();
+            todo!();
             //Host::ensure_timer(self, t);
         }
         false

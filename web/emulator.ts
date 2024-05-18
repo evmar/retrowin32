@@ -43,7 +43,7 @@ class Window {
     let button = {
       0: 'Left',
       1: 'Middle',
-      2: 'Right'
+      2: 'Right',
     }[ev.button] as glue.MouseButton | undefined;
     const msg: glue.MouseMessage = {
       down: ev.type == 'mousedown',
@@ -52,7 +52,7 @@ class Window {
       y: ev.offsetY,
     };
     this.postWin32Message({ Mouse: msg });
-  }
+  };
 }
 
 /** Emulator host, providing the emulation worker<=>web API. */
