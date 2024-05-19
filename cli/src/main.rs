@@ -4,7 +4,7 @@ mod logging;
 use anyhow::anyhow;
 use std::{
     cell::RefCell,
-    io::{Read, Seek, Write},
+    io::{Seek, Write},
     path::Path,
     rc::Rc,
 };
@@ -40,6 +40,7 @@ fn dump_asm(machine: &win32::Machine, count: usize) {
 struct File {
     f: std::fs::File,
 }
+
 impl File {
     fn open(path: &Path) -> Self {
         let f = match std::fs::File::open(path) {
@@ -52,6 +53,7 @@ impl File {
         File { f }
     }
 }
+
 impl win32::File for File {
     fn info(&self) -> u32 {
         let meta = self.f.metadata().unwrap();
@@ -62,11 +64,11 @@ impl win32::File for File {
         self.f.seek(std::io::SeekFrom::Start(ofs as u64)).unwrap();
         true
     }
+}
 
-    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
-        let n = self.f.read(buf).unwrap();
-        *len = n as u32;
-        true
+impl std::io::Read for File {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        self.f.read(buf)
     }
 }
 

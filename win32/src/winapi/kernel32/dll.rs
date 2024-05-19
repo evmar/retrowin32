@@ -212,12 +212,11 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     let mut contents = Vec::new();
     let mut buf: [u8; 16 << 10] = [0; 16 << 10];
     loop {
-        let mut len = 0u32;
-        assert!(file.read(&mut buf, &mut len));
+        let len = file.read(&mut buf).unwrap();
         if len == 0 {
             break;
         }
-        contents.extend_from_slice(&buf[..len as usize]);
+        contents.extend_from_slice(&buf[..len]);
     }
     // TODO: close file.
     if contents.len() == 0 {
