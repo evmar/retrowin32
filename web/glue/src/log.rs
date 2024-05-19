@@ -4,6 +4,12 @@
 
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen(typescript_custom_section)]
+const JSLOGGER_TS: &'static str = r#"
+export interface JsLogger {
+  log(level: number, msg: string): void;
+}"#;
+
 #[wasm_bindgen]
 extern "C" {
     pub type JsLogger;

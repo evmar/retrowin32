@@ -85,6 +85,13 @@ impl win32::Surface for WebSurface {
     }
 }
 
+#[wasm_bindgen(typescript_custom_section)]
+const JSWINDOW_TS: &'static str = r#"
+export interface JsWindow {
+  title: string;
+  set_size(width: number, height: number): void;
+}"#;
+
 #[wasm_bindgen]
 extern "C" {
     pub type JsWindow;
@@ -107,6 +114,13 @@ impl win32::Window for JsWindow {
         log::warn!("todo: fullscreen");
     }
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const JSFILE_TS: &'static str = r#"
+export interface JsFile {
+  seek(ofs: number): boolean;
+  read(buf: Uint8Array): number;
+}"#;
 
 #[wasm_bindgen]
 extern "C" {
@@ -170,6 +184,20 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
     log::info!("msg: {:?}", detail);
     Ok(win32::Message { hwnd, detail })
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const JSHOST_TS: &'static str = r#"
+export interface JsHost {
+  exit(code: number): void;
+  
+  ensure_timer(when: number): void;
+  get_event(): Event | undefined;
+  
+  open(path: string): JsFile;
+  write(buf: Uint8Array): number;
+  
+  create_window(hwnd: number): JsWindow;
+}"#;
 
 #[wasm_bindgen]
 extern "C" {
