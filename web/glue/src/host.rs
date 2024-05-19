@@ -145,9 +145,6 @@ extern "C" {
     // #[wasm_bindgen(method)]
     // fn ensure_timer(this: &Host, when: u32);
 
-    // #[wasm_bindgen(method)]
-    // fn get_event(this: &Host) -> web_sys::Event;
-
     #[wasm_bindgen(method)]
     fn write(this: &JsHost, buf: &[u8]) -> usize;
 
