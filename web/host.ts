@@ -1,6 +1,6 @@
 import * as emulator from './emulator';
 import { EmulatorHost } from './emulator';
-import * as glue from './glue';
+import * as glue from './glue/pkg/glue';
 
 async function fetchBytes(path: string): Promise<Uint8Array> {
   const resp = await fetch(path);
