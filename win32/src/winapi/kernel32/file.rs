@@ -215,7 +215,11 @@ pub fn ReadFile(
 ) -> bool {
     let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
     // TODO: SetLastError
-    file.read(lpBuffer.unwrap(), lpNumberOfBytesRead.unwrap())
+    let n = file.read(lpBuffer.unwrap()).unwrap();
+    if let Some(bytes) = lpNumberOfBytesRead {
+        *bytes = n as u32;
+    }
+    true
 }
 
 #[win32_derive::dllexport]

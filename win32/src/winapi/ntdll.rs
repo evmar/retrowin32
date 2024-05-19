@@ -40,13 +40,10 @@ pub fn NtReadFile(
         todo!();
     }
 
-    let mut len = 0u32;
-    if !file.read(buf, &mut len) {
-        todo!();
-    }
+    let len = file.read(buf).unwrap();
     *status_block = IO_STATUS_BLOCK {
         Status: STATUS_SUCCESS,
-        Information: len,
+        Information: len as u32,
     };
     STATUS_SUCCESS
 }

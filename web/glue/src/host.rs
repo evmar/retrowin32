@@ -141,11 +141,12 @@ impl win32::File for JsFile {
     fn seek(&mut self, ofs: u32) -> bool {
         JsFile::seek(self, ofs)
     }
+}
 
-    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
+impl std::io::Read for JsFile {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let n = JsFile::read(self, buf);
-        *len = n;
-        true
+        Ok(n as usize)
     }
 }
 

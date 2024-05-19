@@ -40,11 +40,10 @@ pub trait Window {
     fn fullscreen(&mut self);
 }
 
-pub trait File {
+pub trait File: std::io::Read {
     /// Just file size for now, but maybe we'll need more(?)
     fn info(&self) -> u32;
     fn seek(&mut self, ofs: u32) -> bool;
-    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool;
 }
 
 #[derive(Debug, Clone, Copy)]
