@@ -1,7 +1,7 @@
 # Comparison with similar systems
 
 Executing a Windows .exe broadly [requires two
-components}(https://neugierig.org/software/blog/2023/01/emulating-win32.html):
+components](https://neugierig.org/software/blog/2023/01/emulating-win32.html):
 executing x86 instructions and interpreting the Windows calls.
 
 To run it natively requires an x86 processor and the Windows OS:
