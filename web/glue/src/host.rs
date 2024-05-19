@@ -112,13 +112,14 @@ impl win32::File for File {
         self.ofs = ofs as usize;
         true
     }
+}
 
-    fn read(&mut self, buf: &mut [u8], len: &mut u32) -> bool {
+impl std::io::Read for File {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         let n = std::cmp::min(buf.len(), self.content.len() - self.ofs);
         buf[..n].copy_from_slice(&self.content[self.ofs..][..n]);
         self.ofs += n;
-        *len = n as u32;
-        true
+        Ok(n)
     }
 }
 
