@@ -10,13 +10,14 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
 type FileSet = Map<string, Uint8Array>;
 
 export class FileHost implements glue.FileHost {
-  constructor(readonly files: FileSet) { }
+  constructor(readonly files: FileSet) {}
 
   static async fetch(files: string[], dir: string = ''): Promise<FileHost> {
     const fileset = new Map(
       await Promise.all(files.map(async f => {
         return [f, await fetchBytes(dir + f)] as const;
-      })));
+      })),
+    );
     return new FileHost(fileset);
   }
 
