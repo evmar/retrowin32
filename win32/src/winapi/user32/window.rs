@@ -110,11 +110,14 @@ impl Window {
         self.width = width;
         self.height = height;
         self.host.set_size(width, height);
-        self.surface = host.create_surface(&host::SurfaceOptions {
-            width,
-            height,
-            primary: true,
-        });
+        self.surface = host.create_surface(
+            self.hwnd.to_raw(),
+            &host::SurfaceOptions {
+                width,
+                height,
+                primary: true,
+            },
+        );
         self.pixels = None; // recreate lazily
     }
 }
@@ -361,11 +364,14 @@ pub async fn CreateWindowExW(
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(style, menu, width, height);
     host_win.set_size(width, height);
-    let surface = machine.host.create_surface(&SurfaceOptions {
-        width,
-        height,
-        primary: true,
-    });
+    let surface = machine.host.create_surface(
+        hwnd.to_raw(),
+        &SurfaceOptions {
+            width,
+            height,
+            primary: true,
+        },
+    );
 
     let window = Window {
         hwnd,

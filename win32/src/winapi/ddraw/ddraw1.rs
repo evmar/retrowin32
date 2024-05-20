@@ -53,7 +53,11 @@ pub(super) mod IDirectDraw {
         lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> u32 {
-        let surfaces = ddraw::Surface::create(machine, &DDSURFACEDESC2::from_desc(desc.unwrap()));
+        let surfaces = ddraw::Surface::create(
+            machine,
+            machine.state.ddraw.hwnd,
+            &DDSURFACEDESC2::from_desc(desc.unwrap()),
+        );
         if surfaces.len() > 2 {
             todo!()
         }
