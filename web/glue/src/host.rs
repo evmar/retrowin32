@@ -97,30 +97,55 @@ impl win32::Window for Window {
     }
 }
 
-pub struct File {
-    content: Box<[u8]>,
-    ofs: usize,
+#[wasm_bindgen(typescript_custom_section)]
+const JSFILE_TS: &'static str = r#"
+export interface JsFile {
+  seek(ofs: number): boolean;
+  read(buf: Uint8Array): number;
+}"#;
+
+#[wasm_bindgen]
+extern "C" {
+    pub type JsFile;
+    #[wasm_bindgen(method)]
+    fn info(this: &JsFile) -> u32;
+    #[wasm_bindgen(method)]
+    fn seek(this: &JsFile, ofs: u32) -> bool;
+    #[wasm_bindgen(method)]
+    fn read(this: &JsFile, buf: &mut [u8]) -> u32;
 }
 
-impl win32::File for File {
+impl win32::File for JsFile {
     fn info(&self) -> u32 {
-        log::info!("len {}", self.content.len());
-        self.content.len() as u32
+        JsFile::info(self)
     }
 
     fn seek(&mut self, ofs: u32) -> bool {
-        self.ofs = ofs as usize;
-        true
+        JsFile::seek(self, ofs)
     }
 }
 
-impl std::io::Read for File {
+impl std::io::Read for JsFile {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let n = std::cmp::min(buf.len(), self.content.len() - self.ofs);
-        buf[..n].copy_from_slice(&self.content[self.ofs..][..n]);
-        self.ofs += n;
-        Ok(n)
+        let n = JsFile::read(self, buf);
+        Ok(n as usize)
     }
+}
+
+#[wasm_bindgen(typescript_custom_section)]
+const FILEHOST_TS: &'static str = r#"
+interface FileHost {
+    open(path: string): JsFile;
+}
+"#;
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "FileHost")]
+    pub type FileHost;
+
+    #[wasm_bindgen(method)]
+    fn open(this: &FileHost, path: &str) -> JsFile;
 }
 
 #[wasm_bindgen(typescript_custom_section)]
@@ -159,24 +184,28 @@ extern "C" {
     fn window_show(this: &JsHost, hwnd: u32, pixels: web_sys::ImageBitmap);
 }
 
+/// State shared between Host and Emulator.
+#[derive(Default)]
+pub struct State {
+    pub messages: VecDeque<win32::Message>,
+}
+
 pub struct Host {
     js_host: JsHost,
-    files: Vec<(String, Box<[u8]>)>,
-    // XXX Rc business is a hack because of Host/glue split
-    pub messages: Rc<RefCell<VecDeque<win32::Message>>>,
+    file_host: FileHost,
+    pub state: Rc<RefCell<State>>,
 }
 
 impl Host {
-    pub fn new(js_host: JsHost, files: Vec<(String, Box<[u8]>)>) -> Self {
+    pub fn new(js_host: JsHost, file_host: FileHost) -> Self {
+        let state = State {
+            messages: Default::default(),
+        };
         Host {
             js_host,
-            files,
-            messages: Default::default(),
+            file_host,
+            state: Rc::new(RefCell::new(state)),
         }
-    }
-
-    pub fn open(&self, path: &str) -> Option<&[u8]> {
-        Some(&*self.files.iter().find(|f| f.0 == path)?.1)
     }
 }
 
@@ -193,7 +222,7 @@ impl win32::Host for Host {
     }
 
     fn get_message(&self) -> Option<win32::Message> {
-        self.messages.borrow_mut().pop_front()
+        self.state.borrow_mut().messages.pop_front()
     }
 
     fn block(&self, wait: Option<u32>) -> bool {
@@ -206,15 +235,7 @@ impl win32::Host for Host {
     }
 
     fn open(&self, path: &str) -> Box<dyn win32::File> {
-        let content = match Host::open(self, path) {
-            // XXX copies
-            Some(content) => content.to_vec().into_boxed_slice(),
-            None => {
-                log::error!("unknown file {path}, returning empty file");
-                Box::new([])
-            }
-        };
-        Box::new(File { content, ofs: 0 })
+        Box::new(self.file_host.open(path))
     }
 
     fn write(&self, buf: &[u8]) -> usize {

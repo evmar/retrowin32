@@ -2,10 +2,10 @@ mod debugger;
 mod host;
 mod log;
 
-use crate::host::JsHost;
-use host::Host;
-use std::{cell::RefCell, collections::VecDeque, rc::Rc};
+use crate::host::{FileHost, Host, JsHost, State};
+use std::{cell::RefCell, rc::Rc};
 use wasm_bindgen::prelude::*;
+use win32::Host as _;
 
 pub type JsResult<T> = Result<T, JsError>;
 fn err_from_anyhow(err: anyhow::Error) -> JsError {
@@ -15,8 +15,7 @@ fn err_from_anyhow(err: anyhow::Error) -> JsError {
 #[wasm_bindgen]
 pub struct Emulator {
     machine: win32::Machine,
-    // XXX Rc business is a hack because of Host/glue split
-    messages: Rc<RefCell<VecDeque<win32::Message>>>,
+    state: Rc<RefCell<State>>,
     waker: web_sys::MessagePort,
 }
 
@@ -32,12 +31,12 @@ pub enum CPUState {
 impl Emulator {
     fn new(
         machine: win32::Machine,
-        messages: Rc<RefCell<VecDeque<win32::Message>>>,
+        state: Rc<RefCell<State>>,
         waker: web_sys::MessagePort,
     ) -> Self {
         Self {
             machine,
-            messages,
+            state,
             waker,
         }
     }
@@ -83,9 +82,12 @@ impl Emulator {
     }
 
     pub fn post_win32_message(&mut self, msg: win32::Message) {
-        ::log::info!("posted {:?}", msg);
-        self.messages.borrow_mut().push_back(msg);
-        ::log::info!("msgs {}", self.messages.borrow_mut().len());
+        {
+            let mut state = self.state.borrow_mut();
+            ::log::info!("posted {:?}", msg);
+            state.messages.push_back(msg);
+            ::log::info!("msgs {}", state.messages.len());
+        }
         self.unblock();
         self.waker.post_message(&JsValue::null()).unwrap();
     }
@@ -153,30 +155,23 @@ pub fn set_tracing_scheme(scheme: &str) {
 #[wasm_bindgen]
 pub fn new_emulator(
     js_host: JsHost,
+    file_host: FileHost,
     cmdline: String,
     filename: &str,
-    js_files: js_sys::Array,
     waker: web_sys::MessagePort,
 ) -> JsResult<Emulator> {
     win32::trace::set_scheme("*");
     log::init(js_host.clone().into());
 
-    let mut files = Vec::new();
-    for file in js_files.iter() {
-        let pair = file.dyn_into::<js_sys::Array>().unwrap();
-        let name = pair.get(0).as_string().unwrap();
-        let content = pair.get(1).dyn_into::<js_sys::Uint8Array>().unwrap();
-        files.push((name, content.to_vec().into_boxed_slice()));
-    }
-
-    let host = Box::new(Host::new(js_host, files));
-    let messages = host.messages.clone();
-    let buf = host.open(filename).unwrap().to_vec(); // XXX copy
+    let host = Box::new(Host::new(js_host, file_host));
+    let state = host.state.clone();
+    let mut buf = Vec::new();
+    host.open(filename).read_to_end(&mut buf).unwrap();
     let mut machine = win32::Machine::new(host, cmdline.clone());
 
     machine
         .load_exe(&buf, filename, false)
         .map_err(err_from_anyhow)?;
 
-    Ok(Emulator::new(machine, messages, waker))
+    Ok(Emulator::new(machine, state, waker))
 }

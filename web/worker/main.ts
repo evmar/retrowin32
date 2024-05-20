@@ -1,23 +1,6 @@
 import * as glue from '../glue/pkg/glue';
+import { FileHost } from './files';
 import { messageProxy, setOnMessage } from './proxy';
-
-async function fetchBytes(path: string): Promise<Uint8Array> {
-  const resp = await fetch(path);
-  if (!resp.ok) throw new Error(`failed to load ${path}`);
-  return new Uint8Array(await resp.arrayBuffer());
-}
-
-/** A set of (pre)loaded files; a temporary hack until the emulator can load files itself. */
-export type FileSet = Map<string, Uint8Array>;
-
-export async function fetchFileSet(files: string[], dir: string = ''): Promise<FileSet> {
-  const fileset: FileSet = new Map();
-  for (const file of files) {
-    const path = dir + file;
-    fileset.set(file, await fetchBytes(path));
-  }
-  return fileset;
-}
 
 export interface Params {
   /** URL directory that all other paths are resolved relative to. */
@@ -44,16 +27,14 @@ export async function main() {
     };
   });
 
-  const files: Array<[string, Uint8Array]> = await Promise.all([params.exe, ...params.files].map(async f => {
-    return [f, await fetchBytes(params.dir + f)];
-  }));
+  const fileHost = await FileHost.fetch([params.exe, ...params.files], params.dir);
   await glue.default('wasm.wasm');
 
   const channel = new MessageChannel();
 
   self.postMessage('ready');
   const workerHost = messageProxy(self) as glue.JsHost;
-  const emu = glue.new_emulator(workerHost, params.exe, params.exe, files, channel.port1);
+  const emu = glue.new_emulator(workerHost, fileHost, params.exe, params.exe, channel.port1);
   emu.start = () => {
     channel.port2.onmessage = () => {
       const state = emu.run(100_000);
