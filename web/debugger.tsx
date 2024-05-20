@@ -10,11 +10,11 @@ import { RegistersComponent } from './registers';
 import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
-import { EmulatorComponent, loadEmulator } from './web';
+import { EmulatorComponent } from './web';
 
 namespace Debugger {
   export interface Props {
-    emulator: Emulator;
+    worker: Worker;
   }
   export interface State {
     stdout?: string;
@@ -27,11 +27,12 @@ namespace Debugger {
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> implements EmulatorHost {
+  emulator: Emulator;
   state: Debugger.State = { error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
   constructor(props: Debugger.Props) {
     super(props);
-    this.props.emulator.emuHost = this;
+    this.emulator = new Emulator(this.props.worker, this);
   }
 
   private print(text: string) {
@@ -65,7 +66,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
   step() {
     try {
-      this.props.emulator.step();
+      this.emulator.step();
     } finally {
       this.forceUpdate();
     }
@@ -78,18 +79,18 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
         this.forceUpdate();
       }, 500),
     });
-    this.props.emulator.start();
+    this.emulator.start();
   }
 
   stop() {
     if (!this.state.running) return;
-    this.props.emulator.stop();
+    this.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: undefined });
   }
 
   runTo(addr: number) {
-    this.props.emulator.addBreak({ addr, oneShot: true });
+    this.emulator.addBreak({ addr, oneShot: true });
     this.start();
   }
 
@@ -102,16 +103,16 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
     let code;
-    const eip = this.props.emulator.emu.eip;
-    if (eip >= 0xf1a7_0000) {
-      const label = eip == 0xffff_fff0 ? 'async' : this.props.emulator.labels.get(eip) ?? 'shim';
+    const regs = this.emulator.regs();
+    if (regs.eip >= 0xf1a7_0000) {
+      const label = regs.eip == 0xffff_fff0 ? 'async' : this.emulator.labels.get(regs.eip) ?? 'shim';
       code = <section class='code'>(in {label})</section>;
     } else {
-      instrs = this.props.emulator.disassemble(eip);
+      instrs = this.emulator.disassemble(regs.eip);
       code = (
         <Code
           instrs={instrs}
-          labels={this.props.emulator.labels}
+          labels={this.emulator.labels}
           highlightMemory={this.highlightMemory}
           showMemory={this.showMemory}
           runTo={(addr: number) => this.runTo(addr)}
@@ -120,7 +121,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     }
     return (
       <>
-        <EmulatorComponent emulator={this.props.emulator} />
+        <EmulatorComponent emulator={this.emulator} />
         <section class='panel' style={{ display: 'flex', alignItems: 'baseline' }}>
           <button
             onClick={() => this.state.running ? this.stop() : this.start()}
@@ -141,7 +142,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           </button>
           &nbsp;
           <div>
-            {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
+            {this.emulator.emu.instr_count} instrs executed | {Math.floor(this.emulator.instrPerMs)}/ms
           </div>
         </section>
         <div style={{ display: 'flex', margin: '1ex' }}>
@@ -150,7 +151,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           <RegistersComponent
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            regs={this.props.emulator.emu.regs()}
+            regs={this.emulator.emu.regs()}
           />
         </div>
         <div style={{ display: 'flex' }}>
@@ -168,40 +169,40 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
               memory: (
                 <Memory
-                  mem={this.props.emulator.emu.memory()}
+                  mem={this.emulator.emu.memory()}
                   base={this.state.memBase}
                   highlight={this.state.memHighlight}
                   jumpTo={(addr) => this.setState({ memBase: addr })}
                 />
               ),
-              mappings: <Mappings mappings={this.props.emulator.mappings()} highlight={this.state.memHighlight} />,
+              mappings: <Mappings mappings={this.emulator.mappings()} highlight={this.state.memHighlight} />,
 
               imports: (
                 <div>
                   <code>
-                    {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
+                    {this.emulator.imports.map(imp => <div>{imp}</div>)}
                   </code>
                 </div>
               ),
 
               breakpoints: (
                 <BreakpointsComponent
-                  breakpoints={Array.from(this.props.emulator.breakpoints.values())}
-                  labels={this.props.emulator.labels}
-                  highlight={eip}
+                  breakpoints={Array.from(this.emulator.breakpoints.values())}
+                  labels={this.emulator.labels}
+                  highlight={regs.eip}
                   highlightMemory={this.highlightMemory}
                   showMemory={this.showMemory}
                   toggle={(addr) => {
-                    this.props.emulator.toggleBreak(addr);
+                    this.emulator.toggleBreak(addr);
                     this.forceUpdate();
                   }}
                   add={(text) => {
-                    const ret = this.props.emulator.addBreakByName(text);
+                    const ret = this.emulator.addBreakByName(text);
                     this.forceUpdate();
                     return ret;
                   }}
                   remove={(addr) => {
-                    this.props.emulator.delBreak(addr);
+                    this.emulator.delBreak(addr);
                     this.forceUpdate();
                   }}
                 />
@@ -209,9 +210,9 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
               snapshots: (
                 <SnapshotsComponent
-                  take={() => this.props.emulator.emu.snapshot()}
+                  take={() => this.emulator.emu.snapshot()}
                   load={(snap) => {
-                    this.props.emulator.emu.load_snapshot(snap);
+                    this.emulator.emu.load_snapshot(snap);
                     this.forceUpdate();
                   }}
                 />
@@ -223,8 +224,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           <Stack
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            labels={this.props.emulator.labels}
-            emu={this.props.emulator.emu}
+            labels={this.emulator.labels}
+            emu={this.emulator.emu}
           />
         </div>
       </>
@@ -233,7 +234,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 }
 
 export async function main() {
-  const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme('*');
-  preact.render(<Debugger emulator={emulator} />, document.body);
+  const worker = await Emulator.initWorker();
+  //emulator.emu.set_tracing_scheme('*');
+  preact.render(<Debugger worker={worker} />, document.body);
 }

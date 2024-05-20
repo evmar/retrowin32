@@ -1,3 +1,4 @@
+import { Labels } from './labels';
 import * as glue from './worker/glue';
 import type { Params } from './worker/main';
 import { messageProxy, setOnMessage } from './worker/proxy';
@@ -57,8 +58,7 @@ class Window {
 
 /** Emulator host, providing the emulation worker<=>web API. */
 export class Emulator implements glue.JsHost, glue.HostLogger {
-  private events: Event[] = [];
-  private timer?: number;
+  labels: Labels = new Labels(new Map()); // XXX 
   private worker: glue.Emulator;
   windows = new Map<number, Window>();
   private decoder = new TextDecoder();
@@ -160,5 +160,13 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
 
   start() {
     this.worker.start();
+  }
+
+  step() {
+    this.worker.run(1);
+  }
+
+  regs() {
+    return this.worker.regs();
   }
 }

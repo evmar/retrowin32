@@ -54,16 +54,6 @@ impl Emulator {
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn esp(&self) -> u32 {
-        self.machine.emu.x86.cpu().regs.get32(x86::Register::ESP)
-    }
-
-    #[wasm_bindgen(getter)]
-    pub fn eip(&self) -> u32 {
-        self.machine.emu.x86.cpu().regs.eip
-    }
-
     pub fn regs(&self) -> debugger::Registers {
         debugger::Registers::from_x86(&self.machine.emu.x86.cpu())
     }
@@ -97,6 +87,7 @@ impl Emulator {
 
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
+    #[wasm_bindgen]
     pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
         if count == 1 {
             self.machine.single_step_next_block();
