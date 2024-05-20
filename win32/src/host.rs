@@ -90,5 +90,5 @@ pub trait Host {
     fn write(&self, buf: &[u8]) -> usize;
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
-    fn create_surface(&mut self, opts: &SurfaceOptions) -> Box<dyn Surface>;
+    fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
 }

@@ -92,7 +92,7 @@ pub(super) mod IDirectDraw7 {
         lpDirectDrawSurface7: Option<&mut u32>,
         unused: u32,
     ) -> u32 {
-        let surfaces = ddraw::Surface::create(machine, desc.unwrap());
+        let surfaces = ddraw::Surface::create(machine, machine.state.ddraw.hwnd, desc.unwrap());
         if surfaces.len() > 2 {
             todo!()
         }

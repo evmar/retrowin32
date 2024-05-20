@@ -133,7 +133,11 @@ impl win32::Host for EnvRef {
         gui.create_window(hwnd)
     }
 
-    fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+    fn create_surface(
+        &mut self,
+        _hwnd: u32,
+        opts: &win32::SurfaceOptions,
+    ) -> Box<dyn win32::Surface> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.create_surface(opts)

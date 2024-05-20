@@ -4,6 +4,7 @@ use anyhow::bail;
 use wasm_bindgen::prelude::*;
 
 struct WebSurface {
+    _hwnd: u32,
     canvas: web_sys::HtmlCanvasElement,
     width: u32,
     ctx: web_sys::CanvasRenderingContext2d,
@@ -11,7 +12,11 @@ struct WebSurface {
 }
 
 impl WebSurface {
-    pub fn new(opts: &win32::SurfaceOptions, screen: web_sys::CanvasRenderingContext2d) -> Self {
+    pub fn new(
+        hwnd: u32,
+        opts: &win32::SurfaceOptions,
+        screen: web_sys::CanvasRenderingContext2d,
+    ) -> Self {
         let canvas = web_sys::window()
             .unwrap()
             .document()
@@ -31,6 +36,7 @@ impl WebSurface {
         ctx.fill_rect(0.0, 0.0, opts.width as f64, opts.height as f64);
         ctx.fill();
         Self {
+            _hwnd: hwnd,
             canvas,
             width: opts.width,
             ctx,
@@ -269,7 +275,11 @@ impl win32::Host for JsHost {
         Box::new(window)
     }
 
-    fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        Box::new(WebSurface::new(opts, JsHost::screen(self)))
+    fn create_surface(
+        &mut self,
+        hwnd: u32,
+        opts: &win32::SurfaceOptions,
+    ) -> Box<dyn win32::Surface> {
+        Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
     }
 }
