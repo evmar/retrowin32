@@ -235,6 +235,6 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
 export async function main() {
   const worker = await Emulator.initWorker();
-  //emulator.emu.set_tracing_scheme('*');
+  // emulator.emu.set_tracing_scheme('*');
   preact.render(<Debugger worker={worker} />, document.body);
 }

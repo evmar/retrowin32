@@ -58,7 +58,7 @@ class Window {
 
 /** Emulator host, providing the emulation worker<=>web API. */
 export class Emulator implements glue.JsHost, glue.HostLogger {
-  labels: Labels = new Labels(new Map()); // XXX 
+  labels: Labels = new Labels(new Map()); // XXX
   private worker: glue.Emulator;
   windows = new Map<number, Window>();
   private decoder = new TextDecoder();
