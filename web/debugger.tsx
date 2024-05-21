@@ -157,7 +157,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           <Tabs
             style={{ width: '80ex' }}
             tabs={{
-              output: (
+              output: () => (
                 <div>
                   <code>
                     {this.state.stdout}
@@ -166,7 +166,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                 </div>
               ),
 
-              memory: (
+              memory: () => (
                 <Memory
                   mem={this.props.emulator.emu.memory()}
                   base={this.state.memBase}
@@ -174,9 +174,14 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                   jumpTo={(addr) => this.setState({ memBase: addr })}
                 />
               ),
-              mappings: <Mappings mappings={this.props.emulator.mappings()} highlight={this.state.memHighlight} />,
+              mappings: () => (
+                <Mappings
+                  mappings={this.props.emulator.mappings()}
+                  highlight={this.state.memHighlight}
+                />
+              ),
 
-              imports: (
+              imports: () => (
                 <div>
                   <code>
                     {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
@@ -184,7 +189,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                 </div>
               ),
 
-              breakpoints: (
+              breakpoints: () => (
                 <BreakpointsComponent
                   breakpoints={Array.from(this.props.emulator.breakpoints.values())}
                   labels={this.props.emulator.labels}
@@ -207,7 +212,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                 />
               ),
 
-              snapshots: (
+              snapshots: () => (
                 <SnapshotsComponent
                   take={() => this.props.emulator.emu.snapshot()}
                   load={(snap) => {
