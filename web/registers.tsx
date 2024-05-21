@@ -5,7 +5,7 @@ import { Number } from './memory';
 import { hex } from './util';
 
 namespace RegistersComponent {
-  export interface Props extends Number.Interactions {
+  export interface Props extends Number.MemoryView {
     regs: Registers;
   }
 }

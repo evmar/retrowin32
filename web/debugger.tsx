@@ -5,7 +5,7 @@ import { Code } from './code';
 import { Emulator, EmulatorHost } from './emulator';
 import { Instruction } from './glue/pkg/glue';
 import { Mappings } from './mappings';
-import { Memory } from './memory';
+import { Memory, MemoryView } from './memory';
 import { RegistersComponent } from './registers';
 import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
@@ -124,18 +124,14 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     this.setState({ running: undefined });
   };
 
-  stepOver = () => {
-    console.error('todo');
-  };
-
-  runTo(addr: number) {
+  runTo = (addr: number) => {
     this.props.emulator.addBreak({ addr, oneShot: true });
     this.start();
-  }
+  };
 
-  highlightMemory = (addr: number) => this.setState({ memHighlight: addr });
-  showMemory = (memBase: number) => {
-    this.setState({ selectedTab: 'memory', memBase });
+  memoryView: MemoryView = {
+    highlightMemory: (addr: number) => this.setState({ memHighlight: addr }),
+    showMemory: (memBase: number) => this.setState({ selectedTab: 'memory', memBase }),
   };
 
   render() {
@@ -152,9 +148,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
         <Code
           instrs={instrs}
           labels={this.props.emulator.labels}
-          highlightMemory={this.highlightMemory}
-          showMemory={this.showMemory}
-          runTo={(addr: number) => this.runTo(addr)}
+          {...this.memoryView}
+          runTo={this.runTo}
         />
       );
     }
@@ -178,8 +173,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           {code}
           <div style={{ width: '12ex' }} />
           <RegistersComponent
-            highlightMemory={this.highlightMemory}
-            showMemory={this.showMemory}
+            {...this.memoryView}
             regs={this.props.emulator.emu.regs()}
           />
         </div>
@@ -224,8 +218,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                   breakpoints={Array.from(this.props.emulator.breakpoints.values())}
                   labels={this.props.emulator.labels}
                   highlight={eip}
-                  highlightMemory={this.highlightMemory}
-                  showMemory={this.showMemory}
+                  {...this.memoryView}
                   toggle={(addr) => {
                     this.props.emulator.toggleBreak(addr);
                     this.forceUpdate();
@@ -256,8 +249,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             switchTab={(selectedTab) => this.setState({ selectedTab })}
           />
           <Stack
-            highlightMemory={this.highlightMemory}
-            showMemory={this.showMemory}
+            {...this.memoryView}
             labels={this.props.emulator.labels}
             emu={this.props.emulator.emu}
           />
