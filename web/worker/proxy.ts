@@ -45,7 +45,7 @@ export class MethodChannel<T> {
       this.pendingCall = (data) => {
         this.pendingCall = undefined;
         res(data as any);
-      }
+      };
     });
   }
 
@@ -65,8 +65,10 @@ export class MethodChannel<T> {
   asProxy(): T {
     return new Proxy(this, {
       get(target, prop, _receiver) {
-        return (...args: {}[]) => { (target as any).post(prop, args) };
-      }
+        return (...args: {}[]) => {
+          (target as any).post(prop, args);
+        };
+      },
     }) as unknown as T;
   }
 }

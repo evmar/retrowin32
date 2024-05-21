@@ -141,9 +141,11 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             step over
           </button>
           &nbsp;
-          {/* <div>
+          {
+            /* <div>
             {this.emulator.emu.instr_count} instrs executed | {Math.floor(this.emulator.instrPerMs)}/ms
-          </div> */}
+          </div> */
+          }
         </section>
         <div style={{ display: 'flex', margin: '1ex' }}>
           {code}
