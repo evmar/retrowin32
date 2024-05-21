@@ -2,11 +2,11 @@ import * as preact from 'preact';
 import { Fragment, h } from 'preact';
 import { Instruction } from './glue/pkg/glue';
 import { Labels } from './labels';
-import { Number } from './memory';
+import { MemoryView, Number } from './memory';
 import { hex } from './util';
 
 namespace Code {
-  export interface Props extends Number.Interactions {
+  export interface Props extends MemoryView {
     labels: Labels;
     runTo: (addr: number) => void;
     instrs: Instruction[];

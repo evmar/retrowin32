@@ -2,16 +2,17 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { hex } from './util';
 
+/**
+ * Props used for any place in the UI where we show hex numbers,
+ * to add click handlers for addresses.
+ */
+export interface MemoryView {
+  showMemory(addr: number): void;
+  highlightMemory(addr: number): void;
+}
+
 export namespace Number {
-  /**
-   * Props used for any place in the UI where we show hex numbers, to add 'jump to address'
-   * shortcuts.
-   */
-  export interface Interactions {
-    showMemory: (addr: number) => void;
-    highlightMemory: (addr: number) => void;
-  }
-  export interface Props extends Interactions {
+  export interface Props extends MemoryView {
     digits?: number;
     text?: string;
     children: number;
