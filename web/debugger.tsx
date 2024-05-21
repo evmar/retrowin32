@@ -12,6 +12,42 @@ import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { EmulatorComponent, loadEmulator } from './web';
 
+namespace StartStop {
+  export interface Props {
+    running: boolean;
+    start(): void;
+    stop(): void;
+    step(): void;
+    stepOver(): void;
+  }
+}
+class StartStop extends preact.Component<StartStop.Props> {
+  render() {
+    const { running, start, stop, step, stepOver } = this.props;
+    return (
+      <span>
+        <button
+          onClick={() => running ? stop() : start()}
+        >
+          {running ? 'stop' : 'run'}
+        </button>
+        &nbsp;
+        <button
+          onClick={() => step()}
+        >
+          step
+        </button>
+        &nbsp;
+        <button
+          onClick={() => stepOver()}
+        >
+          step over
+        </button>
+      </span>
+    );
+  }
+}
+
 namespace Debugger {
   export interface Props {
     emulator: Emulator;
@@ -63,15 +99,15 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     this.print(msg);
   }
 
-  step() {
+  step = () => {
     try {
       this.props.emulator.step();
     } finally {
       this.forceUpdate();
     }
-  }
+  };
 
-  start() {
+  start = () => {
     if (this.state.running) return;
     this.setState({
       running: setInterval(() => {
@@ -79,14 +115,18 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
       }, 500),
     });
     this.props.emulator.start();
-  }
+  };
 
-  stop() {
+  stop = () => {
     if (!this.state.running) return;
     this.props.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: undefined });
-  }
+  };
+
+  stepOver = () => {
+    console.error('todo');
+  };
 
   runTo(addr: number) {
     this.props.emulator.addBreak({ addr, oneShot: true });
@@ -122,23 +162,13 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
       <>
         <EmulatorComponent emulator={this.props.emulator} />
         <section class='panel' style={{ display: 'flex', alignItems: 'baseline' }}>
-          <button
-            onClick={() => this.state.running ? this.stop() : this.start()}
-          >
-            {this.state.running ? 'stop' : 'run'}
-          </button>
-          &nbsp;
-          <button
-            onClick={() => this.step()}
-          >
-            step
-          </button>
-          &nbsp;
-          <button
-            onClick={() => instrs ? this.runTo(instrs[1].addr) : this.step()}
-          >
-            step over
-          </button>
+          <StartStop
+            running={this.state.running != null}
+            start={this.start}
+            stop={this.stop}
+            step={this.step}
+            stepOver={() => instrs ? this.runTo(instrs[1].addr) : this.step()}
+          />
           &nbsp;
           <div>
             {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
