@@ -55,7 +55,9 @@ namespace Debugger {
   export interface State {
     stdout?: string;
     error: string;
+    /** Initial address to show in memory pane. */
     memBase: number;
+    /** Address to highlight in memory pane. */
     memHighlight?: number;
     /** When running, the setInterval id that is updating the UI. */
     running?: number;
@@ -99,7 +101,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     this.print(msg);
   }
 
-  step = () => {
+  private step = () => {
     try {
       this.props.emulator.step();
     } finally {
@@ -107,7 +109,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     }
   };
 
-  start = () => {
+  private start = () => {
     if (this.state.running) return;
     this.setState({
       running: setInterval(() => {
@@ -117,19 +119,19 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     this.props.emulator.start();
   };
 
-  stop = () => {
+  private stop = () => {
     if (!this.state.running) return;
     this.props.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: undefined });
   };
 
-  runTo = (addr: number) => {
+  private runTo = (addr: number) => {
     this.props.emulator.addBreak({ addr, oneShot: true });
     this.start();
   };
 
-  memoryView: MemoryView = {
+  private memoryView: MemoryView = {
     highlightMemory: (addr: number) => this.setState({ memHighlight: addr }),
     showMemory: (memBase: number) => this.setState({ selectedTab: 'memory', memBase }),
   };
