@@ -1,6 +1,6 @@
 import * as glue from '../glue/pkg/glue';
 import { FileHost } from './files';
-import { messageProxy, setOnMessage } from './proxy';
+import { MethodChannel } from './proxy';
 
 export interface Params {
   /** URL directory that all other paths are resolved relative to. */
@@ -33,8 +33,8 @@ export async function main() {
   const channel = new MessageChannel();
 
   self.postMessage('ready');
-  const workerHost = messageProxy(self) as glue.JsHost;
-  const emu = glue.new_emulator(workerHost, fileHost, params.exe, params.exe, channel.port1);
+  const workerHost = new MethodChannel<glue.JsHost>(self);
+  const emu = glue.new_emulator(workerHost.asProxy(), fileHost, params.exe, params.exe, channel.port1);
   emu.start = () => {
     channel.port2.onmessage = () => {
       const state = emu.run(100_000);
@@ -46,5 +46,5 @@ export async function main() {
     };
     channel.port1.postMessage(null);
   };
-  setOnMessage(self, emu);
+  workerHost.setLocal(emu);
 }

@@ -1,7 +1,7 @@
 import { Labels } from './labels';
 import * as glue from './worker/glue';
 import type { Params } from './worker/main';
-import { messageProxy, setOnMessage } from './worker/proxy';
+import { MethodChannel } from './worker/proxy';
 
 export function parseURL(): Params | undefined {
   const query = new URLSearchParams(document.location.search);
@@ -59,7 +59,7 @@ class Window {
 /** Emulator host, providing the emulation worker<=>web API. */
 export class Emulator implements glue.JsHost, glue.HostLogger {
   labels: Labels = new Labels(new Map()); // XXX
-  private worker: glue.Emulator;
+  private worker: MethodChannel<glue.Emulator>;
   windows = new Map<number, Window>();
   private decoder = new TextDecoder();
 
@@ -76,12 +76,12 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   }
 
   constructor(worker: Worker, private emuHost: EmulatorHost) {
-    this.worker = messageProxy(worker) as glue.Emulator;
-    setOnMessage(worker, this);
+    this.worker = new MethodChannel<glue.Emulator>(worker);
+    this.worker.setLocal(worker);
   }
 
   postWin32Message(msg: glue.Message) {
-    this.worker.post_win32_message(msg);
+    this.worker.post('post_win32_message', [msg]);
   }
 
   log(level: number, msg: string) {
@@ -159,14 +159,14 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
   }
 
   start() {
-    this.worker.start();
+    this.worker.post('start', []);
   }
 
   step() {
-    this.worker.run(1);
+    this.worker.post('run', [1]);
   }
 
-  regs() {
-    return this.worker.regs();
+  regs(): Promise<glue.Registers> {
+    return this.worker.call('regs', []);
   }
 }

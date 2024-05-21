@@ -3,7 +3,7 @@ import { Fragment, h } from 'preact';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Emulator, EmulatorHost } from './emulator';
-import { Instruction } from './glue/pkg/glue';
+import { Instruction, Registers } from './glue/pkg/glue';
 import { Mappings } from './mappings';
 import { Memory } from './memory';
 import { RegistersComponent } from './registers';
@@ -103,11 +103,11 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
     let code;
-    const regs = this.emulator.regs();
+    const regs = this.emulator.regs() as Registers;
     if (regs.eip >= 0xf1a7_0000) {
       const label = regs.eip == 0xffff_fff0 ? 'async' : this.emulator.labels.get(regs.eip) ?? 'shim';
       code = <section class='code'>(in {label})</section>;
-    } else {
+    } else if (false) {
       instrs = this.emulator.disassemble(regs.eip);
       code = (
         <Code
@@ -141,9 +141,9 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             step over
           </button>
           &nbsp;
-          <div>
+          {/* <div>
             {this.emulator.emu.instr_count} instrs executed | {Math.floor(this.emulator.instrPerMs)}/ms
-          </div>
+          </div> */}
         </section>
         <div style={{ display: 'flex', margin: '1ex' }}>
           {code}
@@ -151,7 +151,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           <RegistersComponent
             highlightMemory={this.highlightMemory}
             showMemory={this.showMemory}
-            regs={this.emulator.emu.regs()}
+            regs={regs}
           />
         </div>
         <div style={{ display: 'flex' }}>
