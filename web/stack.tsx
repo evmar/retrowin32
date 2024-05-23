@@ -2,10 +2,10 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Emulator } from './glue/pkg/glue';
 import { Labels } from './labels';
-import { Number } from './memory';
+import { MemoryView, Number } from './memory';
 
 namespace Stack {
-  export interface Props extends Number.Interactions {
+  export interface Props extends MemoryView {
     emu: Emulator;
     labels: Labels;
   }

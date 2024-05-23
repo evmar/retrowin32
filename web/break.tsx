@@ -10,7 +10,7 @@ export interface Breakpoint {
 }
 
 namespace BreakpointsComponent {
-  export interface Props extends Number.Interactions {
+  export interface Props extends Number.MemoryView {
     breakpoints: Breakpoint[];
     labels: Labels;
     highlight: number;
