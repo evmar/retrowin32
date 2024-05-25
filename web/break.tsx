@@ -2,11 +2,88 @@ import * as preact from 'preact';
 import { h } from 'preact';
 import { Labels } from './labels';
 import { MemoryView, Number } from './memory';
+import * as wasm from './glue/pkg/glue';
 
 export interface Breakpoint {
   addr: number;
   disabled?: boolean;
   oneShot?: boolean;
+}
+
+/** Manages a set of UI-surfaced breakpoints, including e.g. disabled state. */
+export class Breakpoints {
+  breakpoints = new Map<number, Breakpoint>;
+  constructor(private storageKey: string) {
+    const json = window.localStorage.getItem(storageKey);
+    if (!json) return;
+    const list = JSON.parse(json) as Breakpoint[];
+    this.breakpoints = new Map(list.map(bp => [bp.addr, bp]));
+  }
+
+  private save() {
+    window.localStorage.setItem(this.storageKey, JSON.stringify(Array.from(this.breakpoints.values())));
+  }
+
+  addBreak(bp: Breakpoint) {
+    this.breakpoints.set(bp.addr, bp);
+    this.save();
+  }
+
+  addBreakByName(labels: Labels, name: string): boolean {
+    for (const [addr, label] of labels.byAddr) {
+      if (label === name) {
+        this.addBreak({ addr });
+        return true;
+      }
+    }
+    if (name.match(/^[0-9a-fA-F]+$/)) {
+      const addr = parseInt(name, 16);
+      this.addBreak({ addr });
+      return true;
+    }
+    return false;
+  }
+
+  delBreak(addr: number) {
+    const bp = this.breakpoints.get(addr);
+    if (!bp) return;
+    this.breakpoints.delete(addr);
+    this.save();
+  }
+
+  toggleBreak(addr: number) {
+    const bp = this.breakpoints.get(addr)!;
+    bp.disabled = !bp.disabled;
+    this.save();
+  }
+
+  /** Check if the current address is a break/exit point, returning it if so. */
+  isAtBreakpoint(ip: number): Breakpoint | undefined {
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
+      if (bp.oneShot) {
+        this.delBreak(bp.addr);
+      }
+      return bp;
+    }
+    return undefined;
+  }
+
+  install(emu: wasm.Emulator) {
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled) {
+        emu.breakpoint_add(bp.addr);
+      }
+    }
+  }
+
+  uninstall(emu: wasm.Emulator) {
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled) {
+        emu.breakpoint_clear(bp.addr);
+      }
+    }
+  }
 }
 
 namespace BreakpointsComponent {

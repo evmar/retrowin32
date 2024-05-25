@@ -127,7 +127,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
   };
 
   private runTo = (addr: number) => {
-    this.props.emulator.addBreak({ addr, oneShot: true });
+    this.props.emulator.breakpoints.addBreak({ addr, oneShot: true });
     this.start();
   };
 
@@ -217,21 +217,21 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
               breakpoints: () => (
                 <BreakpointsComponent
-                  breakpoints={Array.from(this.props.emulator.breakpoints.values())}
+                  breakpoints={Array.from(this.props.emulator.breakpoints.breakpoints.values())}
                   labels={this.props.emulator.labels}
                   highlight={eip}
                   {...this.memoryView}
                   toggle={(addr) => {
-                    this.props.emulator.toggleBreak(addr);
+                    this.props.emulator.breakpoints.toggleBreak(addr);
                     this.forceUpdate();
                   }}
                   add={(text) => {
-                    const ret = this.props.emulator.addBreakByName(text);
+                    const ret = this.props.emulator.breakpoints.addBreakByName(this.props.emulator.labels, text);
                     this.forceUpdate();
                     return ret;
                   }}
                   remove={(addr) => {
-                    this.props.emulator.delBreak(addr);
+                    this.props.emulator.breakpoints.delBreak(addr);
                     this.forceUpdate();
                   }}
                 />
