@@ -13,13 +13,14 @@ export interface EmulatorHost {
   onStdOut(stdout: string): void;
 }
 
-/** Wraps wasm.Emulator, able to run in a RAF loop. */
+/** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
 export class Emulator extends JsHost {
   readonly emu: wasm.Emulator;
   breakpoints = new Map<number, Breakpoint>();
   imports: string[] = [];
   labels: Labels;
   running = false;
+  channel = new MessageChannel();
 
   constructor(
     host: EmulatorHost,
@@ -46,6 +47,8 @@ export class Emulator extends JsHost {
     // this.x86.poke(0x004095a4, 1);
 
     this.loadBreakpoints();
+
+    this.channel.port2.onmessage = () => this.loop();
   }
 
   private loadBreakpoints() {
@@ -144,7 +147,7 @@ export class Emulator extends JsHost {
   }
 
   /** Runs a batch of instructions.  Returns false if we should stop. */
-  stepMany(): boolean {
+  private stepMany(): boolean {
     for (const bp of this.breakpoints.values()) {
       if (!bp.disabled) {
         this.emu.breakpoint_add(bp.addr);
@@ -174,21 +177,20 @@ export class Emulator extends JsHost {
       this.step();
     }
     this.running = true;
-    this.runFrame();
+    this.loop();
   }
 
-  /** Runs a batch of instructions; called in RAF loop. */
-  private runFrame() {
+  /** Runs a batch of instructions; called in a loop. */
+  private loop() {
     if (!this.running) return;
     if (!this.stepMany()) {
       this.stop();
       return;
     }
-    requestAnimationFrame(() => this.runFrame());
+    this.channel.port1.postMessage(null);
   }
 
   stop() {
-    if (!this.running) return;
     this.running = false;
   }
 
