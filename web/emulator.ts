@@ -33,7 +33,7 @@ export class Emulator extends JsHost {
     super(host, files);
     this.emu = wasm.new_emulator(this, storageKey);
     this.emu.load_exe(storageKey, bytes, relocate);
-    this.breakpoints = new Breakpoints(storageKey)
+    this.breakpoints = new Breakpoints(storageKey);
 
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {

@@ -217,23 +217,10 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
               breakpoints: () => (
                 <BreakpointsComponent
-                  breakpoints={Array.from(this.props.emulator.breakpoints.breakpoints.values())}
+                  breakpoints={this.props.emulator.breakpoints}
                   labels={this.props.emulator.labels}
                   highlight={eip}
                   {...this.memoryView}
-                  toggle={(addr) => {
-                    this.props.emulator.breakpoints.toggleBreak(addr);
-                    this.forceUpdate();
-                  }}
-                  add={(text) => {
-                    const ret = this.props.emulator.breakpoints.addBreakByName(this.props.emulator.labels, text);
-                    this.forceUpdate();
-                    return ret;
-                  }}
-                  remove={(addr) => {
-                    this.props.emulator.breakpoints.delBreak(addr);
-                    this.forceUpdate();
-                  }}
                 />
               ),
 

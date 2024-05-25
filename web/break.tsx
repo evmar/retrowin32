@@ -1,8 +1,8 @@
 import * as preact from 'preact';
 import { h } from 'preact';
+import * as wasm from './glue/pkg/glue';
 import { Labels } from './labels';
 import { MemoryView, Number } from './memory';
-import * as wasm from './glue/pkg/glue';
 
 export interface Breakpoint {
   addr: number;
@@ -12,7 +12,7 @@ export interface Breakpoint {
 
 /** Manages a set of UI-surfaced breakpoints, including e.g. disabled state. */
 export class Breakpoints {
-  breakpoints = new Map<number, Breakpoint>;
+  breakpoints = new Map<number, Breakpoint>();
   constructor(private storageKey: string) {
     const json = window.localStorage.getItem(storageKey);
     if (!json) return;
@@ -88,24 +88,38 @@ export class Breakpoints {
 
 namespace BreakpointsComponent {
   export interface Props extends MemoryView {
-    breakpoints: Breakpoint[];
+    breakpoints: Breakpoints;
     labels: Labels;
     highlight: number;
-    toggle: (addr: number) => void;
-    add: (text: string) => boolean;
-    remove: (addr: number) => void;
   }
 }
 
 export class BreakpointsComponent extends preact.Component<BreakpointsComponent.Props> {
+
+  private toggle(addr: number) {
+    this.props.breakpoints.toggleBreak(addr);
+    this.forceUpdate();
+  }
+
+  private remove(addr: number) {
+    this.props.breakpoints.delBreak(addr);
+    this.forceUpdate();
+  }
+
+  private add(text: string) {
+    const ret = this.props.breakpoints.addBreakByName(this.props.labels, text);
+    this.forceUpdate();
+    return ret;
+  }
+
   render() {
     const rows = [];
-    for (const bp of this.props.breakpoints) {
+    for (const bp of this.props.breakpoints.breakpoints.values()) {
       const className = bp.addr === this.props.highlight ? 'highlight' : undefined;
       const label = this.props.labels.get(bp.addr);
       rows.push(
         <div className={className} style={{ display: 'flex', alignItems: 'center', gap: '0.5ex' }}>
-          <input type='checkbox' checked={!bp.disabled} onChange={() => this.props.toggle(bp.addr)} />
+          <input type='checkbox' checked={!bp.disabled} onChange={() => this.toggle(bp.addr)} />
           <div>
             <code>
               <Number digits={8} {...this.props}>{bp.addr}</Number>
@@ -119,14 +133,14 @@ export class BreakpointsComponent extends preact.Component<BreakpointsComponent.
               </div>
             )
             : null}
-          <button class='x' onClick={() => this.props.remove(bp.addr)}>x</button>
+          <button class='x' onClick={() => this.remove(bp.addr)}>x</button>
         </div>,
       );
     }
     return (
       <section>
         {rows}
-        <AddComponent onAccept={(text) => this.props.add(text)} />
+        <AddComponent onAccept={(text) => this.add(text)} />
       </section>
     );
   }
