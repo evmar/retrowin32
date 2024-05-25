@@ -1,7 +1,7 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import { Labels } from './labels';
-import { Number } from './memory';
+import { MemoryView, Number } from './memory';
 
 export interface Breakpoint {
   addr: number;
@@ -10,7 +10,7 @@ export interface Breakpoint {
 }
 
 namespace BreakpointsComponent {
-  export interface Props extends Number.MemoryView {
+  export interface Props extends MemoryView {
     breakpoints: Breakpoint[];
     labels: Labels;
     highlight: number;
