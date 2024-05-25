@@ -95,7 +95,6 @@ namespace BreakpointsComponent {
 }
 
 export class BreakpointsComponent extends preact.Component<BreakpointsComponent.Props> {
-
   private toggle(addr: number) {
     this.props.breakpoints.toggleBreak(addr);
     this.forceUpdate();

@@ -73,11 +73,11 @@ export class Emulator extends JsHost {
 
       const instrPerMs = steps / deltaTime;
       const alpha = 0.5; // smoothing factor
-      this.instrPerMs = alpha * (instrPerMs) + (1 - alpha) * this.instrPerMs;
+      this.instrPerMs = alpha * instrPerMs + (1 - alpha) * this.instrPerMs;
 
       if (deltaTime < 8) {
-        this.stepSize *= 2;
-        console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
+        this.stepSize = this.instrPerMs * 8;
+        // console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
       }
     }
 
