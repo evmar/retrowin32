@@ -118,7 +118,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
       }, 500),
     });
     this.emulator.start();
-  }
+  };
 
   private stop = () => {
     if (!this.state.running) return;

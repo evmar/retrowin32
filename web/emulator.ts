@@ -162,6 +162,10 @@ export class Emulator implements glue.JsHost, glue.HostLogger {
     this.worker.post('start', []);
   }
 
+  stop() {
+    this.worker.post('stop', []);
+  }
+
   step() {
     this.worker.post('run', [1]);
   }
