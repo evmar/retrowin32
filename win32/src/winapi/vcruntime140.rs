@@ -23,7 +23,7 @@ pub fn memset(machine: &mut Machine, dst: u32, val: u32, len: u32) -> u32 {
         .sub(dst, len)
         .as_mut_slice_todo()
         .fill(val as u8);
-    0
+    dst
 }
 
 #[win32_derive::dllexport(cdecl)]
