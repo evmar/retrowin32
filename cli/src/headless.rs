@@ -21,11 +21,7 @@ impl GUI {
         unimplemented!();
     }
 
-    pub fn create_surface(
-        &mut self,
-        _hwnd: u32,
-        _opts: &win32::SurfaceOptions,
-    ) -> Box<dyn win32::Surface> {
+    pub fn create_surface(&mut self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         unimplemented!();
     }
 }
