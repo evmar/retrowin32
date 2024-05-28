@@ -1658,8 +1658,8 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let lpAddress = <u32>::from_stack(mem, esp + 4u32);
             let dwSize = <u32>::from_stack(mem, esp + 8u32);
-            let flAllocationType = <u32>::from_stack(mem, esp + 12u32);
-            let flProtec = <u32>::from_stack(mem, esp + 16u32);
+            let flAllocationType = <Result<MEM, u32>>::from_stack(mem, esp + 12u32);
+            let flProtec = <Result<PAGE, u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::VirtualAlloc(machine, lpAddress, dwSize, flAllocationType, flProtec)
                 .to_raw()
         }

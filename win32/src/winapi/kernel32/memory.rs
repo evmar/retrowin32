@@ -290,13 +290,58 @@ pub fn HeapDestroy(_machine: &mut Machine, hHeap: u32) -> u32 {
     1 // success
 }
 
+bitflags! {
+    pub struct MEM: u32 {
+        const COMMIT = 0x00001000;
+        const RESERVE = 0x00002000;
+        const RESET = 0x00080000;
+        const RESET_UNDO = 0x1000000;
+        const LARGE_PAGES = 0x20000000;
+        const PHYSICAL = 0x00400000;
+        const TOP_DOWN = 0x00100000;
+        const WRITE_WATCH = 0x00200000;
+    }
+}
+impl TryFrom<u32> for MEM {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        MEM::from_bits(value).ok_or(value)
+    }
+}
+
+bitflags! {
+    pub struct PAGE: u32 {
+        const EXECUTE = 0x10;
+        const EXECUTE_READ = 0x20;
+        const EXECUTE_READWRITE = 0x40;
+        const EXECUTE_WRITECOPY = 0x80;
+        const NOACCESS = 0x01;
+        const READONLY = 0x02;
+        const READWRITE = 0x04;
+        const WRITECOPY = 0x08;
+        const TARGETS_INVALID = 0x40000000;
+        const TARGETS_NO_UPDATE = 0x40000000;
+        const GUARD = 0x100;
+        const NOCACHE = 0x200;
+        const WRITECOMBINE = 0x400;
+    }
+}
+impl TryFrom<u32> for PAGE {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        PAGE::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn VirtualAlloc(
     machine: &mut Machine,
     lpAddress: u32,
     dwSize: u32,
-    flAllocationType: u32,
-    flProtec: u32,
+    flAllocationType: Result<MEM, u32>,
+    flProtec: Result<PAGE, u32>,
 ) -> u32 {
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
