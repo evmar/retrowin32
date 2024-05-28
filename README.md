@@ -63,3 +63,7 @@ for how this is similar but different.
 ## Running it
 
 See [HACKING.md](HACKING.md) to get started on the code.
+
+## Support this project
+
+If you like this project please consider to give a GitHub star, it help this project to be recommended and get more contributions.
