@@ -8,13 +8,6 @@ mod mmx;
 mod string;
 mod table;
 mod test;
-pub use basic::*;
-pub use control::*;
-pub use cpuid::*;
-pub use fpu::*;
+
 pub use helpers::{pop, push, x86_jmp};
-pub use math::*;
-pub use mmx::*;
-pub use string::*;
 pub use table::{decode, init_op_tab, Op};
-pub use test::*;

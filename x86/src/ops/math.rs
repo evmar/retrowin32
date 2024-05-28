@@ -521,12 +521,6 @@ pub fn add_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(add(x.get(), y, &mut cpu.flags));
 }
 
-pub fn add_rm32_r32_2(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.get32(instr.op1_register());
-    let x = rm32(cpu, mem, instr);
-    x.set(add(x.get(), y, &mut cpu.flags));
-}
-
 pub fn add_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
