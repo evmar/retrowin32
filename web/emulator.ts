@@ -11,6 +11,7 @@ export interface EmulatorHost {
   showTab(name: string): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
+  onStopped(): void;
 }
 
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
@@ -18,6 +19,7 @@ export class Emulator extends JsHost {
   readonly emu: wasm.Emulator;
   imports: string[] = [];
   labels: Labels;
+  /** True when the emulator is actively trying to loop and executing instructions, false when stopped or blocked. */
   running = false;
   breakpoints: Breakpoints;
   channel = new MessageChannel();
@@ -90,15 +92,24 @@ export class Emulator extends JsHost {
     const cpuState = this.runBatch();
     this.breakpoints.uninstall(this.emu);
 
-    const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
-    if (bp) {
-      if (!bp.oneShot) {
-        this.emuHost.showTab('breakpoints');
+    switch (cpuState) {
+      case wasm.CPUState.Running:
+        return true;
+      case wasm.CPUState.Blocked: {
+        const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
+        if (bp) {
+          if (!bp.oneShot) {
+            this.emuHost.showTab('breakpoints');
+          }
+          this.emuHost.onStopped();
+        }
+        return false;
       }
-      return false;
+      case wasm.CPUState.Error:
+      case wasm.CPUState.Exit:
+        this.emuHost.onStopped();
+        return false;
     }
-
-    return cpuState == wasm.CPUState.Running;
   }
 
   start() {
