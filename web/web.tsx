@@ -115,7 +115,7 @@ export async function loadEmulator() {
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
   const csvLabels = new Map<number, string>();
-  const resp = await fetch(params.exe + '.csv');
+  const resp = await fetch(params.dir + params.exe + '.csv');
   if (resp.ok) {
     for (const [addr, name] of parseCSV(await resp.text())) {
       csvLabels.set(addr, name);
