@@ -2,6 +2,8 @@
 
 ## Building
 
+### CLI
+
 Build/run the CLI app:
 
 ```
@@ -9,12 +11,35 @@ $ make emu opt=1
 $ ./target/release/retrowin32 exe/zig_hello/hello.exe
 ```
 
+The command line as seen by the program is an optional third argument:
+
+```
+$ ./target/release/retrowin32 path/to/some.exe "c:\\some.exe arg1 arg2"
+```
+
+The `--win32-trace` flag controls tracing of win32 API calls. Passing `*` (which
+must be quoted from the shell) makes retrowin32 trace all calls.
+
+To iterate while developing I often use a command like this, which builds and
+runs in one invocation.
+
+```
+$ cargo run -p retrowin32 -F x86-emu -- --win32-trace '*' path/to/my/exe
+```
+
+(You might pass `--release` for faster binaries or `-F x86-emu,sdl` for GUI
+support.)
+
+### Rosetta
+
 Rosetta mode (see doc/x86-64.md):
 
 ```
 $ make rosetta
 $ ./target/x86_64-apple-darwin/debug/retrowin32 exe/zig_hello/hello.exe
 ```
+
+### Web
 
 Build/run the web app:
 
