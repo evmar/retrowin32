@@ -124,6 +124,18 @@ impl Mappings {
         growth
     }
 
+    pub fn dump(&self) {
+        for map in &self.0 {
+            println!(
+                "{:08x}-{:08x} {:?} {:?}",
+                map.addr,
+                map.addr + map.size,
+                map.desc,
+                map.flags
+            );
+        }
+    }
+
     pub fn dump_memory(&self, mem: Mem) {
         for map in &self.0 {
             println!("{map:x?}");
