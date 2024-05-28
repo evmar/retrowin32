@@ -32,7 +32,7 @@ support.)
 
 ### Rosetta
 
-Rosetta mode (see doc/x86-64.md):
+Rosetta mode (see [doc/x86-64.md](doc/x86-64.md)):
 
 ```
 $ make rosetta
