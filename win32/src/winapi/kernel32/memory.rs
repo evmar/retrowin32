@@ -14,7 +14,8 @@ pub fn round_up_to_page_granularity(size: u32) -> u32 {
 }
 
 /// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
-#[derive(Debug, tsify::Tsify, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(target_family = "wasm", derive(tsify::Tsify))]
 pub struct Mapping {
     pub addr: u32,
     pub size: u32,

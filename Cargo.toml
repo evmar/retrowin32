@@ -13,6 +13,8 @@ log = { path = "log" }
 memory = { path = "memory" }
 win32 = { path = "win32" }
 x86 = { path = "x86" }
+tsify = "0.4.1"
+wasm-bindgen = "0.2.83"
 
 [profile.lto]
 inherits = "release"

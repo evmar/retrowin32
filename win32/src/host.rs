@@ -1,7 +1,5 @@
 //! Interfaces expected of the x86 host.
 
-use wasm_bindgen::prelude::wasm_bindgen;
-
 /// DirectDraw surface.
 pub trait Surface {
     /// Write RGBA pixel data directly.
@@ -16,7 +14,7 @@ pub trait Surface {
     fn bit_blt(&mut self, dx: u32, dy: u32, src: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
 }
 
-#[wasm_bindgen]
+#[cfg_attr(target_family = "wasm", wasm_bindgen)]
 #[derive(Clone, Debug)]
 pub struct SurfaceOptions {
     pub width: u32,

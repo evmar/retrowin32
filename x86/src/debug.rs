@@ -3,15 +3,16 @@
 use iced_x86::{Formatter, IntelFormatter};
 use memory::Mem;
 use std::fmt::Write;
-use tsify::Tsify;
 
-#[derive(Tsify, serde::Serialize)]
+#[cfg_attr(target_family = "wasm", derive(tsify::Tsify))]
+#[derive(serde::Serialize)]
 pub struct CodePart {
     pub kind: String,
     pub text: String,
 }
 
-#[derive(Tsify, serde::Serialize)]
+#[cfg_attr(target_family = "wasm", derive(tsify::Tsify))]
+#[derive(serde::Serialize)]
 pub struct Instruction {
     pub addr: u32,
     pub bytes: String,
