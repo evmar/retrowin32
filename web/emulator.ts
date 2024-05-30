@@ -27,15 +27,16 @@ export class Emulator extends JsHost {
   constructor(
     host: EmulatorHost,
     files: FileSet,
-    readonly storageKey: string,
+    exePath: string,
+    cmdLine: string,
     bytes: Uint8Array,
     labels: Map<number, string>,
     relocate: boolean,
   ) {
     super(host, files);
-    this.emu = wasm.new_emulator(this, storageKey);
-    this.emu.load_exe(storageKey, bytes, relocate);
-    this.breakpoints = new Breakpoints(storageKey);
+    this.emu = wasm.new_emulator(this, cmdLine);
+    this.emu.load_exe(exePath, bytes, relocate);
+    this.breakpoints = new Breakpoints(exePath);
 
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {

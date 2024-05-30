@@ -91,6 +91,8 @@ interface URLParams {
   files: string[];
   /** If true, relocate the exe on load. */
   relocate?: boolean;
+  /** Command line to pass to executable. */
+  cmdLine?: string;
 }
 
 function parseURL(): URLParams | undefined {
@@ -100,7 +102,8 @@ function parseURL(): URLParams | undefined {
   const dir = query.get('dir') || undefined;
   const files = query.getAll('file');
   const relocate = query.has('relocate');
-  const params: URLParams = { dir, exe, files, relocate };
+  const cmdLine = query.get('cmdline') || undefined;
+  const params: URLParams = { dir, exe, files, relocate, cmdLine };
   return params;
 }
 
@@ -122,11 +125,13 @@ export async function loadEmulator() {
     }
   }
 
-  const storageKey = (params.dir ?? '') + params.exe;
+  const cmdLine = params.cmdLine ?? params.exe;
+  const exePath = (params.dir ?? '') + params.exe;
   return new Emulator(
     null!,
     fileset,
-    storageKey,
+    exePath,
+    cmdLine,
     fileset.get(params.exe)!,
     csvLabels,
     params.relocate ?? false,
