@@ -22,7 +22,7 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 
   exit(code: number): void {
-    this.print(`exited with code ${code}\n`);
+    this.print(`Exited with code ${code}`);
   }
 
   onWindowChanged(): void {
@@ -39,10 +39,6 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
 
   onStdOut(stdout: string): void {
     this.print(stdout);
-  }
-
-  onStopped(): void {
-    // this.print(`emulator stopped`);
   }
 
   render() {

@@ -479,6 +479,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "bitflags",
+ "libc",
  "log 0.1.0",
  "memory",
  "num-derive",

@@ -16,6 +16,7 @@ num-derive = "0.3"
 num-traits = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_bytes = { version = "0.11.7", optional = true }
+libc = "0.2"
 
 [dependencies.unicorn-engine]
 version = "2.0.0"
@@ -27,5 +28,6 @@ wasm-bindgen = { workspace = true }
 
 [features]
 x86-emu = ["dep:x86", "dep:serde_bytes"]
+x86-32 = []
 x86-64 = []
 x86-unicorn = ["dep:unicorn-engine"]

@@ -185,7 +185,7 @@ pub fn fn_wrapper(
             // async block will set up the stack and eip.
             0
         }
-        #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+        #[cfg(not(feature = "x86-emu"))]
         {
             // In the non-emulated case, we synchronously evaluate the future.
             let pin = std::pin::pin!(#module::#name(machine, #(#args),*));

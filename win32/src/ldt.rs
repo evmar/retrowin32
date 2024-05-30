@@ -4,8 +4,10 @@
 //! and doc/x86-64.md section "LDT".
 
 use crate::segments::SegmentDescriptor;
+use core::slice;
 use std::ffi::c_int;
 
+#[cfg(target_os = "macos")]
 extern "C" {
     fn i386_get_ldt(start_sel: c_int, descs: *mut u64, num_sels: c_int) -> c_int;
     fn i386_set_ldt(start_sel: c_int, descs: *const u64, num_sels: c_int) -> c_int;
@@ -53,7 +55,9 @@ impl LDT {
 
         let index = self.next_index;
         // println!("adding ldt {:x?}", entry);
-        let ret = unsafe { i386_set_ldt(self.next_index as c_int, &entry.encode(), 1) };
+        todo!();
+        //let ret = unsafe { i386_set_ldt(self.next_index as c_int, &entry.encode(), 1) };
+        let ret = 0;
         if ret < 0 {
             panic!("i386_set_ldt: {}", std::io::Error::last_os_error());
         }
@@ -63,17 +67,52 @@ impl LDT {
         (index << 3) | 0b111
     }
 
-    #[allow(dead_code)]
-    fn dump() {
-        let mut entries: [u64; 256] = [0; 256];
-        let ret = unsafe { i386_get_ldt(0, &mut entries as *mut _, entries.len() as c_int) };
-        println!("existing: {ret}");
-        for (i, &e) in entries.iter().enumerate() {
-            let entry = SegmentDescriptor::decode(e);
-            if entry.empty() {
-                continue;
+    pub fn dump() {
+        #[cfg(target_os = "linux")]
+        {
+            #[repr(C)]
+            #[allow(non_camel_case_types)]
+            #[derive(Debug)]
+            struct user_desc {
+                entry_number: u32,
+                base_addr: u32,
+                limit: u32,
+                flags: u8,
             }
-            println!("{} {:x} {:#x?}", i, e, entry);
+            let mut buf: [user_desc; 16] = unsafe { std::mem::zeroed() };
+
+            let entries = unsafe {
+                const MODIFY_LDT: i64 = 154;
+                const READ: i64 = 0;
+                let ret = libc::syscall(
+                    MODIFY_LDT,
+                    READ,
+                    &mut buf,
+                    std::mem::size_of::<[user_desc; 16]>(),
+                );
+                if ret < 0 {
+                    panic!("modify_ldt: {}", std::io::Error::last_os_error());
+                }
+                std::slice::from_raw_parts(
+                    buf.as_ptr(),
+                    ret as usize / std::mem::size_of::<user_desc>(),
+                )
+            };
+            println!("{:#?}", entries);
+        }
+
+        #[cfg(target_os = "macos")]
+        {
+            let mut entries: [u64; 256] = [0; 256];
+            let ret = unsafe { i386_get_ldt(0, &mut entries as *mut _, entries.len() as c_int) };
+            println!("existing: {ret}");
+            for (i, &e) in entries.iter().enumerate() {
+                let entry = SegmentDescriptor::decode(e);
+                if entry.empty() {
+                    continue;
+                }
+                println!("{} {:x} {:#x?}", i, e, entry);
+            }
         }
     }
 }

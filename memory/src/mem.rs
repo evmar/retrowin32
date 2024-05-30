@@ -86,6 +86,14 @@ pub struct Mem<'m> {
 }
 
 impl<'m> Mem<'m> {
+    pub fn from_ptr(ptr: *mut u8, len: usize) -> Mem<'m> {
+        Mem {
+            ptr: ptr,
+            end: unsafe { ptr.add(len) },
+            _marker: std::marker::PhantomData::default(),
+        }
+    }
+
     pub fn from_slice(s: &'m [u8]) -> Mem<'m> {
         let range = s.as_ptr_range();
         Mem {

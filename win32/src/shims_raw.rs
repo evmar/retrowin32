@@ -85,6 +85,7 @@ std::arch::global_asm!(
 );
 
 extern "C" {
+    #[link_name = "_trans64"]
     fn trans64();
 }
 
@@ -103,6 +104,7 @@ std::arch::global_asm!(
 );
 
 extern "C" {
+    #[link_name = "_tramp32"]
     fn tramp32();
 }
 

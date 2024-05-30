@@ -59,7 +59,7 @@ namespace Debugger {
     memBase: number;
     /** Address to highlight in memory pane. */
     memHighlight?: number;
-    /** When running, the setInterval id that is updating the UI.  Note that Emulator.running has slightly different semantics. */
+    /** When running, the setInterval id that is updating the UI. */
     running?: number;
     selectedTab: string;
   }
@@ -99,10 +99,6 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
 
   onStdOut(msg: string): void {
     this.print(msg);
-  }
-
-  onStopped(): void {
-    this.stop();
   }
 
   private step = () => {

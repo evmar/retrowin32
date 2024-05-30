@@ -1037,7 +1037,7 @@ pub mod kernel32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::CreateThread(
                     machine,
@@ -1629,7 +1629,7 @@ pub mod kernel32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::Sleep(machine, dwMilliseconds));
                 crate::shims::call_sync(pin).to_raw()
@@ -1793,7 +1793,7 @@ pub mod kernel32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::retrowin32_main(machine, entry_point));
                 crate::shims::call_sync(pin).to_raw()
@@ -1819,7 +1819,7 @@ pub mod kernel32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::retrowin32_thread_main(
                     machine,
@@ -3113,7 +3113,7 @@ pub mod retrowin32_test {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::retrowin32_test::retrowin32_test_callback1(
                     machine, func, data
@@ -3440,7 +3440,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExA(
                     machine,
@@ -3504,7 +3504,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExW(
                     machine,
@@ -3597,7 +3597,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()
@@ -3621,7 +3621,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageW(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()
@@ -3712,7 +3712,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::GetMessageA(
                     machine,
@@ -3752,7 +3752,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::GetMessageW(
                     machine,
@@ -4050,7 +4050,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::ShowWindow(machine, hWnd, nCmdShow));
                 crate::shims::call_sync(pin).to_raw()
@@ -4086,7 +4086,7 @@ pub mod user32 {
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(feature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::UpdateWindow(machine, hWnd));
                 crate::shims::call_sync(pin).to_raw()

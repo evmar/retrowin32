@@ -91,8 +91,6 @@ interface URLParams {
   files: string[];
   /** If true, relocate the exe on load. */
   relocate?: boolean;
-  /** Command line to pass to executable. */
-  cmdLine?: string;
 }
 
 function parseURL(): URLParams | undefined {
@@ -102,8 +100,7 @@ function parseURL(): URLParams | undefined {
   const dir = query.get('dir') || undefined;
   const files = query.getAll('file');
   const relocate = query.has('relocate');
-  const cmdLine = query.get('cmdline') || undefined;
-  const params: URLParams = { dir, exe, files, relocate, cmdLine };
+  const params: URLParams = { dir, exe, files, relocate };
   return params;
 }
 
@@ -118,20 +115,18 @@ export async function loadEmulator() {
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
   const csvLabels = new Map<number, string>();
-  const resp = await fetch(params.dir + params.exe + '.csv');
+  const resp = await fetch(params.exe + '.csv');
   if (resp.ok) {
     for (const [addr, name] of parseCSV(await resp.text())) {
       csvLabels.set(addr, name);
     }
   }
 
-  const cmdLine = params.cmdLine ?? params.exe;
-  const exePath = (params.dir ?? '') + params.exe;
+  const storageKey = (params.dir ?? '') + params.exe;
   return new Emulator(
     null!,
     fileset,
-    exePath,
-    cmdLine,
+    storageKey,
     fileset.get(params.exe)!,
     csvLabels,
     params.relocate ?? false,

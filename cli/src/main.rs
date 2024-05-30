@@ -18,8 +18,10 @@ mod headless;
 #[cfg(not(feature = "sdl"))]
 use headless::GUI;
 
-#[cfg(feature = "x86-64")]
+#[cfg(all(feature = "x86-64", target_os = "macos"))]
 mod resv32;
+
+std::arch::global_asm!(".section resv32", ".space 0x1000*0x1000",);
 
 #[cfg(feature = "x86-emu")]
 static mut SNAPSHOT_REQUESTED: bool = false;
@@ -259,7 +261,7 @@ fn print_trace(machine: &win32::Machine) {
 fn main() -> anyhow::Result<()> {
     logging::init();
 
-    #[cfg(feature = "x86-64")]
+    #[cfg(all(feature = "x86-64", target_os = "macos"))]
     unsafe {
         crate::resv32::init_resv32();
     }

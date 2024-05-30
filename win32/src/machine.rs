@@ -1,6 +1,8 @@
 use crate::{host, shims::Shim, winapi};
 use std::collections::HashMap;
 
+#[cfg(feature = "x86-32")]
+pub use crate::machine_32::{Machine, MemImpl};
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::{Machine, MemImpl};
 #[cfg(feature = "x86-64")]

@@ -11,7 +11,6 @@ export interface EmulatorHost {
   showTab(name: string): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
-  onStopped(): void;
 }
 
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
@@ -19,7 +18,6 @@ export class Emulator extends JsHost {
   readonly emu: wasm.Emulator;
   imports: string[] = [];
   labels: Labels;
-  /** True when the emulator is actively trying to loop and executing instructions, false when stopped or blocked. */
   running = false;
   breakpoints: Breakpoints;
   channel = new MessageChannel();
@@ -27,16 +25,15 @@ export class Emulator extends JsHost {
   constructor(
     host: EmulatorHost,
     files: FileSet,
-    exePath: string,
-    cmdLine: string,
+    readonly storageKey: string,
     bytes: Uint8Array,
     labels: Map<number, string>,
     relocate: boolean,
   ) {
     super(host, files);
-    this.emu = wasm.new_emulator(this, cmdLine);
-    this.emu.load_exe(exePath, bytes, relocate);
-    this.breakpoints = new Breakpoints(exePath);
+    this.emu = wasm.new_emulator(this, storageKey);
+    this.emu.load_exe(storageKey, bytes, relocate);
+    this.breakpoints = new Breakpoints(storageKey);
 
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
@@ -93,24 +90,15 @@ export class Emulator extends JsHost {
     const cpuState = this.runBatch();
     this.breakpoints.uninstall(this.emu);
 
-    switch (cpuState) {
-      case wasm.CPUState.Running:
-        return true;
-      case wasm.CPUState.Blocked: {
-        const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
-        if (bp) {
-          if (!bp.oneShot) {
-            this.emuHost.showTab('breakpoints');
-          }
-          this.emuHost.onStopped();
-        }
-        return false;
+    const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
+    if (bp) {
+      if (!bp.oneShot) {
+        this.emuHost.showTab('breakpoints');
       }
-      case wasm.CPUState.Error:
-      case wasm.CPUState.Exit:
-        this.emuHost.onStopped();
-        return false;
+      return false;
     }
+
+    return cpuState == wasm.CPUState.Running;
   }
 
   start() {

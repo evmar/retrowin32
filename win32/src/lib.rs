@@ -24,6 +24,9 @@ mod machine_unicorn;
 #[cfg(feature = "x86-unicorn")]
 mod shims_unicorn;
 
+#[cfg(feature = "x86-32")]
+mod machine_32;
+
 pub use host::*;
 pub use machine::Machine;
 #[cfg(feature = "x86-emu")]
