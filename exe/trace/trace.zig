@@ -19,8 +19,10 @@ const tracee = struct {
     var proc: winapi.PROCESS_INFORMATION = undefined;
     var state: State = State.init;
     var trace_points: TracePoints = undefined;
-    const pre_upx_addr = 0x44d98c;
-    const post_upx_addr = 0x41f079;
+    // If pre_upx_addr != 0, we execute up to this address before installing any breakpoints.
+    // This is useful to mark the point when an unpacker finishes and is about to jmp to the
+    // real code.
+    const pre_upx_addr = 0; // 0x44d98c;
 };
 
 fn processDllLoadEvent(load: winapi.LOAD_DLL_DEBUG_INFO) !void {
@@ -49,26 +51,35 @@ fn processDllLoadEvent(load: winapi.LOAD_DLL_DEBUG_INFO) !void {
     std.log.info("load dll '{s}'", .{name});
 }
 
+fn installBreakPoints() !void {
+    var iter = tracee.trace_points.iterator();
+    while (iter.next()) |entry| {
+        if (entry.value_ptr.* == 0) {
+            entry.value_ptr.* = try debug.installBreakPoint(tracee.proc.hProcess, entry.key_ptr.*);
+        }
+    }
+}
+
 fn processBreakpoint(addr: u32) !void {
     switch (tracee.state) {
         State.init => {
             // We hit a breakpoint on process start that is not one of our registered breakpoints,
             // so there's no need to uninstall it.
-            const instr = try debug.installBreakPoint(tracee.proc.hProcess, tracee.pre_upx_addr);
-            try tracee.trace_points.put(tracee.pre_upx_addr, instr);
-            tracee.state = State.unpacking;
+            if (tracee.pre_upx_addr != 0) {
+                const instr = try debug.installBreakPoint(tracee.proc.hProcess, tracee.pre_upx_addr);
+                try tracee.trace_points.put(tracee.pre_upx_addr, instr);
+                tracee.state = State.unpacking;
+            } else {
+                try installBreakPoints();
+                tracee.state = State.run;
+            }
             return;
         },
         State.unpacking => {
             if (addr != tracee.pre_upx_addr) {
                 std.debug.panic("unexpected unpack breakpoint {x}", .{addr});
             }
-            var iter = tracee.trace_points.iterator();
-            while (iter.next()) |entry| {
-                if (entry.value_ptr.* == 0) {
-                    entry.value_ptr.* = try debug.installBreakPoint(tracee.proc.hProcess, entry.key_ptr.*);
-                }
-            }
+            try installBreakPoints();
             tracee.state = State.run;
         },
         State.run => {
