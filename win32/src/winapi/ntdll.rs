@@ -30,7 +30,7 @@ pub fn NtReadFile(
     ByteOffset: Option<&mut u64>,
     Key: u32,
 ) -> u32 {
-    let file = machine.state.kernel32.files.get_mut(&FileHandle).unwrap();
+    let file = machine.state.kernel32.files.get_mut(FileHandle).unwrap();
     if Event != 0 {
         todo!();
     }

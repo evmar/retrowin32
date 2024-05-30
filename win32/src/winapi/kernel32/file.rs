@@ -114,9 +114,7 @@ pub fn CreateFileA(
     }
 
     let file = machine.host.open(file_name, access);
-    let hfile = HFILE::from_raw(0xF11E_0001);
-    machine.state.kernel32.files.insert(hfile, file);
-    hfile
+    machine.state.kernel32.files.add(file)
 }
 
 #[win32_derive::dllexport]
@@ -153,7 +151,7 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
         STDIN_HFILE | STDOUT_HFILE | STDERR_HFILE => return FILE_TYPE_CHAR,
         _ => {}
     }
-    if machine.state.kernel32.files.get(&hFile).is_some() {
+    if machine.state.kernel32.files.get(hFile).is_some() {
         return FILE_TYPE_CHAR;
     }
 
@@ -191,7 +189,7 @@ pub fn GetFileInformationByHandle(
     hFile: HFILE,
     lpFileInformation: Option<&mut BY_HANDLE_FILE_INFORMATION>,
 ) -> bool {
-    let file = match machine.state.kernel32.files.get(&hFile) {
+    let file = match machine.state.kernel32.files.get(hFile) {
         Some(f) => f,
         None => todo!(),
     };
@@ -220,7 +218,7 @@ pub fn SetFilePointer(
     if dwMoveMethod != FILE_BEGIN {
         unimplemented!();
     }
-    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
+    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
     if !file.seek(lDistanceToMove) {
         // TODO: SetLastError
         return INVALID_SET_FILE_POINTER;
@@ -236,7 +234,7 @@ pub fn ReadFile(
     lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    let file = machine.state.kernel32.files.get_mut(&hFile).unwrap();
+    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
     // TODO: SetLastError
     let n = file.read(lpBuffer.unwrap()).unwrap();
     if let Some(bytes) = lpNumberOfBytesRead {

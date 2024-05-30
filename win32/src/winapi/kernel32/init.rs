@@ -5,7 +5,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{self, alloc::Arena, builtin::BuiltinDLL, heap::Heap, types::*},
+    winapi::{self, alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -186,7 +186,7 @@ pub struct State {
     pub resources: pe::IMAGE_DATA_DIRECTORY,
 
     #[serde(skip)] // TODO
-    pub files: HashMap<HFILE, Box<dyn crate::host::File>>,
+    pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)]
     #[cfg(feature = "x86-64")]
@@ -239,7 +239,7 @@ impl State {
             mappings,
             heaps: HashMap::new(),
             dlls: Vec::new(),
-            files: HashMap::new(),
+            files: Default::default(),
             env: env_addr,
             cmdline,
             #[cfg(feature = "x86-64")]
