@@ -142,6 +142,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::And_rm16_imm8 as usize] = Some(and_rm16_imm8);
     OP_TAB[iced_x86::Code::And_rm16_imm16 as usize] = Some(and_rm16_imm16);
     OP_TAB[iced_x86::Code::And_AX_imm16 as usize] = Some(and_rm16_imm16);
+    OP_TAB[iced_x86::Code::And_rm16_r16 as usize] = Some(and_rm16_r16);
     OP_TAB[iced_x86::Code::And_rm8_r8 as usize] = Some(and_rm8_r8);
     OP_TAB[iced_x86::Code::And_rm8_imm8 as usize] = Some(and_rm8_imm8);
     OP_TAB[iced_x86::Code::And_AL_imm8 as usize] = Some(and_rm8_imm8);
@@ -152,6 +153,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Or_EAX_imm32 as usize] = Some(or_rm32_imm32);
     OP_TAB[iced_x86::Code::Or_rm32_imm8 as usize] = Some(or_rm32_imm8);
     OP_TAB[iced_x86::Code::Or_rm16_imm16 as usize] = Some(or_rm16_imm16);
+    OP_TAB[iced_x86::Code::Or_rm16_r16 as usize] = Some(or_rm16_r16);
     OP_TAB[iced_x86::Code::Or_rm8_r8 as usize] = Some(or_rm8_r8);
     OP_TAB[iced_x86::Code::Or_rm8_imm8 as usize] = Some(or_rm8_imm8);
     OP_TAB[iced_x86::Code::Or_r8_rm8 as usize] = Some(or_r8_rm8);
