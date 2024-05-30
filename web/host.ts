@@ -154,10 +154,9 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     return new File(path, bytes);
   }
 
-  write(buf: Uint8Array): number {
+  stdout(buf: Uint8Array) {
     const text = this.decoder.decode(buf);
     this.emuHost.onStdOut(text);
-    return buf.length;
   }
 
   windows: Window[] = [];

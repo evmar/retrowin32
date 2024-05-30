@@ -201,7 +201,7 @@ export interface JsHost {
   get_event(): Event | undefined;
   
   open(path: string): JsFile;
-  write(buf: Uint8Array): number;
+  log(buf: Uint8Array);
   
   create_window(hwnd: number): JsWindow;
 }"#;
@@ -225,7 +225,7 @@ extern "C" {
     #[wasm_bindgen(method)]
     fn open(this: &JsHost, path: &str) -> JsFile;
     #[wasm_bindgen(method)]
-    fn write(this: &JsHost, buf: &[u8]) -> usize;
+    fn stdout(this: &JsHost, buf: &[u8]);
 
     #[wasm_bindgen(method)]
     fn create_window(this: &JsHost, hwnd: u32) -> JsWindow;
@@ -268,8 +268,8 @@ impl win32::Host for JsHost {
         }
     }
 
-    fn write(&self, buf: &[u8]) -> usize {
-        JsHost::write(self, buf)
+    fn log(&self, buf: &[u8]) {
+        JsHost::stdout(self, buf)
     }
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {

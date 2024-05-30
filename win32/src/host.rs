@@ -90,7 +90,7 @@ pub trait Host {
     fn block(&self, wait: Option<u32>) -> bool;
 
     fn open(&self, path: &str, access: FileAccess) -> Box<dyn File>;
-    fn write(&self, buf: &[u8]) -> usize;
+    fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;

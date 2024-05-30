@@ -251,10 +251,16 @@ pub fn WriteFile(
     lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    assert!(hFile == STDOUT_HFILE || hFile == STDERR_HFILE);
     assert!(lpOverlapped == 0);
 
-    let n = machine.host.write(lpBuffer.unwrap());
+    let buf = lpBuffer.unwrap();
+    let n = match hFile {
+        STDOUT_HFILE | STDERR_HFILE => {
+            machine.host.log(buf);
+            buf.len()
+        }
+        _ => todo!(),
+    };
 
     // The docs say this parameter may not be null, but a test program with the param as null
     // runs fine on real Windows...

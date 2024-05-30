@@ -47,7 +47,7 @@ pub fn MessageBoxA(
     lpCaption: Option<&str>,
     uType: u32,
 ) -> u32 {
-    machine.host.write(
+    machine.host.log(
         format!(
             "MessageBox: {}\n{}",
             lpCaption.unwrap_or("Error"),
@@ -66,7 +66,7 @@ pub fn MessageBoxW(
     lpCaption: Option<&Str16>,
     uType: u32,
 ) -> u32 {
-    machine.host.write(
+    machine.host.log(
         format!(
             "MessageBox: {}\n{}",
             lpCaption.unwrap().to_string(),

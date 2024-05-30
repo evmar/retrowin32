@@ -135,8 +135,8 @@ impl win32::Host for EnvRef {
         }
     }
 
-    fn write(&self, buf: &[u8]) -> usize {
-        std::io::stdout().lock().write(buf).unwrap()
+    fn log(&self, buf: &[u8]) {
+        std::io::stdout().lock().write_all(buf).unwrap();
     }
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
