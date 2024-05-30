@@ -62,7 +62,21 @@ impl TryFrom<u32> for FileAttribute {
     }
 }
 
-const GENERIC_READ: u32 = 0x8000_0000;
+bitflags! {
+    pub struct GENERIC: u32 {
+        const ALL = 0x10000000;
+        const EXECUTE = 0x20000000;
+        const WRITE = 0x40000000;
+        const READ = 0x80000000;
+    }
+}
+impl TryFrom<u32> for GENERIC {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        GENERIC::from_bits(value).ok_or(value)
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn CreateFileA(
@@ -76,8 +90,11 @@ pub fn CreateFileA(
     hTemplateFile: HFILE,
 ) -> HFILE {
     let file_name = lpFileName.unwrap();
-    if dwDesiredAccess != GENERIC_READ {
-        unimplemented!("CreateFile access {:x}", dwDesiredAccess);
+
+    // If this from_bits fails, it's due to more complex access bits; see ACCESS_MASK in MSDN docs.
+    let generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
+    if generic_access != GENERIC::READ {
+        unimplemented!("CreateFile access {:?}", generic_access);
     }
     let _dwCreationDisposition = dwCreationDisposition.unwrap();
 
