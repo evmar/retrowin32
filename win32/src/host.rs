@@ -43,7 +43,7 @@ pub enum FileAccess {
     WRITE,
 }
 
-pub trait File: std::io::Read {
+pub trait File: std::io::Read + std::io::Write {
     /// Just file size for now, but maybe we'll need more(?)
     fn info(&self) -> u32;
     fn seek(&mut self, ofs: u32) -> bool;

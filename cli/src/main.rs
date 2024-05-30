@@ -79,6 +79,16 @@ impl std::io::Read for File {
     }
 }
 
+impl std::io::Write for File {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.f.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.f.flush()
+    }
+}
+
 struct Env {
     gui: Option<GUI>,
     exit_code: Option<u32>,

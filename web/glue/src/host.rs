@@ -156,6 +156,16 @@ impl std::io::Read for JsFile {
     }
 }
 
+impl std::io::Write for JsFile {
+    fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
+        todo!()
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        todo!()
+    }
+}
+
 fn map_mousevent(event: web_sys::MouseEvent) -> anyhow::Result<win32::MouseMessage> {
     Ok(win32::MouseMessage {
         down: true,

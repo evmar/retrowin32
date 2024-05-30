@@ -259,7 +259,10 @@ pub fn WriteFile(
             machine.host.log(buf);
             buf.len()
         }
-        _ => todo!(),
+        _ => {
+            let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+            file.write(buf).unwrap()
+        }
     };
 
     // The docs say this parameter may not be null, but a test program with the param as null
