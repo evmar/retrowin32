@@ -38,6 +38,11 @@ pub trait Window {
     fn fullscreen(&mut self);
 }
 
+pub enum FileAccess {
+    READ,
+    // WRITE,
+}
+
 pub trait File: std::io::Read {
     /// Just file size for now, but maybe we'll need more(?)
     fn info(&self) -> u32;
@@ -84,7 +89,7 @@ pub trait Host {
     /// unblock() when ready.
     fn block(&self, wait: Option<u32>) -> bool;
 
-    fn open(&self, path: &str) -> Box<dyn File>;
+    fn open(&self, path: &str, access: FileAccess) -> Box<dyn File>;
     fn write(&self, buf: &[u8]) -> usize;
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;

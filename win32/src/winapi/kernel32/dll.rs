@@ -1,6 +1,7 @@
 use memory::{Extensions, Pod};
 
 use crate::{
+    host,
     machine::{Emulator, Machine},
     pe,
     str16::expect_ascii,
@@ -208,7 +209,7 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         return machine.state.kernel32.load_builtin_dll(builtin);
     }
 
-    let mut file = machine.host.open(&filename);
+    let mut file = machine.host.open(&filename, host::FileAccess::READ);
     let mut contents = Vec::new();
     let mut buf: [u8; 16 << 10] = [0; 16 << 10];
     loop {

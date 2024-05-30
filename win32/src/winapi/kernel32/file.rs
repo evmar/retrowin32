@@ -1,4 +1,5 @@
 use crate::{
+    host,
     machine::Machine,
     winapi::{
         stack_args::{ArrayWithSize, ArrayWithSizeMut},
@@ -107,7 +108,7 @@ pub fn CreateFileA(
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
 
-    let file = machine.host.open(file_name);
+    let file = machine.host.open(file_name, host::FileAccess::READ);
     let hfile = HFILE::from_raw(0xF11E_0001);
     machine.state.kernel32.files.insert(hfile, file);
     hfile

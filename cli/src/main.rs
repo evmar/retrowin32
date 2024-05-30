@@ -126,8 +126,10 @@ impl win32::Host for EnvRef {
         gui.block(wait)
     }
 
-    fn open(&self, path: &str) -> Box<dyn win32::File> {
-        Box::new(File::open(Path::new(path)))
+    fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
+        match access {
+            win32::FileAccess::READ => Box::new(File::open(Path::new(path))),
+        }
     }
 
     fn write(&self, buf: &[u8]) -> usize {
