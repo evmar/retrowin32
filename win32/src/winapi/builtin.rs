@@ -1198,6 +1198,11 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetLastError(machine).to_raw()
         }
+        pub unsafe fn GetLocalTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetLocalTime(machine, lpSystemTime).to_raw()
+        }
         pub unsafe fn GetModuleFileNameA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
@@ -2020,6 +2025,12 @@ pub mod kernel32 {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const GetLocalTime: Shim = Shim {
+            name: "GetLocalTime",
+            func: impls::GetLocalTime,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetModuleFileNameA: Shim = Shim {
             name: "GetModuleFileNameA",
             func: impls::GetModuleFileNameA,
@@ -2513,7 +2524,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 114usize] = [
+    const EXPORTS: [Symbol; 115usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2641,6 +2652,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetLastError,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetLocalTime,
         },
         Symbol {
             ordinal: None,

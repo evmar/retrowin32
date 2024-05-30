@@ -54,6 +54,12 @@ pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETI
 }
 
 #[win32_derive::dllexport]
+pub fn GetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
+    lpSystemTime.unwrap().clear_struct();
+    0
+}
+
+#[win32_derive::dllexport]
 pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
     #[cfg(feature = "x86-emu")]
     {
