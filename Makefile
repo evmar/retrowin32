@@ -7,6 +7,7 @@
 # Flags:
 # $ make deploy opt=1
 
+dprint?=web/node_modules/.bin/dprint
 opt?=0
 cargoflags=
 profile=debug
@@ -46,6 +47,6 @@ unicorn:
 fmt-rust:
 	cargo fmt
 fmt-dprint:
-	web/node_modules/.bin/dprint fmt
+	$(dprint) fmt
 fmt: fmt-rust fmt-dprint
 .PHONY: fmt-rust fmt-dprint fmt
