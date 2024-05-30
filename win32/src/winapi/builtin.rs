@@ -1290,6 +1290,12 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetTickCount(machine).to_raw()
         }
+        pub unsafe fn GetTimeZoneInformation(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpTimeZoneInformation =
+                <Option<&mut TIME_ZONE_INFORMATION>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetTimeZoneInformation(machine, lpTimeZoneInformation).to_raw()
+        }
         pub unsafe fn GetVersion(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetVersion(machine).to_raw()
@@ -2098,6 +2104,12 @@ pub mod kernel32 {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const GetTimeZoneInformation: Shim = Shim {
+            name: "GetTimeZoneInformation",
+            func: impls::GetTimeZoneInformation,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetVersion: Shim = Shim {
             name: "GetVersion",
             func: impls::GetVersion,
@@ -2501,7 +2513,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 113usize] = [
+    const EXPORTS: [Symbol; 114usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2685,6 +2697,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetTickCount,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetTimeZoneInformation,
         },
         Symbol {
             ordinal: None,

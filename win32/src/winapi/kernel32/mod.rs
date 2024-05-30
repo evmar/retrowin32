@@ -11,6 +11,7 @@ mod misc;
 mod resource;
 mod sync;
 mod thread;
+mod time;
 
 pub use self::memory::*;
 pub use dll::*;
@@ -22,3 +23,4 @@ pub use misc::*;
 pub use resource::*;
 pub use sync::*;
 pub use thread::*;
+pub use time::*;
