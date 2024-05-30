@@ -7,7 +7,7 @@ const winapi = @import("./winapi.zig");
 
 /// Patch a byte in a debugee's memory.
 pub fn patchProcess(proc: HANDLE, addr: u32, patch: u8) !void {
-    if (winapi.WriteProcessMemory(proc, addr, @ptrCast([*]const u8, &patch), 1, null) == 0) {
+    if (winapi.WriteProcessMemory(proc, addr, @ptrCast(&patch), 1, null) == 0) {
         winapi.logWindowsErr("WriteProcessMemory");
         return error.WindowsFailure;
     }
@@ -21,7 +21,7 @@ pub fn patchProcess(proc: HANDLE, addr: u32, patch: u8) !void {
 /// Install a breakpoint in a debugee's memory, returning the code that was patched over.
 pub fn installBreakPoint(proc: HANDLE, addr: u32) !u8 {
     var prev: u8 = undefined;
-    if (winapi.ReadProcessMemory(proc, addr, @ptrCast([*]u8, &prev), 1, null) == 0) {
+    if (winapi.ReadProcessMemory(proc, addr, @ptrCast(&prev), 1, null) == 0) {
         winapi.logWindowsErr("ReadProcessMemory");
         return error.WindowsFailure;
     }
@@ -38,7 +38,7 @@ pub fn readString(proc: HANDLE, addr: u32, unicode: bool, buf: []u8) ![]u8 {
     var ch: u16 = undefined;
     const size: u32 = if (unicode) 2 else 1;
     while (len < buf.len) {
-        if (winapi.ReadProcessMemory(proc, addr + (len * size), @ptrCast([*]u8, &ch), size, null) == 0) {
+        if (winapi.ReadProcessMemory(proc, addr + (len * size), @ptrCast(&ch), size, null) == 0) {
             winapi.logWindowsErr("ReadProcessMemory");
             return error.WindowsFailure;
         }
@@ -48,7 +48,7 @@ pub fn readString(proc: HANDLE, addr: u32, unicode: bool, buf: []u8) ![]u8 {
         if (ch > 0xFF) {
             return error.UnicodeString;
         }
-        buf[len] = @intCast(u8, ch);
+        buf[len] = @intCast(ch);
         len += 1;
     }
     return buf;
@@ -66,7 +66,7 @@ pub fn startProcess(cmd: []const u8) !winapi.PROCESS_INFORMATION {
         cmdz.ptr,
         null,
         null,
-        @boolToInt(false),
+        @intFromBool(false),
         winapi.PROCESS_CREATION_FLAGS.DEBUG_ONLY_THIS_PROCESS,
         null,
         null,

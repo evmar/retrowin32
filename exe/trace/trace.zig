@@ -6,8 +6,8 @@ const debug = @import("./debug.zig");
 const Allocator = std.mem.Allocator;
 
 // Declaring this struct affects the default log level(!)
-pub const std_options = struct {
-    pub const log_level = .info;
+pub const std_options: std.Options = .{
+    .log_level = .info
 };
 
 var stdout: @TypeOf(std.io.getStdOut().writer()) = undefined;
@@ -35,7 +35,7 @@ fn processDllLoadEvent(load: winapi.LOAD_DLL_DEBUG_INFO) !void {
     if (winapi.ReadProcessMemory(
         tracee.proc.hProcess,
         load.lpImageName,
-        @ptrCast([*]u8, &addr),
+        @ptrCast(&addr),
         4,
         null,
     ) == 0) {

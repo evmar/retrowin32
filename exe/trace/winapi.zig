@@ -10,7 +10,7 @@ const WINAPI = windows.WINAPI;
 
 pub fn logWindowsErr(call: []const u8) void {
     // Logging GetLastError as an enum adds 100kb(!) to the binary size.
-    const code = @enumToInt(windows.kernel32.GetLastError());
+    const code = @intFromEnum(windows.kernel32.GetLastError());
     std.log.err("{s}: {}", .{ call, code });
 }
 
