@@ -264,6 +264,7 @@ impl win32::Host for JsHost {
     fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
         match access {
             win32::FileAccess::READ => Box::new(JsHost::open(self, path)),
+            win32::FileAccess::WRITE => todo!(),
         }
     }
 

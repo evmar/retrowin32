@@ -40,7 +40,7 @@ pub trait Window {
 
 pub enum FileAccess {
     READ,
-    // WRITE,
+    WRITE,
 }
 
 pub trait File: std::io::Read {

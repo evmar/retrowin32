@@ -47,6 +47,7 @@ pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFI
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum CreationDisposition {
+    CREATE_ALWAYS = 2,
     OPEN_EXISTING = 3,
 }
 
@@ -94,10 +95,14 @@ pub fn CreateFileA(
 
     // If this from_bits fails, it's due to more complex access bits; see ACCESS_MASK in MSDN docs.
     let generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
-    if generic_access != GENERIC::READ {
-        unimplemented!("CreateFile access {:?}", generic_access);
-    }
+    let access = match generic_access {
+        GENERIC::READ => host::FileAccess::READ,
+        GENERIC::WRITE => host::FileAccess::WRITE,
+        _ => unimplemented!("access {generic_access:?}"),
+    };
+
     let _dwCreationDisposition = dwCreationDisposition.unwrap();
+    // TODO: pass creation dispositions for create new vs existing etc.
 
     let attr = dwFlagsAndAttributes.unwrap();
     if attr - FileAttribute::NORMAL != FileAttribute::empty() {
@@ -108,7 +113,7 @@ pub fn CreateFileA(
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
 
-    let file = machine.host.open(file_name, host::FileAccess::READ);
+    let file = machine.host.open(file_name, access);
     let hfile = HFILE::from_raw(0xF11E_0001);
     machine.state.kernel32.files.insert(hfile, file);
     hfile

@@ -129,6 +129,9 @@ impl win32::Host for EnvRef {
     fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
         match access {
             win32::FileAccess::READ => Box::new(File::open(Path::new(path))),
+            win32::FileAccess::WRITE => Box::new(File {
+                f: std::fs::File::create(path).unwrap(),
+            }),
         }
     }
 
