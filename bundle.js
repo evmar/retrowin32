@@ -1,10 +1,3 @@
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-
 // node_modules/preact/dist/preact.module.js
 var n;
 var l;
@@ -313,21 +306,12 @@ var Number = class extends d {
   }
 };
 var Memory = class extends d {
-  constructor() {
-    super(...arguments);
-    __publicField(this, "onSubmit", (e2) => {
-      e2.preventDefault();
-      const form = e2.target;
-      const addr = form.elements.namedItem("addr").value;
-      this.props.jumpTo(parseInt(addr, 16));
-    });
-    __publicField(this, "onJumpForward", (e2) => {
-      this.jump(e2, 1);
-    });
-    __publicField(this, "onJumpBack", (e2) => {
-      this.jump(e2, -1);
-    });
-  }
+  onSubmit = (e2) => {
+    e2.preventDefault();
+    const form = e2.target;
+    const addr = form.elements.namedItem("addr").value;
+    this.props.jumpTo(parseInt(addr, 16));
+  };
   jump(e2, direction) {
     let step = 256;
     if (e2.shiftKey)
@@ -337,6 +321,12 @@ var Memory = class extends d {
     step *= direction;
     this.props.jumpTo(this.props.base + step);
   }
+  onJumpForward = (e2) => {
+    this.jump(e2, 1);
+  };
+  onJumpBack = (e2) => {
+    this.jump(e2, -1);
+  };
   render() {
     let rows = [];
     const base = this.props.base & ~15;
@@ -383,10 +373,91 @@ var Memory = class extends d {
 };
 
 // break.tsx
+var Breakpoints = class {
+  constructor(storageKey) {
+    this.storageKey = storageKey;
+    const json = window.localStorage.getItem(storageKey);
+    if (!json)
+      return;
+    const list = JSON.parse(json);
+    this.breakpoints = new Map(list.map((bp) => [bp.addr, bp]));
+  }
+  breakpoints = /* @__PURE__ */ new Map();
+  save() {
+    window.localStorage.setItem(this.storageKey, JSON.stringify(Array.from(this.breakpoints.values())));
+  }
+  addBreak(bp) {
+    this.breakpoints.set(bp.addr, bp);
+    this.save();
+  }
+  addBreakByName(labels, name) {
+    for (const [addr, label] of labels.byAddr) {
+      if (label === name) {
+        this.addBreak({ addr });
+        return true;
+      }
+    }
+    if (name.match(/^[0-9a-fA-F]+$/)) {
+      const addr = parseInt(name, 16);
+      this.addBreak({ addr });
+      return true;
+    }
+    return false;
+  }
+  delBreak(addr) {
+    const bp = this.breakpoints.get(addr);
+    if (!bp)
+      return;
+    this.breakpoints.delete(addr);
+    this.save();
+  }
+  toggleBreak(addr) {
+    const bp = this.breakpoints.get(addr);
+    bp.disabled = !bp.disabled;
+    this.save();
+  }
+  isAtBreakpoint(ip) {
+    const bp = this.breakpoints.get(ip);
+    if (bp && !bp.disabled) {
+      if (bp.oneShot) {
+        this.delBreak(bp.addr);
+      }
+      return bp;
+    }
+    return void 0;
+  }
+  install(emu) {
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled) {
+        emu.breakpoint_add(bp.addr);
+      }
+    }
+  }
+  uninstall(emu) {
+    for (const bp of this.breakpoints.values()) {
+      if (!bp.disabled) {
+        emu.breakpoint_clear(bp.addr);
+      }
+    }
+  }
+};
 var BreakpointsComponent = class extends d {
+  toggle(addr) {
+    this.props.breakpoints.toggleBreak(addr);
+    this.forceUpdate();
+  }
+  remove(addr) {
+    this.props.breakpoints.delBreak(addr);
+    this.forceUpdate();
+  }
+  add(text) {
+    const ret = this.props.breakpoints.addBreakByName(this.props.labels, text);
+    this.forceUpdate();
+    return ret;
+  }
   render() {
     const rows = [];
-    for (const bp of this.props.breakpoints) {
+    for (const bp of this.props.breakpoints.breakpoints.values()) {
       const className = bp.addr === this.props.highlight ? "highlight" : void 0;
       const label = this.props.labels.get(bp.addr);
       rows.push(
@@ -396,35 +467,32 @@ var BreakpointsComponent = class extends d {
         }, /* @__PURE__ */ h("input", {
           type: "checkbox",
           checked: !bp.disabled,
-          onChange: () => this.props.toggle(bp.addr)
+          onChange: () => this.toggle(bp.addr)
         }), /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h(Number, {
           digits: 8,
           ...this.props
         }, bp.addr))), bp.oneShot ? "[once]" : null, label ? /* @__PURE__ */ h("div", null, "(", /* @__PURE__ */ h("code", null, label), ")") : null, /* @__PURE__ */ h("button", {
           class: "x",
-          onClick: () => this.props.remove(bp.addr)
+          onClick: () => this.remove(bp.addr)
         }, "x"))
       );
     }
     return /* @__PURE__ */ h("section", null, rows, /* @__PURE__ */ h(AddComponent, {
-      onAccept: (text) => this.props.add(text)
+      onAccept: (text) => this.add(text)
     }));
   }
 };
 var AddComponent = class extends d {
-  constructor() {
-    super(...arguments);
-    __publicField(this, "onInput", (ev) => {
-      const text = ev.target.value;
-      this.setState({ text });
-    });
-    __publicField(this, "onSubmit", (ev) => {
-      ev.preventDefault();
-      if (this.props.onAccept(this.state.text)) {
-        this.setState({ text: "" });
-      }
-    });
-  }
+  onInput = (ev) => {
+    const text = ev.target.value;
+    this.setState({ text });
+  };
+  onSubmit = (ev) => {
+    ev.preventDefault();
+    if (this.props.onAccept(this.state.text)) {
+      this.setState({ text: "" });
+    }
+  };
   render() {
     return /* @__PURE__ */ h("form", {
       onSubmit: this.onSubmit
@@ -691,27 +759,24 @@ var Stack = class extends d {
 
 // tabs.tsx
 var Tabs = class extends d {
-  constructor(props) {
-    super(props);
-    this.state = { cur: Object.keys(props.tabs)[0] };
-  }
   render() {
-    const tabs = this.props.tabs;
+    const { style, tabs, selected, switchTab } = this.props;
+    const content = tabs[selected]();
     return /* @__PURE__ */ h("section", {
       class: "panel",
-      style: this.props.style
+      style
     }, /* @__PURE__ */ h("div", {
       class: "tabs-strip"
-    }, Object.keys(tabs).map((name) => {
+    }, "|", Object.keys(tabs).map((name) => {
       let button = /* @__PURE__ */ h("span", {
         class: "clicky",
-        onClick: () => this.props.switchTab(name)
+        onClick: () => switchTab(name)
       }, name);
-      if (name === this.props.selected) {
+      if (name === selected) {
         button = /* @__PURE__ */ h("b", null, button);
       }
-      return /* @__PURE__ */ h(p, null, "\xA0|\xA0", button);
-    })), tabs[this.props.selected]);
+      return /* @__PURE__ */ h(p, null, "\xA0", button, "\xA0|");
+    })), content);
   }
 };
 
@@ -1120,6 +1185,21 @@ function __wbg_get_imports() {
       return ret;
     }, arguments);
   };
+  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+      deferred0_0 = arg2;
+      deferred0_1 = arg3;
+      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
+  };
+  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
+    const ret = arg0.read(getArrayU8FromWasm0(arg1, arg2));
+    return ret;
+  };
   imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
     arg0.exit(arg1 >>> 0);
   };
@@ -1199,13 +1279,8 @@ function __wbg_get_imports() {
     const ret = arg0.seek(arg1 >>> 0);
     return ret;
   };
-  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
-    const ret = arg0.read(getArrayU8FromWasm0(arg1, arg2));
-    return ret;
-  };
-  imports.wbg.__wbg_write_61e5d5b79d83ffda = function(arg0, arg1, arg2) {
-    const ret = arg0.write(getArrayU8FromWasm0(arg1, arg2));
-    return ret;
+  imports.wbg.__wbg_stdout_e61c589931436d69 = function(arg0, arg1, arg2) {
+    arg0.stdout(getArrayU8FromWasm0(arg1, arg2));
   };
   imports.wbg.__wbg_createwindow_79bbfe483866ee8c = function(arg0, arg1) {
     const ret = arg0.create_window(arg1 >>> 0);
@@ -1282,17 +1357,6 @@ function __wbg_get_imports() {
     return handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
       arg0.drawImage(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }, arguments);
-  };
-  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
-    let deferred0_0;
-    let deferred0_1;
-    try {
-      deferred0_0 = arg2;
-      deferred0_1 = arg3;
-      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
-    } finally {
-      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
-    }
   };
   imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
     const ret = debugString(arg1);
@@ -1389,8 +1453,6 @@ var Window2 = class {
   constructor(jsHost, hwnd) {
     this.jsHost = jsHost;
     this.hwnd = hwnd;
-    __publicField(this, "title", "");
-    __publicField(this, "canvas", document.createElement("canvas"));
     const stashEvent = (ev) => {
       ev.hwnd = hwnd;
       jsHost.enqueueEvent(ev);
@@ -1402,6 +1464,8 @@ var Window2 = class {
       return false;
     };
   }
+  title = "";
+  canvas = document.createElement("canvas");
   set_size(w2, h2) {
     this.canvas.width = w2 * window.devicePixelRatio;
     this.canvas.height = h2 * window.devicePixelRatio;
@@ -1418,8 +1482,8 @@ var File = class {
   constructor(path, bytes) {
     this.path = path;
     this.bytes = bytes;
-    __publicField(this, "ofs", 0);
   }
+  ofs = 0;
   info() {
     return this.bytes.length;
   }
@@ -1446,11 +1510,10 @@ var JsHost = class {
   constructor(emuHost, files) {
     this.emuHost = emuHost;
     this.files = files;
-    __publicField(this, "events", []);
-    __publicField(this, "timer");
-    __publicField(this, "decoder", new TextDecoder());
-    __publicField(this, "windows", []);
   }
+  events = [];
+  timer;
+  decoder = new TextDecoder();
   log(level, msg) {
     switch (level) {
       case 5:
@@ -1506,11 +1569,11 @@ var JsHost = class {
     }
     return new File(path, bytes);
   }
-  write(buf) {
+  stdout(buf) {
     const text = this.decoder.decode(buf);
     this.emuHost.onStdOut(text);
-    return buf.length;
   }
+  windows = [];
   create_window(hwnd) {
     let window2 = new Window2(this, hwnd);
     this.windows.push(window2);
@@ -1530,8 +1593,8 @@ function* parseCSV(text) {
   }
 }
 var Labels = class {
+  byAddr;
   constructor(labels) {
-    __publicField(this, "byAddr");
     this.byAddr = Array.from(labels.entries());
     this.byAddr = this.byAddr.filter(([addr, _2]) => addr > 4096);
     this.byAddr.sort(([a2, _2], [b2, __]) => a2 - b2);
@@ -1573,18 +1636,17 @@ var Labels = class {
 
 // emulator.ts
 var Emulator2 = class extends JsHost {
-  constructor(host, files, storageKey, bytes, labels, relocate) {
+  emu;
+  imports = [];
+  labels;
+  running = false;
+  breakpoints;
+  channel = new MessageChannel();
+  constructor(host, files, exePath, cmdLine, bytes, labels, relocate) {
     super(host, files);
-    this.storageKey = storageKey;
-    __publicField(this, "emu");
-    __publicField(this, "breakpoints", /* @__PURE__ */ new Map());
-    __publicField(this, "imports", []);
-    __publicField(this, "labels");
-    __publicField(this, "running", false);
-    __publicField(this, "stepSize", 5e3);
-    __publicField(this, "instrPerMs", 0);
-    this.emu = new_emulator(this, storageKey);
-    this.emu.load_exe(storageKey, bytes, relocate);
+    this.emu = new_emulator(this, cmdLine);
+    this.emu.load_exe(exePath, bytes, relocate);
+    this.breakpoints = new Breakpoints(exePath);
     const importsJSON = JSON.parse(this.emu.labels());
     for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
       const addr = parseInt(jsAddr);
@@ -1593,67 +1655,14 @@ var Emulator2 = class extends JsHost {
       labels.set(addr, name);
     }
     this.labels = new Labels(labels);
-    this.loadBreakpoints();
-  }
-  loadBreakpoints() {
-    const json = window.localStorage.getItem(this.storageKey);
-    if (!json)
-      return;
-    const bps = JSON.parse(json);
-    for (const bp of bps) {
-      this.breakpoints.set(bp.addr, bp);
-    }
-  }
-  saveBreakpoints() {
-    window.localStorage.setItem(this.storageKey, JSON.stringify(Array.from(this.breakpoints.values())));
-  }
-  addBreak(bp) {
-    this.breakpoints.set(bp.addr, bp);
-    this.saveBreakpoints();
-  }
-  addBreakByName(name) {
-    for (const [addr, label] of this.labels.byAddr) {
-      if (label === name) {
-        this.addBreak({ addr });
-        return true;
-      }
-    }
-    if (name.match(/^[0-9a-fA-F]+$/)) {
-      const addr = parseInt(name, 16);
-      this.addBreak({ addr });
-      return true;
-    }
-    return false;
-  }
-  delBreak(addr) {
-    const bp = this.breakpoints.get(addr);
-    if (!bp)
-      return;
-    this.breakpoints.delete(addr);
-    this.saveBreakpoints();
-  }
-  toggleBreak(addr) {
-    const bp = this.breakpoints.get(addr);
-    bp.disabled = !bp.disabled;
-    this.saveBreakpoints();
-  }
-  isAtBreakpoint() {
-    const ip = this.emu.eip;
-    const bp = this.breakpoints.get(ip);
-    if (bp && !bp.disabled) {
-      if (bp.oneShot) {
-        this.delBreak(bp.addr);
-      } else {
-        this.emuHost.showTab("breakpoints");
-      }
-      return true;
-    }
-    return false;
+    this.channel.port2.onmessage = () => this.loop();
   }
   step() {
     this.emu.unblock();
     this.emu.run(1);
   }
+  stepSize = 5e3;
+  instrPerMs = 0;
   runBatch() {
     const startTime = performance.now();
     const startSteps = this.emu.instr_count;
@@ -1667,51 +1676,54 @@ var Emulator2 = class extends JsHost {
       const alpha = 0.5;
       this.instrPerMs = alpha * instrPerMs + (1 - alpha) * this.instrPerMs;
       if (deltaTime < 8) {
-        this.stepSize *= 2;
-        console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
+        this.stepSize = this.instrPerMs * 8;
       }
     }
     return cpuState;
   }
   stepMany() {
-    for (const bp of this.breakpoints.values()) {
-      if (!bp.disabled) {
-        this.emu.breakpoint_add(bp.addr);
-      }
-    }
+    this.breakpoints.install(this.emu);
     const cpuState = this.runBatch();
-    for (const bp of this.breakpoints.values()) {
-      if (!bp.disabled) {
-        this.emu.breakpoint_clear(bp.addr);
+    this.breakpoints.uninstall(this.emu);
+    switch (cpuState) {
+      case CPUState.Running:
+        return true;
+      case CPUState.Blocked: {
+        const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
+        if (bp) {
+          if (!bp.oneShot) {
+            this.emuHost.showTab("breakpoints");
+          }
+          this.emuHost.onStopped();
+        }
+        return false;
       }
+      case CPUState.Error:
+      case CPUState.Exit:
+        this.emuHost.onStopped();
+        return false;
     }
-    if (this.isAtBreakpoint()) {
-      return false;
-    }
-    return cpuState == CPUState.Running;
   }
   start() {
     if (this.running)
       return;
     this.emu.unblock();
-    if (this.isAtBreakpoint()) {
+    if (this.breakpoints.isAtBreakpoint(this.emu.eip)) {
       this.step();
     }
     this.running = true;
-    this.runFrame();
+    this.loop();
   }
-  runFrame() {
+  loop() {
     if (!this.running)
       return;
     if (!this.stepMany()) {
       this.stop();
       return;
     }
-    requestAnimationFrame(() => this.runFrame());
+    this.channel.port1.postMessage(null);
   }
   stop() {
-    if (!this.running)
-      return;
     this.running = false;
   }
   mappings() {
@@ -1724,31 +1736,28 @@ var Emulator2 = class extends JsHost {
 
 // web.tsx
 var WindowComponent = class extends d {
-  constructor() {
-    super(...arguments);
-    __publicField(this, "state", {
-      pos: [200, 200]
-    });
-    __publicField(this, "ref", y());
-    __publicField(this, "beginDrag", (e2) => {
-      const node = e2.currentTarget;
-      this.setState({ drag: [e2.offsetX, e2.offsetY] });
-      node.setPointerCapture(e2.pointerId);
-      e2.preventDefault();
-    });
-    __publicField(this, "onDrag", (e2) => {
-      if (!this.state.drag)
-        return;
-      this.setState({ pos: [e2.clientX - this.state.drag[0], e2.clientY - this.state.drag[1]] });
-      e2.preventDefault();
-    });
-    __publicField(this, "endDrag", (e2) => {
-      const node = e2.currentTarget;
-      this.setState({ drag: void 0 });
-      node.releasePointerCapture(e2.pointerId);
-      e2.preventDefault();
-    });
-  }
+  state = {
+    pos: [200, 200]
+  };
+  ref = y();
+  beginDrag = (e2) => {
+    const node = e2.currentTarget;
+    this.setState({ drag: [e2.offsetX, e2.offsetY] });
+    node.setPointerCapture(e2.pointerId);
+    e2.preventDefault();
+  };
+  onDrag = (e2) => {
+    if (!this.state.drag)
+      return;
+    this.setState({ pos: [e2.clientX - this.state.drag[0], e2.clientY - this.state.drag[1]] });
+    e2.preventDefault();
+  };
+  endDrag = (e2) => {
+    const node = e2.currentTarget;
+    this.setState({ drag: void 0 });
+    node.releasePointerCapture(e2.pointerId);
+    e2.preventDefault();
+  };
   ensureCanvas() {
     if (this.props.canvas && this.ref.current && !this.ref.current.firstChild) {
       this.ref.current.appendChild(this.props.canvas);
@@ -1791,7 +1800,8 @@ function parseURL() {
   const dir = query.get("dir") || void 0;
   const files = query.getAll("file");
   const relocate = query.has("relocate");
-  const params = { dir, exe, files, relocate };
+  const cmdLine = query.get("cmdline") || void 0;
+  const params = { dir, exe, files, relocate, cmdLine };
   return params;
 }
 async function loadEmulator() {
@@ -1802,17 +1812,19 @@ async function loadEmulator() {
   const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
   await glue_default(new URL("wasm.wasm", document.location.href));
   const csvLabels = /* @__PURE__ */ new Map();
-  const resp = await fetch(params.exe + ".csv");
+  const resp = await fetch(params.dir + params.exe + ".csv");
   if (resp.ok) {
     for (const [addr, name] of parseCSV(await resp.text())) {
       csvLabels.set(addr, name);
     }
   }
-  const storageKey = (params.dir ?? "") + params.exe;
+  const cmdLine = params.cmdLine ?? params.exe;
+  const exePath = (params.dir ?? "") + params.exe;
   return new Emulator2(
     null,
     fileset,
-    storageKey,
+    exePath,
+    cmdLine,
     fileset.get(params.exe),
     csvLabels,
     params.relocate ?? false
@@ -1820,14 +1832,22 @@ async function loadEmulator() {
 }
 
 // debugger.tsx
+var StartStop = class extends d {
+  render() {
+    const { running, start, stop, step, stepOver } = this.props;
+    return /* @__PURE__ */ h("span", null, /* @__PURE__ */ h("button", {
+      onClick: () => running ? stop() : start()
+    }, running ? "stop" : "run"), "\xA0", /* @__PURE__ */ h("button", {
+      onClick: () => step()
+    }, "step"), "\xA0", /* @__PURE__ */ h("button", {
+      onClick: () => stepOver()
+    }, "step over"));
+  }
+};
 var Debugger = class extends d {
+  state = { error: "", memBase: 4198400, selectedTab: "output" };
   constructor(props) {
     super(props);
-    __publicField(this, "state", { error: "", memBase: 4198400, selectedTab: "output" });
-    __publicField(this, "highlightMemory", (addr) => this.setState({ memHighlight: addr }));
-    __publicField(this, "showMemory", (memBase) => {
-      this.setState({ selectedTab: "memory", memBase });
-    });
     this.props.emulator.emuHost = this;
   }
   print(text) {
@@ -1850,14 +1870,17 @@ exited with code ${code}`);
   onStdOut(msg) {
     this.print(msg);
   }
-  step() {
+  onStopped() {
+    this.stop();
+  }
+  step = () => {
     try {
       this.props.emulator.step();
     } finally {
       this.forceUpdate();
     }
-  }
-  start() {
+  };
+  start = () => {
     if (this.state.running)
       return;
     this.setState({
@@ -1866,18 +1889,22 @@ exited with code ${code}`);
       }, 500)
     });
     this.props.emulator.start();
-  }
-  stop() {
+  };
+  stop = () => {
     if (!this.state.running)
       return;
     this.props.emulator.stop();
     clearInterval(this.state.running);
     this.setState({ running: void 0 });
-  }
-  runTo(addr) {
-    this.props.emulator.addBreak({ addr, oneShot: true });
+  };
+  runTo = (addr) => {
+    this.props.emulator.breakpoints.addBreak({ addr, oneShot: true });
     this.start();
-  }
+  };
+  memoryView = {
+    highlightMemory: (addr) => this.setState({ memHighlight: addr }),
+    showMemory: (memBase) => this.setState({ selectedTab: "memory", memBase })
+  };
   render() {
     let instrs = [];
     let code;
@@ -1892,9 +1919,8 @@ exited with code ${code}`);
       code = /* @__PURE__ */ h(Code, {
         instrs,
         labels: this.props.emulator.labels,
-        highlightMemory: this.highlightMemory,
-        showMemory: this.showMemory,
-        runTo: (addr) => this.runTo(addr)
+        ...this.memoryView,
+        runTo: this.runTo
       });
     }
     return /* @__PURE__ */ h(p, null, /* @__PURE__ */ h(EmulatorComponent, {
@@ -1902,60 +1928,45 @@ exited with code ${code}`);
     }), /* @__PURE__ */ h("section", {
       class: "panel",
       style: { display: "flex", alignItems: "baseline" }
-    }, /* @__PURE__ */ h("button", {
-      onClick: () => this.state.running ? this.stop() : this.start()
-    }, this.state.running ? "stop" : "run"), "\xA0", /* @__PURE__ */ h("button", {
-      onClick: () => this.step()
-    }, "step"), "\xA0", /* @__PURE__ */ h("button", {
-      onClick: () => instrs ? this.runTo(instrs[1].addr) : this.step()
-    }, "step over"), "\xA0", /* @__PURE__ */ h("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
+    }, /* @__PURE__ */ h(StartStop, {
+      running: this.state.running != null,
+      start: this.start,
+      stop: this.stop,
+      step: this.step,
+      stepOver: () => instrs ? this.runTo(instrs[1].addr) : this.step()
+    }), "\xA0", /* @__PURE__ */ h("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
       style: { display: "flex", margin: "1ex" }
     }, code, /* @__PURE__ */ h("div", {
       style: { width: "12ex" }
     }), /* @__PURE__ */ h(RegistersComponent, {
-      highlightMemory: this.highlightMemory,
-      showMemory: this.showMemory,
+      ...this.memoryView,
       regs: this.props.emulator.emu.regs()
     })), /* @__PURE__ */ h("div", {
       style: { display: "flex" }
     }, /* @__PURE__ */ h(Tabs, {
       style: { width: "80ex" },
       tabs: {
-        output: /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.state.stdout, this.state.error ? /* @__PURE__ */ h("div", {
+        output: () => /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.state.stdout, this.state.error ? /* @__PURE__ */ h("div", {
           class: "error"
         }, "ERROR: ", this.state.error) : null)),
-        memory: /* @__PURE__ */ h(Memory, {
+        memory: () => /* @__PURE__ */ h(Memory, {
           mem: this.props.emulator.emu.memory(),
           base: this.state.memBase,
           highlight: this.state.memHighlight,
           jumpTo: (addr) => this.setState({ memBase: addr })
         }),
-        mappings: /* @__PURE__ */ h(Mappings, {
+        mappings: () => /* @__PURE__ */ h(Mappings, {
           mappings: this.props.emulator.mappings(),
           highlight: this.state.memHighlight
         }),
-        imports: /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.props.emulator.imports.map((imp) => /* @__PURE__ */ h("div", null, imp)))),
-        breakpoints: /* @__PURE__ */ h(BreakpointsComponent, {
-          breakpoints: Array.from(this.props.emulator.breakpoints.values()),
+        imports: () => /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.props.emulator.imports.map((imp) => /* @__PURE__ */ h("div", null, imp)))),
+        breakpoints: () => /* @__PURE__ */ h(BreakpointsComponent, {
+          breakpoints: this.props.emulator.breakpoints,
           labels: this.props.emulator.labels,
           highlight: eip,
-          highlightMemory: this.highlightMemory,
-          showMemory: this.showMemory,
-          toggle: (addr) => {
-            this.props.emulator.toggleBreak(addr);
-            this.forceUpdate();
-          },
-          add: (text) => {
-            const ret = this.props.emulator.addBreakByName(text);
-            this.forceUpdate();
-            return ret;
-          },
-          remove: (addr) => {
-            this.props.emulator.delBreak(addr);
-            this.forceUpdate();
-          }
+          ...this.memoryView
         }),
-        snapshots: /* @__PURE__ */ h(SnapshotsComponent, {
+        snapshots: () => /* @__PURE__ */ h(SnapshotsComponent, {
           take: () => this.props.emulator.emu.snapshot(),
           load: (snap) => {
             this.props.emulator.emu.load_snapshot(snap);
@@ -1966,8 +1977,7 @@ exited with code ${code}`);
       selected: this.state.selectedTab,
       switchTab: (selectedTab) => this.setState({ selectedTab })
     }), /* @__PURE__ */ h(Stack, {
-      highlightMemory: this.highlightMemory,
-      showMemory: this.showMemory,
+      ...this.memoryView,
       labels: this.props.emulator.labels,
       emu: this.props.emulator.emu
     })));
@@ -1994,7 +2004,8 @@ var Runner = class extends d {
     this.props.emulator.start();
   }
   exit(code) {
-    this.print(`Exited with code ${code}`);
+    this.print(`exited with code ${code}
+`);
   }
   onWindowChanged() {
     this.forceUpdate();
@@ -2007,6 +2018,8 @@ var Runner = class extends d {
   }
   onStdOut(stdout) {
     this.print(stdout);
+  }
+  onStopped() {
   }
   render() {
     return /* @__PURE__ */ h(p, null, this.state.output ? /* @__PURE__ */ h("pre", {
