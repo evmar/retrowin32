@@ -80,8 +80,10 @@ impl Emulator {
             self.machine.single_step_next_block();
             self.machine.run();
         } else {
+            // Note that instr_count overflows at 4b, but we don't expect to run
+            // 4b instructions in a single run() invocation.
             let start = self.machine.emu.x86.instr_count;
-            while self.machine.emu.x86.instr_count < start + count {
+            while self.machine.emu.x86.instr_count.wrapping_sub(start) < count {
                 if !self.machine.run() {
                     break;
                 }
