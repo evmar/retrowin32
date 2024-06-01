@@ -1,0 +1,17 @@
+[package]
+name = "no_std"
+version = "0.1.0"
+build = "build.rs"
+edition = "2021"
+
+[dependencies]
+
+[dependencies.windows-sys]
+version = "0.52.0"
+features = [
+  "Win32_Foundation",
+  "Win32_Storage_FileSystem",
+  "Win32_System_Console",
+  "Win32_System_IO",
+  "Win32_System_Threading",
+]
