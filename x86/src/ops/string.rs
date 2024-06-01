@@ -13,6 +13,7 @@ enum Size {
     Dword = 4,
 }
 
+#[derive(Debug)]
 enum Rep {
     REP,
     REPNE,
@@ -20,10 +21,21 @@ enum Rep {
 }
 
 impl Rep {
+    // Note: instr.has_rep_prefix() and instr.has_repe_prefix() are identical(!)
+    // because there's a single shared prefix value in the x86 encoding, and whether
+    // it's rep or repe depends on the instruction.
+    //
+    // Either: it's lods/stos etc. and both prefixes map to rep (use ::is_rep),
+    // or: it's cmps/scas and the prefixes are repe/repne (use ::from_instr).
+
+    /// Only use this for instructions which always behave as 'rep'.
+    fn is_rep(instr: &Instruction) -> bool {
+        instr.has_rep_prefix() || instr.has_repne_prefix()
+    }
+
+    /// Only use this for cmps/scas.
     fn from_instr(instr: &Instruction) -> Option<Rep> {
-        Some(if instr.has_rep_prefix() {
-            Rep::REP
-        } else if instr.has_repe_prefix() {
+        Some(if instr.has_repe_prefix() {
             Rep::REPE
         } else if instr.has_repne_prefix() {
             Rep::REPNE
@@ -120,7 +132,7 @@ fn movs_single(cpu: &mut CPU, mem: Mem, size: Size) {
 }
 
 fn movs(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
-    if let Some(_) = Rep::from_instr(instr) {
+    if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, movs_single);
     } else {
         movs_single(cpu, mem, size);
@@ -201,7 +213,7 @@ fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
 }
 
 fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
-    if let Some(_) = Rep::from_instr(instr) {
+    if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, stos_single);
     } else {
         stos_single(cpu, mem, size);
@@ -245,7 +257,7 @@ fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
 }
 
 fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
-    if let Some(_) = Rep::from_instr(instr) {
+    if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, lods_single);
     } else {
         lods_single(cpu, mem, size);
