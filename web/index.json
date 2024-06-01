@@ -5,7 +5,7 @@
   },
   {
     "desc": "zip/unzip round trip test",
-    "params": "exe=exe/rust-out/zip.exe"
+    "params": "dir=exe/rust-out/&exe=zip.exe&cmdline=\"zip.exe\"+1+zip.exe"
   },
   {
     "desc": "gdi test",
