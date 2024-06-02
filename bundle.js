@@ -1185,17 +1185,6 @@ function __wbg_get_imports() {
       return ret;
     }, arguments);
   };
-  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
-    let deferred0_0;
-    let deferred0_1;
-    try {
-      deferred0_0 = arg2;
-      deferred0_1 = arg3;
-      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
-    } finally {
-      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
-    }
-  };
   imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
     const ret = arg0.read(getArrayU8FromWasm0(arg1, arg2));
     return ret;
@@ -1358,12 +1347,16 @@ function __wbg_get_imports() {
       arg0.drawImage(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }, arguments);
   };
-  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
-    const ret = debugString(arg1);
-    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-    const len1 = WASM_VECTOR_LEN;
-    getInt32Memory0()[arg0 / 4 + 1] = len1;
-    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+  imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
+    let deferred0_0;
+    let deferred0_1;
+    try {
+      deferred0_0 = arg2;
+      deferred0_1 = arg3;
+      arg0.log(arg1, getStringFromWasm0(arg2, arg3));
+    } finally {
+      wasm.__wbindgen_free(deferred0_0, deferred0_1, 1);
+    }
   };
   imports.wbg.__wbg_self_ce0dbfc45cf2f5be = function() {
     return handleError(function() {
@@ -1398,6 +1391,13 @@ function __wbg_get_imports() {
       const ret = arg0.call(arg1);
       return ret;
     }, arguments);
+  };
+  imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
+    const ret = debugString(arg1);
+    const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+    const len1 = WASM_VECTOR_LEN;
+    getInt32Memory0()[arg0 / 4 + 1] = len1;
+    getInt32Memory0()[arg0 / 4 + 0] = ptr1;
   };
   imports.wbg.__wbindgen_throw = function(arg0, arg1) {
     throw new Error(getStringFromWasm0(arg0, arg1));
