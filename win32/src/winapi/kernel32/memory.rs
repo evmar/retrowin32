@@ -23,6 +23,12 @@ pub struct Mapping {
     pub flags: ImageSectionFlags,
 }
 
+impl Mapping {
+    pub fn contains(&self, addr: u32) -> bool {
+        addr >= self.addr && addr < self.addr + self.size
+    }
+}
+
 /// The set of Mappings managed by the kernel.
 /// These get visualized in the debugger when you hover a pointer.
 #[derive(serde::Serialize, serde::Deserialize, Debug)]
@@ -364,7 +370,7 @@ pub fn VirtualAlloc(
             .mappings
             .vec()
             .iter()
-            .find(|&mapping| mapping.addr == lpAddress)
+            .find(|&mapping| mapping.contains(lpAddress))
         {
             None => {
                 log::error!("failing VirtualAlloc({lpAddress:x}, ...) refers to unknown mapping");
