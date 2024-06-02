@@ -18,6 +18,8 @@ endif
 
 all: deploy emu rosetta unicorn
 
+web/index.html: appdb/appdb.go web/index.tmpl
+	cd appdb && go run . -tmpl ../web/index.tmpl render > ../web/index.html
 
 wasm web/glue/pkg/glue.d.ts:
 	cd web/glue && profile=$(profile) ./build.sh
@@ -25,8 +27,11 @@ web-check:
 	cd web && npx tsc
 deploy/bundle.js: web/glue/pkg/glue.d.ts
 	cd web && npm run build
-deploy: wasm deploy/bundle.js
-.PHONY: wasm deploy web-check
+deploy-exes:
+	cd appdb && go run . deploy
+
+deploy: wasm deploy-exes deploy/bundle.js web/index.html
+.PHONY: wasm deploy-exes deploy web-check
 
 
 emu:

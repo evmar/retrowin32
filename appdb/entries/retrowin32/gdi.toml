@@ -1,0 +1,8 @@
+title = "gdi test"
+desc = "empty window Rust GDI program"
+path = "local/target/i586-pc-windows-msvc/release/gdi.exe"
+category = "retrowin32 test"
+
+[origin]
+desc = "retrowin32"
+url = "https://github.com/evmar/retrowin32/blob/main/exe/rust/src/bin/gdi.rs"

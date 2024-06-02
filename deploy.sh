@@ -2,6 +2,5 @@
 
 set -e
 
-mkdir -p deploy
 make deploy opt=1
-cp web/{*.css,*.html,*.wasm,*.png} deploy
+cp web/*.css web/*.html web/*.wasm web/*.png deploy

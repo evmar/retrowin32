@@ -9,6 +9,12 @@ This directory contains some win32 executables used to test retrowin32.
 - zig_hello: Zig hello world
 - zip: compress/decompres a buffer (CPU-intensive)
 
+## Symlinks
+
+The various symlinks into a `deploy/` dir are intended to resolve to files found
+in the `pages` branch of this repo. If developing locally, set it up via
+`git workdir add deploy pages`.
+
 ## Notes on MSVC flags
 
 - `/nologo`: don't print copyright goop

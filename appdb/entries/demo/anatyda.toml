@@ -1,0 +1,9 @@
+title = "Anatyda"
+desc = "Anatyda by Astral (1999)"
+path = "archive/demo/anatyda.exe"
+category = "demoscene"
+status = "works but slow"
+
+[origin]
+desc = "pouet.net"
+url = "https://www.pouet.net/prod.php?which=32369"

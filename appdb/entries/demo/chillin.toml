@@ -1,0 +1,9 @@
+title = "chillin"
+desc = "chillin by Haujobb (2000)"
+path = "archive/demo/chillfix.exe"
+category = "demoscene"
+status = "colors are wrong; stuck in first scene"
+
+[origin]
+desc = "pouet.net"
+url = "https://www.pouet.net/prod.php?which=567"

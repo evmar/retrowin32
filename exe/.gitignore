@@ -2,4 +2,3 @@
 *.pdb
 
 zig-cache
-/demo

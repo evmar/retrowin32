@@ -1,0 +1,79 @@
+<!doctype html>
+<title>retrowin32</title>
+<link rel='stylesheet' href='win2k.css'>
+<style>
+    body {
+        width: 60ex;
+        margin: 2ex auto;
+    }
+
+    h1,
+    h2 {
+        font-size: 100%;
+        margin: 4px 0;
+    }
+
+    hr {
+        border: none;
+        border-top: groove;
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    a:visited {
+        color: LinkText;
+    }
+
+    main {
+        padding: 8px;
+        background: #d0d0c8;
+    }
+
+    dd {
+        margin-left: 16px;
+    }
+</style>
+
+<body>
+    <main class='panel'>
+        <div style='float: right'><a href='https://github.com/evmar/retrowin32'>on github</a></div>
+        <h1>retrowin32</h1>
+        <hr>
+
+        <p>retrowin32 is a still-early Windows emulator for the web (and other non-Windows platforms).</p>
+
+        <p>Take a win32 <code>.exe</code> file and run it in a web browser or a Mac.</p>
+
+        <p>See <a href='https://github.com/evmar/retrowin32/blob/main/README.md'>the README</a> for more.</p>
+
+        {{range .Categories}}
+        <h2>{{.Category}}</h2>
+        <p>
+            <dl>
+            {{range .Entries}}
+            <dt>
+                <a href='run.html?exe={{.Path}}{{with .Dir}}&dir={{.}}{{end}}{{with .Cmdline}}&cmdline={{.}}{{end}}{{range .Files}}&file={{.}}{{end}}'>{{.Title}}</a>
+                {{with .Origin}}(from
+                    {{if .URL}}
+                        <a href="{{.URL}}">{{.Desc}}</a>
+                    {{- else}}
+                        {{.Desc}}
+                    {{- end}})
+                {{end}}
+            </dt>
+            <dd>
+            {{.Desc}}
+            {{with .Status}}<br>status: {{.}}{{end}}
+            </dd>
+            {{end}}
+            </dl>
+        </p>
+        {{end}}
+    </main>
+</body>

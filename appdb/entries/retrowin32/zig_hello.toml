@@ -1,0 +1,8 @@
+title = "zig hello world"
+desc = "trivial Zig program"
+path = "local/exe/zig_hello/hello.exe"
+category = "retrowin32 test"
+
+[origin]
+desc = "retrowin32"
+url = "https://github.com/evmar/retrowin32/tree/main/exe/zig_hello"
