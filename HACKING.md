@@ -80,3 +80,5 @@ Web builds require `x86-emu` and no `sdl`.
   - `web/glue/` -- wasm glue for the `win32/` API
 - `exe/` -- some sample Windows executables
 - `memory/` -- a memory abstraction shared by `x86` and `win32`
+- `appdb/` -- metadata about particular binaries, see
+  [appdb/README.md](appdb/README.md)
