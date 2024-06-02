@@ -5,9 +5,10 @@ use crate::{
     winapi::{
         bitmap::{self, BitmapRGBA32},
         gdi32::HDC,
-        stack_args::FromArg,
+        stack_args::{ArrayWithSize, FromArg},
+        types::{Str16, String16, HWND, POINT, RECT},
     },
-    Host, SurfaceOptions,
+    Host, Machine, SurfaceOptions,
 };
 use bitflags::bitflags;
 use memory::{Extensions, Mem};

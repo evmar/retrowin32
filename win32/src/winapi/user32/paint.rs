@@ -1,7 +1,11 @@
-use super::*;
-use crate::winapi::{
-    gdi32::{self, COLORREF, HGDIOBJ},
-    stack_args::FromArg,
+use super::{UpdateRegion, HBRUSH, HDC};
+use crate::{
+    winapi::{
+        gdi32::{self, COLORREF, HGDIOBJ},
+        stack_args::FromArg,
+        types::{HWND, RECT},
+    },
+    Machine,
 };
 
 const TRACE_CONTEXT: &'static str = "user32/paint";
