@@ -254,7 +254,7 @@ pub fn MultiByteToWideChar(
     dwFlags: u32,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
-    mut lpWideCharStr: ArrayWithSizeMut<u16>,
+    lpWideCharStr: ArrayWithSizeMut<u16>,
 ) -> u32 {
     match CodePage {
         Err(value) => unimplemented!("MultiByteToWideChar code page {value}"),
@@ -268,6 +268,7 @@ pub fn MultiByteToWideChar(
         len => len as u32,
     };
 
+    let mut lpWideCharStr = lpWideCharStr.to_option();
     match lpWideCharStr {
         Some(buf) if buf.len() == 0 => lpWideCharStr = None,
         _ => (),

@@ -4,10 +4,33 @@ use super::types::Str16;
 use crate::str16::expect_ascii;
 use memory::{Extensions, Mem};
 
-/// ArrayWithSize<&[u8]> matches a pair of C arguments like
+/// ArrayWithSize<u8> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,
 pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
-pub type ArrayWithSizeMut<'a, T> = Option<&'a mut [T]>;
+
+/// ArrayWithSizeMut<u8> matches a pair of C arguments like
+///    u8_t* items, size_t len,
+/// it's a wrapper type to provide a custom Debug implementation that doesn't
+/// dump the internal contents.
+pub struct ArrayWithSizeMut<'a, T>(Option<&'a mut [T]>);
+
+impl<'a, T> std::fmt::Debug for ArrayWithSizeMut<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.0 {
+            None => write!(f, "None"),
+            Some(buf) => write!(f, "[buffer size {}]", buf.len()),
+        }
+    }
+}
+
+impl<'a, T> ArrayWithSizeMut<'a, T> {
+    pub fn to_option(self) -> Option<&'a mut [T]> {
+        self.0
+    }
+    pub fn unwrap(self) -> &'a mut [T] {
+        self.0.unwrap()
+    }
+}
 
 /// Lowest level trait: given a stack pointer, extract the argument.
 /// Implemented by argument types that read multiple things off the stack.
@@ -92,18 +115,18 @@ impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
     }
 }
 
-impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a mut [T]> {
+impl<'a, T: memory::Pod> FromStack<'a> for ArrayWithSizeMut<'a, T> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get_pod::<u32>(sp);
         let count = mem.get_pod::<u32>(sp + 4);
         if addr == 0 {
-            return None;
+            return ArrayWithSizeMut(None);
         }
         let slice = mem.sub(addr, count).as_mut_slice_todo();
-        Some(std::slice::from_raw_parts_mut(
+        ArrayWithSizeMut(Some(std::slice::from_raw_parts_mut(
             slice.as_mut_ptr() as *mut _,
             count as usize,
-        ))
+        )))
     }
 }
 
