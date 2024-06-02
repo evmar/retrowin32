@@ -234,7 +234,10 @@ pub fn ReadFile(
     lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
+    let file = match hFile {
+        STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
+        _ => machine.state.kernel32.files.get_mut(hFile).unwrap(),
+    };
     // TODO: SetLastError
     let n = file.read(lpBuffer.unwrap()).unwrap();
     if let Some(bytes) = lpNumberOfBytesRead {
