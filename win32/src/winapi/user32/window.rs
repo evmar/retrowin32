@@ -336,14 +336,23 @@ pub async fn CreateWindowExW(
         CreateWindowClassName::Atom(_) => unimplemented!(),
         CreateWindowClassName::Name(name) => name.to_string(),
     };
-    let wndclass = machine
+    let wndclass = match machine
         .state
         .user32
         .wndclasses
         .iter()
         .find(|c| c.name == class_name)
-        .unwrap()
-        .clone();
+    {
+        Some(wndclass) => wndclass.clone(),
+        None => {
+            log::warn!("unknown wndclass {class_name:?}, using empty");
+            Rc::new(WndClass {
+                name: class_name,
+                wndproc: 0,
+                background: HBRUSH::null(),
+            })
+        }
+    };
 
     let _style = dwStyle.unwrap();
     const CW_USEDEFAULT: u32 = 0x8000_0000;

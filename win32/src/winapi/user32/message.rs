@@ -306,6 +306,10 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
         .unwrap()
         .wndclass
         .wndproc;
+    if wndproc == 0 {
+        log::error!("window has no wndproc, skipping message dispatch");
+        return;
+    }
     // TODO: SetWindowLong can change the wndproc.
     machine
         .call_x86(
