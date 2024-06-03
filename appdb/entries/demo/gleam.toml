@@ -1,0 +1,8 @@
+title = "gleam"
+path = "archive/demo/gleam.exe"
+category = "demoscene"
+broken = true
+status = "opengl"
+
+[origin]
+url = "https://www.pouet.net/prod.php?which=2819"

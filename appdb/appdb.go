@@ -41,6 +41,9 @@ type Entry struct {
 
 	// If present, command line to invoke the program.
 	Cmdline string `toml:"cmdline"`
+
+	// If true, doesn't work at all; omit from website.
+	Broken bool `toml:"broken"`
 }
 
 func loadEntry(path string) (*Entry, error) {
@@ -70,7 +73,7 @@ func load() (map[string][]*Entry, error) {
 		if err != nil {
 			return fmt.Errorf("loading %q: %w", path, err)
 		}
-		if entry != nil {
+		if entry != nil && !entry.Broken {
 			entries[entry.Category] = append(entries[entry.Category], entry)
 		}
 		return nil

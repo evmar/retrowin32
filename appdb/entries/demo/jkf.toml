@@ -1,0 +1,9 @@
+title = "jävla kuk fitta"
+path = "archive/demo/jkf-unpacked.exe"
+category = "demoscene"
+broken = true
+status = "opengl"
+
+[origin]
+desc = "pouet.net"
+url = "https://www.pouet.net/prod.php?which=237"
