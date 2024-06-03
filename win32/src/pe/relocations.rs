@@ -30,8 +30,10 @@ pub fn apply_relocs(image: Mem, prev_base: u32, base: u32, mut relocs: &[u8]) {
                 3 => {
                     // IMAGE_REL_BASED_HIGHLOW, 32-bit adjustment
                     let reloc = image.view_mut::<u32>(addr);
-                    *reloc -= prev_base;
-                    *reloc += base;
+                    // win2k's glu32.dll has a relocation offsetting the value 0x6fa7a09
+                    // despite the image base being 0x6fac000, so it is a reference to memory
+                    // before the image?!
+                    *reloc = reloc.wrapping_sub(prev_base).wrapping_add(base);
                 }
                 _ => panic!("unhandled relocation type {etype}"),
             }
