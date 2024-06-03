@@ -223,7 +223,7 @@ pub struct DLL {
     pub ordinals: HashMap<u32, u32>,
 
     /// Address of DllMain() entry point.
-    pub entry_point: u32,
+    pub entry_point: Option<u32>,
 }
 
 pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<DLL> {
@@ -232,7 +232,11 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     let base = load_pe(machine, filename, buf, &file, true)?;
     let image = machine.mem().slice(base..).as_slice_todo();
 
-    let entry_point = base + file.opt_header.AddressOfEntryPoint;
+    let entry_point = if file.opt_header.AddressOfEntryPoint != 0 {
+        Some(base + file.opt_header.AddressOfEntryPoint)
+    } else {
+        None
+    };
     let mut ordinals = HashMap::new();
     let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {

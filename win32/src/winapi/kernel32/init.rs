@@ -365,7 +365,7 @@ impl State {
             dll: pe::DLL {
                 names: HashMap::new(),
                 ordinals: HashMap::new(),
-                entry_point: 0,
+                entry_point: None,
             },
             builtin: Some(builtin),
         });
@@ -459,12 +459,15 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
     // Iterate list of dlls by index, because in principle invoking dllmains might load more
     // dlls(?).
     for i in 0.. {
-        let dllmain = match machine.state.kernel32.dlls.get(i) {
+        let dll = match machine.state.kernel32.dlls.get(i) {
+            Some(dll) => dll,
             None => break,
-            Some(m) if m.dll.entry_point == 0 => continue,
-            Some(m) => m.dll.entry_point,
         };
-        log::info!("invoking dllmain {:x}", dllmain);
+        let dllmain = match dll.dll.entry_point {
+            Some(entry_point) => entry_point,
+            None => continue,
+        };
+        log::info!("invoking dll {:?} main {:x}", dll.name, dllmain);
         let hInstance = 0u32; // TODO
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;
