@@ -3399,7 +3399,7 @@ pub mod user32 {
         pub unsafe fn CreateWindowExA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
-            let lpClassName = <u32>::from_stack(mem, esp + 8u32);
+            let lpClassName = <CreateWindowClassName<'_, str>>::from_stack(mem, esp + 8u32);
             let lpWindowName = <Option<&str>>::from_stack(mem, esp + 12u32);
             let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
             let X = <u32>::from_stack(mem, esp + 20u32);
@@ -3463,7 +3463,7 @@ pub mod user32 {
         pub unsafe fn CreateWindowExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
-            let lpClassName = <CreateWindowClassName<'_>>::from_stack(mem, esp + 8u32);
+            let lpClassName = <CreateWindowClassName<'_, Str16>>::from_stack(mem, esp + 8u32);
             let lpWindowName = <Option<&Str16>>::from_stack(mem, esp + 12u32);
             let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, esp + 16u32);
             let X = <u32>::from_stack(mem, esp + 20u32);

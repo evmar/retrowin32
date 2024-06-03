@@ -61,7 +61,7 @@ impl Str16 {
     }
 }
 
-impl<'a> std::fmt::Debug for &'a Str16 {
+impl std::fmt::Debug for Str16 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_fmt(format_args!("{:?}", self.to_string()))
     }

@@ -259,11 +259,20 @@ impl TryFrom<u32> for WindowStyleEx {
 }
 
 #[derive(Debug)]
-pub enum CreateWindowClassName<'a> {
+pub enum CreateWindowClassName<'a, Str: ?Sized> {
     Atom(u16),
-    Name(&'a Str16),
+    Name(&'a Str),
 }
-impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a> {
+impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, str> {
+    unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
+        if arg <= 0xFFFF {
+            CreateWindowClassName::Atom(arg as u16)
+        } else {
+            CreateWindowClassName::Name(<Option<&str>>::from_arg(mem, arg).unwrap())
+        }
+    }
+}
+impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, Str16> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
@@ -277,7 +286,7 @@ impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a> {
 pub async fn CreateWindowExA(
     machine: &mut Machine,
     dwExStyle: Result<WindowStyleEx, u32>,
-    lpClassName: u32,
+    lpClassName: CreateWindowClassName<'_, str>,
     lpWindowName: Option<&str>,
     dwStyle: Result<WindowStyle, u32>,
     X: u32,
@@ -290,14 +299,14 @@ pub async fn CreateWindowExA(
     lpParam: u32,
 ) -> HWND {
     let class_name_wide: String16;
-    let class_name = if lpClassName < 0xFFFF {
-        CreateWindowClassName::Atom(lpClassName as u16)
-    } else {
-        let class_name = expect_ascii(machine.mem().slicez(lpClassName));
-        class_name_wide = String16::from(class_name);
-        CreateWindowClassName::Name(class_name_wide.as_str16())
+    let class_name = match lpClassName {
+        CreateWindowClassName::Name(name) => {
+            class_name_wide = String16::from(name);
+            CreateWindowClassName::Name(class_name_wide.as_str16())
+        }
+        CreateWindowClassName::Atom(a) => CreateWindowClassName::Atom(a),
     };
-    let window_name = String16::from(lpWindowName.unwrap());
+    let window_name = String16::from(lpWindowName.unwrap_or(""));
     CreateWindowExW(
         machine,
         dwExStyle,
@@ -320,7 +329,7 @@ pub async fn CreateWindowExA(
 pub async fn CreateWindowExW(
     machine: &mut Machine,
     dwExStyle: Result<WindowStyleEx, u32>,
-    lpClassName: CreateWindowClassName<'_>,
+    lpClassName: CreateWindowClassName<'_, Str16>,
     lpWindowName: Option<&Str16>,
     dwStyle: Result<WindowStyle, u32>,
     X: u32,
