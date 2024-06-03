@@ -211,14 +211,7 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
 
     let mut file = machine.host.open(&filename, host::FileAccess::READ);
     let mut contents = Vec::new();
-    let mut buf: [u8; 16 << 10] = [0; 16 << 10];
-    loop {
-        let len = file.read(&mut buf).unwrap();
-        if len == 0 {
-            break;
-        }
-        contents.extend_from_slice(&buf[..len]);
-    }
+    file.read_to_end(&mut contents).unwrap();
     // TODO: close file.
     if contents.len() == 0 {
         // HACK: zero-length indicates not found.
