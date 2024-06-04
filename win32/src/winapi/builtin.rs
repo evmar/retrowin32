@@ -1696,6 +1696,13 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn VirtualQuery(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAddress = <u32>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <Option<&mut MEMORY_BASIC_INFORMATION>>::from_stack(mem, esp + 8u32);
+            let dwLength = <u32>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::VirtualQuery(machine, lpAddress, lpBuffer, dwLength).to_raw()
+        }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hHandle = <HANDLE<()>>::from_stack(mem, esp + 4u32);
@@ -2457,6 +2464,12 @@ pub mod kernel32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const VirtualQuery: Shim = Shim {
+            name: "VirtualQuery",
+            func: impls::VirtualQuery,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const WaitForSingleObject: Shim = Shim {
             name: "WaitForSingleObject",
             func: impls::WaitForSingleObject,
@@ -2524,7 +2537,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 115usize] = [
+    const EXPORTS: [Symbol; 116usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2940,6 +2953,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::VirtualProtect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::VirtualQuery,
         },
         Symbol {
             ordinal: None,

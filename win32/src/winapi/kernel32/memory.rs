@@ -392,6 +392,29 @@ pub fn VirtualAlloc(
     mapping.addr
 }
 
+#[derive(Debug)]
+pub struct MEMORY_BASIC_INFORMATION {
+    pub BaseAddress: u32,
+    pub AllocationBase: u32,
+    pub AllocationProtect: u32,
+    pub PartitionId: u16,
+    pub RegionSize: u32,
+    pub State: u32,
+    pub Protect: u32,
+    pub Type: u32,
+}
+unsafe impl memory::Pod for MEMORY_BASIC_INFORMATION {}
+
+#[win32_derive::dllexport]
+pub fn VirtualQuery(
+    _machine: &mut Machine,
+    lpAddress: u32,
+    lpBuffer: Option<&mut MEMORY_BASIC_INFORMATION>,
+    dwLength: u32,
+) -> u32 {
+    0 // fail
+}
+
 #[win32_derive::dllexport]
 pub fn VirtualFree(_machine: &mut Machine, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     1 // success
