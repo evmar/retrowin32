@@ -13,3 +13,19 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
     true // success
 }
+
+#[win32_derive::dllexport]
+pub fn GetSystemMenu(_machine: &mut Machine, hWnd: HWND, bRevert: bool) -> HMENU {
+    0 // null
+}
+
+#[win32_derive::dllexport]
+pub fn AppendMenuA(
+    _machine: &mut Machine,
+    hMenu: HMENU,
+    uFlags: u32,
+    uIDNewItem: u32,
+    lpNewItem: Option<&str>,
+) -> bool {
+    false // fail
+}

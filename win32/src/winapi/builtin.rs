@@ -3380,6 +3380,14 @@ pub mod user32 {
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 16u32);
             winapi::user32::AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, dwExStyle).to_raw()
         }
+        pub unsafe fn AppendMenuA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let uFlags = <u32>::from_stack(mem, esp + 8u32);
+            let uIDNewItem = <u32>::from_stack(mem, esp + 12u32);
+            let lpNewItem = <Option<&str>>::from_stack(mem, esp + 16u32);
+            winapi::user32::AppendMenuA(machine, hMenu, uFlags, uIDNewItem, lpNewItem).to_raw()
+        }
         pub unsafe fn BeginPaint(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -3781,6 +3789,12 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn GetSystemMenu(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let bRevert = <bool>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetSystemMenu(machine, hWnd, bRevert).to_raw()
+        }
         pub unsafe fn GetSystemMetrics(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let nIndex = <Result<SystemMetric, u32>>::from_stack(mem, esp + 4u32);
@@ -4142,6 +4156,12 @@ pub mod user32 {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const AppendMenuA: Shim = Shim {
+            name: "AppendMenuA",
+            func: impls::AppendMenuA,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const BeginPaint: Shim = Shim {
             name: "BeginPaint",
             func: impls::BeginPaint,
@@ -4297,6 +4317,12 @@ pub mod user32 {
             func: impls::GetMessageW,
             stack_consumed: 16u32,
             is_async: true,
+        };
+        pub const GetSystemMenu: Shim = Shim {
+            name: "GetSystemMenu",
+            func: impls::GetSystemMenu,
+            stack_consumed: 8u32,
+            is_async: false,
         };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",
@@ -4569,7 +4595,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 73usize] = [
+    const EXPORTS: [Symbol; 75usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4577,6 +4603,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRectEx,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::AppendMenuA,
         },
         Symbol {
             ordinal: None,
@@ -4681,6 +4711,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetMessageW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetSystemMenu,
         },
         Symbol {
             ordinal: None,
