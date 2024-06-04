@@ -17,6 +17,8 @@ pub struct MSG {
     pub lPrivate: u32,
 }
 unsafe impl memory::Pod for MSG {}
+
+// Manually implement Debug so we decode the WM_FOO value.
 impl std::fmt::Debug for MSG {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let wm = WM::try_from(self.message);
