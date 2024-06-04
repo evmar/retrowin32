@@ -377,23 +377,35 @@ pub fn SetDIBitsToDevice(
     cLines
 }
 
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum RasterOp {
+    SRCCOPY = 0xcc0020,
+}
+
 #[win32_derive::dllexport]
 pub fn StretchDIBits(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hdc: HDC,
-    xDest: i32,
-    yDest: i32,
-    DestWidth: i32,
-    DestHeight: i32,
-    xSrc: i32,
-    ySrc: i32,
-    SrcWidth: i32,
-    SrcHeight: i32,
+    // XXX these are signed ints in the MSDN docs
+    xDest: u32,
+    yDest: u32,
+    DestWidth: u32,
+    DestHeight: u32,
+    xSrc: u32,
+    ySrc: u32,
+    SrcWidth: u32,
+    SrcHeight: u32,
     lpBits: u32,
     lpbmi: Option<&BITMAPINFOHEADER>,
     iUsage: u32,
-    rop: u32,
-) -> i32 {
-    log::warn!("TODO: StretchDIBits");
-    SrcHeight // success
+    rop: Result<RasterOp, u32>,
+) -> u32 {
+    if SrcWidth != DestWidth || SrcHeight != DestHeight {
+        log::warn!("TODO: StretchDIBits doesn't stretch");
+    }
+
+    SetDIBitsToDevice(
+        machine, hdc, xDest, yDest, SrcWidth, SrcHeight, xSrc, ySrc, 0, SrcHeight, lpBits, lpbmi,
+        iUsage,
+    )
 }
