@@ -243,6 +243,7 @@ pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_H
 pub enum CP {
     /// The system default Windows ANSI code page.
     ACP = 0,
+    OEMCP = 1,
     WINDOWS_1252 = 1252,
     UTF8 = 65001,
 }
