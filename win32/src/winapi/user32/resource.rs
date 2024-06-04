@@ -1,5 +1,4 @@
-use memory::{Extensions, Mem};
-
+use super::HMENU;
 use crate::{
     pe,
     winapi::{
@@ -10,6 +9,7 @@ use crate::{
     },
     Machine,
 };
+use memory::{Extensions, Mem};
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -17,7 +17,6 @@ const TRACE_CONTEXT: &'static str = "user32/resource";
 pub type HCURSOR = u32;
 pub type HICON = u32;
 pub type HBRUSH = HGDIOBJ;
-pub type HMENU = u32;
 
 #[win32_derive::dllexport]
 pub fn LoadIconA(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {

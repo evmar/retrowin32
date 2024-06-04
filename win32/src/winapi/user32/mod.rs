@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 mod dialog;
+mod menu;
 mod message;
 mod misc;
 mod paint;
@@ -14,6 +15,7 @@ use super::types::HWND;
 pub use super::gdi32::HDC;
 pub use super::kernel32::ResourceKey;
 pub use dialog::*;
+pub use menu::*;
 pub use message::*;
 pub use misc::*;
 pub use paint::*;

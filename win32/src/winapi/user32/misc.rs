@@ -1,8 +1,7 @@
-use super::HMENU;
 use crate::{
     winapi::{
         stack_args::VarArgs,
-        types::{HWND, POINT, RECT},
+        types::{POINT, RECT},
     },
     Machine,
 };
@@ -67,16 +66,6 @@ pub fn SetRect(
         bottom: yBottom,
     };
     true
-}
-
-#[win32_derive::dllexport]
-pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uCheck: u32) -> u32 {
-    0 // previous state: unchecked
-}
-
-#[win32_derive::dllexport]
-pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
-    true // success
 }
 
 #[win32_derive::dllexport]
