@@ -298,7 +298,7 @@ pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
     false // no message translated
 }
 
-pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
+pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) -> u32 {
     assert!(!msg.hwnd.is_null());
     let wndproc = machine
         .state
@@ -310,7 +310,7 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
         .wndproc;
     if wndproc == 0 {
         log::error!("window has no wndproc, skipping message dispatch");
-        return;
+        return 0;
     }
     // TODO: SetWindowLong can change the wndproc.
     machine
@@ -324,6 +324,8 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) {
             ],
         )
         .await;
+    // TODO: copy eax to return value
+    0
 }
 
 #[win32_derive::dllexport]
@@ -371,4 +373,25 @@ pub fn TranslateAcceleratorW(
     lpMsg: Option<&MSG>,
 ) -> u32 {
     0 // success
+}
+
+#[win32_derive::dllexport]
+pub async fn SendMessageA(
+    machine: &mut Machine,
+    hWnd: HWND,
+    Msg: Result<WM, u32>,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    let msg = MSG {
+        hwnd: hWnd,
+        message: Msg.unwrap() as u32,
+        wParam,
+        lParam,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    };
+    dispatch_message(machine, &msg).await
 }

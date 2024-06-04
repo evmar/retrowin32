@@ -3996,6 +3996,36 @@ pub mod user32 {
             let hdc = <HDC>::from_stack(mem, esp + 8u32);
             winapi::user32::ReleaseDC(machine, hwnd, hdc).to_raw()
         }
+        pub unsafe fn SendMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let Msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
+            let wParam = <u32>::from_stack(mem, esp + 12u32);
+            let lParam = <u32>::from_stack(mem, esp + 16u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result =
+                        winapi::user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 16u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::SendMessageA(
+                    machine, hWnd, Msg, wParam, lParam
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
         pub unsafe fn SetCapture(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -4492,6 +4522,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SendMessageA: Shim = Shim {
+            name: "SendMessageA",
+            func: impls::SendMessageA,
+            stack_consumed: 16u32,
+            is_async: true,
+        };
         pub const SetCapture: Shim = Shim {
             name: "SetCapture",
             func: impls::SetCapture,
@@ -4595,7 +4631,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 75usize] = [
+    const EXPORTS: [Symbol; 76usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AdjustWindowRect,
@@ -4827,6 +4863,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::ReleaseDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SendMessageA,
         },
         Symbol {
             ordinal: None,
