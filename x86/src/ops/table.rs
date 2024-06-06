@@ -378,7 +378,9 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Fsubr_m64fp as usize] = Some(fsubr_m64fp);
     OP_TAB[iced_x86::Code::Fsubr_m32fp as usize] = Some(fsubr_m32fp);
-    OP_TAB[iced_x86::Code::Fsubr_st0_sti as usize] = Some(fsubr_st0_sti);
+    OP_TAB[iced_x86::Code::Fsubr_st0_sti as usize] = Some(fsubr_sti_sti);
+    OP_TAB[iced_x86::Code::Fsubr_sti_st0 as usize] = Some(fsubr_sti_sti);
+    OP_TAB[iced_x86::Code::Fsubrp_sti_st0 as usize] = Some(fsubrp_st0_sti);
 
     OP_TAB[iced_x86::Code::Fmul_m64fp as usize] = Some(fmul_m64fp);
     OP_TAB[iced_x86::Code::Fmul_m32fp as usize] = Some(fmul_m32fp);

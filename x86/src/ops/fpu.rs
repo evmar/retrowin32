@@ -230,10 +230,15 @@ pub fn fsubr_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     *x = y - *x;
 }
 
-pub fn fsubr_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
+pub fn fsubr_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let y = *cpu.fpu.get(instr.op1_register());
-    let x = cpu.fpu.st0();
+    let x = cpu.fpu.get(instr.op0_register());
     *x = y - *x;
+}
+
+pub fn fsubrp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fsubr_sti_sti(cpu, mem, instr);
+    cpu.fpu.pop();
 }
 
 pub fn fmul_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
