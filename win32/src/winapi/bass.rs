@@ -54,3 +54,8 @@ pub fn BASS_ChannelGetPosition(machine: &mut Machine, arg1: u32) -> u32 {
     // 44.1khz
     (dur as f32 * 44.1) as u32
 }
+
+#[win32_derive::dllexport]
+pub fn BASS_MusicSetPositionScaler(_machine: &mut Machine, arg1: u32, arg2: u32) -> u32 {
+    1
+}

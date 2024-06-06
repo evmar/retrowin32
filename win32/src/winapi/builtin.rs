@@ -177,6 +177,12 @@ pub mod bass {
             let arg1 = <u32>::from_stack(mem, esp + 4u32);
             winapi::bass::BASS_MusicPlay(machine, arg1).to_raw()
         }
+        pub unsafe fn BASS_MusicSetPositionScaler(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
+            let arg2 = <u32>::from_stack(mem, esp + 8u32);
+            winapi::bass::BASS_MusicSetPositionScaler(machine, arg1, arg2).to_raw()
+        }
         pub unsafe fn BASS_Start(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::bass::BASS_Start(machine).to_raw()
@@ -209,6 +215,12 @@ pub mod bass {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const BASS_MusicSetPositionScaler: Shim = Shim {
+            name: "BASS_MusicSetPositionScaler",
+            func: impls::BASS_MusicSetPositionScaler,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const BASS_Start: Shim = Shim {
             name: "BASS_Start",
             func: impls::BASS_Start,
@@ -216,7 +228,7 @@ pub mod bass {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 5usize] = [
+    const EXPORTS: [Symbol; 6usize] = [
         Symbol {
             ordinal: None,
             shim: shims::BASS_ChannelGetPosition,
@@ -232,6 +244,10 @@ pub mod bass {
         Symbol {
             ordinal: None,
             shim: shims::BASS_MusicPlay,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::BASS_MusicSetPositionScaler,
         },
         Symbol {
             ordinal: None,
