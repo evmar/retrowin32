@@ -20,7 +20,7 @@ pub(super) mod IDirectDraw {
     use super::*;
 
     vtable![IDirectDraw shims
-        QueryInterface todo,
+        QueryInterface ok,
         AddRef todo,
         Release ok,
         Compact todo,
@@ -44,6 +44,11 @@ pub(super) mod IDirectDraw {
         SetDisplayMode ok,
         WaitForVerticalBlank (IDirectDraw7::shims::WaitForVerticalBlank),
     ];
+
+    #[win32_derive::dllexport]
+    fn QueryInterface(_machine: &mut Machine, this: u32, riid: u32, ppvObject: u32) -> u32 {
+        0x80004002 // E_NOINTERFACE
+    }
 
     #[win32_derive::dllexport]
     fn CreateSurface(
