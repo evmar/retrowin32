@@ -37,6 +37,7 @@ impl BITMAPINFOHEADER {
         self.biWidth
     }
     pub fn stride(&self) -> u32 {
+        // Bitmap row stride is padded out to 4 bytes per row.
         (((self.biWidth * self.biBitCount as u32) + 31) & !31) >> 3
     }
     pub fn height(&self) -> u32 {
@@ -61,18 +62,23 @@ pub enum PixelData<T> {
     Ptr(u32, u32),
 }
 
-impl<T> PixelData<T> {
+pub fn transmute_pixels<T: memory::Pod>(bytes: &[u8]) -> &[T] {
+    assert!(bytes.len() % std::mem::size_of::<T>() == 0);
+    unsafe {
+        std::slice::from_raw_parts(
+            bytes.as_ptr() as *const _,
+            bytes.len() / std::mem::size_of::<T>(),
+        )
+    }
+}
+
+impl<T: memory::Pod> PixelData<T> {
     pub fn as_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [T] {
         match self {
             PixelData::Owned(b) => &*b,
             &PixelData::Ptr(addr, len) => {
                 let bytes = mem.sub(addr, len).as_slice_todo();
-                unsafe {
-                    std::slice::from_raw_parts(
-                        bytes.as_ptr() as *const _,
-                        bytes.len() / std::mem::size_of::<T>(),
-                    )
-                }
+                transmute_pixels::<T>(bytes)
             }
         }
     }
@@ -115,13 +121,13 @@ impl BitmapRGBA32 {
                     todo!();
                 }
                 unsafe {
-                    let ptr = (header as *const _ as *const u8).add(header_size) as *const _;
+                    let ptr = (header as *const _ as *const u8).add(header_size);
                     std::slice::from_raw_parts(ptr as *const [u8; 4], palette_len as usize)
                 }
             }
             BI::RLE8 => todo!(),
             BI::RLE4 => todo!(),
-            BI::BITFIELDS => todo!(),
+            BI::BITFIELDS => &[],
             BI::JPEG => todo!(),
             BI::PNG => todo!(),
         };
@@ -133,7 +139,6 @@ impl BitmapRGBA32 {
         }
 
         let width = header.width() as usize;
-        // Bitmap row stride is padded out to 4 bytes per row.
         let stride = header.stride() as usize;
 
         let (src, height) = match pixels {
@@ -146,7 +151,7 @@ impl BitmapRGBA32 {
             },
         };
 
-        let mut dst = Vec::with_capacity(width * height);
+        let mut dst: Vec<[u8; 4]> = Vec::with_capacity(width * height);
         for y in 0..height {
             let y_src = if header.is_top_down() {
                 y
@@ -155,6 +160,10 @@ impl BitmapRGBA32 {
             };
             let row = &src[y_src * stride..][..stride];
             match header.biBitCount {
+                32 => {
+                    // TODO: might need to swizzle here, depending on BI::BITFIELDS.
+                    dst.extend_from_slice(transmute_pixels(&row[..width * 4]));
+                }
                 8 => {
                     for &p in &row[..width] {
                         dst.push(get_pixel(palette, p));
