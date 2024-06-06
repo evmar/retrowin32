@@ -306,6 +306,7 @@ pub unsafe fn init_op_tab() {
 
     OP_TAB[iced_x86::Code::Test_rm16_r16 as usize] = Some(test_rm16_r16);
     OP_TAB[iced_x86::Code::Test_rm16_imm16 as usize] = Some(test_rm16_imm16);
+    OP_TAB[iced_x86::Code::Test_AX_imm16 as usize] = Some(test_rm16_imm16);
     OP_TAB[iced_x86::Code::Test_rm8_r8 as usize] = Some(test_rm8_r8);
     OP_TAB[iced_x86::Code::Test_rm8_imm8 as usize] = Some(test_rm8_imm8);
     OP_TAB[iced_x86::Code::Test_AL_imm8 as usize] = Some(test_rm8_imm8);
