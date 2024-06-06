@@ -74,6 +74,7 @@ pub enum MessageDetail {
 pub struct Message {
     pub hwnd: u32,
     pub detail: MessageDetail,
+    pub time: u32, // in units of Host::time()
 }
 
 pub trait Host {

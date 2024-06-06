@@ -61,6 +61,10 @@ pub fn GetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME
 
 #[win32_derive::dllexport]
 pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
+    if dwMilliseconds == 0 {
+        return 0;
+    }
+
     #[cfg(feature = "x86-emu")]
     {
         let until = machine.host.time() + dwMilliseconds;

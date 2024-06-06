@@ -185,6 +185,7 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
         .unwrap()
         .as_f64()
         .unwrap() as u32;
+    let time = event.time_stamp() as u32;
     let detail = match event.type_().as_str() {
         "mousedown" => {
             let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
@@ -199,7 +200,7 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
         ty => bail!("unhandled event type {ty}"),
     };
     log::info!("msg: {:?}", detail);
-    Ok(win32::Message { hwnd, detail })
+    Ok(win32::Message { hwnd, detail, time })
 }
 
 #[wasm_bindgen(typescript_custom_section)]

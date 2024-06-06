@@ -13,30 +13,44 @@ fn map_button(b: sdl2::mouse::MouseButton) -> Option<win32::MouseButton> {
 }
 
 fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Message> {
-    let detail = match event {
-        sdl2::event::Event::Quit { .. } => win32::MessageDetail::Quit,
+    let (time, detail) = match event {
+        sdl2::event::Event::Quit { timestamp } => (timestamp, win32::MessageDetail::Quit),
         sdl2::event::Event::MouseButtonDown {
-            mouse_btn, x, y, ..
-        } => win32::MessageDetail::Mouse(win32::MouseMessage {
-            down: true,
-            button: map_button(mouse_btn)?,
-            x: x as u32,
-            y: y as u32,
-        }),
+            timestamp,
+            mouse_btn,
+            x,
+            y,
+            ..
+        } => (
+            timestamp,
+            win32::MessageDetail::Mouse(win32::MouseMessage {
+                down: true,
+                button: map_button(mouse_btn)?,
+                x: x as u32,
+                y: y as u32,
+            }),
+        ),
         sdl2::event::Event::MouseButtonUp {
-            mouse_btn, x, y, ..
-        } => win32::MessageDetail::Mouse(win32::MouseMessage {
-            down: false,
-            button: map_button(mouse_btn)?,
-            x: x as u32,
-            y: y as u32,
-        }),
+            timestamp,
+            mouse_btn,
+            x,
+            y,
+            ..
+        } => (
+            timestamp,
+            win32::MessageDetail::Mouse(win32::MouseMessage {
+                down: false,
+                button: map_button(mouse_btn)?,
+                x: x as u32,
+                y: y as u32,
+            }),
+        ),
         _ => {
             // log::warn!("unhandled event: {:?}", event);
             return None;
         }
     };
-    Some(win32::Message { hwnd, detail })
+    Some(win32::Message { hwnd, detail, time })
 }
 
 fn message_from_events(
