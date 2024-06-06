@@ -76,7 +76,9 @@ pub struct Window {
     pub hdc: HDC,
     pub host: Box<dyn host::Window>,
     pub surface: Box<dyn host::Surface>,
+    /// Client area width (not total window width).
     pub width: u32,
+    /// Client area height (not total window height).
     pub height: u32,
     pub wndclass: Rc<WndClass>,
     pub pixels: Option<WindowPixels>,
@@ -380,7 +382,7 @@ pub async fn CreateWindowExW(
     };
 
     let style = dwStyle.unwrap();
-    let menu = true; // TODO
+    let menu = false; // TODO
     let (width, height) = client_size_from_window_size(style, menu, width, height);
     host_win.set_size(width, height);
     let surface = machine.host.create_surface(
@@ -677,13 +679,14 @@ pub fn MoveWindow(
 }
 
 #[win32_derive::dllexport]
-pub fn GetClientRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     let rect = lpRect.unwrap();
     *rect = RECT {
         left: 0,
         top: 0,
-        right: 640, // TODO: use actual window size
-        bottom: 480,
+        right: window.width as i32,
+        bottom: window.height as i32,
     };
     true
 }
