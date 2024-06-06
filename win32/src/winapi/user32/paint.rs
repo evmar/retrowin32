@@ -25,8 +25,14 @@ pub fn InvalidateRect(
 }
 
 #[win32_derive::dllexport]
-pub fn ValidateRect(_machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
-    // Just ignore.
+pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    match lpRect {
+        Some(_rect) => {
+            // TODO: ignored.
+        }
+        None => window.dirty = None,
+    }
     false // fail
 }
 
