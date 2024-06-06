@@ -411,6 +411,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Fprem as usize] = Some(fprem);
 
     OP_TAB[iced_x86::Code::Fxch_st0_sti as usize] = Some(fxch_st0_sti);
+    OP_TAB[iced_x86::Code::Fcom_m64fp as usize] = Some(fcom_m32fp);
     OP_TAB[iced_x86::Code::Fcom_m32fp as usize] = Some(fcom_m32fp);
     OP_TAB[iced_x86::Code::Fcomp_m32fp as usize] = Some(fcomp_m32fp);
     OP_TAB[iced_x86::Code::Fcomp_m64fp as usize] = Some(fcomp_m64fp);

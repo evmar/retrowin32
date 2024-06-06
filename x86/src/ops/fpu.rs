@@ -355,6 +355,12 @@ pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.fpu.swap(instr.op0_register(), instr.op1_register());
 }
 
+pub fn fcom_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
+    fcom(cpu, x, y);
+}
+
 pub fn fcom_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.st0();
     let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
@@ -367,9 +373,7 @@ pub fn fcomp_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn fcomp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let x = *cpu.fpu.st0();
-    let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
-    fcom(cpu, x, y);
+    fcom_m64fp(cpu, mem, instr);
     cpu.fpu.pop();
 }
 
