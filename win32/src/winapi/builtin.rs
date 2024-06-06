@@ -1072,6 +1072,16 @@ pub mod kernel32 {
             let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::DeleteCriticalSection(machine, lpCriticalSection).to_raw()
         }
+        pub unsafe fn DeleteFileA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::DeleteFileA(machine, lpFileName).to_raw()
+        }
+        pub unsafe fn DisableThreadLibraryCalls(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hLibModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::DisableThreadLibraryCalls(machine, hLibModule).to_raw()
+        }
         pub unsafe fn EnterCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
@@ -1604,6 +1614,12 @@ pub mod kernel32 {
             let dwPriorityClass = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetPriorityClass(machine, hProcess, dwPriorityClass).to_raw()
         }
+        pub unsafe fn SetStdHandle(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nStdHandle = <Result<STD, u32>>::from_stack(mem, esp + 4u32);
+            let hHandle = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetStdHandle(machine, nStdHandle, hHandle).to_raw()
+        }
         pub unsafe fn SetThreadDescription(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
@@ -1907,6 +1923,18 @@ pub mod kernel32 {
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",
             func: impls::DeleteCriticalSection,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const DeleteFileA: Shim = Shim {
+            name: "DeleteFileA",
+            func: impls::DeleteFileA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const DisableThreadLibraryCalls: Shim = Shim {
+            name: "DisableThreadLibraryCalls",
+            func: impls::DisableThreadLibraryCalls,
             stack_consumed: 4u32,
             is_async: false,
         };
@@ -2396,6 +2424,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetStdHandle: Shim = Shim {
+            name: "SetStdHandle",
+            func: impls::SetStdHandle,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetThreadDescription: Shim = Shim {
             name: "SetThreadDescription",
             func: impls::SetThreadDescription,
@@ -2553,7 +2587,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 116usize] = [
+    const EXPORTS: [Symbol; 119usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2589,6 +2623,14 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::DeleteCriticalSection,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DeleteFileA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DisableThreadLibraryCalls,
         },
         Symbol {
             ordinal: None,
@@ -2913,6 +2955,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::SetPriorityClass,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetStdHandle,
         },
         Symbol {
             ordinal: None,

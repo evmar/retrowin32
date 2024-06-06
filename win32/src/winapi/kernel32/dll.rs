@@ -324,3 +324,8 @@ pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUP
     // STARTUPINFOA is the same shape as the W one, just the strings are different...
     GetStartupInfoA(machine, lpStartupInfo)
 }
+
+#[win32_derive::dllexport]
+pub fn DisableThreadLibraryCalls(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
+    true // succeed
+}

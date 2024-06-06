@@ -45,6 +45,11 @@ pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFI
     }
 }
 
+#[win32_derive::dllexport]
+pub fn SetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>, hHandle: u32) -> bool {
+    true // succees
+}
+
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum CreationDisposition {
     CREATE_ALWAYS = 2,
@@ -314,4 +319,9 @@ pub fn GetFullPathNameW(
     buf[file_name.len()] = 0;
 
     file_name.len() as u32
+}
+
+#[win32_derive::dllexport]
+pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
+    true
 }
