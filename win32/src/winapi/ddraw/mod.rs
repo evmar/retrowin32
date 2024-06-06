@@ -6,6 +6,7 @@ mod ddraw7;
 mod types;
 
 use super::{heap::Heap, types::*};
+pub use crate::winapi::com::GUID;
 use crate::{host, machine::Emulator, machine::Machine, winapi::vtable, SurfaceOptions};
 use std::collections::HashMap;
 use types::*;
@@ -189,19 +190,24 @@ mod IDirectDrawPalette {
 }
 
 #[win32_derive::dllexport]
-pub fn DirectDrawCreate(machine: &mut Machine, lpGuid: u32, lplpDD: u32, pUnkOuter: u32) -> u32 {
-    DirectDrawCreateEx(machine, lpGuid, lplpDD, 0, pUnkOuter)
+pub fn DirectDrawCreate(
+    machine: &mut Machine,
+    lpGuid: Option<&GUID>,
+    lplpDD: u32,
+    pUnkOuter: u32,
+) -> u32 {
+    DirectDrawCreateEx(machine, lpGuid, lplpDD, None, pUnkOuter)
 }
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateEx(
     machine: &mut Machine,
-    lpGuid: u32,
+    lpGuid: Option<&GUID>,
     lplpDD: u32,
-    iid: u32,
+    iid: Option<&GUID>,
     pUnkOuter: u32,
 ) -> u32 {
-    assert!(lpGuid == 0);
+    assert!(lpGuid.is_none());
     assert!(pUnkOuter == 0);
 
     if machine.state.ddraw.heap.addr == 0 {
@@ -209,28 +215,29 @@ pub fn DirectDrawCreateEx(
     }
     let ddraw = &mut machine.state.ddraw;
 
-    if iid == 0 {
-        // DirectDrawCreate
-        let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDraw;
-        machine.mem().put::<u32>(lpDirectDraw, vtable);
-        machine.mem().put::<u32>(lplpDD, lpDirectDraw);
-        return DD_OK;
-    }
-
-    let iid_slice = machine.emu.memory.mem().sub(iid, 16).as_slice_todo();
-    if iid_slice == ddraw7::IID_IDirectDraw7 {
-        // Caller gives us:
-        //   pointer (lplpDD) that they want us to fill in to point to ->
-        //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
-        //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-        let lpDirectDraw7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDraw7;
-        machine.mem().put::<u32>(lpDirectDraw7, vtable);
-        machine.mem().put::<u32>(lplpDD, lpDirectDraw7);
-        DD_OK
-    } else {
-        log::error!("DirectDrawCreateEx: unknown IID {iid_slice:x?}");
-        DDERR_GENERIC
+    match iid {
+        None => {
+            // DirectDrawCreate
+            let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+            let vtable = ddraw.vtable_IDirectDraw;
+            machine.mem().put::<u32>(lpDirectDraw, vtable);
+            machine.mem().put::<u32>(lplpDD, lpDirectDraw);
+            return DD_OK;
+        }
+        Some(&ddraw7::IID_IDirectDraw7) => {
+            // Caller gives us:
+            //   pointer (lplpDD) that they want us to fill in to point to ->
+            //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
+            //   [fn1, fn2, ...] (vtable_IDirectDraw7)
+            let lpDirectDraw7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+            let vtable = ddraw.vtable_IDirectDraw7;
+            machine.mem().put::<u32>(lpDirectDraw7, vtable);
+            machine.mem().put::<u32>(lplpDD, lpDirectDraw7);
+            DD_OK
+        }
+        _ => {
+            log::error!("DirectDrawCreateEx: unknown IID {iid:x?}");
+            DDERR_GENERIC
+        }
     }
 }

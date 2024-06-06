@@ -1,6 +1,7 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use super::{types::*, IDirectDrawPalette, State, DDERR_GENERIC, DD_OK};
+pub use crate::winapi::com::GUID;
 use crate::{
     machine::Emulator,
     winapi::{ddraw, types::*, vtable},
@@ -11,9 +12,12 @@ use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/7";
 
-pub const IID_IDirectDraw7: [u8; 16] = [
-    0xc0, 0x5e, 0xe6, 0x15, 0x9c, 0x3b, 0xd2, 0x11, 0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b,
-];
+pub const IID_IDirectDraw7: GUID = GUID {
+    Data1: 0x15e65ec0,
+    Data2: 0x3b9c,
+    Data3: 0x11d2,
+    Data4: [0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b],
+};
 
 #[win32_derive::shims_from_x86]
 pub(super) mod IDirectDraw7 {

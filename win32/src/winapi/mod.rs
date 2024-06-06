@@ -3,6 +3,7 @@ mod alloc;
 mod bass;
 mod bitmap;
 mod builtin;
+mod com;
 pub mod ddraw;
 pub mod dsound;
 pub mod gdi32;

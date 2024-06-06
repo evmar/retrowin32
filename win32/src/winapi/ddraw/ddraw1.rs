@@ -17,6 +17,8 @@ const TRACE_CONTEXT: &'static str = "ddraw/1";
 
 #[win32_derive::shims_from_x86]
 pub(super) mod IDirectDraw {
+    use crate::winapi::com::GUID;
+
     use super::*;
 
     vtable![IDirectDraw shims
@@ -46,7 +48,12 @@ pub(super) mod IDirectDraw {
     ];
 
     #[win32_derive::dllexport]
-    fn QueryInterface(_machine: &mut Machine, this: u32, riid: u32, ppvObject: u32) -> u32 {
+    fn QueryInterface(
+        _machine: &mut Machine,
+        this: u32,
+        riid: Option<&GUID>,
+        ppvObject: u32,
+    ) -> u32 {
         0x80004002 // E_NOINTERFACE
     }
 
