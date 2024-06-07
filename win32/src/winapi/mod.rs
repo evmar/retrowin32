@@ -22,18 +22,18 @@ mod vcruntime140;
 mod winmm;
 
 macro_rules! vtable_entry {
-    ($machine:expr, $iface:ident $shims:ident $fn:ident todo) => {
-        $machine.emu.register(Err(format!(
+    ($iface:ident $shims:ident $fn:ident todo) => {
+        Err(format!(
             "{} vtable::{}",
             stringify!($iface),
             stringify!($fn)
-        )))
+        ))
     };
-    ($machine:expr, $iface:ident $shims:ident $fn:ident ok) => {
-        $machine.emu.register(Ok(&$shims::$fn))
+    ($iface:ident $shims:ident $fn:ident ok) => {
+        Ok(&$shims::$fn)
     };
-    ($machine:expr, $iface:ident $shims:ident $fn:ident $shim:tt) => {
-        $machine.emu.register(Ok(&$shim))
+    ($iface:ident $shims:ident $fn:ident $shim:tt) => {
+        Ok(&$shim)
     };
 }
 pub(crate) use vtable_entry;
@@ -46,9 +46,9 @@ macro_rules! vtable {
         }
         unsafe impl memory::Pod for Vtable {}
         impl Vtable {
-            fn new(machine: &mut crate::Machine) -> Self {
+            fn new(machine: &mut Machine) -> Self {
                 Vtable {
-                    $($fn: $crate::winapi::vtable_entry!(machine, $iface $shims $fn $impl).into()),*
+                    $($fn: machine.emu.shims.add($crate::winapi::vtable_entry!($iface $shims $fn $impl)).into()),*
                 }
             }
         }

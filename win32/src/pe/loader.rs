@@ -1,10 +1,7 @@
 #![allow(non_snake_case)]
 
 use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
-use crate::{
-    machine::{Emulator, Machine},
-    pe, winapi,
-};
+use crate::{machine::Machine, pe, winapi};
 use memory::Mem;
 use std::collections::HashMap;
 
@@ -138,9 +135,9 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
             machine.labels.insert(iat_addr, format!("{}@IAT", name));
 
             let resolved_addr = if let Some(dll) = dll.as_mut() {
-                dll.resolve(&sym, |shim| machine.emu.register(shim))
+                dll.resolve(&sym, |shim| machine.emu.shims.add(shim))
             } else {
-                machine.emu.register(Err(format!("{name} not found")))
+                machine.emu.shims.add(Err(format!("{name} not found")))
             };
             machine.labels.insert(resolved_addr, name);
             patches.push((iat_addr, resolved_addr));

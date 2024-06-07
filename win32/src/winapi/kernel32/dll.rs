@@ -2,7 +2,7 @@ use memory::{Extensions, Pod};
 
 use crate::{
     host,
-    machine::{Emulator, Machine},
+    machine::Machine,
     pe,
     str16::expect_ascii,
     winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
@@ -262,7 +262,7 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
     let dll = &mut machine.state.kernel32.dlls[0];
     dll.resolve(&ImportSymbol::Name(name), |shim| {
-        let addr = machine.emu.register(shim);
+        let addr = machine.emu.shims.add(shim);
         machine.labels.insert(addr, format!("{}", name));
         addr
     })
@@ -277,7 +277,7 @@ pub fn GetProcAddress(
     let index = hModule.to_dll_index().unwrap();
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
         return dll.resolve(&lpProcName.0, |shim| {
-            let addr = machine.emu.register(shim);
+            let addr = machine.emu.shims.add(shim);
             machine.labels.insert(addr, format!("{}", lpProcName.0));
             addr
         });

@@ -3,7 +3,6 @@
 use super::{palette::IDirectDrawPalette, types::*, State, DDERR_GENERIC, DD_OK};
 pub use crate::winapi::com::GUID;
 use crate::{
-    machine::Emulator,
     winapi::{ddraw, types::*, vtable},
     Machine,
 };

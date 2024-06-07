@@ -35,12 +35,6 @@ pub struct Emulator {
     pub memory: MemImpl,
 }
 
-impl crate::machine::Emulator for Emulator {
-    fn register(&mut self, shim: Result<&'static crate::shims::Shim, String>) -> u32 {
-        self.shims.add(shim)
-    }
-}
-
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
