@@ -1,4 +1,3 @@
-use super::State;
 use crate::{winapi::vtable, Machine};
 
 const TRACE_CONTEXT: &'static str = "ddraw/palette";

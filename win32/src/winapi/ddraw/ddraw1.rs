@@ -5,7 +5,7 @@ use super::{
     ddraw2,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
-    State, DD_OK,
+    DD_OK,
 };
 use crate::{
     winapi::{ddraw, types::*, vtable},

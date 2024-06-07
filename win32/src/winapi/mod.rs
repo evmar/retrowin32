@@ -46,17 +46,17 @@ macro_rules! vtable {
         }
         unsafe impl memory::Pod for Vtable {}
         impl Vtable {
-            fn new(machine: &mut Machine) -> Self {
+            fn new(mut register: impl FnMut(Result<&'static $crate::shims::Shim, String>) -> u32) -> Self {
                 Vtable {
-                    $($fn: machine.emu.shims.add($crate::winapi::vtable_entry!($iface $shims $fn $impl)).into()),*
+                    $($fn: register($crate::winapi::vtable_entry!($iface $shims $fn $impl))),*
                 }
             }
         }
 
-        pub fn vtable(state: &mut State, machine: &mut Machine) -> u32 {
-            let addr = state.heap.alloc(machine.emu.memory.mem(), std::mem::size_of::<Vtable>() as u32);
-            let vtable = Vtable::new(machine);
-            *machine.emu.memory.mem().view_mut::<Vtable>(addr) = vtable;
+        pub fn vtable(mem: memory::Mem, heap: &mut $crate::winapi::heap::Heap, register: impl FnMut(Result<&'static $crate::shims::Shim, String>) -> u32) -> u32 {
+            let addr = heap.alloc(mem, std::mem::size_of::<Vtable>() as u32);
+            let vtable = Vtable::new(register);
+            *mem.view_mut::<Vtable>(addr) = vtable;
             addr
         }
     };

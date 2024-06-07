@@ -117,14 +117,40 @@ impl State {
             "ddraw.dll heap".into(),
         );
 
-        ddraw.vtable_IDirectDraw = ddraw1::IDirectDraw::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDrawSurface = ddraw1::IDirectDrawSurface::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDraw2 = ddraw2::IDirectDraw2::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDrawSurface2 = ddraw2::IDirectDrawSurface2::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDraw7 = ddraw7::IDirectDraw7::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDrawSurface7 = ddraw7::IDirectDrawSurface7::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
-        ddraw.vtable_IDirectDrawClipper = IDirectDrawClipper::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDraw =
+            ddraw1::IDirectDraw::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        ddraw.vtable_IDirectDrawSurface =
+            ddraw1::IDirectDrawSurface::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        ddraw.vtable_IDirectDraw2 =
+            ddraw2::IDirectDraw2::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        ddraw.vtable_IDirectDrawSurface2 = ddraw2::IDirectDrawSurface2::vtable(
+            machine.emu.memory.mem(),
+            &mut ddraw.heap,
+            |shim| machine.emu.shims.add(shim),
+        );
+        ddraw.vtable_IDirectDraw7 =
+            ddraw7::IDirectDraw7::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        ddraw.vtable_IDirectDrawSurface7 = ddraw7::IDirectDrawSurface7::vtable(
+            machine.emu.memory.mem(),
+            &mut ddraw.heap,
+            |shim| machine.emu.shims.add(shim),
+        );
+        ddraw.vtable_IDirectDrawPalette =
+            IDirectDrawPalette::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        ddraw.vtable_IDirectDrawClipper =
+            IDirectDrawClipper::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
 
         ddraw
     }

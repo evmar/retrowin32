@@ -37,8 +37,14 @@ impl State {
             "dsound.dll heap".into(),
         );
 
-        dsound.vtable_IDirectSound = IDirectSound::vtable(&mut dsound, machine);
-        dsound.vtable_IDirectSoundBuffer = IDirectSoundBuffer::vtable(&mut dsound, machine);
+        dsound.vtable_IDirectSound =
+            IDirectSound::vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
+        dsound.vtable_IDirectSoundBuffer =
+            IDirectSoundBuffer::vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
+                machine.emu.shims.add(shim)
+            });
         dsound
     }
 }
