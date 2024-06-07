@@ -38,7 +38,7 @@ pub(super) mod IDirectDraw2 {
     EnumSurfaces todo,
     FlipToGDISurface todo,
     GetCaps todo,
-    GetDisplayMode todo,
+    GetDisplayMode ok,
     GetFourCCCodes todo,
     GetGDISurface todo,
     GetMonitorFrequency todo,
@@ -145,6 +145,27 @@ pub(super) mod IDirectDraw2 {
             .ddraw
             .heap
             .free(machine.emu.memory.mem(), desc_addr);
+
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn GetDisplayMode(
+        _machine: &mut Machine,
+        this: u32,
+        lpDDSurfaceDesc: Option<&mut DDSURFACEDESC>,
+    ) -> u32 {
+        let desc = lpDDSurfaceDesc.unwrap();
+        desc.clear_struct();
+        desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
+
+        desc.dwFlags.insert(DDSD::WIDTH | DDSD::HEIGHT);
+        desc.dwWidth = 1024;
+        desc.dwHeight = 768;
+
+        desc.dwFlags.insert(DDSD::PIXELFORMAT);
+        // desc.ddpfPixelFormat.dwFlags = ...;
+        desc.ddpfPixelFormat.dwRGBBitCount = 32;
 
         DD_OK
     }
