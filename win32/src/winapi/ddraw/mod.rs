@@ -4,11 +4,13 @@
 mod ddraw1;
 mod ddraw2;
 mod ddraw7;
+mod palette;
 mod types;
 
 use super::{heap::Heap, types::*};
 pub use crate::winapi::com::GUID;
-use crate::{host, machine::Emulator, machine::Machine, winapi::vtable, SurfaceOptions};
+use crate::{host, machine::Machine, SurfaceOptions};
+use palette::IDirectDrawPalette;
 use std::collections::HashMap;
 use types::*;
 
@@ -146,55 +148,6 @@ impl Default for State {
 const DD_OK: u32 = 0;
 // DD error codes are generated with this MAKE_HRESULT macro, maybe it doesn't matter too much.
 const DDERR_GENERIC: u32 = 0x80004005;
-
-#[win32_derive::shims_from_x86]
-mod IDirectDrawPalette {
-    use super::*;
-
-    vtable![IDirectDrawPalette shims
-        QueryInterface todo,
-        AddRef todo,
-        Release ok,
-        GetCaps todo,
-        GetEntries todo,
-        Initialize todo,
-        SetEntries ok,
-    ];
-
-    pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawPalette = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDrawPalette;
-        machine.mem().put::<u32>(lpDirectDrawPalette, vtable);
-        lpDirectDrawPalette
-    }
-
-    #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
-        log::warn!("{this:x}->Release()");
-        0 // TODO: return refcount?
-    }
-
-    #[win32_derive::dllexport]
-    fn SetEntries(
-        machine: &mut Machine,
-        this: u32,
-        unused: u32,
-        start: u32,
-        count: u32,
-        entries: u32,
-    ) -> u32 {
-        let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
-        // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
-        let entries = machine
-            .emu
-            .memory
-            .mem()
-            .view_n::<PALETTEENTRY>(entries, count);
-        palette[start as usize..][..count as usize].clone_from_slice(entries);
-        DD_OK
-    }
-}
 
 #[win32_derive::dllexport]
 pub fn DirectDrawCreate(

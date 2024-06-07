@@ -38,7 +38,7 @@ macro_rules! vtable {
     ($iface:ident $module:ident $($fn:ident $impl:tt,)*) => {
         #[repr(C)]
         struct Vtable {
-            $($fn: DWORD),*
+            $($fn: u32),*
         }
         unsafe impl memory::Pod for Vtable {}
         impl Vtable {
