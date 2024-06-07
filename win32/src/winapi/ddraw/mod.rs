@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
+mod clipper;
 mod ddraw1;
 mod ddraw2;
 mod ddraw7;
@@ -10,6 +11,8 @@ mod types;
 use super::{heap::Heap, types::*};
 pub use crate::winapi::com::GUID;
 use crate::{host, machine::Machine, SurfaceOptions};
+pub use clipper::DirectDrawCreateClipper;
+use clipper::IDirectDrawClipper;
 use palette::IDirectDrawPalette;
 use std::collections::HashMap;
 use types::*;
@@ -91,6 +94,7 @@ pub struct State {
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
     vtable_IDirectDrawPalette: u32,
+    vtable_IDirectDrawClipper: u32,
 
     // TODO: this is per-IDirectDraw state.
     hwnd: HWND,
@@ -120,6 +124,7 @@ impl State {
         ddraw.vtable_IDirectDraw7 = ddraw7::IDirectDraw7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface7 = ddraw7::IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDrawClipper = IDirectDrawClipper::vtable(&mut ddraw, machine);
 
         ddraw
     }
@@ -136,6 +141,7 @@ impl Default for State {
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
             vtable_IDirectDrawPalette: 0,
+            vtable_IDirectDrawClipper: 0,
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,

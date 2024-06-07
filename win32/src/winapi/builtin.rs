@@ -275,6 +275,14 @@ pub mod ddraw {
             let pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter).to_raw()
         }
+        pub unsafe fn DirectDrawCreateClipper(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwFlags = <u32>::from_stack(mem, esp + 4u32);
+            let lplpDDClipper = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            let _pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::DirectDrawCreateClipper(machine, dwFlags, lplpDDClipper, _pUnkOuter)
+                .to_raw()
+        }
         pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, esp + 4u32);
@@ -293,6 +301,12 @@ pub mod ddraw {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const DirectDrawCreateClipper: Shim = Shim {
+            name: "DirectDrawCreateClipper",
+            func: impls::DirectDrawCreateClipper,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const DirectDrawCreateEx: Shim = Shim {
             name: "DirectDrawCreateEx",
             func: impls::DirectDrawCreateEx,
@@ -300,10 +314,14 @@ pub mod ddraw {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 2usize] = [
+    const EXPORTS: [Symbol; 3usize] = [
         Symbol {
             ordinal: None,
             shim: shims::DirectDrawCreate,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::DirectDrawCreateClipper,
         },
         Symbol {
             ordinal: None,
