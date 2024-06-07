@@ -1,11 +1,9 @@
-//! Implementation of DirectDraw1 interfaces, which typically don't have
-//! a "1" suffix but contrast with intefaces with names like IDirectDraw7.
+//! Implementation of DirectDraw2 interfaces.
 
 use super::{
-    ddraw2,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
-    State, DD_OK,
+    State, DD_OK, GUID,
 };
 use crate::{
     machine::Emulator,
@@ -14,64 +12,63 @@ use crate::{
 };
 use memory::Pod;
 
-const TRACE_CONTEXT: &'static str = "ddraw/1";
+const TRACE_CONTEXT: &'static str = "ddraw/2";
+
+pub const IID_IDirectDraw2: GUID = GUID {
+    Data1: 0xb3a6f3e0,
+    Data2: 0x2b43,
+    Data3: 0x11cf,
+    Data4: [0xa2, 0xde, 0x00, 0xaa, 0x00, 0xb9, 0x33, 0x56],
+};
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDraw {
-    use crate::winapi::com::GUID;
-
+pub(super) mod IDirectDraw2 {
     use super::*;
 
-    vtable![IDirectDraw shims
-        QueryInterface ok,
-        AddRef todo,
-        Release ok,
-        Compact todo,
-        CreateClipper todo,
-        CreatePalette (IDirectDraw7::shims::CreatePalette),
-        CreateSurface ok,
-        DuplicateSurface todo,
-        EnumDisplayModes ok,
-        EnumSurfaces todo,
-        FlipToGDISurface todo,
-        GetCaps todo,
-        GetDisplayMode todo,
-        GetFourCCCodes todo,
-        GetGDISurface todo,
-        GetMonitorFrequency todo,
-        GetScanLine todo,
-        GetVerticalBlankStatus todo,
-        Initialize todo,
-        RestoreDisplayMode (IDirectDraw7::shims::RestoreDisplayMode),
-        SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
-        SetDisplayMode ok,
-        WaitForVerticalBlank (IDirectDraw7::shims::WaitForVerticalBlank),
+    vtable![IDirectDraw2 shims
+    QueryInterface ok,
+    AddRef todo,
+    Release ok,
+    Compact todo,
+    CreateClipper todo,
+    CreatePalette (IDirectDraw7::shims::CreatePalette),
+    CreateSurface ok,
+    DuplicateSurface todo,
+    EnumDisplayModes ok,
+    EnumSurfaces todo,
+    FlipToGDISurface todo,
+    GetCaps todo,
+    GetDisplayMode todo,
+    GetFourCCCodes todo,
+    GetGDISurface todo,
+    GetMonitorFrequency todo,
+    GetScanLine todo,
+    GetVerticalBlankStatus todo,
+    Initialize todo,
+    RestoreDisplayMode (IDirectDraw7::shims::RestoreDisplayMode),
+    SetCooperativeLevel (IDirectDraw7::shims::SetCooperativeLevel),
+    SetDisplayMode ok,
+    WaitForVerticalBlank (IDirectDraw7::shims::WaitForVerticalBlank),
+
+    GetAvailableVidMem todo,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDraw;
+        let vtable = ddraw.vtable_IDirectDraw2;
         machine.mem().put::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
 
     #[win32_derive::dllexport]
     fn QueryInterface(
-        machine: &mut Machine,
+        _machine: &mut Machine,
         this: u32,
         riid: Option<&GUID>,
-        ppvObject: Option<&mut u32>,
+        ppvObject: u32,
     ) -> u32 {
-        match riid.unwrap() {
-            &ddraw2::IID_IDirectDraw2 => {
-                *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(machine);
-                DD_OK
-            }
-            _ => {
-                0x80004002 // E_NOINTERFACE
-            }
-        }
+        0x80004002 // E_NOINTERFACE
     }
 
     #[win32_derive::dllexport]
@@ -93,7 +90,7 @@ pub(super) mod IDirectDraw {
 
         let mut prev = 0;
         for mut surface in surfaces.into_iter().rev() {
-            let ptr = IDirectDrawSurface::new(machine);
+            let ptr = IDirectDrawSurface2::new(machine);
             surface.attached = prev;
             machine.state.ddraw.surfaces.insert(ptr, surface);
             prev = ptr;
@@ -165,46 +162,50 @@ pub(super) mod IDirectDraw {
 }
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDrawSurface {
+pub(super) mod IDirectDrawSurface2 {
     use super::*;
 
-    vtable![IDirectDrawSurface shims
-        QueryInterface todo,
-        AddRef todo,
-        Release ok,
-        AddAttachedSurface todo,
-        AddOverlayDirtyRect todo,
-        Blt (IDirectDrawSurface7::shims::Blt),
-        BltBatch todo,
-        BltFast todo,
-        DeleteAttachedSurface todo,
-        EnumAttachedSurfaces todo,
-        EnumOverlayZOrders todo,
-        Flip (IDirectDrawSurface7::shims::Flip),
-        GetAttachedSurface ok,
-        GetBltStatus todo,
-        GetCaps ok,
-        GetClipper todo,
-        GetColorKey todo,
-        GetDC (IDirectDrawSurface7::shims::GetDC),
-        GetFlipStatus todo,
-        GetOverlayPosition todo,
-        GetPalette todo,
-        GetPixelFormat ok,
-        GetSurfaceDesc ok,
-        Initialize todo,
-        IsLost todo,
-        Lock ok,
-        ReleaseDC (IDirectDrawSurface7::shims::ReleaseDC),
-        Restore todo,
-        SetClipper todo,
-        SetColorKey todo,
-        SetOverlayPosition todo,
-        SetPalette (IDirectDrawSurface7::shims::SetPalette),
-        Unlock ok,
-        UpdateOverlay todo,
-        UpdateOverlayDisplay todo,
-        UpdateOverlayZOrder todo,
+    vtable![IDirectDrawSurface2 shims
+    QueryInterface todo,
+    AddRef todo,
+    Release ok,
+    AddAttachedSurface todo,
+    AddOverlayDirtyRect todo,
+    Blt (IDirectDrawSurface7::shims::Blt),
+    BltBatch todo,
+    BltFast todo,
+    DeleteAttachedSurface todo,
+    EnumAttachedSurfaces todo,
+    EnumOverlayZOrders todo,
+    Flip (IDirectDrawSurface7::shims::Flip),
+    GetAttachedSurface ok,
+    GetBltStatus todo,
+    GetCaps ok,
+    GetClipper todo,
+    GetColorKey todo,
+    GetDC (IDirectDrawSurface7::shims::GetDC),
+    GetFlipStatus todo,
+    GetOverlayPosition todo,
+    GetPalette todo,
+    GetPixelFormat ok,
+    GetSurfaceDesc ok,
+    Initialize todo,
+    IsLost todo,
+    Lock ok,
+    ReleaseDC (IDirectDrawSurface7::shims::ReleaseDC),
+    Restore todo,
+    SetClipper todo,
+    SetColorKey todo,
+    SetOverlayPosition todo,
+    SetPalette (IDirectDrawSurface7::shims::SetPalette),
+    Unlock ok,
+    UpdateOverlay todo,
+    UpdateOverlayDisplay todo,
+    UpdateOverlayZOrder todo,
+
+    GetDDInterface todo,
+    PageLock todo,
+    PageUnlock todo,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {

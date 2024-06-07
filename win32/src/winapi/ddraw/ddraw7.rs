@@ -56,6 +56,14 @@ pub(super) mod IDirectDraw7 {
         EvaluateMode todo,
     ];
 
+    pub fn new(machine: &mut Machine) -> u32 {
+        let ddraw = &mut machine.state.ddraw;
+        let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let vtable = ddraw.vtable_IDirectDraw7;
+        machine.mem().put::<u32>(lpDirectDraw, vtable);
+        lpDirectDraw
+    }
+
     #[win32_derive::dllexport]
     fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");

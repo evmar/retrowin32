@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 
 mod ddraw1;
+mod ddraw2;
 mod ddraw7;
 mod types;
 
@@ -83,6 +84,8 @@ pub struct State {
     heap: Heap,
     vtable_IDirectDraw: u32,
     vtable_IDirectDrawSurface: u32,
+    vtable_IDirectDraw2: u32,
+    vtable_IDirectDrawSurface2: u32,
     vtable_IDirectDraw7: u32,
     vtable_IDirectDrawSurface7: u32,
     vtable_IDirectDrawPalette: u32,
@@ -110,6 +113,8 @@ impl State {
 
         ddraw.vtable_IDirectDraw = ddraw1::IDirectDraw::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface = ddraw1::IDirectDrawSurface::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDraw2 = ddraw2::IDirectDraw2::vtable(&mut ddraw, machine);
+        ddraw.vtable_IDirectDrawSurface2 = ddraw2::IDirectDrawSurface2::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDraw7 = ddraw7::IDirectDraw7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawSurface7 = ddraw7::IDirectDrawSurface7::vtable(&mut ddraw, machine);
         ddraw.vtable_IDirectDrawPalette = IDirectDrawPalette::vtable(&mut ddraw, machine);
@@ -124,6 +129,8 @@ impl Default for State {
             heap: Heap::default(),
             vtable_IDirectDraw: 0,
             vtable_IDirectDrawSurface: 0,
+            vtable_IDirectDraw2: 0,
+            vtable_IDirectDrawSurface2: 0,
             vtable_IDirectDraw7: 0,
             vtable_IDirectDrawSurface7: 0,
             vtable_IDirectDrawPalette: 0,
@@ -193,7 +200,7 @@ mod IDirectDrawPalette {
 pub fn DirectDrawCreate(
     machine: &mut Machine,
     lpGuid: Option<&GUID>,
-    lplpDD: u32,
+    lplpDD: Option<&mut u32>,
     pUnkOuter: u32,
 ) -> u32 {
     DirectDrawCreateEx(machine, lpGuid, lplpDD, None, pUnkOuter)
@@ -203,7 +210,7 @@ pub fn DirectDrawCreate(
 pub fn DirectDrawCreateEx(
     machine: &mut Machine,
     lpGuid: Option<&GUID>,
-    lplpDD: u32,
+    lplpDD: Option<&mut u32>,
     iid: Option<&GUID>,
     pUnkOuter: u32,
 ) -> u32 {
@@ -213,26 +220,15 @@ pub fn DirectDrawCreateEx(
     if machine.state.ddraw.heap.addr == 0 {
         machine.state.ddraw = State::new_init(machine);
     }
-    let ddraw = &mut machine.state.ddraw;
 
     match iid {
         None => {
             // DirectDrawCreate
-            let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-            let vtable = ddraw.vtable_IDirectDraw;
-            machine.mem().put::<u32>(lpDirectDraw, vtable);
-            machine.mem().put::<u32>(lplpDD, lpDirectDraw);
+            *lplpDD.unwrap() = ddraw1::IDirectDraw::new(machine);
             return DD_OK;
         }
         Some(&ddraw7::IID_IDirectDraw7) => {
-            // Caller gives us:
-            //   pointer (lplpDD) that they want us to fill in to point to ->
-            //   [vtable, ...] (lpDirectDraw7), where vtable is pointer to ->
-            //   [fn1, fn2, ...] (vtable_IDirectDraw7)
-            let lpDirectDraw7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-            let vtable = ddraw.vtable_IDirectDraw7;
-            machine.mem().put::<u32>(lpDirectDraw7, vtable);
-            machine.mem().put::<u32>(lplpDD, lpDirectDraw7);
+            *lplpDD.unwrap() = ddraw7::IDirectDraw7::new(machine);
             DD_OK
         }
         _ => {

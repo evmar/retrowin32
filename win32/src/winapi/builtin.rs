@@ -271,14 +271,14 @@ pub mod ddraw {
         pub unsafe fn DirectDrawCreate(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, esp + 4u32);
-            let lplpDD = <u32>::from_stack(mem, esp + 8u32);
+            let lplpDD = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::ddraw::DirectDrawCreate(machine, lpGuid, lplpDD, pUnkOuter).to_raw()
         }
         pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpGuid = <Option<&GUID>>::from_stack(mem, esp + 4u32);
-            let lplpDD = <u32>::from_stack(mem, esp + 8u32);
+            let lplpDD = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             let iid = <Option<&GUID>>::from_stack(mem, esp + 12u32);
             let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
             winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter).to_raw()
