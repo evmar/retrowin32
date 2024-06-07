@@ -22,20 +22,24 @@ mod vcruntime140;
 mod winmm;
 
 macro_rules! vtable_entry {
-    ($shims:expr, $module:ident $fn:ident todo) => {
-        $shims.register(Err(format!("{}:{}", stringify!($module), stringify!($fn))))
+    ($machine:expr, $iface:ident $shims:ident $fn:ident todo) => {
+        $machine.emu.register(Err(format!(
+            "{} vtable::{}",
+            stringify!($iface),
+            stringify!($fn)
+        )))
     };
-    ($shims:expr, $module:ident $fn:ident ok) => {
-        $shims.register(Ok(&$module::$fn))
+    ($machine:expr, $iface:ident $shims:ident $fn:ident ok) => {
+        $machine.emu.register(Ok(&$shims::$fn))
     };
-    ($shims:expr, $module:ident $fn:ident $shim:tt) => {
-        $shims.register(Ok(&$shim))
+    ($machine:expr, $iface:ident $shims:ident $fn:ident $shim:tt) => {
+        $machine.emu.register(Ok(&$shim))
     };
 }
 pub(crate) use vtable_entry;
 
 macro_rules! vtable {
-    ($iface:ident $module:ident $($fn:ident $impl:tt,)*) => {
+    ($iface:ident $shims:ident $($fn:ident $impl:tt,)*) => {
         #[repr(C)]
         struct Vtable {
             $($fn: u32),*
@@ -44,7 +48,7 @@ macro_rules! vtable {
         impl Vtable {
             fn new(machine: &mut crate::Machine) -> Self {
                 Vtable {
-                    $($fn: $crate::winapi::vtable_entry!(machine.emu, $module $fn $impl).into()),*
+                    $($fn: $crate::winapi::vtable_entry!(machine, $iface $shims $fn $impl).into()),*
                 }
             }
         }

@@ -19,7 +19,7 @@ pub fn DirectDrawCreateClipper(
 pub(super) mod IDirectDrawClipper {
     use super::*;
 
-    vtable![IDirectDraw shims
+    vtable![IDirectDrawClipper shims
         QueryInterface todo,
         AddRef todo,
         Release todo,
