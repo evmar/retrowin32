@@ -236,14 +236,13 @@ impl DDSURFACEDESC {
             ddckCKDestBlt: Default::default(),
             ddckCKSrcOverlay: Default::default(),
             ddckCKSrcBlt: Default::default(),
-            ddpfPixelFormat: Default::default(),
+            ddpfPixelFormat: desc2.ddpfPixelFormat.clone(),
             ddsCaps: desc2.ddsCaps.dwCaps,
         }
     }
 }
 
 #[repr(C)]
-#[derive(Default)]
 pub struct DDSURFACEDESC2 {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -268,6 +267,14 @@ pub struct DDSURFACEDESC2 {
     pub dwTextureStage: DWORD,
 }
 unsafe impl memory::Pod for DDSURFACEDESC2 {}
+
+impl Default for DDSURFACEDESC2 {
+    fn default() -> Self {
+        let mut desc: Self = unsafe { std::mem::zeroed() };
+        desc.dwSize = std::mem::size_of::<Self>() as u32;
+        desc
+    }
+}
 
 /// Custom implementation of Debug that only displays the fields that have been marked present in the flags member.
 impl std::fmt::Debug for DDSURFACEDESC2 {
@@ -370,7 +377,7 @@ impl DDSURFACEDESC2 {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct DDPIXELFORMAT {
     pub dwSize: DWORD,
     pub dwFlags: DWORD,

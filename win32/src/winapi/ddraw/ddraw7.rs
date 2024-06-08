@@ -1,6 +1,6 @@
 //! Implementation of DirectDraw7 interfaces.
 
-use super::{palette::IDirectDrawPalette, types::*, DDERR_GENERIC, DD_OK};
+use super::{palette::IDirectDrawPalette, types::*, DD_OK};
 pub use crate::winapi::com::GUID;
 use crate::{
     winapi::{com::vtable, ddraw, types::*},
@@ -455,7 +455,7 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn GetSurfaceDesc(
+    pub fn GetSurfaceDesc(
         machine: &mut Machine,
         this: u32,
         lpDesc: Option<&mut DDSURFACEDESC2>,
@@ -463,22 +463,20 @@ pub(super) mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get(&this).unwrap();
         let desc = lpDesc.unwrap();
         assert!(desc.dwSize as usize == std::mem::size_of::<DDSURFACEDESC2>());
-        let mut flags = desc.dwFlags;
-        if flags.contains(DDSD::WIDTH) {
-            desc.dwWidth = surf.width;
-            flags.remove(DDSD::WIDTH);
-        }
-        if flags.contains(DDSD::HEIGHT) {
-            desc.dwHeight = surf.height;
-            flags.remove(DDSD::HEIGHT);
-        }
-        if !flags.is_empty() {
-            log::warn!(
-                "unimp: {:?} for {this:x}->GetSurfaceDesc({desc:?})",
-                desc.dwFlags
-            );
-        }
-        DDERR_GENERIC
+        // TODO: a trace of a ddraw2 program had the result contain
+        // CAPS, HEIGHT, PITCH, PIXELFORMAT, WIDTH
+        desc.dwWidth = surf.width;
+        desc.dwFlags.insert(DDSD::WIDTH);
+        desc.dwHeight = surf.height;
+        desc.dwFlags.insert(DDSD::HEIGHT);
+        desc.lPitch_dwLinearSize = surf.width * 4;
+        desc.dwFlags.insert(DDSD::PITCH);
+
+        // TODO: a trace of a ddraw2 program had the result contain
+        // DDPF_RGB, r/g/b bitmasks
+        desc.ddpfPixelFormat.dwRGBBitCount = 32;
+        desc.dwFlags.insert(DDSD::PIXELFORMAT);
+        DD_OK
     }
 
     #[win32_derive::dllexport]

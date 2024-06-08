@@ -194,7 +194,7 @@ pub(super) mod IDirectDrawSurface {
         GetOverlayPosition todo,
         GetPalette todo,
         GetPixelFormat ok,
-        GetSurfaceDesc ok,
+        GetSurfaceDesc (ddraw2::IDirectDrawSurface2::shims::GetSurfaceDesc),
         Initialize todo,
         IsLost todo,
         Lock ok,
@@ -250,17 +250,6 @@ pub(super) mod IDirectDrawSurface {
         let fmt = fmt.unwrap();
         *fmt = unsafe { std::mem::zeroed() };
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
-        DD_OK
-    }
-
-    #[win32_derive::dllexport]
-    fn GetSurfaceDesc(machine: &mut Machine, this: u32, desc: Option<&mut DDSURFACEDESC>) -> u32 {
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let desc = desc.unwrap();
-        desc.dwWidth = surface.width;
-        desc.dwHeight = surface.height;
-        desc.dwFlags = DDSD::WIDTH | DDSD::HEIGHT;
-        // TODO: fill out more of desc?
         DD_OK
     }
 

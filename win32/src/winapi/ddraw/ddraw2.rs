@@ -276,14 +276,17 @@ pub(super) mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    fn GetSurfaceDesc(machine: &mut Machine, this: u32, desc: Option<&mut DDSURFACEDESC>) -> u32 {
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let desc = desc.unwrap();
-        desc.dwWidth = surface.width;
-        desc.dwHeight = surface.height;
-        desc.dwFlags = DDSD::WIDTH | DDSD::HEIGHT;
-        // TODO: fill out more of desc?
-        DD_OK
+    pub fn GetSurfaceDesc(
+        machine: &mut Machine,
+        this: u32,
+        desc: Option<&mut DDSURFACEDESC>,
+    ) -> u32 {
+        let mut desc2 = DDSURFACEDESC2::default();
+        let ret = IDirectDrawSurface7::GetSurfaceDesc(machine, this, Some(&mut desc2));
+        if ret == DD_OK {
+            *desc.unwrap() = DDSURFACEDESC::from_desc2(&desc2);
+        }
+        ret
     }
 
     #[win32_derive::dllexport]
