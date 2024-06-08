@@ -218,7 +218,7 @@ pub(super) mod IDirectDrawSurface2 {
     Lock ok,
     ReleaseDC (IDirectDrawSurface7::shims::ReleaseDC),
     Restore todo,
-    SetClipper todo,
+    SetClipper (IDirectDrawSurface7::shims::SetClipper),
     SetColorKey todo,
     SetOverlayPosition todo,
     SetPalette (IDirectDrawSurface7::shims::SetPalette),

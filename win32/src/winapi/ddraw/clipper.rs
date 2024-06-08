@@ -25,7 +25,7 @@ pub(super) mod IDirectDrawClipper {
     vtable![IDirectDrawClipper shims
         QueryInterface todo,
         AddRef todo,
-        Release todo,
+        Release ok,
 
         GetClipList todo,
         GetHWnd todo,
@@ -45,6 +45,11 @@ pub(super) mod IDirectDrawClipper {
         });
         machine.mem().put::<u32>(clipper, vtable);
         clipper
+    }
+
+    #[win32_derive::dllexport]
+    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+        0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]

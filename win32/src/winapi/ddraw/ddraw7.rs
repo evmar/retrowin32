@@ -301,7 +301,7 @@ pub(super) mod IDirectDrawSurface7 {
         Lock ok,
         ReleaseDC ok,
         Restore ok,
-        SetClipper todo,
+        SetClipper ok,
         SetColorKey todo,
         SetOverlayPosition todo,
         SetPalette ok,
@@ -518,6 +518,12 @@ pub(super) mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn SetClipper(_machine: &mut Machine, this: u32, clipper: u32) -> u32 {
+        // e.g. machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
         DD_OK
     }
 
