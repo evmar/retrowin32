@@ -1,5 +1,8 @@
 use super::DD_OK;
-use crate::{winapi::com::vtable, Machine};
+use crate::{
+    winapi::{com::vtable, types::HWND},
+    Machine,
+};
 
 const TRACE_CONTEXT: &'static str = "ddraw/clipper";
 
@@ -29,7 +32,7 @@ pub(super) mod IDirectDrawClipper {
         Initialize todo,
         IsClipListChanged todo,
         SetClipList todo,
-        SetHWnd todo,
+        SetHWnd ok,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
@@ -44,21 +47,8 @@ pub(super) mod IDirectDrawClipper {
         clipper
     }
 
-    // #[win32_derive::dllexport]
-    // fn QueryInterface(
-    //     machine: &mut Machine,
-    //     this: u32,
-    //     riid: Option<&GUID>,
-    //     ppvObject: Option<&mut u32>,
-    // ) -> u32 {
-    //     match riid.unwrap() {
-    //         &ddraw2::IID_IDirectDraw2 => {
-    //             *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(machine);
-    //             DD_OK
-    //         }
-    //         _ => {
-    //             0x80004002 // E_NOINTERFACE
-    //         }
-    //     }
-    // }
+    #[win32_derive::dllexport]
+    fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> u32 {
+        DD_OK
+    }
 }
