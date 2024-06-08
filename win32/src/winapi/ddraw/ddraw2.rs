@@ -6,7 +6,7 @@ use super::{
     DD_OK, GUID,
 };
 use crate::{
-    winapi::{ddraw, types::*, vtable},
+    winapi::{com::vtable, ddraw, types::*},
     Machine,
 };
 use memory::Pod;

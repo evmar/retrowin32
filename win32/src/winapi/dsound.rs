@@ -2,7 +2,7 @@
 #![allow(non_upper_case_globals)]
 
 use super::heap::Heap;
-use crate::{machine::Machine, winapi::vtable};
+use crate::{machine::Machine, winapi::com::vtable};
 
 const TRACE_CONTEXT: &'static str = "dsound";
 

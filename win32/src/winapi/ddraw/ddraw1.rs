@@ -8,7 +8,7 @@ use super::{
     DD_OK,
 };
 use crate::{
-    winapi::{ddraw, types::*, vtable},
+    winapi::{com::vtable, ddraw, types::*},
     Machine,
 };
 use memory::Pod;

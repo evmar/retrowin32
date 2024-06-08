@@ -1,5 +1,5 @@
 use super::DD_OK;
-use crate::{winapi::vtable, Machine};
+use crate::{winapi::com::vtable, Machine};
 
 const TRACE_CONTEXT: &'static str = "ddraw/clipper";
 

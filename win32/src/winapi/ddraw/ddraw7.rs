@@ -3,7 +3,7 @@
 use super::{palette::IDirectDrawPalette, types::*, DDERR_GENERIC, DD_OK};
 pub use crate::winapi::com::GUID;
 use crate::{
-    winapi::{ddraw, types::*, vtable},
+    winapi::{com::vtable, ddraw, types::*},
     Machine,
 };
 use bitflags::bitflags;

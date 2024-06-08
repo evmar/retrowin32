@@ -25,3 +25,45 @@ impl std::fmt::Debug for GUID {
         Ok(())
     }
 }
+
+macro_rules! vtable_entry {
+    ($iface:ident $shims:ident $fn:ident todo) => {
+        Err(format!(
+            "{} vtable::{}",
+            stringify!($iface),
+            stringify!($fn)
+        ))
+    };
+    ($iface:ident $shims:ident $fn:ident ok) => {
+        Ok(&$shims::$fn)
+    };
+    ($iface:ident $shims:ident $fn:ident $shim:tt) => {
+        Ok(&$shim)
+    };
+}
+pub(crate) use vtable_entry;
+
+macro_rules! vtable {
+    ($iface:ident $shims:ident $($fn:ident $impl:tt,)*) => {
+        #[repr(C)]
+        struct Vtable {
+            $($fn: u32),*
+        }
+        unsafe impl memory::Pod for Vtable {}
+        impl Vtable {
+            fn new(mut register: impl FnMut(Result<&'static $crate::shims::Shim, String>) -> u32) -> Self {
+                Vtable {
+                    $($fn: register($crate::winapi::com::vtable_entry!($iface $shims $fn $impl))),*
+                }
+            }
+        }
+
+        pub fn vtable(mem: memory::Mem, heap: &mut $crate::winapi::heap::Heap, register: impl FnMut(Result<&'static $crate::shims::Shim, String>) -> u32) -> u32 {
+            let addr = heap.alloc(mem, std::mem::size_of::<Vtable>() as u32);
+            let vtable = Vtable::new(register);
+            *mem.view_mut::<Vtable>(addr) = vtable;
+            addr
+        }
+    };
+}
+pub(crate) use vtable;
