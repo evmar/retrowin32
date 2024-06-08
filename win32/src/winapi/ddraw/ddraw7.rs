@@ -58,7 +58,11 @@ pub(super) mod IDirectDraw7 {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDraw7;
+        let vtable = *ddraw.vtable_IDirectDraw7.get_or_insert_with(|| {
+            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            })
+        });
         machine.mem().put::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
@@ -323,7 +327,11 @@ pub(super) mod IDirectDrawSurface7 {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDrawSurface7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = ddraw.vtable_IDirectDrawSurface7;
+        let vtable = *ddraw.vtable_IDirectDrawSurface7.get_or_insert_with(|| {
+            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
+                machine.emu.shims.add(shim)
+            })
+        });
         machine.mem().put::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }

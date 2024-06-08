@@ -22,10 +22,11 @@ const fn make_dhsresult(code: u32) -> u32 {
     (1 << 31) | (0x878 << 16) | code
 }
 
+#[derive(Default)]
 pub struct State {
     heap: Heap,
-    vtable_IDirectSound: u32,
-    vtable_IDirectSoundBuffer: u32,
+    vtable_IDirectSound: Option<u32>,
+    vtable_IDirectSoundBuffer: Option<u32>,
 }
 
 impl State {
@@ -36,32 +37,25 @@ impl State {
             0x1000,
             "dsound.dll heap".into(),
         );
-
-        dsound.vtable_IDirectSound =
-            IDirectSound::vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        dsound.vtable_IDirectSoundBuffer =
-            IDirectSoundBuffer::vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
         dsound
-    }
-}
-
-impl Default for State {
-    fn default() -> Self {
-        State {
-            heap: Heap::default(),
-            vtable_IDirectSound: 0,
-            vtable_IDirectSoundBuffer: 0,
-        }
     }
 }
 
 #[win32_derive::shims_from_x86]
 mod IDirectSound {
     use super::*;
+
+    pub fn new(machine: &mut Machine) -> u32 {
+        let dsound = &mut machine.state.dsound;
+        let lpDirectSoundBuffer = dsound.heap.alloc(machine.emu.memory.mem(), 4);
+        let vtable = *dsound.vtable_IDirectSound.get_or_insert_with(|| {
+            vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
+                machine.emu.shims.add(shim)
+            })
+        });
+        machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
+        lpDirectSoundBuffer
+    }
 
     #[win32_derive::dllexport]
     pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
@@ -108,7 +102,11 @@ mod IDirectSoundBuffer {
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
         let lpDirectSoundBuffer = dsound.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = dsound.vtable_IDirectSoundBuffer;
+        let vtable = *dsound.vtable_IDirectSoundBuffer.get_or_insert_with(|| {
+            vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
+                machine.emu.shims.add(shim)
+            })
+        });
         machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }
@@ -219,11 +217,7 @@ pub fn DirectSoundCreate(machine: &mut Machine, lpGuid: u32, ppDS: u32, pUnkOute
     if machine.state.dsound.heap.addr == 0 {
         machine.state.dsound = State::new_init(machine);
     }
-    let dsound = &mut machine.state.dsound;
-
-    let lpDirectSound = dsound.heap.alloc(machine.emu.memory.mem(), 4);
-    let vtable = dsound.vtable_IDirectSound;
-    machine.mem().put::<u32>(lpDirectSound, vtable);
+    let lpDirectSound = IDirectSound::new(machine);
     machine.mem().put::<u32>(ppDS, lpDirectSound);
     DS_OK
 }

@@ -12,8 +12,6 @@ use super::{heap::Heap, types::*};
 pub use crate::winapi::com::GUID;
 use crate::{host, machine::Machine, SurfaceOptions};
 pub use clipper::DirectDrawCreateClipper;
-use clipper::IDirectDrawClipper;
-use palette::IDirectDrawPalette;
 use std::collections::HashMap;
 use types::*;
 
@@ -87,14 +85,14 @@ impl Surface {
 
 pub struct State {
     heap: Heap,
-    vtable_IDirectDraw: u32,
-    vtable_IDirectDrawSurface: u32,
-    vtable_IDirectDraw2: u32,
-    vtable_IDirectDrawSurface2: u32,
-    vtable_IDirectDraw7: u32,
-    vtable_IDirectDrawSurface7: u32,
-    vtable_IDirectDrawPalette: u32,
-    vtable_IDirectDrawClipper: u32,
+    vtable_IDirectDraw: Option<u32>,
+    vtable_IDirectDrawSurface: Option<u32>,
+    vtable_IDirectDraw2: Option<u32>,
+    vtable_IDirectDrawSurface2: Option<u32>,
+    vtable_IDirectDraw7: Option<u32>,
+    vtable_IDirectDrawSurface7: Option<u32>,
+    vtable_IDirectDrawPalette: Option<u32>,
+    vtable_IDirectDrawClipper: Option<u32>,
 
     // TODO: this is per-IDirectDraw state.
     hwnd: HWND,
@@ -116,42 +114,6 @@ impl State {
             4 << 20,
             "ddraw.dll heap".into(),
         );
-
-        ddraw.vtable_IDirectDraw =
-            ddraw1::IDirectDraw::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        ddraw.vtable_IDirectDrawSurface =
-            ddraw1::IDirectDrawSurface::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        ddraw.vtable_IDirectDraw2 =
-            ddraw2::IDirectDraw2::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        ddraw.vtable_IDirectDrawSurface2 = ddraw2::IDirectDrawSurface2::vtable(
-            machine.emu.memory.mem(),
-            &mut ddraw.heap,
-            |shim| machine.emu.shims.add(shim),
-        );
-        ddraw.vtable_IDirectDraw7 =
-            ddraw7::IDirectDraw7::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        ddraw.vtable_IDirectDrawSurface7 = ddraw7::IDirectDrawSurface7::vtable(
-            machine.emu.memory.mem(),
-            &mut ddraw.heap,
-            |shim| machine.emu.shims.add(shim),
-        );
-        ddraw.vtable_IDirectDrawPalette =
-            IDirectDrawPalette::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-        ddraw.vtable_IDirectDrawClipper =
-            IDirectDrawClipper::vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            });
-
         ddraw
     }
 }
@@ -160,14 +122,14 @@ impl Default for State {
     fn default() -> Self {
         State {
             heap: Heap::default(),
-            vtable_IDirectDraw: 0,
-            vtable_IDirectDrawSurface: 0,
-            vtable_IDirectDraw2: 0,
-            vtable_IDirectDrawSurface2: 0,
-            vtable_IDirectDraw7: 0,
-            vtable_IDirectDrawSurface7: 0,
-            vtable_IDirectDrawPalette: 0,
-            vtable_IDirectDrawClipper: 0,
+            vtable_IDirectDraw: None,
+            vtable_IDirectDrawSurface: None,
+            vtable_IDirectDraw2: None,
+            vtable_IDirectDrawSurface2: None,
+            vtable_IDirectDraw7: None,
+            vtable_IDirectDrawSurface7: None,
+            vtable_IDirectDrawPalette: None,
+            vtable_IDirectDrawClipper: None,
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,
