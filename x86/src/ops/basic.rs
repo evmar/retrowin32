@@ -329,6 +329,12 @@ pub fn setge_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(value);
 }
 
+pub fn sets_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let value = cpu.flags.contains(Flags::SF) as u8;
+    let x = rm8(cpu, mem, instr);
+    x.set(value);
+}
+
 pub fn pushad(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
     let esp = cpu.regs.get32(Register::ESP); // get before any pushes
 
