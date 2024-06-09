@@ -279,8 +279,8 @@ pub mod ddraw {
             let mem = machine.mem().detach();
             let dwFlags = <u32>::from_stack(mem, esp + 4u32);
             let lplpDDClipper = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
-            let _pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
-            winapi::ddraw::DirectDrawCreateClipper(machine, dwFlags, lplpDDClipper, _pUnkOuter)
+            let pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::DirectDrawCreateClipper(machine, dwFlags, lplpDDClipper, pUnkOuter)
                 .to_raw()
         }
         pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, esp: u32) -> u32 {
@@ -3635,7 +3635,29 @@ pub mod user32 {
             let msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
             let wParam = <u32>::from_stack(mem, esp + 12u32);
             let lParam = <u32>::from_stack(mem, esp + 16u32);
-            winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result =
+                        winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 16u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::DefWindowProcA(
+                    machine, hWnd, msg, wParam, lParam
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn DefWindowProcW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3643,7 +3665,29 @@ pub mod user32 {
             let msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
             let wParam = <u32>::from_stack(mem, esp + 12u32);
             let lParam = <u32>::from_stack(mem, esp + 16u32);
-            winapi::user32::DefWindowProcW(machine, hWnd, msg, wParam, lParam).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result =
+                        winapi::user32::DefWindowProcW(machine, hWnd, msg, wParam, lParam).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 16u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::DefWindowProcW(
+                    machine, hWnd, msg, wParam, lParam
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn DestroyWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4157,9 +4201,46 @@ pub mod user32 {
             let Y = <i32>::from_stack(mem, esp + 16u32);
             let cx = <i32>::from_stack(mem, esp + 20u32);
             let cy = <i32>::from_stack(mem, esp + 24u32);
-            let uFlags = <u32>::from_stack(mem, esp + 28u32);
-            winapi::user32::SetWindowPos(machine, hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags)
-                .to_raw()
+            let uFlags = <Result<SWP, u32>>::from_stack(mem, esp + 28u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::user32::SetWindowPos(
+                        machine,
+                        hWnd,
+                        hWndInsertAfter,
+                        X,
+                        Y,
+                        cx,
+                        cy,
+                        uFlags,
+                    )
+                    .await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 28u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::user32::SetWindowPos(
+                    machine,
+                    hWnd,
+                    hWndInsertAfter,
+                    X,
+                    Y,
+                    cx,
+                    cy,
+                    uFlags
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn SetWindowTextA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4312,13 +4393,13 @@ pub mod user32 {
             name: "DefWindowProcA",
             func: impls::DefWindowProcA,
             stack_consumed: 16u32,
-            is_async: false,
+            is_async: true,
         };
         pub const DefWindowProcW: Shim = Shim {
             name: "DefWindowProcW",
             func: impls::DefWindowProcW,
             stack_consumed: 16u32,
-            is_async: false,
+            is_async: true,
         };
         pub const DestroyWindow: Shim = Shim {
             name: "DestroyWindow",
@@ -4654,7 +4735,7 @@ pub mod user32 {
             name: "SetWindowPos",
             func: impls::SetWindowPos,
             stack_consumed: 28u32,
-            is_async: false,
+            is_async: true,
         };
         pub const SetWindowTextA: Shim = Shim {
             name: "SetWindowTextA",

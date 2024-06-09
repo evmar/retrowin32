@@ -65,7 +65,7 @@ impl MachineX<Emulator> {
             Shims::new(&mut unicorn, mapping.addr)
         };
 
-        let state = winapi::State::new(kernel32);
+        let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
             emu: Emulator {

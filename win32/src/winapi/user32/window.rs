@@ -549,34 +549,70 @@ pub fn GetFocus(machine: &mut Machine) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn DefWindowProcA(
+pub async fn DefWindowProcA(
     machine: &mut Machine,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    if let Ok(msg) = msg {
-        match msg {
-            WM::PAINT => {
-                let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-                window.dirty = None;
-            }
-            _ => {}
+    let msg = match msg {
+        Ok(msg) => msg,
+        Err(_) => return 0, // ignore
+    };
+    match msg {
+        WM::PAINT => {
+            let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+            window.dirty = None;
         }
+        WM::WINDOWPOSCHANGED => {
+            let Window { width, height, .. } = *machine.state.user32.windows.get_mut(hWnd).unwrap();
+            let WINDOWPOS { flags, .. } = *machine.mem().view::<WINDOWPOS>(lParam);
+
+            if !flags.contains(SWP::NOSIZE) {
+                let msg = MSG {
+                    hwnd: hWnd,
+                    message: WM::SIZE as u32,
+                    wParam: 0, // TODO: SIZE_* flags
+                    lParam: (height << 16) | width,
+                    time: 0,
+                    pt_x: 0,
+                    pt_y: 0,
+                    lPrivate: 0,
+                };
+                dispatch_message(machine, &msg).await;
+            }
+
+            if !flags.contains(SWP::NOMOVE) {
+                let x = 0; // TODO
+                let y = 0;
+                let msg = MSG {
+                    hwnd: hWnd,
+                    message: WM::MOVE as u32,
+                    wParam: 0,
+                    lParam: (y << 16) | x,
+                    time: 0,
+                    pt_x: 0,
+                    pt_y: 0,
+                    lPrivate: 0,
+                };
+                dispatch_message(machine, &msg).await;
+            }
+        }
+        _ => {}
     }
     0
 }
 
 #[win32_derive::dllexport]
-pub fn DefWindowProcW(
+pub async fn DefWindowProcW(
     machine: &mut Machine,
     hWnd: HWND,
     msg: Result<WM, u32>,
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    DefWindowProcA(machine, hWnd, msg, wParam, lParam)
+    DefWindowProcA(machine, hWnd, msg, wParam, lParam).await
 }
 
 /// Compute window rectangle from client rectangle.
@@ -647,18 +683,89 @@ pub fn AdjustWindowRectEx(
     true
 }
 
+bitflags! {
+    pub struct SWP: u32 {
+        const ASYNCWINDOWPOS = 0x4000;
+        const DEFERERASE = 0x2000;
+        const DRAWFRAME = 0x0020;
+        const FRAMECHANGED = 0x0020;
+        const HIDEWINDOW = 0x0080;
+        const NOACTIVATE = 0x0010;
+        const NOCOPYBITS = 0x0100;
+        const NOMOVE = 0x0002;
+        const NOOWNERZORDER = 0x0200;
+        const NOREDRAW = 0x0008;
+        const NOREPOSITION = 0x0200;
+        const NOSENDCHANGING = 0x0400;
+        const NOSIZE = 0x0001;
+        const NOZORDER = 0x0004;
+        const SHOWWINDOW = 0x0040;
+    }
+}
+impl TryFrom<u32> for SWP {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        SWP::from_bits(value).ok_or(value)
+    }
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct WINDOWPOS {
+    pub hwnd: HWND,
+    pub hwndInsertAfter: HWND,
+    pub x: i32,
+    pub y: i32,
+    pub cx: i32,
+    pub cy: i32,
+    pub flags: SWP,
+}
+unsafe impl memory::Pod for WINDOWPOS {}
+
 #[win32_derive::dllexport]
-pub fn SetWindowPos(
-    _machine: &mut Machine,
+pub async fn SetWindowPos(
+    machine: &mut Machine,
     hWnd: HWND,
     hWndInsertAfter: HWND,
     X: i32,
     Y: i32,
     cx: i32,
     cy: i32,
-    uFlags: u32,
+    uFlags: Result<SWP, u32>,
 ) -> bool {
-    false
+    let windowpos_addr = machine.state.scratch.alloc(
+        machine.emu.memory.mem(),
+        std::mem::size_of::<WINDOWPOS>() as u32,
+    );
+    *machine.mem().view_mut::<WINDOWPOS>(windowpos_addr) = WINDOWPOS {
+        hwnd: hWnd,
+        hwndInsertAfter: hWndInsertAfter,
+        x: X,
+        y: Y,
+        cx,
+        cy,
+        flags: uFlags.unwrap(),
+    };
+
+    // A trace of winstream.exe had this sequence of synchronous messages:
+    // WM_WINDOWPOSCHANGING
+    // (WM_ACTIVATEAPP, WM_NCACTIVATE, WM_ACTIVATE)
+    // WM_WINDOWPOSCHANGED
+    // -> DefWindowProc calls WM_SIZE and WM_MOVE
+    let msg = MSG {
+        hwnd: hWnd,
+        message: WM::WINDOWPOSCHANGED as u32,
+        wParam: 0,
+        lParam: windowpos_addr,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    };
+    dispatch_message(machine, &msg).await;
+
+    true
 }
 
 #[win32_derive::dllexport]

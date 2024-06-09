@@ -50,7 +50,7 @@ impl MachineX<Emulator> {
         let mut memory = BoxMem::new(256 << 20);
         let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
         let shims = Shims::default();
-        let state = winapi::State::new(kernel32);
+        let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
             emu: Emulator {

@@ -39,9 +39,12 @@ impl std::fmt::Debug for MSG {
 pub enum WM {
     NULL = 0,
     CREATE = 0x0001,
+    MOVE = 0x0003,
+    SIZE = 0x0005,
     PAINT = 0x000F,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
+    WINDOWPOSCHANGED = 0x0047,
     TIMER = 0x0113,
     LBUTTONDOWN = 0x0201,
     LBUTTONUP = 0x0202,

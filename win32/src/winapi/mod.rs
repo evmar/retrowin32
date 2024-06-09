@@ -1,3 +1,5 @@
+use crate::machine::MemImpl;
+
 mod advapi32;
 mod alloc;
 mod bass;
@@ -63,6 +65,8 @@ pub fn apiset(name: &str) -> Option<&'static str> {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
+    scratch: heap::Heap,
+
     #[serde(skip)] // TODO
     pub ddraw: ddraw::State,
     #[serde(skip)] // TODO
@@ -75,8 +79,11 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(kernel32: kernel32::State) -> Self {
+    pub fn new(mem: &mut MemImpl, mut kernel32: kernel32::State) -> Self {
+        let scratch = kernel32.new_private_heap(mem, 0x1000, "winapi scratch".into());
+
         State {
+            scratch,
             ddraw: ddraw::State::default(),
             dsound: dsound::State::default(),
             gdi32: gdi32::State::default(),

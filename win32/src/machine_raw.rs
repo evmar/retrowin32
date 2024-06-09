@@ -39,7 +39,7 @@ impl MachineX<Emulator> {
                 .alloc(size as u32, "shims x64 trampoline".into(), &mut memory)
                 .addr
         });
-        let state = winapi::State::new(kernel32);
+        let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
             emu: Emulator { shims, memory },
