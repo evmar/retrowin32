@@ -347,13 +347,13 @@ pub(super) mod IDirectDrawSurface7 {
         machine: &mut Machine,
         this: u32,
         lpDstRect: Option<&RECT>,
-        lpSurf: u32,
+        lpSrc: u32,
         lpSrcRect: Option<&RECT>,
         flags: Result<DDBLT, u32>,
         lpDDBLTFX: Option<&DDBLTFX>,
     ) -> u32 {
         if lpDstRect.is_some() || lpSrcRect.is_some() {
-            todo!()
+            log::warn!("todo: Blt with rects");
         }
         let flags = flags.unwrap();
         if flags.contains(DDBLT::COLORFILL) {
@@ -361,8 +361,7 @@ pub(super) mod IDirectDrawSurface7 {
             return DD_OK;
         }
         log::warn!("Blt: ignoring behavioral flags");
-        BltFast(machine, this, 0, 0, lpSurf, None, 0);
-        DD_OK
+        BltFast(machine, this, 0, 0, lpSrc, None, 0)
     }
 
     #[win32_derive::dllexport]
@@ -371,7 +370,7 @@ pub(super) mod IDirectDrawSurface7 {
         this: u32,
         x: u32,
         y: u32,
-        lpSurf: u32,
+        lpSrc: u32,
         lpRect: Option<&RECT>,
         flags: u32,
     ) -> u32 {
@@ -380,7 +379,7 @@ pub(super) mod IDirectDrawSurface7 {
         }
         let (dst, src) = unsafe {
             let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
-            let src = machine.state.ddraw.surfaces.get(&lpSurf).unwrap() as *const ddraw::Surface;
+            let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap() as *const ddraw::Surface;
             assert_ne!(dst as *const ddraw::Surface, src);
             (&mut *dst, &*src)
         };
