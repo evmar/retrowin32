@@ -49,10 +49,19 @@ pub fn BASS_MusicPlay(machine: &mut Machine, arg1: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_ChannelGetPosition(machine: &mut Machine, arg1: u32) -> u32 {
+pub fn BASS_ChannelGetPosition(machine: &mut Machine, mode: u32) -> u32 {
     let dur = kernel32::GetTickCount(machine) - unsafe { T };
-    // 44.1khz
-    (dur as f32 * 44.1) as u32
+    match mode {
+        0 => {
+            // BASS_POS_BYTE
+            (dur as f32 * 44.1) as u32 // 44.1khz
+        }
+        1 => {
+            log::error!("unimpl: BASS_POS_MUSIC_ORDER");
+            0
+        }
+        _ => 0,
+    }
 }
 
 #[win32_derive::dllexport]
