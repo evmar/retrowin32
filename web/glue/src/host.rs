@@ -124,6 +124,7 @@ impl win32::Window for JsWindow {
 #[wasm_bindgen(typescript_custom_section)]
 const JSFILE_TS: &'static str = r#"
 export interface JsFile {
+  info(): number;
   seek(ofs: number): boolean;
   read(buf: Uint8Array): number;
 }"#;
