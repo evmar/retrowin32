@@ -127,6 +127,7 @@ export interface JsFile {
   info(): number;
   seek(ofs: number): boolean;
   read(buf: Uint8Array): number;
+  write(buf: Uint8Array): number;
 }"#;
 
 #[wasm_bindgen]
@@ -138,6 +139,8 @@ extern "C" {
     fn seek(this: &JsFile, ofs: u32) -> bool;
     #[wasm_bindgen(method)]
     fn read(this: &JsFile, buf: &mut [u8]) -> u32;
+    #[wasm_bindgen(method)]
+    fn write(this: &JsFile, buf: &[u8]) -> u32;
 }
 
 impl win32::File for JsFile {
@@ -158,8 +161,9 @@ impl std::io::Read for JsFile {
 }
 
 impl std::io::Write for JsFile {
-    fn write(&mut self, _buf: &[u8]) -> std::io::Result<usize> {
-        todo!()
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let n = JsFile::write(self, buf);
+        Ok(n as usize)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
@@ -212,7 +216,7 @@ export interface JsHost {
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
-  open(path: string): JsFile;
+  open(path: string, access: {}): JsFile;
   log(buf: Uint8Array);
   
   create_window(hwnd: number): JsWindow;
@@ -235,7 +239,7 @@ extern "C" {
     fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
-    fn open(this: &JsHost, path: &str) -> JsFile;
+    fn open(this: &JsHost, path: &str, access: win32::FileAccess) -> JsFile;
     #[wasm_bindgen(method)]
     fn stdout(this: &JsHost, buf: &[u8]);
 
@@ -274,10 +278,7 @@ impl win32::Host for JsHost {
     }
 
     fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
-        match access {
-            win32::FileAccess::READ => Box::new(JsHost::open(self, path)),
-            win32::FileAccess::WRITE => todo!(),
-        }
+        Box::new(JsHost::open(self, path, access))
     }
 
     fn log(&self, buf: &[u8]) {

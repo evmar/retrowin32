@@ -38,6 +38,7 @@ pub trait Window {
     fn fullscreen(&mut self);
 }
 
+#[cfg_attr(target_family = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 pub enum FileAccess {
     READ,
     WRITE,

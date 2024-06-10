@@ -66,6 +66,11 @@ class File implements glue.JsFile {
     this.ofs += n;
     return n;
   }
+
+  write(buf: Uint8Array): number {
+    console.warn('ignoring write');
+    return buf.length;
+  }
 }
 
 /** A set of (pre)loaded files; a temporary hack until the emulator can load files itself. */
