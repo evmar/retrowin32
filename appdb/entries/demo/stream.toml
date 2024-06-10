@@ -1,0 +1,9 @@
+title = "stream"
+desc = "stream by mfx"
+dir = "archive/demo/stream/"
+path = "stream.exe"
+category = "demoscene"
+
+[origin]
+desc = "pouet.net"
+url = "https://www.pouet.net/prod.php?which=1382"
