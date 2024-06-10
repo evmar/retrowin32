@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	tmplPath = flag.String("tmpl", "", "path to template for rendering")
+	flagTmplPath = flag.String("tmpl", "", "path to template for rendering")
+	flagBroken   = flag.Bool("broken", false, "only list broken demos")
 )
 
 type Link struct {
@@ -42,7 +43,7 @@ type Entry struct {
 	// If present, command line to invoke the program.
 	Cmdline string `toml:"cmdline"`
 
-	// If true, doesn't work at all; omit from website.
+	// If true, doesn't work at all; omit from website unless -broken flag.
 	Broken bool `toml:"broken"`
 }
 
@@ -73,8 +74,10 @@ func load() (map[string][]*Entry, error) {
 		if err != nil {
 			return fmt.Errorf("loading %q: %w", path, err)
 		}
-		if entry != nil && !entry.Broken {
-			entries[entry.Category] = append(entries[entry.Category], entry)
+		if entry != nil {
+			if entry.Broken == *flagBroken {
+				entries[entry.Category] = append(entries[entry.Category], entry)
+			}
 		}
 		return nil
 	})
@@ -93,10 +96,10 @@ func load() (map[string][]*Entry, error) {
 }
 
 func render(entries map[string][]*Entry) error {
-	if *tmplPath == "" {
+	if *flagTmplPath == "" {
 		return fmt.Errorf("must specify -tmpl")
 	}
-	tmpl, err := template.ParseFiles(*tmplPath)
+	tmpl, err := template.ParseFiles(*flagTmplPath)
 	if err != nil {
 		return err
 	}

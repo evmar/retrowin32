@@ -3,6 +3,7 @@ desc = "stream by mfx"
 dir = "archive/demo/stream/"
 path = "stream.exe"
 category = "demoscene"
+broken = true
 
 [origin]
 desc = "pouet.net"

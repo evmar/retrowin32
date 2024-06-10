@@ -20,6 +20,7 @@ all: deploy emu rosetta unicorn
 
 web/index.html: appdb/appdb.go web/index.tmpl
 	cd appdb && go run . -tmpl ../web/index.tmpl render > ../web/index.html
+	cd appdb && go run . -tmpl ../web/index.tmpl -broken render > ../web/broken.html
 
 wasm web/glue/pkg/glue.d.ts:
 	cd web/glue && profile=$(profile) ./build.sh
