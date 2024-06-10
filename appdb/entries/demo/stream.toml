@@ -4,6 +4,19 @@ dir = "archive/demo/stream/"
 path = "stream.exe"
 category = "demoscene"
 broken = true
+files = [
+  "an_mfx.tga",
+  "code.tga",
+  "design.tga",
+  "graphics.tga",
+  "joulua.tga",
+  "mfx-psyk.tga",
+  "music.tga",
+  "naamake2.tga",
+  "str-psyk.tga",
+  "tu_hhu.tga",
+  "tu_uhh.tga",
+]
 
 [origin]
 desc = "pouet.net"
