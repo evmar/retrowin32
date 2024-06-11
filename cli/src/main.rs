@@ -1,25 +1,15 @@
-extern crate argh;
-extern crate win32;
+mod host;
 mod logging;
-use anyhow::anyhow;
-use std::{
-    cell::RefCell,
-    io::{Seek, Write},
-    path::Path,
-    rc::Rc,
-};
 
-#[cfg(feature = "sdl")]
-mod sdl;
-#[cfg(feature = "sdl")]
-use sdl::GUI;
 #[cfg(not(feature = "sdl"))]
 mod headless;
-#[cfg(not(feature = "sdl"))]
-use headless::GUI;
+#[cfg(feature = "sdl")]
+mod sdl;
 
 #[cfg(feature = "x86-64")]
 mod resv32;
+
+use anyhow::anyhow;
 
 #[cfg(feature = "x86-emu")]
 static mut SNAPSHOT_REQUESTED: bool = false;
@@ -34,135 +24,6 @@ fn dump_asm(machine: &win32::Machine, count: usize) {
             print!("{}", part.text);
         }
         println!();
-    }
-}
-
-struct File {
-    f: std::fs::File,
-}
-
-impl File {
-    fn open(path: &Path) -> Self {
-        let f = match std::fs::File::open(path) {
-            Ok(f) => f,
-            Err(err) => {
-                log::error!("opening {:?}: {}", path, err);
-                let path = if cfg!(target_family = "unix") {
-                    "/dev/null"
-                } else if cfg!(target_family = "windows") {
-                    "nul"
-                } else {
-                    panic!()
-                };
-                std::fs::File::open(path).unwrap()
-            }
-        };
-        File { f }
-    }
-}
-
-impl win32::File for File {
-    fn info(&self) -> u32 {
-        let meta = self.f.metadata().unwrap();
-        meta.len() as u32
-    }
-
-    fn seek(&mut self, ofs: u32) -> bool {
-        self.f.seek(std::io::SeekFrom::Start(ofs as u64)).unwrap();
-        true
-    }
-}
-
-impl std::io::Read for File {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        self.f.read(buf)
-    }
-}
-
-impl std::io::Write for File {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.f.write(buf)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        self.f.flush()
-    }
-}
-
-struct Env {
-    gui: Option<GUI>,
-    exit_code: Option<u32>,
-}
-
-impl Env {
-    pub fn new() -> Self {
-        Env {
-            gui: None,
-            exit_code: None,
-        }
-    }
-
-    pub fn ensure_gui(&mut self) -> anyhow::Result<&mut GUI> {
-        if self.gui.is_none() {
-            self.gui = Some(GUI::new()?);
-        }
-        Ok(self.gui.as_mut().unwrap())
-    }
-}
-
-#[derive(Clone)]
-struct EnvRef(Rc<RefCell<Env>>);
-
-impl win32::Host for EnvRef {
-    fn exit(&self, code: u32) {
-        self.0.borrow_mut().exit_code = Some(code);
-    }
-
-    fn time(&self) -> u32 {
-        let mut env = self.0.borrow_mut();
-        let gui = env.ensure_gui().unwrap();
-        gui.time()
-    }
-
-    fn get_message(&self) -> Option<win32::Message> {
-        let mut env = self.0.borrow_mut();
-        let gui = env.gui.as_mut().unwrap();
-        gui.get_message()
-    }
-
-    fn block(&self, wait: Option<u32>) -> bool {
-        let mut env = self.0.borrow_mut();
-        let gui = env.gui.as_mut().unwrap();
-        gui.block(wait)
-    }
-
-    fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
-        match access {
-            win32::FileAccess::READ => Box::new(File::open(Path::new(path))),
-            win32::FileAccess::WRITE => Box::new(File {
-                f: std::fs::File::create(path).unwrap(),
-            }),
-        }
-    }
-
-    fn log(&self, buf: &[u8]) {
-        std::io::stdout().lock().write_all(buf).unwrap();
-    }
-
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
-        let mut env = self.0.borrow_mut();
-        let gui = env.ensure_gui().unwrap();
-        gui.create_window(hwnd)
-    }
-
-    fn create_surface(
-        &mut self,
-        _hwnd: u32,
-        opts: &win32::SurfaceOptions,
-    ) -> Box<dyn win32::Surface> {
-        let mut env = self.0.borrow_mut();
-        let gui = env.ensure_gui().unwrap();
-        gui.create_surface(opts)
     }
 }
 
@@ -287,7 +148,7 @@ fn main() -> anyhow::Result<()> {
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
     let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
-    let host = EnvRef(Rc::new(RefCell::new(Env::new())));
+    let host = host::new_host();
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
 
     let addrs = machine
@@ -395,7 +256,7 @@ fn main() -> anyhow::Result<()> {
         let mut eip = addrs.entry_point;
         loop {
             let end = trace_points.pop_front().unwrap_or(0);
-            crate::win32::shims::unicorn_loop(&mut machine, eip, end);
+            win32::shims::unicorn_loop(&mut machine, eip, end);
             if end == 0 {
                 break;
             } else {
