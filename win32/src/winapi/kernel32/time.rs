@@ -73,6 +73,7 @@ pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
 
     #[cfg(not(feature = "x86-emu"))]
     {
+        _ = machine;
         log::warn!("TODO: sleep");
     }
     0

@@ -26,6 +26,7 @@ pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
 
     #[cfg(not(feature = "x86-emu"))]
     {
+        _ = machine;
         1
     }
 }
@@ -72,11 +73,11 @@ pub async fn CreateThread(
     dwCreationFlags: u32,
     lpThreadId: u32,
 ) -> HTHREAD {
+    let retrowin32_thread_main =
+        winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_thread_main");
+
     #[cfg(feature = "x86-emu")]
     {
-        let retrowin32_thread_main =
-            winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_thread_main");
-
         let id = 1; // TODO
         let stack_pointer = machine.create_stack(format!("thread{id} stack"), dwStackSize);
         let cpu = machine.emu.x86.new_cpu();
@@ -93,6 +94,7 @@ pub async fn CreateThread(
 
     #[cfg(not(feature = "x86-emu"))]
     {
+        _ = retrowin32_thread_main;
         log::warn!("CreateThread running thread synchronously");
         machine.call_x86(lpStartAddress, vec![lpParameter]).await;
         HTHREAD::null()
