@@ -2,6 +2,7 @@
 
 use crate::winapi::types::*;
 use bitflags::bitflags;
+use memory::Pod;
 
 #[repr(C)]
 #[derive(Debug, Default)]
@@ -270,7 +271,7 @@ unsafe impl memory::Pod for DDSURFACEDESC2 {}
 
 impl Default for DDSURFACEDESC2 {
     fn default() -> Self {
-        let mut desc: Self = unsafe { std::mem::zeroed() };
+        let mut desc: Self = DDSURFACEDESC2::zeroed();
         desc.dwSize = std::mem::size_of::<Self>() as u32;
         desc
     }

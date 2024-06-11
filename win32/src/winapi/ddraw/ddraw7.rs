@@ -145,7 +145,7 @@ pub(super) mod IDirectDraw7 {
             .heap
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
         let desc = mem.view_mut::<DDSURFACEDESC2>(desc_addr);
-        desc.clear_struct();
+        *desc = DDSURFACEDESC2::zeroed();
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         desc.dwWidth = 320;
@@ -181,7 +181,7 @@ pub(super) mod IDirectDraw7 {
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC2>,
     ) -> u32 {
         let desc = lpDDSurfaceDesc.unwrap();
-        desc.clear_struct();
+        *desc = DDSURFACEDESC2::zeroed();
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         DD_OK
     }
@@ -456,7 +456,7 @@ pub(super) mod IDirectDrawSurface7 {
     #[win32_derive::dllexport]
     fn GetPixelFormat(_machine: &mut Machine, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
         let fmt = fmt.unwrap();
-        *fmt = unsafe { std::mem::zeroed() };
+        *fmt = DDPIXELFORMAT::zeroed();
         fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
     }

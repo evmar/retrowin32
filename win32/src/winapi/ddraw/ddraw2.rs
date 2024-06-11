@@ -123,7 +123,7 @@ pub(super) mod IDirectDraw2 {
             .heap
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
         let desc = mem.view_mut::<DDSURFACEDESC>(desc_addr);
-        desc.clear_struct();
+        *desc = DDSURFACEDESC::zeroed();
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
         desc.dwWidth = 320;
@@ -159,7 +159,7 @@ pub(super) mod IDirectDraw2 {
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC>,
     ) -> u32 {
         let desc = lpDDSurfaceDesc.unwrap();
-        desc.clear_struct();
+        *desc = DDSURFACEDESC::zeroed();
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
 
         desc.dwFlags.insert(DDSD::WIDTH | DDSD::HEIGHT);

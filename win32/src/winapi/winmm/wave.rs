@@ -41,7 +41,7 @@ pub fn waveOutGetDevCapsA(
 ) -> u32 {
     let woc = pwoc.unwrap();
     assert_eq!(cbwoc, std::mem::size_of::<WAVEOUTCAPS>() as u32);
-    woc.clear_struct();
+    *woc = WAVEOUTCAPS::zeroed();
     woc.dwFormats = 0x00000400; // WAVE_FORMAT_4M16
     0
 }

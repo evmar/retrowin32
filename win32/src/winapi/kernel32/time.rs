@@ -55,7 +55,7 @@ pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETI
 
 #[win32_derive::dllexport]
 pub fn GetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
-    lpSystemTime.unwrap().clear_struct();
+    *lpSystemTime.unwrap() = SYSTEMTIME::zeroed();
     0
 }
 
@@ -113,6 +113,6 @@ pub fn GetTimeZoneInformation(
     const TIME_ZONE_ID_UNKNOWN: u32 = 0;
     // It appears to be legal for all struct members to be zero, especially
     // while TIME_ZONE_ID_UNKNOWN says there's no daylight savings time.
-    lpTimeZoneInformation.unwrap().clear_struct();
+    *lpTimeZoneInformation.unwrap() = TIME_ZONE_INFORMATION::zeroed();
     TIME_ZONE_ID_UNKNOWN
 }

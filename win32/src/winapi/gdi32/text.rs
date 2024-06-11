@@ -77,7 +77,7 @@ unsafe impl memory::Pod for TEXTMETRICA {}
 #[win32_derive::dllexport]
 pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
     let tm = lptm.unwrap();
-    tm.clear_struct();
+    *tm = TEXTMETRICA::zeroed();
 
     // SkiFree only cares about the height, just make something up for now.
     tm.tmHeight = 12;

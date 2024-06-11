@@ -200,7 +200,7 @@ pub fn GetFileInformationByHandle(
     };
 
     let info = lpFileInformation.unwrap();
-    info.clear_struct();
+    *info = BY_HANDLE_FILE_INFORMATION::zeroed();
     info.nFileSizeLow = file.info();
 
     true
