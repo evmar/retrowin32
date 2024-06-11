@@ -144,7 +144,7 @@ fn main() -> anyhow::Result<()> {
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
 
     let addrs = machine
-        .load_exe(&buf, &args.exe, false)
+        .load_exe(&buf, &args.exe, None)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
     #[cfg(target_family = "unix")]

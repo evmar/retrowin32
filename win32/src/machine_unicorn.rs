@@ -154,7 +154,7 @@ impl MachineX<Emulator> {
         &mut self,
         buf: &[u8],
         filename: &str,
-        relocate: bool,
+        relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
         let exe = pe::load_exe(self, buf, filename, relocate)?;
 

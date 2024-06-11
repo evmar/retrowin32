@@ -30,16 +30,16 @@ fn load_image(
     filename: &str,
     file: &pe::File,
     buf: &[u8],
-    relocate: bool,
+    relocate: Option<Option<u32>>,
 ) -> u32 {
-    let addr = if relocate {
-        machine
+    let addr = match relocate {
+        Some(Some(addr)) => addr,
+        Some(None) => machine
             .state
             .kernel32
             .mappings
-            .find_space(file.opt_header.SizeOfImage)
-    } else {
-        file.opt_header.ImageBase
+            .find_space(file.opt_header.SizeOfImage),
+        None => file.opt_header.ImageBase,
     };
 
     let first_page_size = std::cmp::min(buf.len(), 0x1000);
@@ -154,7 +154,7 @@ fn load_pe(
     filename: &str,
     buf: &[u8],
     file: &pe::File,
-    relocate: bool,
+    relocate: Option<Option<u32>>,
 ) -> anyhow::Result<u32> {
     let base = load_image(machine, filename, file, buf, relocate);
 
@@ -162,7 +162,7 @@ fn load_pe(
         load_section(machine, filename, base, buf, sec);
     }
 
-    if relocate {
+    if base != file.opt_header.ImageBase {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             let image = machine.mem().slice(base..);
             if let Some(sec) = relocs.as_slice(image.as_slice_todo()) {
@@ -187,7 +187,7 @@ pub fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
     filename: &str,
-    relocate: bool,
+    relocate: Option<Option<u32>>,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
@@ -226,7 +226,7 @@ pub struct DLL {
 pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<DLL> {
     let file = pe::parse(&buf)?;
 
-    let base = load_pe(machine, filename, buf, &file, true)?;
+    let base = load_pe(machine, filename, buf, &file, Some(None))?;
     let image = machine.mem().slice(base..).as_slice_todo();
 
     let entry_point = if file.opt_header.AddressOfEntryPoint != 0 {
