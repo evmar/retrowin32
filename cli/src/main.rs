@@ -12,9 +12,6 @@ mod resv32;
 use anyhow::anyhow;
 
 #[cfg(feature = "x86-emu")]
-static mut SNAPSHOT_REQUESTED: bool = false;
-
-#[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine, count: usize) {
     let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu().regs.eip, count);
 
@@ -44,8 +41,8 @@ struct Args {
     trace_blocks: bool,
 
     /// log CPU state first time each point reached
-    #[argh(option)]
-    trace_points: Option<String>,
+    #[argh(option, from_str_fn(parse_trace_points))]
+    trace_points: Option<std::collections::VecDeque<u32>>,
 
     /// exe to run
     #[argh(positional)]
@@ -59,25 +56,6 @@ struct Args {
     #[cfg(feature = "x86-emu")]
     #[argh(option)]
     snapshot: Option<String>,
-}
-
-/// Transfer control to the executable's entry point.
-/// Needs to switch code segments to enter compatibility mode, stacks, etc.
-#[cfg(feature = "x86-64")]
-#[inline(never)] // aid in debugging
-fn jump_to_entry_point(machine: &mut win32::Machine, entry_point: u32) {
-    // Assert that our code was loaded in the 3-4gb memory range, which means
-    // that calls from/to it can be managed with 32-bit pointers.
-    // (This arrangement is set up by the linker flags.)
-    let mem_3gb_range = 0xc000_0000u64..0x1_0000_0000u64;
-    let fn_addr = &jump_to_entry_point as *const _ as u64;
-    assert!(mem_3gb_range.contains(&fn_addr));
-
-    println!("entry point at {:x}, about to jump", entry_point);
-    std::io::stdin().read_line(&mut String::new()).unwrap();
-
-    let pin = std::pin::pin!(machine.call_x86(entry_point, vec![]));
-    win32::shims::call_sync(pin);
 }
 
 #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
@@ -117,6 +95,33 @@ fn print_trace(machine: &win32::Machine) {
     println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} st_top:{st_top}");
 }
 
+fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
+    let mut trace_points = std::collections::VecDeque::new();
+    for addr in param.split(",") {
+        if addr.is_empty() {
+            continue;
+        }
+        let addr = u32::from_str_radix(addr, 16).map_err(|_| format!("bad addr {addr:?}"))?;
+        trace_points.push_back(addr);
+    }
+    Ok(trace_points)
+}
+
+static mut SNAPSHOT_REQUESTED: bool = false;
+
+#[cfg(target_family = "unix")]
+fn install_sigusr1_handler() {
+    unsafe extern "C" fn sigusr1(_sig: usize) {
+        SNAPSHOT_REQUESTED = true;
+    }
+    let ret = unsafe { libc::signal(libc::SIGUSR1, sigusr1 as *const fn(usize) as usize) };
+    if ret != 0 {
+        log::error!("failed to install signal handler for snapshot");
+    }
+}
+#[cfg(not(target_family = "unix"))]
+fn install_sigusr1_handler() {}
+
 fn main() -> anyhow::Result<()> {
     logging::init();
 
@@ -131,19 +136,6 @@ fn main() -> anyhow::Result<()> {
         std::env::set_current_dir(dir).unwrap();
     }
 
-    let mut trace_points = std::collections::VecDeque::new();
-    if let Some(arg) = args.trace_points {
-        for addr in arg.split(",") {
-            if addr.is_empty() {
-                continue;
-            }
-            let addr = u32::from_str_radix(addr, 16)
-                .map_err(|_| anyhow!("bad addr {addr:?}"))
-                .unwrap();
-            trace_points.push_back(addr);
-        }
-    }
-
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
     let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
@@ -155,26 +147,22 @@ fn main() -> anyhow::Result<()> {
         .load_exe(&buf, &args.exe, false)
         .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
 
+    #[cfg(target_family = "unix")]
+    install_sigusr1_handler();
+
     #[cfg(feature = "x86-64")]
-    unsafe {
-        let ptr: *mut win32::Machine = &mut machine;
-        machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
-        jump_to_entry_point(&mut machine, addrs.entry_point);
+    {
+        assert!(args.trace_points.is_none());
+        unsafe {
+            let ptr: *mut win32::Machine = &mut machine;
+            machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
+            machine.jump_to_entry_point(addrs.entry_point);
+        }
     }
 
     #[cfg(feature = "x86-emu")]
     {
         _ = addrs;
-
-        #[cfg(target_family = "unix")]
-        unsafe {
-            unsafe extern "C" fn sigusr1(_sig: usize) {
-                SNAPSHOT_REQUESTED = true;
-            }
-            if libc::signal(libc::SIGUSR1, sigusr1 as *const fn(usize) as usize) != 0 {
-                log::error!("failed to install signal handler for snapshot");
-            }
-        }
 
         if let Some(snap) = args.snapshot {
             let bytes = std::fs::read(snap).unwrap();
@@ -195,7 +183,7 @@ fn main() -> anyhow::Result<()> {
                 print_trace(&machine);
                 seen_blocks.insert(regs.eip);
             }
-        } else if !trace_points.is_empty() {
+        } else if let Some(mut trace_points) = args.trace_points {
             while let Some(next_trace) = trace_points.pop_front() {
                 machine
                     .emu
@@ -253,6 +241,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
+        let mut trace_points = args.trace_points.unwrap();
         let mut eip = addrs.entry_point;
         loop {
             let end = trace_points.pop_front().unwrap_or(0);

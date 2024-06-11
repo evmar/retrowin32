@@ -78,4 +78,22 @@ impl MachineX<Emulator> {
     pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
         crate::shims_raw::call_x86(self, func, args)
     }
+
+    /// Transfer control to the executable's entry point.
+    /// Needs to switch code segments to enter compatibility mode, stacks, etc.
+    #[inline(never)] // aid in debugging
+    pub fn jump_to_entry_point(&mut self, entry_point: u32) {
+        // Assert that our code was loaded in the 3-4gb memory range, which means
+        // that calls from/to it can be managed with 32-bit pointers.
+        // (This arrangement is set up by the linker flags.)
+        let mem_3gb_range = 0xc000_0000u64..0x1_0000_0000u64;
+        let fn_addr = &Self::jump_to_entry_point as *const _ as u64;
+        assert!(mem_3gb_range.contains(&fn_addr));
+
+        println!("entry point at {:x}, about to jump", entry_point);
+        std::io::stdin().read_line(&mut String::new()).unwrap();
+
+        let pin = std::pin::pin!(self.call_x86(entry_point, vec![]));
+        crate::shims::call_sync(pin);
+    }
 }
