@@ -97,7 +97,14 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg
 pub fn op1_rm32(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u32 {
     match instr.op1_kind() {
         iced_x86::OpKind::Register => cpu.regs.get32(instr.op1_register()),
-        iced_x86::OpKind::Memory => mem.get_pod::<u32>(x86_addr(cpu, instr)),
+        iced_x86::OpKind::Memory => {
+            let addr = x86_addr(cpu, instr);
+            if mem.is_oob::<u32>(addr) {
+                cpu.err(format!("oob at {addr:x}"));
+                return 0;
+            }
+            mem.get_pod::<u32>(addr)
+        }
         _ => unreachable!(),
     }
 }
