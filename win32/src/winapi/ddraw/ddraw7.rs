@@ -294,7 +294,7 @@ pub(super) mod IDirectDrawSurface7 {
         GetFlipStatus todo,
         GetOverlayPosition todo,
         GetPalette todo,
-        GetPixelFormat todo,
+        GetPixelFormat ok,
         GetSurfaceDesc ok,
         Initialize todo,
         IsLost todo,
@@ -450,6 +450,14 @@ pub(super) mod IDirectDrawSurface7 {
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
         let handle = machine.state.gdi32.dcs.add(dc);
         machine.mem().put::<u32>(lpHDC, handle.to_raw());
+        DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    fn GetPixelFormat(_machine: &mut Machine, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
+        let fmt = fmt.unwrap();
+        *fmt = unsafe { std::mem::zeroed() };
+        fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
     }
 

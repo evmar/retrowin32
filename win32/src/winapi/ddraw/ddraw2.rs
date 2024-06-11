@@ -1,7 +1,7 @@
 //! Implementation of DirectDraw2 interfaces.
 
 use super::{
-    ddraw7::{IDirectDraw7, IDirectDrawSurface7},
+    ddraw7::{self, IDirectDraw7, IDirectDrawSurface7},
     types::*,
     DD_OK, GUID,
 };
@@ -211,7 +211,7 @@ pub(super) mod IDirectDrawSurface2 {
     GetFlipStatus todo,
     GetOverlayPosition todo,
     GetPalette todo,
-    GetPixelFormat ok,
+    GetPixelFormat (ddraw7::IDirectDrawSurface7::shims::GetSurfaceDesc),
     GetSurfaceDesc ok,
     Initialize todo,
     IsLost todo,
@@ -264,14 +264,6 @@ pub(super) mod IDirectDrawSurface2 {
 
     #[win32_derive::dllexport]
     fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
-        DD_OK
-    }
-
-    #[win32_derive::dllexport]
-    fn GetPixelFormat(_machine: &mut Machine, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
-        let fmt = fmt.unwrap();
-        *fmt = unsafe { std::mem::zeroed() };
-        fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
         DD_OK
     }
 
