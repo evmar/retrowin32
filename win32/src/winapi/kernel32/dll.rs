@@ -11,21 +11,22 @@ use std::io::Write;
 
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
-// HMODULE is index+1 into kernel32::State::dlls.
+// HMODULE is index+0x1000 into kernel32::State::dlls.
+// (BASS.dll calls LoadLibrary and fails if the returned handle value is too low.)
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
 pub type HMODULE = HANDLE<HMODULET>;
 
 impl HMODULE {
     pub fn from_dll_index(index: usize) -> Self {
-        return HMODULE::from_raw((index + 1) as u32);
+        return HMODULE::from_raw((index + 0x1000) as u32);
     }
 
     pub fn to_dll_index(&self) -> Option<usize> {
         if self.is_null() {
             return None;
         }
-        Some(self.raw as usize - 1)
+        Some(self.raw as usize - 0x1000)
     }
 }
 
