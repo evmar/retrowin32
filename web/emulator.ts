@@ -96,7 +96,7 @@ export class Emulator extends JsHost {
     switch (cpuState) {
       case wasm.CPUState.Running:
         return true;
-      case wasm.CPUState.Blocked: {
+      case wasm.CPUState.DebugBreak: {
         const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
         if (bp) {
           if (!bp.oneShot) {
@@ -106,6 +106,7 @@ export class Emulator extends JsHost {
         }
         return false;
       }
+      case wasm.CPUState.Blocked:
       case wasm.CPUState.Error:
       case wasm.CPUState.Exit:
         this.emuHost.onStopped();

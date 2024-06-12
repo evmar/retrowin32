@@ -438,7 +438,7 @@ pub fn cdq(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 
 pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     log::warn!("debugger interrupt");
-    cpu.state = CPUState::Blocked(None);
+    cpu.state = CPUState::DebugBreak;
     cpu.regs.eip -= 1;
 }
 

@@ -14,6 +14,7 @@ pub enum CPUState {
     #[default]
     Running,
     Blocked(Option<u32>),
+    DebugBreak,
     Error(String),
     Exit(u32),
 }

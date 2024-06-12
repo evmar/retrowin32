@@ -20,6 +20,7 @@ pub enum CPUState {
     Running,
     Blocked,
     Error,
+    DebugBreak,
     Exit,
 }
 
@@ -94,6 +95,7 @@ impl Emulator {
             x86::CPUState::Running => CPUState::Running,
             x86::CPUState::Blocked(_) => CPUState::Blocked,
             x86::CPUState::Error(msg) => return Err(JsError::new(msg)),
+            x86::CPUState::DebugBreak => CPUState::DebugBreak,
             x86::CPUState::Exit(_) => CPUState::Exit,
         })
     }

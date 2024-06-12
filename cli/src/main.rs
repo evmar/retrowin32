@@ -225,6 +225,7 @@ fn main() -> anyhow::Result<()> {
             x86::CPUState::Exit(_) => {}
             x86::CPUState::Blocked(_) => unreachable!(),
             x86::CPUState::Running => unreachable!(),
+            x86::CPUState::DebugBreak => todo!(),
         }
 
         let millis = start.elapsed().as_millis() as usize;
