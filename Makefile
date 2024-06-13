@@ -3,6 +3,7 @@
 # - emu: cpu emulator-based native build
 # - rosetta: rosetta-based native x86 build
 # - unicorn: cpu emulator-based native build
+# - linux: linux based x86 build
 # - fmt: run all code formatting
 # Flags:
 # $ make deploy opt=1
@@ -35,17 +36,15 @@ deploy: wasm deploy-exes deploy/bundle.js web/index.html
 
 
 emu:
-	source cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-emu,sdl $(cargoflags)
+	. cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-emu,sdl $(cargoflags)
 .PHONY: emu
 
-
 rosetta:
-	source cli/sdl-manual.sh && ./build-rosetta.sh $(cargoflags)
+	. cli/sdl-manual.sh && ./build-rosetta.sh $(cargoflags)
 .PHONY: rosetta
 
-
 unicorn:
-	source cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-unicorn,sdl $(cargoflags)
+	. cli/sdl-brew.sh && cargo build -p retrowin32 -F x86-unicorn,sdl $(cargoflags)
 .PHONY: unicorn
 
 
