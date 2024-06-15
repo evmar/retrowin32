@@ -10,8 +10,7 @@
 //! Some good notes on how to make this kind of thing perform well:
 //! http://www.emulators.com/docs/nx25_nostradamus.htm
 
-use memory::{Extensions, Mem};
-use std::collections::HashMap;
+use memory::Mem;
 
 const CACHE_LINES: usize = 2 << 10;
 
@@ -84,10 +83,6 @@ pub struct InstrCache {
     lines: Box<[CacheLine; CACHE_LINES]>,
     hit: usize,
     miss: usize,
-
-    /// Places where we've patched out the instruction with an int3.
-    /// The map values are the bytes from before the breakpoint.
-    breakpoints: HashMap<u32, u8>,
 }
 
 impl Default for InstrCache {
@@ -98,7 +93,6 @@ impl Default for InstrCache {
             lines: lines.try_into().unwrap_or_else(|_| panic!()),
             hit: 0,
             miss: 0,
-            breakpoints: HashMap::new(),
         }
     }
 }
@@ -114,7 +108,7 @@ impl InstrCache {
     }
 
     /// Remove any cache line that covers ip.
-    fn clear_cache(&mut self, ip: u32) {
+    pub fn clear_cache(&mut self, ip: u32) {
         for line in self.lines.iter_mut() {
             if line.ip <= ip && line.ip + line.block.len > ip {
                 line.ip = 0;
@@ -144,20 +138,6 @@ impl InstrCache {
         let index = ip as usize % self.lines.len();
         self.lines[index] = CacheLine { ip, block };
         &self.lines[index].block
-    }
-
-    /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
-        self.clear_cache(addr); // Allow recreating lazily.
-        self.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
-        mem.put::<u8>(addr, 0xcc); // int3
-    }
-
-    /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, mem: Mem, addr: u32) {
-        self.clear_cache(addr); // Allow recreating lazily.
-        let prev = self.breakpoints.remove(&addr).unwrap();
-        mem.put::<u8>(addr, prev);
     }
 
     /// Gets basic block starting at a given ip.

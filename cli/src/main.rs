@@ -185,10 +185,7 @@ fn main() -> anyhow::Result<()> {
             }
         } else if let Some(mut trace_points) = args.trace_points {
             while let Some(next_trace) = trace_points.pop_front() {
-                machine
-                    .emu
-                    .x86
-                    .add_breakpoint(machine.emu.memory.mem(), next_trace);
+                machine.add_breakpoint(next_trace);
                 loop {
                     // Ignore errors here because we will hit breakpoints.
                     machine.run();
@@ -196,10 +193,7 @@ fn main() -> anyhow::Result<()> {
                         break;
                     }
                 }
-                machine
-                    .emu
-                    .x86
-                    .clear_breakpoint(machine.emu.memory.mem(), next_trace);
+                machine.clear_breakpoint(next_trace);
 
                 print_trace(&machine);
             }

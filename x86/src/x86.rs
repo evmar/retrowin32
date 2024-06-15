@@ -211,14 +211,6 @@ impl X86 {
         self.cpus.last_mut().unwrap()
     }
 
-    pub fn add_breakpoint(&mut self, mem: Mem, addr: u32) {
-        self.icache.add_breakpoint(mem, addr)
-    }
-
-    pub fn clear_breakpoint(&mut self, mem: Mem, addr: u32) {
-        self.icache.clear_breakpoint(mem, addr)
-    }
-
     pub fn single_step_next_block(&mut self, mem: Mem) {
         let ip = self.cpu().regs.eip;
         if ip == MAGIC_ADDR {

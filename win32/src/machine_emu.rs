@@ -5,7 +5,7 @@ use crate::{
     shims_emu::Shims,
     winapi,
 };
-use memory::Mem;
+use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
 // This is really Box<u8>, just using Vec<u8> to use serde_bytes.
@@ -40,6 +40,10 @@ pub struct Emulator {
     pub memory: BoxMem,
     #[serde(skip)]
     pub shims: Shims,
+
+    /// Places where we've patched out the instruction with an int3.
+    /// The map values are the bytes from before the breakpoint.
+    breakpoints: HashMap<u32, u8>,
 }
 
 pub type MemImpl = BoxMem;
@@ -57,6 +61,7 @@ impl MachineX<Emulator> {
                 x86: x86::X86::new(),
                 memory,
                 shims,
+                breakpoints: Default::default(),
             },
             host,
             state,
@@ -178,5 +183,20 @@ impl MachineX<Emulator> {
 
     pub fn load_snapshot(&mut self, bytes: &[u8]) {
         self.emu = bincode::deserialize(bytes).unwrap();
+    }
+
+    /// Patch in an int3 over the instruction at that addr, backing up the current one.
+    pub fn add_breakpoint(&mut self, addr: u32) {
+        let mem = self.emu.memory.mem();
+        self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
+        mem.put::<u8>(addr, 0xcc); // int3
+        self.emu.x86.icache.clear_cache(addr);
+    }
+
+    /// Undo an add_breakpoint().
+    pub fn clear_breakpoint(&mut self, addr: u32) {
+        self.emu.x86.icache.clear_cache(addr);
+        let prev = self.emu.breakpoints.remove(&addr).unwrap();
+        self.mem().put::<u8>(addr, prev);
     }
 }
