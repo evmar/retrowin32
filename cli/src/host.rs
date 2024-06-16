@@ -1,7 +1,7 @@
+#[cfg(not(feature = "sdl"))]
+use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-#[cfg(not(feature = "sdl"))]
-use headless::GUI;
 use std::{
     cell::RefCell,
     io::{Seek, Write},
