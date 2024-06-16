@@ -180,7 +180,7 @@ pub struct State {
     pub process_heap: u32,
 
     #[serde(skip)] // TODO
-    pub dlls: Vec<DLL>,
+    pub dlls: HashMap<HMODULE, DLL>,
 
     #[serde(skip)] // TODO
     pub resources: pe::IMAGE_DATA_DIRECTORY,
@@ -238,7 +238,7 @@ impl State {
             process_heap: 0,
             mappings,
             heaps: HashMap::new(),
-            dlls: Vec::new(),
+            dlls: Default::default(),
             files: Default::default(),
             env: env_addr,
             cmdline,
@@ -251,7 +251,7 @@ impl State {
             .iter()
             .find(|&dll| dll.file_name == "kernel32.dll")
             .unwrap();
-        state.load_builtin_dll(kernel32_dll);
+        state.load_builtin_dll(mem, kernel32_dll);
         state
     }
 
@@ -359,17 +359,25 @@ impl State {
         }
     }
 
-    pub fn load_builtin_dll(&mut self, builtin: &'static BuiltinDLL) -> HMODULE {
-        self.dlls.push(DLL {
-            name: builtin.file_name.to_owned(),
-            dll: pe::DLL {
-                names: HashMap::new(),
-                ordinals: HashMap::new(),
-                entry_point: None,
+    pub fn load_builtin_dll(&mut self, mem: &mut MemImpl, builtin: &'static BuiltinDLL) -> HMODULE {
+        let mapping = self
+            .mappings
+            .alloc(0x1000, format!("{} image", builtin.file_name), mem);
+        let hmodule = HMODULE::from_raw(mapping.addr);
+        self.dlls.insert(
+            hmodule,
+            DLL {
+                name: builtin.file_name.to_owned(),
+                dll: pe::DLL {
+                    base: mapping.addr,
+                    names: HashMap::new(),
+                    ordinals: HashMap::new(),
+                    entry_point: None,
+                },
+                builtin: Some(builtin),
             },
-            builtin: Some(builtin),
-        });
-        return HMODULE::from_dll_index(self.dlls.len() - 1);
+        );
+        hmodule
     }
 }
 
@@ -456,18 +464,16 @@ pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
-    // Iterate list of dlls by index, because in principle invoking dllmains might load more
-    // dlls(?).
-    for i in 0.. {
-        let dll = match machine.state.kernel32.dlls.get(i) {
-            Some(dll) => dll,
-            None => break,
-        };
-        let dllmain = match dll.dll.entry_point {
-            Some(entry_point) => entry_point,
-            None => continue,
-        };
-        log::info!("invoking dll {:?} main {:x}", dll.name, dllmain);
+    let dllmains = machine
+        .state
+        .kernel32
+        .dlls
+        .iter()
+        .filter_map(|(_, dll)| dll.dll.entry_point)
+        .collect::<Vec<_>>();
+    // TODO: invoking dllmains can load more dlls.
+    for dllmain in dllmains {
+        log::info!("invoking dllmain {:x}", dllmain);
         let hInstance = 0u32; // TODO
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;

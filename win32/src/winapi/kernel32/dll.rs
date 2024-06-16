@@ -17,19 +17,6 @@ const TRACE_CONTEXT: &'static str = "kernel32/dll";
 pub struct HMODULET;
 pub type HMODULE = HANDLE<HMODULET>;
 
-impl HMODULE {
-    pub fn from_dll_index(index: usize) -> Self {
-        return HMODULE::from_raw((index + 0x1000) as u32);
-    }
-
-    pub fn to_dll_index(&self) -> Option<usize> {
-        if self.is_null() {
-            return None;
-        }
-        Some(self.raw as usize - 0x1000)
-    }
-}
-
 pub struct DLL {
     pub name: String,
 
@@ -118,14 +105,14 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
 
     let name = normalize_module_name(name);
 
-    if let Some(index) = machine
+    if let Some((hmodule, _)) = machine
         .state
         .kernel32
         .dlls
         .iter()
-        .position(|dll| dll.name == name)
+        .find(|(_, dll)| dll.name == name)
     {
-        return HMODULE::from_dll_index(index);
+        return *hmodule;
     }
 
     return HMODULE::null();
@@ -188,14 +175,14 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     let mut filename = normalize_module_name(filename.unwrap());
 
     // See if already loaded.
-    if let Some(index) = machine
+    if let Some((hmodule, _)) = machine
         .state
         .kernel32
         .dlls
         .iter()
-        .position(|dll| dll.name == filename)
+        .find(|(_, dll)| dll.name == filename)
     {
-        return HMODULE::from_dll_index(index);
+        return *hmodule;
     }
 
     if filename.starts_with("api-") {
@@ -207,7 +194,10 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
 
     // Check if builtin.
     if let Some(builtin) = winapi::DLLS.iter().find(|&dll| dll.file_name == filename) {
-        return machine.state.kernel32.load_builtin_dll(builtin);
+        return machine
+            .state
+            .kernel32
+            .load_builtin_dll(&mut machine.emu.memory, builtin);
     }
 
     let mut file = machine.host.open(&filename, host::FileAccess::READ);
@@ -220,12 +210,16 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     }
 
     let dll = pe::load_dll(machine, &filename, &contents).unwrap();
-    machine.state.kernel32.dlls.push(DLL {
-        name: filename,
-        dll,
-        builtin: None,
-    });
-    HMODULE::from_dll_index(machine.state.kernel32.dlls.len() - 1)
+    let hmodule = HMODULE::from_raw(dll.base);
+    machine.state.kernel32.dlls.insert(
+        hmodule,
+        DLL {
+            name: filename,
+            dll,
+            builtin: None,
+        },
+    );
+    hmodule
 }
 
 #[win32_derive::dllexport]
@@ -261,7 +255,13 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
 }
 
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
-    let dll = &mut machine.state.kernel32.dlls[0];
+    let dll = &mut machine
+        .state
+        .kernel32
+        .dlls
+        .values_mut()
+        .find(|dll| dll.name == "kernel32.dll")
+        .unwrap();
     dll.resolve(&ImportSymbol::Name(name), |shim| {
         let addr = machine.emu.shims.add(shim);
         machine.labels.insert(addr, format!("{}", name));
@@ -275,8 +275,7 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    let index = hModule.to_dll_index().unwrap();
-    if let Some(dll) = machine.state.kernel32.dlls.get_mut(index) {
+    if let Some(dll) = machine.state.kernel32.dlls.get_mut(&hModule) {
         return dll.resolve(&lpProcName.0, |shim| {
             let addr = machine.emu.shims.add(shim);
             machine.labels.insert(addr, format!("{}", lpProcName.0));

@@ -124,10 +124,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
         let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
         let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
         // TODO: missing dll should not be an possibility here, we should error instead.
-        let mut dll = match hmodule.to_dll_index() {
-            Some(index) => Some(&mut machine.state.kernel32.dlls[index]),
-            None => None,
-        };
+        let mut dll = machine.state.kernel32.dlls.get_mut(&hmodule);
         for (i, entry) in dll_imports.ilt(image).enumerate() {
             let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
@@ -212,6 +209,9 @@ pub fn load_exe(
 
 #[derive(Debug)]
 pub struct DLL {
+    /// Image base address.
+    pub base: u32,
+
     /// Function name => resolved address.
     pub names: HashMap<String, u32>,
 
@@ -253,6 +253,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     }
 
     Ok(DLL {
+        base,
         ordinals,
         names,
         entry_point,
