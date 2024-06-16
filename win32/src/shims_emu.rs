@@ -70,8 +70,8 @@ impl Shims {
     }
 }
 
-pub fn is_eip_at_shim_call(machine: &mut Machine) -> bool {
-    machine.emu.x86.cpu().regs.eip & 0xFFFF_0000 == SHIM_BASE
+pub fn is_ip_at_shim_call(ip: u32) -> bool {
+    ip & 0xFFFF_0000 == SHIM_BASE
 }
 
 pub fn handle_shim_call(machine: &mut Machine) {

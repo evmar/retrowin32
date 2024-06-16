@@ -78,8 +78,7 @@ impl Emulator {
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
     pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
         if count == 1 {
-            self.machine.single_step_next_block();
-            self.machine.run();
+            self.machine.single_step();
         } else {
             // Note that instr_count overflows at 4b, but we don't expect to run
             // 4b instructions in a single run() invocation.

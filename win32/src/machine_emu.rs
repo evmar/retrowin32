@@ -117,15 +117,19 @@ impl MachineX<Emulator> {
         })
     }
 
-    pub fn single_step_next_block(&mut self) {
-        if !crate::shims_emu::is_eip_at_shim_call(self) {
+    pub fn single_step(&mut self) {
+        if !crate::shims_emu::is_ip_at_shim_call(self.emu.x86.cpu().regs.eip) {
             self.emu.x86.single_step_next_block(self.emu.memory.mem());
         }
+        self.run();
     }
 
     pub fn unblock(&mut self) {
         for cpu in self.emu.x86.cpus.iter_mut() {
-            if matches!(cpu.state, x86::CPUState::Blocked(_)) {
+            if matches!(
+                cpu.state,
+                x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
+            ) {
                 cpu.state = x86::CPUState::Running;
             }
         }
@@ -150,7 +154,13 @@ impl MachineX<Emulator> {
     // Execute one basic block.  Returns false if we stopped early.
     fn execute_block(&mut self) {
         debug_assert!(self.emu.x86.cpu().state.is_running());
-        if crate::shims_emu::is_eip_at_shim_call(self) {
+        let eip = self.emu.x86.cpu().regs.eip;
+        if crate::shims_emu::is_ip_at_shim_call(eip) {
+            if self.emu.breakpoints.contains_key(&eip) {
+                self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+                return;
+            }
+
             crate::shims_emu::handle_shim_call(self);
             // Treat any shim call as a single block and return here.
             return;
@@ -187,16 +197,24 @@ impl MachineX<Emulator> {
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) {
-        let mem = self.emu.memory.mem();
-        self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
-        mem.put::<u8>(addr, 0xcc); // int3
-        self.emu.x86.icache.clear_cache(addr);
+        if crate::shims_emu::is_ip_at_shim_call(addr) {
+            self.emu.breakpoints.insert(addr, 0);
+        } else {
+            let mem = self.emu.memory.mem();
+            self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
+            mem.put::<u8>(addr, 0xcc); // int3
+            self.emu.x86.icache.clear_cache(addr);
+        }
     }
 
     /// Undo an add_breakpoint().
     pub fn clear_breakpoint(&mut self, addr: u32) {
-        self.emu.x86.icache.clear_cache(addr);
-        let prev = self.emu.breakpoints.remove(&addr).unwrap();
-        self.mem().put::<u8>(addr, prev);
+        if crate::shims_emu::is_ip_at_shim_call(addr) {
+            self.emu.breakpoints.remove(&addr).unwrap();
+        } else {
+            self.emu.x86.icache.clear_cache(addr);
+            let prev = self.emu.breakpoints.remove(&addr).unwrap();
+            self.mem().put::<u8>(addr, prev);
+        }
     }
 }
