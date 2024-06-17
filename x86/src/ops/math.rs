@@ -869,19 +869,28 @@ pub fn div_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // No flags.
 }
 
+fn dec<I: Int + num_traits::WrappingSub>(x: I, flags: &mut Flags) -> I {
+    // Note this is not sub(1) because CF should be preserved.
+    let result = x.wrapping_sub(&I::one());
+    flags.set(Flags::OF, result.is_zero());
+    flags.set(Flags::SF, (result >> (I::bits() - 1)).is_one());
+    flags.set(Flags::ZF, result.is_zero());
+    result
+}
+
 pub fn dec_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr);
-    x.set(sub(x.get(), 1, &mut cpu.flags));
+    x.set(dec(x.get(), &mut cpu.flags));
 }
 
 pub fn dec_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm16(cpu, mem, instr);
-    x.set(sub(x.get(), 1, &mut cpu.flags));
+    x.set(dec(x.get(), &mut cpu.flags));
 }
 
 pub fn dec_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm8(cpu, mem, instr);
-    x.set(sub(x.get(), 1, &mut cpu.flags));
+    x.set(dec(x.get(), &mut cpu.flags));
 }
 
 fn inc<I: Int + num_traits::WrappingAdd>(x: I, flags: &mut Flags) -> I {
