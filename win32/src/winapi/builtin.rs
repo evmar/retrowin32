@@ -152,8 +152,8 @@ pub mod bass {
         use winapi::bass::*;
         pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let arg1 = <u32>::from_stack(mem, esp + 4u32);
-            winapi::bass::BASS_ChannelGetPosition(machine, arg1).to_raw()
+            let mode = <u32>::from_stack(mem, esp + 4u32);
+            winapi::bass::BASS_ChannelGetPosition(machine, mode).to_raw()
         }
         pub unsafe fn BASS_Init(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -344,8 +344,8 @@ pub mod dsound {
         use winapi::dsound::*;
         pub unsafe fn DirectSoundCreate(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lpGuid = <u32>::from_stack(mem, esp + 4u32);
-            let ppDS = <u32>::from_stack(mem, esp + 8u32);
+            let lpGuid = <Option<&GUID>>::from_stack(mem, esp + 4u32);
+            let ppDS = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             let pUnkOuter = <u32>::from_stack(mem, esp + 12u32);
             winapi::dsound::DirectSoundCreate(machine, lpGuid, ppDS, pUnkOuter).to_raw()
         }
