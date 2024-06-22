@@ -456,8 +456,17 @@ pub(super) mod IDirectDrawSurface7 {
     #[win32_derive::dllexport]
     fn GetPixelFormat(_machine: &mut Machine, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
         let fmt = fmt.unwrap();
-        *fmt = DDPIXELFORMAT::zeroed();
-        fmt.dwSize = std::mem::size_of::<DDPIXELFORMAT>() as u32;
+        assert!(fmt.dwSize == std::mem::size_of::<DDPIXELFORMAT>() as u32);
+        *fmt = DDPIXELFORMAT {
+            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
+            dwFlags: 0x00000040,
+            dwFourCC: 0,
+            dwRGBBitCount: 32,
+            dwRBitMask: 0xFF00_0000,
+            dwGBitMask: 0x00FF_0000,
+            dwBBitMask: 0x0000_FF00,
+            dwRGBAlphaBitMask: 0x0000_00FF,
+        };
         DD_OK
     }
 
