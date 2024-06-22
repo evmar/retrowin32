@@ -127,7 +127,7 @@ pub fn fchs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn fabs(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    *cpu.fpu.st0() = num_traits::abs(*cpu.fpu.st0());
+    *cpu.fpu.st0() = cpu.fpu.st0().abs();
 }
 
 pub fn fcos(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
@@ -164,6 +164,11 @@ pub fn fadd_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     *x += y;
 }
 
+pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fadd_sti_sti(cpu, mem, instr);
+    cpu.fpu.pop();
+}
+
 pub fn fadd_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     *cpu.fpu.st0() += y;
@@ -172,11 +177,6 @@ pub fn fadd_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn fadd_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     *cpu.fpu.st0() += y;
-}
-
-pub fn faddp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    fadd_sti_sti(cpu, mem, instr);
-    cpu.fpu.pop();
 }
 
 pub fn fiadd_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -192,13 +192,13 @@ pub fn fiadd_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn fsub_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
     let x = cpu.fpu.st0();
-    *x = *x - y;
+    *x -= y;
 }
 
 pub fn fsub_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = mem.get_pod::<f32>(x86_addr(cpu, instr)) as f64;
     let x = cpu.fpu.st0();
-    *x = *x - y;
+    *x -= y;
 }
 
 pub fn fsub_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
@@ -236,7 +236,7 @@ pub fn fsubr_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     *x = y - *x;
 }
 
-pub fn fsubrp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn fsubrp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fsubr_sti_sti(cpu, mem, instr);
     cpu.fpu.pop();
 }
@@ -267,10 +267,8 @@ pub fn fmul_sti_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     *x *= y;
 }
 
-pub fn fmulp_sti_st0(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
-    let y = *cpu.fpu.st0();
-    let x = cpu.fpu.get(instr.op0_register());
-    *x *= y;
+pub fn fmulp_sti_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    fmul_sti_sti(cpu, mem, instr);
     cpu.fpu.pop();
 }
 
@@ -282,7 +280,7 @@ pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 pub fn fscale(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let y = *cpu.fpu.get(iced_x86::Register::ST1);
     let x = cpu.fpu.st0();
-    *x = *x * 2f64.powf(y.floor());
+    *x = *x * 2f64.powf(y.round());
 }
 
 pub fn fdiv_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -403,6 +401,9 @@ pub fn fcomi_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
         cpu.flags.set(Flags::ZF, true);
         cpu.flags.set(Flags::CF, false);
     }
+
+    cpu.flags.set(Flags::OF, false);
+    cpu.flags.set(Flags::SF, false);
 }
 
 pub fn fucomi_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {

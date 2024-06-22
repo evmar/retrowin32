@@ -23,34 +23,23 @@ fn fmt_flags(buf: &mut Fmt, reg: u32) {
 }
 
 #[inline(never)]
-fn test() {
+fn flags_test() {
     let mut val = 0u8;
     let mut flags: u32 = 0;
     unsafe {
         core::arch::asm!(
             "push 0",
             "popfd",
-            //"cmp {x}, {y}",
+            "cmp {x}, {y}",
             "pushfd",
             "pop dword ptr [{flags}]",
-            "setle [{out}]",
-            //x = in(reg) 1u32,
-            //y = in(reg) 1u32,
+            "setle [{val}]",
+            x = in(reg) 1u32,
+            y = in(reg) 1u32,
             flags = in(reg) &mut flags,
-            out = in(reg) &mut val,
+            val = in(reg) &mut val,
         );
     }
-
-    print(
-        Fmt::new()
-            .bin_u8((flags >> 8) as u8)
-            .char(b' ')
-            .bin_u8(flags as u8)
-            .char(b'\n')
-            .buf(),
-    );
-
-    print(Fmt::new().hex_u32(flags).char(b'\n').buf());
 
     let mut fmt = Fmt::new();
     fmt.str("flags:");
@@ -59,16 +48,16 @@ fn test() {
     print(fmt.buf());
 
     if val != 0 {
-        print(b"true\n");
+        print(b"setle: true\n");
     } else {
-        print(b"false\n");
+        print(b"setle: false\n");
     }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn mainCRTStartup() {
-    print(b"Hxello, world!\n");
-    test();
+    flags_test();
+    no_std::fpu::test();
 }
 
 #[cfg(not(test))]
