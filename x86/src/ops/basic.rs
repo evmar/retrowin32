@@ -262,6 +262,19 @@ pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+pub fn cmpxchg_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm8(cpu, mem, instr);
+    let x = rm8(cpu, mem, instr);
+    let al = cpu.regs.get8(Register::AL);
+    if al == x.get() {
+        cpu.flags.insert(Flags::ZF);
+        x.set(y);
+    } else {
+        cpu.flags.remove(Flags::ZF);
+        cpu.regs.set8(Register::AL, x.get());
+    }
+}
+
 pub fn lea_r32_m(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     // lea eax,[esp+10h]
     cpu.regs.set32(instr.op0_register(), x86_addr(cpu, instr));
