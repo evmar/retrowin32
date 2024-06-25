@@ -2,6 +2,15 @@
 
 ## Building
 
+### Linux
+
+If you are building on Debian/Ubuntu you will need to make sure you have the
+following packages:
+
+```
+sudo apt install libsdl2-dev
+```
+
 ### CLI
 
 Build/run the CLI app:
