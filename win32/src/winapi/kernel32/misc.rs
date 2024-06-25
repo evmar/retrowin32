@@ -20,9 +20,8 @@ pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GetLastError(_machine: &mut Machine) -> u32 {
-    // TODO: should we start calling SetLastError when appropriate?
-    0
+pub fn GetLastError(machine: &mut Machine) -> u32 {
+    teb_mut(machine).LastErrorValue
 }
 
 #[win32_derive::dllexport]
