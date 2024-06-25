@@ -44,6 +44,13 @@ impl Unpack<[u16; 4]> for u64 {
     }
 }
 
+impl Unpack<[i16; 4]> for u64 {
+    fn unpack(self) -> [i16; 4] {
+        let x: [u16; 4] = self.unpack();
+        [x[0] as i16, x[1] as i16, x[2] as i16, x[3] as i16]
+    }
+}
+
 impl Unpack<[u8; 8]> for u64 {
     fn unpack(self) -> [u8; 8] {
         self.to_le_bytes()
@@ -147,11 +154,11 @@ pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [u16; 4] = x.unpack();
-        let y: [u16; 4] = y.unpack();
+        let x: [i16; 4] = x.unpack();
+        let y: [i16; 4] = y.unpack();
         let out: [u16; 4] = std::array::from_fn(|i| {
-            let x = x[i] as i16 as i32;
-            let y = y[i] as i16 as i32;
+            let x = x[i] as i32;
+            let y = y[i] as i32;
             (x * y) as u16
         });
         out.pack()
@@ -161,11 +168,11 @@ pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [u16; 4] = x.unpack();
-        let y: [u16; 4] = y.unpack();
+        let x: [i16; 4] = x.unpack();
+        let y: [i16; 4] = y.unpack();
         let out: [u16; 4] = std::array::from_fn(|i| {
-            let x = x[i] as i16 as i32;
-            let y = y[i] as i16 as i32;
+            let x = x[i] as i32;
+            let y = y[i] as i32;
             ((x * y) >> 16) as u16
         });
         out.pack()
@@ -175,8 +182,8 @@ pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [u16; 4] = x.unpack();
-        let out: [u16; 4] = std::array::from_fn(|i| (x[i] as i16 >> y) as u16);
+        let x: [i16; 4] = x.unpack();
+        let out: [u16; 4] = std::array::from_fn(|i| (x[i] >> y) as u16);
         out.pack()
     });
 }
@@ -202,10 +209,10 @@ pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [u16; 4] = x.unpack();
-        let y: [u16; 4] = y.unpack();
-        let lo: [u8; 4] = std::array::from_fn(|i| saturate(x[i] as i16));
-        let hi: [u8; 4] = std::array::from_fn(|i| saturate(y[i] as i16));
+        let x: [i16; 4] = x.unpack();
+        let y: [i16; 4] = y.unpack();
+        let lo: [u8; 4] = std::array::from_fn(|i| saturate(x[i]));
+        let hi: [u8; 4] = std::array::from_fn(|i| saturate(y[i]));
         [lo.pack(), hi.pack()].pack()
     });
 }
@@ -267,10 +274,20 @@ pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn paddsw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [u16; 4] = x.unpack();
-        let y: [u16; 4] = y.unpack();
-        let out: [u16; 4] =
-            std::array::from_fn(|i| (x[i] as i16).saturating_add(y[i] as i16) as u16);
+        let x: [i16; 4] = x.unpack();
+        let y: [i16; 4] = y.unpack();
+        let out: [u16; 4] = std::array::from_fn(|i| x[i].saturating_add(y[i]) as u16);
+        out.pack()
+    });
+}
+
+pub fn pmaddwd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let x: [i16; 4] = x.unpack();
+        let y: [i16; 4] = y.unpack();
+        let prod: [i32; 4] = std::array::from_fn(|i| x[i] as i32 * y[i] as i32);
+        let out: [u32; 2] = [(prod[1] + prod[0]) as u32, (prod[3] + prod[2]) as u32];
         out.pack()
     });
 }
