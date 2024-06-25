@@ -212,6 +212,11 @@ pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+pub fn psrlq_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    rm64_x(cpu, mem, instr, |_cpu, x| x >> y);
+}
+
 pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fn saturate(x: i16) -> u8 {
         if x < 0 {
