@@ -358,7 +358,7 @@ pub fn SetDIBitsToDevice(
         yDest as usize,
         dst.width as usize,
         w as usize,
-        h as usize,
+        std::cmp::min(h, dst.height - yDest) as usize,
         src,
         xSrc as usize,
         ySrc as usize,
