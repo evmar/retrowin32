@@ -462,6 +462,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Pmullw_mm_mmm64 as usize] = Some(pmullw_mm_mmm64);
     OP_TAB[iced_x86::Code::Pmulhw_mm_mmm64 as usize] = Some(pmulhw_mm_mmm64);
     OP_TAB[iced_x86::Code::Psraw_mm_imm8 as usize] = Some(psraw_mm_imm8);
+    OP_TAB[iced_x86::Code::Psrad_mm_imm8 as usize] = Some(psrad_mm_imm8);
     OP_TAB[iced_x86::Code::Psrlw_mm_imm8 as usize] = Some(psrlw_mm_imm8);
     OP_TAB[iced_x86::Code::Packuswb_mm_mmm64 as usize] = Some(packuswb_mm_mmm64);
     OP_TAB[iced_x86::Code::Emms as usize] = Some(emms);
