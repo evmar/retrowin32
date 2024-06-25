@@ -206,28 +206,31 @@ pub fn GetFileInformationByHandle(
     true
 }
 
+#[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
+pub enum FILE {
+    BEGIN = 0,
+    CURRENT = 1,
+    END = 2,
+}
+
 #[win32_derive::dllexport]
 pub fn SetFilePointer(
     machine: &mut Machine,
     hFile: HFILE,
     lDistanceToMove: u32,
     lpDistanceToMoveHigh: Option<&mut u32>,
-    dwMoveMethod: u32,
+    dwMoveMethod: Result<FILE, u32>,
 ) -> u32 {
-    const FILE_BEGIN: u32 = 0;
-    const INVALID_SET_FILE_POINTER: u32 = !0;
-
     if lpDistanceToMoveHigh.is_some() {
         unimplemented!();
     }
-    if dwMoveMethod != FILE_BEGIN {
-        unimplemented!();
-    }
     let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
-    if !file.seek(lDistanceToMove) {
-        // TODO: SetLastError
-        return INVALID_SET_FILE_POINTER;
-    }
+    let pos = match dwMoveMethod.unwrap() {
+        FILE::BEGIN => std::io::SeekFrom::Start(lDistanceToMove as u64),
+        FILE::CURRENT => std::io::SeekFrom::Current(lDistanceToMove as i64),
+        FILE::END => std::io::SeekFrom::End(lDistanceToMove as i64),
+    };
+    file.seek(pos).unwrap();
     lDistanceToMove
 }
 

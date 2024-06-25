@@ -2,12 +2,7 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::{
-    cell::RefCell,
-    io::{Seek, Write},
-    path::Path,
-    rc::Rc,
-};
+use std::{cell::RefCell, io::Write, path::Path, rc::Rc};
 
 struct File {
     f: std::fs::File,
@@ -38,11 +33,6 @@ impl win32::File for File {
         let meta = self.f.metadata().unwrap();
         meta.len() as u32
     }
-
-    fn seek(&mut self, ofs: u32) -> bool {
-        self.f.seek(std::io::SeekFrom::Start(ofs as u64)).unwrap();
-        true
-    }
 }
 
 impl std::io::Read for File {
@@ -58,6 +48,12 @@ impl std::io::Write for File {
 
     fn flush(&mut self) -> std::io::Result<()> {
         self.f.flush()
+    }
+}
+
+impl std::io::Seek for File {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        self.f.seek(pos)
     }
 }
 

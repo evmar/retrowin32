@@ -1606,7 +1606,7 @@ pub mod kernel32 {
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             let lDistanceToMove = <u32>::from_stack(mem, esp + 8u32);
             let lpDistanceToMoveHigh = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
-            let dwMoveMethod = <u32>::from_stack(mem, esp + 16u32);
+            let dwMoveMethod = <Result<FILE, u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::SetFilePointer(
                 machine,
                 hFile,

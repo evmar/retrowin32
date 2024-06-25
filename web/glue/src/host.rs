@@ -147,10 +147,6 @@ impl win32::File for JsFile {
     fn info(&self) -> u32 {
         JsFile::info(self)
     }
-
-    fn seek(&mut self, ofs: u32) -> bool {
-        JsFile::seek(self, ofs)
-    }
 }
 
 impl std::io::Read for JsFile {
@@ -168,6 +164,22 @@ impl std::io::Write for JsFile {
 
     fn flush(&mut self) -> std::io::Result<()> {
         todo!()
+    }
+}
+
+impl std::io::Seek for JsFile {
+    fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
+        match pos {
+            std::io::SeekFrom::Start(ofs) => {
+                if JsFile::seek(self, ofs as u32) {
+                    Ok(ofs)
+                } else {
+                    todo!();
+                }
+            }
+            std::io::SeekFrom::End(_) => todo!(),
+            std::io::SeekFrom::Current(_) => todo!(),
+        }
     }
 }
 
