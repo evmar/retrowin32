@@ -570,10 +570,11 @@ pub async fn DefWindowProcA(
             let WINDOWPOS { flags, .. } = *machine.mem().view::<WINDOWPOS>(lParam);
 
             if !flags.contains(SWP::NOSIZE) {
+                const SIZE_RESTORED: u32 = 0;
                 let msg = MSG {
                     hwnd: hWnd,
                     message: WM::SIZE as u32,
-                    wParam: 0, // TODO: SIZE_* flags
+                    wParam: SIZE_RESTORED, // TODO: SIZE_* flags
                     lParam: (height << 16) | width,
                     time: 0,
                     pt_x: 0,
