@@ -1,2 +1,3 @@
 #!/bin/sh
-exec make fmt
+
+exec ./misc/fmt.sh

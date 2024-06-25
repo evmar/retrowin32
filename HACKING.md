@@ -1,74 +1,68 @@
 # Hacking on retrowin32
 
-## Building
+## Setup
+
+### Mac
+
+```
+$ brew install sdl2
+$ export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
+```
 
 ### Linux
 
-If you are building on Debian/Ubuntu you will need to make sure you have the
-following packages:
+Debian/Ubuntu:
 
 ```
-sudo apt install libsdl2-dev
+$ sudo apt install libsdl2-dev
 ```
 
-### CLI
+## CLI build
 
 Build/run the CLI app:
 
 ```
-$ make emu opt=1
-$ ./target/release/retrowin32 exe/zig_hello/hello.exe
+$ cargo build -p retrowin32 -F x86-emu,sdl --profile=lto
+$ ./target/lto/retrowin32 exe/zig_hello/hello.exe
 ```
 
 The command line as seen by the program is an optional third argument:
 
 ```
-$ ./target/release/retrowin32 path/to/some.exe "c:\\some.exe arg1 arg2"
+$ ./target/lto/retrowin32 path/to/some.exe "c:\\some.exe arg1 arg2"
 ```
 
 The `--win32-trace` flag controls tracing of win32 API calls. Passing `*` (which
-must be quoted from the shell) makes retrowin32 trace all calls.
-
-To iterate while developing I often use a command like this, which builds and
-runs in one invocation.
-
-```
-$ cargo run -p retrowin32 -F x86-emu -- --win32-trace '*' path/to/my/exe
-```
-
-(You might pass `--release` for faster binaries or `-F x86-emu,sdl` for GUI
-support.)
+must be quoted from the shell) makes retrowin32 trace all win32 calls.
 
 ### Rosetta
 
-Rosetta mode (see [doc/x86-64.md](doc/x86-64.md)):
+On Apple Silicon (ARM) Macs there is tentative support for running via the
+Rosetta x86 emulator. See [doc/x86-64.md](doc/x86-64.md) for instructions.
 
-```
-$ make rosetta
-$ ./target/x86_64-apple-darwin/debug/retrowin32 exe/zig_hello/hello.exe
-```
-
-### Web
+## Web
 
 Build/run the web app:
 
 ```
-$ make deploy opt=1
 $ cd web
+$ make
 $ npm run serve
 ```
 
+Optionally, `make profile=lto` for faster binary.
+
 ## Compile-time features matrix
 
-The above `make` commands cover the main things you'd build, but they wrap some
-more subtle configuration.
+The above commands cover the main things you'd build, but they wrap some more
+subtle configuration.
 
 To choose the x86 emulation strategy, you must pick a Rust "feature":
 
 - `x86-emu`: retrowin32's own x86 emulator
 - `x86-64`: generate x86-64 code, requires x86 CPU or Rosetta
 - `x86-unicorn`: use [Unicorn](https://www.unicorn-engine.org/) (effectively
-  QEMU) for x86 emulation
+  QEMU) for x86 emulation (note: probably broken at this point)
 
 To choose the rendering strategy, there is one further toggle:
 
@@ -78,6 +72,26 @@ To choose the rendering strategy, there is one further toggle:
   - web: render to DOM
 
 Web builds require `x86-emu` and no `sdl`.
+
+## Building while developing
+
+There are three build profiles:
+
+- `lto`: slowest build, highest performance
+- `debug`: fastest build, lowest performance
+- `release`: compromise between the above two
+
+To iterate while developing I often use a command like this, which builds and
+runs in one invocation.
+
+```
+$ cargo run -p retrowin32 -F x86-emu -- --win32-trace '*' path/to/my/exe
+```
+
+And sometimes I add:
+
+- `--release` when the debug build runs too slowly, and
+- `-F x86-emu,sdl` for GUI support
 
 ## Code layout
 

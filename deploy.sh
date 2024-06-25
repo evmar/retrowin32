@@ -2,5 +2,6 @@
 
 set -e
 
-make deploy opt=1
+make -C web profile=lto
+(cd web && npm run build)
 cp web/*.css web/*.html web/*.wasm web/*.png deploy
