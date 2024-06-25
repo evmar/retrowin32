@@ -9,7 +9,7 @@ pub type Op = fn(&mut CPU, Mem, &Instruction);
 
 // This table is constant and ideally would be initialized at compile time,
 // but it's too fiddly to do with const fns, so we'd likely need to codegen it.
-static mut OP_TAB: [Option<Op>; 2546] = [None; 2546];
+static mut OP_TAB: [Option<Op>; 2553] = [None; 2553];
 
 pub unsafe fn init_op_tab() {
     use super::basic::*;
@@ -471,6 +471,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Psllw_mm_imm8 as usize] = Some(psllw_mm_imm8);
     OP_TAB[iced_x86::Code::Paddsb_mm_mmm64 as usize] = Some(paddsb_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddw_mm_mmm64 as usize] = Some(paddw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Paddd_mm_mmm64 as usize] = Some(paddd_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddsw_mm_mmm64 as usize] = Some(paddsw_mm_mmm64);
     OP_TAB[iced_x86::Code::Pmaddwd_mm_mmm64 as usize] = Some(pmaddwd_mm_mmm64);
     OP_TAB[iced_x86::Code::Psubw_mm_mmm64 as usize] = Some(psubw_mm_mmm64);

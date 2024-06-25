@@ -286,6 +286,16 @@ pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+pub fn paddd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let x: [u32; 2] = x.unpack();
+        let y: [u32; 2] = y.unpack();
+        let out: [u32; 2] = std::array::from_fn(|i| x[i].wrapping_add(y[i]));
+        out.pack()
+    });
+}
+
 pub fn paddsw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
