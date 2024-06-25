@@ -27,14 +27,19 @@ fn print(msg: String) {
 }
 
 unsafe extern "system" fn thread_proc(param: *mut std::ffi::c_void) -> u32 {
-    let param = *(param as *const &str);
-    for i in 0..3 {
+    let param = if param.is_null() {
+        None
+    } else {
+        Some(*(param as *const &str))
+    };
+    let fast = param.is_some();
+    for i in 0..(if fast { 10 } else { 5 }) {
         let thread_id = GetCurrentThreadId();
-        print(format!("thread={thread_id} param={param} i={i}\n"));
-        Sleep(500);
+        print(format!("thread={thread_id} param={param:?} i={i}\n"));
+        Sleep(if fast { 100 } else { 200 });
     }
     let thread_id = GetCurrentThreadId();
-    print(format!("thread={thread_id} param={param} returning\n"));
+    print(format!("thread={thread_id} param={param:?} returning\n"));
     0
 }
 
@@ -48,6 +53,6 @@ fn main() {
             0,
             std::ptr::null_mut(),
         );
-        thread_proc(&"i_am_main" as *const _ as *mut _);
+        thread_proc(std::ptr::null_mut());
     }
 }
