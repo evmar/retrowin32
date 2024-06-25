@@ -476,6 +476,11 @@ pub fn LocalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn LocalFree(machine: &mut Machine, hMem: u32) -> u32 {
+    GlobalFree(machine, hMem)
+}
+
+#[win32_derive::dllexport]
 pub fn VirtualProtect(
     _machine: &mut Machine,
     lpAddress: u32,

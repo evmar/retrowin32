@@ -1536,6 +1536,11 @@ pub mod kernel32 {
             let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::LocalAlloc(machine, uFlags, dwBytes).to_raw()
         }
+        pub unsafe fn LocalFree(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::LocalFree(machine, hMem).to_raw()
+        }
         pub unsafe fn LockResource(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hResData = <u32>::from_stack(mem, esp + 4u32);
@@ -2358,6 +2363,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const LocalFree: Shim = Shim {
+            name: "LocalFree",
+            func: impls::LocalFree,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const LockResource: Shim = Shim {
             name: "LockResource",
             func: impls::LockResource,
@@ -2605,7 +2616,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 119usize] = [
+    const EXPORTS: [Symbol; 120usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2917,6 +2928,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::LocalAlloc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::LocalFree,
         },
         Symbol {
             ordinal: None,
