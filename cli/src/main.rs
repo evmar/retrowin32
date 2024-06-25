@@ -1,3 +1,4 @@
+mod debugger;
 mod host;
 mod logging;
 
@@ -43,6 +44,11 @@ struct Args {
     /// log CPU state first time each point reached
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
+
+    /// debugger XXX
+    #[argh(switch)]
+    #[cfg(feature = "x86-emu")]
+    debugger: bool,
 
     /// exe to run
     #[argh(positional)]
@@ -197,6 +203,8 @@ fn main() -> anyhow::Result<()> {
 
                 print_trace(&machine);
             }
+        } else if args.debugger {
+            return debugger::main(machine);
         } else {
             while machine.run() {
                 unsafe {
