@@ -1,17 +1,19 @@
 //! Disassembler producing serde/JSON for use in displaying code in the debugger.
 
+#![allow(non_snake_case)] // work around tsify generating lints
+
 use iced_x86::{Formatter, IntelFormatter};
 use memory::Mem;
 use std::fmt::Write;
 
-#[cfg_attr(target_family = "wasm", derive(tsify::Tsify))]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[derive(serde::Serialize)]
 pub struct CodePart {
     pub kind: String,
     pub text: String,
 }
 
-#[cfg_attr(target_family = "wasm", derive(tsify::Tsify))]
+#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[derive(serde::Serialize)]
 pub struct Instruction {
     pub addr: u32,

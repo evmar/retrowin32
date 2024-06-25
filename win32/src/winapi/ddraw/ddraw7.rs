@@ -262,7 +262,7 @@ pub(super) mod IDirectDraw7 {
         _unused: u32,
     ) -> u32 {
         // TODO: effect.exe uses this to pace itself; actually sync to a clock here?
-        #[cfg(not(target_arch = "wasm32"))]
+        #[cfg(not(feature = "wasm"))]
         std::thread::sleep(std::time::Duration::from_millis(10));
         DD_OK
     }
