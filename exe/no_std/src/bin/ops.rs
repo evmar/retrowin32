@@ -23,6 +23,7 @@ fn fmt_flags(buf: &mut Fmt, reg: u32) {
 }
 
 #[inline(never)]
+#[allow(asm_sub_register)] // TODO: this is just because rust-analyzer is confused
 fn flags_test() {
     let mut val = 0u8;
     let mut flags: u32 = 0;
