@@ -471,6 +471,7 @@ pub unsafe fn init_op_tab() {
     OP_TAB[iced_x86::Code::Paddw_mm_mmm64 as usize] = Some(paddw_mm_mmm64);
     OP_TAB[iced_x86::Code::Paddsw_mm_mmm64 as usize] = Some(paddsw_mm_mmm64);
     OP_TAB[iced_x86::Code::Psubw_mm_mmm64 as usize] = Some(psubw_mm_mmm64);
+    OP_TAB[iced_x86::Code::Pcmpeqb_mm_mmm64 as usize] = Some(pcmpeqb_mm_mmm64);
 
     OP_TAB[iced_x86::Code::Nopd as usize] = Some(nop);
     OP_TAB[iced_x86::Code::Nopw as usize] = Some(nop);
