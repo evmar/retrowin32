@@ -220,7 +220,7 @@ impl X86 {
     }
 
     /// Schedule the next runnable thread to run.
-    pub fn schedule(&mut self) -> &CPUState {
+    pub fn schedule(&mut self) {
         // log::info!(
         //     "cpustate {:?}",
         //     self.cpus
@@ -229,19 +229,40 @@ impl X86 {
         //         .collect::<Vec<_>>()
         // );
         // let prev = self.cur_cpu;
-        for _ in 0..self.cpus.len() {
-            self.cur_cpu = (self.cur_cpu + 1) % self.cpus.len();
-            if self.cpu().state == CPUState::Running {
-                break;
+
+        // Common perf-sensitive case: find next runnable CPU.
+        for i in 0..self.cpus.len() {
+            let i = (self.cur_cpu + i) % self.cpus.len();
+            if self.cpus[i].state.is_running() {
+                self.cur_cpu = i;
+                return;
             }
         }
+
+        // Otherwise, find the CPU that will unblock soonest.
+        let mut soonest = None;
+        for (i, cpu) in self.cpus.iter().enumerate() {
+            match cpu.state {
+                CPUState::Running => {}
+                CPUState::DebugBreak | CPUState::Error(_) | CPUState::Exit(_) => {
+                    self.cur_cpu = i;
+                    return;
+                }
+                CPUState::Blocked(wait) => match soonest {
+                    None => soonest = Some((i, wait)),
+                    Some((_, soonest_wait)) => {
+                        if wait < soonest_wait {
+                            soonest = Some((i, wait));
+                        }
+                    }
+                },
+            }
+        }
+        self.cur_cpu = soonest.unwrap().0;
+
         // if self.cur_cpu != prev || !self.cpu().state.is_running() {
         //     log::info!("cpu {prev}=>{} {:?}", self.cur_cpu, self.cpu().state);
         // }
-
-        // TODO: this should pick the soonest-ready CPU because we use it to mark
-        // how long of a timer to set.
-        &self.cpu().state
     }
 
     /// Execute one basic block starting at current ip.

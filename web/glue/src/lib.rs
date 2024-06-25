@@ -71,7 +71,7 @@ impl Emulator {
     }
 
     pub fn unblock(&mut self) {
-        self.machine.unblock();
+        self.machine.unblock_all();
     }
 
     /// Run code until at least count instructions have run.

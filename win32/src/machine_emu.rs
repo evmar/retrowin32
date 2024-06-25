@@ -124,7 +124,7 @@ impl MachineX<Emulator> {
         self.run();
     }
 
-    pub fn unblock(&mut self) {
+    pub fn unblock_all(&mut self) {
         for cpu in self.emu.x86.cpus.iter_mut() {
             if matches!(
                 cpu.state,
@@ -135,8 +135,19 @@ impl MachineX<Emulator> {
         }
     }
 
+    pub fn unblock(&mut self) {
+        let cpu = self.emu.x86.cpu_mut();
+        if matches!(
+            cpu.state,
+            x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
+        ) {
+            cpu.state = x86::CPUState::Running;
+        }
+    }
+
     pub fn run(&mut self) -> bool {
-        match self.emu.x86.schedule() {
+        self.emu.x86.schedule();
+        match &self.emu.x86.cpu().state {
             x86::CPUState::Running => self.execute_block(),
             x86::CPUState::Blocked(wait) => {
                 let wait = *wait;

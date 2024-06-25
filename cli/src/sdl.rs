@@ -114,6 +114,9 @@ impl GUI {
         let msg = match wait {
             Some(until) => message_from_events(hwnd, || {
                 let now = self.time();
+                if now >= until {
+                    return None;
+                }
                 let delta = until - now;
                 self.pump.wait_event_timeout(delta)
             }),
