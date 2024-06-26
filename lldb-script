@@ -1,3 +1,4 @@
+log enable gdb-remote packets
 platform select remote-windows
 platform connect connect://localhost:9001
 target create exe/winapi/winapi.exe

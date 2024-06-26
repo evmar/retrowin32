@@ -129,7 +129,34 @@ fn wait_for_gdb_connection(port: u16) -> std::io::Result<std::net::TcpStream> {
     Ok(stream)
 }
 
+struct Logger {}
+static LOGGER: Logger = Logger {};
+
+impl log_crate::Log for Logger {
+    fn enabled(&self, _metadata: &log_crate::Metadata) -> bool {
+        true
+    }
+    fn log(&self, record: &log_crate::Record) {
+        let rec = log::Record {
+            level: record.level(),
+            file: record.file(),
+            line: record.line(),
+            args: record.args(),
+        };
+        log::log_record(&rec);
+        // Implement the `log` method here.
+        // You can use `println!` or any other logging mechanism.
+    }
+
+    fn flush(&self) {
+        // Implement the `flush` method here.
+        // You can use `std::io::stdout().flush()` or any other flushing mechanism.
+    }
+}
+
 pub fn main(machine: Machine) -> anyhow::Result<()> {
+    log_crate::set_logger(&LOGGER)?;
+
     let mut target = MachineTarget::new(machine);
     let connection: std::net::TcpStream = wait_for_gdb_connection(9001)?;
     let debugger = GdbStub::new(connection);
