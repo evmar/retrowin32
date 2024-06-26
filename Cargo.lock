@@ -122,7 +122,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "js-sys",
- "log 0.1.0",
+ "log",
  "serde",
  "serde_json",
  "tsify",
@@ -167,10 +167,6 @@ name = "libc"
 version = "0.2.148"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9cdc71e17332e86d2e1d38c1f99edcb6288ee11b815fb1a4b049eaa2114d369b"
-
-[[package]]
-name = "log"
-version = "0.1.0"
 
 [[package]]
 name = "log"
@@ -256,7 +252,7 @@ dependencies = [
  "argh",
  "iced-x86",
  "libc",
- "log 0.1.0",
+ "log",
  "sdl2",
  "unicorn-engine",
  "win32",
@@ -432,7 +428,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "614d787b966d3989fa7bb98a654e369c762374fd3213d212cfc0251257e747da"
 dependencies = [
  "bumpalo",
- "log 0.4.20",
+ "log",
  "once_cell",
  "proc-macro2",
  "quote",
@@ -486,7 +482,7 @@ dependencies = [
  "anyhow",
  "bincode",
  "bitflags",
- "log 0.1.0",
+ "log",
  "memory",
  "num-derive",
  "num-traits",
@@ -588,7 +584,7 @@ version = "0.1.0"
 dependencies = [
  "bitflags",
  "iced-x86",
- "log 0.1.0",
+ "log",
  "memory",
  "num-traits",
  "serde",

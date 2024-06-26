@@ -99,10 +99,13 @@ pub fn trace(
         write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
     }
     msg.push_str(")");
-    log::log_record(&log::Record {
-        level: log::Level::Info,
-        file,
-        line,
-        args: format_args!("{}", msg),
-    });
+
+    log::logger().log(
+        &log::Record::builder()
+            .level(log::Level::Info)
+            .file(Some(file))
+            .line(Some(line))
+            .args(format_args!("{}", msg))
+            .build(),
+    );
 }

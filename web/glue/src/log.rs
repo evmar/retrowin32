@@ -24,11 +24,26 @@ struct HostLogger {
 impl log::Log for HostLogger {
     fn log(&self, record: &log::Record) {
         self.host.log(
-            record.level as u8,
-            format!("{}:{} {}", record.file, record.line, record.args),
+            record.level() as u8,
+            format!(
+                "{}:{} {}",
+                record.file().unwrap_or(""),
+                record.line().unwrap_or(0),
+                record.args()
+            ),
         );
     }
+
+    fn enabled(&self, _metadata: &log::Metadata) -> bool {
+        true
+    }
+
+    fn flush(&self) {}
 }
+
+// There are no threads in wasm, but the log crate requires these traits.
+unsafe impl Sync for HostLogger {}
+unsafe impl Send for HostLogger {}
 
 fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
@@ -36,6 +51,6 @@ fn panic_hook(info: &std::panic::PanicInfo) {
 
 pub fn init(host: JsLogger) {
     let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
-    log::set_logger(logger);
+    log::set_logger(logger).unwrap();
     std::panic::set_hook(Box::new(panic_hook));
 }
