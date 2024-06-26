@@ -18,12 +18,9 @@ extern "C" {
     fn log(this: &JsLogger, level: u8, msg: String);
 }
 
-struct HostLogger {
-    host: JsLogger,
-}
-impl log::Log for HostLogger {
+impl log::Log for JsLogger {
     fn log(&self, record: &log::Record) {
-        self.host.log(
+        self.log(
             record.level() as u8,
             format!(
                 "{}:{} {}",
@@ -42,15 +39,15 @@ impl log::Log for HostLogger {
 }
 
 // There are no threads in wasm, but the log crate requires these traits.
-unsafe impl Sync for HostLogger {}
-unsafe impl Send for HostLogger {}
+unsafe impl Sync for JsLogger {}
+unsafe impl Send for JsLogger {}
 
 fn panic_hook(info: &std::panic::PanicInfo) {
     log::error!("{}", info);
 }
 
 pub fn init(host: JsLogger) {
-    let logger: &'static mut HostLogger = Box::leak(Box::new(HostLogger { host }));
+    let logger: &'static mut JsLogger = Box::leak(Box::new(host));
     log::set_logger(logger).unwrap();
     std::panic::set_hook(Box::new(panic_hook));
 }
