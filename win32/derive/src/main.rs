@@ -4,15 +4,17 @@
 use std::io::Write;
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 mod gen;
 
 /// Generate one module's shim functions.
 fn generate_shims_module(
-    dll_name: &str,
-    module: &syn::Ident,
+    module_name: &str,
     dllexports: Vec<(&syn::ItemFn, gen::DllExport)>,
 ) -> anyhow::Result<TokenStream> {
+    let module = quote::format_ident!("{}", module_name);
+    let dll_name = format!("{}.dll", module_name);
+
     let mut impls = Vec::new();
     let mut shims = Vec::new();
     let mut exports = Vec::new();
@@ -81,33 +83,8 @@ fn parse_files(path: &std::path::Path) -> anyhow::Result<Vec<syn::File>> {
     Ok(files)
 }
 
-fn process_builtin_dll(module: &syn::Ident, path: &std::path::Path) -> anyhow::Result<TokenStream> {
-    let dll_name = format!("{}.dll", module);
-    eprintln!("{}", dll_name);
-
-    let files = parse_files(path)?;
-    let mut dllexports = Vec::new();
-    for file in &files {
-        gen::gather_dllexports(&file.items, &mut dllexports)?;
-    }
-    dllexports.sort_by_key(|(func, _)| &func.sig.ident);
-    generate_shims_module(&dll_name, module, dllexports)
-}
-
-/// Process a list of builtin dlls, generating a single Rust output file.
-fn process(args: &Args) -> anyhow::Result<TokenStream> {
-    let mut mods = Vec::new();
-    for path in &args.inputs {
-        let path = std::path::Path::new(path);
-        let module_name = path.file_stem().unwrap().to_string_lossy();
-        let module = quote::format_ident!("{}", module_name);
-        let gen = match process_builtin_dll(&module, &path) {
-            Ok(gen) => gen,
-            Err(err) => anyhow::bail!("processing module: {}", err),
-        };
-        mods.push(gen);
-    }
-    Ok(quote! {
+fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<Vec<u8>> {
+    let out = quote! {
         /// Generated code, do not edit.
 
         use crate::shims;
@@ -123,10 +100,26 @@ fn process(args: &Args) -> anyhow::Result<TokenStream> {
         }
 
         #(#mods)*
-    })
+    };
+
+    // Verify output parses correctly.
+    if let Err(err) = syn::parse2::<syn::File>(out.clone()) {
+        anyhow::bail!("parsing macro-generated code: {}", err);
+    };
+
+    let mut buf = Vec::new();
+    // parse2 seems to fail if it sees these, so dump them here.
+    write!(&mut buf, "#![allow(non_snake_case)]\n").unwrap();
+    write!(&mut buf, "#![allow(non_upper_case_globals)]\n").unwrap();
+    write!(&mut buf, "#![allow(unused_imports)]\n").unwrap();
+    write!(&mut buf, "#![allow(unused_variables)]\n").unwrap();
+    let text = rustfmt(&out.to_string())?;
+    buf.extend_from_slice(text.as_bytes());
+
+    Ok(buf)
 }
 
-fn rustfmt(tokens: &mut String) -> anyhow::Result<()> {
+fn rustfmt(tokens: &str) -> anyhow::Result<String> {
     // Stolen from https://github.com/microsoft/windows-rs/blob/master/crates/tools/lib/src/lib.rs
     let mut child = std::process::Command::new("rustfmt")
         .arg("--edition")
@@ -143,27 +136,20 @@ fn rustfmt(tokens: &mut String) -> anyhow::Result<()> {
     if !output.status.success() {
         anyhow::bail!("rustfmt failed: {}", std::str::from_utf8(&output.stderr)?);
     }
-    *tokens = String::from_utf8(output.stdout)?;
-    Ok(())
+    Ok(String::from_utf8(output.stdout)?)
 }
 
-fn print(tokens: TokenStream) -> anyhow::Result<Vec<u8>> {
-    // println!("{}", tokens);
-    let file = match syn::parse2::<syn::File>(tokens) {
-        Ok(file) => file,
-        Err(err) => anyhow::bail!("parsing macro-generated code: {}", err),
-    };
-    let mut buf = Vec::new();
-    // parse2 seems to fail if it sees these, so dump them here.
-    write!(&mut buf, "#![allow(non_snake_case)]\n").unwrap();
-    write!(&mut buf, "#![allow(non_upper_case_globals)]\n").unwrap();
-    write!(&mut buf, "#![allow(unused_imports)]\n").unwrap();
-    write!(&mut buf, "#![allow(unused_variables)]\n").unwrap();
-    let mut text = file.to_token_stream().to_string();
-    rustfmt(&mut text)?;
-    buf.extend_from_slice(text.as_bytes());
+fn process_builtin_dll(path: &std::path::Path) -> anyhow::Result<TokenStream> {
+    let module_name = path.file_stem().unwrap().to_string_lossy();
+    eprintln!("{}.dll", module_name);
 
-    Ok(buf)
+    let files = parse_files(path)?;
+    let mut dllexports = Vec::new();
+    for file in &files {
+        gen::gather_dllexports(&file.items, &mut dllexports)?;
+    }
+    dllexports.sort_by_key(|(func, _)| &func.sig.ident);
+    generate_shims_module(&module_name, dllexports)
 }
 
 #[derive(argh::FromArgs)]
@@ -180,9 +166,19 @@ struct Args {
 
 fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
-    let tokens = process(&args)?;
-    let out = print(tokens)?;
-    std::fs::write(args.builtins, &out)?;
+
+    let mut mods = Vec::new();
+    for path in &args.inputs {
+        let path = std::path::Path::new(path);
+        let gen = match process_builtin_dll(&path) {
+            Ok(gen) => gen,
+            Err(err) => anyhow::bail!("processing module: {}", err),
+        };
+        mods.push(gen);
+    }
+
+    let builtins_module = generate_builtins_module(mods)?;
+    std::fs::write(&args.builtins, &builtins_module)?;
 
     Ok(())
 }
