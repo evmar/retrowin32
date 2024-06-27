@@ -3,6 +3,7 @@
 use proc_macro2::TokenStream;
 use quote::{quote, ToTokens};
 mod gen;
+mod trace;
 
 #[proc_macro_attribute]
 pub fn dllexport(
@@ -10,7 +11,7 @@ pub fn dllexport(
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let mut func: syn::ItemFn = syn::parse_macro_input!(item);
-    gen::add_trace(&mut func);
+    trace::add_trace(&mut func);
     func.into_token_stream().into()
 }
 
@@ -26,7 +27,7 @@ pub fn shims_from_x86(
     // Generate one wrapper function per function found in the input module.
     let items = &module.content.as_ref().unwrap().1;
     let mut dllexports = Vec::new();
-    gen::gather_shims(items, &mut dllexports).unwrap();
+    gen::gather_dllexports(items, &mut dllexports).unwrap();
 
     let mut impls: Vec<TokenStream> = Vec::new();
     let mut shims: Vec<TokenStream> = Vec::new();

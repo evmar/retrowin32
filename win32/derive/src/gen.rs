@@ -56,7 +56,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExport>> {
 }
 
 /// Gather all the dllexport fns in a list of syn::Items (module contents).
-pub fn gather_shims<'a>(
+pub fn gather_dllexports<'a>(
     items: &'a [syn::Item],
     out: &mut Vec<(&'a syn::ItemFn, DllExport)>,
 ) -> anyhow::Result<()> {
@@ -208,39 +208,4 @@ pub fn fn_wrapper(
             is_async: #is_async,
         };),
     )
-}
-
-/// Insert a call to trace::trace() at the front of a function that logs its name and arguments.
-// TODO: this fn is used by lib.rs, but not main.rs.
-// TODO: this maybe belongs at the "impls" mod, so it can do its own traversal of the stack (?).
-#[allow(dead_code)]
-pub fn add_trace(func: &mut syn::ItemFn) {
-    let name = func.sig.ident.to_string();
-    let mut args: Vec<&syn::Ident> = Vec::new();
-    for arg in func.sig.inputs.iter().skip(1) {
-        match arg {
-            syn::FnArg::Typed(arg) => match &*arg.pat {
-                syn::Pat::Ident(pat) => {
-                    args.push(&pat.ident);
-                }
-                _ => {}
-            },
-            _ => {}
-        };
-    }
-    let synargs = args
-        .iter()
-        .map(|arg| {
-            let name = arg.to_string();
-            quote!((#name, &#arg))
-        })
-        .collect::<Vec<_>>();
-    let arg_count = args.len();
-    let stmt: syn::Stmt = syn::parse_quote! {
-        if crate::trace::enabled(TRACE_CONTEXT) {
-            let args: &[(&str, &dyn std::fmt::Debug); #arg_count] = &[#(#synargs),*];
-            crate::trace::trace(TRACE_CONTEXT, std::file!(), std::line!(), #name, args);
-        }
-    };
-    func.block.stmts.insert(0, stmt);
 }
