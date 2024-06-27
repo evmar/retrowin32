@@ -188,8 +188,8 @@ pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [i32; 2] = x.unpack();
-        let out: [u32; 2] = std::array::from_fn(|i| (x[i] >> y) as u32);
+        let x: [i16; 4] = x.unpack();
+        let out: [u16; 4] = std::array::from_fn(|i| (x[i] >> y) as u16);
         out.pack()
     });
 }
@@ -197,8 +197,8 @@ pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn psrad_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
-        let x: [i16; 4] = x.unpack();
-        let out: [u16; 4] = std::array::from_fn(|i| (x[i] >> y) as u16);
+        let x: [i32; 2] = x.unpack();
+        let out: [u32; 2] = std::array::from_fn(|i| (x[i] >> y) as u32);
         out.pack()
     });
 }
