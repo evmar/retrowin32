@@ -95,10 +95,10 @@ fn process_builtin_dll(module: &syn::Ident, path: &std::path::Path) -> anyhow::R
 }
 
 /// Process a list of builtin dlls, generating a single Rust output file.
-fn process(args: std::env::Args) -> anyhow::Result<TokenStream> {
+fn process(args: &Args) -> anyhow::Result<TokenStream> {
     let mut mods = Vec::new();
-    for path in args {
-        let path = std::path::Path::new(&path);
+    for path in &args.inputs {
+        let path = std::path::Path::new(path);
         let module_name = path.file_stem().unwrap().to_string_lossy();
         let module = quote::format_ident!("{}", module_name);
         let gen = match process_builtin_dll(&module, &path) {
@@ -147,27 +147,42 @@ fn rustfmt(tokens: &mut String) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn print(tokens: TokenStream) -> anyhow::Result<()> {
+fn print(tokens: TokenStream) -> anyhow::Result<Vec<u8>> {
     // println!("{}", tokens);
     let file = match syn::parse2::<syn::File>(tokens) {
         Ok(file) => file,
         Err(err) => anyhow::bail!("parsing macro-generated code: {}", err),
     };
+    let mut buf = Vec::new();
     // parse2 seems to fail if it sees these, so dump them here.
-    println!("#![allow(non_snake_case)]");
-    println!("#![allow(non_upper_case_globals)]");
-    println!("#![allow(unused_imports)]");
-    println!("#![allow(unused_variables)]");
+    write!(&mut buf, "#![allow(non_snake_case)]\n").unwrap();
+    write!(&mut buf, "#![allow(non_upper_case_globals)]\n").unwrap();
+    write!(&mut buf, "#![allow(unused_imports)]\n").unwrap();
+    write!(&mut buf, "#![allow(unused_variables)]\n").unwrap();
     let mut text = file.to_token_stream().to_string();
     rustfmt(&mut text)?;
-    print!("{}", text);
-    Ok(())
+    buf.extend_from_slice(text.as_bytes());
+
+    Ok(buf)
+}
+
+#[derive(argh::FromArgs)]
+/// dllexport generator
+struct Args {
+    /// output path
+    #[argh(option)]
+    builtins: String,
+
+    /// files to process
+    #[argh(positional)]
+    inputs: Vec<String>,
 }
 
 fn main() -> anyhow::Result<()> {
-    let mut args = std::env::args();
-    args.next();
-    let tokens = process(args)?;
-    print(tokens)?;
+    let args: Args = argh::from_env();
+    let tokens = process(&args)?;
+    let out = print(tokens)?;
+    std::fs::write(args.builtins, &out)?;
+
     Ok(())
 }

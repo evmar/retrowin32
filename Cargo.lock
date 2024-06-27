@@ -500,6 +500,7 @@ name = "win32-derive"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "argh",
  "proc-macro2",
  "quote",
  "syn 1.0.109",
