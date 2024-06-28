@@ -21,7 +21,12 @@ fn generate_dll(
         writeln!(f, ".globl _{}", name)?;
         writeln!(f, "_{}:", name)?;
         writeln!(f, "  sysenter")?;
-        writeln!(f, "  ret 8")?;
+        let stack = dllexport.stack_consumed();
+        if stack > 0 {
+            writeln!(f, "  ret {}", stack)?;
+        } else {
+            writeln!(f, "  ret")?;
+        }
     }
 
     let mut f = std::fs::File::create(out_dir.join(format!("{}.def", module_name)))?;
