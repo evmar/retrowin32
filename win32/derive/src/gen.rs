@@ -1,111 +1,7 @@
+use super::parse;
+use crate::parse::DllExport;
 use proc_macro2::TokenStream;
 use quote::quote;
-
-#[derive(Clone, Copy)]
-pub enum CallConv {
-    Stdcall,
-    Cdecl,
-}
-
-pub struct DllExport {
-    pub ordinal: Option<usize>,
-    pub callconv: CallConv,
-}
-
-/// Parse a #[attr] looking for #[win32_derive::dllexport].
-fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExport>> {
-    let (path, nested) = match attr.parse_meta() {
-        Ok(syn::Meta::Path(path)) => (path, None),
-        Ok(syn::Meta::List(list)) => (list.path, Some(list.nested)),
-        _ => return Ok(None), // ignore unexpected attrs
-    };
-    if path.leading_colon.is_some()
-        || path.segments.len() != 2
-        || path.segments[0].ident != "win32_derive"
-    {
-        return Ok(None);
-    }
-    let seg = &attr.path.segments[1];
-    if seg.ident != "dllexport" {
-        anyhow::bail!("bad win32_derive attribute")
-    }
-
-    let mut ordinal = None;
-    let mut callconv = CallConv::Stdcall;
-    if let Some(nested) = nested {
-        for n in nested.iter() {
-            match n {
-                syn::NestedMeta::Lit(syn::Lit::Int(i)) => {
-                    ordinal = Some(i.base10_parse::<usize>()?);
-                }
-                syn::NestedMeta::Meta(meta) => match meta {
-                    syn::Meta::Path(path) => {
-                        if path.is_ident("cdecl") {
-                            callconv = CallConv::Cdecl;
-                        } else {
-                            anyhow::bail!("bad path {path:?}");
-                        }
-                    }
-                    _ => anyhow::bail!("bad meta {meta:?}"),
-                },
-                n => anyhow::bail!("bad dllexport {n:?}"),
-            }
-        }
-    };
-    Ok(Some(DllExport { ordinal, callconv }))
-}
-
-/// Gather all the dllexport fns in a list of syn::Items (module contents).
-pub fn gather_dllexports<'a>(
-    items: &'a [syn::Item],
-    out: &mut Vec<(&'a syn::ItemFn, DllExport)>,
-) -> anyhow::Result<()> {
-    for item in items {
-        match item {
-            syn::Item::Fn(func) => {
-                let mut dllexport = None;
-                for attr in func.attrs.iter() {
-                    dllexport = parse_dllexport(attr)?;
-                    if dllexport.is_some() {
-                        break;
-                    }
-                }
-                if let Some(dllexport) = dllexport {
-                    out.push((func, dllexport));
-                }
-            }
-            _ => {}
-        }
-    }
-    Ok(())
-}
-
-enum Argument {
-    /// Value is amount of stack the argument uses in stdcall.
-    /// (All of them except the array+size type are 4 bytes.)
-    Ordinary(u32),
-    VarArgs,
-}
-
-/// Parse a function argument type into the metadata we care about.
-fn parse_argument_type(ty: &syn::Type) -> Argument {
-    let ty = match ty {
-        syn::Type::Path(ty) => ty,
-        _ => panic!("unhandled type {ty:?}"),
-    };
-    if ty.path.segments.len() != 1 {
-        panic!("unhandled type {ty:?}");
-    }
-
-    let name = &ty.path.segments[0].ident;
-    if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" {
-        Argument::Ordinary(8)
-    } else if name == "VarArgs" {
-        Argument::VarArgs
-    } else {
-        Argument::Ordinary(4)
-    }
-}
 
 /// Generate the wrapper function that calls a win32api function by taking arguments using from_x86.
 ///
@@ -114,16 +10,12 @@ fn parse_argument_type(ty: &syn::Type) -> Argument {
 ///
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
-pub fn fn_wrapper(
-    module: TokenStream,
-    func: &syn::ItemFn,
-    callconv: CallConv,
-) -> (TokenStream, TokenStream) {
+pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, TokenStream) {
     let mut args = Vec::new();
     let mut tys = Vec::new();
 
     // Skip first arg, the &Machine.
-    for arg in func.sig.inputs.iter().skip(1) {
+    for arg in dllexport.func.sig.inputs.iter().skip(1) {
         let arg = match arg {
             syn::FnArg::Typed(arg) => arg,
             _ => unimplemented!(),
@@ -136,7 +28,7 @@ pub fn fn_wrapper(
         tys.push(&arg.ty);
     }
 
-    let name = &func.sig.ident;
+    let name = &dllexport.func.sig.ident;
     let name_str = name.to_string();
 
     let mut fetch_args = TokenStream::new();
@@ -148,23 +40,23 @@ pub fn fn_wrapper(
         fetch_args.extend(quote! {
             let #arg = <#ty>::from_stack(mem, esp + #stack_offset);
         });
-        match parse_argument_type(ty) {
-            Argument::Ordinary(ofs) => stack_offset += ofs,
-            Argument::VarArgs => {
+        match parse::parse_argument_type(ty) {
+            parse::Argument::Ordinary(ofs) => stack_offset += ofs,
+            parse::Argument::VarArgs => {
                 // VarArgs only works for cdecl functions
-                assert!(matches!(callconv, CallConv::Cdecl));
+                assert!(matches!(dllexport.meta.callconv, parse::CallConv::Cdecl));
             }
         }
     }
 
-    let stack_consumed = match callconv {
-        CallConv::Stdcall => stack_offset - 4, // don't include return address
-        CallConv::Cdecl => 0,                  // caller cleaned
+    let stack_consumed = match dllexport.meta.callconv {
+        parse::CallConv::Stdcall => stack_offset - 4, // don't include return address
+        parse::CallConv::Cdecl => 0,                  // caller cleaned
     };
 
     // If the function is async, we need to handle the return value a bit differently.
-    let is_async = func.sig.asyncness.is_some();
-    let body = if func.sig.asyncness.is_some() {
+    let is_async = dllexport.func.sig.asyncness.is_some();
+    let body = if dllexport.func.sig.asyncness.is_some() {
         quote! {
         #fetch_args
         #[cfg(feature = "x86-emu")]
