@@ -49,5 +49,6 @@ fn panic_hook(info: &std::panic::PanicInfo) {
 pub fn init(host: JsLogger) {
     let logger: &'static mut JsLogger = Box::leak(Box::new(host));
     log::set_logger(logger).unwrap();
+    log::set_max_level(log::LevelFilter::Debug);
     std::panic::set_hook(Box::new(panic_hook));
 }
