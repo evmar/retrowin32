@@ -122,7 +122,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     };
     for dll_imports in pe::read_imports(section) {
         let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
-        let hmodule = winapi::kernel32::LoadLibraryA(machine, Some(&dll_name));
+        let hmodule = winapi::kernel32::load_library(machine, &dll_name);
         // TODO: missing dll should not be an possibility here, we should error instead.
         let mut dll = machine.state.kernel32.dlls.get_mut(&hmodule);
         for (i, entry) in dll_imports.ilt(image).enumerate() {

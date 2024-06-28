@@ -5,7 +5,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{self, alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, types::*},
+    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -231,7 +231,7 @@ impl State {
             ldt
         };
 
-        let mut state = State {
+        State {
             arena,
             image_base: 0,
             teb,
@@ -245,14 +245,7 @@ impl State {
             #[cfg(feature = "x86-64")]
             ldt,
             resources: Default::default(),
-        };
-        // Always load kernel32, because we pull retrowin32_main from it.
-        let kernel32_dll = winapi::DLLS
-            .iter()
-            .find(|&dll| dll.file_name == "kernel32.dll")
-            .unwrap();
-        state.load_builtin_dll(mem, kernel32_dll);
-        state
+        }
     }
 
     pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> Heap {

@@ -170,9 +170,8 @@ pub fn GetModuleFileNameW(
     0 // fail
 }
 
-#[win32_derive::dllexport]
-pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    let mut filename = normalize_module_name(filename.unwrap());
+pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
+    let mut filename = normalize_module_name(filename);
 
     // See if already loaded.
     if let Some((hmodule, _)) = machine
@@ -200,11 +199,14 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
             .load_builtin_dll(&mut machine.emu.memory, builtin);
     }
 
-    let mut file = machine.host.open(&filename, host::FileAccess::READ);
     let mut contents = Vec::new();
-    file.read_to_end(&mut contents).unwrap();
-    // TODO: close file.
-    if contents.len() == 0 {
+    {
+        let mut file = machine.host.open(&filename, host::FileAccess::READ);
+        file.read_to_end(&mut contents).unwrap();
+        // TODO: close file.
+    }
+
+    if contents.is_empty() {
         // HACK: zero-length indicates not found.
         return HMODULE::null();
     }
@@ -220,6 +222,11 @@ pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
         },
     );
     hmodule
+}
+
+#[win32_derive::dllexport]
+pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
+    load_library(machine, filename.unwrap())
 }
 
 #[win32_derive::dllexport]
@@ -255,13 +262,8 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
 }
 
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
-    let dll = &mut machine
-        .state
-        .kernel32
-        .dlls
-        .values_mut()
-        .find(|dll| dll.name == "kernel32.dll")
-        .unwrap();
+    let hmodule = load_library(machine, "kernel32.dll");
+    let dll = machine.state.kernel32.dlls.get_mut(&hmodule).unwrap();
     dll.resolve(&ImportSymbol::Name(name), |shim| {
         let addr = machine.emu.shims.add(shim);
         machine.labels.insert(addr, format!("{}", name));
