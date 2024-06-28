@@ -32,44 +32,33 @@ impl<'a> DllExport<'a> {
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
 fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExportMeta>> {
-    let (path, nested) = match attr.parse_meta() {
-        Ok(syn::Meta::Path(path)) => (path, None),
-        Ok(syn::Meta::List(list)) => (list.path, Some(list.nested)),
-        _ => return Ok(None), // ignore unexpected attrs
-    };
-    if path.leading_colon.is_some()
-        || path.segments.len() != 2
-        || path.segments[0].ident != "win32_derive"
-    {
+    let path = attr.path();
+    if path.segments.len() != 2 || path.segments[0].ident != "win32_derive" {
         return Ok(None);
     }
-    let seg = &attr.path.segments[1];
+    let seg = &path.segments[1];
     if seg.ident != "dllexport" {
-        anyhow::bail!("bad win32_derive attribute")
+        return Ok(None);
     }
 
     let mut ordinal = None;
     let mut callconv = CallConv::Stdcall;
-    if let Some(nested) = nested {
-        for n in nested.iter() {
-            match n {
-                syn::NestedMeta::Lit(syn::Lit::Int(i)) => {
-                    ordinal = Some(i.base10_parse::<usize>()?);
-                }
-                syn::NestedMeta::Meta(meta) => match meta {
-                    syn::Meta::Path(path) => {
-                        if path.is_ident("cdecl") {
-                            callconv = CallConv::Cdecl;
-                        } else {
-                            anyhow::bail!("bad path {path:?}");
-                        }
-                    }
-                    _ => anyhow::bail!("bad meta {meta:?}"),
-                },
-                n => anyhow::bail!("bad dllexport {n:?}"),
+
+    if matches!(attr.meta, syn::Meta::List(_)) {
+        attr.parse_nested_meta(|meta| {
+            if meta.path.is_ident("ordinal") {
+                let value: syn::LitInt = meta.value()?.parse()?;
+                ordinal = Some(value.base10_parse::<usize>()?);
+                Ok(())
+            } else if meta.path.is_ident("cdecl") {
+                callconv = CallConv::Cdecl;
+                Ok(())
+            } else {
+                Err(meta.error("bad path {path:?}"))
             }
-        }
-    };
+        })?;
+    }
+
     Ok(Some(DllExportMeta { ordinal, callconv }))
 }
 

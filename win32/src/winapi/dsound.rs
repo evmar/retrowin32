@@ -344,7 +344,7 @@ mod IDirectSoundBuffer {
     ];
 }
 
-#[win32_derive::dllexport(1)]
+#[win32_derive::dllexport(ordinal = 1)]
 pub fn DirectSoundCreate(
     machine: &mut Machine,
     lpGuid: Option<&GUID>,
@@ -362,7 +362,7 @@ pub fn DirectSoundCreate(
     DS_OK
 }
 
-#[win32_derive::dllexport(2)]
+#[win32_derive::dllexport(ordinal = 2)]
 pub fn DirectSoundEnumerateA(_machine: &mut Machine, lpDSEnumCallback: u32, lpContext: u32) -> u32 {
     // No sound devices => no calling the callback.
     DS_OK
