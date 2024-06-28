@@ -11,6 +11,8 @@ pub struct Symbol {
 pub struct BuiltinDLL {
     pub file_name: &'static str,
     pub exports: &'static [Symbol],
+    #[doc = r" Raw bytes of generated .dll."]
+    pub raw: &'static [u8],
 }
 pub mod advapi32 {
     use super::*;
@@ -139,6 +141,7 @@ pub mod advapi32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "advapi32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/advapi32.dll"),
     };
 }
 pub mod bass {
@@ -257,6 +260,7 @@ pub mod bass {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "bass.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/bass.dll"),
     };
 }
 pub mod ddraw {
@@ -331,6 +335,7 @@ pub mod ddraw {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ddraw.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/ddraw.dll"),
     };
 }
 pub mod dsound {
@@ -385,6 +390,7 @@ pub mod dsound {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "dsound.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/dsound.dll"),
     };
 }
 pub mod gdi32 {
@@ -948,6 +954,7 @@ pub mod gdi32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "gdi32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/gdi32.dll"),
     };
 }
 pub mod kernel32 {
@@ -3101,6 +3108,7 @@ pub mod kernel32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "kernel32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/kernel32.dll"),
     };
 }
 pub mod ntdll {
@@ -3153,6 +3161,7 @@ pub mod ntdll {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ntdll.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/ntdll.dll"),
     };
 }
 pub mod ole32 {
@@ -3173,6 +3182,7 @@ pub mod ole32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/ole32.dll"),
     };
 }
 pub mod oleaut32 {
@@ -3193,6 +3203,7 @@ pub mod oleaut32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "oleaut32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/oleaut32.dll"),
     };
 }
 pub mod retrowin32_test {
@@ -3251,6 +3262,7 @@ pub mod retrowin32_test {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "retrowin32_test.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/retrowin32_test.dll"),
     };
 }
 pub mod ucrtbase {
@@ -3361,6 +3373,7 @@ pub mod ucrtbase {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ucrtbase.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/ucrtbase.dll"),
     };
 }
 pub mod vcruntime140 {
@@ -3449,6 +3462,7 @@ pub mod vcruntime140 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "vcruntime140.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/vcruntime140.dll"),
     };
 }
 pub mod user32 {
@@ -5116,6 +5130,7 @@ pub mod user32 {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "user32.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/user32.dll"),
     };
 }
 pub mod winmm {
@@ -5321,5 +5336,6 @@ pub mod winmm {
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "winmm.dll",
         exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/winmm.dll"),
     };
 }

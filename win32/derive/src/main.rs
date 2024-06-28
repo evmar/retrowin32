@@ -70,7 +70,7 @@ fn generate_shims_module(
     }
 
     let exports_count = exports.len();
-
+    let raw_dll_path = format!("../../dll/{}", dll_name);
     Ok(quote! {
         pub mod #module {
             use super::*;
@@ -95,6 +95,7 @@ fn generate_shims_module(
             pub const DLL: BuiltinDLL = BuiltinDLL {
                 file_name: #dll_name,
                 exports: &EXPORTS,
+                raw: std::include_bytes!(#raw_dll_path),
             };
         }
     })
@@ -135,6 +136,8 @@ fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<Vec<u8>> {
         pub struct BuiltinDLL {
             pub file_name: &'static str,
             pub exports: &'static [Symbol],
+            /// Raw bytes of generated .dll.
+            pub raw: &'static [u8],
         }
 
         #(#mods)*
