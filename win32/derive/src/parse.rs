@@ -13,7 +13,21 @@ pub struct DllExportMeta {
 
 pub struct DllExport<'a> {
     pub meta: DllExportMeta,
+    pub args: Vec<Argument<'a>>,
     pub func: &'a syn::ItemFn,
+}
+
+impl<'a> DllExport<'a> {
+    pub fn stack_consumed(&self) -> u32 {
+        match self.meta.callconv {
+            CallConv::Stdcall => self
+                .args
+                .iter()
+                .map(|arg| arg.stack.consumed())
+                .sum::<u32>(),
+            CallConv::Cdecl => 0, // caller cleaned
+        }
+    }
 }
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
@@ -59,40 +73,29 @@ fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExportMeta
     Ok(Some(DllExportMeta { ordinal, callconv }))
 }
 
-/// Gather all the dllexport fns in a list of syn::Items (module contents).
-pub fn gather_dllexports<'a>(
-    items: &'a [syn::Item],
-    out: &mut Vec<DllExport<'a>>,
-) -> anyhow::Result<()> {
-    for item in items {
-        match item {
-            syn::Item::Fn(func) => {
-                let mut meta = None;
-                for attr in func.attrs.iter() {
-                    meta = parse_dllexport(attr)?;
-                    if meta.is_some() {
-                        break;
-                    }
-                }
-                if let Some(meta) = meta {
-                    out.push(DllExport { func, meta });
-                }
-            }
-            _ => {}
-        }
-    }
-    Ok(())
+pub struct Argument<'a> {
+    pub name: &'a syn::Ident,
+    pub ty: &'a syn::Type,
+    pub stack: ArgumentStack,
 }
 
-pub enum Argument {
+pub enum ArgumentStack {
     /// Value is amount of stack the argument uses in stdcall.
-    /// (All of them except the array+size type are 4 bytes.)
     Ordinary(u32),
     VarArgs,
 }
 
+impl ArgumentStack {
+    pub fn consumed(&self) -> u32 {
+        match self {
+            ArgumentStack::Ordinary(ofs) => *ofs,
+            ArgumentStack::VarArgs => 0,
+        }
+    }
+}
+
 /// Parse a function argument type into the metadata we care about.
-pub fn parse_argument_type(ty: &syn::Type) -> Argument {
+pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
     let ty = match ty {
         syn::Type::Path(ty) => ty,
         _ => panic!("unhandled type {ty:?}"),
@@ -103,10 +106,60 @@ pub fn parse_argument_type(ty: &syn::Type) -> Argument {
 
     let name = &ty.path.segments[0].ident;
     if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" {
-        Argument::Ordinary(8)
+        ArgumentStack::Ordinary(8)
     } else if name == "VarArgs" {
-        Argument::VarArgs
+        ArgumentStack::VarArgs
     } else {
-        Argument::Ordinary(4)
+        ArgumentStack::Ordinary(4)
     }
+}
+
+fn parse_args(func: &syn::ItemFn) -> Vec<Argument> {
+    let mut args = Vec::new();
+
+    // Skip first arg, the &Machine.
+    let iter = func.sig.inputs.iter().skip(1);
+    for arg in iter {
+        let arg = match arg {
+            syn::FnArg::Typed(arg) => arg,
+            _ => unimplemented!(),
+        };
+        let name = match arg.pat.as_ref() {
+            syn::Pat::Ident(ident) => &ident.ident,
+            _ => unimplemented!(),
+        };
+        let ty = &*arg.ty;
+        let stack = parse_argument_stack(ty);
+        args.push(Argument { name, ty, stack });
+    }
+    args
+}
+
+/// Gather all the dllexport fns in a list of syn::Items (module contents).
+pub fn gather_dllexports<'a>(
+    items: &'a [syn::Item],
+    out: &mut Vec<DllExport<'a>>,
+) -> anyhow::Result<()> {
+    for item in items {
+        let func = match item {
+            syn::Item::Fn(func) => func,
+            _ => continue,
+        };
+        for attr in func.attrs.iter() {
+            if let Some(meta) = parse_dllexport(attr)? {
+                let args = parse_args(func);
+                if args
+                    .iter()
+                    .any(|arg| matches!(arg.stack, ArgumentStack::VarArgs))
+                {
+                    if !matches!(meta.callconv, CallConv::Cdecl) {
+                        anyhow::bail!("VarArgs only works for cdecl functions");
+                    }
+                }
+                out.push(DllExport { meta, args, func });
+                break;
+            }
+        }
+    }
+    Ok(())
 }

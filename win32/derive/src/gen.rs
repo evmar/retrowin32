@@ -11,51 +11,30 @@ use quote::quote;
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
 pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, TokenStream) {
-    let mut args = Vec::new();
-    let mut tys = Vec::new();
-
-    // Skip first arg, the &Machine.
-    for arg in dllexport.func.sig.inputs.iter().skip(1) {
-        let arg = match arg {
-            syn::FnArg::Typed(arg) => arg,
-            _ => unimplemented!(),
-        };
-        let name = match arg.pat.as_ref() {
-            syn::Pat::Ident(ident) => &ident.ident,
-            _ => unimplemented!(),
-        };
-        args.push(name);
-        tys.push(&arg.ty);
-    }
-
     let name = &dllexport.func.sig.ident;
     let name_str = name.to_string();
 
     let mut fetch_args = TokenStream::new();
     fetch_args.extend(quote!(let mem = machine.mem().detach();));
     let mut stack_offset = 4u32; // return address
-    for (arg, ty) in args.iter().zip(tys.iter()) {
+    for parse::Argument { name, ty, stack } in dllexport.args.iter() {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         fetch_args.extend(quote! {
-            let #arg = <#ty>::from_stack(mem, esp + #stack_offset);
+            let #name = <#ty>::from_stack(mem, esp + #stack_offset);
         });
-        match parse::parse_argument_type(ty) {
-            parse::Argument::Ordinary(ofs) => stack_offset += ofs,
-            parse::Argument::VarArgs => {
-                // VarArgs only works for cdecl functions
-                assert!(matches!(dllexport.meta.callconv, parse::CallConv::Cdecl));
-            }
-        }
+        stack_offset += stack.consumed();
     }
 
-    let stack_consumed = match dllexport.meta.callconv {
-        parse::CallConv::Stdcall => stack_offset - 4, // don't include return address
-        parse::CallConv::Cdecl => 0,                  // caller cleaned
-    };
+    let stack_consumed = dllexport.stack_consumed();
 
     // If the function is async, we need to handle the return value a bit differently.
     let is_async = dllexport.func.sig.asyncness.is_some();
+    let args = dllexport
+        .args
+        .iter()
+        .map(|arg| arg.name)
+        .collect::<Vec<_>>();
     let body = if dllexport.func.sig.asyncness.is_some() {
         quote! {
         #fetch_args
