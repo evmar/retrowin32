@@ -25,12 +25,12 @@ pub fn shims_from_x86(
 
     // Generate one wrapper function per function found in the input module.
     let items = &module.content.as_ref().unwrap().1;
-    let mut dllexports = Vec::new();
+    let mut dllexports = parse::DllExports::default();
     parse::gather_dllexports(items, &mut dllexports).unwrap();
 
     let mut impls: Vec<TokenStream> = Vec::new();
     let mut shims: Vec<TokenStream> = Vec::new();
-    for dllexport in &dllexports {
+    for dllexport in &dllexports.fns {
         let (wrapper, shim) = gen::fn_wrapper(quote!(super), dllexport);
         impls.push(wrapper);
         shims.push(shim);

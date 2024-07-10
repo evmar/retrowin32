@@ -30,6 +30,12 @@ impl<'a> DllExport<'a> {
     }
 }
 
+#[derive(Default)]
+pub struct DllExports<'a> {
+    pub fns: Vec<DllExport<'a>>,
+    pub vtables: Vec<()>,
+}
+
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
 fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> {
     let path = attr.path();
@@ -124,11 +130,8 @@ fn parse_args(func: &syn::ItemFn) -> Vec<Argument> {
     args
 }
 
-/// Gather all the dllexport fns in a list of syn::Items (module contents).
-pub fn gather_dllexports<'a>(
-    items: &'a [syn::Item],
-    out: &mut Vec<DllExport<'a>>,
-) -> syn::Result<()> {
+/// Gather all the dllexports in a list of syn::Items (module contents).
+pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -> syn::Result<()> {
     for item in items {
         let func = match item {
             syn::Item::Fn(func) => func,
@@ -148,7 +151,7 @@ pub fn gather_dllexports<'a>(
                         ));
                     }
                 }
-                out.push(DllExport { meta, args, func });
+                out.fns.push(DllExport { meta, args, func });
                 break;
             }
         }
