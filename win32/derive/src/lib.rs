@@ -31,6 +31,9 @@ pub fn shims_from_x86(
     let mut impls: Vec<TokenStream> = Vec::new();
     let mut shims: Vec<TokenStream> = Vec::new();
     for dllexport in &dllexports.fns {
+        if dllexport.vtable.is_some() {
+            continue;
+        }
         let (wrapper, shim) = gen::fn_wrapper(quote!(super), dllexport);
         impls.push(wrapper);
         shims.push(shim);

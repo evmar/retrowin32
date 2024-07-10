@@ -14,6 +14,8 @@ pub struct DllExportMeta {
 pub struct DllExport<'a> {
     pub meta: DllExportMeta,
     pub args: Vec<Argument<'a>>,
+    /// If this function is part of a vtable, this is the name of the vtable.
+    pub vtable: Option<&'a syn::Ident>,
     pub func: &'a syn::ItemFn,
 }
 
@@ -30,10 +32,15 @@ impl<'a> DllExport<'a> {
     }
 }
 
+pub struct Vtable<'a> {
+    pub name: &'a syn::Ident,
+    pub fns: Vec<&'a syn::Ident>,
+}
+
 #[derive(Default)]
 pub struct DllExports<'a> {
     pub fns: Vec<DllExport<'a>>,
-    pub vtables: Vec<()>,
+    pub vtables: Vec<Vtable<'a>>,
 }
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
@@ -43,7 +50,8 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
         return Ok(None);
     }
     let seg = &path.segments[1];
-    if seg.ident != "dllexport" {
+    // TODO: remove shims_from_x86
+    if seg.ident != "dllexport" && seg.ident != "shims_from_x86" {
         return Ok(None);
     }
 
@@ -154,16 +162,51 @@ fn parse_fn(func: &syn::ItemFn) -> syn::Result<Option<DllExport>> {
         }
     }
 
-    Ok(Some(DllExport { meta, args, func }))
+    Ok(Some(DllExport {
+        meta,
+        args,
+        vtable: None,
+        func,
+    }))
 }
 
-/// Gather all the dllexports in a list of syn::Items (module contents).
+fn parse_mod(item: &syn::ItemMod) -> syn::Result<Option<DllExports>> {
+    if find_dllexport(&item.attrs)?.is_none() {
+        return Ok(None);
+    }
+
+    let name = &item.ident;
+
+    let mut dllexports = DllExports::default();
+    gather_dllexports(&item.content.as_ref().unwrap().1, &mut dllexports)?;
+
+    for dllexport in &mut dllexports.fns {
+        dllexport.vtable = Some(name);
+    }
+
+    let vtable = Vtable {
+        name,
+        fns: dllexports.fns.iter().map(|f| &f.func.sig.ident).collect(),
+    };
+
+    dllexports.vtables.push(vtable);
+
+    Ok(Some(dllexports))
+}
+
+/// Gather all the dllexports in  a list of syn::Items (module contents).
 pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -> syn::Result<()> {
     for item in items {
         match item {
             syn::Item::Fn(func) => {
                 if let Some(func) = parse_fn(func)? {
                     out.fns.push(func);
+                }
+            }
+            syn::Item::Mod(item) => {
+                if let Some(exports) = parse_mod(item)? {
+                    out.fns.extend(exports.fns);
+                    out.vtables.extend(exports.vtables);
                 }
             }
             _ => continue,
