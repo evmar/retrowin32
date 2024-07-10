@@ -31,7 +31,7 @@ impl<'a> DllExport<'a> {
 }
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
-fn parse_dllexport(attr: &syn::Attribute) -> anyhow::Result<Option<DllExportMeta>> {
+fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> {
     let path = attr.path();
     if path.segments.len() != 2 || path.segments[0].ident != "win32_derive" {
         return Ok(None);
@@ -128,7 +128,7 @@ fn parse_args(func: &syn::ItemFn) -> Vec<Argument> {
 pub fn gather_dllexports<'a>(
     items: &'a [syn::Item],
     out: &mut Vec<DllExport<'a>>,
-) -> anyhow::Result<()> {
+) -> syn::Result<()> {
     for item in items {
         let func = match item {
             syn::Item::Fn(func) => func,
@@ -142,7 +142,10 @@ pub fn gather_dllexports<'a>(
                     .any(|arg| matches!(arg.stack, ArgumentStack::VarArgs))
                 {
                     if !matches!(meta.callconv, CallConv::Cdecl) {
-                        anyhow::bail!("VarArgs only works for cdecl functions");
+                        return Err(syn::Error::new_spanned(
+                            func,
+                            "VarArgs only works for cdecl functions",
+                        ));
                     }
                 }
                 out.push(DllExport { meta, args, func });

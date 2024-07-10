@@ -46,10 +46,7 @@ fn generate_dll(
 }
 
 /// Generate one module's shim functions.
-fn generate_shims_module(
-    module_name: &str,
-    dllexports: Vec<parse::DllExport>,
-) -> anyhow::Result<TokenStream> {
+fn generate_shims_module(module_name: &str, dllexports: Vec<parse::DllExport>) -> TokenStream {
     let module = quote::format_ident!("{}", module_name);
     let dll_name = format!("{}.dll", module_name);
 
@@ -71,7 +68,7 @@ fn generate_shims_module(
 
     let exports_count = exports.len();
     let raw_dll_path = format!("../../dll/{}", dll_name);
-    Ok(quote! {
+    quote! {
         pub mod #module {
             use super::*;
 
@@ -98,7 +95,7 @@ fn generate_shims_module(
                 raw: std::include_bytes!(#raw_dll_path),
             };
         }
-    })
+    }
 }
 
 /// Parse a single .rs file or a directory's collection of files.
@@ -193,7 +190,7 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStrea
 
     generate_dll(dll_dir, &module_name, &dllexports)?;
 
-    generate_shims_module(&module_name, dllexports)
+    Ok(generate_shims_module(&module_name, dllexports))
 }
 
 #[derive(argh::FromArgs)]
