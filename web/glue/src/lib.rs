@@ -91,7 +91,7 @@ impl Emulator {
         }
 
         Ok(match &self.machine.emu.x86.cpu().state {
-            x86::CPUState::Running => CPUState::Running,
+            x86::CPUState::Running | x86::CPUState::SysCall => CPUState::Running,
             x86::CPUState::Blocked(_) => CPUState::Blocked,
             x86::CPUState::Error(msg) => return Err(JsError::new(msg)),
             x86::CPUState::DebugBreak => CPUState::DebugBreak,

@@ -5,7 +5,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, types::*},
+    winapi::{alloc::Arena, handle::Handles, heap::Heap, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -385,29 +385,6 @@ impl State {
             fs,
             ss,
         }
-    }
-
-    pub fn load_builtin_dll(&mut self, mem: &mut MemImpl, builtin: &'static BuiltinDLL) -> HMODULE {
-        let mapping = self
-            .mappings
-            .alloc(0x1000, format!("{} image", builtin.file_name), mem);
-        let hmodule = HMODULE::from_raw(mapping.addr);
-        self.dlls.insert(
-            hmodule,
-            DLL {
-                name: builtin.file_name.to_owned(),
-                dll: pe::DLL {
-                    base: mapping.addr,
-                    names: HashMap::new(),
-                    ordinal_base: 1,
-                    fns: Default::default(),
-                    resources: Default::default(),
-                    entry_point: None,
-                },
-                builtin: Some(builtin),
-            },
-        );
-        hmodule
     }
 }
 
