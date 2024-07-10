@@ -68,6 +68,15 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
     Ok(Some(DllExportMeta { ordinal, callconv }))
 }
 
+fn find_dllexport(attrs: &[syn::Attribute]) -> syn::Result<Option<DllExportMeta>> {
+    for attr in attrs {
+        if let Some(meta) = parse_dllexport(attr)? {
+            return Ok(Some(meta));
+        }
+    }
+    Ok(None)
+}
+
 pub struct Argument<'a> {
     pub name: &'a syn::Ident,
     pub ty: &'a syn::Type,
@@ -109,7 +118,12 @@ pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
     }
 }
 
-fn parse_args(func: &syn::ItemFn) -> Vec<Argument> {
+fn parse_fn(func: &syn::ItemFn) -> syn::Result<Option<DllExport>> {
+    let meta = match find_dllexport(&func.attrs)? {
+        Some(meta) => meta,
+        None => return Ok(None),
+    };
+
     let mut args = Vec::new();
 
     // Skip first arg, the &Machine.
@@ -127,33 +141,32 @@ fn parse_args(func: &syn::ItemFn) -> Vec<Argument> {
         let stack = parse_argument_stack(ty);
         args.push(Argument { name, ty, stack });
     }
-    args
+
+    if args
+        .iter()
+        .any(|arg| matches!(arg.stack, ArgumentStack::VarArgs))
+    {
+        if !matches!(meta.callconv, CallConv::Cdecl) {
+            return Err(syn::Error::new_spanned(
+                func,
+                "VarArgs only works for cdecl functions",
+            ));
+        }
+    }
+
+    Ok(Some(DllExport { meta, args, func }))
 }
 
 /// Gather all the dllexports in a list of syn::Items (module contents).
 pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -> syn::Result<()> {
     for item in items {
-        let func = match item {
-            syn::Item::Fn(func) => func,
-            _ => continue,
-        };
-        for attr in func.attrs.iter() {
-            if let Some(meta) = parse_dllexport(attr)? {
-                let args = parse_args(func);
-                if args
-                    .iter()
-                    .any(|arg| matches!(arg.stack, ArgumentStack::VarArgs))
-                {
-                    if !matches!(meta.callconv, CallConv::Cdecl) {
-                        return Err(syn::Error::new_spanned(
-                            func,
-                            "VarArgs only works for cdecl functions",
-                        ));
-                    }
+        match item {
+            syn::Item::Fn(func) => {
+                if let Some(func) = parse_fn(func)? {
+                    out.fns.push(func);
                 }
-                out.fns.push(DllExport { meta, args, func });
-                break;
             }
+            _ => continue,
         }
     }
     Ok(())
