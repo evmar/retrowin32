@@ -10,13 +10,13 @@ pub mod IDirectDrawPalette {
     use super::*;
 
     vtable![IDirectDrawPalette shims
-        QueryInterface todo,
-        AddRef todo,
-        Release ok,
-        GetCaps todo,
-        GetEntries todo,
-        Initialize todo,
-        SetEntries ok,
+        QueryInterface: todo,
+        AddRef: todo,
+        Release: ok,
+        GetCaps: todo,
+        GetEntries: todo,
+        Initialize: todo,
+        SetEntries: ok,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {

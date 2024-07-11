@@ -44,7 +44,7 @@ macro_rules! vtable_entry {
 pub(crate) use vtable_entry;
 
 macro_rules! vtable {
-    ($iface:ident $shims:ident $($fn:ident $impl:tt,)*) => {
+    ($iface:ident $shims:ident $($fn:ident: $impl:tt,)*) => {
         #[repr(C)]
         struct Vtable {
             $($fn: u32),*

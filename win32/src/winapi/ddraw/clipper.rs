@@ -25,16 +25,16 @@ pub(super) mod IDirectDrawClipper {
     use super::*;
 
     vtable![IDirectDrawClipper shims
-        QueryInterface todo,
-        AddRef todo,
-        Release ok,
+        QueryInterface: todo,
+        AddRef: todo,
+        Release: ok,
 
-        GetClipList todo,
-        GetHWnd todo,
-        Initialize todo,
-        IsClipListChanged todo,
-        SetClipList todo,
-        SetHWnd ok,
+        GetClipList: todo,
+        GetHWnd: todo,
+        Initialize: todo,
+        IsClipListChanged: todo,
+        SetClipList: todo,
+        SetHWnd: ok,
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
