@@ -33,10 +33,17 @@ fn generate_dll(
     }
 
     for vtable in &dllexports.vtables {
+        for (name, imp) in &vtable.fns {
+            if imp.is_none() {
+                writeln!(f, ".globl _{}_{}", vtable.name, name)?;
+                writeln!(f, "_{}_{}:", vtable.name, name)?;
+                writeln!(f, "  int3")?;
+            }
+        }
         writeln!(f, ".globl _{}", vtable.name)?;
         writeln!(f, "_{}:", vtable.name)?;
-        for func in &vtable.fns {
-            writeln!(f, "  .long _{}_{}", vtable.name, func)?;
+        for (name, _imp) in &vtable.fns {
+            writeln!(f, "  .long _{}_{}", vtable.name, name)?;
         }
     }
 

@@ -32,15 +32,15 @@ impl<'a> DllExport<'a> {
     }
 }
 
-pub struct Vtable<'a> {
-    pub name: &'a syn::Ident,
-    pub fns: Vec<&'a syn::Ident>,
+pub struct Vtable {
+    pub name: syn::Ident,
+    pub fns: Vec<(syn::Ident, Option<syn::Ident>)>,
 }
 
 #[derive(Default)]
 pub struct DllExports<'a> {
     pub fns: Vec<DllExport<'a>>,
-    pub vtables: Vec<Vtable<'a>>,
+    pub vtables: Vec<Vtable>,
 }
 
 /// Parse a #[attr] looking for #[win32_derive::dllexport].
@@ -176,25 +176,84 @@ fn parse_mod(item: &syn::ItemMod) -> syn::Result<Option<DllExports>> {
     }
 
     let name = &item.ident;
-
     let mut dllexports = DllExports::default();
-    gather_dllexports(&item.content.as_ref().unwrap().1, &mut dllexports)?;
-
+    let body = &item.content.as_ref().unwrap().1;
+    gather_dllexports(body, &mut dllexports)?;
     for dllexport in &mut dllexports.fns {
         dllexport.vtable = Some(name);
     }
 
-    let vtable = Vtable {
-        name,
-        fns: dllexports.fns.iter().map(|f| &f.func.sig.ident).collect(),
-    };
-
-    dllexports.vtables.push(vtable);
+    // Look for a call to the vtable! macro.
+    for item in body {
+        match item {
+            syn::Item::Macro(item) => {
+                if let Some(vtable) = parse_vtable(item)? {
+                    dllexports.vtables.push(vtable);
+                    break;
+                }
+            }
+            _ => {}
+        }
+    }
 
     Ok(Some(dllexports))
 }
 
-/// Gather all the dllexports in  a list of syn::Items (module contents).
+/// Parse a call to the vtable! macro.
+fn parse_vtable(item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
+    let mac = &item.mac;
+    if !mac.path.is_ident("vtable") {
+        return Ok(None);
+    }
+
+    struct VtableMacro {
+        name: syn::Ident,
+        fields: syn::punctuated::Punctuated<syn::FieldValue, syn::Token![,]>,
+    }
+    impl syn::parse::Parse for VtableMacro {
+        fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+            /*
+               vtable![IDirectDrawClipper shims
+               QueryInterface: todo,
+               AddRef: todo,
+            */
+            let name = input.parse::<syn::Ident>()?;
+            input.parse::<syn::Ident>()?; // "shims"
+            let fields = input.parse_terminated(syn::FieldValue::parse, syn::Token![,])?;
+            Ok(VtableMacro { name, fields })
+        }
+    }
+
+    let vt = syn::parse2::<VtableMacro>(mac.tokens.clone())?;
+
+    let mut fns = Vec::new();
+    for field in vt.fields {
+        let name = match field.member {
+            syn::Member::Named(name) => name,
+            syn::Member::Unnamed(_) => todo!(),
+        };
+        let imp = match field.expr {
+            syn::Expr::Path(expr) => {
+                if expr.path.is_ident("ok") {
+                    Some(name.clone())
+                } else if expr.path.is_ident("todo") {
+                    None
+                } else {
+                    return Err(syn::Error::new_spanned(expr, "bad vtable value"));
+                }
+            }
+            syn::Expr::Paren(_expr) => None,
+            e => {
+                return Err(syn::Error::new_spanned(e, "bad input"));
+            }
+        };
+        fns.push((name, imp));
+    }
+
+    Ok(Some(Vtable { name: vt.name, fns }))
+}
+
+/// Gather all the dllexports in a list of syn::Items (module contents).
 pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -> syn::Result<()> {
     for item in items {
         match item {

@@ -320,7 +320,7 @@ mod IDirectSoundBuffer {
         DS_OK
     }
 
-    vtable![IDirectSound shims
+    vtable![IDirectSoundBuffer shims
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,
