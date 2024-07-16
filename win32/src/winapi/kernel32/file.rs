@@ -1,3 +1,4 @@
+use crate::winapi::stack_args::ToX86;
 use crate::{
     host,
     machine::Machine,
@@ -66,6 +67,11 @@ impl TryFrom<u32> for FileAttribute {
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         FileAttribute::from_bits(value).ok_or(value)
+    }
+}
+impl ToX86 for FileAttribute {
+    fn to_raw(&self) -> u32 {
+        self.bits()
     }
 }
 
@@ -295,6 +301,39 @@ pub fn GetConsoleMode(
 }
 
 #[win32_derive::dllexport]
+pub fn GetFullPathNameA(
+    machine: &mut Machine,
+    lpFileName: Option<&str>,
+    nBufferLength: u32,
+    lpBuffer: u32,
+    lpFilePart: Option<&mut u32>,
+) -> u32 {
+    let file_name = lpFileName.unwrap();
+
+    // TODO: canonicalize path
+
+    let buf = machine
+        .mem()
+        .sub(lpBuffer, nBufferLength)
+        .as_mut_slice_todo();
+    if let Some(part) = lpFilePart {
+        // TODO
+        *part = 0;
+    }
+
+    let file_name = file_name.as_bytes();
+    if buf.len() < file_name.len() + 1 {
+        // not enough space
+        return file_name.len() as u32 + 1;
+    }
+
+    buf[..file_name.len()].copy_from_slice(file_name);
+    buf[file_name.len()] = 0;
+
+    file_name.len() as u32
+}
+
+#[win32_derive::dllexport]
 pub fn GetFullPathNameW(
     machine: &mut Machine,
     lpFileName: Option<&Str16>,
@@ -303,14 +342,18 @@ pub fn GetFullPathNameW(
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
     let file_name = lpFileName.unwrap();
+
+    // TODO: canonicalize path
+
     let buf = Str16::from_bytes_mut(
         machine
             .mem()
             .sub(lpBuffer, nBufferLength * 2)
             .as_mut_slice_todo(),
     );
-    if let Some(_part) = lpFilePart {
-        todo!();
+    if let Some(part) = lpFilePart {
+        // TODO
+        *part = 0;
     }
 
     if buf.len() < file_name.len() + 1 {
@@ -327,4 +370,16 @@ pub fn GetFullPathNameW(
 #[win32_derive::dllexport]
 pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
     true
+}
+
+#[win32_derive::dllexport]
+pub fn GetFileAttributesA(
+    _machine: &mut Machine,
+    lpFileName: Option<&str>,
+) -> Result<FileAttribute, u32> {
+    let _file_name = lpFileName.unwrap();
+
+    // TODO: machine.host.stat
+
+    Ok(FileAttribute::empty())
 }

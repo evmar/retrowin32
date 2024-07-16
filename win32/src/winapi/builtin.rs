@@ -1186,6 +1186,18 @@ pub mod kernel32 {
             let lpMode = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetConsoleMode(machine, hConsoleHandle, lpMode).to_raw()
         }
+        pub unsafe fn GetConsoleScreenBufferInfo(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let lpConsoleScreenBufferInfo =
+                <Option<&mut CONSOLE_SCREEN_BUFFER_INFO>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetConsoleScreenBufferInfo(
+                machine,
+                _hConsoleOutput,
+                lpConsoleScreenBufferInfo,
+            )
+            .to_raw()
+        }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentProcessId(machine).to_raw()
@@ -1218,6 +1230,11 @@ pub mod kernel32 {
             let buf = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableW(machine, name, buf).to_raw()
         }
+        pub unsafe fn GetFileAttributesA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetFileAttributesA(machine, lpFileName).to_raw()
+        }
         pub unsafe fn GetFileInformationByHandle(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -1229,6 +1246,21 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetFileType(machine, hFile).to_raw()
+        }
+        pub unsafe fn GetFullPathNameA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let nBufferLength = <u32>::from_stack(mem, esp + 8u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 12u32);
+            let lpFilePart = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetFullPathNameA(
+                machine,
+                lpFileName,
+                nBufferLength,
+                lpBuffer,
+                lpFilePart,
+            )
+            .to_raw()
         }
         pub unsafe fn GetFullPathNameW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1607,6 +1639,12 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ReleaseSRWLockShared(machine, SRWLock).to_raw()
+        }
+        pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _handlerRoutine = <DWORD>::from_stack(mem, esp + 4u32);
+            let _add = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetConsoleCtrlHandler(machine, _handlerRoutine, _add).to_raw()
         }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2040,6 +2078,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetConsoleScreenBufferInfo: Shim = Shim {
+            name: "GetConsoleScreenBufferInfo",
+            func: impls::GetConsoleScreenBufferInfo,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
@@ -2082,6 +2126,12 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetFileAttributesA: Shim = Shim {
+            name: "GetFileAttributesA",
+            func: impls::GetFileAttributesA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetFileInformationByHandle: Shim = Shim {
             name: "GetFileInformationByHandle",
             func: impls::GetFileInformationByHandle,
@@ -2092,6 +2142,12 @@ pub mod kernel32 {
             name: "GetFileType",
             func: impls::GetFileType,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const GetFullPathNameA: Shim = Shim {
+            name: "GetFullPathNameA",
+            func: impls::GetFullPathNameA,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const GetFullPathNameW: Shim = Shim {
@@ -2430,6 +2486,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const SetConsoleCtrlHandler: Shim = Shim {
+            name: "SetConsoleCtrlHandler",
+            func: impls::SetConsoleCtrlHandler,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: impls::SetEvent,
@@ -2623,7 +2685,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 120usize] = [
+    const EXPORTS: [Symbol; 124usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2718,6 +2780,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetConsoleScreenBufferInfo,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetCurrentProcessId,
         },
         Symbol {
@@ -2746,11 +2812,19 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetFileAttributesA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetFileInformationByHandle,
         },
         Symbol {
             ordinal: None,
             shim: shims::GetFileType,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFullPathNameA,
         },
         Symbol {
             ordinal: None,
@@ -2975,6 +3049,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::ReleaseSRWLockShared,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetConsoleCtrlHandler,
         },
         Symbol {
             ordinal: None,
@@ -3463,6 +3541,42 @@ pub mod vcruntime140 {
         file_name: "vcruntime140.dll",
         exports: &EXPORTS,
         raw: std::include_bytes!("../../dll/vcruntime140.dll"),
+    };
+}
+pub mod version {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::version::*;
+        pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lptstrFilename = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpdwHandle = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::version::GetFileVersionInfoSizeA(machine, lptstrFilename, lpdwHandle).to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const GetFileVersionInfoSizeA: Shim = Shim {
+            name: "GetFileVersionInfoSizeA",
+            func: impls::GetFileVersionInfoSizeA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        ordinal: None,
+        shim: shims::GetFileVersionInfoSizeA,
+    }];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "version.dll",
+        exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/version.dll"),
     };
 }
 pub mod user32 {
