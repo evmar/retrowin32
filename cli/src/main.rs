@@ -236,7 +236,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        let mut trace_points = args.trace_points.unwrap();
+        let mut trace_points = args.trace_points.unwrap_or_default();
         let mut eip = addrs.entry_point;
         loop {
             let end = trace_points.pop_front().unwrap_or(0);
