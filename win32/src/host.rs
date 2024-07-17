@@ -39,6 +39,7 @@ pub trait Window {
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
+#[derive(Debug, Clone)]
 pub struct FileOptions {
     /// Permit read access.
     pub read: bool,
@@ -75,19 +76,36 @@ impl FileOptions {
 }
 
 pub trait File: std::io::Read + std::io::Write + std::io::Seek {
-    /// Just file size for now, but maybe we'll need more(?)
-    fn info(&self) -> u32;
+    fn stat(&self) -> Result<Stat, u32>;
 }
 
+pub trait FindHandle {
+    fn next(&mut self) -> Result<Option<FindFile>, u32>;
+}
+
+#[derive(Debug, Clone)]
+pub struct FindFile {
+    pub path: String,
+    pub name: String,
+    pub stat: Stat,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum StatKind {
     File,
     Directory,
     Symlink,
 }
 
+// Times are in hecto-nanoseconds (100ns units) since the
+// Windows epoch (1601-01-01 UTC).
+#[derive(Debug, Clone)]
 pub struct Stat {
     pub kind: StatKind,
-    pub size: u32,
+    pub size: u64,
+    pub atime: u64,
+    pub ctime: u64,
+    pub mtime: u64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -134,6 +152,7 @@ pub trait Host {
     fn canonicalize(&self, path: &str) -> Result<String, u32>;
     fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn File>, u32>;
     fn stat(&self, path: &str) -> Result<Stat, u32>;
+    fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32>;
     fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;

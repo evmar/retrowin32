@@ -188,6 +188,9 @@ pub struct State {
     #[serde(skip)] // TODO
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
+    #[serde(skip)] // TODO
+    pub find_handles: Handles<HFIND, Box<dyn crate::host::FindHandle>>,
+
     #[serde(skip)]
     #[cfg(feature = "x86-64")]
     pub ldt: crate::ldt::LDT,
@@ -240,6 +243,7 @@ impl State {
             heaps: HashMap::new(),
             dlls: Default::default(),
             files: Default::default(),
+            find_handles: Default::default(),
             env: env_addr,
             cmdline,
             #[cfg(feature = "x86-64")]
@@ -441,11 +445,6 @@ pub struct TEB {
     pub TlsSlots: [DWORD; 64],
 }
 unsafe impl ::memory::Pod for TEB {}
-
-#[inline]
-pub fn set_last_error(machine: &mut Machine, value: u32) {
-    teb_mut(machine).LastErrorValue = value;
-}
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {

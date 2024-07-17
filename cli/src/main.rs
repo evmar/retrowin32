@@ -119,8 +119,6 @@ fn install_sigusr1_handler() {
         log::error!("failed to install signal handler for snapshot");
     }
 }
-#[cfg(not(target_family = "unix"))]
-fn install_sigusr1_handler() {}
 
 fn main() -> anyhow::Result<()> {
     logging::init();

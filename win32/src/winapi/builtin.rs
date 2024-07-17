@@ -1117,6 +1117,23 @@ pub mod kernel32 {
             let uExitCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ExitProcess(machine, uExitCode).to_raw()
         }
+        pub unsafe fn FindClose(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFindFile = <HFIND>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::FindClose(machine, hFindFile).to_raw()
+        }
+        pub unsafe fn FindFirstFileA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FindFirstFileA(machine, lpFileName, lpFindFileData).to_raw()
+        }
+        pub unsafe fn FindNextFileA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFindFile = <HFIND>::from_stack(mem, esp + 4u32);
+            let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FindNextFileA(machine, hFindFile, lpFindFileData).to_raw()
+        }
         pub unsafe fn FindResourceA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
@@ -1660,8 +1677,8 @@ pub mod kernel32 {
         pub unsafe fn SetFilePointer(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
-            let lDistanceToMove = <u32>::from_stack(mem, esp + 8u32);
-            let lpDistanceToMoveHigh = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let lDistanceToMove = <i32>::from_stack(mem, esp + 8u32);
+            let lpDistanceToMoveHigh = <Option<&mut i32>>::from_stack(mem, esp + 12u32);
             let dwMoveMethod = <Result<FILE, u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::SetFilePointer(
                 machine,
@@ -2022,6 +2039,24 @@ pub mod kernel32 {
             name: "ExitProcess",
             func: impls::ExitProcess,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const FindClose: Shim = Shim {
+            name: "FindClose",
+            func: impls::FindClose,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const FindFirstFileA: Shim = Shim {
+            name: "FindFirstFileA",
+            func: impls::FindFirstFileA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const FindNextFileA: Shim = Shim {
+            name: "FindNextFileA",
+            func: impls::FindNextFileA,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const FindResourceA: Shim = Shim {
@@ -2697,7 +2732,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 125usize] = [
+    const EXPORTS: [Symbol; 128usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2749,6 +2784,18 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::ExitProcess,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindClose,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindFirstFileA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindNextFileA,
         },
         Symbol {
             ordinal: None,
