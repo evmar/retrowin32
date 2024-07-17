@@ -434,6 +434,7 @@ bitflags! {
     pub struct GMEM: u32 {
         const MOVEABLE = 0x2;
         const ZEROINIT = 0x40;
+        const MODIFY = 0x80;
     }
 }
 impl<'a> stack_args::FromArg<'a> for GMEM {
@@ -461,6 +462,32 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
+    if uFlags.contains(GMEM::MODIFY) {
+        todo!("GMEM_MODIFY");
+    }
+    let heap = machine
+        .state
+        .kernel32
+        .get_process_heap(&mut machine.emu.memory);
+    let old_size = heap.size(machine.emu.memory.mem(), hMem);
+    if dwBytes <= old_size {
+        return hMem;
+    }
+    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    machine.emu.memory.mem().copy(hMem, addr, old_size);
+    heap.free(machine.emu.memory.mem(), hMem);
+    if uFlags.contains(GMEM::ZEROINIT) {
+        machine
+            .mem()
+            .sub(addr + old_size, dwBytes - old_size)
+            .as_mut_slice_todo()
+            .fill(0);
+    }
+    addr
+}
+
+#[win32_derive::dllexport]
 pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
     let heap = machine
         .state
@@ -468,6 +495,11 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
         .get_process_heap(&mut machine.emu.memory);
     heap.free(machine.emu.memory.mem(), hMem);
     return 0; // success
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalFlags(_machine: &mut Machine, hMem: u32) -> u32 {
+    0 // stub
 }
 
 #[win32_derive::dllexport]

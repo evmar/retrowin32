@@ -1422,10 +1422,22 @@ pub mod kernel32 {
             let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GlobalAlloc(machine, uFlags, dwBytes).to_raw()
         }
+        pub unsafe fn GlobalFlags(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GlobalFlags(machine, hMem).to_raw()
+        }
         pub unsafe fn GlobalFree(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hMem = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GlobalFree(machine, hMem).to_raw()
+        }
+        pub unsafe fn GlobalReAlloc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
+            let dwBytes = <u32>::from_stack(mem, esp + 8u32);
+            let uFlags = <GMEM>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::GlobalReAlloc(machine, hMem, dwBytes, uFlags).to_raw()
         }
         pub unsafe fn HeapAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2323,10 +2335,22 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GlobalFlags: Shim = Shim {
+            name: "GlobalFlags",
+            func: impls::GlobalFlags,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GlobalFree: Shim = Shim {
             name: "GlobalFree",
             func: impls::GlobalFree,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const GlobalReAlloc: Shim = Shim {
+            name: "GlobalReAlloc",
+            func: impls::GlobalReAlloc,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const HeapAlloc: Shim = Shim {
@@ -2732,7 +2756,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 128usize] = [
+    const EXPORTS: [Symbol; 130usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2975,7 +2999,15 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GlobalFlags,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GlobalFree,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GlobalReAlloc,
         },
         Symbol {
             ordinal: None,
