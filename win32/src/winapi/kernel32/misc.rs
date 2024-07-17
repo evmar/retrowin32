@@ -393,3 +393,41 @@ pub fn CloseHandle(_machine: &mut Machine, hObject: u32) -> bool {
     // TODO
     true
 }
+
+#[win32_derive::dllexport]
+pub fn GetSystemDirectoryA(
+    machine: &mut Machine,
+    lpBuffer: u32,
+    uSize: u32,
+) -> u32 {
+    let path = "C:\\Windows\\System32";
+    let path_bytes = path.as_bytes();
+    if uSize < path_bytes.len() as u32 + 1 {
+        return path_bytes.len() as u32 + 1;
+    }
+    if lpBuffer != 0 {
+        let mem = machine.mem().sub(lpBuffer, uSize).as_mut_slice_todo();
+        mem[..path_bytes.len()].copy_from_slice(path_bytes);
+        mem[path_bytes.len()] = 0;
+    }
+    path_bytes.len() as u32
+}
+
+#[win32_derive::dllexport]
+pub fn GetWindowsDirectoryA(
+    machine: &mut Machine,
+    lpBuffer: u32,
+    uSize: u32,
+) -> u32 {
+    let path = "C:\\Windows";
+    let path_bytes = path.as_bytes();
+    if uSize < path_bytes.len() as u32 + 1 {
+        return path_bytes.len() as u32 + 1;
+    }
+    if lpBuffer != 0 {
+        let mem = machine.mem().sub(lpBuffer, uSize).as_mut_slice_todo();
+        mem[..path_bytes.len()].copy_from_slice(path_bytes);
+        mem[path_bytes.len()] = 0;
+    }
+    path_bytes.len() as u32
+}
