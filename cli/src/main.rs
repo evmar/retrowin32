@@ -107,10 +107,9 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
     Ok(trace_points)
 }
 
-static mut SNAPSHOT_REQUESTED: bool = false;
-
 #[cfg(target_family = "unix")]
 fn install_sigusr1_handler() {
+    static mut SNAPSHOT_REQUESTED: bool = false;
     unsafe extern "C" fn sigusr1(_sig: usize) {
         SNAPSHOT_REQUESTED = true;
     }
