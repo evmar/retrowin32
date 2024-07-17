@@ -1,18 +1,19 @@
 use crate::str16::String16;
-use crate::winapi::kernel32::set_last_error;
+use crate::winapi::kernel32::SetLastError;
 use crate::winapi::stack_args::ToX86;
-use crate::winapi::types::{win32_error_str, ERROR_INVALID_DATA};
+use crate::winapi::types::{
+    io_error_to_win32, win32_error_str, DWORD, ERROR_FILE_NOT_FOUND, ERROR_INVALID_DATA,
+    ERROR_INVALID_HANDLE, HFIND, MAX_PATH,
+};
 use crate::{
-    host,
     machine::Machine,
     winapi::{
         stack_args::{ArrayWithSize, ArrayWithSizeMut},
         types::{Str16, HFILE},
     },
-    FileOptions, StatKind,
+    FileOptions, FindFile, Stat, StatKind,
 };
 use bitflags::bitflags;
-use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
 
@@ -93,6 +94,23 @@ bitflags! {
         const RECALL_ON_DATA_ACCESS = 0x400000;
     }
 }
+impl From<&Stat> for FileAttribute {
+    fn from(stat: &Stat) -> Self {
+        let mut attr = FileAttribute::empty();
+        match stat.kind {
+            StatKind::File => {
+                attr |= FileAttribute::NORMAL;
+            }
+            StatKind::Directory => {
+                attr |= FileAttribute::DIRECTORY;
+            }
+            StatKind::Symlink => {
+                attr |= FileAttribute::REPARSE_POINT;
+            }
+        }
+        attr
+    }
+}
 impl TryFrom<u32> for FileAttribute {
     type Error = u32;
 
@@ -135,7 +153,7 @@ pub fn CreateFileA(
 ) -> HFILE {
     let Some(file_name) = lpFileName else {
         log::warn!("CreateFileA failed: null lpFileName");
-        set_last_error(machine, ERROR_INVALID_DATA);
+        SetLastError(machine, ERROR_INVALID_DATA);
         return HFILE::invalid();
     };
 
@@ -145,7 +163,7 @@ pub fn CreateFileA(
         Ok(value) => value,
         Err(value) => {
             log::warn!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
-            set_last_error(machine, ERROR_INVALID_DATA);
+            SetLastError(machine, ERROR_INVALID_DATA);
             return HFILE::invalid();
         }
     };
@@ -181,7 +199,7 @@ pub fn CreateFileA(
                 "CreateFileA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
-            set_last_error(machine, code);
+            SetLastError(machine, code);
             HFILE::invalid()
         }
     }
@@ -237,6 +255,16 @@ pub struct FILETIME {
 }
 unsafe impl memory::Pod for FILETIME {}
 
+impl FILETIME {
+    #[inline]
+    pub fn from_u64(value: u64) -> Self {
+        FILETIME {
+            dwLowDateTime: value as u32,
+            dwHighDateTime: (value >> 32) as u32,
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct BY_HANDLE_FILE_INFORMATION {
@@ -251,6 +279,22 @@ pub struct BY_HANDLE_FILE_INFORMATION {
     pub nFileIndexHigh: u32,
     pub nFileIndexLow: u32,
 }
+impl From<&Stat> for BY_HANDLE_FILE_INFORMATION {
+    fn from(stat: &Stat) -> Self {
+        Self {
+            dwFileAttributes: FileAttribute::from(stat).to_raw(),
+            ftCreationTime: FILETIME::from_u64(stat.ctime),
+            ftLastAccessTime: FILETIME::from_u64(stat.atime),
+            ftLastWriteTime: FILETIME::from_u64(stat.mtime),
+            dwVolumeSerialNumber: 0,
+            nFileSizeHigh: (stat.size >> 32) as u32,
+            nFileSizeLow: stat.size as u32,
+            nNumberOfLinks: 1,
+            nFileIndexHigh: 0,
+            nFileIndexLow: 0,
+        }
+    }
+}
 unsafe impl memory::Pod for BY_HANDLE_FILE_INFORMATION {}
 
 #[win32_derive::dllexport]
@@ -261,12 +305,28 @@ pub fn GetFileInformationByHandle(
 ) -> bool {
     let file = match machine.state.kernel32.files.get(hFile) {
         Some(f) => f,
-        None => todo!(),
+        None => {
+            log::warn!("GetFileInformationByHandle({hFile:?}) unknown handle");
+            SetLastError(machine, ERROR_INVALID_DATA);
+            return false;
+        }
     };
 
-    let info = lpFileInformation.unwrap();
-    *info = BY_HANDLE_FILE_INFORMATION::zeroed();
-    info.nFileSizeLow = file.info();
+    let stat = match file.stat() {
+        Ok(stat) => stat,
+        Err(code) => {
+            log::warn!(
+                "GetFileInformationByHandle({hFile:?}) failed: {}",
+                win32_error_str(code)
+            );
+            SetLastError(machine, code);
+            return false;
+        }
+    };
+
+    if let Some(info) = lpFileInformation {
+        *info = BY_HANDLE_FILE_INFORMATION::from(&stat);
+    }
 
     true
 }
@@ -282,21 +342,40 @@ pub enum FILE {
 pub fn SetFilePointer(
     machine: &mut Machine,
     hFile: HFILE,
-    lDistanceToMove: u32,
-    lpDistanceToMoveHigh: Option<&mut u32>,
+    lDistanceToMove: i32,
+    mut lpDistanceToMoveHigh: Option<&mut i32>,
     dwMoveMethod: Result<FILE, u32>,
 ) -> u32 {
-    if lpDistanceToMoveHigh.is_some() {
-        unimplemented!();
+    let mut lDistanceToMove = lDistanceToMove as i64;
+    if let Some(high) = &mut lpDistanceToMoveHigh {
+        lDistanceToMove |= (**high as i64) << 32;
     }
-    let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
-    let pos = match dwMoveMethod.unwrap() {
-        FILE::BEGIN => std::io::SeekFrom::Start(lDistanceToMove as u64),
-        FILE::CURRENT => std::io::SeekFrom::Current(lDistanceToMove as i64),
-        FILE::END => std::io::SeekFrom::End(lDistanceToMove as i64),
+    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+        log::warn!("SetFilePointer({hFile:?}) unknown handle");
+        SetLastError(machine, ERROR_INVALID_HANDLE);
+        return u32::MAX;
     };
-    file.seek(pos).unwrap();
-    lDistanceToMove
+    let seek = match dwMoveMethod.unwrap() {
+        FILE::BEGIN => std::io::SeekFrom::Start(lDistanceToMove as u64),
+        FILE::CURRENT => std::io::SeekFrom::Current(lDistanceToMove),
+        FILE::END => std::io::SeekFrom::End(lDistanceToMove),
+    };
+    let pos = match file.seek(seek) {
+        Ok(pos) => pos,
+        Err(err) => {
+            log::warn!("SetFilePointer({hFile:?}) failed: {:?}", err);
+            SetLastError(machine, io_error_to_win32(&err));
+            return u32::MAX;
+        }
+    };
+    if let Some(high) = lpDistanceToMoveHigh {
+        *high = (pos >> 32) as i32;
+    } else if pos >> 32 != 0 {
+        log::warn!("SetFilePointer({hFile:?}) overflow");
+        SetLastError(machine, ERROR_INVALID_DATA);
+        return u32::MAX;
+    }
+    pos as u32
 }
 
 #[win32_derive::dllexport]
@@ -369,7 +448,7 @@ pub fn GetFullPathNameA(
 ) -> u32 {
     let Some(file_name) = lpFileName else {
         log::warn!("GetFullPathNameA failed: null lpFileName");
-        set_last_error(machine, ERROR_INVALID_DATA);
+        SetLastError(machine, ERROR_INVALID_DATA);
         return 0;
     };
 
@@ -380,7 +459,7 @@ pub fn GetFullPathNameA(
                 "GetFullPathNameA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
-            set_last_error(machine, code);
+            SetLastError(machine, code);
             return 0;
         }
     };
@@ -429,7 +508,7 @@ pub fn GetFullPathNameW(
 ) -> u32 {
     let Some(file_name) = lpFileName else {
         log::warn!("GetFullPathNameW failed: null lpFileName");
-        set_last_error(machine, ERROR_INVALID_DATA);
+        SetLastError(machine, ERROR_INVALID_DATA);
         return 0;
     };
 
@@ -441,7 +520,7 @@ pub fn GetFullPathNameW(
                 "GetFullPathNameW({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
-            set_last_error(machine, code);
+            SetLastError(machine, code);
             return 0;
         }
     };
@@ -491,7 +570,7 @@ pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
 pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> FileAttribute {
     let Some(file_name) = lpFileName else {
         log::warn!("CreateFileA failed: null lpFileName");
-        set_last_error(machine, ERROR_INVALID_DATA);
+        SetLastError(machine, ERROR_INVALID_DATA);
         return FileAttribute::INVALID;
     };
 
@@ -502,7 +581,7 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
                 "GetFileAttributesA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
-            set_last_error(machine, code);
+            SetLastError(machine, code);
             return FileAttribute::INVALID;
         }
     };
@@ -521,7 +600,7 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
         Ok(value) => value,
         Err(code) => {
             log::warn!("GetCurrentDirectoryA failed: {}", win32_error_str(code));
-            set_last_error(machine, code);
+            SetLastError(machine, code);
             return 0;
         }
     };
@@ -544,4 +623,164 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
     log::debug!("GetCurrentDirectoryA -> {out_path}");
 
     out_bytes.len() as u32
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct WIN32_FIND_DATAA {
+    pub dwFileAttributes: DWORD,
+    pub ftCreationTime: FILETIME,
+    pub ftLastAccessTime: FILETIME,
+    pub ftLastWriteTime: FILETIME,
+    pub nFileSizeHigh: DWORD,
+    pub nFileSizeLow: DWORD,
+    pub dwReserved0: DWORD,
+    pub dwReserved1: DWORD,
+    pub cFileName: [u8; MAX_PATH],
+    pub cAlternateFileName: [u8; 14],
+    pub dwFileType: DWORD,
+    pub dwCreatorType: DWORD,
+    pub wFinderFlags: u16,
+}
+impl From<&FindFile> for WIN32_FIND_DATAA {
+    fn from(file: &FindFile) -> Self {
+        let stat = &file.stat;
+        let mut data = Self {
+            dwFileAttributes: FileAttribute::from(stat).to_raw(),
+            ftCreationTime: FILETIME::from_u64(stat.ctime),
+            ftLastAccessTime: FILETIME::from_u64(stat.atime),
+            ftLastWriteTime: FILETIME::from_u64(stat.mtime),
+            nFileSizeHigh: (stat.size >> 32) as DWORD,
+            nFileSizeLow: stat.size as DWORD,
+            dwReserved0: if stat.kind == StatKind::Symlink {
+                0xA000000C // IO_REPARSE_TAG_SYMLINK
+            } else {
+                0
+            },
+            dwReserved1: 0,
+            cFileName: [0; MAX_PATH],
+            cAlternateFileName: [0; 14],
+            dwFileType: 0,
+            dwCreatorType: 0,
+            wFinderFlags: 0,
+        };
+        if file.name.len() >= MAX_PATH {
+            unimplemented!("long file name");
+        }
+        data.cFileName[..file.name.len()].copy_from_slice(file.name.as_bytes());
+        data.cFileName[file.name.len()] = 0;
+        data
+    }
+}
+unsafe impl memory::Pod for WIN32_FIND_DATAA {}
+
+#[win32_derive::dllexport]
+pub fn FindFirstFileA(
+    machine: &mut Machine,
+    lpFileName: Option<&str>,
+    lpFindFileData: Option<&mut WIN32_FIND_DATAA>,
+) -> HFIND {
+    let Some(file_name) = lpFileName else {
+        log::warn!("FindFirstFileA failed: null lpFileName");
+        SetLastError(machine, ERROR_INVALID_DATA);
+        return HFIND::invalid();
+    };
+
+    if file_name
+        .chars()
+        // Skip \\?\ prefix
+        .skip_while(|&c| c == '\\' || c == '?')
+        .any(|c| c == '*' || c == '?')
+    {
+        todo!("FindFirstFileA({file_name:?}) wildcards");
+    }
+
+    let mut handle = match machine.host.find(file_name) {
+        Ok(handle) => handle,
+        Err(code) => {
+            log::warn!(
+                "FindFirstFileA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            SetLastError(machine, code);
+            return HFIND::invalid();
+        }
+    };
+
+    let next = match handle.next() {
+        Ok(Some(stat)) => stat,
+        Ok(None) => {
+            log::debug!("FindFirstFileA({file_name:?}) not found");
+            SetLastError(machine, ERROR_FILE_NOT_FOUND);
+            return HFIND::invalid();
+        }
+        Err(code) => {
+            log::warn!(
+                "FindFirstFileA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            SetLastError(machine, code);
+            return HFIND::invalid();
+        }
+    };
+
+    if let Some(data) = lpFindFileData {
+        *data = WIN32_FIND_DATAA::from(&next);
+    }
+
+    machine.state.kernel32.find_handles.add(handle)
+}
+
+#[win32_derive::dllexport]
+pub fn FindNextFileA(
+    machine: &mut Machine,
+    hFindFile: HFIND,
+    lpFindFileData: Option<&mut WIN32_FIND_DATAA>,
+) -> bool {
+    let handle = match machine.state.kernel32.find_handles.get_mut(hFindFile) {
+        Some(handle) => handle,
+        None => {
+            log::warn!("FindNextFileA({hFindFile:?}) unknown handle");
+            SetLastError(machine, ERROR_INVALID_HANDLE);
+            return false;
+        }
+    };
+
+    let next = match handle.next() {
+        Ok(Some(stat)) => stat,
+        Ok(None) => {
+            SetLastError(machine, ERROR_FILE_NOT_FOUND);
+            return false;
+        }
+        Err(code) => {
+            log::warn!(
+                "FindNextFileA({hFindFile:?}) failed: {}",
+                win32_error_str(code)
+            );
+            SetLastError(machine, code);
+            return false;
+        }
+    };
+
+    if let Some(data) = lpFindFileData {
+        *data = WIN32_FIND_DATAA::from(&next);
+    }
+
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn FindClose(machine: &mut Machine, hFindFile: HFIND) -> bool {
+    if machine
+        .state
+        .kernel32
+        .find_handles
+        .remove(hFindFile)
+        .is_none()
+    {
+        log::warn!("FindClose({hFindFile:?}) unknown handle");
+        SetLastError(machine, ERROR_INVALID_HANDLE);
+        return false;
+    }
+    true
 }

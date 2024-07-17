@@ -2,22 +2,21 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::io::ErrorKind;
+use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
-use win32::winapi::types::{
-    ERROR_ACCESS_DENIED, ERROR_FILE_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_INVALID_ACCESS,
-    ERROR_OPEN_FAILED,
-};
-use win32::{FileOptions, Stat};
+use win32::winapi::types::io_error_to_win32;
+use win32::{FileOptions, FindHandle, Stat};
 
 struct File {
     f: std::fs::File,
 }
 
 impl win32::File for File {
-    fn info(&self) -> u32 {
-        let meta = self.f.metadata().unwrap();
-        meta.len() as u32
+    fn stat(&self) -> Result<Stat, u32> {
+        match self.f.metadata() {
+            Ok(ref meta) => Ok(metadata_to_stat(meta)),
+            Err(ref e) => Err(io_error_to_win32(e)),
+        }
     }
 }
 
@@ -40,6 +39,45 @@ impl std::io::Write for File {
 impl std::io::Seek for File {
     fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
         self.f.seek(pos)
+    }
+}
+
+struct FindIterDir {
+    iter: std::fs::ReadDir,
+}
+
+impl FindHandle for FindIterDir {
+    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+        match self.iter.next() {
+            Some(Ok(entry)) => {
+                let path = entry.path();
+                let name = path.file_name().unwrap().to_string_lossy().into_owned();
+                let meta = entry.metadata().unwrap();
+                Ok(Some(win32::FindFile {
+                    path: path.to_string_lossy().into_owned(),
+                    name,
+                    stat: metadata_to_stat(&meta),
+                }))
+            }
+            Some(Err(ref e)) => Err(io_error_to_win32(e)),
+            None => Ok(None),
+        }
+    }
+}
+
+struct FindIterFile {
+    file: win32::FindFile,
+    consumed: bool,
+}
+
+impl FindHandle for FindIterFile {
+    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+        if self.consumed {
+            Ok(None)
+        } else {
+            self.consumed = true;
+            Ok(Some(self.file.clone()))
+        }
     }
 }
 
@@ -93,14 +131,7 @@ impl win32::Host for EnvRef {
     fn canonicalize(&self, path: &str) -> Result<String, u32> {
         match std::fs::canonicalize(path) {
             Ok(p) => Ok(p.to_string_lossy().into_owned()),
-            Err(e) => Err(match e.kind() {
-                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
-                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
-                _ => {
-                    log::warn!("canonicalize({:?}): {:?}", path, e);
-                    ERROR_OPEN_FAILED
-                }
-            }),
+            Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
 
@@ -114,39 +145,47 @@ impl win32::Host for EnvRef {
             .open(path);
         match result {
             Ok(f) => Ok(Box::new(File { f })),
-            Err(e) => Err(match e.kind() {
-                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
-                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
-                ErrorKind::AlreadyExists => ERROR_FILE_EXISTS,
-                ErrorKind::InvalidInput => ERROR_INVALID_ACCESS,
-                _ => {
-                    log::warn!("open({:?}): {:?}", path, e);
-                    ERROR_OPEN_FAILED
-                }
-            }),
+            Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
 
     fn stat(&self, path: &str) -> Result<Stat, u32> {
         match std::fs::metadata(path) {
-            Ok(meta) => Ok(Stat {
-                kind: if meta.is_dir() {
-                    win32::StatKind::Directory
-                } else if meta.is_file() {
-                    win32::StatKind::File
+            Ok(ref meta) => Ok(metadata_to_stat(meta)),
+            Err(ref e) => Err(io_error_to_win32(e)),
+        }
+    }
+
+    fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32> {
+        let full_path = match std::fs::canonicalize(path) {
+            Ok(p) => p,
+            Err(ref e) => return Err(io_error_to_win32(e)),
+        };
+        match std::fs::metadata(&full_path) {
+            Ok(meta) => {
+                if meta.is_dir() {
+                    let iter = match std::fs::read_dir(&full_path) {
+                        Ok(iter) => iter,
+                        Err(ref e) => return Err(io_error_to_win32(e)),
+                    };
+                    Ok(Box::new(FindIterDir { iter }))
                 } else {
-                    win32::StatKind::Symlink
-                },
-                size: meta.len() as u32,
-            }),
-            Err(e) => Err(match e.kind() {
-                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
-                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
-                _ => {
-                    log::warn!("stat({:?}): {:?}", path, e);
-                    ERROR_OPEN_FAILED
+                    let file = win32::FindFile {
+                        path: full_path.to_string_lossy().into_owned(),
+                        name: full_path
+                            .file_name()
+                            .unwrap()
+                            .to_string_lossy()
+                            .into_owned(),
+                        stat: metadata_to_stat(&meta),
+                    };
+                    Ok(Box::new(FindIterFile {
+                        file,
+                        consumed: false,
+                    }))
                 }
-            }),
+            }
+            Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
 
@@ -173,4 +212,27 @@ impl win32::Host for EnvRef {
 
 pub fn new_host() -> impl win32::Host + Clone {
     EnvRef(Rc::new(RefCell::new(Env::new())))
+}
+
+/// Convert a `SystemTime` to hecto-nanoseconds since Windows epoch (1601-01-01).
+/// See https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
+fn system_time_to_hnsecs(t: SystemTime) -> u64 {
+    (t.duration_since(UNIX_EPOCH).unwrap().as_nanos() / 100) as u64 + 116444736000000000
+}
+
+fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
+    let kind = if meta.is_dir() {
+        win32::StatKind::Directory
+    } else if meta.is_file() {
+        win32::StatKind::File
+    } else {
+        win32::StatKind::Symlink
+    };
+    Stat {
+        kind,
+        size: meta.len(),
+        atime: meta.accessed().map(system_time_to_hnsecs).unwrap_or(0),
+        ctime: meta.created().map(system_time_to_hnsecs).unwrap_or(0),
+        mtime: meta.modified().map(system_time_to_hnsecs).unwrap_or(0),
+    }
 }
