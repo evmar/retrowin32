@@ -1392,6 +1392,12 @@ pub mod kernel32 {
             let nStdHandle = <Result<STD, u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw()
         }
+        pub unsafe fn GetSystemDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpBuffer = <u32>::from_stack(mem, esp + 4u32);
+            let uSize = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetSystemDirectoryA(machine, lpBuffer, uSize).to_raw()
+        }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _time = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
@@ -1415,6 +1421,12 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let lpVersionInformation = <Option<&mut OSVERSIONINFO>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetVersionExA(machine, lpVersionInformation).to_raw()
+        }
+        pub unsafe fn GetWindowsDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpBuffer = <u32>::from_stack(mem, esp + 4u32);
+            let uSize = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetWindowsDirectoryA(machine, lpBuffer, uSize).to_raw()
         }
         pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2299,6 +2311,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetSystemDirectoryA: Shim = Shim {
+            name: "GetSystemDirectoryA",
+            func: impls::GetSystemDirectoryA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
             name: "GetSystemTimeAsFileTime",
             func: impls::GetSystemTimeAsFileTime,
@@ -2327,6 +2345,12 @@ pub mod kernel32 {
             name: "GetVersionExA",
             func: impls::GetVersionExA,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const GetWindowsDirectoryA: Shim = Shim {
+            name: "GetWindowsDirectoryA",
+            func: impls::GetWindowsDirectoryA,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GlobalAlloc: Shim = Shim {
@@ -2756,7 +2780,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 130usize] = [
+    const EXPORTS: [Symbol; 132usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2975,6 +2999,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetSystemDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetSystemTimeAsFileTime,
         },
         Symbol {
@@ -2992,6 +3020,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetVersionExA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetWindowsDirectoryA,
         },
         Symbol {
             ordinal: None,
