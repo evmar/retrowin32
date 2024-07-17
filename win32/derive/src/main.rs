@@ -42,8 +42,12 @@ fn generate_dll(
         }
         writeln!(f, ".globl _{}", vtable.name)?;
         writeln!(f, "_{}:", vtable.name)?;
-        for (name, _imp) in &vtable.fns {
-            writeln!(f, "  .long _{}_{}", vtable.name, name)?;
+        for (name, imp) in &vtable.fns {
+            let name = match imp {
+                Some(imp) => imp.clone(),
+                None => format!("{}_{}", vtable.name, name),
+            };
+            writeln!(f, "  .long _{}", name)?;
         }
     }
 

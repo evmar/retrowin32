@@ -34,7 +34,7 @@ impl<'a> DllExport<'a> {
 
 pub struct Vtable {
     pub name: syn::Ident,
-    pub fns: Vec<(syn::Ident, Option<syn::Ident>)>,
+    pub fns: Vec<(syn::Ident, Option<String>)>,
 }
 
 #[derive(Default)]
@@ -235,14 +235,34 @@ fn parse_vtable(item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
         let imp = match field.expr {
             syn::Expr::Path(expr) => {
                 if expr.path.is_ident("ok") {
-                    Some(name.clone())
+                    Some(format!("{}_{}", vt.name, name))
                 } else if expr.path.is_ident("todo") {
                     None
                 } else {
                     return Err(syn::Error::new_spanned(expr, "bad vtable value"));
                 }
             }
-            syn::Expr::Paren(_expr) => None,
+            syn::Expr::Paren(expr) => match &*expr.expr {
+                syn::Expr::Path(expr) => {
+                    // Gross: reference is like (IDirectDrawClipper::shims::QueryInterface), need
+                    // to extract the the part around the shims bit.
+                    let parts = expr
+                        .path
+                        .segments
+                        .iter()
+                        .map(|s| s.ident.to_string())
+                        .collect::<Vec<_>>();
+                    let name = match parts.len() {
+                        4 => [parts[1].as_str(), parts[3].as_str()].join("_"),
+                        3 => [parts[0].as_str(), parts[2].as_str()].join("_"),
+                        _ => unimplemented!("{}", parts.len()),
+                    };
+                    Some(name)
+                }
+                expr => {
+                    return Err(syn::Error::new_spanned(expr, "bad vtable value"));
+                }
+            },
             e => {
                 return Err(syn::Error::new_spanned(e, "bad input"));
             }
