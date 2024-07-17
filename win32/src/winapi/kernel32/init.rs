@@ -442,6 +442,11 @@ pub struct TEB {
 }
 unsafe impl ::memory::Pod for TEB {}
 
+#[inline]
+pub fn set_last_error(machine: &mut Machine, value: u32) {
+    teb_mut(machine).LastErrorValue = value;
+}
+
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
     machine.state.kernel32.cmdline.cmdline

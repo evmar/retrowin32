@@ -201,14 +201,14 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
 
     let mut contents = Vec::new();
     {
-        let mut file = machine.host.open(&filename, host::FileAccess::READ);
+        let mut file = match machine.host.open(&filename, host::FileOptions::read()) {
+            Ok(file) => file,
+            Err(code) => {
+                log::warn!("load_library({filename:?}): {}", win32_error_str(code));
+                return HMODULE::null();
+            }
+        };
         file.read_to_end(&mut contents).unwrap();
-        // TODO: close file.
-    }
-
-    if contents.is_empty() {
-        // HACK: zero-length indicates not found.
-        return HMODULE::null();
     }
 
     let dll = pe::load_dll(machine, &filename, &contents).unwrap();

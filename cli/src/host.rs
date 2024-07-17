@@ -2,30 +2,16 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::{cell::RefCell, io::Write, path::Path, rc::Rc};
+use std::io::ErrorKind;
+use std::{cell::RefCell, io::Write, rc::Rc};
+use win32::winapi::types::{
+    ERROR_ACCESS_DENIED, ERROR_FILE_EXISTS, ERROR_FILE_NOT_FOUND, ERROR_INVALID_ACCESS,
+    ERROR_OPEN_FAILED,
+};
+use win32::{FileOptions, Stat};
 
 struct File {
     f: std::fs::File,
-}
-
-impl File {
-    fn open(path: &Path) -> Self {
-        let f = match std::fs::File::open(path) {
-            Ok(f) => f,
-            Err(err) => {
-                log::error!("opening {:?}: {}", path, err);
-                let path = if cfg!(target_family = "unix") {
-                    "/dev/null"
-                } else if cfg!(target_family = "windows") {
-                    "nul"
-                } else {
-                    panic!()
-                };
-                std::fs::File::open(path).unwrap()
-            }
-        };
-        File { f }
-    }
 }
 
 impl win32::File for File {
@@ -104,11 +90,62 @@ impl win32::Host for EnvRef {
         gui.block(wait)
     }
 
-    fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
-        match access {
-            win32::FileAccess::READ => Box::new(File::open(Path::new(path))),
-            win32::FileAccess::WRITE => Box::new(File {
-                f: std::fs::File::create(path).unwrap(),
+    fn canonicalize(&self, path: &str) -> Result<String, u32> {
+        match std::fs::canonicalize(path) {
+            Ok(p) => Ok(p.to_string_lossy().into_owned()),
+            Err(e) => Err(match e.kind() {
+                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
+                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
+                _ => {
+                    log::warn!("canonicalize({:?}): {:?}", path, e);
+                    ERROR_OPEN_FAILED
+                }
+            }),
+        }
+    }
+
+    fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
+        let result = std::fs::File::options()
+            .read(options.read)
+            .write(options.write)
+            .truncate(options.truncate)
+            .create(options.create)
+            .create_new(options.create_new)
+            .open(path);
+        match result {
+            Ok(f) => Ok(Box::new(File { f })),
+            Err(e) => Err(match e.kind() {
+                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
+                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
+                ErrorKind::AlreadyExists => ERROR_FILE_EXISTS,
+                ErrorKind::InvalidInput => ERROR_INVALID_ACCESS,
+                _ => {
+                    log::warn!("open({:?}): {:?}", path, e);
+                    ERROR_OPEN_FAILED
+                }
+            }),
+        }
+    }
+
+    fn stat(&self, path: &str) -> Result<Stat, u32> {
+        match std::fs::metadata(path) {
+            Ok(meta) => Ok(Stat {
+                kind: if meta.is_dir() {
+                    win32::StatKind::Directory
+                } else if meta.is_file() {
+                    win32::StatKind::File
+                } else {
+                    win32::StatKind::Symlink
+                },
+                size: meta.len() as u32,
+            }),
+            Err(e) => Err(match e.kind() {
+                ErrorKind::NotFound => ERROR_FILE_NOT_FOUND,
+                ErrorKind::PermissionDenied => ERROR_ACCESS_DENIED,
+                _ => {
+                    log::warn!("stat({:?}): {:?}", path, e);
+                    ERROR_OPEN_FAILED
+                }
             }),
         }
     }

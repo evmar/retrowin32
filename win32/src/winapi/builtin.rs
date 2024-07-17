@@ -1198,6 +1198,12 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn GetCurrentDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nBufferLength = <u32>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetCurrentDirectoryA(machine, nBufferLength, lpBuffer).to_raw()
+        }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentProcessId(machine).to_raw()
@@ -2084,6 +2090,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetCurrentDirectoryA: Shim = Shim {
+            name: "GetCurrentDirectoryA",
+            func: impls::GetCurrentDirectoryA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
@@ -2685,7 +2697,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 124usize] = [
+    const EXPORTS: [Symbol; 125usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2781,6 +2793,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetConsoleScreenBufferInfo,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetCurrentDirectoryA,
         },
         Symbol {
             ordinal: None,

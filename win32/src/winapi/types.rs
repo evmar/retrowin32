@@ -40,3 +40,25 @@ impl<'a> super::stack_args::FromStack<'a> for POINT {
         POINT { x, y }
     }
 }
+
+// https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
+pub const ERROR_FILE_NOT_FOUND: u32 = 2;
+pub const ERROR_ACCESS_DENIED: u32 = 5;
+pub const ERROR_INVALID_ACCESS: u32 = 12;
+pub const ERROR_INVALID_DATA: u32 = 13;
+pub const ERROR_FILE_EXISTS: u32 = 80;
+pub const ERROR_OPEN_FAILED: u32 = 110;
+pub const ERROR_ALREADY_EXISTS: u32 = 183;
+
+pub fn win32_error_str(code: u32) -> &'static str {
+    match code {
+        ERROR_FILE_NOT_FOUND => "ERROR_FILE_NOT_FOUND",
+        ERROR_ACCESS_DENIED => "ERROR_ACCESS_DENIED",
+        ERROR_INVALID_ACCESS => "ERROR_INVALID_ACCESS",
+        ERROR_INVALID_DATA => "ERROR_INVALID_DATA",
+        ERROR_FILE_EXISTS => "ERROR_FILE_EXISTS",
+        ERROR_OPEN_FAILED => "ERROR_OPEN_FAILED",
+        ERROR_ALREADY_EXISTS => "ERROR_ALREADY_EXISTS",
+        _ => "ERROR_UNKNOWN",
+    }
+}

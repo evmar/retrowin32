@@ -39,14 +39,55 @@ pub trait Window {
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-pub enum FileAccess {
-    READ,
-    WRITE,
+pub struct FileOptions {
+    /// Permit read access.
+    pub read: bool,
+    /// Permit write access.
+    pub write: bool,
+    /// Truncate the file to zero length.
+    pub truncate: bool,
+    /// Create the file if it doesn't exist.
+    pub create: bool,
+    /// Create the file if it doesn't exist, and fail if it does.
+    pub create_new: bool,
+}
+
+impl FileOptions {
+    pub fn empty() -> Self {
+        Self {
+            read: false,
+            write: false,
+            truncate: false,
+            create: false,
+            create_new: false,
+        }
+    }
+
+    pub fn read() -> Self {
+        Self {
+            read: true,
+            write: false,
+            truncate: false,
+            create: false,
+            create_new: false,
+        }
+    }
 }
 
 pub trait File: std::io::Read + std::io::Write + std::io::Seek {
     /// Just file size for now, but maybe we'll need more(?)
     fn info(&self) -> u32;
+}
+
+pub enum StatKind {
+    File,
+    Directory,
+    Symlink,
+}
+
+pub struct Stat {
+    pub kind: StatKind,
+    pub size: u32,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -90,7 +131,9 @@ pub trait Host {
     /// unblock() when ready.
     fn block(&self, wait: Option<u32>) -> bool;
 
-    fn open(&self, path: &str, access: FileAccess) -> Box<dyn File>;
+    fn canonicalize(&self, path: &str) -> Result<String, u32>;
+    fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn File>, u32>;
+    fn stat(&self, path: &str) -> Result<Stat, u32>;
     fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;

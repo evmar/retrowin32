@@ -1,4 +1,7 @@
+use crate::str16::String16;
+use crate::winapi::kernel32::set_last_error;
 use crate::winapi::stack_args::ToX86;
+use crate::winapi::types::{win32_error_str, ERROR_INVALID_DATA};
 use crate::{
     host,
     machine::Machine,
@@ -6,6 +9,7 @@ use crate::{
         stack_args::{ArrayWithSize, ArrayWithSizeMut},
         types::{Str16, HFILE},
     },
+    FileOptions, StatKind,
 };
 use bitflags::bitflags;
 use memory::Pod;
@@ -51,15 +55,42 @@ pub fn SetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>, hHandl
     true // succees
 }
 
-#[derive(Debug, win32_derive::TryFromEnum)]
+// https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+#[derive(Copy, Clone, Eq, PartialEq, Debug, win32_derive::TryFromEnum)]
 pub enum CreationDisposition {
+    CREATE_NEW = 1,
     CREATE_ALWAYS = 2,
     OPEN_EXISTING = 3,
+    OPEN_ALWAYS = 4,
+    TRUNCATE_EXISTING = 5,
 }
 
+// https://learn.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
 bitflags! {
     pub struct FileAttribute: u32 {
+        const INVALID = u32::MAX;
+        const READONLY = 0x1;
+        const HIDDEN = 0x2;
+        const SYSTEM = 0x4;
+        const DIRECTORY = 0x10;
+        const ARCHIVE = 0x20;
+        const DEVICE = 0x40;
         const NORMAL = 0x80;
+        const TEMPORARY = 0x100;
+        const SPARSE_FILE = 0x200;
+        const REPARSE_POINT = 0x400;
+        const COMPRESSED = 0x800;
+        const OFFLINE = 0x1000;
+        const NOT_CONTENT_INDEXED = 0x2000;
+        const ENCRYPTED = 0x4000;
+        const INTEGRITY_STREAM = 0x8000;
+        const VIRTUAL = 0x10000;
+        const NO_SCRUB_DATA = 0x20000;
+        const EA = 0x40000;
+        const PINNED = 0x80000;
+        const UNPINNED = 0x100000;
+        const RECALL_ON_OPEN = 0x40000;
+        const RECALL_ON_DATA_ACCESS = 0x400000;
     }
 }
 impl TryFrom<u32> for FileAttribute {
@@ -102,30 +133,58 @@ pub fn CreateFileA(
     dwFlagsAndAttributes: Result<FileAttribute, u32>,
     hTemplateFile: HFILE,
 ) -> HFILE {
-    let file_name = lpFileName.unwrap();
+    let Some(file_name) = lpFileName else {
+        log::warn!("CreateFileA failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return HFILE::invalid();
+    };
 
     // If this from_bits fails, it's due to more complex access bits; see ACCESS_MASK in MSDN docs.
     let generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
-    let access = match generic_access {
-        GENERIC::READ => host::FileAccess::READ,
-        GENERIC::WRITE => host::FileAccess::WRITE,
-        _ => unimplemented!("access {generic_access:?}"),
+    let creation_disposition = match dwCreationDisposition {
+        Ok(value) => value,
+        Err(value) => {
+            log::warn!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
+            set_last_error(machine, ERROR_INVALID_DATA);
+            return HFILE::invalid();
+        }
     };
 
-    let _dwCreationDisposition = dwCreationDisposition.unwrap();
-    // TODO: pass creation dispositions for create new vs existing etc.
+    // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
+    let file_options = FileOptions {
+        read: generic_access.contains(GENERIC::READ),
+        write: generic_access.contains(GENERIC::WRITE),
+        truncate: matches!(
+            creation_disposition,
+            CreationDisposition::CREATE_ALWAYS | CreationDisposition::TRUNCATE_EXISTING
+        ),
+        create: matches!(
+            creation_disposition,
+            CreationDisposition::CREATE_ALWAYS | CreationDisposition::OPEN_ALWAYS
+        ),
+        create_new: creation_disposition == CreationDisposition::CREATE_NEW,
+    };
 
     let attr = dwFlagsAndAttributes.unwrap();
-    if attr - FileAttribute::NORMAL != FileAttribute::empty() {
-        todo!();
+    if !(attr & !FileAttribute::NORMAL).is_empty() {
+        unimplemented!("dwFlagsAndAttributes {attr:?}");
     }
 
     if !hTemplateFile.is_null() {
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
 
-    let file = machine.host.open(file_name, access);
-    machine.state.kernel32.files.add(file)
+    match machine.host.open(file_name, file_options) {
+        Ok(file) => machine.state.kernel32.files.add(file),
+        Err(code) => {
+            log::warn!(
+                "CreateFileA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            HFILE::invalid()
+        }
+    }
 }
 
 #[win32_derive::dllexport]
@@ -308,29 +367,56 @@ pub fn GetFullPathNameA(
     lpBuffer: u32,
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
-    let file_name = lpFileName.unwrap();
+    let Some(file_name) = lpFileName else {
+        log::warn!("GetFullPathNameA failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return 0;
+    };
 
-    // TODO: canonicalize path
+    let out_path = match machine.host.canonicalize(file_name) {
+        Ok(value) => value,
+        Err(code) => {
+            log::warn!(
+                "GetFullPathNameA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            return 0;
+        }
+    };
+    let out_bytes = out_path.as_bytes();
 
     let buf = machine
         .mem()
         .sub(lpBuffer, nBufferLength)
         .as_mut_slice_todo();
     if let Some(part) = lpFilePart {
-        // TODO
-        *part = 0;
+        if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\') {
+            if i == out_bytes.len() - 1 {
+                *part = 0;
+            } else {
+                *part = lpBuffer + i as u32 + 1;
+            }
+        } else {
+            *part = 0;
+        }
     }
 
-    let file_name = file_name.as_bytes();
-    if buf.len() < file_name.len() + 1 {
+    if buf.len() < out_bytes.len() + 1 {
         // not enough space
-        return file_name.len() as u32 + 1;
+        log::debug!(
+            "GetFullPathNameA({file_name:?}) -> size {}",
+            file_name.len() + 1
+        );
+        return out_bytes.len() as u32 + 1;
     }
 
-    buf[..file_name.len()].copy_from_slice(file_name);
-    buf[file_name.len()] = 0;
+    buf[..out_bytes.len()].copy_from_slice(out_bytes);
+    buf[out_bytes.len()] = 0;
 
-    file_name.len() as u32
+    log::debug!("GetFullPathNameA({file_name:?}) -> {out_path}");
+
+    out_bytes.len() as u32
 }
 
 #[win32_derive::dllexport]
@@ -341,9 +427,25 @@ pub fn GetFullPathNameW(
     lpBuffer: u32,
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
-    let file_name = lpFileName.unwrap();
+    let Some(file_name) = lpFileName else {
+        log::warn!("GetFullPathNameW failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return 0;
+    };
 
-    // TODO: canonicalize path
+    let file_name = file_name.to_string();
+    let out_path = match machine.host.canonicalize(&file_name) {
+        Ok(value) => value,
+        Err(code) => {
+            log::warn!(
+                "GetFullPathNameW({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            return 0;
+        }
+    };
+    let out_bytes = String16::from(&out_path).0;
 
     let buf = Str16::from_bytes_mut(
         machine
@@ -352,17 +454,30 @@ pub fn GetFullPathNameW(
             .as_mut_slice_todo(),
     );
     if let Some(part) = lpFilePart {
-        // TODO
-        *part = 0;
+        if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\' as u16) {
+            if i == out_bytes.len() - 1 {
+                *part = 0;
+            } else {
+                *part = lpBuffer + (i as u32 + 1) * 2;
+            }
+        } else {
+            *part = 0;
+        }
     }
 
-    if buf.len() < file_name.len() + 1 {
+    if buf.len() < out_bytes.len() + 1 {
         // not enough space
-        return file_name.len() as u32 + 1;
+        log::debug!(
+            "GetFullPathNameW({file_name:?}) -> size {}",
+            file_name.len() + 1
+        );
+        return out_bytes.len() as u32 + 1;
     }
 
-    buf[..file_name.len()].copy_from_slice(file_name);
-    buf[file_name.len()] = 0;
+    buf[..out_bytes.len()].copy_from_slice(&out_bytes);
+    buf[out_bytes.len()] = 0;
+
+    log::debug!("GetFullPathNameW({file_name:?}) -> {out_path}");
 
     file_name.len() as u32
 }
@@ -373,13 +488,60 @@ pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn GetFileAttributesA(
-    _machine: &mut Machine,
-    lpFileName: Option<&str>,
-) -> Result<FileAttribute, u32> {
-    let _file_name = lpFileName.unwrap();
+pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> FileAttribute {
+    let Some(file_name) = lpFileName else {
+        log::warn!("CreateFileA failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return FileAttribute::INVALID;
+    };
 
-    // TODO: machine.host.stat
+    let stat = match machine.host.stat(file_name) {
+        Ok(stat) => stat,
+        Err(code) => {
+            log::warn!(
+                "GetFileAttributesA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            return FileAttribute::INVALID;
+        }
+    };
 
-    Ok(FileAttribute::empty())
+    match stat.kind {
+        StatKind::File => FileAttribute::NORMAL,
+        StatKind::Directory => FileAttribute::DIRECTORY,
+        StatKind::Symlink => FileAttribute::REPARSE_POINT,
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
+    // TODO: keep track of pwd in machine state
+    let out_path = match machine.host.canonicalize(".") {
+        Ok(value) => value,
+        Err(code) => {
+            log::warn!("GetCurrentDirectoryA failed: {}", win32_error_str(code));
+            set_last_error(machine, code);
+            return 0;
+        }
+    };
+    let out_bytes = out_path.as_bytes();
+
+    let buf = machine
+        .mem()
+        .sub(lpBuffer, nBufferLength)
+        .as_mut_slice_todo();
+
+    if buf.len() < out_bytes.len() + 1 {
+        // not enough space
+        log::debug!("GetCurrentDirectoryA -> size {}", out_bytes.len() + 1);
+        return out_bytes.len() as u32 + 1;
+    }
+
+    buf[..out_bytes.len()].copy_from_slice(out_bytes);
+    buf[out_bytes.len()] = 0;
+
+    log::debug!("GetCurrentDirectoryA -> {out_path}");
+
+    out_bytes.len() as u32
 }

@@ -185,14 +185,3 @@ impl ToX86 for i32 {
         *self as u32
     }
 }
-impl<T> ToX86 for Result<T, u32>
-where
-    T: ToX86,
-{
-    fn to_raw(&self) -> u32 {
-        match self {
-            Ok(value) => value.to_raw(),
-            Err(err) => *err,
-        }
-    }
-}
