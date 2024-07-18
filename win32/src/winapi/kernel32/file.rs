@@ -391,14 +391,42 @@ pub fn ReadFile(
     lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    let file = match hFile {
+    let Some(file) = (match hFile {
         STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
-        _ => machine.state.kernel32.files.get_mut(hFile).unwrap(),
+        _ => machine.state.kernel32.files.get_mut(hFile),
+    }) else {
+        log::warn!("ReadFile({hFile:?}) unknown handle");
+        SetLastError(machine, ERROR_INVALID_HANDLE);
+        return false;
     };
-    // TODO: SetLastError
-    let n = file.read(lpBuffer.unwrap()).unwrap();
+    if lpOverlapped != 0 {
+        unimplemented!("ReadFile overlapped");
+    }
+    let Some(mut buf) = lpBuffer.to_option() else {
+        log::warn!("ReadFile({hFile:?}) failed: null lpBuffer");
+        SetLastError(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+
+    let mut read = 0;
+    while !buf.is_empty() {
+        match file.read(buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                read += n;
+                buf = &mut buf[n..];
+            }
+            Err(err) => {
+                log::warn!("ReadFile({hFile:?}) failed: {:?}", err);
+                SetLastError(machine, io_error_to_win32(&err));
+                return false;
+            }
+        }
+    }
+
+    SetLastError(machine, ERROR_SUCCESS);
     if let Some(bytes) = lpNumberOfBytesRead {
-        *bytes = n as u32;
+        *bytes = read as u32;
     }
     true
 }
@@ -411,22 +439,46 @@ pub fn WriteFile(
     lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
-    assert!(lpOverlapped == 0);
+    if lpOverlapped != 0 {
+        unimplemented!("ReadFile overlapped");
+    }
+    let Some(mut buf) = lpBuffer else {
+        log::warn!("WriteFile({hFile:?}) failed: null lpBuffer");
+        SetLastError(machine, ERROR_INVALID_DATA);
+        return false;
+    };
 
-    let buf = lpBuffer.unwrap();
     let n = match hFile {
         STDOUT_HFILE | STDERR_HFILE => {
             machine.host.log(buf);
             buf.len()
         }
         _ => {
-            let file = machine.state.kernel32.files.get_mut(hFile).unwrap();
-            file.write(buf).unwrap()
+            let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+                log::warn!("WriteFile({hFile:?}) unknown handle");
+                SetLastError(machine, ERROR_INVALID_HANDLE);
+                return false;
+            };
+            let mut written = 0;
+            while !buf.is_empty() {
+                match file.write(buf) {
+                    Ok(0) => break,
+                    Ok(n) => {
+                        written += n;
+                        buf = &buf[n..];
+                    }
+                    Err(err) => {
+                        log::warn!("WriteFile({hFile:?}) failed: {:?}", err);
+                        SetLastError(machine, io_error_to_win32(&err));
+                        return false;
+                    }
+                }
+            }
+            written
         }
     };
 
-    // The docs say this parameter may not be null, but a test program with the param as null
-    // runs fine on real Windows...
+    SetLastError(machine, ERROR_SUCCESS);
     if let Some(written) = lpNumberOfBytesWritten {
         *written = n as u32;
     }
@@ -684,6 +736,8 @@ impl From<&FindFile> for WIN32_FIND_DATAA {
         }
         data.cFileName[..file.name.len()].copy_from_slice(file.name.as_bytes());
         data.cFileName[file.name.len()] = 0;
+        const FAKE_DOS_NAME: &[u8] = b"FAKEDOSNAME\0";
+        data.cAlternateFileName[..FAKE_DOS_NAME.len()].copy_from_slice(FAKE_DOS_NAME);
         data
     }
 }
