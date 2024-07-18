@@ -4,7 +4,7 @@ use crate::headless::GUI;
 use crate::sdl::GUI;
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
-use win32::winapi::types::io_error_to_win32;
+use win32::winapi::types::{io_error_to_win32, unix_nanos_to_filetime};
 use win32::{FileOptions, FindHandle, Stat};
 
 struct File {
@@ -116,6 +116,10 @@ impl win32::Host for EnvRef {
         gui.time()
     }
 
+    fn system_time(&self) -> chrono::DateTime<chrono::Local> {
+        chrono::Local::now()
+    }
+
     fn get_message(&self) -> Option<win32::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
@@ -130,7 +134,7 @@ impl win32::Host for EnvRef {
 
     fn canonicalize(&self, path: &str) -> Result<String, u32> {
         match std::fs::canonicalize(path) {
-            Ok(p) => Ok(p.to_string_lossy().into_owned()),
+            Ok(p) => Ok(p.to_string_lossy().trim_start_matches("\\\\?\\").to_owned()),
             Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
@@ -216,8 +220,8 @@ pub fn new_host() -> impl win32::Host + Clone {
 
 /// Convert a `SystemTime` to hecto-nanoseconds since Windows epoch (1601-01-01).
 /// See https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-fn system_time_to_hnsecs(t: SystemTime) -> u64 {
-    (t.duration_since(UNIX_EPOCH).unwrap().as_nanos() / 100) as u64 + 116444736000000000
+fn system_time_to_filetime(t: SystemTime) -> u64 {
+    unix_nanos_to_filetime(t.duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64)
 }
 
 fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
@@ -231,8 +235,8 @@ fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
     Stat {
         kind,
         size: meta.len(),
-        atime: meta.accessed().map(system_time_to_hnsecs).unwrap_or(0),
-        ctime: meta.created().map(system_time_to_hnsecs).unwrap_or(0),
-        mtime: meta.modified().map(system_time_to_hnsecs).unwrap_or(0),
+        atime: meta.accessed().map_or(0, system_time_to_filetime),
+        ctime: meta.created().map_or(0, system_time_to_filetime),
+        mtime: meta.modified().map_or(0, system_time_to_filetime),
     }
 }

@@ -189,6 +189,8 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
             Some(name) => filename = name.to_string(),
             None => return HMODULE::null(),
         }
+    } else if let Some(alias) = winapi::dll_alias(&filename) {
+        filename = alias.to_string();
     }
 
     // Check if builtin.
@@ -200,15 +202,22 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     }
 
     let mut contents = Vec::new();
-    {
-        let mut file = match machine.host.open(&filename, host::FileOptions::read()) {
+    let exe = machine.state.kernel32.cmdline.args.first().unwrap();
+    let exe_dir = std::path::Path::new(exe)
+        .parent()
+        .unwrap()
+        .to_string_lossy();
+    let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
+    for path in &dll_paths {
+        let mut file = match machine.host.open(path, host::FileOptions::read()) {
             Ok(file) => file,
-            Err(code) => {
-                log::warn!("load_library({filename:?}): {}", win32_error_str(code));
-                return HMODULE::null();
-            }
+            Err(_) => continue,
         };
         file.read_to_end(&mut contents).unwrap();
+    }
+    if contents.is_empty() {
+        log::warn!("load_library({filename:?}): not found");
+        return HMODULE::null();
     }
 
     let dll = pe::load_dll(machine, &filename, &contents).unwrap();

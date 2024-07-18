@@ -470,17 +470,16 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
         .state
         .kernel32
         .get_process_heap(&mut machine.emu.memory);
-    let old_size = heap.size(machine.emu.memory.mem(), hMem);
+    let mem = machine.emu.memory.mem();
+    let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
         return hMem;
     }
-    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
-    machine.emu.memory.mem().copy(hMem, addr, old_size);
-    heap.free(machine.emu.memory.mem(), hMem);
+    let addr = heap.alloc(mem, dwBytes);
+    mem.copy(hMem, addr, old_size);
+    heap.free(mem, hMem);
     if uFlags.contains(GMEM::ZEROINIT) {
-        machine
-            .mem()
-            .sub(addr + old_size, dwBytes - old_size)
+        mem.sub(addr + old_size, dwBytes - old_size)
             .as_mut_slice_todo()
             .fill(0);
     }

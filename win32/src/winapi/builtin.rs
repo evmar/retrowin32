@@ -984,7 +984,7 @@ pub mod kernel32 {
         }
         pub unsafe fn CloseHandle(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hObject = <u32>::from_stack(mem, esp + 4u32);
+            let hObject = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::CloseHandle(machine, hObject).to_raw()
         }
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
@@ -1265,6 +1265,27 @@ pub mod kernel32 {
                 <Option<&mut BY_HANDLE_FILE_INFORMATION>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetFileInformationByHandle(machine, hFile, lpFileInformation).to_raw()
         }
+        pub unsafe fn GetFileSize(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpFileSizeHigh = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetFileSize(machine, hFile, lpFileSizeHigh).to_raw()
+        }
+        pub unsafe fn GetFileTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpCreationTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 8u32);
+            let lpLastAccessTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 12u32);
+            let lpLastWriteTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetFileTime(
+                machine,
+                hFile,
+                lpCreationTime,
+                lpLastAccessTime,
+                lpLastWriteTime,
+            )
+            .to_raw()
+        }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -1398,10 +1419,15 @@ pub mod kernel32 {
             let uSize = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetSystemDirectoryA(machine, lpBuffer, uSize).to_raw()
         }
+        pub unsafe fn GetSystemTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetSystemTime(machine, lpSystemTime).to_raw()
+        }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _time = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::GetSystemTimeAsFileTime(machine, _time).to_raw()
+            let lpSystemTimeAsFileTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetSystemTimeAsFileTime(machine, lpSystemTimeAsFileTime).to_raw()
         }
         pub unsafe fn GetTickCount(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1781,6 +1807,12 @@ pub mod kernel32 {
                 let pin = std::pin::pin!(winapi::kernel32::Sleep(machine, dwMilliseconds));
                 crate::shims::call_sync(pin).to_raw()
             }
+        }
+        pub unsafe fn SystemTimeToFileTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, esp + 4u32);
+            let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SystemTimeToFileTime(machine, lpSystemTime, lpFileTime).to_raw()
         }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2209,6 +2241,18 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetFileSize: Shim = Shim {
+            name: "GetFileSize",
+            func: impls::GetFileSize,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetFileTime: Shim = Shim {
+            name: "GetFileTime",
+            func: impls::GetFileTime,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
@@ -2315,6 +2359,12 @@ pub mod kernel32 {
             name: "GetSystemDirectoryA",
             func: impls::GetSystemDirectoryA,
             stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetSystemTime: Shim = Shim {
+            name: "GetSystemTime",
+            func: impls::GetSystemTime,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
@@ -2653,6 +2703,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: true,
         };
+        pub const SystemTimeToFileTime: Shim = Shim {
+            name: "SystemTimeToFileTime",
+            func: impls::SystemTimeToFileTime,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
             func: impls::TlsAlloc,
@@ -2780,7 +2836,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 132usize] = [
+    const EXPORTS: [Symbol; 136usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2931,6 +2987,14 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetFileSize,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFileTime,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetFileType,
         },
         Symbol {
@@ -3000,6 +3064,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetSystemDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetSystemTime,
         },
         Symbol {
             ordinal: None,
@@ -3224,6 +3292,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::Sleep,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SystemTimeToFileTime,
         },
         Symbol {
             ordinal: None,
@@ -3479,6 +3551,13 @@ pub mod ucrtbase {
         };
         use memory::Extensions;
         use winapi::ucrtbase::*;
+        pub unsafe fn __dllonexit(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, esp + 4u32);
+            let d = <u32>::from_stack(mem, esp + 8u32);
+            let f = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ucrtbase::__dllonexit(machine, func, d, f).to_raw()
+        }
         pub unsafe fn __p___argc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::ucrtbase::__p___argc(machine).to_raw()
@@ -3503,6 +3582,16 @@ pub mod ucrtbase {
             let end = <u32>::from_stack(mem, esp + 8u32);
             winapi::ucrtbase::_initterm_e(machine, start, end).to_raw()
         }
+        pub unsafe fn _lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_lock(machine, locknum).to_raw()
+        }
+        pub unsafe fn _unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_unlock(machine, locknum).to_raw()
+        }
         pub unsafe fn exit(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let status = <u32>::from_stack(mem, esp + 4u32);
@@ -3512,6 +3601,12 @@ pub mod ucrtbase {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const __dllonexit: Shim = Shim {
+            name: "__dllonexit",
+            func: impls::__dllonexit,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const __p___argc: Shim = Shim {
             name: "__p___argc",
             func: impls::__p___argc,
@@ -3533,23 +3628,39 @@ pub mod ucrtbase {
         pub const _initterm: Shim = Shim {
             name: "_initterm",
             func: impls::_initterm,
-            stack_consumed: 8u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const _initterm_e: Shim = Shim {
             name: "_initterm_e",
             func: impls::_initterm_e,
-            stack_consumed: 8u32,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _lock: Shim = Shim {
+            name: "_lock",
+            func: impls::_lock,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _unlock: Shim = Shim {
+            name: "_unlock",
+            func: impls::_unlock,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const exit: Shim = Shim {
             name: "exit",
             func: impls::exit,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 6usize] = [
+    const EXPORTS: [Symbol; 9usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::__dllonexit,
+        },
         Symbol {
             ordinal: None,
             shim: shims::__p___argc,
@@ -3569,6 +3680,14 @@ pub mod ucrtbase {
         Symbol {
             ordinal: None,
             shim: shims::_initterm_e,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_unlock,
         },
         Symbol {
             ordinal: None,

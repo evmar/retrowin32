@@ -3,7 +3,7 @@ use crate::winapi::kernel32::SetLastError;
 use crate::winapi::stack_args::ToX86;
 use crate::winapi::types::{
     io_error_to_win32, win32_error_str, DWORD, ERROR_FILE_NOT_FOUND, ERROR_INVALID_DATA,
-    ERROR_INVALID_HANDLE, HFIND, MAX_PATH,
+    ERROR_INVALID_HANDLE, ERROR_SUCCESS, HFIND, MAX_PATH,
 };
 use crate::{
     machine::Machine,
@@ -193,7 +193,10 @@ pub fn CreateFileA(
     }
 
     match machine.host.open(file_name, file_options) {
-        Ok(file) => machine.state.kernel32.files.add(file),
+        Ok(file) => {
+            SetLastError(machine, ERROR_SUCCESS);
+            machine.state.kernel32.files.add(file)
+        }
         Err(code) => {
             log::warn!(
                 "CreateFileA({file_name:?}) failed: {}",
@@ -250,8 +253,8 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
 #[repr(C)]
 #[derive(Debug)]
 pub struct FILETIME {
-    dwLowDateTime: u32,
-    dwHighDateTime: u32,
+    pub dwLowDateTime: u32,
+    pub dwHighDateTime: u32,
 }
 unsafe impl memory::Pod for FILETIME {}
 
@@ -328,6 +331,7 @@ pub fn GetFileInformationByHandle(
         *info = BY_HANDLE_FILE_INFORMATION::from(&stat);
     }
 
+    SetLastError(machine, ERROR_SUCCESS);
     true
 }
 
@@ -375,6 +379,7 @@ pub fn SetFilePointer(
         SetLastError(machine, ERROR_INVALID_DATA);
         return u32::MAX;
     }
+    SetLastError(machine, ERROR_SUCCESS);
     pos as u32
 }
 
@@ -465,6 +470,8 @@ pub fn GetFullPathNameA(
     };
     let out_bytes = out_path.as_bytes();
 
+    SetLastError(machine, ERROR_SUCCESS);
+
     let buf = machine
         .mem()
         .sub(lpBuffer, nBufferLength)
@@ -526,6 +533,8 @@ pub fn GetFullPathNameW(
     };
     let out_bytes = String16::from(&out_path).0;
 
+    SetLastError(machine, ERROR_SUCCESS);
+
     let buf = Str16::from_bytes_mut(
         machine
             .mem()
@@ -563,6 +572,7 @@ pub fn GetFullPathNameW(
 
 #[win32_derive::dllexport]
 pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
+    // TODO
     true
 }
 
@@ -585,6 +595,10 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
             return FileAttribute::INVALID;
         }
     };
+
+    log::debug!("GetFileAttributesA({file_name:?}) -> {stat:?}");
+
+    SetLastError(machine, ERROR_SUCCESS);
 
     match stat.kind {
         StatKind::File => FileAttribute::NORMAL,
@@ -622,6 +636,7 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
 
     log::debug!("GetCurrentDirectoryA -> {out_path}");
 
+    SetLastError(machine, ERROR_SUCCESS);
     out_bytes.len() as u32
 }
 
@@ -724,10 +739,13 @@ pub fn FindFirstFileA(
         }
     };
 
+    log::debug!("FindFirstFileA({file_name:?}) -> {}", next.name);
+
     if let Some(data) = lpFindFileData {
         *data = WIN32_FIND_DATAA::from(&next);
     }
 
+    SetLastError(machine, ERROR_SUCCESS);
     machine.state.kernel32.find_handles.add(handle)
 }
 
@@ -766,6 +784,7 @@ pub fn FindNextFileA(
         *data = WIN32_FIND_DATAA::from(&next);
     }
 
+    SetLastError(machine, ERROR_SUCCESS);
     true
 }
 
@@ -778,9 +797,82 @@ pub fn FindClose(machine: &mut Machine, hFindFile: HFIND) -> bool {
         .remove(hFindFile)
         .is_none()
     {
-        log::warn!("FindClose({hFindFile:?}) unknown handle");
+        log::warn!("FindClose({hFindFile:?}): unknown handle");
         SetLastError(machine, ERROR_INVALID_HANDLE);
         return false;
     }
+
+    SetLastError(machine, ERROR_SUCCESS);
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&mut u32>) -> u32 {
+    let file = match machine.state.kernel32.files.get(hFile) {
+        Some(f) => f,
+        None => {
+            log::warn!("GetFileSize({hFile:?}) unknown handle");
+            SetLastError(machine, ERROR_INVALID_HANDLE);
+            return u32::MAX;
+        }
+    };
+
+    let stat = match file.stat() {
+        Ok(stat) => stat,
+        Err(code) => {
+            log::warn!("GetFileSize({hFile:?}) failed: {}", win32_error_str(code));
+            SetLastError(machine, code);
+            return u32::MAX;
+        }
+    };
+
+    SetLastError(machine, ERROR_SUCCESS);
+
+    if let Some(high) = lpFileSizeHigh {
+        *high = (stat.size >> 32) as u32;
+    } else if stat.size >> 32 != 0 {
+        log::warn!("GetFileSize({hFile:?}) overflow");
+        return u32::MAX;
+    }
+    stat.size as u32
+}
+
+#[win32_derive::dllexport]
+pub fn GetFileTime(
+    machine: &mut Machine,
+    hFile: HFILE,
+    lpCreationTime: Option<&mut FILETIME>,
+    lpLastAccessTime: Option<&mut FILETIME>,
+    lpLastWriteTime: Option<&mut FILETIME>,
+) -> bool {
+    let file = match machine.state.kernel32.files.get(hFile) {
+        Some(f) => f,
+        None => {
+            log::warn!("GetFileTime({hFile:?}) unknown handle");
+            SetLastError(machine, ERROR_INVALID_HANDLE);
+            return false;
+        }
+    };
+
+    let stat = match file.stat() {
+        Ok(stat) => stat,
+        Err(code) => {
+            log::warn!("GetFileTime({hFile:?}) failed: {}", win32_error_str(code));
+            SetLastError(machine, code);
+            return false;
+        }
+    };
+
+    if let Some(time) = lpCreationTime {
+        *time = FILETIME::from_u64(stat.ctime);
+    }
+    if let Some(time) = lpLastAccessTime {
+        *time = FILETIME::from_u64(stat.atime);
+    }
+    if let Some(time) = lpLastWriteTime {
+        *time = FILETIME::from_u64(stat.mtime);
+    }
+
+    SetLastError(machine, ERROR_SUCCESS);
     true
 }
