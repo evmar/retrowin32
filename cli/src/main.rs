@@ -10,6 +10,8 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
+use win32::winapi::types::win32_error_str;
+use win32::Host;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine, count: usize) {
@@ -28,7 +30,7 @@ fn dump_asm(machine: &win32::Machine, count: usize) {
 /// win32 emulator.
 struct Args {
     /// change working directory before running
-    #[argh(option)]
+    #[argh(option, short = 'C')]
     chdir: Option<String>,
 
     /// winapi systems to trace; see trace.rs for docs
@@ -44,18 +46,14 @@ struct Args {
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
 
-    /// exe to run
-    #[argh(positional)]
-    exe: String,
-
-    /// cmdline to pass to exe
-    #[argh(positional)]
-    cmdline: Option<String>,
-
     /// load snapshot from file
     #[cfg(feature = "x86-emu")]
     #[argh(option)]
     snapshot: Option<String>,
+
+    /// command line to run
+    #[argh(positional, greedy)]
+    cmdline: Vec<String>,
 }
 
 #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
@@ -107,9 +105,11 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
     Ok(trace_points)
 }
 
+#[allow(unused)]
+static mut SNAPSHOT_REQUESTED: bool = false;
+
 #[cfg(target_family = "unix")]
 fn install_sigusr1_handler() {
-    static mut SNAPSHOT_REQUESTED: bool = false;
     unsafe extern "C" fn sigusr1(_sig: usize) {
         SNAPSHOT_REQUESTED = true;
     }
@@ -134,15 +134,24 @@ fn main() -> anyhow::Result<()> {
     }
 
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
-    let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
-    let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
+    let exe = args
+        .cmdline
+        .first()
+        .ok_or_else(|| anyhow!("missing command line"))?;
+    let buf = std::fs::read(exe).map_err(|err| anyhow!("{}: {}", exe, err))?;
     let host = host::new_host();
+
+    let mut cmdline = args.cmdline.clone();
+    // TODO: maybe a specific host-to-windows path fn?
+    cmdline[0] = host
+        .canonicalize(&cmdline[0])
+        .map_err(|e| anyhow!("failed to canonicalize exe path: {}", win32_error_str(e)))?;
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
 
     let addrs = machine
-        .load_exe(&buf, &args.exe, None)
-        .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
+        .load_exe(&buf, exe, None)
+        .map_err(|err| anyhow!("loading {}: {}", exe, err))?;
 
     #[cfg(target_family = "unix")]
     install_sigusr1_handler();

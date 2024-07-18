@@ -39,7 +39,7 @@ pub trait Window {
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct FileOptions {
     /// Permit read access.
     pub read: bool,
@@ -54,23 +54,10 @@ pub struct FileOptions {
 }
 
 impl FileOptions {
-    pub fn empty() -> Self {
-        Self {
-            read: false,
-            write: false,
-            truncate: false,
-            create: false,
-            create_new: false,
-        }
-    }
-
     pub fn read() -> Self {
         Self {
             read: true,
-            write: false,
-            truncate: false,
-            create: false,
-            create_new: false,
+            ..Default::default()
         }
     }
 }
@@ -139,6 +126,7 @@ pub struct Message {
 pub trait Host {
     fn exit(&self, code: u32);
     fn time(&self) -> u32;
+    fn system_time(&self) -> chrono::DateTime<chrono::Local>;
 
     /// Get the next pending message, or None if no message waiting.
     fn get_message(&self) -> Option<Message>;

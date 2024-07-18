@@ -56,11 +56,22 @@ pub const DLLS: [builtin::BuiltinDLL; 15] = [
     builtin::retrowin32_test::DLL,
 ];
 
+pub fn dll_alias(name: &str) -> Option<&'static str> {
+    Some(match name {
+        "msvcrt.dll" => "ucrtbase.dll",
+        _ => return None,
+    })
+}
+
 /// Maps a DLL "api set" alias to the underlying dll.
 /// https://learn.microsoft.com/en-us/windows/win32/apiindex/api-set-loader-operation
 pub fn apiset(name: &str) -> Option<&'static str> {
     Some(match name {
+        "api-ms-win-crt-heap-l1-1-0.dll" => "ucrtbase.dll",
+        "api-ms-win-crt-locale-l1-1-0.dll" => "ucrtbase.dll",
         "api-ms-win-crt-runtime-l1-1-0.dll" => "ucrtbase.dll",
+        "api-ms-win-crt-stdio-l1-1-0.dll" => "ucrtbase.dll",
+        "api-ms-win-crt-string-l1-1-0.dll" => "ucrtbase.dll",
         _ => return None,
     })
 }

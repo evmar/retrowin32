@@ -50,7 +50,7 @@ pub type MemImpl = BoxMem;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
+    pub fn new(host: Box<dyn host::Host>, cmdline: Vec<String>) -> Self {
         let mut memory = BoxMem::new(256 << 20);
         let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
         let shims = Shims::default();

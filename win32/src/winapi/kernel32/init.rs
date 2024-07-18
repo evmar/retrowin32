@@ -9,6 +9,7 @@ use crate::{
     Machine,
 };
 use ::memory::Mem;
+use std::borrow::Cow;
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "kernel32/init";
@@ -17,19 +18,27 @@ const TRACE_CONTEXT: &'static str = "kernel32/init";
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
 #[derive(serde::Serialize, serde::Deserialize)]
-struct CommandLine {
+pub struct CommandLine {
+    /// Command line, split args.
+    pub args: Vec<String>,
     /// Command line, ASCII.
-    cmdline: u32,
+    pub cmdline: u32,
     /// Command line, UTF16.
-    cmdline16: u32,
+    pub cmdline16: u32,
     /// Length without trailing nul.
-    len: usize,
+    pub len: usize,
 }
 
 impl CommandLine {
-    fn new(mut cmdline: String, arena: &mut Arena, mem: Mem) -> Self {
-        let len = cmdline.len();
+    fn new(args: Vec<String>, arena: &mut Arena, mem: Mem) -> Self {
+        let mut cmdline = args
+            .iter()
+            .map(|arg| escape_arg(arg))
+            .collect::<Vec<_>>()
+            .join(" ");
 
+        log::debug!("CommandLine: {}", cmdline);
+        let len = cmdline.len();
         cmdline.push(0 as char); // nul terminator
 
         let cmdline8_ptr = arena.alloc(cmdline.len() as u32, 1);
@@ -48,6 +57,7 @@ impl CommandLine {
         mem16.copy_from_slice(&cmdline16.0);
 
         CommandLine {
+            args,
             cmdline: cmdline8_ptr,
             cmdline16: cmdline16_ptr,
             len,
@@ -60,6 +70,27 @@ impl CommandLine {
             MaximumLength: self.len as u16,
             Buffer: self.cmdline16,
         }
+    }
+}
+
+// TODO: unsure if this is accurate
+fn escape_arg(arg: &str) -> Cow<str> {
+    if arg.contains(['"', ' ', '\t', '\n'].as_ref()) {
+        let mut escaped = String::with_capacity(arg.len() + 2);
+        escaped.push('"');
+        for c in arg.chars() {
+            match c {
+                '"' => {
+                    escaped.push('\\');
+                    escaped.push(c);
+                }
+                _ => escaped.push(c),
+            }
+        }
+        escaped.push('"');
+        Cow::Owned(escaped)
+    } else {
+        Cow::Borrowed(arg)
     }
 }
 
@@ -197,11 +228,11 @@ pub struct State {
 
     pub(super) env: u32,
 
-    cmdline: CommandLine,
+    pub cmdline: CommandLine,
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
+    pub fn new(mem: &mut MemImpl, cmdline: Vec<String>) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);

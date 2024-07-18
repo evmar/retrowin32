@@ -46,6 +46,7 @@ impl<'a> super::stack_args::FromStack<'a> for POINT {
 }
 
 // https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
+pub const ERROR_SUCCESS: u32 = 0;
 pub const ERROR_FILE_NOT_FOUND: u32 = 2;
 pub const ERROR_ACCESS_DENIED: u32 = 5;
 pub const ERROR_INVALID_HANDLE: u32 = 6;
@@ -57,6 +58,7 @@ pub const ERROR_ALREADY_EXISTS: u32 = 183;
 
 pub fn win32_error_str(code: u32) -> &'static str {
     match code {
+        ERROR_SUCCESS => "ERROR_SUCCESS",
         ERROR_FILE_NOT_FOUND => "ERROR_FILE_NOT_FOUND",
         ERROR_ACCESS_DENIED => "ERROR_ACCESS_DENIED",
         ERROR_INVALID_HANDLE => "ERROR_INVALID_HANDLE",
@@ -81,3 +83,9 @@ pub fn io_error_to_win32(err: &std::io::Error) -> u32 {
 }
 
 pub const MAX_PATH: usize = 260;
+
+#[inline]
+pub fn unix_nanos_to_filetime(nanos: u64) -> u64 {
+    // 100ns intervals since 1601-01-01
+    (nanos / 100) + 11_644_473_600_000_000
+}
