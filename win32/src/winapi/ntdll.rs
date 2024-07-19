@@ -1,5 +1,4 @@
-#![allow(non_snake_case)]
-#![allow(non_camel_case_types)]
+#![allow(non_snake_case, non_camel_case_types, unused_variables)]
 
 use crate::{
     machine::Machine,

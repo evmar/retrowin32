@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use crate::machine::Machine;
 use bitflags::bitflags;
 use memory::Pod;

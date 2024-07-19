@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,

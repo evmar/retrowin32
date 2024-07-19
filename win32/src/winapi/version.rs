@@ -7,8 +7,8 @@ const TRACE_CONTEXT: &'static str = "version";
 #[win32_derive::dllexport]
 pub fn GetFileVersionInfoSizeA(
     _machine: &mut Machine,
-    lptstrFilename: Option<&str>,
-    lpdwHandle: Option<&mut u32>,
+    _lptstrFilename: Option<&str>,
+    _lpdwHandle: Option<&mut u32>,
 ) -> u32 {
     0 // TODO
 }

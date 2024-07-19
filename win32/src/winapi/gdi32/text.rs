@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::{CLR_INVALID, HDC};
 use crate::{
     winapi::{stack_args::ArrayWithSize, types::HANDLE},

@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::{BitmapType, Object, HGDIOBJ, R2};
 use crate::{
     machine::Machine,

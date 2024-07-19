@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use crate::{host, winapi::types::*, Machine, MouseButton};
 use bitflags::bitflags;
 

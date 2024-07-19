@@ -497,8 +497,8 @@ pub mod gdi32 {
         }
         pub unsafe fn DeleteObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
-            winapi::gdi32::DeleteObject(machine, handle).to_raw()
+            let _handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::DeleteObject(machine, _handle).to_raw()
         }
         pub unsafe fn GetDeviceCaps(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3592,9 +3592,10 @@ pub mod vcruntime140 {
         use winapi::vcruntime140::*;
         pub unsafe fn _CxxThrowException(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let pExceptionObject = <u32>::from_stack(mem, esp + 4u32);
-            let pThrowInfo = <u32>::from_stack(mem, esp + 8u32);
-            winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo).to_raw()
+            let _pExceptionObject = <u32>::from_stack(mem, esp + 4u32);
+            let _pThrowInfo = <u32>::from_stack(mem, esp + 8u32);
+            winapi::vcruntime140::_CxxThrowException(machine, _pExceptionObject, _pThrowInfo)
+                .to_raw()
         }
         pub unsafe fn memcmp(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3681,9 +3682,9 @@ pub mod version {
         use winapi::version::*;
         pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let lptstrFilename = <Option<&str>>::from_stack(mem, esp + 4u32);
-            let lpdwHandle = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
-            winapi::version::GetFileVersionInfoSizeA(machine, lptstrFilename, lpdwHandle).to_raw()
+            let _lptstrFilename = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let _lpdwHandle = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::version::GetFileVersionInfoSizeA(machine, _lptstrFilename, _lpdwHandle).to_raw()
         }
     }
     mod shims {

@@ -1,4 +1,6 @@
-use super::{peb_mut, teb_mut};
+#![allow(non_snake_case, unused_variables)]
+
+use crate::winapi::kernel32::{peb_mut, teb_mut};
 use crate::{
     machine::Machine,
     winapi,

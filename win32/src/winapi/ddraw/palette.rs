@@ -41,7 +41,7 @@ pub mod IDirectDrawPalette {
     fn SetEntries(
         machine: &mut Machine,
         this: u32,
-        unused: u32,
+        _unused: u32,
         start: u32,
         count: u32,
         entries: u32,

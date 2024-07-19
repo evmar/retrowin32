@@ -1,5 +1,4 @@
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
+#![allow(non_snake_case, non_upper_case_globals, unused_variables)]
 
 use super::heap::Heap;
 pub use crate::winapi::com::GUID;

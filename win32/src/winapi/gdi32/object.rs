@@ -131,7 +131,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteObject(_machine: &mut Machine, handle: HGDIOBJ) -> bool {
+pub fn DeleteObject(_machine: &mut Machine, _handle: HGDIOBJ) -> bool {
     // TODO: leak
     true
 }

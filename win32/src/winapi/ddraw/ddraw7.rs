@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! Implementation of DirectDraw7 interfaces.
 
 use super::{palette::IDirectDrawPalette, types::*, DD_OK};

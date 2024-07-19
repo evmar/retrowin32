@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use crate::{winapi::types::*, Machine};
 
 const TRACE_CONTEXT: &'static str = "user32/dialog";

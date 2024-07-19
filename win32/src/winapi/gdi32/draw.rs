@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! Pens, brushes, color.
 
 use super::{DCTarget, Object, CLR_INVALID, HDC, HGDIOBJ};

@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
 use crate::{winapi::types::HANDLE, Machine};

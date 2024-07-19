@@ -5,7 +5,7 @@
 //! Today retrowin32 is capable of loading the dll, but it appears
 //! to be packed with some packer that fails when we load it.
 
-#![allow(non_snake_case)]
+#![allow(non_snake_case, unused_variables)]
 
 use super::kernel32;
 use crate::machine::Machine;

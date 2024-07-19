@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use crate::str16::String16;
 use crate::winapi::kernel32::SetLastError;
 use crate::winapi::stack_args::ToX86;

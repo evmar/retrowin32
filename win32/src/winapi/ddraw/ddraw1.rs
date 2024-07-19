@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! Implementation of DirectDraw1 interfaces, which typically don't have
 //! a "1" suffix but contrast with intefaces with names like IDirectDraw7.
 

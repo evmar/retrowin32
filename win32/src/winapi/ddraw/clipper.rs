@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::DD_OK;
 use crate::{
     winapi::{com::vtable, types::HWND},

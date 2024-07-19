@@ -38,6 +38,6 @@ pub fn memcmp(machine: &mut Machine, lhs: u32, rhs: u32, len: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _CxxThrowException(_machine: &mut Machine, pExceptionObject: u32, pThrowInfo: u32) -> u32 {
+pub fn _CxxThrowException(_machine: &mut Machine, _pExceptionObject: u32, _pThrowInfo: u32) -> u32 {
     panic!("exception");
 }

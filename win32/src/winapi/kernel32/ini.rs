@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! Functions that work with .ini files.
 
 use crate::{

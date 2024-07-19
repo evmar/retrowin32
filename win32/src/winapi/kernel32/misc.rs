@@ -1,3 +1,4 @@
+#![allow(non_snake_case, unused_variables)]
 //! kernel32 API without a better home.
 
 use super::{teb_mut, WriteFile};

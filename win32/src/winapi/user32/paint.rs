@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::{UpdateRegion, HBRUSH, HDC};
 use crate::{
     winapi::{

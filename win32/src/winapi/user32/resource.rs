@@ -1,3 +1,5 @@
+#![allow(non_snake_case, unused_variables)]
+
 use super::HMENU;
 use crate::{
     pe,
