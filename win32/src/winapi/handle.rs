@@ -156,7 +156,7 @@ impl<H: Handle, V> Handles<H, V> {
     pub fn iter(&self) -> impl Iterator<Item = &V> {
         self.map.values()
     }
-    
+
     pub fn remove(&mut self, handle: H) -> Option<V> {
         self.map.remove(&handle.to_raw())
     }

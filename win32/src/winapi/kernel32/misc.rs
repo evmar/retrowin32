@@ -395,11 +395,7 @@ pub fn CloseHandle(_machine: &mut Machine, hObject: u32) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemDirectoryA(
-    machine: &mut Machine,
-    lpBuffer: u32,
-    uSize: u32,
-) -> u32 {
+pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows\\System32";
     let path_bytes = path.as_bytes();
     if uSize < path_bytes.len() as u32 + 1 {
@@ -414,11 +410,7 @@ pub fn GetSystemDirectoryA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowsDirectoryA(
-    machine: &mut Machine,
-    lpBuffer: u32,
-    uSize: u32,
-) -> u32 {
+pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows";
     let path_bytes = path.as_bytes();
     if uSize < path_bytes.len() as u32 + 1 {
