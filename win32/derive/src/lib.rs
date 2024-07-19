@@ -3,16 +3,15 @@ mod parse;
 mod trace;
 
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::quote;
 
 #[proc_macro_attribute]
 pub fn dllexport(
     _attr: proc_macro::TokenStream,
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let mut func: syn::ItemFn = syn::parse_macro_input!(item);
-    trace::add_trace(&mut func);
-    func.into_token_stream().into()
+    let func: syn::ItemFn = syn::parse_macro_input!(item);
+    trace::add_trace(func).into()
 }
 
 /// Generate a `shims` module that contains a wrapper for each function in this module
