@@ -96,13 +96,11 @@ And sometimes I add:
 ## Code layout
 
 - `x86/` -- the x86 emulator
-- `win32/` -- the win32 emulator
-  - `win32/src/winapi/` -- the Windows API implementation
+- [`win32/`](win32/) -- the win32 emulator, see README
 - `cli/` -- a command-line emulator runner
 - `web/` -- a webapp that runs the emulator in a browser
   - `web/glue/` -- wasm glue for the `win32/` API
 - `exe/` -- some sample Windows executables
 - `memory/` -- a memory abstraction shared by `x86` and `win32`
-- `appdb/` -- metadata about particular binaries, see
-  [appdb/README.md](appdb/README.md)
+- [`appdb/`](appdb/) -- metadata about particular binaries, see README
 - `misc/` -- minor helper tools
