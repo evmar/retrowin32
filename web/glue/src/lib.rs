@@ -127,7 +127,7 @@ impl Emulator {
 }
 
 #[wasm_bindgen]
-pub fn new_emulator(host: JsHost, cmdline: Vec<String>) -> Emulator {
+pub fn new_emulator(host: JsHost, cmdline: String) -> Emulator {
     log::init(log::JsLogger::unchecked_from_js(host.clone()));
     let machine = win32::Machine::new(Box::new(host), cmdline);
     Emulator { machine }

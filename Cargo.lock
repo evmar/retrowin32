@@ -156,6 +156,7 @@ name = "glue"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "js-sys",
  "log",
  "serde",

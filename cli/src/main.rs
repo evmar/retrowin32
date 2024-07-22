@@ -10,6 +10,7 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
+use std::borrow::Cow;
 use win32::winapi::types::win32_error_str;
 use win32::Host;
 
@@ -143,11 +144,15 @@ fn main() -> anyhow::Result<()> {
     let host = host::new_host();
 
     let mut cmdline = args.cmdline.clone();
-    // TODO: maybe a specific host-to-windows path fn?
     cmdline[0] = host
         .canonicalize(&cmdline[0])
         .map_err(|e| anyhow!("failed to canonicalize exe path: {}", win32_error_str(e)))?;
-    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
+    let cmdline = cmdline
+        .iter()
+        .map(|s| escape_arg(s))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
 
     let addrs = machine
         .load_exe(&buf, exe, None)
@@ -257,4 +262,24 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn escape_arg(arg: &str) -> Cow<str> {
+    if arg.contains(['"', ' ', '\t', '\n'].as_ref()) {
+        let mut escaped = String::with_capacity(arg.len() + 2);
+        escaped.push('"');
+        for c in arg.chars() {
+            match c {
+                '"' => {
+                    escaped.push('\\');
+                    escaped.push(c);
+                }
+                _ => escaped.push(c),
+            }
+        }
+        escaped.push('"');
+        Cow::Owned(escaped)
+    } else {
+        Cow::Borrowed(arg)
+    }
 }

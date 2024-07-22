@@ -9,7 +9,6 @@ use crate::{
     Machine,
 };
 use ::memory::Mem;
-use std::borrow::Cow;
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "kernel32/init";
@@ -30,12 +29,8 @@ pub struct CommandLine {
 }
 
 impl CommandLine {
-    fn new(args: Vec<String>, arena: &mut Arena, mem: Mem) -> Self {
-        let mut cmdline = args
-            .iter()
-            .map(|arg| escape_arg(arg))
-            .collect::<Vec<_>>()
-            .join(" ");
+    fn new(mut cmdline: String, arena: &mut Arena, mem: Mem) -> Self {
+        let args = split_cmdline(&cmdline);
 
         log::debug!("CommandLine: {}", cmdline);
         let len = cmdline.len();
@@ -73,25 +68,32 @@ impl CommandLine {
     }
 }
 
-// TODO: unsure if this is accurate
-fn escape_arg(arg: &str) -> Cow<str> {
-    if arg.contains(['"', ' ', '\t', '\n'].as_ref()) {
-        let mut escaped = String::with_capacity(arg.len() + 2);
-        escaped.push('"');
-        for c in arg.chars() {
-            match c {
-                '"' => {
-                    escaped.push('\\');
-                    escaped.push(c);
+// TODO: follow the logic for CommandLineToArgvW
+// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-commandlinetoargvw
+fn split_cmdline(cmdline: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut arg = String::new();
+    let mut in_quote = false;
+    for c in cmdline.chars() {
+        match c {
+            ' ' if !in_quote => {
+                if !arg.is_empty() {
+                    args.push(arg);
+                    arg = String::new();
                 }
-                _ => escaped.push(c),
+            }
+            '"' => {
+                in_quote = !in_quote;
+            }
+            _ => {
+                arg.push(c);
             }
         }
-        escaped.push('"');
-        Cow::Owned(escaped)
-    } else {
-        Cow::Borrowed(arg)
     }
+    if !arg.is_empty() {
+        args.push(arg);
+    }
+    args
 }
 
 #[repr(C)]
@@ -232,7 +234,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, cmdline: Vec<String>) -> Self {
+    pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);

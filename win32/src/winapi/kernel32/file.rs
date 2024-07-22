@@ -552,8 +552,6 @@ pub fn GetFullPathNameA(
     buf[..out_bytes.len()].copy_from_slice(out_bytes);
     buf[out_bytes.len()] = 0;
 
-    log::debug!("GetFullPathNameA({file_name:?}) -> {out_path}");
-
     out_bytes.len() as u32
 }
 
@@ -617,8 +615,6 @@ pub fn GetFullPathNameW(
     buf[..out_bytes.len()].copy_from_slice(&out_bytes);
     buf[out_bytes.len()] = 0;
 
-    log::debug!("GetFullPathNameW({file_name:?}) -> {out_path}");
-
     file_name.len() as u32
 }
 
@@ -647,8 +643,6 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
             return FileAttribute::INVALID;
         }
     };
-
-    log::debug!("GetFileAttributesA({file_name:?}) -> {stat:?}");
 
     SetLastError(machine, ERROR_SUCCESS);
 
@@ -685,8 +679,6 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
 
     buf[..out_bytes.len()].copy_from_slice(out_bytes);
     buf[out_bytes.len()] = 0;
-
-    log::debug!("GetCurrentDirectoryA -> {out_path}");
 
     SetLastError(machine, ERROR_SUCCESS);
     out_bytes.len() as u32
@@ -792,8 +784,6 @@ pub fn FindFirstFileA(
             return HFIND::invalid();
         }
     };
-
-    log::debug!("FindFirstFileA({file_name:?}) -> {}", next.name);
 
     if let Some(data) = lpFindFileData {
         *data = WIN32_FIND_DATAA::from(&next);

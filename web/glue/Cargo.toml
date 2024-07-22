@@ -12,6 +12,7 @@ win32 = { workspace = true, features = ["wasm"] }
 x86 = { workspace = true, features = ["wasm"] }
 
 anyhow = "1.0"
+chrono = "0.4.38"
 js-sys = "0.3.69"
 serde = "1.0"
 serde_json = "1.0"
