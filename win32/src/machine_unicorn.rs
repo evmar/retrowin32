@@ -38,7 +38,7 @@ pub struct Emulator {
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>, cmdline: Vec<String>) -> Self {
+    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::new(32 << 20);
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 

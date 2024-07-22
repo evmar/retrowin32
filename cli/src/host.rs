@@ -2,6 +2,7 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
 use win32::winapi::types::{io_error_to_win32, unix_nanos_to_filetime};
@@ -51,10 +52,11 @@ impl FindHandle for FindIterDir {
         match self.iter.next() {
             Some(Ok(entry)) => {
                 let path = entry.path();
+                let windows_path = host_to_windows_path(&path);
                 let name = path.file_name().unwrap().to_string_lossy().into_owned();
                 let meta = entry.metadata().unwrap();
                 Ok(Some(win32::FindFile {
-                    path: path.to_string_lossy().into_owned(),
+                    path: windows_path,
                     name,
                     stat: metadata_to_stat(&meta),
                 }))
@@ -133,13 +135,15 @@ impl win32::Host for EnvRef {
     }
 
     fn canonicalize(&self, path: &str) -> Result<String, u32> {
+        let path = windows_to_host_path(path);
         match std::fs::canonicalize(path) {
-            Ok(p) => Ok(p.to_string_lossy().trim_start_matches("\\\\?\\").to_owned()),
+            Ok(ref p) => Ok(host_to_windows_path(p)),
             Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
 
     fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
+        let path = windows_to_host_path(path);
         let result = std::fs::File::options()
             .read(options.read)
             .write(options.write)
@@ -154,6 +158,7 @@ impl win32::Host for EnvRef {
     }
 
     fn stat(&self, path: &str) -> Result<Stat, u32> {
+        let path = windows_to_host_path(path);
         match std::fs::metadata(path) {
             Ok(ref meta) => Ok(metadata_to_stat(meta)),
             Err(ref e) => Err(io_error_to_win32(e)),
@@ -161,6 +166,7 @@ impl win32::Host for EnvRef {
     }
 
     fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32> {
+        let path = windows_to_host_path(path);
         let full_path = match std::fs::canonicalize(path) {
             Ok(p) => p,
             Err(ref e) => return Err(io_error_to_win32(e)),
@@ -174,13 +180,15 @@ impl win32::Host for EnvRef {
                     };
                     Ok(Box::new(FindIterDir { iter }))
                 } else {
+                    let path = host_to_windows_path(&full_path);
+                    let filename = full_path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned();
                     let file = win32::FindFile {
-                        path: full_path.to_string_lossy().into_owned(),
-                        name: full_path
-                            .file_name()
-                            .unwrap()
-                            .to_string_lossy()
-                            .into_owned(),
+                        path,
+                        name: filename,
                         stat: metadata_to_stat(&meta),
                     };
                     Ok(Box::new(FindIterFile {
@@ -239,4 +247,40 @@ fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
         ctime: meta.created().map_or(0, system_time_to_filetime),
         mtime: meta.modified().map_or(0, system_time_to_filetime),
     }
+}
+
+#[cfg(unix)]
+fn windows_to_host_path(mut path: &str) -> PathBuf {
+    path = path
+        .strip_prefix("\\\\?\\")
+        .or_else(|| path.strip_prefix("\\\\.\\"))
+        .unwrap_or(path);
+    path = path
+        .strip_prefix("Z:")
+        .or_else(|| path.strip_prefix("z:"))
+        .unwrap_or(path);
+    let path = path.replace(['\\', ':'], "/");
+    PathBuf::from(path)
+}
+
+#[cfg(unix)]
+fn host_to_windows_path(path: &Path) -> String {
+    let path_string = path.to_string_lossy().to_string().replace('/', "\\");
+    if path.is_absolute() {
+        format!("Z:{}", path_string)
+    } else {
+        path_string
+    }
+}
+
+#[cfg(windows)]
+fn windows_to_host_path(path: &str) -> PathBuf {
+    PathBuf::from(path)
+}
+
+#[cfg(windows)]
+fn host_to_windows_path(path: &Path) -> String {
+    path.to_string_lossy()
+        .trim_start_matches("\\\\?\\")
+        .into_owned()
 }

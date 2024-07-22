@@ -203,10 +203,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
 
     let mut contents = Vec::new();
     let exe = machine.state.kernel32.cmdline.args.first().unwrap();
-    let exe_dir = std::path::Path::new(exe)
-        .parent()
-        .unwrap()
-        .to_string_lossy();
+    let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
     let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
     for path in &dll_paths {
         let mut file = match machine.host.open(path, host::FileOptions::read()) {
