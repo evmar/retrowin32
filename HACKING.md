@@ -73,6 +73,27 @@ To choose the rendering strategy, there is one further toggle:
 
 Web builds require `x86-emu` and no `sdl`.
 
+### rust-analyzer
+
+Rust's IDE support doesn't know about which features you're using. In VSCode I
+configure it via my workspace config, like the following, which I change when
+working on different sets of features:
+
+```json
+"rust-analyzer.cargo.noDefaultFeatures": true,
+"rust-analyzer.check.features": [
+  "x86-emu",
+  "sdl"
+],
+"rust-analyzer.cargo.features": [
+  "x86-emu",
+  "sdl"
+],
+"rust-analyzer.cargo.extraEnv": {
+  "XWIN": "/Users/evmar/redist"
+}
+```
+
 ## Building while developing
 
 There are three build profiles:
