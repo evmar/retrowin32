@@ -97,6 +97,7 @@ pub struct Stat {
 
 #[derive(Debug, Clone, Copy)]
 pub enum MouseButton {
+    None,
     Left,
     Middle,
     Right,

@@ -45,6 +45,20 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
                 y: y as u32,
             }),
         ),
+        sdl2::event::Event::MouseMotion {
+            timestamp,
+            x,
+            y,
+            ..
+        } => (
+            timestamp,
+            win32::MessageDetail::Mouse(win32::MouseMessage {
+                down: false,
+                button: win32::MouseButton::None,
+                x: x as u32,
+                y: y as u32,
+            }),
+        ),
         _ => {
             // log::warn!("unhandled event: {:?}", event);
             return None;
