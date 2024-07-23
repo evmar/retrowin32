@@ -178,7 +178,7 @@ impl Shims {
     }
 }
 
-pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture<u32> {
     // TODO: x86_64-apple-darwin vs x86_64-pc-windows-msvc calling conventions differ!
     #[cfg(target_arch = "x86_64")]
     unsafe {
@@ -213,6 +213,8 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         }
         STACK32 = esp;
 
+        #[allow(unused_mut)]
+        let mut ret = 0;
         std::arch::asm!(
             // We need to back up all non-scratch registers (rbx/rbp),
             // because even callee-saved registers will only be saved as 32-bit,
@@ -239,7 +241,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
             // We try to clear all registers so that traces line up across invocations,
             // so mark each one as clobbered and use them above explicitly.
-            inout("eax") func => _,  // passed to tramp32
+            inout("eax") func => ret,  // passed to tramp32
             inout("ecx") return_addr as u32 => _,
             // ebx is preserved/restored
             inout("edx") 0 => _,
@@ -252,7 +254,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             stack32 = sym STACK32,
         );
 
-        UnimplFuture {}
+        UnimplFuture::new(ret)
     }
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused

@@ -179,7 +179,11 @@ impl MachineX<Emulator> {
         self.emu.x86.execute_block(self.emu.memory.mem())
     }
 
-    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
+    pub fn call_x86(
+        &mut self,
+        func: u32,
+        args: Vec<u32>,
+    ) -> impl std::future::Future<Output = u32> {
         self.emu
             .x86
             .cpu_mut()
