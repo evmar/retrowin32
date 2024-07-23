@@ -98,7 +98,7 @@ fn handle_shim_call(machine: &mut Machine) -> u32 {
     ret_addr
 }
 
-pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture {
+pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture<u32> {
     let mem = machine.emu.memory.mem();
 
     let ret_addr = machine
@@ -127,7 +127,12 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
 
     unicorn_loop(machine, func, ret_addr);
 
-    UnimplFuture {}
+    let ret = machine
+        .emu
+        .unicorn
+        .reg_read(unicorn_engine::RegisterX86::EAX)
+        .unwrap() as u32;
+    UnimplFuture::new(ret)
 }
 
 /// Run emulation via machine.emu starting from eip=begin until eip==until is hit.

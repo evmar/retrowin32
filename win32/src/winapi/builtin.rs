@@ -3574,13 +3574,51 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
-            winapi::ucrtbase::_initterm(machine, start, end).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ucrtbase::_initterm(machine, start, end).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 0u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ucrtbase::_initterm(machine, start, end));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn _initterm_e(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
-            winapi::ucrtbase::_initterm_e(machine, start, end).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ucrtbase::_initterm_e(machine, start, end).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 0u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ucrtbase::_initterm_e(machine, start, end));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn _lock(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3596,6 +3634,16 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let status = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::exit(machine, status).to_raw()
+        }
+        pub unsafe fn free(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let ptr = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::free(machine, ptr).to_raw()
+        }
+        pub unsafe fn malloc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let size = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::malloc(machine, size).to_raw()
         }
     }
     mod shims {
@@ -3629,13 +3677,13 @@ pub mod ucrtbase {
             name: "_initterm",
             func: impls::_initterm,
             stack_consumed: 0u32,
-            is_async: false,
+            is_async: true,
         };
         pub const _initterm_e: Shim = Shim {
             name: "_initterm_e",
             func: impls::_initterm_e,
             stack_consumed: 0u32,
-            is_async: false,
+            is_async: true,
         };
         pub const _lock: Shim = Shim {
             name: "_lock",
@@ -3655,8 +3703,20 @@ pub mod ucrtbase {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const free: Shim = Shim {
+            name: "free",
+            func: impls::free,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const malloc: Shim = Shim {
+            name: "malloc",
+            func: impls::malloc,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 9usize] = [
+    const EXPORTS: [Symbol; 11usize] = [
         Symbol {
             ordinal: None,
             shim: shims::__dllonexit,
@@ -3692,6 +3752,14 @@ pub mod ucrtbase {
         Symbol {
             ordinal: None,
             shim: shims::exit,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::free,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::malloc,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

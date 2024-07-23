@@ -194,7 +194,11 @@ impl MachineX<Emulator> {
         })
     }
 
-    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl std::future::Future {
+    pub fn call_x86(
+        &mut self,
+        func: u32,
+        args: Vec<u32>,
+    ) -> impl std::future::Future<Output = u32> {
         crate::shims_unicorn::call_x86(self, func, args)
     }
 }
