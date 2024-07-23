@@ -46,7 +46,7 @@ pub enum WM {
     ACTIVATEAPP = 0x001C,
     WINDOWPOSCHANGED = 0x0047,
     TIMER = 0x0113,
-    WM_MOUSEMOVE = 0x0200,
+    MOUSEMOVE = 0x0200,
     LBUTTONDOWN = 0x0201,
     LBUTTONUP = 0x0202,
     LBUTTONDBLCLK = 0x0203,
@@ -76,7 +76,7 @@ fn msg_from_message(message: host::Message) -> MSG {
         }
         host::MessageDetail::Mouse(mouse) => {
             msg.message = match (mouse.button, mouse.down) {
-                (MouseButton::None, _) => WM::WM_MOUSEMOVE,
+                (MouseButton::None, _) => WM::MOUSEMOVE,
                 (MouseButton::Left, true) => WM::LBUTTONDOWN,
                 (MouseButton::Left, false) => WM::LBUTTONUP,
                 (MouseButton::Right, true) => WM::RBUTTONDOWN,
