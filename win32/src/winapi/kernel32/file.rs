@@ -266,6 +266,11 @@ impl FILETIME {
             dwHighDateTime: (value >> 32) as u32,
         }
     }
+
+    #[inline]
+    pub fn as_u64(&self) -> u64 {
+        (self.dwHighDateTime as u64) << 32 | self.dwLowDateTime as u64
+    }
 }
 
 #[repr(C)]
@@ -388,9 +393,13 @@ pub fn ReadFile(
     machine: &mut Machine,
     hFile: HFILE,
     lpBuffer: ArrayWithSizeMut<u8>,
-    lpNumberOfBytesRead: Option<&mut u32>,
+    mut lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
+    // "ReadFile sets this value to zero before doing any work or error checking."
+    if let Some(bytes) = lpNumberOfBytesRead.as_deref_mut() {
+        *bytes = 0;
+    }
     let Some(file) = (match hFile {
         STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
         _ => machine.state.kernel32.files.get_mut(hFile),
@@ -436,9 +445,13 @@ pub fn WriteFile(
     machine: &mut Machine,
     hFile: HFILE,
     lpBuffer: ArrayWithSize<u8>,
-    lpNumberOfBytesWritten: Option<&mut u32>,
+    mut lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
+    // "WriteFile sets this value to zero before doing any work or error checking."
+    if let Some(bytes) = lpNumberOfBytesWritten.as_deref_mut() {
+        *bytes = 0;
+    }
     if lpOverlapped != 0 {
         unimplemented!("ReadFile overlapped");
     }

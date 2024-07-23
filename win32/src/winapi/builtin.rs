@@ -1117,6 +1117,12 @@ pub mod kernel32 {
             let uExitCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ExitProcess(machine, uExitCode).to_raw()
         }
+        pub unsafe fn FileTimeToSystemTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileTime = <Option<&FILETIME>>::from_stack(mem, esp + 4u32);
+            let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FileTimeToSystemTime(machine, lpFileTime, lpSystemTime).to_raw()
+        }
         pub unsafe fn FindClose(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFindFile = <HFIND>::from_stack(mem, esp + 4u32);
@@ -1147,6 +1153,27 @@ pub mod kernel32 {
             let lpName = <ResourceKey<&Str16>>::from_stack(mem, esp + 8u32);
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
+        }
+        pub unsafe fn FormatMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwFlags = <u32>::from_stack(mem, esp + 4u32);
+            let lpSource = <u32>::from_stack(mem, esp + 8u32);
+            let dwMessageId = <u32>::from_stack(mem, esp + 12u32);
+            let dwLanguageId = <u32>::from_stack(mem, esp + 16u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 20u32);
+            let nSize = <u32>::from_stack(mem, esp + 24u32);
+            let args = <u32>::from_stack(mem, esp + 28u32);
+            winapi::kernel32::FormatMessageA(
+                machine,
+                dwFlags,
+                lpSource,
+                dwMessageId,
+                dwLanguageId,
+                lpBuffer,
+                nSize,
+                args,
+            )
+            .to_raw()
         }
         pub unsafe fn FormatMessageW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2097,6 +2124,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const FileTimeToSystemTime: Shim = Shim {
+            name: "FileTimeToSystemTime",
+            func: impls::FileTimeToSystemTime,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const FindClose: Shim = Shim {
             name: "FindClose",
             func: impls::FindClose,
@@ -2125,6 +2158,12 @@ pub mod kernel32 {
             name: "FindResourceW",
             func: impls::FindResourceW,
             stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const FormatMessageA: Shim = Shim {
+            name: "FormatMessageA",
+            func: impls::FormatMessageA,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const FormatMessageW: Shim = Shim {
@@ -2836,7 +2875,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 136usize] = [
+    const EXPORTS: [Symbol; 138usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2891,6 +2930,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::FileTimeToSystemTime,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::FindClose,
         },
         Symbol {
@@ -2908,6 +2951,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::FindResourceW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FormatMessageA,
         },
         Symbol {
             ordinal: None,

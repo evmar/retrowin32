@@ -431,3 +431,22 @@ pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) ->
     }
     path_bytes.len() as u32
 }
+
+#[win32_derive::dllexport]
+pub fn FormatMessageA(
+    machine: &mut Machine,
+    dwFlags: u32,
+    lpSource: u32,
+    dwMessageId: u32,
+    dwLanguageId: u32,
+    lpBuffer: u32,
+    nSize: u32,
+    args: u32,
+) -> u32 {
+    log::warn!("FormatMessageA: stub");
+    if lpBuffer != 0 && nSize > 0 {
+        let mem = machine.mem().sub(lpBuffer, nSize).as_mut_slice_todo();
+        mem[0] = 0;
+    }
+    0
+}

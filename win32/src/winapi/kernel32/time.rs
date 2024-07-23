@@ -1,5 +1,5 @@
 use super::{SetLastError, FILETIME};
-use crate::winapi::types::{unix_nanos_to_filetime, ERROR_INVALID_DATA};
+use crate::winapi::types::{filetime_to_unix_nanos, unix_nanos_to_filetime, ERROR_INVALID_DATA};
 use crate::Machine;
 use chrono::{Datelike, Timelike};
 use memory::Pod;
@@ -62,7 +62,7 @@ pub fn GetSystemTimeAsFileTime(
             *time = FILETIME::zeroed();
             return 0;
         };
-        *time = FILETIME::from_u64(unix_nanos_to_filetime(nanos as u64));
+        *time = FILETIME::from_u64(unix_nanos_to_filetime(nanos));
     }
     0
 }
@@ -122,7 +122,26 @@ pub fn SystemTimeToFileTime(
             *time = FILETIME::zeroed();
             return false;
         };
-        *time = FILETIME::from_u64(unix_nanos_to_filetime(nanos as u64));
+        *time = FILETIME::from_u64(unix_nanos_to_filetime(nanos));
+    }
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn FileTimeToSystemTime(
+    machine: &mut Machine,
+    lpFileTime: Option<&FILETIME>,
+    lpSystemTime: Option<&mut SYSTEMTIME>,
+) -> bool {
+    let Some(lpFileTime) = lpFileTime else {
+        log::warn!("FileTimeToSystemTime: lpFileTime is null");
+        SetLastError(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+    let nanos = filetime_to_unix_nanos(lpFileTime.as_u64());
+    let date_time = chrono::DateTime::from_timestamp_nanos(nanos);
+    if let Some(time) = lpSystemTime {
+        *time = SYSTEMTIME::from_chrono(&date_time);
     }
     true
 }
