@@ -2,7 +2,7 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
 use win32::winapi::types::{io_error_to_win32, unix_nanos_to_filetime};
@@ -135,11 +135,14 @@ impl win32::Host for EnvRef {
     }
 
     fn canonicalize(&self, path: &str) -> Result<String, u32> {
-        let path = windows_to_host_path(path);
-        match std::fs::canonicalize(path) {
-            Ok(ref p) => Ok(host_to_windows_path(p)),
-            Err(ref e) => Err(io_error_to_win32(e)),
+        let mut path = windows_to_host_path(path);
+        if path.is_relative() {
+            path = std::env::current_dir()
+                .map_err(|e| io_error_to_win32(&e))?
+                .join(path);
         }
+        path = normalize_path(&path);
+        Ok(host_to_windows_path(&path))
     }
 
     fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
@@ -229,7 +232,10 @@ pub fn new_host() -> impl win32::Host + Clone {
 /// Convert a `SystemTime` to hecto-nanoseconds since Windows epoch (1601-01-01).
 /// See https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
 fn system_time_to_filetime(t: SystemTime) -> u64 {
-    unix_nanos_to_filetime(t.duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64)
+    unix_nanos_to_filetime(match t.duration_since(UNIX_EPOCH) {
+        Ok(d) => d.as_nanos() as i64,
+        Err(e) => -(e.duration().as_nanos() as i64),
+    })
 }
 
 fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
@@ -283,4 +289,32 @@ fn host_to_windows_path(path: &Path) -> String {
     path.to_string_lossy()
         .trim_start_matches("\\\\?\\")
         .into_owned()
+}
+
+// From https://github.com/rust-lang/cargo/blob/fede83ccf973457de319ba6fa0e36ead454d2e20/src/cargo/util/paths.rs#L61
+fn normalize_path(path: &Path) -> PathBuf {
+    let mut components = path.components().peekable();
+    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
+        components.next();
+        PathBuf::from(c.as_os_str())
+    } else {
+        PathBuf::new()
+    };
+
+    for component in components {
+        match component {
+            Component::Prefix(..) => unreachable!(),
+            Component::RootDir => {
+                ret.push(component.as_os_str());
+            }
+            Component::CurDir => {}
+            Component::ParentDir => {
+                ret.pop();
+            }
+            Component::Normal(c) => {
+                ret.push(c);
+            }
+        }
+    }
+    ret
 }

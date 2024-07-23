@@ -85,7 +85,22 @@ pub fn io_error_to_win32(err: &std::io::Error) -> u32 {
 pub const MAX_PATH: usize = 260;
 
 #[inline]
-pub fn unix_nanos_to_filetime(nanos: u64) -> u64 {
+pub fn unix_nanos_to_filetime(nanos: i64) -> u64 {
     // 100ns intervals since 1601-01-01
-    (nanos / 100) + 11_644_473_600_000_000
+    let hnsecs = nanos
+        .div_euclid(100)
+        .saturating_add(116_444_736_000_000_000);
+    if hnsecs < 0 {
+        0
+    } else {
+        hnsecs as u64
+    }
+}
+
+#[inline]
+pub fn filetime_to_unix_nanos(filetime: u64) -> i64 {
+    if filetime > i64::MAX as u64 {
+        return i64::MAX;
+    }
+    (filetime as i64).saturating_sub(116_444_736_000_000_000) * 100
 }
