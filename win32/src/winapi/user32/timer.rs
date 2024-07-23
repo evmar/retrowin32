@@ -76,11 +76,14 @@ pub fn SetTimer(
         .user32
         .timers
         .0
-        .iter()
+        .iter_mut()
         .find(|t| t.hwnd == hWnd && t.id == nIDEvent)
     {
-        Some(_) => {
-            todo!("update existing timer");
+        Some(timer) => {
+            timer.period = uElapse;
+            timer.next = machine.host.time() + uElapse;
+            timer.func = lpTimerFunc;
+            timer.id
         }
         None => {
             let id = machine.state.user32.timers.0.len() as u32 + 1;
