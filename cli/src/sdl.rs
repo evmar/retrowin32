@@ -46,10 +46,7 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
             }),
         ),
         sdl2::event::Event::MouseMotion {
-            timestamp,
-            x,
-            y,
-            ..
+            timestamp, x, y, ..
         } => (
             timestamp,
             win32::MessageDetail::Mouse(win32::MouseMessage {
