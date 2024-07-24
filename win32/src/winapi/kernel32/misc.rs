@@ -13,9 +13,13 @@ use bitflags::bitflags;
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
+pub fn set_last_error(machine: &mut Machine, err: u32) {
+    teb_mut(machine).LastErrorValue = err;
+}
+
 #[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
-    teb_mut(machine).LastErrorValue = dwErrCode;
+    set_last_error(machine, dwErrCode);
     0 // unused
 }
 
@@ -392,11 +396,11 @@ pub fn FormatMessageW(
 pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
     if machine.state.kernel32.files.remove(hObject).is_none() {
         log::warn!("CloseHandle({hObject:?}): unknown handle");
-        SetLastError(machine, ERROR_INVALID_HANDLE);
+        set_last_error(machine, ERROR_INVALID_HANDLE);
         return false;
     }
 
-    SetLastError(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR_SUCCESS);
     true
 }
 
@@ -407,7 +411,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }
-    SetLastError(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR_SUCCESS);
     if lpBuffer != 0 {
         let mem = machine.mem().sub(lpBuffer, uSize).as_mut_slice_todo();
         mem[..path_bytes.len()].copy_from_slice(path_bytes);
@@ -420,7 +424,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
 pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows";
     let path_bytes = path.as_bytes();
-    SetLastError(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR_SUCCESS);
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }

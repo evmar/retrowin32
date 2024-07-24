@@ -1,4 +1,4 @@
-use super::{SetLastError, FILETIME};
+use super::{set_last_error, FILETIME};
 use crate::winapi::types::{unix_nanos_to_filetime, ERROR_INVALID_DATA};
 use crate::Machine;
 use chrono::{Datelike, Timelike};
@@ -93,7 +93,7 @@ pub fn SystemTimeToFileTime(
 ) -> bool {
     let Some(lpSystemTime) = lpSystemTime else {
         log::warn!("SystemTimeToFileTime: lpSystemTime is null");
-        SetLastError(machine, ERROR_INVALID_DATA);
+        set_last_error(machine, ERROR_INVALID_DATA);
         return false;
     };
     let date_time = match chrono::NaiveDate::from_ymd_opt(
@@ -112,7 +112,7 @@ pub fn SystemTimeToFileTime(
         Some(dt) => dt.and_utc(),
         None => {
             log::warn!("SystemTimeToFileTime: invalid SYSTEMTIME");
-            SetLastError(machine, ERROR_INVALID_DATA);
+            set_last_error(machine, ERROR_INVALID_DATA);
             return false;
         }
     };
