@@ -2,7 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
-use win32::{FindHandle, Stat, StatKind};
+use win32::{FindHandle, Stat, StatKind, WindowsPath};
 
 struct WebSurface {
     _hwnd: u32,
@@ -300,19 +300,23 @@ impl win32::Host for JsHost {
         false
     }
 
-    fn canonicalize(&self, path: &str) -> Result<String, u32> {
-        todo!("canonicalize {path}")
+    fn open(
+        &self,
+        path: &WindowsPath,
+        options: win32::FileOptions,
+    ) -> Result<Box<dyn win32::File>, u32> {
+        Ok(Box::new(JsHost::open(
+            self,
+            &path.to_string_lossy(),
+            options,
+        )))
     }
 
-    fn open(&self, path: &str, options: win32::FileOptions) -> Result<Box<dyn win32::File>, u32> {
-        Ok(Box::new(JsHost::open(self, path, options)))
-    }
-
-    fn stat(&self, path: &str) -> Result<Stat, u32> {
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {
         todo!("stat {path}")
     }
 
-    fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32> {
+    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
         todo!("find {path}")
     }
 
@@ -331,5 +335,9 @@ impl win32::Host for JsHost {
         opts: &win32::SurfaceOptions,
     ) -> Box<dyn win32::Surface> {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
+    }
+
+    fn current_dir(&self) -> Result<win32::WindowsPathBuf, u32> {
+        todo!()
     }
 }

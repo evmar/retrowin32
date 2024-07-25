@@ -1,6 +1,6 @@
 //! Interfaces expected of the x86 host.
 
-use typed_path::{WindowsPath, WindowsPathBuf};
+pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 /// DirectDraw surface.
 pub trait Surface {
