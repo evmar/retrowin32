@@ -1,5 +1,7 @@
 //! Interfaces expected of the x86 host.
 
+use typed_path::{WindowsPath, WindowsPathBuf};
+
 /// DirectDraw surface.
 pub trait Surface {
     /// Write RGBA pixel data directly.
@@ -72,7 +74,6 @@ pub trait FindHandle {
 
 #[derive(Debug, Clone)]
 pub struct FindFile {
-    pub path: String,
     pub name: String,
     pub stat: Stat,
 }
@@ -84,15 +85,14 @@ pub enum StatKind {
     Symlink,
 }
 
-// Times are in hecto-nanoseconds (100ns units) since the
-// Windows epoch (1601-01-01 UTC).
+// Times are in nanoseconds relative to the Unix epoch.
 #[derive(Debug, Clone)]
 pub struct Stat {
     pub kind: StatKind,
     pub size: u64,
-    pub atime: u64,
-    pub ctime: u64,
-    pub mtime: u64,
+    pub atime: i64,
+    pub ctime: i64,
+    pub mtime: i64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -138,10 +138,14 @@ pub trait Host {
     /// unblock() when ready.
     fn block(&self, wait: Option<u32>) -> bool;
 
-    fn canonicalize(&self, path: &str) -> Result<String, u32>;
-    fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn File>, u32>;
-    fn stat(&self, path: &str) -> Result<Stat, u32>;
-    fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32>;
+    /// Retrieves the absolute (Windows-style) path of the current working directory.
+    fn current_dir(&self) -> Result<WindowsPathBuf, u32>;
+    /// Open a file at the given (Windows-style) path.
+    fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn File>, u32>;
+    /// Retrieve file or directory metadata at the given (Windows-style) path.
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32>;
+    /// Open a directory at the given (Windows-style) path.
+    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32>;
     fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;

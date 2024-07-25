@@ -14,6 +14,7 @@ use crate::{
     FileOptions, FindFile, Stat, StatKind,
 };
 use bitflags::bitflags;
+use typed_path::WindowsPath;
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
 
@@ -192,7 +193,8 @@ pub fn CreateFileA(
         unimplemented!("hTemplateFile {hTemplateFile:?}");
     }
 
-    match machine.host.open(file_name, file_options) {
+    let path = WindowsPath::new(file_name);
+    match machine.host.open(path, file_options) {
         Ok(file) => {
             SetLastError(machine, ERROR_SUCCESS);
             machine.state.kernel32.files.add(file)
@@ -250,13 +252,19 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
     FILE_TYPE_UNKNOWN
 }
 
+/// Contains a 64-bit value representing the number of 100-nanosecond intervals since
+/// January 1, 1601 (UTC).
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub struct FILETIME {
     pub dwLowDateTime: u32,
     pub dwHighDateTime: u32,
 }
 unsafe impl memory::Pod for FILETIME {}
+
+/// Number of 100ns intervals between 1601-01-01 and 1970-01-01.
+/// Used to convert between Win32 FILETIME and Unix time.
+const HNSEC_UNIX_OFFSET: i64 = 116_444_736_000_000_000;
 
 impl FILETIME {
     #[inline]
@@ -268,8 +276,21 @@ impl FILETIME {
     }
 
     #[inline]
-    pub fn as_u64(&self) -> u64 {
+    pub fn to_u64(self) -> u64 {
         (self.dwHighDateTime as u64) << 32 | self.dwLowDateTime as u64
+    }
+
+    pub fn from_unix_nanos(nanos: i64) -> Self {
+        let hnsecs = nanos.div_euclid(100).saturating_add(HNSEC_UNIX_OFFSET);
+        Self::from_u64(if hnsecs < 0 { 0 } else { hnsecs as u64 })
+    }
+
+    pub fn to_unix_nanos(self) -> i64 {
+        let hnsecs = self.to_u64();
+        if hnsecs > i64::MAX as u64 {
+            return i64::MAX;
+        }
+        (hnsecs as i64).saturating_sub(HNSEC_UNIX_OFFSET) * 100
     }
 }
 
@@ -291,9 +312,9 @@ impl From<&Stat> for BY_HANDLE_FILE_INFORMATION {
     fn from(stat: &Stat) -> Self {
         Self {
             dwFileAttributes: FileAttribute::from(stat).to_raw(),
-            ftCreationTime: FILETIME::from_u64(stat.ctime),
-            ftLastAccessTime: FILETIME::from_u64(stat.atime),
-            ftLastWriteTime: FILETIME::from_u64(stat.mtime),
+            ftCreationTime: FILETIME::from_unix_nanos(stat.ctime),
+            ftLastAccessTime: FILETIME::from_unix_nanos(stat.atime),
+            ftLastWriteTime: FILETIME::from_unix_nanos(stat.mtime),
             dwVolumeSerialNumber: 0,
             nFileSizeHigh: (stat.size >> 32) as u32,
             nFileSizeLow: stat.size as u32,
@@ -522,7 +543,7 @@ pub fn GetFullPathNameA(
         return 0;
     };
 
-    let out_path = match machine.host.canonicalize(file_name) {
+    let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
             log::warn!(
@@ -533,6 +554,7 @@ pub fn GetFullPathNameA(
             return 0;
         }
     };
+    let out_path = cwd.join(file_name).normalize();
     let out_bytes = out_path.as_bytes();
 
     SetLastError(machine, ERROR_SUCCESS);
@@ -583,7 +605,7 @@ pub fn GetFullPathNameW(
     };
 
     let file_name = file_name.to_string();
-    let out_path = match machine.host.canonicalize(&file_name) {
+    let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
             log::warn!(
@@ -594,7 +616,8 @@ pub fn GetFullPathNameW(
             return 0;
         }
     };
-    let out_bytes = String16::from(&out_path).0;
+    let out_path = cwd.join(&file_name).normalize();
+    let out_bytes = String16::from(out_path.to_string_lossy().as_ref()).0;
 
     SetLastError(machine, ERROR_SUCCESS);
 
@@ -645,7 +668,8 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
         return FileAttribute::INVALID;
     };
 
-    let stat = match machine.host.stat(file_name) {
+    let path = WindowsPath::new(file_name);
+    let stat = match machine.host.stat(path) {
         Ok(stat) => stat,
         Err(code) => {
             log::warn!(
@@ -668,8 +692,7 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
 
 #[win32_derive::dllexport]
 pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
-    // TODO: keep track of pwd in machine state
-    let out_path = match machine.host.canonicalize(".") {
+    let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
             log::warn!("GetCurrentDirectoryA failed: {}", win32_error_str(code));
@@ -677,7 +700,7 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
             return 0;
         }
     };
-    let out_bytes = out_path.as_bytes();
+    let out_bytes = cwd.as_bytes();
 
     let buf = machine
         .mem()
@@ -719,9 +742,9 @@ impl From<&FindFile> for WIN32_FIND_DATAA {
         let stat = &file.stat;
         let mut data = Self {
             dwFileAttributes: FileAttribute::from(stat).to_raw(),
-            ftCreationTime: FILETIME::from_u64(stat.ctime),
-            ftLastAccessTime: FILETIME::from_u64(stat.atime),
-            ftLastWriteTime: FILETIME::from_u64(stat.mtime),
+            ftCreationTime: FILETIME::from_unix_nanos(stat.ctime),
+            ftLastAccessTime: FILETIME::from_unix_nanos(stat.atime),
+            ftLastWriteTime: FILETIME::from_unix_nanos(stat.mtime),
             nFileSizeHigh: (stat.size >> 32) as DWORD,
             nFileSizeLow: stat.size as DWORD,
             dwReserved0: if stat.kind == StatKind::Symlink {
@@ -769,7 +792,8 @@ pub fn FindFirstFileA(
         todo!("FindFirstFileA({file_name:?}) wildcards");
     }
 
-    let mut handle = match machine.host.find(file_name) {
+    let path = WindowsPath::new(file_name);
+    let mut handle = match machine.host.find(path) {
         Ok(handle) => handle,
         Err(code) => {
             log::warn!(
@@ -921,13 +945,13 @@ pub fn GetFileTime(
     };
 
     if let Some(time) = lpCreationTime {
-        *time = FILETIME::from_u64(stat.ctime);
+        *time = FILETIME::from_unix_nanos(stat.ctime);
     }
     if let Some(time) = lpLastAccessTime {
-        *time = FILETIME::from_u64(stat.atime);
+        *time = FILETIME::from_unix_nanos(stat.atime);
     }
     if let Some(time) = lpLastWriteTime {
-        *time = FILETIME::from_u64(stat.mtime);
+        *time = FILETIME::from_unix_nanos(stat.mtime);
     }
 
     SetLastError(machine, ERROR_SUCCESS);

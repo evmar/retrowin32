@@ -144,9 +144,14 @@ fn main() -> anyhow::Result<()> {
     let host = host::new_host();
 
     let mut cmdline = args.cmdline.clone();
-    cmdline[0] = host
-        .canonicalize(&cmdline[0])
-        .map_err(|e| anyhow!("failed to canonicalize exe path: {}", win32_error_str(e)))?;
+    let cwd = host
+        .current_dir()
+        .map_err(|e| anyhow!("failed to get current dir: {}", win32_error_str(e)))?;
+    cmdline[0] = cwd
+        .join(&cmdline[0])
+        .normalize()
+        .to_string_lossy()
+        .into_owned();
     let cmdline = cmdline
         .iter()
         .map(|s| escape_arg(s))
