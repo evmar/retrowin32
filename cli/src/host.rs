@@ -2,10 +2,11 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::path::{Component, Path, PathBuf};
+use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
-use win32::winapi::types::{io_error_to_win32, unix_nanos_to_filetime};
+use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
+use win32::winapi::types::io_error_to_win32;
 use win32::{FileOptions, FindHandle, Stat};
 
 struct File {
@@ -51,12 +52,14 @@ impl FindHandle for FindIterDir {
     fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
         match self.iter.next() {
             Some(Ok(entry)) => {
-                let path = entry.path();
-                let windows_path = host_to_windows_path(&path);
-                let name = path.file_name().unwrap().to_string_lossy().into_owned();
+                let name = entry
+                    .path()
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned();
                 let meta = entry.metadata().unwrap();
                 Ok(Some(win32::FindFile {
-                    path: windows_path,
                     name,
                     stat: metadata_to_stat(&meta),
                 }))
@@ -134,18 +137,12 @@ impl win32::Host for EnvRef {
         gui.block(wait)
     }
 
-    fn canonicalize(&self, path: &str) -> Result<String, u32> {
-        let mut path = windows_to_host_path(path);
-        if path.is_relative() {
-            path = std::env::current_dir()
-                .map_err(|e| io_error_to_win32(&e))?
-                .join(path);
-        }
-        path = normalize_path(&path);
+    fn current_dir(&self) -> Result<WindowsPathBuf, u32> {
+        let path = std::env::current_dir().map_err(|e| io_error_to_win32(&e))?;
         Ok(host_to_windows_path(&path))
     }
 
-    fn open(&self, path: &str, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
+    fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
         let path = windows_to_host_path(path);
         let result = std::fs::File::options()
             .read(options.read)
@@ -160,7 +157,7 @@ impl win32::Host for EnvRef {
         }
     }
 
-    fn stat(&self, path: &str) -> Result<Stat, u32> {
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {
         let path = windows_to_host_path(path);
         match std::fs::metadata(path) {
             Ok(ref meta) => Ok(metadata_to_stat(meta)),
@@ -168,7 +165,7 @@ impl win32::Host for EnvRef {
         }
     }
 
-    fn find(&self, path: &str) -> Result<Box<dyn FindHandle>, u32> {
+    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
         let path = windows_to_host_path(path);
         let full_path = match std::fs::canonicalize(path) {
             Ok(p) => p,
@@ -183,14 +180,12 @@ impl win32::Host for EnvRef {
                     };
                     Ok(Box::new(FindIterDir { iter }))
                 } else {
-                    let path = host_to_windows_path(&full_path);
                     let filename = full_path
                         .file_name()
                         .unwrap()
                         .to_string_lossy()
                         .into_owned();
                     let file = win32::FindFile {
-                        path,
                         name: filename,
                         stat: metadata_to_stat(&meta),
                     };
@@ -229,13 +224,12 @@ pub fn new_host() -> impl win32::Host + Clone {
     EnvRef(Rc::new(RefCell::new(Env::new())))
 }
 
-/// Convert a `SystemTime` to hecto-nanoseconds since Windows epoch (1601-01-01).
-/// See https://learn.microsoft.com/en-us/windows/win32/api/minwinbase/ns-minwinbase-filetime
-fn system_time_to_filetime(t: SystemTime) -> u64 {
-    unix_nanos_to_filetime(match t.duration_since(UNIX_EPOCH) {
+/// Convert a `SystemTime` to nanoseconds relative to the Unix epoch.
+fn system_time_to_nanos(t: SystemTime) -> i64 {
+    match t.duration_since(UNIX_EPOCH) {
         Ok(d) => d.as_nanos() as i64,
         Err(e) => -(e.duration().as_nanos() as i64),
-    })
+    }
 }
 
 fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
@@ -249,72 +243,45 @@ fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
     Stat {
         kind,
         size: meta.len(),
-        atime: meta.accessed().map_or(0, system_time_to_filetime),
-        ctime: meta.created().map_or(0, system_time_to_filetime),
-        mtime: meta.modified().map_or(0, system_time_to_filetime),
+        atime: meta.accessed().map_or(0, system_time_to_nanos),
+        ctime: meta.created().map_or(0, system_time_to_nanos),
+        mtime: meta.modified().map_or(0, system_time_to_nanos),
     }
 }
 
 #[cfg(unix)]
-fn windows_to_host_path(mut path: &str) -> PathBuf {
+fn windows_to_host_path(mut path: &WindowsPath) -> PathBuf {
     path = path
         .strip_prefix("\\\\?\\")
-        .or_else(|| path.strip_prefix("\\\\.\\"))
+        .or_else(|_| path.strip_prefix("\\\\.\\"))
         .unwrap_or(path);
     path = path
         .strip_prefix("Z:")
-        .or_else(|| path.strip_prefix("z:"))
+        .or_else(|_| path.strip_prefix("z:"))
         .unwrap_or(path);
-    let path = path.replace(['\\', ':'], "/");
-    PathBuf::from(path)
+    let unix = path.with_unix_encoding();
+    PathBuf::from(unix.as_path())
 }
 
 #[cfg(unix)]
-fn host_to_windows_path(path: &Path) -> String {
-    let path_string = path.to_string_lossy().to_string().replace('/', "\\");
-    if path.is_absolute() {
-        format!("Z:{}", path_string)
+fn host_to_windows_path(path: &Path) -> WindowsPathBuf {
+    let unix_path = UnixPath::new(path.as_os_str().as_encoded_bytes());
+    let windows_path = unix_path.with_windows_encoding();
+    if unix_path.is_absolute() {
+        WindowsPath::new("Z:").join(windows_path)
     } else {
-        path_string
+        windows_path
     }
 }
 
 #[cfg(windows)]
-fn windows_to_host_path(path: &str) -> PathBuf {
+#[inline]
+fn windows_to_host_path(path: &WindowsPath) -> PathBuf {
     PathBuf::from(path)
 }
 
 #[cfg(windows)]
-fn host_to_windows_path(path: &Path) -> String {
-    path.to_string_lossy()
-        .trim_start_matches("\\\\?\\")
-        .into_owned()
-}
-
-// From https://github.com/rust-lang/cargo/blob/fede83ccf973457de319ba6fa0e36ead454d2e20/src/cargo/util/paths.rs#L61
-fn normalize_path(path: &Path) -> PathBuf {
-    let mut components = path.components().peekable();
-    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
-        components.next();
-        PathBuf::from(c.as_os_str())
-    } else {
-        PathBuf::new()
-    };
-
-    for component in components {
-        match component {
-            Component::Prefix(..) => unreachable!(),
-            Component::RootDir => {
-                ret.push(component.as_os_str());
-            }
-            Component::CurDir => {}
-            Component::ParentDir => {
-                ret.pop();
-            }
-            Component::Normal(c) => {
-                ret.push(c);
-            }
-        }
-    }
-    ret
+#[inline]
+fn host_to_windows_path(path: &Path) -> WindowsPathBuf {
+    WindowsPathBuf::from(path.as_os_str().as_encoded_bytes())
 }

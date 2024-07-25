@@ -8,6 +8,7 @@ use crate::{
     winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::io::Write;
+use typed_path::WindowsPath;
 
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
@@ -206,6 +207,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
     let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
     for path in &dll_paths {
+        let path = WindowsPath::new(path);
         let mut file = match machine.host.open(path, host::FileOptions::read()) {
             Ok(file) => file,
             Err(_) => continue,

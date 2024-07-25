@@ -314,6 +314,7 @@ dependencies = [
  "libc",
  "log",
  "sdl2",
+ "typed-path",
  "unicorn-engine",
  "win32",
  "x86",
@@ -447,6 +448,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "typed-path"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "04645b6c01cfb2ddabffc7c67ae6bfe7c3e28a5c37d729f6bb498e784f1fd70c"
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -550,6 +557,7 @@ dependencies = [
  "serde",
  "serde_bytes",
  "tsify",
+ "typed-path",
  "unicorn-engine",
  "wasm-bindgen",
  "win32-derive",
