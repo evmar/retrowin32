@@ -149,13 +149,13 @@ pub fn or_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm16_r16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn or_rm16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm16(cpu, mem, instr);
     let x = rm16(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
 }
 
-pub fn or_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn or_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
     x.set(or(x.get(), y, &mut cpu.flags));
