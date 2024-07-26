@@ -86,7 +86,7 @@ impl FindHandle for FindIterFile {
     }
 }
 
-struct Env {
+pub struct Env {
     gui: Option<GUI>,
     exit_code: Option<u32>,
 }
@@ -105,10 +105,14 @@ impl Env {
         }
         Ok(self.gui.as_mut().unwrap())
     }
+
+    pub fn exit_code(&self) -> Option<u32> {
+        self.exit_code
+    }
 }
 
 #[derive(Clone)]
-struct EnvRef(Rc<RefCell<Env>>);
+pub struct EnvRef(pub Rc<RefCell<Env>>);
 
 impl win32::Host for EnvRef {
     fn exit(&self, code: u32) {
@@ -220,7 +224,7 @@ impl win32::Host for EnvRef {
     }
 }
 
-pub fn new_host() -> impl win32::Host + Clone {
+pub fn new_host() -> EnvRef {
     EnvRef(Rc::new(RefCell::new(Env::new())))
 }
 
