@@ -65,7 +65,7 @@ struct Args {
 #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
 fn print_trace(machine: &win32::Machine) {
     #[cfg(feature = "x86-emu")]
-    let (eip, eax, ebx, ecx, edx, esi, edi, esp, st_top) = {
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp, ebp, st_top) = {
         let regs = &machine.emu.x86.cpu().regs;
         (
             regs.eip,
@@ -76,12 +76,13 @@ fn print_trace(machine: &win32::Machine) {
             regs.get32(x86::Register::ESI),
             regs.get32(x86::Register::EDI),
             regs.get32(x86::Register::ESP),
+            regs.get32(x86::Register::EBP),
             machine.emu.x86.cpu().fpu.st_top,
         )
     };
 
     #[cfg(feature = "x86-unicorn")]
-    let (eip, eax, ebx, ecx, edx, esi, edi, esp, st_top) = {
+    let (eip, eax, ebx, ecx, edx, esi, edi, esp, ebp, st_top) = {
         let unicorn = &machine.emu.unicorn;
         (
             unicorn.reg_read(unicorn_engine::RegisterX86::EIP).unwrap(),
@@ -92,11 +93,12 @@ fn print_trace(machine: &win32::Machine) {
             unicorn.reg_read(unicorn_engine::RegisterX86::ESI).unwrap(),
             unicorn.reg_read(unicorn_engine::RegisterX86::EDI).unwrap(),
             unicorn.reg_read(unicorn_engine::RegisterX86::ESP).unwrap(),
+            unicorn.reg_read(unicorn_engine::RegisterX86::EBP).unwrap(),
             -1,
         )
     };
 
-    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} st_top:{st_top}");
+    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x} st_top:{st_top}");
 }
 
 fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
