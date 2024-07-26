@@ -239,7 +239,7 @@ impl State {
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);
 
-        let env = "\0\0".as_bytes();
+        let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
         mem.mem()
             .sub(env_addr, env.len() as u32)
