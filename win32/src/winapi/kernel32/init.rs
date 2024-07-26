@@ -1,6 +1,6 @@
 //! Process initialization and startup.
 
-use super::{ExitProcess, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
+use super::{ExitProcess, FindHandle, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
 use crate::{
     machine::MemImpl,
     pe,
@@ -222,7 +222,7 @@ pub struct State {
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
     #[serde(skip)] // TODO
-    pub find_handles: Handles<HFIND, Box<dyn crate::host::FindHandle>>,
+    pub find_handles: Handles<HFIND, FindHandle>,
 
     #[serde(skip)]
     #[cfg(feature = "x86-64")]

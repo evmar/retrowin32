@@ -484,3 +484,14 @@ pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominato
 
     result as i32
 }
+
+#[win32_derive::dllexport]
+pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -> bool {
+    // TODO
+    false
+}
+
+#[win32_derive::dllexport]
+pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
+    false
+}

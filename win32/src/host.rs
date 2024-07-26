@@ -66,14 +66,15 @@ impl FileOptions {
 
 pub trait File: std::io::Read + std::io::Write + std::io::Seek {
     fn stat(&self) -> Result<Stat, u32>;
+    fn set_len(&self, len: u64) -> Result<(), u32>;
 }
 
-pub trait FindHandle {
-    fn next(&mut self) -> Result<Option<FindFile>, u32>;
+pub trait ReadDir {
+    fn next(&mut self) -> Result<Option<ReadDirEntry>, u32>;
 }
 
 #[derive(Debug, Clone)]
-pub struct FindFile {
+pub struct ReadDirEntry {
     pub name: String,
     pub stat: Stat,
 }
@@ -144,8 +145,14 @@ pub trait Host {
     fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn File>, u32>;
     /// Retrieve file or directory metadata at the given (Windows-style) path.
     fn stat(&self, path: &WindowsPath) -> Result<Stat, u32>;
-    /// Open a directory at the given (Windows-style) path.
-    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32>;
+    /// Iterate the contents of a directory at the given (Windows-style) path.
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, u32>;
+    /// Create a new directory at the given (Windows-style) path.
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), u32>;
+    /// Remove a file at the given (Windows-style) path.
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), u32>;
+    /// Remove a directory at the given (Windows-style) path.
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), u32>;
     fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;

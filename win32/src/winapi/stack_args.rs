@@ -49,6 +49,30 @@ impl<'a, T: FromArg<'a>> FromStack<'a> for T {
     }
 }
 
+impl<'a> FromArg<'a> for u8 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg as u8
+    }
+}
+
+impl<'a> FromArg<'a> for i8 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg as i8
+    }
+}
+
+impl<'a> FromArg<'a> for u16 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg as u16
+    }
+}
+
+impl<'a> FromArg<'a> for i16 {
+    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+        arg as i16
+    }
+}
+
 impl<'a> FromArg<'a> for u32 {
     unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg
