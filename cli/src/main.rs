@@ -11,6 +11,7 @@ mod resv32;
 
 use anyhow::anyhow;
 use std::borrow::Cow;
+use std::process::ExitCode;
 use win32::winapi::types::win32_error_str;
 use win32::Host;
 
@@ -124,9 +125,7 @@ fn install_sigusr1_handler() {
     }
 }
 
-fn main() -> anyhow::Result<()> {
-    logging::init();
-
+fn main() -> anyhow::Result<ExitCode> {
     #[cfg(feature = "x86-64")]
     unsafe {
         crate::resv32::init_resv32();
@@ -275,7 +274,13 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    Ok(())
+    let exit_code = host
+        .0
+        .borrow()
+        .exit_code()
+        .map(|c| ExitCode::from(c.try_into().unwrap_or(u8::MAX)))
+        .unwrap_or(ExitCode::SUCCESS);
+    Ok(exit_code)
 }
 
 fn escape_arg(arg: &str) -> Cow<str> {
