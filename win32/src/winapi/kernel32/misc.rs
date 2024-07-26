@@ -202,7 +202,7 @@ pub fn WriteConsoleA(
     lpReserved: u32,
 ) -> bool {
     let msg = std::str::from_utf8(lpBuffer.unwrap()).unwrap();
-    log::warn!("WriteConsoleA: {:?}", msg);
+    log::debug!("WriteConsoleA: {:?}", msg);
     if let Some(w) = lpNumberOfCharsWritten {
         *w = msg.len() as u32;
     }
@@ -395,7 +395,7 @@ pub fn FormatMessageW(
 #[win32_derive::dllexport]
 pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
     if machine.state.kernel32.files.remove(hObject).is_none() {
-        log::warn!("CloseHandle({hObject:?}): unknown handle");
+        log::debug!("CloseHandle({hObject:?}): unknown handle");
         set_last_error(machine, ERROR_INVALID_HANDLE);
         return false;
     }

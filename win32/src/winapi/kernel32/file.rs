@@ -153,7 +153,7 @@ pub fn CreateFileA(
     hTemplateFile: HFILE,
 ) -> HFILE {
     let Some(file_name) = lpFileName else {
-        log::warn!("CreateFileA failed: null lpFileName");
+        log::debug!("CreateFileA failed: null lpFileName");
         set_last_error(machine, ERROR_INVALID_DATA);
         return HFILE::invalid();
     };
@@ -163,7 +163,7 @@ pub fn CreateFileA(
     let creation_disposition = match dwCreationDisposition {
         Ok(value) => value,
         Err(value) => {
-            log::warn!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
+            log::debug!("CreateFileA({file_name:?}) failed: invalid dwCreationDisposition {value}");
             set_last_error(machine, ERROR_INVALID_DATA);
             return HFILE::invalid();
         }
@@ -200,7 +200,7 @@ pub fn CreateFileA(
             machine.state.kernel32.files.add(file)
         }
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "CreateFileA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -335,7 +335,7 @@ pub fn GetFileInformationByHandle(
     let file = match machine.state.kernel32.files.get(hFile) {
         Some(f) => f,
         None => {
-            log::warn!("GetFileInformationByHandle({hFile:?}) unknown handle");
+            log::debug!("GetFileInformationByHandle({hFile:?}) unknown handle");
             set_last_error(machine, ERROR_INVALID_DATA);
             return false;
         }
@@ -344,7 +344,7 @@ pub fn GetFileInformationByHandle(
     let stat = match file.stat() {
         Ok(stat) => stat,
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "GetFileInformationByHandle({hFile:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -381,7 +381,7 @@ pub fn SetFilePointer(
         lDistanceToMove |= (**high as i64) << 32;
     }
     let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
-        log::warn!("SetFilePointer({hFile:?}) unknown handle");
+        log::debug!("SetFilePointer({hFile:?}) unknown handle");
         set_last_error(machine, ERROR_INVALID_HANDLE);
         return u32::MAX;
     };
@@ -393,7 +393,7 @@ pub fn SetFilePointer(
     let pos = match file.seek(seek) {
         Ok(pos) => pos,
         Err(err) => {
-            log::warn!("SetFilePointer({hFile:?}) failed: {:?}", err);
+            log::debug!("SetFilePointer({hFile:?}) failed: {:?}", err);
             set_last_error(machine, io_error_to_win32(&err));
             return u32::MAX;
         }
@@ -401,7 +401,7 @@ pub fn SetFilePointer(
     if let Some(high) = lpDistanceToMoveHigh {
         *high = (pos >> 32) as i32;
     } else if pos >> 32 != 0 {
-        log::warn!("SetFilePointer({hFile:?}) overflow");
+        log::debug!("SetFilePointer({hFile:?}) overflow");
         set_last_error(machine, ERROR_INVALID_DATA);
         return u32::MAX;
     }
@@ -425,7 +425,7 @@ pub fn ReadFile(
         STDIN_HFILE => unimplemented!("ReadFile(stdin)"),
         _ => machine.state.kernel32.files.get_mut(hFile),
     }) else {
-        log::warn!("ReadFile({hFile:?}) unknown handle");
+        log::debug!("ReadFile({hFile:?}) unknown handle");
         set_last_error(machine, ERROR_INVALID_HANDLE);
         return false;
     };
@@ -433,7 +433,7 @@ pub fn ReadFile(
         unimplemented!("ReadFile overlapped");
     }
     let Some(mut buf) = lpBuffer.to_option() else {
-        log::warn!("ReadFile({hFile:?}) failed: null lpBuffer");
+        log::debug!("ReadFile({hFile:?}) failed: null lpBuffer");
         set_last_error(machine, ERROR_INVALID_DATA);
         return false;
     };
@@ -447,7 +447,7 @@ pub fn ReadFile(
                 buf = &mut buf[n..];
             }
             Err(err) => {
-                log::warn!("ReadFile({hFile:?}) failed: {:?}", err);
+                log::debug!("ReadFile({hFile:?}) failed: {:?}", err);
                 set_last_error(machine, io_error_to_win32(&err));
                 return false;
             }
@@ -477,7 +477,7 @@ pub fn WriteFile(
         unimplemented!("ReadFile overlapped");
     }
     let Some(mut buf) = lpBuffer else {
-        log::warn!("WriteFile({hFile:?}) failed: null lpBuffer");
+        log::debug!("WriteFile({hFile:?}) failed: null lpBuffer");
         set_last_error(machine, ERROR_INVALID_DATA);
         return false;
     };
@@ -489,7 +489,7 @@ pub fn WriteFile(
         }
         _ => {
             let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
-                log::warn!("WriteFile({hFile:?}) unknown handle");
+                log::debug!("WriteFile({hFile:?}) unknown handle");
                 set_last_error(machine, ERROR_INVALID_HANDLE);
                 return false;
             };
@@ -502,7 +502,7 @@ pub fn WriteFile(
                         buf = &buf[n..];
                     }
                     Err(err) => {
-                        log::warn!("WriteFile({hFile:?}) failed: {:?}", err);
+                        log::debug!("WriteFile({hFile:?}) failed: {:?}", err);
                         set_last_error(machine, io_error_to_win32(&err));
                         return false;
                     }
@@ -538,7 +538,7 @@ pub fn GetFullPathNameA(
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
     let Some(file_name) = lpFileName else {
-        log::warn!("GetFullPathNameA failed: null lpFileName");
+        log::debug!("GetFullPathNameA failed: null lpFileName");
         set_last_error(machine, ERROR_INVALID_DATA);
         return 0;
     };
@@ -546,7 +546,7 @@ pub fn GetFullPathNameA(
     let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "GetFullPathNameA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -599,7 +599,7 @@ pub fn GetFullPathNameW(
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
     let Some(file_name) = lpFileName else {
-        log::warn!("GetFullPathNameW failed: null lpFileName");
+        log::debug!("GetFullPathNameW failed: null lpFileName");
         set_last_error(machine, ERROR_INVALID_DATA);
         return 0;
     };
@@ -608,7 +608,7 @@ pub fn GetFullPathNameW(
     let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "GetFullPathNameW({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -663,7 +663,7 @@ pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
 #[win32_derive::dllexport]
 pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> FileAttribute {
     let Some(file_name) = lpFileName else {
-        log::warn!("CreateFileA failed: null lpFileName");
+        log::debug!("CreateFileA failed: null lpFileName");
         set_last_error(machine, ERROR_INVALID_DATA);
         return FileAttribute::INVALID;
     };
@@ -672,7 +672,7 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
     let stat = match machine.host.stat(path) {
         Ok(stat) => stat,
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "GetFileAttributesA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -695,7 +695,7 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
     let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(code) => {
-            log::warn!("GetCurrentDirectoryA failed: {}", win32_error_str(code));
+            log::debug!("GetCurrentDirectoryA failed: {}", win32_error_str(code));
             set_last_error(machine, code);
             return 0;
         }
@@ -778,7 +778,7 @@ pub fn FindFirstFileA(
     lpFindFileData: Option<&mut WIN32_FIND_DATAA>,
 ) -> HFIND {
     let Some(file_name) = lpFileName else {
-        log::warn!("FindFirstFileA failed: null lpFileName");
+        log::debug!("FindFirstFileA failed: null lpFileName");
         set_last_error(machine, ERROR_INVALID_DATA);
         return HFIND::invalid();
     };
@@ -796,7 +796,7 @@ pub fn FindFirstFileA(
     let mut handle = match machine.host.find(path) {
         Ok(handle) => handle,
         Err(code) => {
-            log::warn!(
+            log::debug!(
                 "FindFirstFileA({file_name:?}) failed: {}",
                 win32_error_str(code)
             );
@@ -839,7 +839,7 @@ pub fn FindNextFileA(
     let handle = match machine.state.kernel32.find_handles.get_mut(hFindFile) {
         Some(handle) => handle,
         None => {
-            log::warn!("FindNextFileA({hFindFile:?}) unknown handle");
+            log::debug!("FindNextFileA({hFindFile:?}) unknown handle");
             set_last_error(machine, ERROR_INVALID_HANDLE);
             return false;
         }
@@ -878,7 +878,7 @@ pub fn FindClose(machine: &mut Machine, hFindFile: HFIND) -> bool {
         .remove(hFindFile)
         .is_none()
     {
-        log::warn!("FindClose({hFindFile:?}): unknown handle");
+        log::debug!("FindClose({hFindFile:?}): unknown handle");
         set_last_error(machine, ERROR_INVALID_HANDLE);
         return false;
     }
@@ -892,7 +892,7 @@ pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&
     let file = match machine.state.kernel32.files.get(hFile) {
         Some(f) => f,
         None => {
-            log::warn!("GetFileSize({hFile:?}) unknown handle");
+            log::debug!("GetFileSize({hFile:?}) unknown handle");
             set_last_error(machine, ERROR_INVALID_HANDLE);
             return u32::MAX;
         }
@@ -901,7 +901,7 @@ pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&
     let stat = match file.stat() {
         Ok(stat) => stat,
         Err(code) => {
-            log::warn!("GetFileSize({hFile:?}) failed: {}", win32_error_str(code));
+            log::debug!("GetFileSize({hFile:?}) failed: {}", win32_error_str(code));
             set_last_error(machine, code);
             return u32::MAX;
         }
@@ -912,7 +912,7 @@ pub fn GetFileSize(machine: &mut Machine, hFile: HFILE, lpFileSizeHigh: Option<&
     if let Some(high) = lpFileSizeHigh {
         *high = (stat.size >> 32) as u32;
     } else if stat.size >> 32 != 0 {
-        log::warn!("GetFileSize({hFile:?}) overflow");
+        log::debug!("GetFileSize({hFile:?}) overflow");
         return u32::MAX;
     }
     stat.size as u32
@@ -929,7 +929,7 @@ pub fn GetFileTime(
     let file = match machine.state.kernel32.files.get(hFile) {
         Some(f) => f,
         None => {
-            log::warn!("GetFileTime({hFile:?}) unknown handle");
+            log::debug!("GetFileTime({hFile:?}) unknown handle");
             set_last_error(machine, ERROR_INVALID_HANDLE);
             return false;
         }
@@ -938,7 +938,7 @@ pub fn GetFileTime(
     let stat = match file.stat() {
         Ok(stat) => stat,
         Err(code) => {
-            log::warn!("GetFileTime({hFile:?}) failed: {}", win32_error_str(code));
+            log::debug!("GetFileTime({hFile:?}) failed: {}", win32_error_str(code));
             set_last_error(machine, code);
             return false;
         }

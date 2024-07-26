@@ -27,7 +27,7 @@ impl log::Log for Logger {
     }
 }
 
-pub fn init() {
+pub fn init(max_level: log::LevelFilter) {
     log::set_logger(&LOGGER).unwrap();
-    log::set_max_level(log::LevelFilter::Debug);
+    log::set_max_level(max_level);
 }
