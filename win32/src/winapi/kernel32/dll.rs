@@ -57,7 +57,7 @@ impl DLL {
             Some(export) => register(Ok(&export.shim)),
             None => {
                 let name = format!("{}:{}", self.name, sym);
-                log::warn!("unimplemented: {}", name);
+                log::debug!("unimplemented: {}", name);
                 register(Err(name))
             }
         };

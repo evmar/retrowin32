@@ -52,6 +52,10 @@ struct Args {
     #[argh(option)]
     snapshot: Option<String>,
 
+    /// enable debug logging
+    #[argh(switch)]
+    debug: bool,
+
     /// command line to run
     #[argh(positional, greedy)]
     cmdline: Vec<String>,
@@ -129,6 +133,11 @@ fn main() -> anyhow::Result<()> {
     }
 
     let args: Args = argh::from_env();
+    logging::init(if args.debug {
+        log::LevelFilter::Debug
+    } else {
+        log::LevelFilter::Info
+    });
 
     if let Some(dir) = args.chdir {
         std::env::set_current_dir(dir).unwrap();
