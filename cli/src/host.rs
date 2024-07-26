@@ -2,36 +2,23 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::{cell::RefCell, io::Write, path::Path, rc::Rc};
+use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::{cell::RefCell, io::Write, rc::Rc};
+use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
+use win32::winapi::types::io_error_to_win32;
+use win32::{FileOptions, FindHandle, Stat};
 
 struct File {
     f: std::fs::File,
 }
 
-impl File {
-    fn open(path: &Path) -> Self {
-        let f = match std::fs::File::open(path) {
-            Ok(f) => f,
-            Err(err) => {
-                log::error!("opening {:?}: {}", path, err);
-                let path = if cfg!(target_family = "unix") {
-                    "/dev/null"
-                } else if cfg!(target_family = "windows") {
-                    "nul"
-                } else {
-                    panic!()
-                };
-                std::fs::File::open(path).unwrap()
-            }
-        };
-        File { f }
-    }
-}
-
 impl win32::File for File {
-    fn info(&self) -> u32 {
-        let meta = self.f.metadata().unwrap();
-        meta.len() as u32
+    fn stat(&self) -> Result<Stat, u32> {
+        match self.f.metadata() {
+            Ok(ref meta) => Ok(metadata_to_stat(meta)),
+            Err(ref e) => Err(io_error_to_win32(e)),
+        }
     }
 }
 
@@ -54,6 +41,48 @@ impl std::io::Write for File {
 impl std::io::Seek for File {
     fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
         self.f.seek(pos)
+    }
+}
+
+struct FindIterDir {
+    iter: std::fs::ReadDir,
+}
+
+impl FindHandle for FindIterDir {
+    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+        match self.iter.next() {
+            Some(Ok(entry)) => {
+                let name = entry
+                    .path()
+                    .file_name()
+                    .unwrap()
+                    .to_string_lossy()
+                    .into_owned();
+                let meta = entry.metadata().unwrap();
+                Ok(Some(win32::FindFile {
+                    name,
+                    stat: metadata_to_stat(&meta),
+                }))
+            }
+            Some(Err(ref e)) => Err(io_error_to_win32(e)),
+            None => Ok(None),
+        }
+    }
+}
+
+struct FindIterFile {
+    file: win32::FindFile,
+    consumed: bool,
+}
+
+impl FindHandle for FindIterFile {
+    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+        if self.consumed {
+            Ok(None)
+        } else {
+            self.consumed = true;
+            Ok(Some(self.file.clone()))
+        }
     }
 }
 
@@ -92,6 +121,10 @@ impl win32::Host for EnvRef {
         gui.time()
     }
 
+    fn system_time(&self) -> chrono::DateTime<chrono::Local> {
+        chrono::Local::now()
+    }
+
     fn get_message(&self) -> Option<win32::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
@@ -104,12 +137,65 @@ impl win32::Host for EnvRef {
         gui.block(wait)
     }
 
-    fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
-        match access {
-            win32::FileAccess::READ => Box::new(File::open(Path::new(path))),
-            win32::FileAccess::WRITE => Box::new(File {
-                f: std::fs::File::create(path).unwrap(),
-            }),
+    fn current_dir(&self) -> Result<WindowsPathBuf, u32> {
+        let path = std::env::current_dir().map_err(|e| io_error_to_win32(&e))?;
+        Ok(host_to_windows_path(&path))
+    }
+
+    fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
+        let path = windows_to_host_path(path);
+        let result = std::fs::File::options()
+            .read(options.read)
+            .write(options.write)
+            .truncate(options.truncate)
+            .create(options.create)
+            .create_new(options.create_new)
+            .open(path);
+        match result {
+            Ok(f) => Ok(Box::new(File { f })),
+            Err(ref e) => Err(io_error_to_win32(e)),
+        }
+    }
+
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {
+        let path = windows_to_host_path(path);
+        match std::fs::metadata(path) {
+            Ok(ref meta) => Ok(metadata_to_stat(meta)),
+            Err(ref e) => Err(io_error_to_win32(e)),
+        }
+    }
+
+    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
+        let path = windows_to_host_path(path);
+        let full_path = match std::fs::canonicalize(path) {
+            Ok(p) => p,
+            Err(ref e) => return Err(io_error_to_win32(e)),
+        };
+        match std::fs::metadata(&full_path) {
+            Ok(meta) => {
+                if meta.is_dir() {
+                    let iter = match std::fs::read_dir(&full_path) {
+                        Ok(iter) => iter,
+                        Err(ref e) => return Err(io_error_to_win32(e)),
+                    };
+                    Ok(Box::new(FindIterDir { iter }))
+                } else {
+                    let filename = full_path
+                        .file_name()
+                        .unwrap()
+                        .to_string_lossy()
+                        .into_owned();
+                    let file = win32::FindFile {
+                        name: filename,
+                        stat: metadata_to_stat(&meta),
+                    };
+                    Ok(Box::new(FindIterFile {
+                        file,
+                        consumed: false,
+                    }))
+                }
+            }
+            Err(ref e) => Err(io_error_to_win32(e)),
         }
     }
 
@@ -136,4 +222,66 @@ impl win32::Host for EnvRef {
 
 pub fn new_host() -> impl win32::Host + Clone {
     EnvRef(Rc::new(RefCell::new(Env::new())))
+}
+
+/// Convert a `SystemTime` to nanoseconds relative to the Unix epoch.
+fn system_time_to_nanos(t: SystemTime) -> i64 {
+    match t.duration_since(UNIX_EPOCH) {
+        Ok(d) => d.as_nanos() as i64,
+        Err(e) => -(e.duration().as_nanos() as i64),
+    }
+}
+
+fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
+    let kind = if meta.is_dir() {
+        win32::StatKind::Directory
+    } else if meta.is_file() {
+        win32::StatKind::File
+    } else {
+        win32::StatKind::Symlink
+    };
+    Stat {
+        kind,
+        size: meta.len(),
+        atime: meta.accessed().map_or(0, system_time_to_nanos),
+        ctime: meta.created().map_or(0, system_time_to_nanos),
+        mtime: meta.modified().map_or(0, system_time_to_nanos),
+    }
+}
+
+#[cfg(unix)]
+fn windows_to_host_path(mut path: &WindowsPath) -> PathBuf {
+    path = path
+        .strip_prefix("\\\\?\\")
+        .or_else(|_| path.strip_prefix("\\\\.\\"))
+        .unwrap_or(path);
+    path = path
+        .strip_prefix("Z:")
+        .or_else(|_| path.strip_prefix("z:"))
+        .unwrap_or(path);
+    let unix = path.with_unix_encoding();
+    PathBuf::from(unix.as_path())
+}
+
+#[cfg(unix)]
+fn host_to_windows_path(path: &Path) -> WindowsPathBuf {
+    let unix_path = UnixPath::new(path.as_os_str().as_encoded_bytes());
+    let windows_path = unix_path.with_windows_encoding();
+    if unix_path.is_absolute() {
+        WindowsPath::new("Z:").join(windows_path)
+    } else {
+        windows_path
+    }
+}
+
+#[cfg(windows)]
+#[inline]
+fn windows_to_host_path(path: &WindowsPath) -> PathBuf {
+    PathBuf::from(path)
+}
+
+#[cfg(windows)]
+#[inline]
+fn host_to_windows_path(path: &Path) -> WindowsPathBuf {
+    WindowsPathBuf::from(path.as_os_str().as_encoded_bytes())
 }

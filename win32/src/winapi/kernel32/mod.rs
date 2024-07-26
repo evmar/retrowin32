@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod console;
 mod dll;
 mod file;
 mod ini;
@@ -14,6 +15,7 @@ mod thread;
 mod time;
 
 pub use self::memory::*;
+pub use console::*;
 pub use dll::*;
 pub use file::*;
 pub use ini::*;

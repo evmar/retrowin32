@@ -134,7 +134,7 @@ pub struct X86Future {
     esp: u32,
 }
 impl std::future::Future for X86Future {
-    type Output = ();
+    type Output = u32;
 
     fn poll(
         self: std::pin::Pin<&mut Self>,
@@ -143,7 +143,7 @@ impl std::future::Future for X86Future {
         let cpu = self.cpu;
         let cpu = unsafe { &mut *cpu };
         if cpu.regs.get32(Register::ESP) == self.esp {
-            std::task::Poll::Ready(())
+            std::task::Poll::Ready(cpu.regs.get32(Register::EAX))
         } else {
             std::task::Poll::Pending
         }

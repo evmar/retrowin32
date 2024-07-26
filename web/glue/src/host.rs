@@ -2,6 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
+use win32::{FindHandle, Stat, StatKind, WindowsPath};
 
 struct WebSurface {
     _hwnd: u32,
@@ -134,7 +135,7 @@ export interface JsFile {
 extern "C" {
     pub type JsFile;
     #[wasm_bindgen(method)]
-    fn info(this: &JsFile) -> u32;
+    fn info(this: &JsFile) -> u64;
     #[wasm_bindgen(method)]
     fn seek(this: &JsFile, ofs: u32) -> bool;
     #[wasm_bindgen(method)]
@@ -144,8 +145,14 @@ extern "C" {
 }
 
 impl win32::File for JsFile {
-    fn info(&self) -> u32 {
-        JsFile::info(self)
+    fn stat(&self) -> Result<Stat, u32> {
+        Ok(Stat {
+            kind: StatKind::File,
+            size: JsFile::info(self),
+            atime: 0,
+            ctime: 0,
+            mtime: 0,
+        })
     }
 }
 
@@ -251,7 +258,7 @@ extern "C" {
     fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
-    fn open(this: &JsHost, path: &str, access: win32::FileAccess) -> JsFile;
+    fn open(this: &JsHost, path: &str, options: win32::FileOptions) -> JsFile;
     #[wasm_bindgen(method)]
     fn stdout(this: &JsHost, buf: &[u8]);
 
@@ -269,6 +276,10 @@ impl win32::Host for JsHost {
 
     fn time(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
+    }
+
+    fn system_time(&self) -> chrono::DateTime<chrono::Local> {
+        chrono::Local::now()
     }
 
     fn get_message(&self) -> Option<win32::Message> {
@@ -289,8 +300,24 @@ impl win32::Host for JsHost {
         false
     }
 
-    fn open(&self, path: &str, access: win32::FileAccess) -> Box<dyn win32::File> {
-        Box::new(JsHost::open(self, path, access))
+    fn open(
+        &self,
+        path: &WindowsPath,
+        options: win32::FileOptions,
+    ) -> Result<Box<dyn win32::File>, u32> {
+        Ok(Box::new(JsHost::open(
+            self,
+            &path.to_string_lossy(),
+            options,
+        )))
+    }
+
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {
+        todo!("stat {path}")
+    }
+
+    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
+        todo!("find {path}")
     }
 
     fn log(&self, buf: &[u8]) {
@@ -308,5 +335,9 @@ impl win32::Host for JsHost {
         opts: &win32::SurfaceOptions,
     ) -> Box<dyn win32::Surface> {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
+    }
+
+    fn current_dir(&self) -> Result<win32::WindowsPathBuf, u32> {
+        todo!()
     }
 }

@@ -73,6 +73,27 @@ To choose the rendering strategy, there is one further toggle:
 
 Web builds require `x86-emu` and no `sdl`.
 
+### rust-analyzer
+
+Rust's IDE support doesn't know about which features you're using. In VSCode I
+configure it via my workspace config, like the following, which I change when
+working on different sets of features:
+
+```json
+"rust-analyzer.cargo.noDefaultFeatures": true,
+"rust-analyzer.check.features": [
+  "x86-emu",
+  "sdl"
+],
+"rust-analyzer.cargo.features": [
+  "x86-emu",
+  "sdl"
+],
+"rust-analyzer.cargo.extraEnv": {
+  "XWIN": "/Users/evmar/redist"
+}
+```
+
 ## Building while developing
 
 There are three build profiles:
@@ -96,13 +117,11 @@ And sometimes I add:
 ## Code layout
 
 - `x86/` -- the x86 emulator
-- `win32/` -- the win32 emulator
-  - `win32/src/winapi/` -- the Windows API implementation
+- [`win32/`](win32/) -- the win32 emulator, see README
 - `cli/` -- a command-line emulator runner
 - `web/` -- a webapp that runs the emulator in a browser
   - `web/glue/` -- wasm glue for the `win32/` API
 - `exe/` -- some sample Windows executables
 - `memory/` -- a memory abstraction shared by `x86` and `win32`
-- `appdb/` -- metadata about particular binaries, see
-  [appdb/README.md](appdb/README.md)
+- [`appdb/`](appdb/) -- metadata about particular binaries, see README
 - `misc/` -- minor helper tools

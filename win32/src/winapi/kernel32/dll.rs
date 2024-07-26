@@ -8,6 +8,7 @@ use crate::{
     winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::io::Write;
+use typed_path::WindowsPath;
 
 const TRACE_CONTEXT: &'static str = "kernel32/dll";
 
@@ -189,6 +190,8 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
             Some(name) => filename = name.to_string(),
             None => return HMODULE::null(),
         }
+    } else if let Some(alias) = winapi::dll_alias(&filename) {
+        filename = alias.to_string();
     }
 
     // Check if builtin.
@@ -200,14 +203,19 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     }
 
     let mut contents = Vec::new();
-    {
-        let mut file = machine.host.open(&filename, host::FileAccess::READ);
+    let exe = machine.state.kernel32.cmdline.args.first().unwrap();
+    let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
+    let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
+    for path in &dll_paths {
+        let path = WindowsPath::new(path);
+        let mut file = match machine.host.open(path, host::FileOptions::read()) {
+            Ok(file) => file,
+            Err(_) => continue,
+        };
         file.read_to_end(&mut contents).unwrap();
-        // TODO: close file.
     }
-
     if contents.is_empty() {
-        // HACK: zero-length indicates not found.
+        log::warn!("load_library({filename:?}): not found");
         return HMODULE::null();
     }
 

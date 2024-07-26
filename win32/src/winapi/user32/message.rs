@@ -46,6 +46,7 @@ pub enum WM {
     ACTIVATEAPP = 0x001C,
     WINDOWPOSCHANGED = 0x0047,
     TIMER = 0x0113,
+    MOUSEMOVE = 0x0200,
     LBUTTONDOWN = 0x0201,
     LBUTTONUP = 0x0202,
     LBUTTONDBLCLK = 0x0203,
@@ -75,6 +76,7 @@ fn msg_from_message(message: host::Message) -> MSG {
         }
         host::MessageDetail::Mouse(mouse) => {
             msg.message = match (mouse.button, mouse.down) {
+                (MouseButton::None, _) => WM::MOUSEMOVE,
                 (MouseButton::Left, true) => WM::LBUTTONDOWN,
                 (MouseButton::Left, false) => WM::LBUTTONUP,
                 (MouseButton::Right, true) => WM::RBUTTONDOWN,
@@ -84,6 +86,8 @@ fn msg_from_message(message: host::Message) -> MSG {
             } as u32;
             msg.wParam = 0; // TODO:  modifiers
             msg.lParam = (mouse.y << 16) | mouse.x;
+            msg.pt_x = mouse.x;
+            msg.pt_y = mouse.y;
         }
     }
 
@@ -114,10 +118,6 @@ fn enqueue_timer_event_if_ready(machine: &mut Machine, hwnd: HWND) -> Result<(),
 /// Returns Ok if an event is enqueued.
 /// Returns Err(wait) if we need to wait for an event.
 fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u32>> {
-    if !machine.state.user32.messages.is_empty() {
-        return Ok(());
-    }
-
     if let Some(msg) = machine.host.get_message() {
         machine
             .state
@@ -199,6 +199,25 @@ fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
     true
 }
 
+fn find_message(machine: &mut Machine, hwnd: HWND, min: u32, max: u32) -> Option<usize> {
+    machine.state.user32.messages.iter().position(|msg| {
+        if !hwnd.is_null() && (!msg.hwnd.is_null() && msg.hwnd != hwnd) {
+            return false;
+        }
+        if min != 0 && max != 0 && (msg.message < min || msg.message > max) {
+            return false;
+        }
+        true
+    })
+}
+
+fn copy_message(dstMsg: &mut MSG, srcMsg: &MSG) {
+    // Old versions of MSG don't have the lPrivate field. It might point to another stack variable, so don't overwrite it.
+    let dst = unsafe { std::slice::from_raw_parts_mut(dstMsg as *mut MSG as *mut u8, 28) };
+    let src = unsafe { std::slice::from_raw_parts(srcMsg as *const MSG as *const u8, 28) };
+    dst.copy_from_slice(src);
+}
+
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
     machine: &mut Machine,
@@ -208,27 +227,19 @@ pub fn PeekMessageA(
     wMsgFilterMax: u32,
     wRemoveMsg: Result<RemoveMsg, u32>,
 ) -> bool {
-    assert_eq!(wMsgFilterMin, 0);
-    assert_eq!(wMsgFilterMax, 0);
     let lpMsg = lpMsg.unwrap();
 
     let _ = fill_message_queue(machine, hWnd);
 
-    let msg: &MSG = match machine.state.user32.messages.front() {
-        Some(msg) => msg,
-        None => return false,
-    };
-    if !hWnd.is_null() && (!msg.hwnd.is_null() && msg.hwnd != hWnd) {
-        todo!("message for other window");
+    if let Some(index) = find_message(machine, hWnd, wMsgFilterMin, wMsgFilterMax) {
+        copy_message(lpMsg, machine.state.user32.messages.get(index).unwrap());
+        let remove = wRemoveMsg.unwrap();
+        if remove.contains(RemoveMsg::PM_REMOVE) {
+            machine.state.user32.messages.remove(index);
+        }
+        return true;
     }
-    *lpMsg = msg.clone();
-
-    let remove = wRemoveMsg.unwrap();
-    if remove.contains(RemoveMsg::PM_REMOVE) {
-        machine.state.user32.messages.pop_front();
-    }
-
-    true
+    false
 }
 
 #[win32_derive::dllexport]
@@ -268,13 +279,13 @@ pub async fn GetMessageA(
         }
     }
 
-    let msg = lpMsg.unwrap();
-    *msg = machine.state.user32.messages.pop_front().unwrap();
-    if !hWnd.is_null() && (!msg.hwnd.is_null() && msg.hwnd != hWnd) {
-        todo!("message for other window");
-    }
-    if msg.message == WM::QUIT as u32 {
-        return 0;
+    if let Some(index) = find_message(machine, hWnd, wMsgFilterMin, wMsgFilterMax) {
+        let msg = machine.state.user32.messages.get(index).unwrap().clone();
+        machine.state.user32.messages.remove(index);
+        copy_message(lpMsg.unwrap(), &msg);
+        if msg.message == WM::QUIT as u32 {
+            return 0;
+        }
     }
     return 1;
 }

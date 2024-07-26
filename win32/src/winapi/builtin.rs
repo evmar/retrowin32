@@ -984,7 +984,7 @@ pub mod kernel32 {
         }
         pub unsafe fn CloseHandle(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hObject = <u32>::from_stack(mem, esp + 4u32);
+            let hObject = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::CloseHandle(machine, hObject).to_raw()
         }
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
@@ -1117,6 +1117,29 @@ pub mod kernel32 {
             let uExitCode = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ExitProcess(machine, uExitCode).to_raw()
         }
+        pub unsafe fn FileTimeToSystemTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileTime = <Option<&FILETIME>>::from_stack(mem, esp + 4u32);
+            let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FileTimeToSystemTime(machine, lpFileTime, lpSystemTime).to_raw()
+        }
+        pub unsafe fn FindClose(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFindFile = <HFIND>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::FindClose(machine, hFindFile).to_raw()
+        }
+        pub unsafe fn FindFirstFileA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FindFirstFileA(machine, lpFileName, lpFindFileData).to_raw()
+        }
+        pub unsafe fn FindNextFileA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFindFile = <HFIND>::from_stack(mem, esp + 4u32);
+            let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::FindNextFileA(machine, hFindFile, lpFindFileData).to_raw()
+        }
         pub unsafe fn FindResourceA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <u32>::from_stack(mem, esp + 4u32);
@@ -1130,6 +1153,27 @@ pub mod kernel32 {
             let lpName = <ResourceKey<&Str16>>::from_stack(mem, esp + 8u32);
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
+        }
+        pub unsafe fn FormatMessageA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwFlags = <u32>::from_stack(mem, esp + 4u32);
+            let lpSource = <u32>::from_stack(mem, esp + 8u32);
+            let dwMessageId = <u32>::from_stack(mem, esp + 12u32);
+            let dwLanguageId = <u32>::from_stack(mem, esp + 16u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 20u32);
+            let nSize = <u32>::from_stack(mem, esp + 24u32);
+            let args = <u32>::from_stack(mem, esp + 28u32);
+            winapi::kernel32::FormatMessageA(
+                machine,
+                dwFlags,
+                lpSource,
+                dwMessageId,
+                dwLanguageId,
+                lpBuffer,
+                nSize,
+                args,
+            )
+            .to_raw()
         }
         pub unsafe fn FormatMessageW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1186,6 +1230,24 @@ pub mod kernel32 {
             let lpMode = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetConsoleMode(machine, hConsoleHandle, lpMode).to_raw()
         }
+        pub unsafe fn GetConsoleScreenBufferInfo(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let lpConsoleScreenBufferInfo =
+                <Option<&mut CONSOLE_SCREEN_BUFFER_INFO>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetConsoleScreenBufferInfo(
+                machine,
+                _hConsoleOutput,
+                lpConsoleScreenBufferInfo,
+            )
+            .to_raw()
+        }
+        pub unsafe fn GetCurrentDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nBufferLength = <u32>::from_stack(mem, esp + 4u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetCurrentDirectoryA(machine, nBufferLength, lpBuffer).to_raw()
+        }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::GetCurrentProcessId(machine).to_raw()
@@ -1218,6 +1280,11 @@ pub mod kernel32 {
             let buf = <ArrayWithSize<u16>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetEnvironmentVariableW(machine, name, buf).to_raw()
         }
+        pub unsafe fn GetFileAttributesA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetFileAttributesA(machine, lpFileName).to_raw()
+        }
         pub unsafe fn GetFileInformationByHandle(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -1225,10 +1292,46 @@ pub mod kernel32 {
                 <Option<&mut BY_HANDLE_FILE_INFORMATION>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetFileInformationByHandle(machine, hFile, lpFileInformation).to_raw()
         }
+        pub unsafe fn GetFileSize(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpFileSizeHigh = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetFileSize(machine, hFile, lpFileSizeHigh).to_raw()
+        }
+        pub unsafe fn GetFileTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpCreationTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 8u32);
+            let lpLastAccessTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 12u32);
+            let lpLastWriteTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetFileTime(
+                machine,
+                hFile,
+                lpCreationTime,
+                lpLastAccessTime,
+                lpLastWriteTime,
+            )
+            .to_raw()
+        }
         pub unsafe fn GetFileType(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetFileType(machine, hFile).to_raw()
+        }
+        pub unsafe fn GetFullPathNameA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let nBufferLength = <u32>::from_stack(mem, esp + 8u32);
+            let lpBuffer = <u32>::from_stack(mem, esp + 12u32);
+            let lpFilePart = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetFullPathNameA(
+                machine,
+                lpFileName,
+                nBufferLength,
+                lpBuffer,
+                lpFilePart,
+            )
+            .to_raw()
         }
         pub unsafe fn GetFullPathNameW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1337,10 +1440,21 @@ pub mod kernel32 {
             let nStdHandle = <Result<STD, u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw()
         }
+        pub unsafe fn GetSystemDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpBuffer = <u32>::from_stack(mem, esp + 4u32);
+            let uSize = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetSystemDirectoryA(machine, lpBuffer, uSize).to_raw()
+        }
+        pub unsafe fn GetSystemTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetSystemTime(machine, lpSystemTime).to_raw()
+        }
         pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let _time = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
-            winapi::kernel32::GetSystemTimeAsFileTime(machine, _time).to_raw()
+            let lpSystemTimeAsFileTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GetSystemTimeAsFileTime(machine, lpSystemTimeAsFileTime).to_raw()
         }
         pub unsafe fn GetTickCount(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1361,16 +1475,34 @@ pub mod kernel32 {
             let lpVersionInformation = <Option<&mut OSVERSIONINFO>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetVersionExA(machine, lpVersionInformation).to_raw()
         }
+        pub unsafe fn GetWindowsDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpBuffer = <u32>::from_stack(mem, esp + 4u32);
+            let uSize = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetWindowsDirectoryA(machine, lpBuffer, uSize).to_raw()
+        }
         pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let uFlags = <GMEM>::from_stack(mem, esp + 4u32);
             let dwBytes = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GlobalAlloc(machine, uFlags, dwBytes).to_raw()
         }
+        pub unsafe fn GlobalFlags(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::GlobalFlags(machine, hMem).to_raw()
+        }
         pub unsafe fn GlobalFree(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hMem = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GlobalFree(machine, hMem).to_raw()
+        }
+        pub unsafe fn GlobalReAlloc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMem = <u32>::from_stack(mem, esp + 4u32);
+            let dwBytes = <u32>::from_stack(mem, esp + 8u32);
+            let uFlags = <GMEM>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::GlobalReAlloc(machine, hMem, dwBytes, uFlags).to_raw()
         }
         pub unsafe fn HeapAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1608,6 +1740,12 @@ pub mod kernel32 {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ReleaseSRWLockShared(machine, SRWLock).to_raw()
         }
+        pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _handlerRoutine = <DWORD>::from_stack(mem, esp + 4u32);
+            let _add = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetConsoleCtrlHandler(machine, _handlerRoutine, _add).to_raw()
+        }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
@@ -1616,8 +1754,8 @@ pub mod kernel32 {
         pub unsafe fn SetFilePointer(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
-            let lDistanceToMove = <u32>::from_stack(mem, esp + 8u32);
-            let lpDistanceToMoveHigh = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let lDistanceToMove = <i32>::from_stack(mem, esp + 8u32);
+            let lpDistanceToMoveHigh = <Option<&mut i32>>::from_stack(mem, esp + 12u32);
             let dwMoveMethod = <Result<FILE, u32>>::from_stack(mem, esp + 16u32);
             winapi::kernel32::SetFilePointer(
                 machine,
@@ -1696,6 +1834,12 @@ pub mod kernel32 {
                 let pin = std::pin::pin!(winapi::kernel32::Sleep(machine, dwMilliseconds));
                 crate::shims::call_sync(pin).to_raw()
             }
+        }
+        pub unsafe fn SystemTimeToFileTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, esp + 4u32);
+            let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SystemTimeToFileTime(machine, lpSystemTime, lpFileTime).to_raw()
         }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1980,6 +2124,30 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const FileTimeToSystemTime: Shim = Shim {
+            name: "FileTimeToSystemTime",
+            func: impls::FileTimeToSystemTime,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const FindClose: Shim = Shim {
+            name: "FindClose",
+            func: impls::FindClose,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const FindFirstFileA: Shim = Shim {
+            name: "FindFirstFileA",
+            func: impls::FindFirstFileA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const FindNextFileA: Shim = Shim {
+            name: "FindNextFileA",
+            func: impls::FindNextFileA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const FindResourceA: Shim = Shim {
             name: "FindResourceA",
             func: impls::FindResourceA,
@@ -1990,6 +2158,12 @@ pub mod kernel32 {
             name: "FindResourceW",
             func: impls::FindResourceW,
             stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const FormatMessageA: Shim = Shim {
+            name: "FormatMessageA",
+            func: impls::FormatMessageA,
+            stack_consumed: 28u32,
             is_async: false,
         };
         pub const FormatMessageW: Shim = Shim {
@@ -2040,6 +2214,18 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetConsoleScreenBufferInfo: Shim = Shim {
+            name: "GetConsoleScreenBufferInfo",
+            func: impls::GetConsoleScreenBufferInfo,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetCurrentDirectoryA: Shim = Shim {
+            name: "GetCurrentDirectoryA",
+            func: impls::GetCurrentDirectoryA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: impls::GetCurrentProcessId,
@@ -2082,16 +2268,40 @@ pub mod kernel32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const GetFileAttributesA: Shim = Shim {
+            name: "GetFileAttributesA",
+            func: impls::GetFileAttributesA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetFileInformationByHandle: Shim = Shim {
             name: "GetFileInformationByHandle",
             func: impls::GetFileInformationByHandle,
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetFileSize: Shim = Shim {
+            name: "GetFileSize",
+            func: impls::GetFileSize,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetFileTime: Shim = Shim {
+            name: "GetFileTime",
+            func: impls::GetFileTime,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: impls::GetFileType,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const GetFullPathNameA: Shim = Shim {
+            name: "GetFullPathNameA",
+            func: impls::GetFullPathNameA,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const GetFullPathNameW: Shim = Shim {
@@ -2184,6 +2394,18 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetSystemDirectoryA: Shim = Shim {
+            name: "GetSystemDirectoryA",
+            func: impls::GetSystemDirectoryA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const GetSystemTime: Shim = Shim {
+            name: "GetSystemTime",
+            func: impls::GetSystemTime,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
             name: "GetSystemTimeAsFileTime",
             func: impls::GetSystemTimeAsFileTime,
@@ -2214,16 +2436,34 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetWindowsDirectoryA: Shim = Shim {
+            name: "GetWindowsDirectoryA",
+            func: impls::GetWindowsDirectoryA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GlobalAlloc: Shim = Shim {
             name: "GlobalAlloc",
             func: impls::GlobalAlloc,
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GlobalFlags: Shim = Shim {
+            name: "GlobalFlags",
+            func: impls::GlobalFlags,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const GlobalFree: Shim = Shim {
             name: "GlobalFree",
             func: impls::GlobalFree,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const GlobalReAlloc: Shim = Shim {
+            name: "GlobalReAlloc",
+            func: impls::GlobalReAlloc,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const HeapAlloc: Shim = Shim {
@@ -2430,6 +2670,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const SetConsoleCtrlHandler: Shim = Shim {
+            name: "SetConsoleCtrlHandler",
+            func: impls::SetConsoleCtrlHandler,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: impls::SetEvent,
@@ -2495,6 +2741,12 @@ pub mod kernel32 {
             func: impls::Sleep,
             stack_consumed: 4u32,
             is_async: true,
+        };
+        pub const SystemTimeToFileTime: Shim = Shim {
+            name: "SystemTimeToFileTime",
+            func: impls::SystemTimeToFileTime,
+            stack_consumed: 8u32,
+            is_async: false,
         };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
@@ -2623,7 +2875,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 120usize] = [
+    const EXPORTS: [Symbol; 138usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2678,11 +2930,31 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::FileTimeToSystemTime,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindClose,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindFirstFileA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FindNextFileA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::FindResourceA,
         },
         Symbol {
             ordinal: None,
             shim: shims::FindResourceW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::FormatMessageA,
         },
         Symbol {
             ordinal: None,
@@ -2718,6 +2990,14 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetConsoleScreenBufferInfo,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetCurrentDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetCurrentProcessId,
         },
         Symbol {
@@ -2746,11 +3026,27 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetFileAttributesA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetFileInformationByHandle,
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetFileSize,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFileTime,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetFileType,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetFullPathNameA,
         },
         Symbol {
             ordinal: None,
@@ -2814,6 +3110,14 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetSystemDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetSystemTime,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetSystemTimeAsFileTime,
         },
         Symbol {
@@ -2834,11 +3138,23 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetWindowsDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GlobalAlloc,
         },
         Symbol {
             ordinal: None,
+            shim: shims::GlobalFlags,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GlobalFree,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GlobalReAlloc,
         },
         Symbol {
             ordinal: None,
@@ -2978,6 +3294,10 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::SetConsoleCtrlHandler,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SetEvent,
         },
         Symbol {
@@ -3019,6 +3339,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::Sleep,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SystemTimeToFileTime,
         },
         Symbol {
             ordinal: None,
@@ -3274,6 +3598,13 @@ pub mod ucrtbase {
         };
         use memory::Extensions;
         use winapi::ucrtbase::*;
+        pub unsafe fn __dllonexit(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, esp + 4u32);
+            let d = <u32>::from_stack(mem, esp + 8u32);
+            let f = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ucrtbase::__dllonexit(machine, func, d, f).to_raw()
+        }
         pub unsafe fn __p___argc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::ucrtbase::__p___argc(machine).to_raw()
@@ -3290,23 +3621,87 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
-            winapi::ucrtbase::_initterm(machine, start, end).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ucrtbase::_initterm(machine, start, end).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 0u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ucrtbase::_initterm(machine, start, end));
+                crate::shims::call_sync(pin).to_raw()
+            }
         }
         pub unsafe fn _initterm_e(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
-            winapi::ucrtbase::_initterm_e(machine, start, end).to_raw()
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ucrtbase::_initterm_e(machine, start, end).await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 0u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ucrtbase::_initterm_e(machine, start, end));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+        pub unsafe fn _lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_lock(machine, locknum).to_raw()
+        }
+        pub unsafe fn _unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_unlock(machine, locknum).to_raw()
         }
         pub unsafe fn exit(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let status = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::exit(machine, status).to_raw()
         }
+        pub unsafe fn free(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let ptr = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::free(machine, ptr).to_raw()
+        }
+        pub unsafe fn malloc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let size = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::malloc(machine, size).to_raw()
+        }
     }
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const __dllonexit: Shim = Shim {
+            name: "__dllonexit",
+            func: impls::__dllonexit,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const __p___argc: Shim = Shim {
             name: "__p___argc",
             func: impls::__p___argc,
@@ -3328,23 +3723,51 @@ pub mod ucrtbase {
         pub const _initterm: Shim = Shim {
             name: "_initterm",
             func: impls::_initterm,
-            stack_consumed: 8u32,
-            is_async: false,
+            stack_consumed: 0u32,
+            is_async: true,
         };
         pub const _initterm_e: Shim = Shim {
             name: "_initterm_e",
             func: impls::_initterm_e,
-            stack_consumed: 8u32,
+            stack_consumed: 0u32,
+            is_async: true,
+        };
+        pub const _lock: Shim = Shim {
+            name: "_lock",
+            func: impls::_lock,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _unlock: Shim = Shim {
+            name: "_unlock",
+            func: impls::_unlock,
+            stack_consumed: 0u32,
             is_async: false,
         };
         pub const exit: Shim = Shim {
             name: "exit",
             func: impls::exit,
-            stack_consumed: 4u32,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const free: Shim = Shim {
+            name: "free",
+            func: impls::free,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const malloc: Shim = Shim {
+            name: "malloc",
+            func: impls::malloc,
+            stack_consumed: 0u32,
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 6usize] = [
+    const EXPORTS: [Symbol; 11usize] = [
+        Symbol {
+            ordinal: None,
+            shim: shims::__dllonexit,
+        },
         Symbol {
             ordinal: None,
             shim: shims::__p___argc,
@@ -3367,7 +3790,23 @@ pub mod ucrtbase {
         },
         Symbol {
             ordinal: None,
+            shim: shims::_lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::_unlock,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::exit,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::free,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::malloc,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -3463,6 +3902,42 @@ pub mod vcruntime140 {
         file_name: "vcruntime140.dll",
         exports: &EXPORTS,
         raw: std::include_bytes!("../../dll/vcruntime140.dll"),
+    };
+}
+pub mod version {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::version::*;
+        pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lptstrFilename = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpdwHandle = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::version::GetFileVersionInfoSizeA(machine, lptstrFilename, lpdwHandle).to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use crate::shims::Shim;
+        pub const GetFileVersionInfoSizeA: Shim = Shim {
+            name: "GetFileVersionInfoSizeA",
+            func: impls::GetFileVersionInfoSizeA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+    }
+    const EXPORTS: [Symbol; 1usize] = [Symbol {
+        ordinal: None,
+        shim: shims::GetFileVersionInfoSizeA,
+    }];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "version.dll",
+        exports: &EXPORTS,
+        raw: std::include_bytes!("../../dll/version.dll"),
     };
 }
 pub mod user32 {

@@ -17,19 +17,23 @@ const TRACE_CONTEXT: &'static str = "kernel32/init";
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
 #[derive(serde::Serialize, serde::Deserialize)]
-struct CommandLine {
+pub struct CommandLine {
+    /// Command line, split args.
+    pub args: Vec<String>,
     /// Command line, ASCII.
-    cmdline: u32,
+    pub cmdline: u32,
     /// Command line, UTF16.
-    cmdline16: u32,
+    pub cmdline16: u32,
     /// Length without trailing nul.
-    len: usize,
+    pub len: usize,
 }
 
 impl CommandLine {
     fn new(mut cmdline: String, arena: &mut Arena, mem: Mem) -> Self {
-        let len = cmdline.len();
+        let args = split_cmdline(&cmdline);
 
+        log::debug!("CommandLine: {}", cmdline);
+        let len = cmdline.len();
         cmdline.push(0 as char); // nul terminator
 
         let cmdline8_ptr = arena.alloc(cmdline.len() as u32, 1);
@@ -48,6 +52,7 @@ impl CommandLine {
         mem16.copy_from_slice(&cmdline16.0);
 
         CommandLine {
+            args,
             cmdline: cmdline8_ptr,
             cmdline16: cmdline16_ptr,
             len,
@@ -61,6 +66,34 @@ impl CommandLine {
             Buffer: self.cmdline16,
         }
     }
+}
+
+// TODO: follow the logic for CommandLineToArgvW
+// https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-commandlinetoargvw
+fn split_cmdline(cmdline: &str) -> Vec<String> {
+    let mut args = Vec::new();
+    let mut arg = String::new();
+    let mut in_quote = false;
+    for c in cmdline.chars() {
+        match c {
+            ' ' if !in_quote => {
+                if !arg.is_empty() {
+                    args.push(arg);
+                    arg = String::new();
+                }
+            }
+            '"' => {
+                in_quote = !in_quote;
+            }
+            _ => {
+                arg.push(c);
+            }
+        }
+    }
+    if !arg.is_empty() {
+        args.push(arg);
+    }
+    args
 }
 
 #[repr(C)]
@@ -188,13 +221,16 @@ pub struct State {
     #[serde(skip)] // TODO
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
+    #[serde(skip)] // TODO
+    pub find_handles: Handles<HFIND, Box<dyn crate::host::FindHandle>>,
+
     #[serde(skip)]
     #[cfg(feature = "x86-64")]
     pub ldt: crate::ldt::LDT,
 
     pub(super) env: u32,
 
-    cmdline: CommandLine,
+    pub cmdline: CommandLine,
 }
 
 impl State {
@@ -240,6 +276,7 @@ impl State {
             heaps: HashMap::new(),
             dlls: Default::default(),
             files: Default::default(),
+            find_handles: Default::default(),
             env: env_addr,
             cmdline,
             #[cfg(feature = "x86-64")]

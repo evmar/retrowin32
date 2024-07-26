@@ -11,6 +11,9 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
+use std::borrow::Cow;
+use win32::winapi::types::win32_error_str;
+use win32::Host;
 
 #[cfg(feature = "x86-emu")]
 fn dump_asm(machine: &win32::Machine, count: usize) {
@@ -29,7 +32,7 @@ fn dump_asm(machine: &win32::Machine, count: usize) {
 /// win32 emulator.
 struct Args {
     /// change working directory before running
-    #[argh(option)]
+    #[argh(option, short = 'C')]
     chdir: Option<String>,
 
     /// winapi systems to trace; see trace.rs for docs
@@ -44,24 +47,19 @@ struct Args {
     /// log CPU state first time each point reached
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
-
     /// debugger XXX
     #[argh(switch)]
     #[cfg(feature = "x86-emu")]
     debugger: bool,
 
-    /// exe to run
-    #[argh(positional)]
-    exe: String,
-
-    /// cmdline to pass to exe
-    #[argh(positional)]
-    cmdline: Option<String>,
-
     /// load snapshot from file
     #[cfg(feature = "x86-emu")]
     #[argh(option)]
     snapshot: Option<String>,
+
+    /// command line to run
+    #[argh(positional, greedy)]
+    cmdline: Vec<String>,
 }
 
 #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
@@ -113,6 +111,7 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
     Ok(trace_points)
 }
 
+#[allow(unused)]
 static mut SNAPSHOT_REQUESTED: bool = false;
 
 #[cfg(target_family = "unix")]
@@ -125,8 +124,6 @@ fn install_sigusr1_handler() {
         log::error!("failed to install signal handler for snapshot");
     }
 }
-#[cfg(not(target_family = "unix"))]
-fn install_sigusr1_handler() {}
 
 fn main() -> anyhow::Result<()> {
     logging::init();
@@ -143,15 +140,33 @@ fn main() -> anyhow::Result<()> {
     }
 
     win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
-    let cmdline = args.cmdline.as_ref().unwrap_or(&args.exe);
 
-    let buf = std::fs::read(&args.exe).map_err(|err| anyhow!("{}: {}", args.exe, err))?;
+    let exe = args
+        .cmdline
+        .first()
+        .ok_or_else(|| anyhow!("missing command line"))?;
+    let buf = std::fs::read(exe).map_err(|err| anyhow!("{}: {}", exe, err))?;
     let host = host::new_host();
-    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline.clone());
+
+    let mut cmdline = args.cmdline.clone();
+    let cwd = host
+        .current_dir()
+        .map_err(|e| anyhow!("failed to get current dir: {}", win32_error_str(e)))?;
+    cmdline[0] = cwd
+        .join(&cmdline[0])
+        .normalize()
+        .to_string_lossy()
+        .into_owned();
+    let cmdline = cmdline
+        .iter()
+        .map(|s| escape_arg(s))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
 
     let addrs = machine
-        .load_exe(&buf, &args.exe, None)
-        .map_err(|err| anyhow!("loading {}: {}", args.exe, err))?;
+        .load_exe(&buf, exe, None)
+        .map_err(|err| anyhow!("loading {}: {}", exe, err))?;
 
     #[cfg(target_family = "unix")]
     install_sigusr1_handler();
@@ -244,7 +259,7 @@ fn main() -> anyhow::Result<()> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        let mut trace_points = args.trace_points.unwrap();
+        let mut trace_points = args.trace_points.unwrap_or_default();
         let mut eip = addrs.entry_point;
         loop {
             let end = trace_points.pop_front().unwrap_or(0);
@@ -259,4 +274,24 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+fn escape_arg(arg: &str) -> Cow<str> {
+    if arg.contains(['"', ' ', '\t', '\n'].as_ref()) {
+        let mut escaped = String::with_capacity(arg.len() + 2);
+        escaped.push('"');
+        for c in arg.chars() {
+            match c {
+                '"' => {
+                    escaped.push('\\');
+                    escaped.push(c);
+                }
+                _ => escaped.push(c),
+            }
+        }
+        escaped.push('"');
+        Cow::Owned(escaped)
+    } else {
+        Cow::Borrowed(arg)
+    }
 }

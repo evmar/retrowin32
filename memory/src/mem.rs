@@ -112,6 +112,14 @@ impl<'m> Mem<'m> {
         }
     }
 
+    pub fn copy(&self, src: u32, dst: u32, len: u32) {
+        unsafe {
+            let src = self.get_ptr::<u8>(src);
+            let dst = self.get_ptr::<u8>(dst);
+            std::ptr::copy_nonoverlapping(src, dst, len as usize);
+        }
+    }
+
     pub fn as_slice_todo(&self) -> &'m [u8] {
         unsafe { std::slice::from_raw_parts(self.ptr, self.len() as usize) }
     }

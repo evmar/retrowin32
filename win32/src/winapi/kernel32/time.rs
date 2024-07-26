@@ -1,5 +1,7 @@
-use super::FILETIME;
+use super::{set_last_error, FILETIME};
+use crate::winapi::types::ERROR_INVALID_DATA;
 use crate::Machine;
+use chrono::{Datelike, Timelike};
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "kernel32/time";
@@ -49,14 +51,99 @@ pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> boo
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemTimeAsFileTime(_machine: &mut Machine, _time: Option<&mut FILETIME>) -> u32 {
+pub fn GetSystemTimeAsFileTime(
+    machine: &mut Machine,
+    lpSystemTimeAsFileTime: Option<&mut FILETIME>,
+) -> u32 {
+    let date_time = machine.host.system_time().to_utc();
+    if let Some(time) = lpSystemTimeAsFileTime {
+        let Some(nanos) = date_time.timestamp_nanos_opt() else {
+            log::warn!("GetSystemTimeAsFileTime: timestamp_nanos_opt failed");
+            *time = FILETIME::zeroed();
+            return 0;
+        };
+        *time = FILETIME::from_unix_nanos(nanos);
+    }
     0
 }
 
 #[win32_derive::dllexport]
-pub fn GetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
-    *lpSystemTime.unwrap() = SYSTEMTIME::zeroed();
+pub fn GetSystemTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
+    let date_time = machine.host.system_time().naive_utc();
+    if let Some(time) = lpSystemTime {
+        *time = SYSTEMTIME::from_chrono(&date_time);
+    }
     0
+}
+
+#[win32_derive::dllexport]
+pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
+    let date_time = machine.host.system_time();
+    if let Some(time) = lpSystemTime {
+        *time = SYSTEMTIME::from_chrono(&date_time);
+    }
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn SystemTimeToFileTime(
+    machine: &mut Machine,
+    lpSystemTime: Option<&SYSTEMTIME>,
+    lpFileTime: Option<&mut FILETIME>,
+) -> bool {
+    let Some(lpSystemTime) = lpSystemTime else {
+        log::warn!("SystemTimeToFileTime: lpSystemTime is null");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+    let date_time = match chrono::NaiveDate::from_ymd_opt(
+        lpSystemTime.wYear as i32,
+        lpSystemTime.wMonth as u32,
+        lpSystemTime.wDay as u32,
+    )
+    .and_then(|dt| {
+        dt.and_hms_milli_opt(
+            lpSystemTime.wHour as u32,
+            lpSystemTime.wMinute as u32,
+            lpSystemTime.wSecond as u32,
+            lpSystemTime.wMilliseconds as u32,
+        )
+    }) {
+        Some(dt) => dt.and_utc(),
+        None => {
+            log::warn!("SystemTimeToFileTime: invalid SYSTEMTIME");
+            set_last_error(machine, ERROR_INVALID_DATA);
+            return false;
+        }
+    };
+    if let Some(time) = lpFileTime {
+        let Some(nanos) = date_time.timestamp_nanos_opt() else {
+            log::warn!("SystemTimeToFileTime: timestamp_nanos_opt failed");
+            *time = FILETIME::zeroed();
+            return false;
+        };
+        *time = FILETIME::from_unix_nanos(nanos);
+    }
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn FileTimeToSystemTime(
+    machine: &mut Machine,
+    lpFileTime: Option<&FILETIME>,
+    lpSystemTime: Option<&mut SYSTEMTIME>,
+) -> bool {
+    let Some(lpFileTime) = lpFileTime else {
+        log::warn!("FileTimeToSystemTime: lpFileTime is null");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+    let nanos = lpFileTime.to_unix_nanos();
+    let date_time = chrono::DateTime::from_timestamp_nanos(nanos);
+    if let Some(time) = lpSystemTime {
+        *time = SYSTEMTIME::from_chrono(&date_time);
+    }
+    true
 }
 
 #[win32_derive::dllexport]
@@ -90,6 +177,23 @@ pub struct SYSTEMTIME {
     wMinute: u16,
     wSecond: u16,
     wMilliseconds: u16,
+}
+impl SYSTEMTIME {
+    pub fn from_chrono<T>(dt: &T) -> Self
+    where
+        T: Datelike + Timelike,
+    {
+        Self {
+            wYear: dt.year() as u16,
+            wMonth: dt.month() as u16,
+            wDayOfWeek: dt.weekday().num_days_from_sunday() as u16,
+            wDay: dt.day() as u16,
+            wHour: dt.hour() as u16,
+            wMinute: dt.minute() as u16,
+            wSecond: dt.second() as u16,
+            wMilliseconds: (dt.nanosecond() / 1_000_000) as u16,
+        }
+    }
 }
 unsafe impl memory::Pod for SYSTEMTIME {}
 
