@@ -733,9 +733,6 @@ pub struct WIN32_FIND_DATAA {
     pub dwReserved1: DWORD,
     pub cFileName: [u8; MAX_PATH],
     pub cAlternateFileName: [u8; 14],
-    pub dwFileType: DWORD,
-    pub dwCreatorType: DWORD,
-    pub wFinderFlags: u16,
 }
 impl From<&FindFile> for WIN32_FIND_DATAA {
     fn from(file: &FindFile) -> Self {
@@ -755,9 +752,6 @@ impl From<&FindFile> for WIN32_FIND_DATAA {
             dwReserved1: 0,
             cFileName: [0; MAX_PATH],
             cAlternateFileName: [0; 14],
-            dwFileType: 0,
-            dwCreatorType: 0,
-            wFinderFlags: 0,
         };
         if file.name.len() >= MAX_PATH {
             unimplemented!("long file name");
