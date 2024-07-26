@@ -11,7 +11,7 @@ use crate::{
         stack_args::{ArrayWithSize, ArrayWithSizeMut},
         types::{Str16, HFILE},
     },
-    FileOptions, FindFile, Stat, StatKind,
+    FileOptions, ReadDir, ReadDirEntry, Stat, StatKind,
 };
 use bitflags::bitflags;
 use typed_path::WindowsPath;
@@ -655,9 +655,53 @@ pub fn GetFullPathNameW(
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteFileA(_machine: &mut Machine, lpFileName: Option<&str>) -> bool {
-    // TODO
-    true
+pub fn DeleteFileA(machine: &mut Machine, lpFileName: Option<&str>) -> bool {
+    let Some(file_name) = lpFileName else {
+        log::debug!("DeleteFileA failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+
+    let path = WindowsPath::new(file_name);
+    match machine.host.remove_file(path) {
+        Ok(()) => {
+            set_last_error(machine, ERROR_SUCCESS);
+            true
+        }
+        Err(code) => {
+            log::debug!(
+                "DeleteFileA({file_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            false
+        }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn RemoveDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool {
+    let Some(path_name) = lpPathName else {
+        log::debug!("RemoveDirectoryA failed: null lpPathName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+
+    let path = WindowsPath::new(path_name);
+    match machine.host.remove_dir(path) {
+        Ok(()) => {
+            set_last_error(machine, ERROR_SUCCESS);
+            true
+        }
+        Err(code) => {
+            log::debug!(
+                "RemoveDirectoryA({path_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            false
+        }
+    }
 }
 
 #[win32_derive::dllexport]
@@ -734,8 +778,8 @@ pub struct WIN32_FIND_DATAA {
     pub cFileName: [u8; MAX_PATH],
     pub cAlternateFileName: [u8; 14],
 }
-impl From<&FindFile> for WIN32_FIND_DATAA {
-    fn from(file: &FindFile) -> Self {
+impl From<&ReadDirEntry> for WIN32_FIND_DATAA {
+    fn from(file: &ReadDirEntry) -> Self {
         let stat = &file.stat;
         let mut data = Self {
             dwFileAttributes: FileAttribute::from(stat).to_raw(),
@@ -765,6 +809,11 @@ impl From<&FindFile> for WIN32_FIND_DATAA {
 }
 unsafe impl memory::Pod for WIN32_FIND_DATAA {}
 
+pub struct FindHandle {
+    pub pattern: String,
+    pub read_dir: Box<dyn ReadDir>,
+}
+
 #[win32_derive::dllexport]
 pub fn FindFirstFileA(
     machine: &mut Machine,
@@ -777,17 +826,26 @@ pub fn FindFirstFileA(
         return HFIND::invalid();
     };
 
-    if file_name
-        .chars()
-        // Skip \\?\ prefix
-        .skip_while(|&c| c == '\\' || c == '?')
-        .any(|c| c == '*' || c == '?')
-    {
-        todo!("FindFirstFileA({file_name:?}) wildcards");
+    let path = WindowsPath::new(file_name);
+    let parent = path.parent().unwrap_or(WindowsPath::new("."));
+    let Some(pattern) = path.file_name() else {
+        log::debug!("FindFirstFileA({file_name:?}) no file name");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return HFIND::invalid();
+    };
+    let mut pattern = match String::from_utf8(pattern.to_vec()) {
+        Ok(value) => value,
+        Err(e) => {
+            log::debug!("FindFirstFileA({file_name:?}) invalid file name: {:?}", e);
+            set_last_error(machine, ERROR_INVALID_DATA);
+            return HFIND::invalid();
+        }
+    };
+    if pattern == "." {
+        pattern = "*".to_string();
     }
 
-    let path = WindowsPath::new(file_name);
-    let mut handle = match machine.host.find(path) {
+    let mut read_dir = match machine.host.read_dir(parent) {
         Ok(handle) => handle,
         Err(code) => {
             log::debug!(
@@ -799,20 +857,26 @@ pub fn FindFirstFileA(
         }
     };
 
-    let next = match handle.next() {
-        Ok(Some(stat)) => stat,
-        Ok(None) => {
-            log::debug!("FindFirstFileA({file_name:?}) not found");
-            set_last_error(machine, ERROR_FILE_NOT_FOUND);
-            return HFIND::invalid();
-        }
-        Err(code) => {
-            log::warn!(
-                "FindFirstFileA({file_name:?}) failed: {}",
-                win32_error_str(code)
-            );
-            set_last_error(machine, code);
-            return HFIND::invalid();
+    let next = loop {
+        match read_dir.next() {
+            Ok(Some(entry)) => {
+                if glob_match(&entry.name, &pattern) {
+                    break entry;
+                }
+            }
+            Ok(None) => {
+                log::debug!("FindFirstFileA({file_name:?}) not found");
+                set_last_error(machine, ERROR_FILE_NOT_FOUND);
+                return HFIND::invalid();
+            }
+            Err(code) => {
+                log::debug!(
+                    "FindFirstFileA({file_name:?}) failed: {}",
+                    win32_error_str(code)
+                );
+                set_last_error(machine, code);
+                return HFIND::invalid();
+            }
         }
     };
 
@@ -821,7 +885,11 @@ pub fn FindFirstFileA(
     }
 
     set_last_error(machine, ERROR_SUCCESS);
-    machine.state.kernel32.find_handles.add(handle)
+    machine
+        .state
+        .kernel32
+        .find_handles
+        .add(FindHandle { pattern, read_dir })
 }
 
 #[win32_derive::dllexport]
@@ -839,20 +907,26 @@ pub fn FindNextFileA(
         }
     };
 
-    let next = match handle.next() {
-        Ok(Some(stat)) => stat,
-        Ok(None) => {
-            set_last_error(machine, ERROR_FILE_NOT_FOUND);
-            return false;
-        }
-        Err(code) => {
-            log::warn!(
-                "FindNextFileA({hFindFile:?}) failed: {}",
-                win32_error_str(code)
-            );
-            set_last_error(machine, code);
-            return false;
-        }
+    let next = loop {
+        match handle.read_dir.next() {
+            Ok(Some(entry)) => {
+                if glob_match(&entry.name, &handle.pattern) {
+                    break entry;
+                }
+            }
+            Ok(None) => {
+                set_last_error(machine, ERROR_FILE_NOT_FOUND);
+                return false;
+            }
+            Err(code) => {
+                log::debug!(
+                    "FindNextFileA({hFindFile:?}) failed: {}",
+                    win32_error_str(code)
+                );
+                set_last_error(machine, code);
+                return false;
+            }
+        };
     };
 
     if let Some(data) = lpFindFileData {
@@ -950,4 +1024,183 @@ pub fn GetFileTime(
 
     set_last_error(machine, ERROR_SUCCESS);
     true
+}
+
+#[win32_derive::dllexport]
+pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
+    let file = match machine.state.kernel32.files.get_mut(hFile) {
+        Some(f) => f,
+        None => {
+            log::debug!("SetEndOfFile({hFile:?}) unknown handle");
+            set_last_error(machine, ERROR_INVALID_HANDLE);
+            return false;
+        }
+    };
+
+    let len = match file.seek(std::io::SeekFrom::Current(0)) {
+        Ok(pos) => pos,
+        Err(err) => {
+            log::debug!("SetEndOfFile({hFile:?}) failed: {:?}", err);
+            set_last_error(machine, io_error_to_win32(&err));
+            return false;
+        }
+    };
+    match file.set_len(len) {
+        Ok(()) => {
+            set_last_error(machine, ERROR_SUCCESS);
+            true
+        }
+        Err(err) => {
+            log::debug!("SetEndOfFile({hFile:?}) failed: {:?}", win32_error_str(err));
+            set_last_error(machine, err);
+            false
+        }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn CreateDirectoryA(
+    machine: &mut Machine,
+    lpPathName: Option<&str>,
+    lpSecurityAttributes: u32,
+) -> bool {
+    let Some(path_name) = lpPathName else {
+        log::debug!("CreateDirectoryA failed: null lpPathName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+
+    let path = WindowsPath::new(path_name);
+    match machine.host.create_dir(path) {
+        Ok(()) => {
+            set_last_error(machine, ERROR_SUCCESS);
+            true
+        }
+        Err(code) => {
+            log::debug!(
+                "CreateDirectoryA({path_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            false
+        }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn SetFileAttributesA(
+    machine: &mut Machine,
+    lpFileName: Option<&str>,
+    dwFileAttributes: Result<FileAttribute, u32>,
+) -> bool {
+    let Some(file_name) = lpFileName else {
+        log::debug!("SetFileAttributesA failed: null lpFileName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+    dwFileAttributes.unwrap();
+
+    let _ = file_name;
+    log::debug!("SetFileAttributesA stub");
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn SetFileTime(
+    machine: &mut Machine,
+    hFile: HFILE,
+    lpCreationTime: Option<&FILETIME>,
+    lpLastAccessTime: Option<&FILETIME>,
+    lpLastWriteTime: Option<&FILETIME>,
+) -> bool {
+    let file = match machine.state.kernel32.files.get_mut(hFile) {
+        Some(f) => f,
+        None => {
+            log::debug!("SetFileTime({hFile:?}) unknown handle");
+            set_last_error(machine, ERROR_INVALID_HANDLE);
+            return false;
+        }
+    };
+
+    let mut stat = match file.stat() {
+        Ok(stat) => stat,
+        Err(code) => {
+            log::debug!("SetFileTime({hFile:?}) failed: {}", win32_error_str(code));
+            set_last_error(machine, code);
+            return false;
+        }
+    };
+
+    if let Some(time) = lpCreationTime {
+        stat.ctime = time.to_unix_nanos();
+    }
+    if let Some(time) = lpLastAccessTime {
+        stat.atime = time.to_unix_nanos();
+    }
+    if let Some(time) = lpLastWriteTime {
+        stat.mtime = time.to_unix_nanos();
+    }
+
+    let _ = stat;
+    log::debug!("SetFileTime stub");
+    true
+}
+
+/// Matches a string against a glob pattern with `*` and `?` wildcards.
+/// The pattern is case-insensitive. Used by `FindFirstFileA` and `FindNextFileA`.
+fn glob_match(input: &str, pattern: &str) -> bool {
+    let mut input = input.chars();
+    let mut pattern = pattern.chars();
+    loop {
+        match (input.next(), pattern.next()) {
+            (Some(_), Some('*')) => {
+                if let Some(p) = pattern.next() {
+                    while let Some(c) = input.next() {
+                        if c.eq_ignore_ascii_case(&p) {
+                            break;
+                        }
+                    }
+                } else {
+                    return true;
+                }
+            }
+            (Some(c), Some('?')) => {
+                if c == '\\' {
+                    return false;
+                }
+            }
+            (Some(c), Some(p)) => {
+                if !c.eq_ignore_ascii_case(&p) {
+                    return false;
+                }
+            }
+            (None, Some('*')) => {
+                return pattern.all(|c| c == '*');
+            }
+            (None, None) => {
+                return true;
+            }
+            _ => {
+                return false;
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_glob_match() {
+        assert!(glob_match("foo.txt", "*"));
+        assert!(glob_match("foo.txt", "foo.txt"));
+        assert!(glob_match("foo.txt", "foo.*"));
+        assert!(glob_match("Foo.", "foo.*"));
+        assert!(glob_match("foo.txt", "*.txt"));
+        assert!(glob_match("foo.txt", "foo.???"));
+        assert!(!glob_match("foo.txt", "foo.??"));
+        assert!(!glob_match("foo.txt", "foo"));
+        assert!(glob_match("FOO.txt", "foo.txt"));
+    }
 }

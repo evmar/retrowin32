@@ -2,7 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
-use win32::{FindHandle, Stat, StatKind, WindowsPath};
+use win32::{ReadDir, Stat, StatKind, WindowsPath};
 
 struct WebSurface {
     _hwnd: u32,
@@ -153,6 +153,10 @@ impl win32::File for JsFile {
             ctime: 0,
             mtime: 0,
         })
+    }
+
+    fn set_len(&self, len: u64) -> Result<(), u32> {
+        todo!("set_len {len}")
     }
 }
 
@@ -316,8 +320,8 @@ impl win32::Host for JsHost {
         todo!("stat {path}")
     }
 
-    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
-        todo!("find {path}")
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, u32> {
+        todo!("read_dir {path}")
     }
 
     fn log(&self, buf: &[u8]) {
@@ -339,5 +343,17 @@ impl win32::Host for JsHost {
 
     fn current_dir(&self) -> Result<win32::WindowsPathBuf, u32> {
         todo!()
+    }
+
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        todo!("create_dir {path}")
+    }
+
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), u32> {
+        todo!("remove_file {path}")
+    }
+
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        todo!("remove_dir {path}")
     }
 }

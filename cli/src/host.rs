@@ -7,7 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use std::{cell::RefCell, io::Write, rc::Rc};
 use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
 use win32::winapi::types::io_error_to_win32;
-use win32::{FileOptions, FindHandle, Stat};
+use win32::{FileOptions, ReadDir, Stat};
 
 struct File {
     f: std::fs::File,
@@ -19,6 +19,10 @@ impl win32::File for File {
             Ok(ref meta) => Ok(metadata_to_stat(meta)),
             Err(ref e) => Err(io_error_to_win32(e)),
         }
+    }
+
+    fn set_len(&self, len: u64) -> Result<(), u32> {
+        self.f.set_len(len).map_err(|e| io_error_to_win32(&e))
     }
 }
 
@@ -44,12 +48,12 @@ impl std::io::Seek for File {
     }
 }
 
-struct FindIterDir {
+struct ReadDirIter {
     iter: std::fs::ReadDir,
 }
 
-impl FindHandle for FindIterDir {
-    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+impl ReadDir for ReadDirIter {
+    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, u32> {
         match self.iter.next() {
             Some(Ok(entry)) => {
                 let name = entry
@@ -59,7 +63,7 @@ impl FindHandle for FindIterDir {
                     .to_string_lossy()
                     .into_owned();
                 let meta = entry.metadata().unwrap();
-                Ok(Some(win32::FindFile {
+                Ok(Some(win32::ReadDirEntry {
                     name,
                     stat: metadata_to_stat(&meta),
                 }))
@@ -70,13 +74,13 @@ impl FindHandle for FindIterDir {
     }
 }
 
-struct FindIterFile {
-    file: win32::FindFile,
+struct ReadDirFile {
+    file: win32::ReadDirEntry,
     consumed: bool,
 }
 
-impl FindHandle for FindIterFile {
-    fn next(&mut self) -> Result<Option<win32::FindFile>, u32> {
+impl ReadDir for ReadDirFile {
+    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, u32> {
         if self.consumed {
             Ok(None)
         } else {
@@ -169,7 +173,7 @@ impl win32::Host for EnvRef {
         }
     }
 
-    fn find(&self, path: &WindowsPath) -> Result<Box<dyn FindHandle>, u32> {
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, u32> {
         let path = windows_to_host_path(path);
         let full_path = match std::fs::canonicalize(path) {
             Ok(p) => p,
@@ -182,18 +186,18 @@ impl win32::Host for EnvRef {
                         Ok(iter) => iter,
                         Err(ref e) => return Err(io_error_to_win32(e)),
                     };
-                    Ok(Box::new(FindIterDir { iter }))
+                    Ok(Box::new(ReadDirIter { iter }))
                 } else {
                     let filename = full_path
                         .file_name()
                         .unwrap()
                         .to_string_lossy()
                         .into_owned();
-                    let file = win32::FindFile {
+                    let file = win32::ReadDirEntry {
                         name: filename,
                         stat: metadata_to_stat(&meta),
                     };
-                    Ok(Box::new(FindIterFile {
+                    Ok(Box::new(ReadDirFile {
                         file,
                         consumed: false,
                     }))
@@ -201,6 +205,21 @@ impl win32::Host for EnvRef {
             }
             Err(ref e) => Err(io_error_to_win32(e)),
         }
+    }
+
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        let path = windows_to_host_path(path);
+        std::fs::create_dir(path).map_err(|e| io_error_to_win32(&e))
+    }
+
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), u32> {
+        let path = windows_to_host_path(path);
+        std::fs::remove_file(path).map_err(|e| io_error_to_win32(&e))
+    }
+
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        let path = windows_to_host_path(path);
+        std::fs::remove_dir(path).map_err(|e| io_error_to_win32(&e))
     }
 
     fn log(&self, buf: &[u8]) {

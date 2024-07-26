@@ -987,6 +987,12 @@ pub mod kernel32 {
             let hObject = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::CloseHandle(machine, hObject).to_raw()
         }
+        pub unsafe fn CreateDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPathName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let lpSecurityAttributes = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::CreateDirectoryA(machine, lpPathName, lpSecurityAttributes).to_raw()
+        }
         pub unsafe fn CreateEventA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpEventAttributes = <u32>::from_stack(mem, esp + 4u32);
@@ -1632,6 +1638,17 @@ pub mod kernel32 {
             let ucb = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::IsBadWritePtr(machine, lp, ucb).to_raw()
         }
+        pub unsafe fn IsDBCSLeadByte(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _TestChar = <u8>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::IsDBCSLeadByte(machine, _TestChar).to_raw()
+        }
+        pub unsafe fn IsDBCSLeadByteEx(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _TestChar = <u8>::from_stack(mem, esp + 4u32);
+            let _CodePage = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::IsDBCSLeadByteEx(machine, _TestChar, _CodePage).to_raw()
+        }
         pub unsafe fn IsDebuggerPresent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::IsDebuggerPresent(machine).to_raw()
@@ -1740,16 +1757,32 @@ pub mod kernel32 {
             let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ReleaseSRWLockShared(machine, SRWLock).to_raw()
         }
+        pub unsafe fn RemoveDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPathName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::RemoveDirectoryA(machine, lpPathName).to_raw()
+        }
         pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _handlerRoutine = <DWORD>::from_stack(mem, esp + 4u32);
             let _add = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetConsoleCtrlHandler(machine, _handlerRoutine, _add).to_raw()
         }
+        pub unsafe fn SetEndOfFile(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::SetEndOfFile(machine, hFile).to_raw()
+        }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEvent(machine, hEvent).to_raw()
+        }
+        pub unsafe fn SetFileAttributesA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetFileAttributesA(machine, lpFileName, dwFileAttributes).to_raw()
         }
         pub unsafe fn SetFilePointer(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1763,6 +1796,21 @@ pub mod kernel32 {
                 lDistanceToMove,
                 lpDistanceToMoveHigh,
                 dwMoveMethod,
+            )
+            .to_raw()
+        }
+        pub unsafe fn SetFileTime(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            let lpCreationTime = <Option<&FILETIME>>::from_stack(mem, esp + 8u32);
+            let lpLastAccessTime = <Option<&FILETIME>>::from_stack(mem, esp + 12u32);
+            let lpLastWriteTime = <Option<&FILETIME>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::SetFileTime(
+                machine,
+                hFile,
+                lpCreationTime,
+                lpLastAccessTime,
+                lpLastWriteTime,
             )
             .to_raw()
         }
@@ -2068,6 +2116,12 @@ pub mod kernel32 {
             name: "CloseHandle",
             func: impls::CloseHandle,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const CreateDirectoryA: Shim = Shim {
+            name: "CreateDirectoryA",
+            func: impls::CreateDirectoryA,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const CreateEventA: Shim = Shim {
@@ -2562,6 +2616,18 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const IsDBCSLeadByte: Shim = Shim {
+            name: "IsDBCSLeadByte",
+            func: impls::IsDBCSLeadByte,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IsDBCSLeadByteEx: Shim = Shim {
+            name: "IsDBCSLeadByteEx",
+            func: impls::IsDBCSLeadByteEx,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const IsDebuggerPresent: Shim = Shim {
             name: "IsDebuggerPresent",
             func: impls::IsDebuggerPresent,
@@ -2670,10 +2736,22 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const RemoveDirectoryA: Shim = Shim {
+            name: "RemoveDirectoryA",
+            func: impls::RemoveDirectoryA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetConsoleCtrlHandler: Shim = Shim {
             name: "SetConsoleCtrlHandler",
             func: impls::SetConsoleCtrlHandler,
             stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const SetEndOfFile: Shim = Shim {
+            name: "SetEndOfFile",
+            func: impls::SetEndOfFile,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetEvent: Shim = Shim {
@@ -2682,9 +2760,21 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const SetFileAttributesA: Shim = Shim {
+            name: "SetFileAttributesA",
+            func: impls::SetFileAttributesA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetFilePointer: Shim = Shim {
             name: "SetFilePointer",
             func: impls::SetFilePointer,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const SetFileTime: Shim = Shim {
+            name: "SetFileTime",
+            func: impls::SetFileTime,
             stack_consumed: 16u32,
             is_async: false,
         };
@@ -2875,7 +2965,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 138usize] = [
+    const EXPORTS: [Symbol; 145usize] = [
         Symbol {
             ordinal: None,
             shim: shims::AcquireSRWLockExclusive,
@@ -2891,6 +2981,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::CloseHandle,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::CreateDirectoryA,
         },
         Symbol {
             ordinal: None,
@@ -3222,6 +3316,14 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::IsDBCSLeadByte,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IsDBCSLeadByteEx,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::IsDebuggerPresent,
         },
         Symbol {
@@ -3294,7 +3396,15 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::RemoveDirectoryA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SetConsoleCtrlHandler,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetEndOfFile,
         },
         Symbol {
             ordinal: None,
@@ -3302,7 +3412,15 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::SetFileAttributesA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::SetFilePointer,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetFileTime,
         },
         Symbol {
             ordinal: None,
