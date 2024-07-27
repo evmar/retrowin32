@@ -7,6 +7,7 @@ use crate::{
 };
 use memory::Extensions;
 use std::io::{Cursor, Write};
+use crate::winapi::types::HWND;
 
 const TRACE_CONTEXT: &'static str = "user32/misc";
 
@@ -145,4 +146,70 @@ pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: V
     // log::info!("=> {}", std::str::from_utf8(buf).unwrap());
     // len as u32 - 1
     out.position() as u32 - 1
+}
+
+#[win32_derive::dllexport]
+pub fn GetKeyState(
+    _machine: &mut Machine,
+    nVirtKey: u32,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
+pub fn IsIconic(
+    _machine: &mut Machine,
+    hwnd: HWND
+) -> bool {
+    false
+}
+
+#[win32_derive::dllexport]
+pub fn IsRectEmpty(
+    _machine: &mut Machine,
+    lprc: Option<&RECT>
+) -> bool {
+    let rect = lprc.unwrap();
+    rect.left >= rect.right || rect.top >= rect.bottom
+}
+
+#[win32_derive::dllexport]
+pub fn SetRectEmpty(
+    _machine: &mut Machine,
+    lprc: Option<&mut RECT>
+) -> bool {
+    if lprc.is_none() {
+        return false;
+    }
+    let rect = lprc.unwrap();
+    rect.left = 0;
+    rect.top = 0;
+    rect.right = 0;
+    rect.bottom = 0;
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn IntersectRect(
+    _machine: &mut Machine,
+    lprcDst: Option<&mut RECT>,
+    lprcSrc1: Option<&RECT>,
+    lprcSrc2: Option<&RECT>,
+) -> bool {
+    if lprcDst.is_none() || lprcSrc1.is_none() || lprcSrc2.is_none() {
+        return false;
+    }
+    let dst = lprcDst.unwrap();
+    let src1 = lprcSrc1.unwrap();
+    let src2 = lprcSrc2.unwrap();
+    if (IsRectEmpty(_machine, lprcSrc1) || IsRectEmpty(_machine, lprcSrc2) ||
+        src1.left >= src2.right || src1.right <= src2.left ||
+        src1.top >= src2.bottom || src1.bottom <= src2.top) {
+        return false;
+    }
+    dst.left = src1.left.max(src2.left);
+    dst.right = src1.right.min(src2.right);
+    dst.top = src1.top.max(src2.top);
+    dst.bottom = src1.bottom.min(src2.bottom);
+    dst.left < dst.right && dst.top < dst.bottom
 }

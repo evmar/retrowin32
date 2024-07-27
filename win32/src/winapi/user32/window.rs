@@ -206,10 +206,43 @@ pub struct WNDCLASSEXA {
 }
 unsafe impl memory::Pod for WNDCLASSEXA {}
 
+#[repr(C, packed)]
+#[derive(Clone, Debug)]
+pub struct WNDCLASSEXW {
+    cbSize: u32,
+    style: u32,
+    lpfnWndProc: u32,
+    cbClsExtra: u32,
+    cbWndExtra: u32,
+    hInstance: HINSTANCE,
+    hIcon: HICON,
+    hCursor: HCURSOR,
+    hbrBackground: u32,
+    lpszMenuName: u32,
+    lpszClassName: u32,
+    hIconSm: HICON,
+}
+unsafe impl memory::Pod for WNDCLASSEXW {}
+
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
     let name = expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
+    let wndclass = WndClass {
+        name,
+        wndproc: lpWndClassEx.lpfnWndProc,
+        background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
+            .to_brush(machine),
+    };
+    register_class(machine, wndclass)
+}
+
+#[win32_derive::dllexport]
+pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW>) -> u32 {
+    let lpWndClassEx = lpWndClassEx.unwrap();
+    let name = unsafe { Str16::from_nul_term_ptr(machine.mem(), lpWndClassEx.lpszClassName) }
+        .unwrap()
+        .to_string();
     let wndclass = WndClass {
         name,
         wndproc: lpWndClassEx.lpfnWndProc,
@@ -485,6 +518,11 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
     if window.dirty.is_none() {
         return true;
     }
+    let windowpos_addr = machine.state.scratch.alloc(
+        machine.emu.memory.mem(),
+        std::mem::size_of::<WINDOWPOS>() as u32,
+    );
+
     let msg = MSG {
         hwnd: hWnd,
         message: WM::PAINT as u32,
@@ -496,6 +534,22 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
         lPrivate: 0,
     };
     DispatchMessageA(machine, Some(&msg)).await;
+
+    dispatch_message(
+        machine,
+        &MSG {
+            hwnd: hWnd,
+            message: WM::WINDOWPOSCHANGED as u32,
+            wParam: 0,
+            lParam: windowpos_addr,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+    )
+        .await;
+
     true // success
 }
 
@@ -518,16 +572,50 @@ pub enum SW {
 
 #[win32_derive::dllexport]
 pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+    let windowpos_addr = machine.state.scratch.alloc(
+        machine.emu.memory.mem(),
+        std::mem::size_of::<WINDOWPOS>() as u32,
+    );
     dispatch_message(
         machine,
         &MSG {
             hwnd: hWnd,
             message: WM::ACTIVATEAPP as u32,
-            wParam: true as u32, // activating
-            lParam: 0,           // TODO: thread id
-            time: 0,             // TODO
-            pt_x: 0,             // TODO
-            pt_y: 0,             // TODO
+            wParam: 0,
+            lParam: windowpos_addr,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+    )
+        .await;
+
+    dispatch_message(
+        machine,
+        &MSG {
+            hwnd: hWnd,
+            message: WM::ACTIVATE as u32,
+            wParam: 1,
+            lParam: 0,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+            lPrivate: 0,
+        },
+    )
+        .await;
+
+    dispatch_message(
+        machine,
+        &MSG {
+            hwnd: hWnd,
+            message: WM::WINDOWPOSCHANGED as u32,
+            wParam: 0,
+            lParam: windowpos_addr,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
             lPrivate: 0,
         },
     )
@@ -877,4 +965,11 @@ pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>)
             false
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn RegisterWindowMessageW(machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
+    let name = lpString.unwrap().to_string();
+    machine.state.user32.user_window_message_count += 1;
+    WM::USER as u32 + machine.state.user32.user_window_message_count
 }

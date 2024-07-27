@@ -41,6 +41,7 @@ pub enum WM {
     CREATE = 0x0001,
     MOVE = 0x0003,
     SIZE = 0x0005,
+    ACTIVATE = 0x0006,
     PAINT = 0x000F,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
@@ -56,6 +57,7 @@ pub enum WM {
     MBUTTONDOWN = 0x0207,
     MBUTTONUP = 0x0208,
     MBUTTONDBLCLK = 0x0209,
+    USER = 0x0400,
 }
 
 fn msg_from_message(message: host::Message) -> MSG {
@@ -380,6 +382,21 @@ pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn PostMessageW(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
+    machine.state.user32.messages.push_back(MSG {
+        hwnd: hWnd,
+        message: Msg,
+        wParam,
+        lParam,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+        lPrivate: 0,
+    });
+    true
+}
+
+#[win32_derive::dllexport]
 pub fn TranslateAcceleratorW(
     _machine: &mut Machine,
     hWnd: HWND,
@@ -408,4 +425,17 @@ pub async fn SendMessageA(
         lPrivate: 0,
     };
     dispatch_message(machine, &msg).await
+}
+
+#[win32_derive::dllexport]
+pub fn MsgWaitForMultipleObjects(
+    _machine: &mut Machine,
+    nCount: u32,
+    pHandles: u32,
+    fWaitAll: bool,
+    dwMilliseconds: u32,
+    dwWakeMask: u32,
+) -> u32 {
+    // TODO: implement me
+    258 // WAIT_TIMEOUT
 }

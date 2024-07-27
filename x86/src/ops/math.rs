@@ -87,6 +87,12 @@ pub fn and_rm16_r16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(and(x.get(), y, &mut cpu.flags));
 }
 
+pub fn and_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
+    x.set(and(x.get(), y, &mut cpu.flags));
+}
+
 pub fn and_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8to16() as u16;
     let x = rm16(cpu, mem, instr);
@@ -722,6 +728,13 @@ pub fn sbb_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 pub fn sbb_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8to32() as u32;
+    let x = rm32(cpu, mem, instr);
+    x.set(sbb(x.get(), y, carry, &mut cpu.flags));
+}
+
+pub fn sbb_rm32_imm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let carry = cpu.flags.contains(Flags::CF);
+    let y = instr.immediate32();
     let x = rm32(cpu, mem, instr);
     x.set(sbb(x.get(), y, carry, &mut cpu.flags));
 }
