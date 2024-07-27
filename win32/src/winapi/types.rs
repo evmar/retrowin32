@@ -54,6 +54,7 @@ pub const ERROR_INVALID_ACCESS: u32 = 12;
 pub const ERROR_INVALID_DATA: u32 = 13;
 pub const ERROR_FILE_EXISTS: u32 = 80;
 pub const ERROR_OPEN_FAILED: u32 = 110;
+pub const ERROR_MOD_NOT_FOUND: u32 = 126;
 pub const ERROR_ALREADY_EXISTS: u32 = 183;
 
 pub fn win32_error_str(code: u32) -> &'static str {
@@ -66,6 +67,7 @@ pub fn win32_error_str(code: u32) -> &'static str {
         ERROR_INVALID_DATA => "ERROR_INVALID_DATA",
         ERROR_FILE_EXISTS => "ERROR_FILE_EXISTS",
         ERROR_OPEN_FAILED => "ERROR_OPEN_FAILED",
+        ERROR_MOD_NOT_FOUND => "ERROR_MOD_NOT_FOUND",
         ERROR_ALREADY_EXISTS => "ERROR_ALREADY_EXISTS",
         _ => "ERROR_UNKNOWN",
     }

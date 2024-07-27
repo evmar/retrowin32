@@ -1,3 +1,4 @@
+use crate::winapi::kernel32::set_last_error;
 use memory::{Extensions, Pod};
 
 use crate::{
@@ -116,6 +117,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         return *hmodule;
     }
 
+    set_last_error(machine, ERROR_MOD_NOT_FOUND);
     return HMODULE::null();
 }
 
