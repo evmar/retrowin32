@@ -264,6 +264,22 @@ impl State {
                 );
             }
 
+            let ds_sel = ldt.add_entry(0, 0xFFFF_FFFF, false);
+            unsafe {
+                std::arch::asm!(
+                    "mov ds,{ds_sel:x}",
+                    ds_sel = in(reg) ds_sel
+                );
+            }
+
+            let es_sel = ldt.add_entry(0, 0xFFFF_FFFF, false);
+            unsafe {
+                std::arch::asm!(
+                    "mov es,{es_sel:x}",
+                    es_sel = in(reg) es_sel
+                );
+            }
+
             ldt
         };
 
