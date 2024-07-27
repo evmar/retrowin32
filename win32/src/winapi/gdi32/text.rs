@@ -74,10 +74,47 @@ pub struct TEXTMETRICA {
 }
 unsafe impl memory::Pod for TEXTMETRICA {}
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct TEXTMETRICW {
+    pub tmHeight: u32,
+    pub tmAscent: u32,
+    pub tmDescent: u32,
+    pub tmInternalLeading: u32,
+    pub tmExternalLeading: u32,
+    pub tmAveCharWidth: u32,
+    pub tmMaxCharWidth: u32,
+    pub tmWeight: u32,
+    pub tmOverhang: u32,
+    pub tmDigitizedAspectX: u32,
+    pub tmDigitizedAspectY: u32,
+    pub tmFirstChar: u16,
+    pub tmLastChar: u16,
+    pub tmDefaultChar: u16,
+    pub tmBreakChar: u16,
+    pub tmItalic: u8,
+    pub tmUnderlined: u8,
+    pub tmStruckOut: u8,
+    pub tmPitchAndFamily: u8,
+    pub tmCharSet: u8,
+}
+unsafe impl memory::Pod for TEXTMETRICW {}
+
+
 #[win32_derive::dllexport]
 pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
     let tm = lptm.unwrap();
     *tm = TEXTMETRICA::zeroed();
+
+    // SkiFree only cares about the height, just make something up for now.
+    tm.tmHeight = 12;
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn GetTextMetricsW(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICW>) -> bool {
+    let tm = lptm.unwrap();
+    *tm = TEXTMETRICW::zeroed();
 
     // SkiFree only cares about the height, just make something up for now.
     tm.tmHeight = 12;

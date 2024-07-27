@@ -4,7 +4,7 @@
 #![allow(non_snake_case)]
 
 use super::types::*;
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
 pub enum BI {
@@ -14,6 +14,23 @@ pub enum BI {
     BITFIELDS = 3,
     JPEG = 4,
     PNG = 5,
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct BITMAPCOREHEADER {
+    pub bcSize: DWORD,
+    pub bcWidth: WORD,
+    pub bcHeight: WORD,
+    pub bcPlanes: WORD,
+    pub bcBitCount: WORD,
+}
+unsafe impl memory::Pod for BITMAPCOREHEADER {}
+impl BITMAPCOREHEADER {
+    pub fn stride(&self) -> u32 {
+        // Bitmap row stride is padded out to 4 bytes per row.
+        ((((self.bcWidth * self.bcBitCount) as u32) + 31) & !31) >> 3
+    }
 }
 
 #[repr(C)]
@@ -50,6 +67,19 @@ impl BITMAPINFOHEADER {
     pub fn compression(&self) -> Result<BI, u32> {
         BI::try_from(self.biCompression)
     }
+}
+
+pub struct BitmapInfo {
+    pub width: usize,
+    pub height: usize,
+    pub stride: usize,
+    pub is_top_down: bool,
+    pub bit_count: u8,
+    pub compression: BI,
+    pub palette_entry_size: usize,
+    pub palette_size: usize,
+    pub palette: *const u8,
+    pub data: *const u8,
 }
 
 pub trait Bitmap {
@@ -102,81 +132,145 @@ impl BitmapRGBA32 {
         self.pixels.as_slice(mem)
     }
 
-    /// Parse a BITMAPINFO/HEADER and pixel data.
-    /// If pixels is None, pixel data immediately follows header.
-    pub fn parse(header: &BITMAPINFOHEADER, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
-        let header_size = std::mem::size_of::<BITMAPINFOHEADER>();
-        if header.biSize as usize != header_size {
+    pub fn clone(&self) -> BitmapRGBA32 {
+        let pixels = match &self.pixels {
+            PixelData::Owned(b) => PixelData::Owned(b.clone()),
+            PixelData::Ptr(addr, len) => PixelData::Ptr(*addr, *len),
+        };
+        BitmapRGBA32 {
+            width: self.width,
+            height: self.height,
+            pixels,
+        }
+    }
+
+    pub fn parse(buf: Mem, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+        let headerSize = buf.get_pod::<u32>(0);
+        let bmp = match headerSize {
+            12 => BitmapRGBA32::parseBMPv2(buf.view::<BITMAPCOREHEADER>(0), pixels),
+            40 => BitmapRGBA32::parseBMPv3(buf.view::<BITMAPINFOHEADER>(0), pixels),
+            _ => unimplemented!("unimplemented bitmap header size {}", headerSize),
+        };
+        bmp
+    }
+
+    pub fn parseBMPv2(header: &BITMAPCOREHEADER, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+        let header_size = std::mem::size_of::<BITMAPCOREHEADER>();
+        if header.bcSize as usize != header_size {
             panic!("bad bitmap header");
         }
 
-        let palette = match header.compression().unwrap() {
-            BI::RGB => {
-                let palette_len = match header.biBitCount {
-                    8 => 256,
-                    4 => 16,
-                    _ => unimplemented!(),
-                };
-                if header.biClrUsed != 0 && header.biClrUsed != palette_len {
-                    todo!();
-                }
-                unsafe {
-                    let ptr = (header as *const _ as *const u8).add(header_size);
-                    std::slice::from_raw_parts(ptr as *const [u8; 4], palette_len as usize)
-                }
-            }
+        let palette_len = match header.bcBitCount {
+            8 => 256,
+            4 => 16,
+            1 => 2,
+            _ => unimplemented!(),
+        };
+        let palette_entry_size = 3;
+        let palette_size = palette_len * palette_entry_size;
+        let bi = &BitmapInfo {
+            width: header.bcWidth as usize,
+            height: header.bcHeight as usize,
+            stride: header.stride() as usize,
+            is_top_down: false,
+            bit_count: header.bcBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette_size,
+            palette: unsafe { (header as *const _ as *const u8).add(header_size) },
+            data: unsafe { (header as *const _ as *const u8).add(header_size + palette_size) },
+        };
+        BitmapRGBA32::parseBMP(bi, pixels)
+    }
+
+    pub fn parseBMPv3(header: &BITMAPINFOHEADER, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+        let palette_len = match header.biBitCount {
+            8 => 256,
+            4 => 16,
+            1 => 2,
+            _ => unimplemented!(),
+        };
+        let palette_entry_size = 4;
+        let palette_size = palette_len * palette_entry_size;
+        let bi = &BitmapInfo {
+            width: header.biWidth as usize,
+            height: header.biHeight as usize,
+            stride: header.stride() as usize,
+            is_top_down: false,
+            bit_count: header.biBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette_size,
+            palette: unsafe { (header as *const _ as *const u8).add(header.biSize as usize) },
+            data: unsafe { (header as *const _ as *const u8).add(header.biSize as usize + palette_size) },
+        };
+        BitmapRGBA32::parseBMP(bi, pixels)
+    }
+
+    /// Parse a BITMAPINFO/HEADER and pixel data.
+    /// If pixels is None, pixel data immediately follows header.
+    pub fn parseBMP(header: &BitmapInfo, pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+        match header.compression {
+            BI::RGB => {}
             BI::RLE8 => todo!(),
             BI::RLE4 => todo!(),
-            BI::BITFIELDS => &[],
+            BI::BITFIELDS => {},
             BI::JPEG => todo!(),
             BI::PNG => todo!(),
         };
 
-        fn get_pixel(palette: &[[u8; 4]], val: u8) -> [u8; 4] {
+        fn get_pixel(header: &BitmapInfo, val: u8) -> [u8; 4] {
             // BMP palette is BGRx
-            let [b, g, r, _] = palette[val as usize];
-            [r, g, b, 255]
+            let offset = val as usize * header.palette_entry_size;
+            let slice = unsafe { std::slice::from_raw_parts(header.palette.add(offset), 3) };
+            [slice[2], slice[1], slice[0], 255]
         }
 
-        let width = header.width() as usize;
-        let stride = header.stride() as usize;
+        let width = header.width;
+        let stride = header.stride;
 
         let (src, height) = match pixels {
             Some(p) => p,
             None => unsafe {
-                let ptr = (palette as *const _ as *const u8).add(palette.len() * 4);
-                let height = header.height() as usize;
-                let len = stride * height;
-                (std::slice::from_raw_parts(ptr, len), height)
+                let len = stride * header.height;
+                (std::slice::from_raw_parts(header.data, len), header.height)
             },
         };
 
         let mut dst: Vec<[u8; 4]> = Vec::with_capacity(width * height);
         for y in 0..height {
-            let y_src = if header.is_top_down() {
+            let y_src = if header.is_top_down {
                 y
             } else {
                 height - y - 1
             };
             let row = &src[y_src * stride..][..stride];
-            match header.biBitCount {
+            match header.bit_count {
                 32 => {
                     // TODO: might need to swizzle here, depending on BI::BITFIELDS.
                     dst.extend_from_slice(transmute_pixels(&row[..width * 4]));
                 }
                 8 => {
                     for &p in &row[..width] {
-                        dst.push(get_pixel(palette, p));
+                        dst.push(get_pixel(header, p));
                     }
                 }
                 4 => {
                     for i in 0..width {
                         let p = row[i / 2];
                         if i % 2 == 0 {
-                            dst.push(get_pixel(palette, p >> 4));
+                            dst.push(get_pixel(header, p >> 4));
                         } else {
-                            dst.push(get_pixel(palette, p & 0xF));
+                            dst.push(get_pixel(header, p & 0xF));
                         }
+                    }
+                }
+                1 => {
+                    for i in 0..width {
+                        let p = row[i / 8];
+                        let bit = 7 - (i % 8);
+                        let p = (p >> bit) & 1;
+                        dst.push(get_pixel(header, p));
                     }
                 }
                 _ => unimplemented!(),
@@ -184,7 +278,7 @@ impl BitmapRGBA32 {
         }
 
         BitmapRGBA32 {
-            width: header.width(),
+            width: header.width as u32,
             height: height as u32,
             pixels: PixelData::Owned(dst.into_boxed_slice()),
         }

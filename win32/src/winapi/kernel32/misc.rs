@@ -454,3 +454,38 @@ pub fn FormatMessageA(
     }
     0
 }
+
+#[win32_derive::dllexport]
+pub fn MulDiv(
+    _machine: &mut Machine,
+    nNumber: i32,
+    nNumerator: i32,
+    nDenominator: i32,
+) -> i32 {
+    if nDenominator == 0 {
+        return -1;
+    }
+
+    let mut nMultiplicand = nNumber;
+    let mut nDivisor = nDenominator;
+
+    if nDivisor < 0 {
+        nMultiplicand = -nMultiplicand;
+        nDivisor = -nDivisor;
+    }
+
+    let result: i64;
+    if (nMultiplicand < 0 && nNumerator < 0) || (nMultiplicand >= 0 && nNumerator >= 0) {
+        result = (nMultiplicand as i64).saturating_mul(nNumerator as i64) + (nDivisor / 2) as i64;
+    } else {
+        result = (nMultiplicand as i64).saturating_mul(nNumerator as i64) - (nDivisor / 2) as i64;
+    }
+
+    let result = result / nDivisor as i64;
+
+    if result > i32::MAX as i64 || result < i32::MIN as i64 {
+        return -1;
+    }
+
+    result as i32
+}

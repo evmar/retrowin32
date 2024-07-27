@@ -1,3 +1,5 @@
+use std::cell::RefCell;
+use std::cmp::min;
 use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
@@ -6,6 +8,10 @@ use crate::{
         kernel32,
     },
 };
+use crate::winapi::gdi32;
+use crate::winapi::handle::Handles;
+use crate::winapi::types::HWND;
+use crate::winapi::user32::Window;
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";
 
@@ -25,23 +31,66 @@ unsafe impl memory::Pod for BITMAP {}
 /// flush_alpha is true when the output drops alpha channel (e.g. Window backing store).
 fn bit_blt(
     dst: &mut [[u8; 4]],
-    dx: usize,
-    dy: usize,
+    mut dx: isize,
+    mut dy: isize,
     dstride: usize,
-    w: usize,
-    h: usize,
+    mut w: isize,
+    mut h: isize,
     src: &[[u8; 4]],
-    sx: usize,
-    sy: usize,
+    mut sx: isize,
+    mut sy: isize,
     sstride: usize,
     flush_alpha: bool,
+    rop: u32,
 ) {
-    assert!(dstride >= w);
-    assert!(sstride >= w);
+    let min_x = min(dx, sx);
+    let min_y = min(dy, sy);
+    if min_x < 0 {
+        dx -= min_x;
+        sx -= min_x;
+        w += min_x;
+    }
+    if min_y < 0 {
+        dy -= min_y;
+        sy -= min_y;
+        h += min_y;
+    }
+    w = min(w, dstride as isize - dx);
+    w = min(w, sstride as isize - sx);
+    if w <= 0 || h <= 0 {
+        return;
+    }
+
     for row in 0..h {
-        let dst_row = &mut dst[(((dy + row) * dstride) + dx)..][..w];
-        let src_row = &src[(((sy + row) * sstride) + sx)..][..w];
-        dst_row.copy_from_slice(src_row);
+        let dst_off = ((dy + row) * dstride as isize) + dx;
+        let src_off = ((sy + row) * sstride as isize) + sx;
+        if dst_off + w > dst.len() as isize || src_off + w > src.len() as isize {
+            break;
+        }
+        let dst_row = &mut dst[dst_off as usize..][..w as usize];
+        let src_row = &src[src_off as usize..][..w as usize];
+        match rop {
+            SRCCOPY => {
+                dst_row.copy_from_slice(src_row);
+            }
+            NOTSRCCOPY => {
+                for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
+                    d[0] = !s[0];
+                    d[1] = !s[1];
+                    d[2] = !s[2];
+                    d[3] = s[3];
+                }
+            }
+            SRCAND => {
+                for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
+                    d[0] &= s[0];
+                    d[1] &= s[1];
+                    d[2] &= s[2];
+                    d[3] &= s[3];
+                }
+            }
+            _ => todo!("unimplemented BitBlt with rop={:x}", rop),
+        }
         if flush_alpha {
             for p in dst_row {
                 p[3] = 0xFF;
@@ -50,37 +99,76 @@ fn bit_blt(
     }
 }
 
+fn pat_blt(
+    dst: &mut [[u8; 4]],
+    mut x: isize,
+    mut y: isize,
+    stride: usize,
+    mut w: isize,
+    mut h: isize,
+    color: [u8; 4],
+    rop: u32,
+) {
+    if x < 0 {
+        w += x;
+        x = 0;
+    }
+    if y < 0 {
+        h += y;
+        y = 0;
+    }
+    if w <= 0 || h <= 0 {
+        return;
+    }
+    for row in 0..h {
+        let dst_off = ((y + row) * stride as isize) + x;
+        if dst_off + w > dst.len() as isize {
+            break;
+        }
+        let dst_row = &mut dst[dst_off as usize..][..w as usize];
+        match rop {
+            PATCOPY => {
+                dst_row.fill(color);
+            }
+            BLACKNESS => {
+                dst_row.fill([0, 0, 0, 0xFF]);
+            }
+            _ => todo!("unimplemented PatBlt with rop={:x}", rop),
+        }
+    }
+}
+
 const SRCCOPY: u32 = 0xcc0020;
 const NOTSRCCOPY: u32 = 0x330008;
+const SRCAND: u32 = 0x8800c6;
+const PATCOPY: u32 = 0xf00021;
+const BLACKNESS: u32 = 0x000042;
 
 #[win32_derive::dllexport]
 pub fn BitBlt(
     machine: &mut Machine,
     hdc: HDC,
-    x: u32,
-    y: u32,
+    x: i32,
+    y: i32,
     cx: u32,
     cy: u32,
     hdcSrc: HDC,
-    x1: u32,
-    y1: u32,
+    x1: i32,
+    y1: i32,
     rop: u32,
 ) -> bool {
-    // TODO: we special case only a few specific BitBlts.
-    match rop {
-        SRCCOPY => {}
-        NOTSRCCOPY => log::warn!("TODO: ignoring NOTSRCCOPY"),
-        _ => todo!(),
-    }
-
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let src_bitmap = match src_dc.target {
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
-                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
+                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp.clone(),
                 _ => unimplemented!("{:?}", obj),
             }
+        }
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            window.bitmap_mut().clone()
         }
         _ => todo!(),
     };
@@ -89,56 +177,52 @@ pub fn BitBlt(
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dst_dc.target {
         DCTarget::Memory(obj) => {
-            let _bitmap = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
-                Object::Bitmap(bmp) => bmp,
+            let dst = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
+                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
                 _ => unimplemented!("{:?}", obj),
             };
 
-            // TODO: we can't BltBlt here because of borrow checker -- can't have two
-            // bitmaps at the same time.  Need to revisit how object handles work.
-            log::warn!("TODO: BltBlt between bitmaps");
-            // assert_eq!(bitmap.format, PixelFormat::RGBA32);
-            // let dst = bitmap::bytes_as_rgba_mut(bitmap.pixels.as_slice_mut());
-            // bit_blt(
-            //     dst,
-            //     x as usize,
-            //     y as usize,
-            //     bitmap.width as usize,
-            //     cx as usize,
-            //     cy as usize,
-            //     src,
-            //     x1 as usize,
-            //     y1 as usize,
-            //     src_bitmap.width as usize,
-            // );
+            bit_blt(
+                dst.pixels.as_slice_mut(),
+                x as isize,
+                y as isize,
+                dst.width as usize,
+                cx as isize,
+                cy as isize,
+                src,
+                x1 as isize,
+                y1 as isize,
+                src_bitmap.width as usize,
+                true,
+                rop,
+            );
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let dst = window.bitmap_mut();
 
             // Clip to src/dst regions.
-            if x >= dst.width
-                || x1 >= src_bitmap.width
-                || y >= dst.height
-                || y1 >= src_bitmap.height
+            if x >= dst.width as i32
+                || x1 >= src_bitmap.width as i32
+                || y >= dst.height as i32
+                || y1 >= src_bitmap.height as i32
             {
                 return true;
             }
-            let cx = std::cmp::min(cx, std::cmp::min(dst.width - x, src_bitmap.width - x1));
-            let cy = std::cmp::min(cy, std::cmp::min(dst.height - y, src_bitmap.height - y1));
 
             bit_blt(
                 dst.pixels.as_slice_mut(),
-                x as usize,
-                y as usize,
+                x as isize,
+                y as isize,
                 dst.width as usize,
-                cx as usize,
-                cy as usize,
+                cx as isize,
+                cy as isize,
                 src,
-                x1 as usize,
-                y1 as usize,
+                x1 as isize,
+                y1 as isize,
                 src_bitmap.width as usize,
                 true,
+                rop,
             );
 
             window.flush_pixels(machine.emu.memory.mem());
@@ -160,13 +244,13 @@ pub fn BitBlt(
 pub fn StretchBlt(
     machine: &mut Machine,
     hdcDest: HDC,
-    xDest: u32,
-    yDest: u32,
+    xDest: i32,
+    yDest: i32,
     wDest: u32,
     hDest: u32,
     hdcSrc: HDC,
-    xSrc: u32,
-    ySrc: u32,
+    xSrc: i32,
+    ySrc: i32,
     wSrc: u32,
     hSrc: u32,
     rop: u32,
@@ -177,6 +261,88 @@ pub fn StretchBlt(
     BitBlt(
         machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
     )
+}
+
+#[win32_derive::dllexport]
+pub fn PatBlt(
+    machine: &mut Machine,
+    hdc: HDC,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+    rop: u32,
+) -> bool {
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+
+    // get brush color
+    let brush = match machine.state.gdi32.objects.get(dc.brush).unwrap() {
+        Object::Brush(brush) => brush,
+        _ => unimplemented!(),
+    };
+    let color = match brush.color {
+        Some(color) => color.to_pixel(),
+        None => [0x80, 0x80, 0x80, 0xFF],
+    };
+
+    match dc.target {
+        DCTarget::Memory(hbitmap) => {
+            let bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
+                _ => unimplemented!(),
+            };
+            pat_blt(
+                bitmap.pixels.as_slice_mut(),
+                x as isize,
+                y as isize,
+                bitmap.width as usize,
+                w as isize,
+                h as isize,
+                color,
+                rop,
+            );
+        }
+        DCTarget::Window(hwnd) => {
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let bitmap = window.bitmap_mut();
+            pat_blt(
+                bitmap.pixels.as_slice_mut(),
+                x as isize,
+                y as isize,
+                bitmap.width as usize,
+                w as isize,
+                h as isize,
+                color,
+                rop,
+            );
+            window.flush_pixels(machine.emu.memory.mem());
+        }
+        _ => todo!(),
+    };
+
+    // let x = x as usize;
+    // let y = y as usize;
+    // let w = w as usize;
+    // let h = h as usize;
+    // match rop {
+    //     PATCOPY => {
+    //         for row in 0..h {
+    //             let dst_row = &mut dst_bitmap.pixels.as_slice_mut()[(((y + row) * dst_bitmap.width as usize) + x)..][..w];
+    //             dst_row.fill([0x80, 0x80, 0x80, 0xFF]);
+    //         }
+    //     }
+    //     BLACKNESS => {
+    //         for row in 0..h {
+    //             let dst_row = &mut dst_bitmap.pixels.as_slice_mut()[(((y + row) * dst_bitmap.width as usize) + x)..][..w];
+    //             dst_row.fill([0, 0, 0, 0xFF]);
+    //         }
+    //     }
+    //     _ => todo!("unimp: PatBlt with rop={:x}", rop),
+    // }
+    // if let Some(window) = window {
+    //     window.flush_pixels(machine.emu.memory.mem());
+    // }
+    true
 }
 
 #[win32_derive::dllexport]
@@ -330,7 +496,11 @@ pub fn SetDIBitsToDevice(
         todo!("unclear which width to believe");
     }
 
-    let src_bitmap = BitmapRGBA32::parse(
+    let ptr = unsafe {
+        (header as *const _ as *const u8).add(header.biSize as usize)
+    };
+
+    let src_bitmap = BitmapRGBA32::parseBMPv3(
         header,
         Some((
             machine.mem().slice(lpvBits..).as_slice_todo(),
@@ -354,16 +524,17 @@ pub fn SetDIBitsToDevice(
 
     bit_blt(
         &mut dst.pixels.as_slice_mut(),
-        xDest as usize,
-        yDest as usize,
+        xDest as isize,
+        yDest as isize,
         dst.width as usize,
-        w as usize,
-        std::cmp::min(h, dst.height - yDest) as usize,
+        w as isize,
+        std::cmp::min(h, dst.height - yDest) as isize,
         src,
-        xSrc as usize,
-        ySrc as usize,
+        xSrc as isize,
+        ySrc as isize,
         src_bitmap.width as usize,
         flush_alpha,
+        SRCCOPY,
     );
 
     match dc.target {

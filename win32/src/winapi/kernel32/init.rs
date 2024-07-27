@@ -402,6 +402,10 @@ impl State {
                     base: mapping.addr,
                     names: HashMap::new(),
                     ordinals: HashMap::new(),
+                    resources: pe::IMAGE_DATA_DIRECTORY {
+                        VirtualAddress: 0,
+                        Size: 0,
+                    },
                     entry_point: None,
                 },
                 builtin: Some(builtin),
@@ -494,21 +498,29 @@ pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
-    let dllmains = machine
+    struct DllData {
+        base: u32,
+        entry_point: u32,
+    }
+
+    let dlls = machine
         .state
         .kernel32
         .dlls
         .iter()
-        .filter_map(|(_, dll)| dll.dll.entry_point)
+        .filter(|(_, dll)| dll.dll.entry_point.is_some())
+        .map(|(_, dll)| DllData {
+            base: dll.dll.base,
+            entry_point: dll.dll.entry_point.unwrap(),
+        })
         .collect::<Vec<_>>();
     // TODO: invoking dllmains can load more dlls.
-    for dllmain in dllmains {
-        log::info!("invoking dllmain {:x}", dllmain);
-        let hInstance = 0u32; // TODO
+    for dll in dlls {
+        let hInstance = dll.base;
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;
         machine
-            .call_x86(dllmain, vec![hInstance, fdwReason, lpvReserved])
+            .call_x86(dll.entry_point, vec![hInstance, fdwReason, lpvReserved])
             .await;
     }
 

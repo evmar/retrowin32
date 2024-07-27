@@ -154,13 +154,80 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
 #[win32_derive::dllexport]
 pub fn SetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> u32 {
     let color = COLORREF::from_u32(color);
-    // TODO: actually draw
+    let dc = _machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    match dc.target {
+        DCTarget::Window(hwnd) => {
+            let window = _machine.state.user32.windows.get_mut(hwnd).unwrap();
+            if x >= window.width || y >= window.height {
+                return CLR_INVALID;
+            }
+            let stride = window.width;
+            let pixels = window.bitmap_mut().pixels.as_slice_mut();
+            pixels[((y * stride) + x) as usize] = color.to_pixel();
+            // TODO: don't need to flush whole window for just one pixel
+            window.flush_pixels(_machine.emu.memory.mem());
+        }
+        _ => {
+            // TODO: actually draw
+        }
+    }
     u32::from_le_bytes(color.to_pixel())
 }
 
 #[win32_derive::dllexport]
 pub fn GetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
-    let color = COLORREF((0, 0, 0));
-    // TODO: actually read
-    u32::from_le_bytes(color.to_pixel())
+    let dc = _machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    match dc.target {
+        DCTarget::Window(hwnd) => {
+            let window = _machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let stride = window.width;
+            let pixels = window.bitmap_mut().pixels.as_slice_mut();
+            let color = pixels[((y * stride) + x) as usize];
+            u32::from_le_bytes(color)
+        }
+        _ => {
+            // TODO: actually read
+            let color = COLORREF((0, 0, 0));
+            u32::from_le_bytes(color.to_pixel())
+        }
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn CreateSolidBrush(
+    machine: &mut Machine,
+    color: u32,
+) -> HGDIOBJ {
+    machine.state.gdi32.objects.add(Object::Brush(Brush {
+        color: Some(COLORREF::from_u32(color)),
+    }))
+}
+
+#[win32_derive::dllexport]
+pub fn SetBrushOrgEx(
+    machine: &mut Machine,
+    hdc: HDC,
+    x: i32,
+    y: i32,
+    lppt: Option<&mut POINT>,
+) -> bool {
+    true // stub
+}
+
+#[win32_derive::dllexport]
+pub fn PtVisible(_machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
+    true // stub
+}
+
+#[win32_derive::dllexport]
+pub fn LineDDA(
+    _machine: &mut Machine,
+    xStart: i32,
+    yStart: i32,
+    xEnd: i32,
+    yEnd: i32,
+    lpProc: u32,
+    data: u32,
+) -> bool {
+    true // stub
 }

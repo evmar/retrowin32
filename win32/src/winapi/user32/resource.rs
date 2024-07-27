@@ -1,4 +1,4 @@
-use super::HMENU;
+use super::{HINSTANCE, HMENU};
 use crate::{
     pe,
     winapi::{
@@ -10,6 +10,7 @@ use crate::{
     Machine,
 };
 use memory::{Extensions, Mem};
+use crate::winapi::bitmap::BITMAPCOREHEADER;
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -63,14 +64,15 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
-fn load_bitmap(machine: &mut Machine, name: ResourceKey<&Str16>) -> Option<HGDIOBJ> {
+fn load_bitmap(machine: &mut Machine, hInstance: HINSTANCE, name: ResourceKey<&Str16>) -> Option<HGDIOBJ> {
     let buf = crate::winapi::kernel32::find_resource(
         &machine.state.kernel32,
         machine.mem(),
+        hInstance,
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
-    let bmp = BitmapRGBA32::parse(buf.view::<BITMAPINFOHEADER>(0), None);
+    let bmp = BitmapRGBA32::parse(buf, None);
     Some(
         machine
             .state
@@ -90,8 +92,6 @@ pub fn LoadImageA(
     cy: u32,
     fuLoad: u32,
 ) -> HGDIOBJ {
-    assert!(hInstance == machine.state.kernel32.image_base);
-
     if fuLoad != 0 {
         log::error!("unimplemented fuLoad {:x}", fuLoad);
         return HGDIOBJ::null();
@@ -103,7 +103,39 @@ pub fn LoadImageA(
 
     const IMAGE_BITMAP: u32 = 0;
     match typ {
-        IMAGE_BITMAP => load_bitmap(machine, name.as_ref()).unwrap(),
+        IMAGE_BITMAP => load_bitmap(machine, hInstance, name.as_ref()).unwrap(),
+        _ => {
+            log::error!("unimplemented image type {:x}", typ);
+            return HGDIOBJ::null();
+        }
+    }
+}
+
+
+#[win32_derive::dllexport]
+pub fn LoadImageW(
+    machine: &mut Machine,
+    hInstance: u32,
+    name: ResourceKey<&Str16>,
+    typ: u32,
+    cx: u32,
+    cy: u32,
+    fuLoad: u32,
+) -> HGDIOBJ {
+    if fuLoad != 0 {
+        log::error!("unimplemented fuLoad {:x}", fuLoad);
+        return HGDIOBJ::null();
+    }
+
+    // TODO: it's unclear whether the width/height is obeyed when loading an image.
+
+    const IMAGE_BITMAP: u32 = 0;
+    const IMAGE_ICON: u32 = 1;
+    match typ {
+        IMAGE_BITMAP => load_bitmap(machine, hInstance, name).unwrap(),
+        IMAGE_ICON => {
+            return HGDIOBJ::null();
+        }
         _ => {
             log::error!("unimplemented image type {:x}", typ);
             return HGDIOBJ::null();
@@ -114,21 +146,21 @@ pub fn LoadImageA(
 #[win32_derive::dllexport]
 pub fn LoadBitmapA(
     machine: &mut Machine,
-    hInstance: u32,
+    hInstance: HINSTANCE,
     lpBitmapName: ResourceKey<&str>,
 ) -> HGDIOBJ {
-    assert!(hInstance == machine.state.kernel32.image_base);
     let name = lpBitmapName.to_string16();
-    load_bitmap(machine, name.as_ref()).unwrap()
+    load_bitmap(machine, hInstance, name.as_ref()).unwrap()
 }
 
-fn find_string(machine: &Machine, uID: u32) -> Option<Mem> {
+fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Mem> {
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
     let block = crate::winapi::kernel32::find_resource(
         &machine.state.kernel32,
         machine.mem(),
+        hInstance,
         ResourceKey::Id(pe::RT::STRING as u32),
         ResourceKey::Id(resource_id),
     )?;
@@ -153,7 +185,7 @@ pub fn LoadStringA(
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
-    let str = match find_string(machine, uID) {
+    let str = match find_string(machine, hInstance, uID) {
         Some(str) => Str16::from_bytes(str.as_slice_todo()),
         None => return 0,
     };
@@ -179,7 +211,7 @@ pub fn LoadStringW(
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
-    let str = match find_string(machine, uID) {
+    let str = match find_string(machine, hInstance, uID) {
         Some(str) => str,
         None => return 0,
     };

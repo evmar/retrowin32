@@ -10,6 +10,9 @@ use crate::{
     Machine,
 };
 use memory::Mem;
+use crate::winapi::kernel32::HMODULE;
+use crate::winapi::stack_args::ToX86;
+use crate::winapi::user32::HINSTANCE;
 
 const TRACE_CONTEXT: &'static str = "kernel32/resource";
 
@@ -72,18 +75,25 @@ where
 pub fn find_resource<'a>(
     kernel32: &kernel32::State,
     mem: Mem<'a>,
+    hInstance: HINSTANCE,
     typ: ResourceKey<&Str16>,
     name: ResourceKey<&Str16>,
 ) -> Option<Mem<'a>> {
-    let image = mem.slice(kernel32.image_base..);
-    let section = kernel32.resources.as_slice(image.as_slice_todo())?;
-    Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
+    let image = mem.slice(hInstance..);
+    if hInstance == kernel32.image_base {
+        let section = kernel32.resources.as_slice(image.as_slice_todo())?;
+        Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
+    } else {
+        let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
+        let section = dll.dll.resources.as_slice(image.as_slice_todo())?;
+        Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
+    }
 }
 
 #[win32_derive::dllexport]
 pub fn FindResourceA(
     machine: &mut Machine,
-    hModule: u32,
+    hModule: HMODULE,
     lpName: ResourceKey<&str>,
     lpType: ResourceKey<&str>,
 ) -> u32 {
@@ -95,11 +105,11 @@ pub fn FindResourceA(
 #[win32_derive::dllexport]
 pub fn FindResourceW(
     machine: &mut Machine,
-    hModule: u32,
+    hModule: HMODULE,
     lpName: ResourceKey<&Str16>,
     lpType: ResourceKey<&Str16>,
 ) -> u32 {
-    match find_resource(&machine.state.kernel32, machine.mem(), lpType, lpName) {
+    match find_resource(&machine.state.kernel32, machine.mem(), hModule.to_raw(), lpType, lpName) {
         None => 0,
         Some(mem) => mem.offset_from(machine.mem()),
     }

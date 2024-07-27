@@ -1,3 +1,4 @@
+use log::warn;
 use crate::{winapi::types::*, Machine};
 
 use super::{MSG, WM};
@@ -68,7 +69,7 @@ pub fn SetTimer(
     let uElapse = num_traits::clamp(uElapse, USER_TIMER_MINIMUM, USER_TIMER_MAXIMUM);
 
     if lpTimerFunc != 0 {
-        todo!("timer callbacks unimplemented");
+        warn!("timer callbacks unimplemented");
     }
 
     let id = match machine
