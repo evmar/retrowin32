@@ -48,6 +48,17 @@ pub fn TextOutA(
     true
 }
 
+#[win32_derive::dllexport]
+pub fn TextOutW(
+    _machine: &mut Machine,
+    hdc: HDC,
+    x: u32,
+    y: u32,
+    lpString: ArrayWithSize<u16>,
+) -> bool {
+    true
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct TEXTMETRICA {
@@ -100,7 +111,6 @@ pub struct TEXTMETRICW {
 }
 unsafe impl memory::Pod for TEXTMETRICW {}
 
-
 #[win32_derive::dllexport]
 pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
     let tm = lptm.unwrap();
@@ -131,6 +141,21 @@ unsafe impl memory::Pod for SIZE {}
 
 #[win32_derive::dllexport]
 pub fn GetTextExtentPoint32A(
+    _machine: &mut Machine,
+    hdc: HDC,
+    lpString: Option<&str>,
+    c: i32,
+    psizl: Option<&mut SIZE>,
+) -> bool {
+    *psizl.unwrap() = SIZE {
+        cx: lpString.unwrap().len() as i32 * 10,
+        cy: 12,
+    };
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn GetTextExtentPoint32W(
     _machine: &mut Machine,
     hdc: HDC,
     lpString: Option<&str>,

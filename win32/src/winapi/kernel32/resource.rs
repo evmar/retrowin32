@@ -1,5 +1,8 @@
 #![allow(non_snake_case)]
 
+use crate::winapi::kernel32::HMODULE;
+use crate::winapi::stack_args::ToX86;
+use crate::winapi::user32::HINSTANCE;
 use crate::{
     pe,
     winapi::{
@@ -10,9 +13,6 @@ use crate::{
     Machine,
 };
 use memory::Mem;
-use crate::winapi::kernel32::HMODULE;
-use crate::winapi::stack_args::ToX86;
-use crate::winapi::user32::HINSTANCE;
 
 const TRACE_CONTEXT: &'static str = "kernel32/resource";
 
@@ -85,8 +85,13 @@ pub fn find_resource<'a>(
         Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
     } else {
         let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
-        let section = dll.dll.resources.as_slice(image.as_slice_todo())?;
-        Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
+        match dll.dll.resources.clone() {
+            None => return None,
+            Some(resources) => {
+                let section = resources.as_slice(image.as_slice_todo())?;
+                Some(image.slice(pe::find_resource(section, typ.into_pe(), name.into_pe())?))
+            }
+        }
     }
 }
 
@@ -109,7 +114,13 @@ pub fn FindResourceW(
     lpName: ResourceKey<&Str16>,
     lpType: ResourceKey<&Str16>,
 ) -> u32 {
-    match find_resource(&machine.state.kernel32, machine.mem(), hModule.to_raw(), lpType, lpName) {
+    match find_resource(
+        &machine.state.kernel32,
+        machine.mem(),
+        hModule.to_raw(),
+        lpType,
+        lpName,
+    ) {
         None => 0,
         Some(mem) => mem.offset_from(machine.mem()),
     }

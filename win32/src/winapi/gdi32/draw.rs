@@ -152,12 +152,12 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
 }
 
 #[win32_derive::dllexport]
-pub fn SetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> u32 {
+pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> u32 {
     let color = COLORREF::from_u32(color);
-    let dc = _machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
-            let window = _machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             if x >= window.width || y >= window.height {
                 return CLR_INVALID;
             }
@@ -165,21 +165,24 @@ pub fn SetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) ->
             let pixels = window.bitmap_mut().pixels.as_slice_mut();
             pixels[((y * stride) + x) as usize] = color.to_pixel();
             // TODO: don't need to flush whole window for just one pixel
-            window.flush_pixels(_machine.emu.memory.mem());
+            window.flush_pixels(machine.emu.memory.mem());
+        }
+        DCTarget::Memory(_) => {
+            log::warn!("SetPixel for Memory DC is not implemented");
         }
         _ => {
-            // TODO: actually draw
+            todo!("unimplemented SetPixel for {:?}", dc.target);
         }
     }
     u32::from_le_bytes(color.to_pixel())
 }
 
 #[win32_derive::dllexport]
-pub fn GetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
-    let dc = _machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
-            let window = _machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let stride = window.width;
             let pixels = window.bitmap_mut().pixels.as_slice_mut();
             let color = pixels[((y * stride) + x) as usize];
@@ -194,10 +197,7 @@ pub fn GetPixel(_machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn CreateSolidBrush(
-    machine: &mut Machine,
-    color: u32,
-) -> HGDIOBJ {
+pub fn CreateSolidBrush(machine: &mut Machine, color: u32) -> HGDIOBJ {
     machine.state.gdi32.objects.add(Object::Brush(Brush {
         color: Some(COLORREF::from_u32(color)),
     }))

@@ -1,6 +1,8 @@
-use std::cell::RefCell;
-use std::cmp::min;
 use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
+use crate::winapi::gdi32;
+use crate::winapi::handle::Handles;
+use crate::winapi::types::HWND;
+use crate::winapi::user32::Window;
 use crate::{
     machine::Machine,
     winapi::{
@@ -8,10 +10,8 @@ use crate::{
         kernel32,
     },
 };
-use crate::winapi::gdi32;
-use crate::winapi::handle::Handles;
-use crate::winapi::types::HWND;
-use crate::winapi::user32::Window;
+use std::cell::RefCell;
+use std::cmp::min;
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";
 
@@ -264,25 +264,17 @@ pub fn StretchBlt(
 }
 
 #[win32_derive::dllexport]
-pub fn PatBlt(
-    machine: &mut Machine,
-    hdc: HDC,
-    x: i32,
-    y: i32,
-    w: i32,
-    h: i32,
-    rop: u32,
-) -> bool {
+pub fn PatBlt(machine: &mut Machine, hdc: HDC, x: i32, y: i32, w: i32, h: i32, rop: u32) -> bool {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
 
+    const DEFAULT_COLOR: [u8; 4] = [255, 255, 255, 255];
     // get brush color
-    let brush = match machine.state.gdi32.objects.get(dc.brush).unwrap() {
-        Object::Brush(brush) => brush,
-        _ => unimplemented!(),
-    };
-    let color = match brush.color {
-        Some(color) => color.to_pixel(),
-        None => [0x80, 0x80, 0x80, 0xFF],
+    let color = match machine.state.gdi32.objects.get(dc.brush) {
+        Some(Object::Brush(brush)) => match brush.color {
+            Some(color) => color.to_pixel(),
+            None => DEFAULT_COLOR,
+        },
+        _ => DEFAULT_COLOR,
     };
 
     match dc.target {
@@ -303,6 +295,10 @@ pub fn PatBlt(
             );
         }
         DCTarget::Window(hwnd) => {
+            if hwnd.to_raw() != 1 {
+                log::warn!("PatBlt to sub window");
+                return false;
+            }
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let bitmap = window.bitmap_mut();
             pat_blt(
@@ -319,29 +315,6 @@ pub fn PatBlt(
         }
         _ => todo!(),
     };
-
-    // let x = x as usize;
-    // let y = y as usize;
-    // let w = w as usize;
-    // let h = h as usize;
-    // match rop {
-    //     PATCOPY => {
-    //         for row in 0..h {
-    //             let dst_row = &mut dst_bitmap.pixels.as_slice_mut()[(((y + row) * dst_bitmap.width as usize) + x)..][..w];
-    //             dst_row.fill([0x80, 0x80, 0x80, 0xFF]);
-    //         }
-    //     }
-    //     BLACKNESS => {
-    //         for row in 0..h {
-    //             let dst_row = &mut dst_bitmap.pixels.as_slice_mut()[(((y + row) * dst_bitmap.width as usize) + x)..][..w];
-    //             dst_row.fill([0, 0, 0, 0xFF]);
-    //         }
-    //     }
-    //     _ => todo!("unimp: PatBlt with rop={:x}", rop),
-    // }
-    // if let Some(window) = window {
-    //     window.flush_pixels(machine.emu.memory.mem());
-    // }
     true
 }
 
@@ -496,9 +469,7 @@ pub fn SetDIBitsToDevice(
         todo!("unclear which width to believe");
     }
 
-    let ptr = unsafe {
-        (header as *const _ as *const u8).add(header.biSize as usize)
-    };
+    let ptr = unsafe { (header as *const _ as *const u8).add(header.biSize as usize) };
 
     let src_bitmap = BitmapRGBA32::parseBMPv3(
         header,

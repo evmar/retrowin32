@@ -42,7 +42,7 @@ pub fn GetProfileIntW(
     lpKeyName: Option<&Str16>,
     nDefault: i32,
 ) -> u32 {
-    42
+    nDefault as u32
 }
 
 #[win32_derive::dllexport]

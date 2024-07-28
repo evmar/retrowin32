@@ -1,4 +1,5 @@
 use super::{UpdateRegion, HBRUSH, HDC};
+use crate::str16::Str16;
 use crate::{
     winapi::{
         gdi32::{self, COLORREF, HGDIOBJ},
@@ -189,4 +190,17 @@ pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: Brush
 pub fn FrameRect(_machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: HBRUSH) -> bool {
     // TODO
     true
+}
+
+#[win32_derive::dllexport]
+pub fn DrawTextW(
+    _machine: &mut Machine,
+    hDC: HDC,
+    lpString: Option<&Str16>,
+    nCount: i32,
+    lpRect: Option<&RECT>,
+    uFormat: u32,
+) -> i32 {
+    log::info!("DrawTextW: {:?}", lpString);
+    0
 }
