@@ -402,10 +402,7 @@ impl State {
                     base: mapping.addr,
                     names: HashMap::new(),
                     ordinals: HashMap::new(),
-                    resources: pe::IMAGE_DATA_DIRECTORY {
-                        VirtualAddress: 0,
-                        Size: 0,
-                    },
+                    resources: Default::default(),
                     entry_point: None,
                 },
                 builtin: Some(builtin),

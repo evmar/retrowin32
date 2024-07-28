@@ -146,7 +146,11 @@ impl GUI {
     pub fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
         let win = Window::new(&self.video, hwnd);
         let win_ref = WindowRef(Rc::new(RefCell::new(win)));
-        self.win = Some(win_ref.clone());
+        if self.win.is_some() {
+            log::warn!("TODO: handle multiple windows");
+        } else {
+            self.win = Some(win_ref.clone());
+        }
         Box::new(win_ref)
     }
 

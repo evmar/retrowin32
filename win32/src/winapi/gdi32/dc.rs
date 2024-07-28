@@ -1,4 +1,5 @@
 use super::{BitmapType, Object, HGDIOBJ, R2};
+use crate::winapi::types::POINT;
 use crate::{
     machine::Machine,
     winapi::{
@@ -6,7 +7,6 @@ use crate::{
         types::{HANDLE, HWND},
     },
 };
-use crate::winapi::types::POINT;
 
 const TRACE_CONTEXT: &'static str = "gdi32/dc";
 
@@ -144,12 +144,12 @@ pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GetDCOrgEx(_machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
-    let dc = _machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+pub fn GetDCOrgEx(machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     if let Some(lpPoint) = lpPoint {
         lpPoint.x = dc.x;
         lpPoint.y = dc.y;
-        return true
+        return true;
     }
     false
 }

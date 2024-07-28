@@ -1,4 +1,5 @@
 use super::{HINSTANCE, HMENU};
+use crate::winapi::bitmap::BITMAPCOREHEADER;
 use crate::{
     pe,
     winapi::{
@@ -10,7 +11,6 @@ use crate::{
     Machine,
 };
 use memory::{Extensions, Mem};
-use crate::winapi::bitmap::BITMAPCOREHEADER;
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -64,7 +64,11 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
-fn load_bitmap(machine: &mut Machine, hInstance: HINSTANCE, name: ResourceKey<&Str16>) -> Option<HGDIOBJ> {
+fn load_bitmap(
+    machine: &mut Machine,
+    hInstance: HINSTANCE,
+    name: ResourceKey<&Str16>,
+) -> Option<HGDIOBJ> {
     let buf = crate::winapi::kernel32::find_resource(
         &machine.state.kernel32,
         machine.mem(),
@@ -110,7 +114,6 @@ pub fn LoadImageA(
         }
     }
 }
-
 
 #[win32_derive::dllexport]
 pub fn LoadImageW(

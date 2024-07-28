@@ -270,6 +270,8 @@ bitflags! {
         const THICKFRAME      = 0x00040000;
         const GROUP           = 0x00020000;
         const TABSTOP         = 0x00010000;
+        const HREDRAW         = 0x00000002; // CS_HREDRAW
+        const VREDRAW         = 0x00000001; // CS_VREDRAW
     }
 }
 impl TryFrom<u32> for WindowStyle {
@@ -548,7 +550,7 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
             lPrivate: 0,
         },
     )
-        .await;
+    .await;
 
     true // success
 }
@@ -589,7 +591,7 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
             lPrivate: 0,
         },
     )
-        .await;
+    .await;
 
     dispatch_message(
         machine,
@@ -604,7 +606,7 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
             lPrivate: 0,
         },
     )
-        .await;
+    .await;
 
     dispatch_message(
         machine,

@@ -456,12 +456,7 @@ pub fn FormatMessageA(
 }
 
 #[win32_derive::dllexport]
-pub fn MulDiv(
-    _machine: &mut Machine,
-    nNumber: i32,
-    nNumerator: i32,
-    nDenominator: i32,
-) -> i32 {
+pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominator: i32) -> i32 {
     if nDenominator == 0 {
         return -1;
     }

@@ -202,7 +202,9 @@ impl BitmapRGBA32 {
             palette_entry_size,
             palette_size,
             palette: unsafe { (header as *const _ as *const u8).add(header.biSize as usize) },
-            data: unsafe { (header as *const _ as *const u8).add(header.biSize as usize + palette_size) },
+            data: unsafe {
+                (header as *const _ as *const u8).add(header.biSize as usize + palette_size)
+            },
         };
         BitmapRGBA32::parseBMP(bi, pixels)
     }
@@ -214,7 +216,7 @@ impl BitmapRGBA32 {
             BI::RGB => {}
             BI::RLE8 => todo!(),
             BI::RLE4 => todo!(),
-            BI::BITFIELDS => {},
+            BI::BITFIELDS => {}
             BI::JPEG => todo!(),
             BI::PNG => todo!(),
         };

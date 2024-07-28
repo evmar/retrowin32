@@ -219,7 +219,7 @@ pub struct DLL {
     // TODO: ords could be a flat array once we have ordinals for all the builtin DLLs.
     pub ordinals: HashMap<u32, u32>,
 
-    pub resources: IMAGE_DATA_DIRECTORY,
+    pub resources: Option<IMAGE_DATA_DIRECTORY>,
 
     /// Address of DllMain() entry point.
     pub entry_point: Option<u32>,
@@ -257,8 +257,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     let resources = file
         .data_directory
         .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
-        .cloned()
-        .unwrap_or_default();
+        .cloned();
 
     Ok(DLL {
         base,
