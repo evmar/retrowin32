@@ -2,6 +2,7 @@
 
 use super::kernel32::ExitProcess;
 use crate::Machine;
+use memory::Extensions;
 
 const TRACE_CONTEXT: &'static str = "ucrtbase";
 
@@ -10,10 +11,12 @@ pub async fn _initterm(machine: &mut Machine, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm");
     }
-    let slice = machine.mem().sub(start, end - start).as_slice_todo();
-    let slice =
-        unsafe { std::slice::from_raw_parts(slice.as_ptr() as *const u32, slice.len() / 4) };
-    for &addr in slice {
+    let slice = machine
+        .mem()
+        .sub(start, end - start)
+        .as_slice_todo()
+        .to_vec();
+    for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
             machine.call_x86(addr, vec![]).await;
         }
@@ -26,10 +29,12 @@ pub async fn _initterm_e(machine: &mut Machine, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm_e");
     }
-    let slice = machine.mem().sub(start, end - start).as_slice_todo();
-    let slice =
-        unsafe { std::slice::from_raw_parts(slice.as_ptr() as *const u32, slice.len() / 4) };
-    for &addr in slice {
+    let slice = machine
+        .mem()
+        .sub(start, end - start)
+        .as_slice_todo()
+        .to_vec();
+    for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
             let err = machine.call_x86(addr, vec![]).await;
             if err != 0 {
