@@ -490,6 +490,11 @@ pub mod gdi32 {
             let color = <u32>::from_stack(mem, esp + 12u32);
             winapi::gdi32::CreatePen(machine, iStyle, cWidth, color).to_raw()
         }
+        pub unsafe fn CreateSolidBrush(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let color = <u32>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::CreateSolidBrush(machine, color).to_raw()
+        }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <u32>::from_stack(mem, esp + 4u32);
@@ -499,6 +504,12 @@ pub mod gdi32 {
             let mem = machine.mem().detach();
             let handle = <HGDIOBJ>::from_stack(mem, esp + 4u32);
             winapi::gdi32::DeleteObject(machine, handle).to_raw()
+        }
+        pub unsafe fn GetDCOrgEx(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let lpPoint = <Option<&mut POINT>>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::GetDCOrgEx(machine, hdc, lpPoint).to_raw()
         }
         pub unsafe fn GetDeviceCaps(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -510,12 +521,6 @@ pub mod gdi32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
             winapi::gdi32::GetLayout(machine, hdc).to_raw()
-        }
-        pub unsafe fn GetDCOrgEx(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let lppt = <Option<&mut POINT>>::from_stack(mem, esp + 8u32);
-            winapi::gdi32::GetDCOrgEx(machine, hdc, lppt).to_raw()
         }
         pub unsafe fn GetObjectA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -564,6 +569,16 @@ pub mod gdi32 {
             let lptm = <Option<&mut TEXTMETRICW>>::from_stack(mem, esp + 8u32);
             winapi::gdi32::GetTextMetricsW(machine, hdc, lptm).to_raw()
         }
+        pub unsafe fn LineDDA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let xStart = <i32>::from_stack(mem, esp + 4u32);
+            let yStart = <i32>::from_stack(mem, esp + 8u32);
+            let xEnd = <i32>::from_stack(mem, esp + 12u32);
+            let yEnd = <i32>::from_stack(mem, esp + 16u32);
+            let lpProc = <u32>::from_stack(mem, esp + 20u32);
+            let data = <u32>::from_stack(mem, esp + 24u32);
+            winapi::gdi32::LineDDA(machine, xStart, yStart, xEnd, yEnd, lpProc, data).to_raw()
+        }
         pub unsafe fn LineTo(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -578,6 +593,23 @@ pub mod gdi32 {
             let y = <u32>::from_stack(mem, esp + 12u32);
             let lppt = <Option<&mut POINT>>::from_stack(mem, esp + 16u32);
             winapi::gdi32::MoveToEx(machine, hdc, x, y, lppt).to_raw()
+        }
+        pub unsafe fn PatBlt(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <i32>::from_stack(mem, esp + 8u32);
+            let y = <i32>::from_stack(mem, esp + 12u32);
+            let w = <i32>::from_stack(mem, esp + 16u32);
+            let h = <i32>::from_stack(mem, esp + 20u32);
+            let rop = <u32>::from_stack(mem, esp + 24u32);
+            winapi::gdi32::PatBlt(machine, hdc, x, y, w, h, rop).to_raw()
+        }
+        pub unsafe fn PtVisible(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <i32>::from_stack(mem, esp + 8u32);
+            let y = <i32>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::PtVisible(machine, hdc, x, y).to_raw()
         }
         pub unsafe fn SelectObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -596,6 +628,14 @@ pub mod gdi32 {
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
             let mode = <i32>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetBkMode(machine, hdc, mode).to_raw()
+        }
+        pub unsafe fn SetBrushOrgEx(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let x = <i32>::from_stack(mem, esp + 8u32);
+            let y = <i32>::from_stack(mem, esp + 12u32);
+            let lppt = <Option<&mut POINT>>::from_stack(mem, esp + 16u32);
+            winapi::gdi32::SetBrushOrgEx(machine, hdc, x, y, lppt).to_raw()
         }
         pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -655,16 +695,6 @@ pub mod gdi32 {
             )
             .to_raw()
         }
-        pub unsafe fn PatBlt(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let x = <i32>::from_stack(mem, esp + 8u32);
-            let y = <i32>::from_stack(mem, esp + 12u32);
-            let w = <i32>::from_stack(mem, esp + 16u32);
-            let h = <i32>::from_stack(mem, esp + 20u32);
-            let rop = <u32>::from_stack(mem, esp + 24u32);
-            winapi::gdi32::PatBlt(machine, hdc, x, y, w, h, rop).to_raw()
-        }
         pub unsafe fn StretchDIBits(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -701,36 +731,6 @@ pub mod gdi32 {
             let y = <u32>::from_stack(mem, esp + 12u32);
             let lpString = <ArrayWithSize<u16>>::from_stack(mem, esp + 16u32);
             winapi::gdi32::TextOutW(machine, hdc, x, y, lpString).to_raw()
-        }
-        pub unsafe fn CreateSolidBrush(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let color = <u32>::from_stack(mem, esp + 4u32);
-            winapi::gdi32::CreateSolidBrush(machine, color).to_raw()
-        }
-        pub unsafe fn SetBrushOrgEx(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let x = <i32>::from_stack(mem, esp + 8u32);
-            let y = <i32>::from_stack(mem, esp + 12u32);
-            let lppt = <Option<&mut POINT>>::from_stack(mem, esp + 16u32);
-            winapi::gdi32::SetBrushOrgEx(machine, hdc, x, y, lppt).to_raw()
-        }
-        pub unsafe fn PtVisible(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let x = <i32>::from_stack(mem, esp + 8u32);
-            let y = <i32>::from_stack(mem, esp + 12u32);
-            winapi::gdi32::PtVisible(machine, hdc, x, y).to_raw()
-        }
-        pub unsafe fn LineDDA(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let xStart = <i32>::from_stack(mem, esp + 4u32);
-            let yStart = <i32>::from_stack(mem, esp + 8u32);
-            let xEnd = <i32>::from_stack(mem, esp + 12u32);
-            let yEnd = <i32>::from_stack(mem, esp + 16u32);
-            let lpProc = <u32>::from_stack(mem, esp + 20u32);
-            let data = <u32>::from_stack(mem, esp + 24u32);
-            winapi::gdi32::LineDDA(machine, xStart, yStart, xEnd, yEnd, lpProc, data).to_raw()
         }
     }
     mod shims {
@@ -778,6 +778,12 @@ pub mod gdi32 {
             stack_consumed: 12u32,
             is_async: false,
         };
+        pub const CreateSolidBrush: Shim = Shim {
+            name: "CreateSolidBrush",
+            func: impls::CreateSolidBrush,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: impls::DeleteDC,
@@ -790,6 +796,12 @@ pub mod gdi32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const GetDCOrgEx: Shim = Shim {
+            name: "GetDCOrgEx",
+            func: impls::GetDCOrgEx,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetDeviceCaps: Shim = Shim {
             name: "GetDeviceCaps",
             func: impls::GetDeviceCaps,
@@ -800,12 +812,6 @@ pub mod gdi32 {
             name: "GetLayout",
             func: impls::GetLayout,
             stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const GetDCOrgEx: Shim = Shim {
-            name: "GetDCOrgEx",
-            func: impls::GetDCOrgEx,
-            stack_consumed: 8u32,
             is_async: false,
         };
         pub const GetObjectA: Shim = Shim {
@@ -850,6 +856,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const LineDDA: Shim = Shim {
+            name: "LineDDA",
+            func: impls::LineDDA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const LineTo: Shim = Shim {
             name: "LineTo",
             func: impls::LineTo,
@@ -860,6 +872,18 @@ pub mod gdi32 {
             name: "MoveToEx",
             func: impls::MoveToEx,
             stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const PatBlt: Shim = Shim {
+            name: "PatBlt",
+            func: impls::PatBlt,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const PtVisible: Shim = Shim {
+            name: "PtVisible",
+            func: impls::PtVisible,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const SelectObject: Shim = Shim {
@@ -878,6 +902,12 @@ pub mod gdi32 {
             name: "SetBkMode",
             func: impls::SetBkMode,
             stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const SetBrushOrgEx: Shim = Shim {
+            name: "SetBrushOrgEx",
+            func: impls::SetBrushOrgEx,
+            stack_consumed: 16u32,
             is_async: false,
         };
         pub const SetDIBitsToDevice: Shim = Shim {
@@ -916,12 +946,6 @@ pub mod gdi32 {
             stack_consumed: 52u32,
             is_async: false,
         };
-        pub const PatBlt: Shim = Shim {
-            name: "PatBlt",
-            func: impls::PatBlt,
-            stack_consumed: 24u32,
-            is_async: false,
-        };
         pub const TextOutA: Shim = Shim {
             name: "TextOutA",
             func: impls::TextOutA,
@@ -932,30 +956,6 @@ pub mod gdi32 {
             name: "TextOutW",
             func: impls::TextOutW,
             stack_consumed: 20u32,
-            is_async: false,
-        };
-        pub const CreateSolidBrush: Shim = Shim {
-            name: "CreateSolidBrush",
-            func: impls::CreateSolidBrush,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const SetBrushOrgEx: Shim = Shim {
-            name: "SetBrushOrgEx",
-            func: impls::SetBrushOrgEx,
-            stack_consumed: 16u32,
-            is_async: false,
-        };
-        pub const PtVisible: Shim = Shim {
-            name: "PtVisible",
-            func: impls::PtVisible,
-            stack_consumed: 12u32,
-            is_async: false,
-        };
-        pub const LineDDA: Shim = Shim {
-            name: "LineDDA",
-            func: impls::LineDDA,
-            stack_consumed: 24u32,
             is_async: false,
         };
     }
@@ -990,6 +990,10 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::CreateSolidBrush,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::DeleteDC,
         },
         Symbol {
@@ -998,15 +1002,15 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::GetDCOrgEx,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::GetDeviceCaps,
         },
         Symbol {
             ordinal: None,
             shim: shims::GetLayout,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetDCOrgEx,
         },
         Symbol {
             ordinal: None,
@@ -1038,11 +1042,23 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::LineDDA,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::LineTo,
         },
         Symbol {
             ordinal: None,
             shim: shims::MoveToEx,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::PatBlt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::PtVisible,
         },
         Symbol {
             ordinal: None,
@@ -1055,6 +1071,10 @@ pub mod gdi32 {
         Symbol {
             ordinal: None,
             shim: shims::SetBkMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetBrushOrgEx,
         },
         Symbol {
             ordinal: None,
@@ -1082,31 +1102,11 @@ pub mod gdi32 {
         },
         Symbol {
             ordinal: None,
-            shim: shims::PatBlt,
-        },
-        Symbol {
-            ordinal: None,
             shim: shims::TextOutA,
         },
         Symbol {
             ordinal: None,
             shim: shims::TextOutW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateSolidBrush,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetBrushOrgEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PtVisible,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LineDDA,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -1573,6 +1573,16 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let lpProcName = <GetProcAddressArg>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::GetProcAddress(machine, hModule, lpProcName).to_raw()
+        }
+        pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::GetProcessHeap(machine).to_raw()
+        }
         pub unsafe fn GetProfileIntW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
@@ -1594,16 +1604,6 @@ pub mod kernel32 {
                 lpReturnedString,
             )
             .to_raw()
-        }
-        pub unsafe fn GetProcAddress(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
-            let lpProcName = <GetProcAddressArg>::from_stack(mem, esp + 8u32);
-            winapi::kernel32::GetProcAddress(machine, hModule, lpProcName).to_raw()
-        }
-        pub unsafe fn GetProcessHeap(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            winapi::kernel32::GetProcessHeap(machine).to_raw()
         }
         pub unsafe fn GetStartupInfoA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1660,13 +1660,6 @@ pub mod kernel32 {
             let lpBuffer = <u32>::from_stack(mem, esp + 4u32);
             let uSize = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetWindowsDirectoryA(machine, lpBuffer, uSize).to_raw()
-        }
-        pub unsafe fn MulDiv(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let nNumber = <i32>::from_stack(mem, esp + 4u32);
-            let nNumerator = <i32>::from_stack(mem, esp + 8u32);
-            let nDenominator = <i32>::from_stack(mem, esp + 12u32);
-            winapi::kernel32::MulDiv(machine, nNumber, nNumerator, nDenominator).to_raw()
         }
         pub unsafe fn GlobalAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -1871,6 +1864,13 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let hResData = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::LockResource(machine, hResData).to_raw()
+        }
+        pub unsafe fn MulDiv(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nNumber = <i32>::from_stack(mem, esp + 4u32);
+            let nNumerator = <i32>::from_stack(mem, esp + 8u32);
+            let nDenominator = <i32>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::MulDiv(machine, nNumber, nNumerator, nDenominator).to_raw()
         }
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2551,18 +2551,6 @@ pub mod kernel32 {
             stack_consumed: 24u32,
             is_async: false,
         };
-        pub const GetProfileIntW: Shim = Shim {
-            name: "GetProfileIntW",
-            func: impls::GetProfileIntW,
-            stack_consumed: 12u32,
-            is_async: false,
-        };
-        pub const GetProfileStringW: Shim = Shim {
-            name: "GetProfileStringW",
-            func: impls::GetProfileStringW,
-            stack_consumed: 20u32,
-            is_async: false,
-        };
         pub const GetProcAddress: Shim = Shim {
             name: "GetProcAddress",
             func: impls::GetProcAddress,
@@ -2573,6 +2561,18 @@ pub mod kernel32 {
             name: "GetProcessHeap",
             func: impls::GetProcessHeap,
             stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const GetProfileIntW: Shim = Shim {
+            name: "GetProfileIntW",
+            func: impls::GetProfileIntW,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const GetProfileStringW: Shim = Shim {
+            name: "GetProfileStringW",
+            func: impls::GetProfileStringW,
+            stack_consumed: 20u32,
             is_async: false,
         };
         pub const GetStartupInfoA: Shim = Shim {
@@ -2639,12 +2639,6 @@ pub mod kernel32 {
             name: "GetWindowsDirectoryA",
             func: impls::GetWindowsDirectoryA,
             stack_consumed: 8u32,
-            is_async: false,
-        };
-        pub const MulDiv: Shim = Shim {
-            name: "MulDiv",
-            func: impls::MulDiv,
-            stack_consumed: 12u32,
             is_async: false,
         };
         pub const GlobalAlloc: Shim = Shim {
@@ -2825,6 +2819,12 @@ pub mod kernel32 {
             name: "LockResource",
             func: impls::LockResource,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const MulDiv: Shim = Shim {
+            name: "MulDiv",
+            func: impls::MulDiv,
+            stack_consumed: 12u32,
             is_async: false,
         };
         pub const MultiByteToWideChar: Shim = Shim {
@@ -3295,19 +3295,19 @@ pub mod kernel32 {
         },
         Symbol {
             ordinal: None,
-            shim: shims::GetProfileIntW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProfileStringW,
-        },
-        Symbol {
-            ordinal: None,
             shim: shims::GetProcAddress,
         },
         Symbol {
             ordinal: None,
             shim: shims::GetProcessHeap,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetProfileIntW,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetProfileStringW,
         },
         Symbol {
             ordinal: None,
@@ -3352,10 +3352,6 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::GetWindowsDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MulDiv,
         },
         Symbol {
             ordinal: None,
@@ -3476,6 +3472,10 @@ pub mod kernel32 {
         Symbol {
             ordinal: None,
             shim: shims::LockResource,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::MulDiv,
         },
         Symbol {
             ordinal: None,
@@ -4497,6 +4497,15 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn DrawTextW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDC = <HDC>::from_stack(mem, esp + 4u32);
+            let lpString = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let nCount = <i32>::from_stack(mem, esp + 12u32);
+            let lpRect = <Option<&RECT>>::from_stack(mem, esp + 16u32);
+            let uFormat = <u32>::from_stack(mem, esp + 20u32);
+            winapi::user32::DrawTextW(machine, hDC, lpString, nCount, lpRect, uFormat).to_raw()
+        }
         pub unsafe fn EndPaint(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -4522,15 +4531,6 @@ pub mod user32 {
             let lprc = <Option<&RECT>>::from_stack(mem, esp + 8u32);
             let hbr = <HBRUSH>::from_stack(mem, esp + 12u32);
             winapi::user32::FrameRect(machine, hDC, lprc, hbr).to_raw()
-        }
-        pub unsafe fn DrawTextW(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hDC = <HDC>::from_stack(mem, esp + 4u32);
-            let lpString = <Option<&Str16>>::from_stack(mem, esp + 8u32);
-            let nCount = <i32>::from_stack(mem, esp + 12u32);
-            let lpRect = <Option<&RECT>>::from_stack(mem, esp + 16u32);
-            let uFormat = <u32>::from_stack(mem, esp + 20u32);
-            winapi::user32::DrawTextW(machine, hDC, lpString, nCount, lpRect, uFormat).to_raw()
         }
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4558,6 +4558,11 @@ pub mod user32 {
         pub unsafe fn GetForegroundWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetForegroundWindow(machine).to_raw()
+        }
+        pub unsafe fn GetKeyState(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nVirtKey = <u32>::from_stack(mem, esp + 4u32);
+            winapi::user32::GetKeyState(machine, nVirtKey).to_raw()
         }
         pub unsafe fn GetLastActivePopup(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4665,6 +4670,13 @@ pub mod user32 {
             let nIndex = <i32>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowLongA(machine, hWnd, nIndex).to_raw()
         }
+        pub unsafe fn IntersectRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprcDst = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let lprcSrc1 = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let lprcSrc2 = <Option<&RECT>>::from_stack(mem, esp + 12u32);
+            winapi::user32::IntersectRect(machine, lprcDst, lprcSrc1, lprcSrc2).to_raw()
+        }
         pub unsafe fn InvalidateRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -4678,6 +4690,16 @@ pub mod user32 {
             let hRgn = <HRGN>::from_stack(mem, esp + 8u32);
             let bErase = <bool>::from_stack(mem, esp + 12u32);
             winapi::user32::InvalidateRgn(machine, hWnd, hRgn, bErase).to_raw()
+        }
+        pub unsafe fn IsIconic(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwnd = <HWND>::from_stack(mem, esp + 4u32);
+            winapi::user32::IsIconic(machine, hwnd).to_raw()
+        }
+        pub unsafe fn IsRectEmpty(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprc = <Option<&RECT>>::from_stack(mem, esp + 4u32);
+            winapi::user32::IsRectEmpty(machine, lprc).to_raw()
         }
         pub unsafe fn LoadAcceleratorsW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4790,6 +4812,23 @@ pub mod user32 {
             let bRepaint = <bool>::from_stack(mem, esp + 24u32);
             winapi::user32::MoveWindow(machine, hWnd, X, Y, nWidth, nHeight, bRepaint).to_raw()
         }
+        pub unsafe fn MsgWaitForMultipleObjects(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nCount = <u32>::from_stack(mem, esp + 4u32);
+            let pHandles = <u32>::from_stack(mem, esp + 8u32);
+            let fWaitAll = <bool>::from_stack(mem, esp + 12u32);
+            let dwMilliseconds = <u32>::from_stack(mem, esp + 16u32);
+            let dwWakeMask = <u32>::from_stack(mem, esp + 20u32);
+            winapi::user32::MsgWaitForMultipleObjects(
+                machine,
+                nCount,
+                pHandles,
+                fWaitAll,
+                dwMilliseconds,
+                dwWakeMask,
+            )
+            .to_raw()
+        }
         pub unsafe fn PeekMessageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
@@ -4824,11 +4863,6 @@ pub mod user32 {
             )
             .to_raw()
         }
-        pub unsafe fn PostQuitMessage(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let nExitCode = <i32>::from_stack(mem, esp + 4u32);
-            winapi::user32::PostQuitMessage(machine, nExitCode).to_raw()
-        }
         pub unsafe fn PostMessageW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -4836,6 +4870,11 @@ pub mod user32 {
             let wParam = <u32>::from_stack(mem, esp + 12u32);
             let lParam = <u32>::from_stack(mem, esp + 16u32);
             winapi::user32::PostMessageW(machine, hWnd, Msg, wParam, lParam).to_raw()
+        }
+        pub unsafe fn PostQuitMessage(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nExitCode = <i32>::from_stack(mem, esp + 4u32);
+            winapi::user32::PostQuitMessage(machine, nExitCode).to_raw()
         }
         pub unsafe fn PtInRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4862,6 +4901,11 @@ pub mod user32 {
             let mem = machine.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, esp + 4u32);
             winapi::user32::RegisterClassW(machine, lpWndClass).to_raw()
+        }
+        pub unsafe fn RegisterWindowMessageW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpString = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            winapi::user32::RegisterWindowMessageW(machine, lpString).to_raw()
         }
         pub unsafe fn ReleaseCapture(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4903,22 +4947,6 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
-        pub unsafe fn MsgWaitForMultipleObjects(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let nCount = <u32>::from_stack(mem, esp + 4u32);
-            let pHandles = <u32>::from_stack(mem, esp + 8u32);
-            let bWaitAll = <bool>::from_stack(mem, esp + 12u32);
-            let dwMilliseconds = <u32>::from_stack(mem, esp + 16u32);
-            let dwWakeMask = <u32>::from_stack(mem, esp + 20u32);
-            winapi::user32::MsgWaitForMultipleObjects(
-                machine,
-                nCount,
-                pHandles,
-                bWaitAll,
-                dwMilliseconds,
-                dwWakeMask,
-            )
-        }
         pub unsafe fn SetCapture(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -4953,6 +4981,11 @@ pub mod user32 {
             let xRight = <i32>::from_stack(mem, esp + 16u32);
             let yBottom = <i32>::from_stack(mem, esp + 20u32);
             winapi::user32::SetRect(machine, lprc, xLeft, yTop, xRight, yBottom).to_raw()
+        }
+        pub unsafe fn SetRectEmpty(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            winapi::user32::SetRectEmpty(machine, lprc).to_raw()
         }
         pub unsafe fn SetTimer(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5016,11 +5049,6 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let lpString = <Option<&str>>::from_stack(mem, esp + 8u32);
             winapi::user32::SetWindowTextA(machine, hWnd, lpString).to_raw()
-        }
-        pub unsafe fn RegisterWindowMessageW(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let lpString = <Option<&Str16>>::from_stack(mem, esp + 4u32);
-            winapi::user32::RegisterWindowMessageW(machine, lpString).to_raw()
         }
         pub unsafe fn ShowCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5104,33 +5132,6 @@ pub mod user32 {
             let fmt = <Option<&str>>::from_stack(mem, esp + 8u32);
             let args = <VarArgs>::from_stack(mem, esp + 12u32);
             winapi::user32::wsprintfA(machine, buf, fmt, args).to_raw()
-        }
-        pub unsafe fn GetKeyState(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let nVirtKey = <u32>::from_stack(mem, esp + 4u32);
-            winapi::user32::GetKeyState(machine, nVirtKey).to_raw()
-        }
-        pub unsafe fn IsIconic(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
-            winapi::user32::IsIconic(machine, hWnd).to_raw()
-        }
-        pub unsafe fn IsRectEmpty(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let lprc = <Option<&RECT>>::from_stack(mem, esp + 4u32);
-            winapi::user32::IsRectEmpty(machine, lprc).to_raw()
-        }
-        pub unsafe fn SetRectEmpty(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
-            winapi::user32::SetRectEmpty(machine, lprc).to_raw()
-        }
-        pub unsafe fn IntersectRect(machine: &mut Machine, esp: u32) -> u32 {
-            let mem = machine.mem().detach();
-            let lprcDst = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
-            let lprcSrc1 = <Option<&RECT>>::from_stack(mem, esp + 8u32);
-            let lprcSrc2 = <Option<&RECT>>::from_stack(mem, esp + 12u32);
-            winapi::user32::IntersectRect(machine, lprcDst, lprcSrc1, lprcSrc2).to_raw()
         }
     }
     mod shims {
@@ -5232,6 +5233,12 @@ pub mod user32 {
             stack_consumed: 4u32,
             is_async: true,
         };
+        pub const DrawTextW: Shim = Shim {
+            name: "DrawTextW",
+            func: impls::DrawTextW,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const EndPaint: Shim = Shim {
             name: "EndPaint",
             func: impls::EndPaint,
@@ -5254,12 +5261,6 @@ pub mod user32 {
             name: "FrameRect",
             func: impls::FrameRect,
             stack_consumed: 12u32,
-            is_async: false,
-        };
-        pub const DrawTextW: Shim = Shim {
-            name: "DrawTextW",
-            func: impls::DrawTextW,
-            stack_consumed: 20u32,
             is_async: false,
         };
         pub const GetActiveWindow: Shim = Shim {
@@ -5296,6 +5297,12 @@ pub mod user32 {
             name: "GetForegroundWindow",
             func: impls::GetForegroundWindow,
             stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const GetKeyState: Shim = Shim {
+            name: "GetKeyState",
+            func: impls::GetKeyState,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const GetLastActivePopup: Shim = Shim {
@@ -5340,6 +5347,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const IntersectRect: Shim = Shim {
+            name: "IntersectRect",
+            func: impls::IntersectRect,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const InvalidateRect: Shim = Shim {
             name: "InvalidateRect",
             func: impls::InvalidateRect,
@@ -5350,6 +5363,18 @@ pub mod user32 {
             name: "InvalidateRgn",
             func: impls::InvalidateRgn,
             stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IsIconic: Shim = Shim {
+            name: "IsIconic",
+            func: impls::IsIconic,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IsRectEmpty: Shim = Shim {
+            name: "IsRectEmpty",
+            func: impls::IsRectEmpty,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const LoadAcceleratorsW: Shim = Shim {
@@ -5442,6 +5467,12 @@ pub mod user32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const MsgWaitForMultipleObjects: Shim = Shim {
+            name: "MsgWaitForMultipleObjects",
+            func: impls::MsgWaitForMultipleObjects,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
         pub const PeekMessageA: Shim = Shim {
             name: "PeekMessageA",
             func: impls::PeekMessageA,
@@ -5454,16 +5485,16 @@ pub mod user32 {
             stack_consumed: 20u32,
             is_async: false,
         };
-        pub const PostQuitMessage: Shim = Shim {
-            name: "PostQuitMessage",
-            func: impls::PostQuitMessage,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
         pub const PostMessageW: Shim = Shim {
             name: "PostMessageW",
             func: impls::PostMessageW,
             stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const PostQuitMessage: Shim = Shim {
+            name: "PostQuitMessage",
+            func: impls::PostQuitMessage,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const PtInRect: Shim = Shim {
@@ -5496,6 +5527,12 @@ pub mod user32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const RegisterWindowMessageW: Shim = Shim {
+            name: "RegisterWindowMessageW",
+            func: impls::RegisterWindowMessageW,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const ReleaseCapture: Shim = Shim {
             name: "ReleaseCapture",
             func: impls::ReleaseCapture,
@@ -5513,12 +5550,6 @@ pub mod user32 {
             func: impls::SendMessageA,
             stack_consumed: 16u32,
             is_async: true,
-        };
-        pub const MsgWaitForMultipleObjects: Shim = Shim {
-            name: "MsgWaitForMultipleObjects",
-            func: impls::MsgWaitForMultipleObjects,
-            stack_consumed: 20u32,
-            is_async: false,
         };
         pub const SetCapture: Shim = Shim {
             name: "SetCapture",
@@ -5554,6 +5585,12 @@ pub mod user32 {
             name: "SetRect",
             func: impls::SetRect,
             stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const SetRectEmpty: Shim = Shim {
+            name: "SetRectEmpty",
+            func: impls::SetRectEmpty,
+            stack_consumed: 4u32,
             is_async: false,
         };
         pub const SetTimer: Shim = Shim {
@@ -5620,42 +5657,6 @@ pub mod user32 {
             name: "wsprintfA",
             func: impls::wsprintfA,
             stack_consumed: 0u32,
-            is_async: false,
-        };
-        pub const RegisterWindowMessageW: Shim = Shim {
-            name: "RegisterWindowMessageW",
-            func: impls::RegisterWindowMessageW,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const GetKeyState: Shim = Shim {
-            name: "GetKeyState",
-            func: impls::GetKeyState,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const IsIconic: Shim = Shim {
-            name: "IsIconic",
-            func: impls::IsIconic,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const IsRectEmpty: Shim = Shim {
-            name: "IsRectEmpty",
-            func: impls::IsRectEmpty,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const SetRectEmpty: Shim = Shim {
-            name: "SetRectEmpty",
-            func: impls::SetRectEmpty,
-            stack_consumed: 4u32,
-            is_async: false,
-        };
-        pub const IntersectRect: Shim = Shim {
-            name: "IntersectRect",
-            func: impls::IntersectRect,
-            stack_consumed: 12u32,
             is_async: false,
         };
     }
@@ -5726,6 +5727,10 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::DrawTextW,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::EndPaint,
         },
         Symbol {
@@ -5739,10 +5744,6 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::FrameRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DrawTextW,
         },
         Symbol {
             ordinal: None,
@@ -5767,6 +5768,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::GetForegroundWindow,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::GetKeyState,
         },
         Symbol {
             ordinal: None,
@@ -5798,11 +5803,23 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::IntersectRect,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::InvalidateRect,
         },
         Symbol {
             ordinal: None,
             shim: shims::InvalidateRgn,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IsIconic,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IsRectEmpty,
         },
         Symbol {
             ordinal: None,
@@ -5866,6 +5883,10 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::MsgWaitForMultipleObjects,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::PeekMessageA,
         },
         Symbol {
@@ -5874,11 +5895,11 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
-            shim: shims::PostQuitMessage,
+            shim: shims::PostMessageW,
         },
         Symbol {
             ordinal: None,
-            shim: shims::PostMessageW,
+            shim: shims::PostQuitMessage,
         },
         Symbol {
             ordinal: None,
@@ -5902,6 +5923,10 @@ pub mod user32 {
         },
         Symbol {
             ordinal: None,
+            shim: shims::RegisterWindowMessageW,
+        },
+        Symbol {
+            ordinal: None,
             shim: shims::ReleaseCapture,
         },
         Symbol {
@@ -5911,10 +5936,6 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SendMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MsgWaitForMultipleObjects,
         },
         Symbol {
             ordinal: None,
@@ -5939,6 +5960,10 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::SetRect,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::SetRectEmpty,
         },
         Symbol {
             ordinal: None,
@@ -5983,30 +6008,6 @@ pub mod user32 {
         Symbol {
             ordinal: None,
             shim: shims::wsprintfA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterWindowMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetKeyState,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsIconic,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsRectEmpty,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetRectEmpty,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IntersectRect,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
