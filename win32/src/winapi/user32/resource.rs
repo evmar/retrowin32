@@ -75,7 +75,7 @@ fn load_bitmap(
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
-    let bmp = BitmapRGBA32::parse(buf);
+    let bmp = BitmapRGBA32::parse(Mem::from_slice(buf));
     Some(
         machine
             .state
@@ -155,7 +155,7 @@ pub fn LoadBitmapA(
     load_bitmap(machine, hInstance, name.as_ref()).unwrap()
 }
 
-fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Mem> {
+fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<&[u8]> {
     // Strings are stored as blocks of 16 consecutive strings.
     let (resource_id, index) = ((uID >> 4) + 1, uID & 0xF);
 
@@ -175,7 +175,7 @@ fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Mem>
         ofs += (1 + len) * 2;
     }
     let len = block.get_pod::<u16>(ofs) as u32;
-    let str = block.sub(ofs + 2, len * 2);
+    let str = block.sub32(ofs + 2, len * 2);
     Some(str)
 }
 
@@ -188,7 +188,7 @@ pub fn LoadStringA(
     cchBufferMax: u32,
 ) -> u32 {
     let str = match find_string(machine, hInstance, uID) {
-        Some(str) => Str16::from_bytes(str.as_slice_todo()),
+        Some(str) => Str16::from_bytes(str),
         None => return 0,
     };
     assert!(cchBufferMax != 0); // MSDN claims this is invalid
@@ -220,12 +220,12 @@ pub fn LoadStringW(
     if cchBufferMax == 0 {
         machine
             .mem()
-            .put::<u32>(lpBuffer, str.offset_from(machine.mem()));
-        str.len()
+            .put::<u32>(lpBuffer, machine.mem().offset_of(str.as_ptr()));
+        str.len() as u32
     } else {
         let dst = machine.mem().sub(lpBuffer, cchBufferMax * 2);
-        let copy_len = std::cmp::min(dst.len() - 2, str.len()) as usize;
-        dst.as_mut_slice_todo()[..copy_len].copy_from_slice(&str.as_slice_todo()[..copy_len]);
+        let copy_len = std::cmp::min(dst.len() as usize - 2, str.len());
+        dst.as_mut_slice_todo()[..copy_len].copy_from_slice(&str[..copy_len]);
         dst.put::<u16>(copy_len as u32, 0);
         copy_len as u32
     }
