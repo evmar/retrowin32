@@ -1,8 +1,4 @@
 use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
-use crate::winapi::gdi32;
-use crate::winapi::handle::Handles;
-use crate::winapi::types::HWND;
-use crate::winapi::user32::Window;
 use crate::{
     machine::Machine,
     winapi::{
@@ -10,7 +6,6 @@ use crate::{
         kernel32,
     },
 };
-use std::cell::RefCell;
 use std::cmp::min;
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";

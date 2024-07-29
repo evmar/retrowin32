@@ -1,9 +1,8 @@
 use super::{HINSTANCE, HMENU};
-use crate::winapi::bitmap::BITMAPCOREHEADER;
 use crate::{
     pe,
     winapi::{
-        bitmap::{BitmapRGBA32, BITMAPINFOHEADER},
+        bitmap::BitmapRGBA32,
         gdi32::{self, HGDIOBJ},
         kernel32::ResourceKey,
         types::*,

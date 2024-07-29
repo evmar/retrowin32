@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 
 use crate::winapi::kernel32::HMODULE;
-use crate::winapi::stack_args::ToX86;
 use crate::winapi::user32::HINSTANCE;
 use crate::{
     pe,

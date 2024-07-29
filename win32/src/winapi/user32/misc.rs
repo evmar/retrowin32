@@ -190,12 +190,12 @@ pub fn IntersectRect(
     let dst = lprcDst.unwrap();
     let src1 = lprcSrc1.unwrap();
     let src2 = lprcSrc2.unwrap();
-    if (IsRectEmpty(_machine, lprcSrc1)
+    if IsRectEmpty(_machine, lprcSrc1)
         || IsRectEmpty(_machine, lprcSrc2)
         || src1.left >= src2.right
         || src1.right <= src2.left
         || src1.top >= src2.bottom
-        || src1.bottom <= src2.top)
+        || src1.bottom <= src2.top
     {
         return false;
     }

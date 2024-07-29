@@ -1,5 +1,4 @@
 use crate::{winapi::types::*, Machine};
-use log::warn;
 
 use super::{MSG, WM};
 
