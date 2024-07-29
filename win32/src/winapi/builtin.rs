@@ -3948,6 +3948,19 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             winapi::ucrtbase::__p___argv(machine).to_raw()
         }
+        pub unsafe fn __p__commode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::__p__commode(machine).to_raw()
+        }
+        pub unsafe fn __p__fmode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::__p__fmode(machine).to_raw()
+        }
+        pub unsafe fn __set_app_type(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _app_type = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::__set_app_type(machine, _app_type).to_raw()
+        }
         pub unsafe fn _get_initial_narrow_environment(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::ucrtbase::_get_initial_narrow_environment(machine).to_raw()
@@ -4049,6 +4062,24 @@ pub mod ucrtbase {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const __p__commode: Shim = Shim {
+            name: "__p__commode",
+            func: impls::__p__commode,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const __p__fmode: Shim = Shim {
+            name: "__p__fmode",
+            func: impls::__p__fmode,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const __set_app_type: Shim = Shim {
+            name: "__set_app_type",
+            func: impls::__set_app_type,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const _get_initial_narrow_environment: Shim = Shim {
             name: "_get_initial_narrow_environment",
             func: impls::_get_initial_narrow_environment,
@@ -4098,7 +4129,7 @@ pub mod ucrtbase {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 11usize] = [
+    const EXPORTS: [Symbol; 14usize] = [
         Symbol {
             ordinal: None,
             shim: shims::__dllonexit,
@@ -4110,6 +4141,18 @@ pub mod ucrtbase {
         Symbol {
             ordinal: None,
             shim: shims::__p___argv,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::__p__commode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::__p__fmode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::__set_app_type,
         },
         Symbol {
             ordinal: None,

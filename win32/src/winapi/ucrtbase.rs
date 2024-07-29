@@ -56,6 +56,21 @@ pub fn __p___argc(_machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
+pub fn __p__fmode(_machine: &mut Machine) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn __p__commode(_machine: &mut Machine) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn __set_app_type(_machine: &mut Machine, _app_type: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
 pub fn exit(machine: &mut Machine, status: u32) -> u32 {
     ExitProcess(machine, status)
 }
