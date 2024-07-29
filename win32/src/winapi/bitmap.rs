@@ -69,7 +69,7 @@ impl BITMAPINFOHEADER {
     }
 }
 
-pub struct BitmapInfo {
+pub struct BitmapInfo<'a> {
     pub width: usize,
     pub height: usize,
     pub stride: usize,
@@ -78,8 +78,8 @@ pub struct BitmapInfo {
     pub compression: BI,
     pub palette_entry_size: usize,
     pub palette_size: usize,
-    pub palette: *const u8,
-    pub data: *const u8,
+    pub palette: &'a [u8],
+    pub data: &'a [u8],
 }
 
 pub trait Bitmap {
@@ -168,17 +168,31 @@ impl BitmapRGBA32 {
         };
         let palette_entry_size = 3;
         let palette_size = palette_len * palette_entry_size;
+        let palette = unsafe {
+            std::slice::from_raw_parts(
+                (header as *const _ as *const u8).add(header_size),
+                palette_size,
+            )
+        };
+        let height = header.bcHeight as usize;
+        let stride = header.stride() as usize;
+        let data = unsafe {
+            std::slice::from_raw_parts(
+                (header as *const _ as *const u8).add(header_size + palette_size),
+                height * stride,
+            )
+        };
         let bi = &BitmapInfo {
             width: header.bcWidth as usize,
-            height: header.bcHeight as usize,
-            stride: header.stride() as usize,
+            height,
+            stride,
             is_top_down: false,
             bit_count: header.bcBitCount as u8,
             compression: BI::RGB,
             palette_entry_size,
             palette_size,
-            palette: unsafe { (header as *const _ as *const u8).add(header_size) },
-            data: unsafe { (header as *const _ as *const u8).add(header_size + palette_size) },
+            palette,
+            data,
         };
         BitmapRGBA32::parseBMP(bi, pixels)
     }
@@ -192,19 +206,31 @@ impl BitmapRGBA32 {
         };
         let palette_entry_size = 4;
         let palette_size = palette_len * palette_entry_size;
+        let palette = unsafe {
+            std::slice::from_raw_parts(
+                (header as *const _ as *const u8).add(header.biSize as usize),
+                palette_size,
+            )
+        };
+        let height = header.biHeight as usize;
+        let stride = header.stride() as usize;
+        let data = unsafe {
+            std::slice::from_raw_parts(
+                (header as *const _ as *const u8).add(header.biSize as usize + palette_size),
+                height * stride,
+            )
+        };
         let bi = &BitmapInfo {
             width: header.biWidth as usize,
-            height: header.biHeight as usize,
-            stride: header.stride() as usize,
+            height,
+            stride,
             is_top_down: false,
             bit_count: header.biBitCount as u8,
             compression: BI::RGB,
             palette_entry_size,
             palette_size,
-            palette: unsafe { (header as *const _ as *const u8).add(header.biSize as usize) },
-            data: unsafe {
-                (header as *const _ as *const u8).add(header.biSize as usize + palette_size)
-            },
+            palette,
+            data,
         };
         BitmapRGBA32::parseBMP(bi, pixels)
     }
@@ -224,7 +250,7 @@ impl BitmapRGBA32 {
         fn get_pixel(header: &BitmapInfo, val: u8) -> [u8; 4] {
             // BMP palette is BGRx
             let offset = val as usize * header.palette_entry_size;
-            let slice = unsafe { std::slice::from_raw_parts(header.palette.add(offset), 3) };
+            let slice = &header.palette[offset..][..3];
             [slice[2], slice[1], slice[0], 255]
         }
 
@@ -233,10 +259,7 @@ impl BitmapRGBA32 {
 
         let (src, height) = match pixels {
             Some(p) => p,
-            None => unsafe {
-                let len = stride * header.height;
-                (std::slice::from_raw_parts(header.data, len), header.height)
-            },
+            None => (header.data, header.height),
         };
 
         let mut dst: Vec<[u8; 4]> = Vec::with_capacity(width * height);
