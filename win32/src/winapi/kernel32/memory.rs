@@ -4,7 +4,7 @@ use crate::{
     winapi::stack_args,
 };
 use bitflags::bitflags;
-use memory::Mem;
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::cmp::max;
 
 const TRACE_CONTEXT: &'static str = "kernel32/memory";
@@ -147,7 +147,7 @@ impl Mappings {
         for map in &self.0 {
             println!("{map:x?}");
             for addr in (map.addr..map.addr + map.size).step_by(16) {
-                println!("{addr:x} {:x?}", mem.slice(addr..addr + 16).as_slice_todo());
+                println!("{addr:x} {:x?}", mem.sub32(addr, 16));
             }
         }
     }
@@ -194,7 +194,7 @@ pub fn HeapAlloc(
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
     if flags.contains(HeapAllocFlags::HEAP_ZERO_MEMORY) {
-        machine.mem().sub(addr, dwBytes).as_mut_slice_todo().fill(0);
+        machine.mem().sub32_mut(addr, dwBytes).fill(0);
         flags.remove(HeapAllocFlags::HEAP_ZERO_MEMORY);
     }
     if !flags.is_empty() {
@@ -263,11 +263,9 @@ pub fn HeapReAlloc(
     };
     let old_size = heap.size(machine.emu.memory.mem(), lpMem);
     let new_addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    assert!(dwBytes >= old_size);
     heap.free(machine.emu.memory.mem(), lpMem);
-    machine.mem().as_mut_slice_todo().copy_within(
-        lpMem as usize..(lpMem + old_size) as usize,
-        new_addr as usize,
-    );
+    machine.mem().copy(lpMem, new_addr, old_size);
     new_addr
 }
 
@@ -456,7 +454,7 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
         .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
     let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
-        machine.mem().sub(addr, dwBytes).as_mut_slice_todo().fill(0);
+        machine.mem().sub32_mut(addr, dwBytes).fill(0);
     }
     addr
 }
@@ -479,9 +477,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     mem.copy(hMem, addr, old_size);
     heap.free(mem, hMem);
     if uFlags.contains(GMEM::ZEROINIT) {
-        mem.sub(addr + old_size, dwBytes - old_size)
-            .as_mut_slice_todo()
-            .fill(0);
+        mem.sub32_mut(addr + old_size, dwBytes - old_size).fill(0);
     }
     addr
 }

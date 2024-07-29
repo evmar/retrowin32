@@ -9,6 +9,7 @@ use crate::{
     Machine,
 };
 use ::memory::Mem;
+use memory::ExtensionsMut;
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "kernel32/init";
@@ -37,18 +38,13 @@ impl CommandLine {
         cmdline.push(0 as char); // nul terminator
 
         let cmdline8_ptr = arena.alloc(cmdline.len() as u32, 1);
-        mem.sub(cmdline8_ptr, cmdline.len() as u32)
-            .as_mut_slice_todo()
+        mem.sub32_mut(cmdline8_ptr, cmdline.len() as u32)
             .copy_from_slice(cmdline.as_bytes());
 
         let cmdline16 = String16::from(&cmdline);
         let cmdline16_ptr = arena.alloc(cmdline16.byte_size() as u32, 2);
-        let mem16: &mut [u16] = unsafe {
-            std::mem::transmute(
-                mem.sub(cmdline16_ptr, cmdline16.0.len() as u32)
-                    .as_mut_slice_todo(),
-            )
-        };
+        let mem16: &mut [u16] =
+            unsafe { std::mem::transmute(mem.sub32_mut(cmdline16_ptr, cmdline16.0.len() as u32)) };
         mem16.copy_from_slice(&cmdline16.0);
 
         CommandLine {
@@ -242,8 +238,7 @@ impl State {
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
         mem.mem()
-            .sub(env_addr, env.len() as u32)
-            .as_mut_slice_todo()
+            .sub32_mut(env_addr, env.len() as u32)
             .copy_from_slice(env);
 
         let cmdline = CommandLine::new(cmdline, &mut arena, mem.mem());

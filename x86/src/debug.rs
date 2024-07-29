@@ -3,7 +3,7 @@
 #![allow(non_snake_case)] // work around tsify generating lints
 
 use iced_x86::{Formatter, IntelFormatter};
-use memory::Mem;
+use memory::{Extensions, Mem};
 use std::fmt::Write;
 
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
@@ -49,9 +49,9 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
     let mut instrs = Vec::new();
     for instruction in decoder.into_iter().take(limit) {
         let start_index = instruction.ip() as u32;
-        let instr_bytes = mem.sub(start_index, instruction.len() as u32);
+        let instr_bytes = mem.sub32(start_index, instruction.len() as u32);
         let mut bytes = String::new();
-        for &b in instr_bytes.as_slice_todo().iter() {
+        for &b in instr_bytes.iter() {
             write!(&mut bytes, "{:02x}", b).unwrap();
         }
 

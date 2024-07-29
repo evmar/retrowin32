@@ -106,7 +106,7 @@ impl<T: memory::Pod> PixelData<T> {
         match self {
             PixelData::Owned(b) => &*b,
             &PixelData::Ptr(addr, len) => {
-                let bytes = mem.sub(addr, len).as_slice_todo();
+                let bytes = mem.sub32(addr, len);
                 transmute_pixels::<T>(bytes)
             }
         }

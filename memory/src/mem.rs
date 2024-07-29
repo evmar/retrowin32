@@ -7,6 +7,11 @@ pub trait Extensions<'m>: Sized {
     fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
+    fn put_pod<T: Clone + Pod>(self, ofs: u32, val: T) {
+        unsafe {
+            std::ptr::write_unaligned(self.get_ptr::<T>(ofs), val);
+        }
+    }
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
 
@@ -22,6 +27,10 @@ pub trait Extensions<'m>: Sized {
         self.sub32(ofs, count * size_of::<T>() as u32)
             .into_iter_pod()
     }
+}
+
+pub trait ExtensionsMut<'m>: Sized {
+    fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8];
 }
 
 /// See iter_pod.
@@ -65,6 +74,12 @@ impl<'m> Extensions<'m> for &'m [u8] {
         let slice = &self[ofs..];
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
+    }
+}
+
+impl<'m> ExtensionsMut<'m> for &'m mut [u8] {
+    fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8] {
+        &mut self[ofs as usize..][..len as usize]
     }
 }
 
@@ -116,20 +131,12 @@ impl<'m> Mem<'m> {
         unsafe {
             let src = self.get_ptr::<u8>(src);
             let dst = self.get_ptr::<u8>(dst);
-            std::ptr::copy_nonoverlapping(src, dst, len as usize);
+            std::ptr::copy(src, dst, len as usize);
         }
     }
 
     pub fn as_slice_todo(&self) -> &'m [u8] {
         unsafe { std::slice::from_raw_parts(self.ptr, self.len() as usize) }
-    }
-
-    /// TODO: don't expose slices of memory, as we might not have contiguous pages.
-    pub fn as_mut_slice_todo(&self) -> &'m mut [u8] {
-        unsafe {
-            let len = self.end.offset_from(self.ptr) as usize;
-            std::slice::from_raw_parts_mut(self.ptr, len)
-        }
     }
 
     pub fn offset_of(&self, ptr: *const u8) -> u32 {
@@ -231,7 +238,7 @@ impl<'m> Extensions<'m> for Mem<'m> {
     }
 
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8] {
-        self.sub(ofs, len).as_slice_todo()
+        self.slice(ofs..(ofs + len)).as_slice_todo()
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {
@@ -239,5 +246,12 @@ impl<'m> Extensions<'m> for Mem<'m> {
         let slice = &self.as_slice_todo()[ofs..];
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
+    }
+}
+
+impl<'m> ExtensionsMut<'m> for Mem<'m> {
+    fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8] {
+        assert!(ofs + len <= self.len());
+        unsafe { std::slice::from_raw_parts_mut(self.ptr.add(ofs as usize), len as usize) }
     }
 }

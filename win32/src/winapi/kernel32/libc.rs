@@ -1,6 +1,7 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
 use crate::{winapi::types::Str16, Machine};
+use memory::ExtensionsMut;
 
 const TRACE_CONTEXT: &'static str = "kernel32/libc";
 
@@ -25,10 +26,7 @@ pub fn lstrlenW(_machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
 #[win32_derive::dllexport]
 pub fn lstrcpyA(machine: &mut Machine, lpString1: u32, lpString2: Option<&str>) -> u32 {
     let src = lpString2.unwrap();
-    let dst = machine
-        .mem()
-        .sub(lpString1, (src.len() + 1) as u32)
-        .as_mut_slice_todo();
+    let dst = machine.mem().sub32_mut(lpString1, (src.len() + 1) as u32);
     dst[..src.len()].copy_from_slice(src.as_bytes());
     dst[src.len()] = 0;
     lpString1
@@ -39,10 +37,10 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
     let copy_len = (lpString2.len() + 1) * 2; // include nul
-    let dst = machine.mem().sub(lpString1, copy_len as u32);
+    let dst = machine.mem().sub32_mut(lpString1, copy_len as u32);
     let src =
         unsafe { std::slice::from_raw_parts(lpString2.buf().as_ptr() as *const u8, copy_len) };
-    dst.as_mut_slice_todo().copy_from_slice(src);
+    dst.copy_from_slice(src);
     lpString1
 }
 

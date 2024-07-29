@@ -73,7 +73,7 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
             ResourceName::Id(val)
         } else {
             let len = section.get_pod::<u16>(val);
-            let name = Str16::from_bytes(section.sub32(val + 2, len as u32 * 2).as_slice());
+            let name = Str16::from_bytes(section.sub32(val + 2, len as u32 * 2));
             ResourceName::Name(name)
         }
     }

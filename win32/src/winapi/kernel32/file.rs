@@ -14,6 +14,7 @@ use crate::{
     FileOptions, ReadDir, ReadDirEntry, Stat, StatKind,
 };
 use bitflags::bitflags;
+use memory::ExtensionsMut;
 use typed_path::WindowsPath;
 
 const TRACE_CONTEXT: &'static str = "kernel32/file";
@@ -559,10 +560,7 @@ pub fn GetFullPathNameA(
 
     set_last_error(machine, ERROR_SUCCESS);
 
-    let buf = machine
-        .mem()
-        .sub(lpBuffer, nBufferLength)
-        .as_mut_slice_todo();
+    let buf = machine.mem().sub32_mut(lpBuffer, nBufferLength);
     if let Some(part) = lpFilePart {
         if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\') {
             if i == out_bytes.len() - 1 {
@@ -621,12 +619,7 @@ pub fn GetFullPathNameW(
 
     set_last_error(machine, ERROR_SUCCESS);
 
-    let buf = Str16::from_bytes_mut(
-        machine
-            .mem()
-            .sub(lpBuffer, nBufferLength * 2)
-            .as_mut_slice_todo(),
-    );
+    let buf = Str16::from_bytes_mut(machine.mem().sub32_mut(lpBuffer, nBufferLength * 2));
     if let Some(part) = lpFilePart {
         if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\' as u16) {
             if i == out_bytes.len() - 1 {
@@ -746,10 +739,7 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
     };
     let out_bytes = cwd.as_bytes();
 
-    let buf = machine
-        .mem()
-        .sub(lpBuffer, nBufferLength)
-        .as_mut_slice_todo();
+    let buf = machine.mem().sub32_mut(lpBuffer, nBufferLength);
 
     if buf.len() < out_bytes.len() + 1 {
         // not enough space

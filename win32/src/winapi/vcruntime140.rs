@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::machine::Machine;
-use memory::Extensions;
+use memory::{Extensions, ExtensionsMut};
 
 const TRACE_CONTEXT: &'static str = "vcruntime140";
 
@@ -10,26 +10,21 @@ pub fn memcpy(machine: &mut Machine, dst: u32, src: u32, len: u32) -> u32 {
     // TODO: this probably violates Rust rules around aliasing, if callers expect memmove.
     machine
         .mem()
-        .sub(dst, len)
-        .as_mut_slice_todo()
-        .copy_from_slice(machine.mem().sub(src, len).as_slice_todo());
+        .sub32_mut(dst, len)
+        .copy_from_slice(machine.mem().sub32(src, len));
     dst
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn memset(machine: &mut Machine, dst: u32, val: u32, len: u32) -> u32 {
-    machine
-        .mem()
-        .sub(dst, len)
-        .as_mut_slice_todo()
-        .fill(val as u8);
+    machine.mem().sub32_mut(dst, len).fill(val as u8);
     dst
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn memcmp(machine: &mut Machine, lhs: u32, rhs: u32, len: u32) -> u32 {
-    let left = machine.mem().sub(lhs, len).as_slice();
-    let right = machine.mem().sub(rhs, len).as_slice();
+    let left = machine.mem().sub32(lhs, len);
+    let right = machine.mem().sub32(rhs, len);
     match left.cmp(right) {
         std::cmp::Ordering::Less => -1i32 as u32,
         std::cmp::Ordering::Equal => 0,

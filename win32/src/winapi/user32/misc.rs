@@ -6,7 +6,7 @@ use crate::{
     },
     Machine,
 };
-use memory::Extensions;
+use memory::{Extensions, ExtensionsMut};
 use std::io::{Cursor, Write};
 
 const TRACE_CONTEXT: &'static str = "user32/misc";
@@ -80,7 +80,7 @@ pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool 
 pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: VarArgs) -> u32 {
     const BUF_LEN: u32 = 1024;
     let mem = machine.mem();
-    let buf = mem.sub(buf, BUF_LEN).as_mut_slice_todo();
+    let buf = mem.sub32_mut(buf, BUF_LEN);
     let mut out = Cursor::new(buf);
 
     fn read_number(c: u8) -> usize {

@@ -10,6 +10,7 @@ use crate::{
 };
 use ::memory::{Extensions, Pod};
 use bitflags::bitflags;
+use memory::ExtensionsMut;
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
@@ -281,9 +282,9 @@ pub fn MultiByteToWideChar(
     match lpWideCharStr {
         None => input_len,
         Some(buf) => {
-            let input = machine.mem().sub(lpMultiByteStr, input_len);
+            let input = machine.mem().sub32(lpMultiByteStr, input_len);
             let mut len = 0;
-            for (&c_in, c_out) in std::iter::zip(input.as_slice_todo(), buf) {
+            for (&c_in, c_out) in std::iter::zip(input, buf) {
                 if c_in > 0x7f {
                     unimplemented!("unicode");
                 }
@@ -381,7 +382,7 @@ pub fn FormatMessageW(
     };
 
     let buf: &mut [u16] = unsafe {
-        let mem = machine.mem().sub(lpBuffer, nSize).as_mut_slice_todo();
+        let mem = machine.mem().sub32_mut(lpBuffer, nSize);
         std::slice::from_raw_parts_mut(mem.as_mut_ptr() as *mut _, mem.len() / 2)
     };
     let msgw = String16::from(msg);
@@ -413,9 +414,9 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
     }
     set_last_error(machine, ERROR_SUCCESS);
     if lpBuffer != 0 {
-        let mem = machine.mem().sub(lpBuffer, uSize).as_mut_slice_todo();
-        mem[..path_bytes.len()].copy_from_slice(path_bytes);
-        mem[path_bytes.len()] = 0;
+        let buf = machine.mem().sub32_mut(lpBuffer, uSize);
+        buf[..path_bytes.len()].copy_from_slice(path_bytes);
+        buf[path_bytes.len()] = 0;
     }
     path_bytes.len() as u32
 }
@@ -429,9 +430,9 @@ pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) ->
         return path_bytes.len() as u32 + 1;
     }
     if lpBuffer != 0 {
-        let mem = machine.mem().sub(lpBuffer, uSize).as_mut_slice_todo();
-        mem[..path_bytes.len()].copy_from_slice(path_bytes);
-        mem[path_bytes.len()] = 0;
+        let buf = machine.mem().sub32_mut(lpBuffer, uSize);
+        buf[..path_bytes.len()].copy_from_slice(path_bytes);
+        buf[path_bytes.len()] = 0;
     }
     path_bytes.len() as u32
 }
@@ -449,8 +450,8 @@ pub fn FormatMessageA(
 ) -> u32 {
     log::warn!("FormatMessageA: stub");
     if lpBuffer != 0 && nSize > 0 {
-        let mem = machine.mem().sub(lpBuffer, nSize).as_mut_slice_todo();
-        mem[0] = 0;
+        let buf = machine.mem().sub32_mut(lpBuffer, nSize);
+        buf[0] = 0;
     }
     0
 }

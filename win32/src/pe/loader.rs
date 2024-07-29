@@ -2,7 +2,7 @@
 
 use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, winapi};
-use memory::Mem;
+use memory::{ExtensionsMut, Mem};
 use std::collections::HashMap;
 
 /// Create a memory mapping, optionally copying some data to it.
@@ -18,8 +18,7 @@ fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Op
     if let Some(buf) = buf {
         machine
             .mem()
-            .sub(addr, buf.len() as u32)
-            .as_mut_slice_todo()
+            .sub32_mut(addr, buf.len() as u32)
             .copy_from_slice(buf);
     }
 }

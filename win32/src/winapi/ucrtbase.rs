@@ -11,11 +11,7 @@ pub async fn _initterm(machine: &mut Machine, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm");
     }
-    let slice = machine
-        .mem()
-        .sub(start, end - start)
-        .as_slice_todo()
-        .to_vec();
+    let slice = machine.mem().sub32(start, end - start).to_vec();
     for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
             machine.call_x86(addr, vec![]).await;
@@ -29,11 +25,7 @@ pub async fn _initterm_e(machine: &mut Machine, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm_e");
     }
-    let slice = machine
-        .mem()
-        .sub(start, end - start)
-        .as_slice_todo()
-        .to_vec();
+    let slice = machine.mem().sub32(start, end - start).to_vec();
     for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
             let err = machine.call_x86(addr, vec![]).await;

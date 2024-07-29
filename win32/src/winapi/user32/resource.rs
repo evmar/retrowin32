@@ -9,7 +9,7 @@ use crate::{
     },
     Machine,
 };
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -193,10 +193,7 @@ pub fn LoadStringA(
     };
     assert!(cchBufferMax != 0); // MSDN claims this is invalid
 
-    let dst = machine
-        .mem()
-        .sub(lpBuffer, cchBufferMax)
-        .as_mut_slice_todo();
+    let dst = machine.mem().sub32_mut(lpBuffer, cchBufferMax);
     let copy_len = std::cmp::min(dst.len() as usize - 1, str.len());
     for i in 0..copy_len {
         dst[i] = str.buf()[i] as u8;
@@ -223,10 +220,10 @@ pub fn LoadStringW(
             .put::<u32>(lpBuffer, machine.mem().offset_of(str.as_ptr()));
         str.len() as u32
     } else {
-        let dst = machine.mem().sub(lpBuffer, cchBufferMax * 2);
+        let dst = machine.mem().sub32_mut(lpBuffer, cchBufferMax * 2);
         let copy_len = std::cmp::min(dst.len() as usize - 2, str.len());
-        dst.as_mut_slice_todo()[..copy_len].copy_from_slice(&str[..copy_len]);
-        dst.put::<u16>(copy_len as u32, 0);
+        dst[..copy_len].copy_from_slice(&str[..copy_len]);
+        dst.put_pod::<u16>(copy_len as u32, 0);
         copy_len as u32
     }
 }

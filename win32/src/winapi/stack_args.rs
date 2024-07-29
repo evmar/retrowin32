@@ -2,7 +2,7 @@
 
 use super::types::Str16;
 use crate::str16::expect_ascii;
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 /// ArrayWithSize<u8> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,
@@ -131,7 +131,7 @@ impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
         if addr == 0 {
             return None;
         }
-        let slice = mem.sub(addr, count).as_slice_todo();
+        let slice = mem.sub32(addr, count);
         Some(std::slice::from_raw_parts(
             slice.as_ptr() as *const _,
             count as usize,
@@ -146,7 +146,7 @@ impl<'a, T: memory::Pod> FromStack<'a> for ArrayWithSizeMut<'a, T> {
         if addr == 0 {
             return ArrayWithSizeMut(None);
         }
-        let slice = mem.sub(addr, count).as_mut_slice_todo();
+        let slice = mem.sub32_mut(addr, count);
         ArrayWithSizeMut(Some(std::slice::from_raw_parts_mut(
             slice.as_mut_ptr() as *mut _,
             count as usize,
