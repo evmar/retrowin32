@@ -28,7 +28,6 @@ impl Timer {
             time: 0,
             pt_x: 0,
             pt_y: 0,
-            lPrivate: 0,
         }
     }
 }

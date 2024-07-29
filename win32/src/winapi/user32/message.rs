@@ -14,7 +14,9 @@ pub struct MSG {
     // TODO: struct POINT
     pub pt_x: u32,
     pub pt_y: u32,
-    pub lPrivate: u32,
+    // The docs mention an lPrivate field, but old versions of MSG don't have the lPrivate field.
+    // We don't want to accidentally overwrite adjacent data when putting a MSG into memory, so
+    // we leave it out.  See commit 30d1bb3ea9c955b82a724f36490dbe0914af5355.
 }
 unsafe impl memory::Pod for MSG {}
 
@@ -30,7 +32,6 @@ impl std::fmt::Debug for MSG {
             .field("time", &self.time)
             .field("pt_x", &self.pt_x)
             .field("pt_y", &self.pt_y)
-            .field("lPrivate", &self.lPrivate)
             .finish()
     }
 }
@@ -69,7 +70,6 @@ fn msg_from_message(message: host::Message) -> MSG {
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     };
 
     match &message.detail {
@@ -196,7 +196,6 @@ fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     });
     true
 }
@@ -213,13 +212,6 @@ fn find_message(machine: &mut Machine, hwnd: HWND, min: u32, max: u32) -> Option
     })
 }
 
-fn copy_message(dstMsg: &mut MSG, srcMsg: &MSG) {
-    // Old versions of MSG don't have the lPrivate field. It might point to another stack variable, so don't overwrite it.
-    let dst = unsafe { std::slice::from_raw_parts_mut(dstMsg as *mut MSG as *mut u8, 28) };
-    let src = unsafe { std::slice::from_raw_parts(srcMsg as *const MSG as *const u8, 28) };
-    dst.copy_from_slice(src);
-}
-
 #[win32_derive::dllexport]
 pub fn PeekMessageA(
     machine: &mut Machine,
@@ -234,7 +226,7 @@ pub fn PeekMessageA(
     let _ = fill_message_queue(machine, hWnd);
 
     if let Some(index) = find_message(machine, hWnd, wMsgFilterMin, wMsgFilterMax) {
-        copy_message(lpMsg, machine.state.user32.messages.get(index).unwrap());
+        *lpMsg = machine.state.user32.messages.get(index).unwrap().clone();
         let remove = wRemoveMsg.unwrap();
         if remove.contains(RemoveMsg::PM_REMOVE) {
             machine.state.user32.messages.remove(index);
@@ -284,7 +276,7 @@ pub async fn GetMessageA(
     if let Some(index) = find_message(machine, hWnd, wMsgFilterMin, wMsgFilterMax) {
         let msg = machine.state.user32.messages.get(index).unwrap().clone();
         machine.state.user32.messages.remove(index);
-        copy_message(lpMsg.unwrap(), &msg);
+        *lpMsg.unwrap() = msg.clone();
         if msg.message == WM::QUIT as u32 {
             return 0;
         }
@@ -376,7 +368,6 @@ pub fn PostQuitMessage(machine: &mut Machine, nExitCode: i32) -> u32 {
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     });
     0 // unused
 }
@@ -391,7 +382,6 @@ pub fn PostMessageW(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lP
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     });
     true
 }
@@ -422,7 +412,6 @@ pub async fn SendMessageA(
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     };
     dispatch_message(machine, &msg).await
 }

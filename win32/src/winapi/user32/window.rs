@@ -456,7 +456,6 @@ pub async fn CreateWindowExW(
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     };
     dispatch_message(machine, &msg).await;
 
@@ -533,7 +532,6 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     };
     DispatchMessageA(machine, Some(&msg)).await;
 
@@ -547,7 +545,6 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
             time: 0,
             pt_x: 0,
             pt_y: 0,
-            lPrivate: 0,
         },
     )
     .await;
@@ -588,7 +585,6 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
             time: 0,
             pt_x: 0,
             pt_y: 0,
-            lPrivate: 0,
         },
     )
     .await;
@@ -603,7 +599,6 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
             time: 0,
             pt_x: 0,
             pt_y: 0,
-            lPrivate: 0,
         },
     )
     .await;
@@ -618,7 +613,6 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
             time: 0,
             pt_x: 0,
             pt_y: 0,
-            lPrivate: 0,
         },
     )
     .await;
@@ -669,7 +663,6 @@ pub async fn DefWindowProcA(
                     time: 0,
                     pt_x: 0,
                     pt_y: 0,
-                    lPrivate: 0,
                 };
                 dispatch_message(machine, &msg).await;
             }
@@ -685,7 +678,6 @@ pub async fn DefWindowProcA(
                     time: 0,
                     pt_x: 0,
                     pt_y: 0,
-                    lPrivate: 0,
                 };
                 dispatch_message(machine, &msg).await;
             }
@@ -852,7 +844,6 @@ pub async fn SetWindowPos(
         time: 0,
         pt_x: 0,
         pt_y: 0,
-        lPrivate: 0,
     };
     dispatch_message(machine, &msg).await;
 
