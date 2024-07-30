@@ -379,7 +379,7 @@ pub fn CreateDIBSection(
         _ => todo!(),
     };
 
-    let byte_count = bi.stride() * bi.height();
+    let byte_count = bi.stride() as u32 * bi.height();
     let heap = kernel32::GetProcessHeap(machine);
     let pixels = kernel32::HeapAlloc(
         machine,
@@ -449,7 +449,7 @@ pub fn SetDIBitsToDevice(
     StartScan: u32,
     cLines: u32,
     lpvBits: u32,
-    lpbmi: Option<&BITMAPINFOHEADER>,
+    lpbmi: u32,
     ColorUse: u32,
 ) -> u32 {
     if StartScan != ySrc || cLines != h {
@@ -458,16 +458,8 @@ pub fn SetDIBitsToDevice(
     if ColorUse != DIB_RGB_COLORS {
         todo!();
     }
-
-    let header = lpbmi.unwrap();
-    if header.biWidth != w {
-        todo!("unclear which width to believe");
-    }
-
-    let ptr = unsafe { (header as *const _ as *const u8).add(header.biSize as usize) };
-
     let src_bitmap = BitmapRGBA32::parseBMPv3(
-        header,
+        machine.mem().slice(lpbmi..),
         Some((
             machine.mem().slice(lpvBits..).as_slice_todo(),
             cLines as usize,
@@ -533,7 +525,7 @@ pub fn StretchDIBits(
     SrcWidth: u32,
     SrcHeight: u32,
     lpBits: u32,
-    lpbmi: Option<&BITMAPINFOHEADER>,
+    lpbmi: u32,
     iUsage: u32,
     rop: Result<RasterOp, u32>,
 ) -> u32 {

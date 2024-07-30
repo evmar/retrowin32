@@ -649,7 +649,7 @@ pub mod gdi32 {
             let StartScan = <u32>::from_stack(mem, esp + 32u32);
             let cLines = <u32>::from_stack(mem, esp + 36u32);
             let lpvBits = <u32>::from_stack(mem, esp + 40u32);
-            let lpbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, esp + 44u32);
+            let lpbmi = <u32>::from_stack(mem, esp + 44u32);
             let ColorUse = <u32>::from_stack(mem, esp + 48u32);
             winapi::gdi32::SetDIBitsToDevice(
                 machine, hdc, xDest, yDest, w, h, xSrc, ySrc, StartScan, cLines, lpvBits, lpbmi,
@@ -707,7 +707,7 @@ pub mod gdi32 {
             let SrcWidth = <u32>::from_stack(mem, esp + 32u32);
             let SrcHeight = <u32>::from_stack(mem, esp + 36u32);
             let lpBits = <u32>::from_stack(mem, esp + 40u32);
-            let lpbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, esp + 44u32);
+            let lpbmi = <u32>::from_stack(mem, esp + 44u32);
             let iUsage = <u32>::from_stack(mem, esp + 48u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, esp + 52u32);
             winapi::gdi32::StretchDIBits(
