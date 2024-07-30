@@ -32,6 +32,10 @@ impl BoxMem {
     pub fn mem(&self) -> Mem {
         Mem::from_slice(&self.0)
     }
+
+    pub fn as_ptr(&self) -> *const u8 {
+        self.0.as_ptr()
+    }
 }
 
 #[derive(serde::Serialize, serde::Deserialize)]

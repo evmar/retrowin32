@@ -43,7 +43,7 @@ impl Emulator {
     pub fn memory(&self) -> js_sys::DataView {
         let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
         let buf = js_sys::ArrayBuffer::from(mem.buffer());
-        let ofs = self.machine.mem().as_slice_todo().as_ptr() as usize;
+        let ofs = self.machine.emu.memory.as_ptr() as usize;
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
