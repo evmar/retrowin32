@@ -1,5 +1,7 @@
+use crate::shims::Shim;
 use crate::{host, winapi};
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::{Machine, MemImpl};
@@ -19,4 +21,21 @@ pub struct MachineX<Emu> {
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub labels: HashMap<u32, String>,
+    pub exe_path: PathBuf,
+}
+
+pub enum StopReason {
+    None,
+    Breakpoint {
+        eip: u32,
+    },
+    ShimCall(&'static Shim),
+    Error {
+        message: String,
+        signal: u8,
+        eip: u32,
+    },
+    Exit {
+        code: u32,
+    },
 }

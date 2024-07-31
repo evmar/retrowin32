@@ -93,8 +93,7 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
             }
 
             mod shims {
-                use super::impls;
-                use super::Shim;
+                use super::{impls, Shim, Handler};
                 #(#shims)*
             }
 
@@ -136,7 +135,7 @@ fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<Vec<u8>> {
     let out = quote! {
         /// Generated code, do not edit.
 
-        use crate::shims::Shim;
+        use crate::shims::{Handler, Shim};
 
         pub struct BuiltinDLL {
             pub file_name: &'static str,

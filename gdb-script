@@ -1,0 +1,2 @@
+target remote localhost:9001
+set disassembly-flavor intel
