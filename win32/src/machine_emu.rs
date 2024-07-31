@@ -1,12 +1,15 @@
+use crate::shims::Shim;
+use crate::shims_emu::handle_shim_call;
 use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
     shims_emu::Shims,
-    winapi,
+    winapi, StopReason,
 };
 use memory::{Extensions, Mem};
 use std::collections::HashMap;
+use std::path::Path;
 
 pub struct BoxMem(Box<[u8]>);
 
@@ -66,6 +69,7 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
+            exe_path: Default::default(),
         }
     }
 
@@ -87,10 +91,10 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        filename: &str,
+        path: &Path,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, filename, relocate)?;
+        let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack_pointer = self.create_stack("stack".into(), exe.stack_size);
         let regs = &mut self.emu.x86.cpu_mut().regs;
@@ -111,17 +115,11 @@ impl MachineX<Emulator> {
         x86::ops::push(cpu, self.emu.memory.mem(), 0); // return address
         cpu.regs.eip = retrowin32_main;
 
+        self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,
         })
-    }
-
-    pub fn single_step(&mut self) {
-        if !crate::shims_emu::is_ip_at_shim_call(self.emu.x86.cpu().regs.eip) {
-            self.emu.x86.single_step_next_block(self.emu.memory.mem());
-        }
-        self.run();
     }
 
     pub fn unblock_all(&mut self) {
@@ -145,38 +143,68 @@ impl MachineX<Emulator> {
         }
     }
 
-    pub fn run(&mut self) -> bool {
+    pub fn run(&mut self, instruction_count: usize) -> StopReason {
         self.emu.x86.schedule();
+        let eip = self.emu.x86.cpu().regs.eip;
         match &self.emu.x86.cpu().state {
-            x86::CPUState::Running => self.execute_block(),
+            x86::CPUState::Running => self.execute_block(instruction_count),
             x86::CPUState::Blocked(wait) => {
                 let wait = *wait;
                 if self.host.block(wait) {
                     self.unblock();
-                } else {
-                    return false;
                 }
+                StopReason::None
             }
-            _ => return false,
+            x86::CPUState::DebugBreak => {
+                // resume execution after breakpoint
+                self.emu.x86.cpu_mut().state = x86::CPUState::Running;
+                self.execute_block(instruction_count)
+            }
+            x86::CPUState::Error(message) => StopReason::Error {
+                message: message.clone(),
+                signal: 11, // SIGSEGV, TODO?
+                eip,
+            },
+            x86::CPUState::Exit(_) => unreachable!(),
         }
-        true
     }
 
-    // Execute one basic block.  Returns false if we stopped early.
-    fn execute_block(&mut self) {
+    /// Execute one basic block or number of instructions.
+    pub fn execute_block(&mut self, instruction_count: usize) -> StopReason {
         debug_assert!(self.emu.x86.cpu().state.is_running());
         let eip = self.emu.x86.cpu().regs.eip;
         if crate::shims_emu::is_ip_at_shim_call(eip) {
             if self.emu.breakpoints.contains_key(&eip) {
-                self.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
-                return;
+                return StopReason::Breakpoint { eip };
             }
-
-            crate::shims_emu::handle_shim_call(self);
-            // Treat any shim call as a single block and return here.
-            return;
+            return match self.emu.shims.get(eip) {
+                Some(Ok(shim)) => StopReason::ShimCall(shim),
+                Some(Err(name)) => StopReason::Error {
+                    message: format!("unimplemented shim {}", name),
+                    signal: 31, // SIGSYS
+                    eip,
+                },
+                None => StopReason::Error {
+                    message: format!("unknown shim call @ {:x}", eip),
+                    signal: 31, // SIGSYS
+                    eip,
+                },
+            };
         }
-        self.emu.x86.execute_block(self.emu.memory.mem())
+        self.emu
+            .x86
+            .execute_block(self.emu.memory.mem(), instruction_count);
+        let eip = self.emu.x86.cpu().regs.eip;
+        match &self.emu.x86.cpu().state {
+            x86::CPUState::Running | x86::CPUState::Blocked(_) => StopReason::None,
+            x86::CPUState::DebugBreak => StopReason::Breakpoint { eip },
+            x86::CPUState::Error(message) => StopReason::Error {
+                message: message.clone(),
+                signal: 11, // SIGSEGV, TODO?
+                eip,
+            },
+            x86::CPUState::Exit(code) => StopReason::Exit { code: *code },
+        }
     }
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
@@ -187,38 +215,46 @@ impl MachineX<Emulator> {
             .await
     }
 
-    // pub fn dump_stack(&self) {
-    //     let esp = self.emu.x86.cpu.regs.esp;
-    //     for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
-    //         let extra = if addr == esp { " <- esp" } else { "" };
-    //         log::info!(
-    //             "{:08x} {:08x}{extra}",
-    //             addr,
-    //             self.mem().get_pod::<u32>(addr)
-    //         );
-    //     }
-    // }
+    /// Call a shim function. If it returns a future, it will be scheduled to run.
+    pub fn call_shim(&mut self, shim: &'static Shim) {
+        if let Some(future) = handle_shim_call(self, shim) {
+            self.emu.x86.cpu_mut().call_async(future);
+        }
+    }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, addr: u32) {
-        if crate::shims_emu::is_ip_at_shim_call(addr) {
-            self.emu.breakpoints.insert(addr, 0);
-        } else {
-            let mem = self.emu.memory.mem();
-            self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
-            mem.put_pod::<u8>(addr, 0xcc); // int3
-            self.emu.x86.icache.clear_cache(addr);
+    pub fn add_breakpoint(&mut self, addr: u32) -> bool {
+        match self.emu.breakpoints.entry(addr) {
+            std::collections::hash_map::Entry::Occupied(_) => false,
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                if crate::shims_emu::is_ip_at_shim_call(addr) {
+                    entry.insert(0);
+                } else {
+                    let mem = self.emu.memory.mem();
+                    entry.insert(mem.get_pod::<u8>(addr));
+                    mem.put_pod::<u8>(addr, 0xcc); // int3
+                    self.emu.x86.icache.clear_cache(addr);
+                }
+                true
+            }
         }
     }
 
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, addr: u32) {
-        if crate::shims_emu::is_ip_at_shim_call(addr) {
-            self.emu.breakpoints.remove(&addr).unwrap();
-        } else {
-            self.emu.x86.icache.clear_cache(addr);
-            let prev = self.emu.breakpoints.remove(&addr).unwrap();
-            self.mem().put_pod::<u8>(addr, prev);
+    pub fn clear_breakpoint(&mut self, addr: u32) -> bool {
+        match self.emu.breakpoints.remove(&addr) {
+            Some(prev) => {
+                if !crate::shims_emu::is_ip_at_shim_call(addr) {
+                    self.emu.x86.icache.clear_cache(addr);
+                    self.mem().put_pod::<u8>(addr, prev);
+                }
+                true
+            }
+            None => false,
         }
+    }
+
+    pub fn exit(&mut self, code: u32) {
+        self.emu.x86.cpu_mut().state = x86::CPUState::Exit(code);
     }
 }

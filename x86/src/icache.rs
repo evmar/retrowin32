@@ -29,7 +29,7 @@ pub struct BasicBlock {
 }
 
 impl BasicBlock {
-    fn decode(buf: &[u8], ip: u32, single_step: bool) -> Option<Self> {
+    fn decode(buf: &[u8], ip: u32, mut instruction_count: usize) -> Option<Self> {
         let mut ops = Vec::new();
         let mut decoder =
             iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
@@ -60,8 +60,14 @@ impl BasicBlock {
                 crate::ops::decode(&instr).unwrap_or_else(|| todo!("{instr} ({:?})", instr.code()));
             ops.push(Op { op, instr });
             len += instr.len() as u32;
-            if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
+            if instr.flow_control() != iced_x86::FlowControl::Next {
                 break;
+            }
+            if instruction_count > 0 {
+                instruction_count -= 1;
+                if instruction_count == 0 {
+                    break;
+                }
             }
         }
         Some(BasicBlock { ops, len })
@@ -114,8 +120,8 @@ impl InstrCache {
     }
 
     /// Decode the instructions starting at ip and save in self.lines.
-    fn decode_block(&mut self, mem: Mem, ip: u32, single_step: bool) -> &BasicBlock {
-        let block = match BasicBlock::decode(mem.slice(ip..), ip, single_step) {
+    fn decode_block(&mut self, mem: Mem, ip: u32, instruction_count: usize) -> &BasicBlock {
+        let block = match BasicBlock::decode(mem.slice(ip..), ip, instruction_count) {
             Some(block) => block,
             None => unreachable!(),
         };
@@ -137,20 +143,18 @@ impl InstrCache {
     }
 
     /// Gets basic block starting at a given ip.
-    pub fn get_block<'a>(&'a mut self, mem: Mem, ip: u32) -> &'a BasicBlock {
+    pub fn get_block(&mut self, mem: Mem, ip: u32, instruction_count: usize) -> &BasicBlock {
+        if instruction_count > 0 {
+            // If we're single-stepping, we don't want to cache the block.
+            return self.decode_block(mem, ip, instruction_count);
+        }
         let index = ip as usize % self.lines.len();
         if self.lines[index].ip == ip {
             self.hit += 1;
             return &self.lines[index].block;
         } else {
             self.miss += 1;
-            self.decode_block(mem, ip, false)
+            self.decode_block(mem, ip, 0)
         }
-    }
-
-    /// Change cache such that there's a single basic block at ip.
-    /// This means the next get_block() will get a block with a single instruction.
-    pub fn make_single_step(&mut self, mem: Mem, ip: u32) {
-        self.decode_block(mem, ip, true);
     }
 }
