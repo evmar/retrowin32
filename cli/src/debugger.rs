@@ -1,7 +1,7 @@
 use gdbstub::arch::Arch;
 use gdbstub::common::Pid;
 use gdbstub::stub::state_machine::GdbStubStateMachine;
-use gdbstub::stub::{BaseStopReason, SingleThreadStopReason};
+use gdbstub::stub::SingleThreadStopReason;
 use gdbstub::target::ext::base::singlethread::{
     SingleThreadRangeSteppingOps, SingleThreadSingleStep, SingleThreadSingleStepOps,
 };
@@ -23,6 +23,8 @@ use gdbstub::{
         BaseOps,
     },
 };
+use std::collections::HashMap;
+use std::fs::File;
 use std::io::ErrorKind;
 use win32::mem::{Extensions, ExtensionsMut};
 use win32::Machine;
@@ -32,11 +34,13 @@ pub enum MachineTargetAction {
     Stop,
     Resume,
     SingleStep,
+    Exit,
 }
 
 pub struct MachineTarget {
     pub machine: Machine,
     action: Option<MachineTargetAction>,
+    open_files: HashMap<u32, File>,
 }
 
 impl MachineTarget {
@@ -44,6 +48,7 @@ impl MachineTarget {
         MachineTarget {
             machine,
             action: None,
+            open_files: Default::default(),
         }
     }
 }
@@ -655,18 +660,24 @@ impl HostIoOpen for MachineTarget {
             }
         };
         // TODO windows
-        use std::os::fd::IntoRawFd;
-        let fd = file.into_raw_fd() as u32;
-        Ok(fd)
+        use std::os::fd::AsRawFd;
+        let fd = file.as_raw_fd() as u32;
+        match self.open_files.insert(fd, file) {
+            Some(_) => panic!("open: file descriptor already in use"),
+            None => Ok(fd),
+        }
     }
 }
 
 impl HostIoClose for MachineTarget {
     fn close(&mut self, fd: u32) -> HostIoResult<(), Self> {
-        // TODO windows
-        use std::os::unix::io::FromRawFd;
-        let file = unsafe { std::fs::File::from_raw_fd(fd as i32) };
-        file.sync_all().map_err(|e| HostIoError::from(e))
+        match self.open_files.remove(&fd) {
+            Some(file) => file.sync_all().map_err(|e| HostIoError::from(e)),
+            None => Err(HostIoError::from(std::io::Error::new(
+                ErrorKind::NotFound,
+                "close: file descriptor not found",
+            ))),
+        }
     }
 }
 
@@ -679,8 +690,13 @@ impl HostIoPread for MachineTarget {
         buf: &mut [u8],
     ) -> HostIoResult<usize, Self> {
         // TODO windows
-        use std::os::unix::{fs::FileExt, io::FromRawFd};
-        let file = unsafe { std::fs::File::from_raw_fd(fd as i32) };
+        use std::os::unix::fs::FileExt;
+        let Some(file) = self.open_files.get_mut(&fd) else {
+            return Err(HostIoError::from(std::io::Error::new(
+                ErrorKind::NotFound,
+                "pread: file descriptor not found",
+            )));
+        };
         let end = count.min(buf.len());
         file.read_at(&mut buf[..end], offset)
             .map_err(|e| HostIoError::from(e))
@@ -721,6 +737,7 @@ fn wait_for_gdb_connection(port: u16) -> std::io::Result<std::net::TcpStream> {
 }
 
 pub type StateMachine<'a> = GdbStubStateMachine<'a, MachineTarget, std::net::TcpStream>;
+type StopReason = SingleThreadStopReason<<<MachineTarget as Target>::Arch as Arch>::Usize>;
 
 pub fn run<'a>(target: &mut MachineTarget) -> anyhow::Result<StateMachine<'a>> {
     let connection: std::net::TcpStream = wait_for_gdb_connection(9001)?;
@@ -768,13 +785,14 @@ impl DebuggerExt for Option<StateMachine<'_>> {
                 }
                 GdbStubStateMachine::CtrlCInterrupt(inner) => {
                     target.action = Some(MachineTargetAction::Stop);
-                    Some(
-                        inner
-                            .interrupt_handled(target, Some(SingleThreadStopReason::SwBreak(())))?,
-                    )
+                    Some(inner.interrupt_handled(
+                        target,
+                        Some(StopReason::Signal(Signal(2 /* SIGINT */))),
+                    )?)
                 }
                 GdbStubStateMachine::Disconnected(_inner) => {
-                    log::info!("debugger disconnected");
+                    log::info!("debugger disconnected, exiting");
+                    target.action = Some(MachineTargetAction::Exit);
                     None
                 }
             };
@@ -786,7 +804,7 @@ impl DebuggerExt for Option<StateMachine<'_>> {
         if let Some(state) = self.take() {
             *self = match state {
                 GdbStubStateMachine::Running(inner) => {
-                    Some(inner.report_stop(target, BaseStopReason::<(), u32>::DoneStep)?)
+                    Some(inner.report_stop(target, StopReason::DoneStep)?)
                 }
                 state => Some(state),
             }
@@ -797,9 +815,9 @@ impl DebuggerExt for Option<StateMachine<'_>> {
     fn machine_error(&mut self, target: &mut MachineTarget, signal: u8) -> anyhow::Result<()> {
         if let Some(state) = self.take() {
             *self = match state {
-                GdbStubStateMachine::Running(inner) => Some(
-                    inner.report_stop(target, BaseStopReason::<(), u32>::Signal(Signal(signal)))?,
-                ),
+                GdbStubStateMachine::Running(inner) => {
+                    Some(inner.report_stop(target, StopReason::Signal(Signal(signal)))?)
+                }
                 state => Some(state),
             }
         }
@@ -810,7 +828,7 @@ impl DebuggerExt for Option<StateMachine<'_>> {
         if let Some(state) = self.take() {
             *self = match state {
                 GdbStubStateMachine::Running(inner) => {
-                    Some(inner.report_stop(target, BaseStopReason::SwBreak(()))?)
+                    Some(inner.report_stop(target, StopReason::SwBreak(()))?)
                 }
                 state => Some(state),
             }
@@ -822,7 +840,7 @@ impl DebuggerExt for Option<StateMachine<'_>> {
         if let Some(state) = self.take() {
             *self = match state {
                 GdbStubStateMachine::Running(inner) => {
-                    Some(inner.report_stop(target, BaseStopReason::<(), u32>::DoneStep)?)
+                    Some(inner.report_stop(target, StopReason::DoneStep)?)
                 }
                 GdbStubStateMachine::Idle(mut inner) => {
                     // Both program and debugger are stopped. Read a byte synchronously

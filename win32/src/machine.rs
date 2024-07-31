@@ -25,17 +25,20 @@ pub struct MachineX<Emu> {
 }
 
 pub enum StopReason {
+    /// The CPU is running normally.
     None,
-    Breakpoint {
-        eip: u32,
-    },
+    /// The CPU is blocked polling a future.
+    Blocked,
+    /// The CPU hit a debug breakpoint.
+    Breakpoint { eip: u32 },
+    /// The CPU hit a shim call.
     ShimCall(&'static Shim),
+    /// The CPU encountered an error.
     Error {
         message: String,
         signal: u8,
         eip: u32,
     },
-    Exit {
-        code: u32,
-    },
+    /// The CPU exited with a status code.
+    Exit { code: u32 },
 }

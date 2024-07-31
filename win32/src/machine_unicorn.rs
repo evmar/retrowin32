@@ -1,4 +1,4 @@
-use crate::shims::Shim;
+use crate::shims::{BoxFuture, Shim};
 use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
@@ -8,7 +8,6 @@ use crate::{
 };
 use memory::Mem;
 use std::collections::HashMap;
-use std::future::Future;
 use std::path::Path;
 use std::pin::Pin;
 use std::task::Context;
@@ -41,7 +40,7 @@ pub struct Emulator {
     pub shims: Shims,
     pub memory: MemImpl,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
-    futures: Vec<Pin<Box<dyn Future<Output = ()>>>>,
+    futures: Vec<BoxFuture<()>>,
     exit_code: Option<u32>,
 }
 

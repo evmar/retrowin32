@@ -8,7 +8,7 @@
 //! 3) tell Unicorn to stop emulation whenever the page is hit,
 //!    and use eip to compute which shim
 
-use crate::shims::Handler;
+use crate::shims::{BoxFuture, Handler};
 use crate::{shims::Shim, Machine};
 use memory::Extensions;
 use std::future::Future;
@@ -72,7 +72,7 @@ pub const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 pub fn handle_shim_call(
     machine: &mut Machine,
     shim: &'static Shim,
-) -> Option<Pin<Box<dyn Future<Output = ()>>>> {
+) -> Option<BoxFuture<()>> {
     let Shim {
         func,
         stack_consumed,

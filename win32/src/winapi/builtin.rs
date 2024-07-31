@@ -1929,7 +1929,7 @@ pub mod kernel32 {
         pub unsafe fn CreateThread(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let lpThreadAttributes = <u32>::from_stack(mem, esp + 4u32);
             let dwStackSize = <u32>::from_stack(mem, esp + 8u32);
@@ -2743,10 +2743,7 @@ pub mod kernel32 {
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter)
                 .to_raw()
         }
-        pub unsafe fn Sleep(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, esp + 4u32);
             let machine: *mut Machine = machine;
@@ -2913,7 +2910,7 @@ pub mod kernel32 {
         pub unsafe fn retrowin32_main(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let entry_point = <u32>::from_stack(mem, esp + 4u32);
             let machine: *mut Machine = machine;
@@ -2927,7 +2924,7 @@ pub mod kernel32 {
         pub unsafe fn retrowin32_thread_main(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let entry_point = <u32>::from_stack(mem, esp + 4u32);
             let param = <u32>::from_stack(mem, esp + 8u32);
@@ -3939,7 +3936,7 @@ pub mod retrowin32_test {
         pub unsafe fn retrowin32_test_callback1(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let func = <u32>::from_stack(mem, esp + 4u32);
             let data = <u32>::from_stack(mem, esp + 8u32);
@@ -4034,10 +4031,7 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             winapi::ucrtbase::_initialize_narrow_environment(machine).to_raw()
         }
-        pub unsafe fn _initterm(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn _initterm(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
@@ -4049,10 +4043,7 @@ pub mod ucrtbase {
                     .to_raw()
             })
         }
-        pub unsafe fn _initterm_e(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn _initterm_e(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let start = <u32>::from_stack(mem, esp + 4u32);
             let end = <u32>::from_stack(mem, esp + 8u32);
@@ -4419,7 +4410,7 @@ pub mod user32 {
         pub unsafe fn CreateWindowExA(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
             let lpClassName = <CreateWindowClassName<'_, str>>::from_stack(mem, esp + 8u32);
@@ -4458,7 +4449,7 @@ pub mod user32 {
         pub unsafe fn CreateWindowExW(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
             let lpClassName = <CreateWindowClassName<'_, Str16>>::from_stack(mem, esp + 8u32);
@@ -4497,7 +4488,7 @@ pub mod user32 {
         pub unsafe fn DefWindowProcA(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
@@ -4514,7 +4505,7 @@ pub mod user32 {
         pub unsafe fn DefWindowProcW(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
@@ -4570,7 +4561,7 @@ pub mod user32 {
         pub unsafe fn DispatchMessageA(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
             let machine: *mut Machine = machine;
@@ -4584,7 +4575,7 @@ pub mod user32 {
         pub unsafe fn DispatchMessageW(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, esp + 4u32);
             let machine: *mut Machine = machine;
@@ -4666,10 +4657,7 @@ pub mod user32 {
             let mem = machine.mem().detach();
             winapi::user32::GetLastActivePopup(machine).to_raw()
         }
-        pub unsafe fn GetMessageA(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn GetMessageA(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
             let hWnd = <HWND>::from_stack(mem, esp + 8u32);
@@ -4683,10 +4671,7 @@ pub mod user32 {
                     .to_raw()
             })
         }
-        pub unsafe fn GetMessageW(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn GetMessageW(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, esp + 4u32);
             let hWnd = <HWND>::from_stack(mem, esp + 8u32);
@@ -4972,7 +4957,7 @@ pub mod user32 {
         pub unsafe fn SendMessageA(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let Msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
@@ -5037,7 +5022,7 @@ pub mod user32 {
         pub unsafe fn SetWindowPos(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let hWndInsertAfter = <HWND>::from_stack(mem, esp + 8u32);
@@ -5065,10 +5050,7 @@ pub mod user32 {
             let bShow = <bool>::from_stack(mem, esp + 4u32);
             winapi::user32::ShowCursor(machine, bShow).to_raw()
         }
-        pub unsafe fn ShowWindow(
-            machine: &mut Machine,
-            esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        pub unsafe fn ShowWindow(machine: &mut Machine, esp: u32) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let nCmdShow = <Result<SW, u32>>::from_stack(mem, esp + 8u32);
@@ -5095,7 +5077,7 @@ pub mod user32 {
         pub unsafe fn UpdateWindow(
             machine: &mut Machine,
             esp: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+        ) -> crate::shims::BoxFuture<u32> {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let machine: *mut Machine = machine;

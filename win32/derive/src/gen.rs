@@ -68,7 +68,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
     };
 
     let retn = if is_async {
-        quote!(std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>)
+        quote!(crate::shims::BoxFuture<u32>)
     } else {
         quote!(u32)
     };

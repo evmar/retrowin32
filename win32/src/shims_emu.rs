@@ -37,10 +37,8 @@
 //! x86 code eventually invoked there will return control back to async_executor.
 
 use memory::Extensions;
-use std::future::Future;
-use std::pin::Pin;
 
-use crate::shims::Handler;
+use crate::shims::{BoxFuture, Handler};
 use crate::{machine::Machine, shims::Shim};
 
 /// Code that calls from x86 to the host will jump to addresses in this
@@ -81,10 +79,7 @@ pub fn is_ip_at_shim_call(ip: u32) -> bool {
     ip & 0xFFFF_0000 == SHIM_BASE
 }
 
-pub fn handle_shim_call(
-    machine: &mut Machine,
-    shim: &'static Shim,
-) -> Option<Pin<Box<dyn Future<Output = ()>>>> {
+pub fn handle_shim_call(machine: &mut Machine, shim: &'static Shim) -> Option<BoxFuture<()>> {
     let Shim {
         func,
         stack_consumed,
