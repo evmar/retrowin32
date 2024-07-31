@@ -173,12 +173,15 @@ fn main() -> anyhow::Result<ExitCode> {
                     instruction_count = 1;
                     state = MachineState::Running;
                 }
+                Some(MachineTargetAction::Exit) => {
+                    break ExitCode::SUCCESS;
+                }
                 None => {}
             }
             state = match state {
                 MachineState::Running => {
                     match target.machine.run(instruction_count) {
-                        win32::StopReason::None => {
+                        win32::StopReason::None | win32::StopReason::Blocked => {
                             if instruction_count > 0 {
                                 debugger.done_step(&mut target)?;
                                 MachineState::Stopped

@@ -12,9 +12,11 @@
 
 use crate::Machine;
 
+// Similar to futures::future::BoxFuture, but 'static + !Send.
+pub type BoxFuture<T> = std::pin::Pin<Box<dyn std::future::Future<Output = T>>>;
+
 pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u32;
-pub type AsyncHandler =
-    unsafe fn(&mut Machine, u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>;
+pub type AsyncHandler = unsafe fn(&mut Machine, u32) -> BoxFuture<u32>;
 #[derive(Debug, Clone, Copy)]
 pub enum Handler {
     Sync(SyncHandler),
