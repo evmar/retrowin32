@@ -172,10 +172,6 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn sub(&self, ofs: u32, len: u32) -> Mem<'m> {
-        self.slice(ofs..(ofs + len))
-    }
-
     // TODO: this fails if addr isn't appropriately aligned.
     // We need to revisit this whole "view" API...
     pub fn view<T: Pod>(&self, addr: u32) -> &'m T {
