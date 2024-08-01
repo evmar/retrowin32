@@ -459,7 +459,7 @@ pub fn SetDIBitsToDevice(
         todo!();
     }
     let src_bitmap = BitmapRGBA32::parseBMPv3(
-        machine.mem().subslice_todo(lpbmi..),
+        machine.mem().slice(lpbmi..),
         Some((machine.mem().slice(lpvBits..), cLines as usize)),
     );
     let src = src_bitmap.pixels_slice(machine.emu.memory.mem());

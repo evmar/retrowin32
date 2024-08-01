@@ -9,7 +9,7 @@ use crate::{
     },
     Machine,
 };
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{Extensions, ExtensionsMut};
 
 const TRACE_CONTEXT: &'static str = "user32/resource";
 
@@ -75,7 +75,7 @@ fn load_bitmap(
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
-    let bmp = BitmapRGBA32::parse(Mem::from_slice(buf));
+    let bmp = BitmapRGBA32::parse(buf);
     Some(
         machine
             .state
