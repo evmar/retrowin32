@@ -130,6 +130,7 @@ impl<'a> BitmapInfo<'a> {
             1 => 2,
             _ => unimplemented!(),
         };
+        // TODO: biClrUsed determines the size of the palette.
         let palette_entry_size = 4usize;
         let palette_size = palette_len * palette_entry_size;
         let palette = buf.sub32(0, palette_size as u32);
