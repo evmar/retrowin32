@@ -11,7 +11,6 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
-use debugger::{DebuggerExt, MachineTarget, MachineTargetAction};
 use std::borrow::Cow;
 use std::process::ExitCode;
 use win32::winapi::types::win32_error_str;
@@ -145,6 +144,7 @@ fn main() -> anyhow::Result<ExitCode> {
 
     #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
     let exit_code = {
+        use debugger::{DebuggerExt, MachineTarget, MachineTargetAction};
         let mut target = MachineTarget::new(machine);
         let mut debugger = if args.gdb_stub {
             Some(debugger::run(&mut target)?)
@@ -224,7 +224,7 @@ fn main() -> anyhow::Result<ExitCode> {
 
         #[cfg(feature = "x86-emu")]
         {
-            let millis = start.elapsed().as_millis() as usize;
+            let millis = start.elapsed().as_millis() as u64;
             if millis > 0 {
                 eprintln!(
                     "{} instrs in {} ms: {}m/s",
