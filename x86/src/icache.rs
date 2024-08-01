@@ -29,14 +29,10 @@ pub struct BasicBlock {
 }
 
 impl BasicBlock {
-    fn decode(buf: Mem, ip: u32, single_step: bool) -> Option<Self> {
+    fn decode(buf: &[u8], ip: u32, single_step: bool) -> Option<Self> {
         let mut ops = Vec::new();
-        let mut decoder = iced_x86::Decoder::with_ip(
-            32,
-            buf.as_slice_todo(),
-            ip as u64,
-            iced_x86::DecoderOptions::NONE,
-        );
+        let mut decoder =
+            iced_x86::Decoder::with_ip(32, buf, ip as u64, iced_x86::DecoderOptions::NONE);
         let mut len = 0;
         while decoder.can_decode() {
             let instr = decoder.decode();

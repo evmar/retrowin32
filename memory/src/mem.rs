@@ -147,7 +147,12 @@ impl<'m> Mem<'m> {
         unsafe { self.end.offset_from(self.ptr) as u32 }
     }
 
-    pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> Mem<'m> {
+    pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &'m [u8] {
+        self.subslice_todo(b).as_slice_todo()
+    }
+
+    // TODO: remove this in favor of .slice()
+    pub fn subslice_todo(&self, b: impl std::ops::RangeBounds<u32>) -> Mem<'m> {
         let bstart = match b.start_bound() {
             std::ops::Bound::Included(&n) => n,
             std::ops::Bound::Excluded(&n) => n + 1,
@@ -234,7 +239,7 @@ impl<'m> Extensions<'m> for Mem<'m> {
     }
 
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8] {
-        self.slice(ofs..(ofs + len)).as_slice_todo()
+        self.slice(ofs..(ofs + len))
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {

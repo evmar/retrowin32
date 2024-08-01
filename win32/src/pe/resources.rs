@@ -100,12 +100,12 @@ struct IMAGE_RESOURCE_DATA_ENTRY {
 unsafe impl memory::Pod for IMAGE_RESOURCE_DATA_ENTRY {}
 
 /// Look up a resource by its type/id values.
-/// Returns a the range within the image of the data.
+/// Returns the memory range within the image of the data.
 pub fn find_resource(
     section: &[u8],
     query_type: ResourceName,
     query_id: ResourceName,
-) -> Option<Range<u32>> {
+) -> Option<Range<usize>> {
     // Resources are structured as generic nested directories, but in practice there
     // are always exactly three levels with known semantics.
     let mut dir = IMAGE_RESOURCE_DIRECTORY::entries(section);
@@ -130,5 +130,5 @@ pub fn find_resource(
         ResourceValue::Data(data) => data,
         _ => todo!(),
     };
-    Some(data.OffsetToData..data.OffsetToData + data.Size)
+    Some(data.OffsetToData as usize..(data.OffsetToData + data.Size) as usize)
 }

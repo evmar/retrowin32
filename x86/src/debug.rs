@@ -40,7 +40,7 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
     }
     let decoder = iced_x86::Decoder::with_ip(
         32,
-        mem.slice(addr..).as_slice_todo(),
+        mem.slice(addr..),
         addr as u64,
         iced_x86::DecoderOptions::NONE,
     );

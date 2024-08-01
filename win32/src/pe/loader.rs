@@ -2,7 +2,7 @@
 
 use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, winapi};
-use memory::{ExtensionsMut, Mem};
+use memory::ExtensionsMut;
 use std::collections::HashMap;
 
 /// Create a memory mapping, optionally copying some data to it.
@@ -113,8 +113,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     // the relevant DLLs shims.
     let mut patches = Vec::new();
 
-    let image: Mem = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
-    let image = image.as_slice_todo();
+    let image: &[u8] = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
     let section = match imports_data.as_slice(image) {
         None => return,
         Some(s) => s,
@@ -160,7 +159,7 @@ fn load_pe(
 
     if base != file.opt_header.ImageBase {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
-            let image = machine.mem().slice(base..);
+            let image = machine.mem().subslice_todo(base..);
             if let Some(sec) = relocs.as_slice(image.as_slice_todo()) {
                 apply_relocs(image, file.opt_header.ImageBase, base, sec);
             }
@@ -228,7 +227,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, filename, buf, &file, Some(None))?;
-    let image = machine.mem().slice(base..).as_slice_todo();
+    let image = machine.mem().slice(base..);
 
     let entry_point = if file.opt_header.AddressOfEntryPoint != 0 {
         Some(base + file.opt_header.AddressOfEntryPoint)

@@ -37,7 +37,7 @@ impl Str16 {
         }
         let mem16: &[u16] = {
             let mem = mem.slice(addr..);
-            let ptr = mem.as_slice_todo().as_ptr() as *const u16;
+            let ptr = mem.as_ptr() as *const u16;
             std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
         };
         Some(Self::from_nul_term(mem16))
