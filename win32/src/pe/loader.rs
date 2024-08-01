@@ -159,8 +159,8 @@ fn load_pe(
 
     if base != file.opt_header.ImageBase {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
-            let image = machine.mem().subslice_todo(base..);
-            if let Some(sec) = relocs.as_slice(image.as_slice_todo()) {
+            let image = machine.mem().slice(base..);
+            if let Some(sec) = relocs.as_slice(image) {
                 apply_relocs(image, file.opt_header.ImageBase, base, sec);
             }
         }

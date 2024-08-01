@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use memory::{Extensions, Mem};
+use memory::Extensions;
 
 #[repr(C)]
 #[derive(Clone)]
@@ -11,7 +11,8 @@ struct IMAGE_BASE_RELOCATION {
 }
 unsafe impl memory::Pod for IMAGE_BASE_RELOCATION {}
 
-pub fn apply_relocs(image: Mem, prev_base: u32, base: u32, mut relocs: &[u8]) {
+// TODO: this should take a &mut u8.
+pub fn apply_relocs(image: &[u8], prev_base: u32, base: u32, mut relocs: &[u8]) {
     // monolife.exe has no IMAGE_DIRECTORY_ENTRY::BASERELOC, but does
     // have a .reloc section that is invalid (?).
     // Note: IMAGE_SECTION_HEADER itself also has some relocation-related fields
