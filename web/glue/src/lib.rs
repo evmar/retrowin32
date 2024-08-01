@@ -62,7 +62,7 @@ impl Emulator {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn instr_count(&self) -> usize {
+    pub fn instr_count(&self) -> u64 {
         self.machine.emu.x86.instr_count
     }
 
@@ -93,7 +93,7 @@ impl Emulator {
             // Note that instr_count overflows at 4b, but we don't expect to run
             // 4b instructions in a single run() invocation.
             let start = self.machine.emu.x86.instr_count;
-            while self.machine.emu.x86.instr_count.wrapping_sub(start) < count {
+            while self.machine.emu.x86.instr_count.wrapping_sub(start) < count as u64 {
                 match self.machine.run(0) {
                     win32::StopReason::None => {}
                     win32::StopReason::Blocked => break,

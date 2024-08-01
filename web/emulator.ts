@@ -70,16 +70,15 @@ export class Emulator extends JsHost {
     const endTime = performance.now();
     const endSteps = this.emu.instr_count;
 
-    const steps = endSteps - startSteps;
-    if (steps > 1000) { // only update if we ran enough instructions to get a good measurement
-      const deltaTime = endTime - startTime;
-
+    const steps = Number(endSteps - startSteps);
+    const deltaTime = endTime - startTime;
+    if (steps > 1000 && deltaTime >= 1) { // only update if we ran enough instructions to get a good measurement
       const instrPerMs = steps / deltaTime;
       const alpha = 0.5; // smoothing factor
       this.instrPerMs = alpha * instrPerMs + (1 - alpha) * this.instrPerMs;
 
       if (deltaTime < 8) {
-        this.stepSize = this.instrPerMs * 8;
+        this.stepSize = Math.min(Math.max(this.instrPerMs * 8, 1000), 100000);
         // console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
       }
     }
@@ -107,6 +106,8 @@ export class Emulator extends JsHost {
         return false;
       }
       case wasm.CPUState.Blocked:
+        // Return control to the browser event loop.
+        return false;
       case wasm.CPUState.Error:
       case wasm.CPUState.Exit:
         this.emuHost.onStopped();
