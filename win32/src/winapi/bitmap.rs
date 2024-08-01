@@ -69,7 +69,8 @@ impl BITMAPINFOHEADER {
     }
 }
 
-pub struct BitmapInfo<'a> {
+/// The parsed header of a bitmap, either v2 (BITMAPCOREHEADER) or v3 (BITMAPINFOHEADER).
+struct BitmapInfo<'a> {
     pub width: usize,
     pub height: usize,
     pub stride: usize,
@@ -78,7 +79,73 @@ pub struct BitmapInfo<'a> {
     pub compression: BI,
     pub palette_entry_size: usize,
     pub palette: &'a [u8],
-    pub pixels: &'a [u8],
+    /// The total size in memory of the underlying header+palette.
+    pub header_length: usize,
+}
+
+impl<'a> BitmapInfo<'a> {
+    // TODO: when parsing a bitmap from memory it's unclear how much memory we'll need
+    // to read until we've read the bitmap header.  This means the caller cannot know how
+    // big of a slice to provide.
+
+    fn parse(buf: &'a [u8]) -> Self {
+        let header_size = buf.get_pod::<u32>(0);
+        match header_size {
+            12 => Self::parseBMPv2(&buf.get_pod::<BITMAPCOREHEADER>(0), &buf[12..]),
+            40 => Self::parseBMPv3(&buf.get_pod::<BITMAPINFOHEADER>(0), &buf[40..]),
+            _ => unimplemented!("unimplemented bitmap header size {}", header_size),
+        }
+    }
+
+    /// buf is the bytes following the header.
+    fn parseBMPv2(header: &BITMAPCOREHEADER, buf: &'a [u8]) -> Self {
+        let palette_len = match header.bcBitCount {
+            8 => 256,
+            4 => 16,
+            1 => 2,
+            _ => unimplemented!(),
+        };
+        let palette_entry_size = 3usize;
+        let palette_size = palette_len * palette_entry_size;
+        let palette = buf.sub32(0, palette_size as u32);
+
+        BitmapInfo {
+            width: header.bcWidth as usize,
+            height: header.bcHeight as usize,
+            stride: header.stride(),
+            is_top_down: false,
+            bit_count: header.bcBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette,
+            header_length: 12 + palette_size,
+        }
+    }
+
+    /// buf is the bytes following the header.
+    fn parseBMPv3(header: &BITMAPINFOHEADER, buf: &'a [u8]) -> Self {
+        let palette_len = match header.biBitCount {
+            8 => 256,
+            4 => 16,
+            1 => 2,
+            _ => unimplemented!(),
+        };
+        let palette_entry_size = 4usize;
+        let palette_size = palette_len * palette_entry_size;
+        let palette = buf.sub32(0, palette_size as u32);
+
+        BitmapInfo {
+            width: header.biWidth as usize,
+            height: header.height() as usize,
+            stride: header.stride(),
+            is_top_down: false,
+            bit_count: header.biBitCount as u8,
+            compression: BI::RGB,
+            palette_entry_size,
+            palette,
+            header_length: 40 + palette_size,
+        }
+    }
 }
 
 pub trait Bitmap {
@@ -143,93 +210,22 @@ impl BitmapRGBA32 {
         }
     }
 
-    // TODO: when parsing a bitmap from memory it's unclear how much memory we'll need
-    // to read until we've read the bitmap header.  This means the caller cannot know how
-    // big of a slice to provide.
-
-    pub fn parse(buf: &[u8]) -> BitmapRGBA32 {
-        let header_size = buf.get_pod::<u32>(0);
-        let bmp = match header_size {
-            12 => BitmapRGBA32::parseBMPv2(&buf.get_pod::<BITMAPCOREHEADER>(0), &buf[12..]),
-            40 => BitmapRGBA32::parseBMPv3(buf, None),
-            _ => unimplemented!("unimplemented bitmap header size {}", header_size),
-        };
-        bmp
-    }
-
-    /// buf is the bytes following the header.
-    pub fn parseBMPv2(header: &BITMAPCOREHEADER, buf: &[u8]) -> BitmapRGBA32 {
-        let palette_len = match header.bcBitCount {
-            8 => 256,
-            4 => 16,
-            1 => 2,
-            _ => unimplemented!(),
-        };
-        let palette_entry_size = 3usize;
-        let palette_size = palette_len * palette_entry_size;
-        let palette = buf.sub32(0, palette_size as u32);
-
-        let height = header.bcHeight as usize;
-        let stride = header.stride();
-        let pixels = buf.sub32(palette_size as u32, (height * stride) as u32);
-        let bi = &BitmapInfo {
-            width: header.bcWidth as usize,
-            height,
-            stride,
-            is_top_down: false,
-            bit_count: header.bcBitCount as u8,
-            compression: BI::RGB,
-            palette_entry_size,
-            palette,
-            pixels,
-        };
-        BitmapRGBA32::parseBMP(bi, None)
-    }
-
-    /// This accepts optional pixels/lines to support SetDIBitsToDevice.
-    pub fn parseBMPv3(buf: &[u8], pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
-        let header = buf.get_pod::<BITMAPINFOHEADER>(0);
-        let header_size = std::mem::size_of::<BITMAPINFOHEADER>() as u32;
-        if header.biSize != header_size {
-            panic!("bad bitmap header");
-        }
-
-        let palette_len = match header.biBitCount {
-            8 => 256,
-            4 => 16,
-            1 => 2,
-            _ => unimplemented!(),
-        };
-        let palette_entry_size = 4usize;
-        let palette_size = palette_len * palette_entry_size;
-        let palette = buf.sub32(header_size, palette_size as u32);
-
-        let height = header.height() as usize;
-        let stride = header.stride();
+    /// If pixels is not None, only parse the given number of lines from the given pixels.
+    /// Otherwise pixels are expected to immediately follow the header in memory.
+    pub fn parse(buf: &[u8], pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+        let header = BitmapInfo::parse(buf);
         let (pixels, lines) = match pixels {
             Some((pixels, lines)) => (pixels, Some(lines)),
             _ => {
-                let pixels = buf.sub32(header_size + palette_size as u32, (height * stride) as u32);
-                (pixels, None)
+                let len = header.height * header.stride;
+                (&buf[header.header_length..][..len], None)
             }
         };
-        let bi = &BitmapInfo {
-            width: header.biWidth as usize,
-            height,
-            stride,
-            is_top_down: false,
-            bit_count: header.biBitCount as u8,
-            compression: BI::RGB,
-            palette_entry_size,
-            palette,
-            pixels,
-        };
-        BitmapRGBA32::parseBMP(bi, lines)
+        Self::parse_pixels(&header, pixels, lines)
     }
 
     /// Parse a BITMAPINFO/HEADER and pixel data.
-    /// If lines is not None, only parse the given number of lines from the data.
-    pub fn parseBMP(header: &BitmapInfo, lines: Option<usize>) -> BitmapRGBA32 {
+    fn parse_pixels(header: &BitmapInfo, pixels: &[u8], lines: Option<usize>) -> BitmapRGBA32 {
         match header.compression {
             BI::RGB => {}
             BI::RLE8 => todo!(),
@@ -246,7 +242,7 @@ impl BitmapRGBA32 {
             [slice[2], slice[1], slice[0], 255]
         }
 
-        let src = header.pixels;
+        let src = pixels;
         let width = header.width;
         let stride = header.stride;
         let height = lines.unwrap_or(header.height as usize);

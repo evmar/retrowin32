@@ -458,7 +458,7 @@ pub fn SetDIBitsToDevice(
     if ColorUse != DIB_RGB_COLORS {
         todo!();
     }
-    let src_bitmap = BitmapRGBA32::parseBMPv3(
+    let src_bitmap = BitmapRGBA32::parse(
         machine.mem().slice(lpbmi..),
         Some((machine.mem().slice(lpvBits..), cLines as usize)),
     );

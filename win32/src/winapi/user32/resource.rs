@@ -75,7 +75,7 @@ fn load_bitmap(
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
-    let bmp = BitmapRGBA32::parse(buf);
+    let bmp = BitmapRGBA32::parse(buf, None);
     Some(
         machine
             .state
