@@ -2,7 +2,7 @@ use super::{set_last_error, FILETIME};
 use crate::winapi::types::ERROR_INVALID_DATA;
 use crate::Machine;
 use chrono::{Datelike, Timelike};
-use memory::Pod;
+use memory::{Extensions, Pod};
 
 const TRACE_CONTEXT: &'static str = "kernel32/time";
 
@@ -45,8 +45,8 @@ pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> boo
     // 64-bit write
     machine
         .mem()
-        .put::<u32>(lpFrequency, QUERY_PERFORMANCE_FREQ);
-    machine.mem().put::<u32>(lpFrequency + 4, 0);
+        .put_pod::<u32>(lpFrequency, QUERY_PERFORMANCE_FREQ);
+    machine.mem().put_pod::<u32>(lpFrequency + 4, 0);
     true
 }
 

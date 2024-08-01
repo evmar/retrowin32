@@ -21,7 +21,7 @@ pub fn rm64_x(
             let addr = x86_addr(cpu, instr);
             let x = mem.get_pod::<u64>(addr);
             let value = op(cpu, x);
-            mem.put::<u64>(addr, value);
+            mem.put_pod::<u64>(addr, value);
         }
         _ => unimplemented!(),
     }
@@ -129,14 +129,14 @@ pub fn op1_rm8(cpu: &mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> u8 {
 pub fn push(cpu: &mut CPU, mem: Mem, value: u32) {
     let esp = cpu.regs.get32_mut(Register::ESP);
     *esp -= 4;
-    mem.put::<u32>(*esp, value);
+    mem.put_pod::<u32>(*esp, value);
 }
 
 /// Push a u16 on the x86 stack.
 pub fn push16(cpu: &mut CPU, mem: Mem, value: u16) {
     let esp = cpu.regs.get32_mut(Register::ESP);
     *esp -= 2;
-    mem.put::<u16>(*esp, value);
+    mem.put_pod::<u16>(*esp, value);
 }
 
 /// Pop a u32 from the x86 stack.

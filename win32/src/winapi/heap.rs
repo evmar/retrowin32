@@ -40,7 +40,7 @@ impl Heap {
         if free.size == 0 {
             self.freelist.remove(i);
         }
-        mem.put::<u32>(addr, size);
+        mem.put_pod::<u32>(addr, size);
         addr + 4
     }
 

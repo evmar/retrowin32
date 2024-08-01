@@ -1,10 +1,10 @@
 use crate::{winapi::com::vtable, Machine};
+use memory::Extensions;
 
 const TRACE_CONTEXT: &'static str = "ddraw/palette";
 
 #[win32_derive::shims_from_x86]
 pub mod IDirectDrawPalette {
-
     use crate::winapi::ddraw::{DD_OK, PALETTEENTRY};
 
     use super::*;
@@ -27,7 +27,7 @@ pub mod IDirectDrawPalette {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDrawPalette, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
     }
 

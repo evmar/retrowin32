@@ -221,7 +221,7 @@ impl MachineX<Emulator> {
         } else {
             let mem = self.emu.memory.mem();
             self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
-            mem.put::<u8>(addr, 0xcc); // int3
+            mem.put_pod::<u8>(addr, 0xcc); // int3
             self.emu.x86.icache.clear_cache(addr);
         }
     }
@@ -233,7 +233,7 @@ impl MachineX<Emulator> {
         } else {
             self.emu.x86.icache.clear_cache(addr);
             let prev = self.emu.breakpoints.remove(&addr).unwrap();
-            self.mem().put::<u8>(addr, prev);
+            self.mem().put_pod::<u8>(addr, prev);
         }
     }
 }

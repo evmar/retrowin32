@@ -3,6 +3,7 @@ use crate::{
     winapi::{com::vtable, types::HWND},
     Machine,
 };
+use memory::Extensions;
 
 const TRACE_CONTEXT: &'static str = "ddraw/clipper";
 
@@ -20,6 +21,7 @@ pub fn DirectDrawCreateClipper(
 
 #[win32_derive::shims_from_x86]
 pub(super) mod IDirectDrawClipper {
+
     use super::*;
 
     vtable![IDirectDrawClipper shims
@@ -43,7 +45,7 @@ pub(super) mod IDirectDrawClipper {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(clipper, vtable);
+        machine.mem().put_pod::<u32>(clipper, vtable);
         clipper
     }
 

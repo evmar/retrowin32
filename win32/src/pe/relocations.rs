@@ -34,7 +34,7 @@ pub fn apply_relocs(image: Mem, prev_base: u32, base: u32, mut relocs: &[u8]) {
                     // despite the image base being 0x6fac000, so it is a reference to memory
                     // before the image?!
                     reloc = reloc.wrapping_sub(prev_base).wrapping_add(base);
-                    image.put(addr, reloc);
+                    image.put_pod(addr, reloc);
                 }
                 _ => panic!("unhandled relocation type {etype}"),
             }

@@ -120,13 +120,6 @@ impl<'m> Mem<'m> {
         ((self.ptr as usize) + ofs as usize) as *mut u8
     }
 
-    pub fn put<T: Copy + Pod>(&self, ofs: u32, val: T) {
-        unsafe {
-            let ptr = self.get_ptr::<u8>(ofs);
-            std::ptr::write_unaligned(ptr as *mut T, val)
-        }
-    }
-
     pub fn copy(&self, src: u32, dst: u32, len: u32) {
         unsafe {
             let src = self.get_ptr::<u8>(src);

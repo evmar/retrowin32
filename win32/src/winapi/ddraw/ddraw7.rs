@@ -7,6 +7,7 @@ use crate::{
     Machine,
 };
 use bitflags::bitflags;
+use memory::Extensions;
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/7";
@@ -63,7 +64,7 @@ pub(super) mod IDirectDraw7 {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDraw, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
 
@@ -95,7 +96,7 @@ pub(super) mod IDirectDraw7 {
             .to_vec()
             .into_boxed_slice();
         machine.state.ddraw.palettes.insert(palette, entries);
-        machine.mem().put::<u32>(lplpPalette, palette);
+        machine.mem().put_pod::<u32>(lplpPalette, palette);
         DD_OK
     }
 
@@ -332,7 +333,7 @@ pub(super) mod IDirectDrawSurface7 {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDrawSurface7, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }
 
@@ -449,7 +450,7 @@ pub(super) mod IDirectDrawSurface7 {
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
         let handle = machine.state.gdi32.dcs.add(dc);
-        machine.mem().put::<u32>(lpHDC, handle.to_raw());
+        machine.mem().put_pod::<u32>(lpHDC, handle.to_raw());
         DD_OK
     }
 

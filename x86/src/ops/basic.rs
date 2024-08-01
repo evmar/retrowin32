@@ -122,7 +122,7 @@ pub fn mov_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn mov_moffs8_al(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
-    mem.put::<u8>(addr, cpu.regs.get8(Register::AL));
+    mem.put_pod::<u8>(addr, cpu.regs.get8(Register::AL));
 }
 
 pub fn mov_r32m16_sreg(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -132,7 +132,7 @@ pub fn mov_r32m16_sreg(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         iced_x86::OpKind::Register => cpu.regs.set32(instr.op0_register(), y as u32),
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            mem.put::<u16>(addr, y)
+            mem.put_pod::<u16>(addr, y)
         }
         _ => unimplemented!(),
     }
@@ -237,7 +237,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
             let x = mem.get_pod::<u32>(addr);
             if cpu.regs.get32(Register::EAX) == x {
                 cpu.flags.insert(Flags::ZF);
-                mem.put::<u32>(addr, y);
+                mem.put_pod::<u32>(addr, y);
             } else {
                 cpu.flags.remove(Flags::ZF);
                 cpu.regs.set32(Register::EAX, y);
@@ -255,7 +255,7 @@ pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         cpu.flags.insert(Flags::ZF);
         let val =
             ((cpu.regs.get32(Register::ECX) as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
-        mem.put::<u64>(addr, val);
+        mem.put_pod::<u64>(addr, val);
     } else {
         cpu.flags.remove(Flags::ZF);
         set_edx_eax(cpu, m64);

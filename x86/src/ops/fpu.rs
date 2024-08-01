@@ -76,12 +76,12 @@ pub fn fild_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fst_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<f64>(x86_addr(cpu, instr), f);
+    mem.put_pod::<f64>(x86_addr(cpu, instr), f);
 }
 
 pub fn fst_m32fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<f32>(x86_addr(cpu, instr), f as f32);
+    mem.put_pod::<f32>(x86_addr(cpu, instr), f as f32);
 }
 
 pub fn fstp_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -102,13 +102,13 @@ pub fn fstp_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m64int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<i64>(x86_addr(cpu, instr), f as i64);
+    mem.put_pod::<i64>(x86_addr(cpu, instr), f as i64);
     cpu.fpu.pop();
 }
 
 pub fn fist_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<i32>(x86_addr(cpu, instr), f as i32);
+    mem.put_pod::<i32>(x86_addr(cpu, instr), f as i32);
 }
 
 pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
@@ -118,7 +118,7 @@ pub fn fistp_m32int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn fistp_m16int(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let f = *cpu.fpu.st0();
-    mem.put::<i16>(x86_addr(cpu, instr), f as i16);
+    mem.put_pod::<i16>(x86_addr(cpu, instr), f as i16);
     cpu.fpu.pop();
 }
 
@@ -430,7 +430,7 @@ pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: control word
     let cw = 0x37u16; // default value
     let addr = x86_addr(cpu, instr);
-    mem.put::<u16>(addr, cw);
+    mem.put_pod::<u16>(addr, cw);
 }
 
 pub fn fldcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {

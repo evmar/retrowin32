@@ -4,6 +4,7 @@
 use super::heap::Heap;
 pub use crate::winapi::com::GUID;
 use crate::{machine::Machine, winapi::com::vtable};
+use memory::Extensions;
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "dsound";
@@ -134,7 +135,7 @@ mod IDirectSound {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectSound, vtable);
+        machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
     }
 
@@ -203,7 +204,7 @@ mod IDirectSoundBuffer {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectSoundBuffer, vtable);
+        machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }
 

@@ -2,7 +2,7 @@
 
 use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, winapi};
-use memory::ExtensionsMut;
+use memory::{Extensions, ExtensionsMut};
 use std::collections::HashMap;
 
 /// Create a memory mapping, optionally copying some data to it.
@@ -140,7 +140,7 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 
     for (addr, target) in patches {
-        machine.mem().put::<u32>(addr, target);
+        machine.mem().put_pod::<u32>(addr, target);
     }
 }
 

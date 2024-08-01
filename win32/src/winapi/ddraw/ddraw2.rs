@@ -9,6 +9,7 @@ use crate::{
     winapi::{com::vtable, ddraw, types::*},
     Machine,
 };
+use memory::Extensions;
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/2";
@@ -60,7 +61,7 @@ pub(super) mod IDirectDraw2 {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDraw, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
 
@@ -240,7 +241,7 @@ pub(super) mod IDirectDrawSurface2 {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDrawSurface, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }
 

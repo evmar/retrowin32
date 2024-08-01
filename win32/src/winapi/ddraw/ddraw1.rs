@@ -11,12 +11,14 @@ use crate::{
     winapi::{com::vtable, ddraw, types::*},
     Machine,
 };
+use memory::Extensions;
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/1";
 
 #[win32_derive::shims_from_x86]
 pub(super) mod IDirectDraw {
+
     use crate::winapi::com::GUID;
 
     use super::*;
@@ -55,7 +57,7 @@ pub(super) mod IDirectDraw {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDraw, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
 
@@ -218,7 +220,7 @@ pub(super) mod IDirectDrawSurface {
                 machine.emu.shims.add(shim)
             })
         });
-        machine.mem().put::<u32>(lpDirectDrawSurface, vtable);
+        machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }
 

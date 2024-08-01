@@ -111,15 +111,15 @@ fn movs_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
             let src = mem.get_pod::<u32>(cpu.regs.get32(Register::ESI));
-            mem.put::<u32>(cpu.regs.get32(Register::EDI), src);
+            mem.put_pod::<u32>(cpu.regs.get32(Register::EDI), src);
         }
         Size::Word => {
             let src = mem.get_pod::<u16>(cpu.regs.get32(Register::ESI));
-            mem.put::<u16>(cpu.regs.get32(Register::EDI), src);
+            mem.put_pod::<u16>(cpu.regs.get32(Register::EDI), src);
         }
         Size::Byte => {
             let src = mem.get_pod::<u8>(cpu.regs.get32(Register::ESI));
-            mem.put::<u8>(cpu.regs.get32(Register::EDI), src);
+            mem.put_pod::<u8>(cpu.regs.get32(Register::EDI), src);
         }
     }
     if cpu.flags.contains(Flags::DF) {
@@ -195,15 +195,17 @@ pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
-        Size::Byte => mem.put::<u8>(
+        Size::Byte => mem.put_pod::<u8>(
             cpu.regs.get32(Register::EDI),
             cpu.regs.get32(Register::EAX) as u8,
         ),
-        Size::Word => mem.put::<u16>(
+        Size::Word => mem.put_pod::<u16>(
             cpu.regs.get32(Register::EDI),
             cpu.regs.get32(Register::EAX) as u16,
         ),
-        Size::Dword => mem.put::<u32>(cpu.regs.get32(Register::EDI), cpu.regs.get32(Register::EAX)),
+        Size::Dword => {
+            mem.put_pod::<u32>(cpu.regs.get32(Register::EDI), cpu.regs.get32(Register::EAX))
+        }
     }
     if cpu.flags.contains(Flags::DF) {
         *cpu.regs.get32_mut(Register::EDI) -= size as u32;

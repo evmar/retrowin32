@@ -217,7 +217,7 @@ pub fn LoadStringW(
     if cchBufferMax == 0 {
         machine
             .mem()
-            .put::<u32>(lpBuffer, machine.mem().offset_of(str.as_ptr()));
+            .put_pod::<u32>(lpBuffer, machine.mem().offset_of(str.as_ptr()));
         str.len() as u32
     } else {
         let dst = machine.mem().sub32_mut(lpBuffer, cchBufferMax * 2);
