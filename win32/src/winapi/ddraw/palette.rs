@@ -32,13 +32,13 @@ pub mod IDirectDrawPalette {
     }
 
     #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    fn SetEntries(
+    pub fn SetEntries(
         machine: &mut Machine,
         this: u32,
         unused: u32,

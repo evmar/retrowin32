@@ -8,12 +8,18 @@ mod ddraw7;
 mod palette;
 mod types;
 
-use super::{heap::Heap, types::*};
 pub use crate::winapi::com::GUID;
-use crate::{host, machine::Machine, SurfaceOptions};
 pub use clipper::DirectDrawCreateClipper;
+pub use clipper::IDirectDrawClipper;
+pub use ddraw1::*;
+pub use ddraw2::*;
+pub use ddraw7::*;
+pub use palette::IDirectDrawPalette;
+
+use super::{heap::Heap, types::*};
+use crate::{host, machine::Machine, SurfaceOptions};
 use std::collections::HashMap;
-use types::*;
+pub use types::*;
 
 const TRACE_CONTEXT: &'static str = "ddraw";
 

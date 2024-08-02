@@ -124,7 +124,7 @@ pub struct WAVEFORMATEX {
 unsafe impl memory::Pod for WAVEFORMATEX {}
 
 #[win32_derive::shims_from_x86]
-mod IDirectSound {
+pub mod IDirectSound {
     use super::*;
 
     pub fn new(machine: &mut Machine) -> u32 {
@@ -193,7 +193,7 @@ mod IDirectSound {
 }
 
 #[win32_derive::shims_from_x86]
-mod IDirectSoundBuffer {
+pub mod IDirectSoundBuffer {
     use super::*;
 
     pub fn new(machine: &mut Machine) -> u32 {

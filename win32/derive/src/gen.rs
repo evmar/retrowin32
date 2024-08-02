@@ -11,8 +11,13 @@ use quote::quote;
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
 pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, TokenStream) {
-    let name = &dllexport.sym_name;
-    let name_str = name.to_string();
+    // Example: IDirectDraw::QueryInterface
+    let base_name = &dllexport.func.sig.ident; // QueryInterface
+    let impl_name = match dllexport.vtable {
+        Some(vtable) => quote!(#module::#vtable::#base_name), // winapi::ddraw::IDirectDraw::QueryInterface
+        None => quote!(#module::#base_name),                  // winapi::kernel32::LoadLibrary
+    };
+    let sym_name = &dllexport.sym_name; // IDirectDraw_QueryInterface
 
     let mut fetch_args = TokenStream::new();
     fetch_args.extend(quote!(let mem = machine.mem().detach();));
@@ -46,7 +51,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
             let result = async move {
                 use memory::Extensions;
                 let machine = unsafe { &mut *m };
-                let result = #module::#name(machine, #(#args),*).await;
+                let result = #impl_name(machine, #(#args),*).await;
                 let regs = &mut machine.emu.x86.cpu_mut().regs;
                 regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
                 *regs.get32_mut(x86::Register::ESP) += #stack_consumed + 4;
@@ -59,22 +64,27 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
         {
             // In the non-emulated case, we synchronously evaluate the future.
-            let pin = std::pin::pin!(#module::#name(machine, #(#args),*));
+            let pin = std::pin::pin!(#impl_name(machine, #(#args),*));
             crate::shims::call_sync(pin).to_raw()
         }
         }
     } else {
         quote! {
             #fetch_args
-            #module::#name(machine, #(#args),*).to_raw()
+            #impl_name(machine, #(#args),*).to_raw()
         }
     };
 
+    let name_str = match dllexport.vtable {
+        Some(vtable) => format!("{}::{}", vtable, base_name), // "IDirectDraw::QueryInterface"
+        None => format!("{}", base_name),                     // "LoadLibrary"
+    };
+
     (
-        quote!(pub unsafe fn #name(machine: &mut Machine, esp: u32) -> u32 { #body }),
-        quote!(pub const #name: Shim = Shim {
+        quote!(pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> u32 { #body }),
+        quote!(pub const #sym_name: Shim = Shim {
             name: #name_str,
-            func: impls::#name,
+            func: impls::#sym_name,
             stack_consumed: #stack_consumed,
             is_async: #is_async,
         };),

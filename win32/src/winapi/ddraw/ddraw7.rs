@@ -19,8 +19,53 @@ pub const IID_IDirectDraw7: GUID = GUID {
     Data4: [0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b],
 };
 
+bitflags! {
+    pub struct DDSCL: u32 {
+        const FULLSCREEN = 0x0001;
+        const ALLOWREBOOT = 0x0002;
+        const NOWINDOWCHANGES = 0x0004;
+        const NORMAL = 0x0008;
+        const EXCLUSIVE = 0x0010;
+        const ALLOWMODEX = 0x0040;
+        const SETFOCUSWINDOW = 0x0080;
+        const SETDEVICEWINDOW = 0x0100;
+        const CREATEDEVICEWINDOW = 0x0200;
+        const MULTITHREADED = 0x0400;
+        const FPUSETUP = 0x0800;
+        const FPUPRESERVE =  0x1000;
+    }
+}
+impl TryFrom<u32> for DDSCL {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        DDSCL::from_bits(value).ok_or(value)
+    }
+}
+
+bitflags! {
+    pub struct DDFLIP: u32 {
+        const DDFLIP_WAIT = 0x00000001;
+        const DDFLIP_EVEN = 0x00000002;
+        const DDFLIP_ODD = 0x00000004;
+        const DDFLIP_NOVSYNC = 0x00000008;
+        const DDFLIP_STEREO = 0x00000010;
+        const DDFLIP_DONOTWAIT= 0x00000020;
+        const DDFLIP_INTERVAL2= 0x02000000;
+        const DDFLIP_INTERVAL3= 0x03000000;
+        const DDFLIP_INTERVAL4= 0x04000000;
+    }
+}
+impl TryFrom<u32> for DDFLIP {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        DDFLIP::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDraw7 {
+pub mod IDirectDraw7 {
     use super::*;
 
     vtable![IDirectDraw7 shims
@@ -69,13 +114,13 @@ pub(super) mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    fn CreatePalette(
+    pub fn CreatePalette(
         machine: &mut Machine,
         this: u32,
         flags: Result<DDPCAPS, u32>,
@@ -101,7 +146,7 @@ pub(super) mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    fn CreateSurface(
+    pub fn CreateSurface(
         machine: &mut Machine,
         this: u32,
         desc: Option<&DDSURFACEDESC2>,
@@ -127,7 +172,7 @@ pub(super) mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    async fn EnumDisplayModes(
+    pub async fn EnumDisplayModes(
         machine: &mut Machine,
         this: u32,
         dwFlags: u32,
@@ -176,7 +221,7 @@ pub(super) mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    fn GetDisplayMode(
+    pub fn GetDisplayMode(
         _machine: &mut Machine,
         this: u32,
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC2>,
@@ -185,30 +230,6 @@ pub(super) mod IDirectDraw7 {
         *desc = DDSURFACEDESC2::zeroed();
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         DD_OK
-    }
-
-    bitflags! {
-        pub struct DDSCL: u32 {
-            const FULLSCREEN = 0x0001;
-            const ALLOWREBOOT = 0x0002;
-            const NOWINDOWCHANGES = 0x0004;
-            const NORMAL = 0x0008;
-            const EXCLUSIVE = 0x0010;
-            const ALLOWMODEX = 0x0040;
-            const SETFOCUSWINDOW = 0x0080;
-            const SETDEVICEWINDOW = 0x0100;
-            const CREATEDEVICEWINDOW = 0x0200;
-            const MULTITHREADED = 0x0400;
-            const FPUSETUP = 0x0800;
-            const FPUPRESERVE =  0x1000;
-        }
-    }
-    impl TryFrom<u32> for DDSCL {
-        type Error = u32;
-
-        fn try_from(value: u32) -> Result<Self, Self::Error> {
-            DDSCL::from_bits(value).ok_or(value)
-        }
     }
 
     #[win32_derive::dllexport]
@@ -270,7 +291,7 @@ pub(super) mod IDirectDraw7 {
 }
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDrawSurface7 {
+pub mod IDirectDrawSurface7 {
     use super::*;
 
     vtable![IDirectDrawSurface7 shims
@@ -338,13 +359,13 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    fn Blt(
+    pub fn Blt(
         machine: &mut Machine,
         this: u32,
         lpDstRect: Option<&RECT>,
@@ -366,7 +387,7 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn BltFast(
+    pub fn BltFast(
         machine: &mut Machine,
         this: u32,
         x: u32,
@@ -397,29 +418,8 @@ pub(super) mod IDirectDrawSurface7 {
         DD_OK
     }
 
-    bitflags! {
-        pub struct DDFLIP: u32 {
-            const DDFLIP_WAIT = 0x00000001;
-            const DDFLIP_EVEN = 0x00000002;
-            const DDFLIP_ODD = 0x00000004;
-            const DDFLIP_NOVSYNC = 0x00000008;
-            const DDFLIP_STEREO = 0x00000010;
-            const DDFLIP_DONOTWAIT= 0x00000020;
-            const DDFLIP_INTERVAL2= 0x02000000;
-            const DDFLIP_INTERVAL3= 0x03000000;
-            const DDFLIP_INTERVAL4= 0x04000000;
-        }
-    }
-    impl TryFrom<u32> for DDFLIP {
-        type Error = u32;
-
-        fn try_from(value: u32) -> Result<Self, Self::Error> {
-            DDFLIP::from_bits(value).ok_or(value)
-        }
-    }
-
     #[win32_derive::dllexport]
-    fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> u32 {
+    pub fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> u32 {
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         let attached = surface.attached;
         let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
@@ -428,7 +428,7 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn GetAttachedSurface(
+    pub fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
         lpDDSCaps2: Option<&DDSCAPS2>,
@@ -441,12 +441,12 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS2: Option<&mut DDSCAPS2>) -> u32 {
+    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS2: Option<&mut DDSCAPS2>) -> u32 {
         DD_OK
     }
 
     #[win32_derive::dllexport]
-    fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> u32 {
+    pub fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> u32 {
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
         let handle = machine.state.gdi32.dcs.add(dc);
@@ -455,7 +455,11 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn GetPixelFormat(_machine: &mut Machine, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> u32 {
+    pub fn GetPixelFormat(
+        _machine: &mut Machine,
+        this: u32,
+        fmt: Option<&mut DDPIXELFORMAT>,
+    ) -> u32 {
         let fmt = fmt.unwrap();
         assert!(fmt.dwSize == std::mem::size_of::<DDPIXELFORMAT>() as u32);
         *fmt = DDPIXELFORMAT {
@@ -526,24 +530,24 @@ pub(super) mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
+    pub fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> u32 {
         // leak
         DD_OK
     }
 
     #[win32_derive::dllexport]
-    fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
+    pub fn Restore(_machine: &mut Machine, _this: u32) -> u32 {
         DD_OK
     }
 
     #[win32_derive::dllexport]
-    fn SetClipper(_machine: &mut Machine, this: u32, clipper: u32) -> u32 {
+    pub fn SetClipper(_machine: &mut Machine, this: u32, clipper: u32) -> u32 {
         // e.g. machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
         DD_OK
     }
 
     #[win32_derive::dllexport]
-    fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> u32 {
+    pub fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> u32 {
         machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
         machine.state.ddraw.palette_hack = palette;
         DD_OK

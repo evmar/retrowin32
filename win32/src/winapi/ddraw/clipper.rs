@@ -20,8 +20,7 @@ pub fn DirectDrawCreateClipper(
 }
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDrawClipper {
-
+pub mod IDirectDrawClipper {
     use super::*;
 
     vtable![IDirectDrawClipper shims
@@ -50,12 +49,12 @@ pub(super) mod IDirectDrawClipper {
     }
 
     #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> u32 {
+    pub fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> u32 {
         DD_OK
     }
 }

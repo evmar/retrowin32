@@ -295,6 +295,517 @@ pub mod ddraw {
             let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
             winapi::ddraw::DirectDrawCreateEx(machine, lpGuid, lplpDD, iid, pUnkOuter).to_raw()
         }
+        pub unsafe fn IDirectDraw2_CreateSurface(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let desc = <Option<&DDSURFACEDESC>>::from_stack(mem, esp + 8u32);
+            let lplpDDSurface = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ddraw::IDirectDraw2::CreateSurface(
+                machine,
+                this,
+                desc,
+                lplpDDSurface,
+                pUnkOuter,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDraw2_EnumDisplayModes(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpSurfaceDesc = <Option<&DDSURFACEDESC>>::from_stack(mem, esp + 12u32);
+            let lpContext = <u32>::from_stack(mem, esp + 16u32);
+            let lpEnumCallback = <u32>::from_stack(mem, esp + 20u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ddraw::IDirectDraw2::EnumDisplayModes(
+                        machine,
+                        this,
+                        dwFlags,
+                        lpSurfaceDesc,
+                        lpContext,
+                        lpEnumCallback,
+                    )
+                    .await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 20u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ddraw::IDirectDraw2::EnumDisplayModes(
+                    machine,
+                    this,
+                    dwFlags,
+                    lpSurfaceDesc,
+                    lpContext,
+                    lpEnumCallback
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+        pub unsafe fn IDirectDraw2_GetDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSurfaceDesc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDraw2::GetDisplayMode(machine, this, lpDDSurfaceDesc).to_raw()
+        }
+        pub unsafe fn IDirectDraw2_QueryInterface(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let riid = <Option<&GUID>>::from_stack(mem, esp + 8u32);
+            let ppvObject = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDraw2::QueryInterface(machine, this, riid, ppvObject).to_raw()
+        }
+        pub unsafe fn IDirectDraw2_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDraw2::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDraw2_SetDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let width = <u32>::from_stack(mem, esp + 8u32);
+            let height = <u32>::from_stack(mem, esp + 12u32);
+            let bpp = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ddraw::IDirectDraw2::SetDisplayMode(machine, this, width, height, bpp).to_raw()
+        }
+        pub unsafe fn IDirectDraw7_CreatePalette(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let flags = <Result<DDPCAPS, u32>>::from_stack(mem, esp + 8u32);
+            let entries = <u32>::from_stack(mem, esp + 12u32);
+            let lplpPalette = <u32>::from_stack(mem, esp + 16u32);
+            let unused = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ddraw::IDirectDraw7::CreatePalette(
+                machine,
+                this,
+                flags,
+                entries,
+                lplpPalette,
+                unused,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDraw7_CreateSurface(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let desc = <Option<&DDSURFACEDESC2>>::from_stack(mem, esp + 8u32);
+            let lpDirectDrawSurface7 = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let unused = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ddraw::IDirectDraw7::CreateSurface(
+                machine,
+                this,
+                desc,
+                lpDirectDrawSurface7,
+                unused,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDraw7_EnumDisplayModes(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpSurfaceDesc = <Option<&DDSURFACEDESC2>>::from_stack(mem, esp + 12u32);
+            let lpContext = <u32>::from_stack(mem, esp + 16u32);
+            let lpEnumCallback = <u32>::from_stack(mem, esp + 20u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ddraw::IDirectDraw7::EnumDisplayModes(
+                        machine,
+                        this,
+                        dwFlags,
+                        lpSurfaceDesc,
+                        lpContext,
+                        lpEnumCallback,
+                    )
+                    .await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 20u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ddraw::IDirectDraw7::EnumDisplayModes(
+                    machine,
+                    this,
+                    dwFlags,
+                    lpSurfaceDesc,
+                    lpContext,
+                    lpEnumCallback
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+        pub unsafe fn IDirectDraw7_GetDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSurfaceDesc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDraw7::GetDisplayMode(machine, this, lpDDSurfaceDesc).to_raw()
+        }
+        pub unsafe fn IDirectDraw7_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDraw7::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDraw7_RestoreDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDraw7::RestoreDisplayMode(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDraw7_SetCooperativeLevel(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let hwnd = <HWND>::from_stack(mem, esp + 8u32);
+            let flags = <Result<DDSCL, u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDraw7::SetCooperativeLevel(machine, this, hwnd, flags).to_raw()
+        }
+        pub unsafe fn IDirectDraw7_SetDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let width = <u32>::from_stack(mem, esp + 8u32);
+            let height = <u32>::from_stack(mem, esp + 12u32);
+            let bpp = <u32>::from_stack(mem, esp + 16u32);
+            let refresh = <u32>::from_stack(mem, esp + 20u32);
+            let flags = <u32>::from_stack(mem, esp + 24u32);
+            winapi::ddraw::IDirectDraw7::SetDisplayMode(
+                machine, this, width, height, bpp, refresh, flags,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDraw7_WaitForVerticalBlank(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let flags = <u32>::from_stack(mem, esp + 8u32);
+            let _unused = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDraw7::WaitForVerticalBlank(machine, this, flags, _unused)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDrawClipper_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawClipper::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDrawClipper_SetHWnd(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let unused = <u32>::from_stack(mem, esp + 8u32);
+            let hwnd = <HWND>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDrawClipper::SetHWnd(machine, this, unused, hwnd).to_raw()
+        }
+        pub unsafe fn IDirectDrawPalette_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawPalette::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDrawPalette_SetEntries(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let unused = <u32>::from_stack(mem, esp + 8u32);
+            let start = <u32>::from_stack(mem, esp + 12u32);
+            let count = <u32>::from_stack(mem, esp + 16u32);
+            let entries = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ddraw::IDirectDrawPalette::SetEntries(
+                machine, this, unused, start, count, entries,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_GetAttachedSurface(
+            machine: &mut Machine,
+            esp: u32,
+        ) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCaps = <Option<&DDSCAPS>>::from_stack(mem, esp + 8u32);
+            let lpDirectDrawSurface = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDrawSurface2::GetAttachedSurface(
+                machine,
+                this,
+                lpDDSCaps,
+                lpDirectDrawSurface,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_GetCaps(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCAPS = <Option<&mut DDSCAPS>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface2::GetCaps(machine, this, lpDDSCAPS).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_GetSurfaceDesc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface2::GetSurfaceDesc(machine, this, desc).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_Lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let rect = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, esp + 12u32);
+            let flags = <Result<DDLOCK, u32>>::from_stack(mem, esp + 16u32);
+            let event = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ddraw::IDirectDrawSurface2::Lock(machine, this, rect, desc, flags, event)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawSurface2::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface2_Unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let ptr = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface2::Unlock(machine, this, ptr).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Blt(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDstRect = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let lpSrc = <u32>::from_stack(mem, esp + 12u32);
+            let lpSrcRect = <Option<&RECT>>::from_stack(mem, esp + 16u32);
+            let flags = <Result<DDBLT, u32>>::from_stack(mem, esp + 20u32);
+            let lpDDBLTFX = <Option<&DDBLTFX>>::from_stack(mem, esp + 24u32);
+            winapi::ddraw::IDirectDrawSurface7::Blt(
+                machine, this, lpDstRect, lpSrc, lpSrcRect, flags, lpDDBLTFX,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_BltFast(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let x = <u32>::from_stack(mem, esp + 8u32);
+            let y = <u32>::from_stack(mem, esp + 12u32);
+            let lpSrc = <u32>::from_stack(mem, esp + 16u32);
+            let lpRect = <Option<&RECT>>::from_stack(mem, esp + 20u32);
+            let flags = <u32>::from_stack(mem, esp + 24u32);
+            winapi::ddraw::IDirectDrawSurface7::BltFast(machine, this, x, y, lpSrc, lpRect, flags)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Flip(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpSurf = <u32>::from_stack(mem, esp + 8u32);
+            let flags = <Result<DDFLIP, u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDrawSurface7::Flip(machine, this, lpSurf, flags).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_GetAttachedSurface(
+            machine: &mut Machine,
+            esp: u32,
+        ) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCaps2 = <Option<&DDSCAPS2>>::from_stack(mem, esp + 8u32);
+            let lpDirectDrawSurface7 = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDrawSurface7::GetAttachedSurface(
+                machine,
+                this,
+                lpDDSCaps2,
+                lpDirectDrawSurface7,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_GetCaps(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCAPS2 = <Option<&mut DDSCAPS2>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::GetCaps(machine, this, lpDDSCAPS2).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_GetDC(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpHDC = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::GetDC(machine, this, lpHDC).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_GetPixelFormat(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let fmt = <Option<&mut DDPIXELFORMAT>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::GetPixelFormat(machine, this, fmt).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_GetSurfaceDesc(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDesc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::GetSurfaceDesc(machine, this, lpDesc).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let rect = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let desc = <Option<&mut DDSURFACEDESC2>>::from_stack(mem, esp + 12u32);
+            let flags = <Result<DDLOCK, u32>>::from_stack(mem, esp + 16u32);
+            let unused = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ddraw::IDirectDrawSurface7::Lock(machine, this, rect, desc, flags, unused)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawSurface7::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_ReleaseDC(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _this = <u32>::from_stack(mem, esp + 4u32);
+            let _hDC = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::ReleaseDC(machine, _this, _hDC).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Restore(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawSurface7::Restore(machine, _this).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_SetClipper(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let clipper = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::SetClipper(machine, this, clipper).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_SetPalette(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let palette = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::SetPalette(machine, this, palette).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface7_Unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let rect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface7::Unlock(machine, this, rect).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface_GetAttachedSurface(
+            machine: &mut Machine,
+            esp: u32,
+        ) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCaps = <Option<&DDSCAPS>>::from_stack(mem, esp + 8u32);
+            let lpDirectDrawSurface = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDrawSurface::GetAttachedSurface(
+                machine,
+                this,
+                lpDDSCaps,
+                lpDirectDrawSurface,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface_GetCaps(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpDDSCAPS = <Option<&mut DDSCAPS>>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface::GetCaps(machine, this, lpDDSCAPS).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface_Lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let rect = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            let desc = <Option<&mut DDSURFACEDESC>>::from_stack(mem, esp + 12u32);
+            let flags = <Result<DDLOCK, u32>>::from_stack(mem, esp + 16u32);
+            let event = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ddraw::IDirectDrawSurface::Lock(machine, this, rect, desc, flags, event)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDrawSurface::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDrawSurface_Unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let ptr = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ddraw::IDirectDrawSurface::Unlock(machine, this, ptr).to_raw()
+        }
+        pub unsafe fn IDirectDraw_CreateSurface(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let desc = <Option<&DDSURFACEDESC>>::from_stack(mem, esp + 8u32);
+            let lplpDDSurface = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ddraw::IDirectDraw::CreateSurface(machine, this, desc, lplpDDSurface, pUnkOuter)
+                .to_raw()
+        }
+        pub unsafe fn IDirectDraw_EnumDisplayModes(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpSurfaceDesc = <Option<&DDSURFACEDESC>>::from_stack(mem, esp + 12u32);
+            let lpContext = <u32>::from_stack(mem, esp + 16u32);
+            let lpEnumCallback = <u32>::from_stack(mem, esp + 20u32);
+            #[cfg(feature = "x86-emu")]
+            {
+                let m: *mut Machine = machine;
+                let result = async move {
+                    use memory::Extensions;
+                    let machine = unsafe { &mut *m };
+                    let result = winapi::ddraw::IDirectDraw::EnumDisplayModes(
+                        machine,
+                        this,
+                        dwFlags,
+                        lpSurfaceDesc,
+                        lpContext,
+                        lpEnumCallback,
+                    )
+                    .await;
+                    let regs = &mut machine.emu.x86.cpu_mut().regs;
+                    regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                    *regs.get32_mut(x86::Register::ESP) += 20u32 + 4;
+                    regs.set32(x86::Register::EAX, result.to_raw());
+                };
+                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                0
+            }
+            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            {
+                let pin = std::pin::pin!(winapi::ddraw::IDirectDraw::EnumDisplayModes(
+                    machine,
+                    this,
+                    dwFlags,
+                    lpSurfaceDesc,
+                    lpContext,
+                    lpEnumCallback
+                ));
+                crate::shims::call_sync(pin).to_raw()
+            }
+        }
+        pub unsafe fn IDirectDraw_QueryInterface(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let riid = <Option<&GUID>>::from_stack(mem, esp + 8u32);
+            let ppvObject = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::ddraw::IDirectDraw::QueryInterface(machine, this, riid, ppvObject).to_raw()
+        }
+        pub unsafe fn IDirectDraw_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ddraw::IDirectDraw::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectDraw_SetDisplayMode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let width = <u32>::from_stack(mem, esp + 8u32);
+            let height = <u32>::from_stack(mem, esp + 12u32);
+            let bpp = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ddraw::IDirectDraw::SetDisplayMode(machine, this, width, height, bpp).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -317,8 +828,308 @@ pub mod ddraw {
             stack_consumed: 16u32,
             is_async: false,
         };
+        pub const IDirectDraw2_CreateSurface: Shim = Shim {
+            name: "IDirectDraw2::CreateSurface",
+            func: impls::IDirectDraw2_CreateSurface,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectDraw2_EnumDisplayModes: Shim = Shim {
+            name: "IDirectDraw2::EnumDisplayModes",
+            func: impls::IDirectDraw2_EnumDisplayModes,
+            stack_consumed: 20u32,
+            is_async: true,
+        };
+        pub const IDirectDraw2_GetDisplayMode: Shim = Shim {
+            name: "IDirectDraw2::GetDisplayMode",
+            func: impls::IDirectDraw2_GetDisplayMode,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDraw2_QueryInterface: Shim = Shim {
+            name: "IDirectDraw2::QueryInterface",
+            func: impls::IDirectDraw2_QueryInterface,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDraw2_Release: Shim = Shim {
+            name: "IDirectDraw2::Release",
+            func: impls::IDirectDraw2_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDraw2_SetDisplayMode: Shim = Shim {
+            name: "IDirectDraw2::SetDisplayMode",
+            func: impls::IDirectDraw2_SetDisplayMode,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_CreatePalette: Shim = Shim {
+            name: "IDirectDraw7::CreatePalette",
+            func: impls::IDirectDraw7_CreatePalette,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_CreateSurface: Shim = Shim {
+            name: "IDirectDraw7::CreateSurface",
+            func: impls::IDirectDraw7_CreateSurface,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_EnumDisplayModes: Shim = Shim {
+            name: "IDirectDraw7::EnumDisplayModes",
+            func: impls::IDirectDraw7_EnumDisplayModes,
+            stack_consumed: 20u32,
+            is_async: true,
+        };
+        pub const IDirectDraw7_GetDisplayMode: Shim = Shim {
+            name: "IDirectDraw7::GetDisplayMode",
+            func: impls::IDirectDraw7_GetDisplayMode,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_Release: Shim = Shim {
+            name: "IDirectDraw7::Release",
+            func: impls::IDirectDraw7_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_RestoreDisplayMode: Shim = Shim {
+            name: "IDirectDraw7::RestoreDisplayMode",
+            func: impls::IDirectDraw7_RestoreDisplayMode,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_SetCooperativeLevel: Shim = Shim {
+            name: "IDirectDraw7::SetCooperativeLevel",
+            func: impls::IDirectDraw7_SetCooperativeLevel,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_SetDisplayMode: Shim = Shim {
+            name: "IDirectDraw7::SetDisplayMode",
+            func: impls::IDirectDraw7_SetDisplayMode,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const IDirectDraw7_WaitForVerticalBlank: Shim = Shim {
+            name: "IDirectDraw7::WaitForVerticalBlank",
+            func: impls::IDirectDraw7_WaitForVerticalBlank,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawClipper_Release: Shim = Shim {
+            name: "IDirectDrawClipper::Release",
+            func: impls::IDirectDrawClipper_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawClipper_SetHWnd: Shim = Shim {
+            name: "IDirectDrawClipper::SetHWnd",
+            func: impls::IDirectDrawClipper_SetHWnd,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawPalette_Release: Shim = Shim {
+            name: "IDirectDrawPalette::Release",
+            func: impls::IDirectDrawPalette_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawPalette_SetEntries: Shim = Shim {
+            name: "IDirectDrawPalette::SetEntries",
+            func: impls::IDirectDrawPalette_SetEntries,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_GetAttachedSurface: Shim = Shim {
+            name: "IDirectDrawSurface2::GetAttachedSurface",
+            func: impls::IDirectDrawSurface2_GetAttachedSurface,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_GetCaps: Shim = Shim {
+            name: "IDirectDrawSurface2::GetCaps",
+            func: impls::IDirectDrawSurface2_GetCaps,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_GetSurfaceDesc: Shim = Shim {
+            name: "IDirectDrawSurface2::GetSurfaceDesc",
+            func: impls::IDirectDrawSurface2_GetSurfaceDesc,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_Lock: Shim = Shim {
+            name: "IDirectDrawSurface2::Lock",
+            func: impls::IDirectDrawSurface2_Lock,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_Release: Shim = Shim {
+            name: "IDirectDrawSurface2::Release",
+            func: impls::IDirectDrawSurface2_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface2_Unlock: Shim = Shim {
+            name: "IDirectDrawSurface2::Unlock",
+            func: impls::IDirectDrawSurface2_Unlock,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Blt: Shim = Shim {
+            name: "IDirectDrawSurface7::Blt",
+            func: impls::IDirectDrawSurface7_Blt,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_BltFast: Shim = Shim {
+            name: "IDirectDrawSurface7::BltFast",
+            func: impls::IDirectDrawSurface7_BltFast,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Flip: Shim = Shim {
+            name: "IDirectDrawSurface7::Flip",
+            func: impls::IDirectDrawSurface7_Flip,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_GetAttachedSurface: Shim = Shim {
+            name: "IDirectDrawSurface7::GetAttachedSurface",
+            func: impls::IDirectDrawSurface7_GetAttachedSurface,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_GetCaps: Shim = Shim {
+            name: "IDirectDrawSurface7::GetCaps",
+            func: impls::IDirectDrawSurface7_GetCaps,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_GetDC: Shim = Shim {
+            name: "IDirectDrawSurface7::GetDC",
+            func: impls::IDirectDrawSurface7_GetDC,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_GetPixelFormat: Shim = Shim {
+            name: "IDirectDrawSurface7::GetPixelFormat",
+            func: impls::IDirectDrawSurface7_GetPixelFormat,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_GetSurfaceDesc: Shim = Shim {
+            name: "IDirectDrawSurface7::GetSurfaceDesc",
+            func: impls::IDirectDrawSurface7_GetSurfaceDesc,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Lock: Shim = Shim {
+            name: "IDirectDrawSurface7::Lock",
+            func: impls::IDirectDrawSurface7_Lock,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Release: Shim = Shim {
+            name: "IDirectDrawSurface7::Release",
+            func: impls::IDirectDrawSurface7_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_ReleaseDC: Shim = Shim {
+            name: "IDirectDrawSurface7::ReleaseDC",
+            func: impls::IDirectDrawSurface7_ReleaseDC,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Restore: Shim = Shim {
+            name: "IDirectDrawSurface7::Restore",
+            func: impls::IDirectDrawSurface7_Restore,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_SetClipper: Shim = Shim {
+            name: "IDirectDrawSurface7::SetClipper",
+            func: impls::IDirectDrawSurface7_SetClipper,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_SetPalette: Shim = Shim {
+            name: "IDirectDrawSurface7::SetPalette",
+            func: impls::IDirectDrawSurface7_SetPalette,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface7_Unlock: Shim = Shim {
+            name: "IDirectDrawSurface7::Unlock",
+            func: impls::IDirectDrawSurface7_Unlock,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface_GetAttachedSurface: Shim = Shim {
+            name: "IDirectDrawSurface::GetAttachedSurface",
+            func: impls::IDirectDrawSurface_GetAttachedSurface,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface_GetCaps: Shim = Shim {
+            name: "IDirectDrawSurface::GetCaps",
+            func: impls::IDirectDrawSurface_GetCaps,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface_Lock: Shim = Shim {
+            name: "IDirectDrawSurface::Lock",
+            func: impls::IDirectDrawSurface_Lock,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface_Release: Shim = Shim {
+            name: "IDirectDrawSurface::Release",
+            func: impls::IDirectDrawSurface_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDrawSurface_Unlock: Shim = Shim {
+            name: "IDirectDrawSurface::Unlock",
+            func: impls::IDirectDrawSurface_Unlock,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectDraw_CreateSurface: Shim = Shim {
+            name: "IDirectDraw::CreateSurface",
+            func: impls::IDirectDraw_CreateSurface,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectDraw_EnumDisplayModes: Shim = Shim {
+            name: "IDirectDraw::EnumDisplayModes",
+            func: impls::IDirectDraw_EnumDisplayModes,
+            stack_consumed: 20u32,
+            is_async: true,
+        };
+        pub const IDirectDraw_QueryInterface: Shim = Shim {
+            name: "IDirectDraw::QueryInterface",
+            func: impls::IDirectDraw_QueryInterface,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectDraw_Release: Shim = Shim {
+            name: "IDirectDraw::Release",
+            func: impls::IDirectDraw_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectDraw_SetDisplayMode: Shim = Shim {
+            name: "IDirectDraw::SetDisplayMode",
+            func: impls::IDirectDraw_SetDisplayMode,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 3usize] = [
+    const EXPORTS: [Symbol; 53usize] = [
         Symbol {
             ordinal: None,
             shim: shims::DirectDrawCreate,
@@ -330,6 +1141,206 @@ pub mod ddraw {
         Symbol {
             ordinal: None,
             shim: shims::DirectDrawCreateEx,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_CreateSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_EnumDisplayModes,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_GetDisplayMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_QueryInterface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw2_SetDisplayMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_CreatePalette,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_CreateSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_EnumDisplayModes,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_GetDisplayMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_RestoreDisplayMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_SetCooperativeLevel,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_SetDisplayMode,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw7_WaitForVerticalBlank,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawClipper_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawClipper_SetHWnd,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawPalette_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawPalette_SetEntries,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_GetAttachedSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_GetCaps,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_GetSurfaceDesc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_Lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface2_Unlock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Blt,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_BltFast,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Flip,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_GetAttachedSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_GetCaps,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_GetDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_GetPixelFormat,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_GetSurfaceDesc,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_ReleaseDC,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Restore,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_SetClipper,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_SetPalette,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface7_Unlock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface_GetAttachedSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface_GetCaps,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface_Lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDrawSurface_Unlock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw_CreateSurface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw_EnumDisplayModes,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw_QueryInterface,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectDraw_SetDisplayMode,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -360,6 +1371,121 @@ pub mod dsound {
             let lpContext = <u32>::from_stack(mem, esp + 8u32);
             winapi::dsound::DirectSoundEnumerateA(machine, lpDSEnumCallback, lpContext).to_raw()
         }
+        pub unsafe fn IDirectSoundBuffer_GetCurrentPosition(
+            machine: &mut Machine,
+            esp: u32,
+        ) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpdwCurrentPlayCursor = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            let lpdwCurrentWriteCursor = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::dsound::IDirectSoundBuffer::GetCurrentPosition(
+                machine,
+                this,
+                lpdwCurrentPlayCursor,
+                lpdwCurrentWriteCursor,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_GetStatus(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpdwStatus = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::dsound::IDirectSoundBuffer::GetStatus(machine, this, lpdwStatus).to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_Lock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let dwWriteCursor = <u32>::from_stack(mem, esp + 8u32);
+            let dwWriteBytes = <u32>::from_stack(mem, esp + 12u32);
+            let lplpvAudioPtr1 = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpdwAudioBytes1 = <Option<&mut u32>>::from_stack(mem, esp + 20u32);
+            let lplpvAudioPtr2 = <Option<&mut u32>>::from_stack(mem, esp + 24u32);
+            let lpdwAudioBytes2 = <Option<&mut u32>>::from_stack(mem, esp + 28u32);
+            let dwFlags = <Result<DSBLOCK, u32>>::from_stack(mem, esp + 32u32);
+            winapi::dsound::IDirectSoundBuffer::Lock(
+                machine,
+                this,
+                dwWriteCursor,
+                dwWriteBytes,
+                lplpvAudioPtr1,
+                lpdwAudioBytes1,
+                lplpvAudioPtr2,
+                lpdwAudioBytes2,
+                dwFlags,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_Play(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let dwReserved1 = <u32>::from_stack(mem, esp + 8u32);
+            let dwReserved2 = <u32>::from_stack(mem, esp + 12u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 16u32);
+            winapi::dsound::IDirectSoundBuffer::Play(
+                machine,
+                this,
+                dwReserved1,
+                dwReserved2,
+                dwFlags,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::dsound::IDirectSoundBuffer::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_SetFormat(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpcfxFormat = <Option<&WAVEFORMATEX>>::from_stack(mem, esp + 8u32);
+            winapi::dsound::IDirectSoundBuffer::SetFormat(machine, this, lpcfxFormat).to_raw()
+        }
+        pub unsafe fn IDirectSoundBuffer_Unlock(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpvAudioPtr1 = <u32>::from_stack(mem, esp + 8u32);
+            let dwAudioBytes1 = <u32>::from_stack(mem, esp + 12u32);
+            let lpvAudioPtr2 = <u32>::from_stack(mem, esp + 16u32);
+            let dwAudioBytes2 = <u32>::from_stack(mem, esp + 20u32);
+            winapi::dsound::IDirectSoundBuffer::Unlock(
+                machine,
+                this,
+                lpvAudioPtr1,
+                dwAudioBytes1,
+                lpvAudioPtr2,
+                dwAudioBytes2,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectSound_CreateSoundBuffer(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let lpcDSBufferDesc = <Option<&DSBUFFERDESC>>::from_stack(mem, esp + 8u32);
+            let lplpDirectSoundBuffer = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let pUnkOuter = <u32>::from_stack(mem, esp + 16u32);
+            winapi::dsound::IDirectSound::CreateSoundBuffer(
+                machine,
+                this,
+                lpcDSBufferDesc,
+                lplpDirectSoundBuffer,
+                pUnkOuter,
+            )
+            .to_raw()
+        }
+        pub unsafe fn IDirectSound_Release(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            winapi::dsound::IDirectSound::Release(machine, this).to_raw()
+        }
+        pub unsafe fn IDirectSound_SetCooperativeLevel(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, esp + 4u32);
+            let hwnd = <u32>::from_stack(mem, esp + 8u32);
+            let dwLevel = <u32>::from_stack(mem, esp + 12u32);
+            winapi::dsound::IDirectSound::SetCooperativeLevel(machine, this, hwnd, dwLevel).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -376,8 +1502,68 @@ pub mod dsound {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const IDirectSoundBuffer_GetCurrentPosition: Shim = Shim {
+            name: "IDirectSoundBuffer::GetCurrentPosition",
+            func: impls::IDirectSoundBuffer_GetCurrentPosition,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_GetStatus: Shim = Shim {
+            name: "IDirectSoundBuffer::GetStatus",
+            func: impls::IDirectSoundBuffer_GetStatus,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_Lock: Shim = Shim {
+            name: "IDirectSoundBuffer::Lock",
+            func: impls::IDirectSoundBuffer_Lock,
+            stack_consumed: 32u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_Play: Shim = Shim {
+            name: "IDirectSoundBuffer::Play",
+            func: impls::IDirectSoundBuffer_Play,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_Release: Shim = Shim {
+            name: "IDirectSoundBuffer::Release",
+            func: impls::IDirectSoundBuffer_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_SetFormat: Shim = Shim {
+            name: "IDirectSoundBuffer::SetFormat",
+            func: impls::IDirectSoundBuffer_SetFormat,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
+        pub const IDirectSoundBuffer_Unlock: Shim = Shim {
+            name: "IDirectSoundBuffer::Unlock",
+            func: impls::IDirectSoundBuffer_Unlock,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+        pub const IDirectSound_CreateSoundBuffer: Shim = Shim {
+            name: "IDirectSound::CreateSoundBuffer",
+            func: impls::IDirectSound_CreateSoundBuffer,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
+        pub const IDirectSound_Release: Shim = Shim {
+            name: "IDirectSound::Release",
+            func: impls::IDirectSound_Release,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const IDirectSound_SetCooperativeLevel: Shim = Shim {
+            name: "IDirectSound::SetCooperativeLevel",
+            func: impls::IDirectSound_SetCooperativeLevel,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
     }
-    const EXPORTS: [Symbol; 2usize] = [
+    const EXPORTS: [Symbol; 12usize] = [
         Symbol {
             ordinal: Some(1usize),
             shim: shims::DirectSoundCreate,
@@ -385,6 +1571,46 @@ pub mod dsound {
         Symbol {
             ordinal: Some(2usize),
             shim: shims::DirectSoundEnumerateA,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_GetCurrentPosition,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_GetStatus,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_Lock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_Play,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_SetFormat,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSoundBuffer_Unlock,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSound_CreateSoundBuffer,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSound_Release,
+        },
+        Symbol {
+            ordinal: None,
+            shim: shims::IDirectSound_SetCooperativeLevel,
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

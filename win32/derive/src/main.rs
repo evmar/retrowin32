@@ -52,9 +52,6 @@ fn generate_dll(
     writeln!(f, "LIBRARY {}", module_name)?;
     writeln!(f, "EXPORTS")?;
     for dllexport in &dllexports.fns {
-        if dllexport.vtable.is_some() {
-            continue;
-        }
         if let Some(ordinal) = dllexport.meta.ordinal {
             writeln!(f, "  {} @{}", dllexport.sym_name, ordinal)?;
         } else {
@@ -77,9 +74,6 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
     let mut shims = Vec::new();
     let mut exports = Vec::new();
     for dllexport in &dllexports.fns {
-        if dllexport.vtable.is_some() {
-            continue;
-        }
         let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, dllexport);
         impls.push(wrapper);
         shims.push(shim);
@@ -88,8 +82,8 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
             Some(ord) => quote!(Some(#ord)),
             None => quote!(None),
         };
-        let name = &dllexport.func.sig.ident;
-        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#name }));
+        let sym_name = &dllexport.sym_name;
+        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#sym_name }));
     }
 
     let exports_count = exports.len();

@@ -22,7 +22,7 @@ pub const IID_IDirectDraw2: GUID = GUID {
 };
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDraw2 {
+pub mod IDirectDraw2 {
     use super::*;
 
     vtable![IDirectDraw2 shims
@@ -66,7 +66,7 @@ pub(super) mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    fn QueryInterface(
+    pub fn QueryInterface(
         _machine: &mut Machine,
         this: u32,
         riid: Option<&GUID>,
@@ -76,7 +76,7 @@ pub(super) mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    fn CreateSurface(
+    pub fn CreateSurface(
         machine: &mut Machine,
         this: u32,
         desc: Option<&DDSURFACEDESC>,
@@ -106,7 +106,7 @@ pub(super) mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    async fn EnumDisplayModes(
+    pub async fn EnumDisplayModes(
         machine: &mut Machine,
         this: u32,
         dwFlags: u32,
@@ -154,7 +154,7 @@ pub(super) mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    fn GetDisplayMode(
+    pub fn GetDisplayMode(
         _machine: &mut Machine,
         this: u32,
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC>,
@@ -175,19 +175,25 @@ pub(super) mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    fn SetDisplayMode(machine: &mut Machine, this: u32, width: u32, height: u32, bpp: u32) -> u32 {
+    pub fn SetDisplayMode(
+        machine: &mut Machine,
+        this: u32,
+        width: u32,
+        height: u32,
+        bpp: u32,
+    ) -> u32 {
         IDirectDraw7::SetDisplayMode(machine, 0, width, height, bpp, 0, 0)
     }
 }
 
 #[win32_derive::shims_from_x86]
-pub(super) mod IDirectDrawSurface2 {
+pub mod IDirectDrawSurface2 {
     use super::*;
 
     vtable![IDirectDrawSurface2 shims
@@ -251,7 +257,7 @@ pub(super) mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    fn GetAttachedSurface(
+    pub fn GetAttachedSurface(
         machine: &mut Machine,
         this: u32,
         lpDDSCaps: Option<&DDSCAPS>,
@@ -264,7 +270,7 @@ pub(super) mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
+    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
         DD_OK
     }
 
@@ -283,7 +289,7 @@ pub(super) mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    fn Lock(
+    pub fn Lock(
         machine: &mut Machine,
         this: u32,
         rect: Option<&RECT>,
@@ -308,7 +314,7 @@ pub(super) mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> u32 {
+    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> u32 {
         IDirectDrawSurface7::Unlock(machine, this, None)
     }
 }
