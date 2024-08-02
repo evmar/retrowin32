@@ -11,7 +11,7 @@ use quote::quote;
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
 pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, TokenStream) {
-    let name = &dllexport.func.sig.ident;
+    let name = &dllexport.sym_name;
     let name_str = name.to_string();
 
     let mut fetch_args = TokenStream::new();

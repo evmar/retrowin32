@@ -16,6 +16,8 @@ pub struct DllExport<'a> {
     pub args: Vec<Argument<'a>>,
     /// If this function is part of a vtable, this is the name of the vtable.
     pub vtable: Option<&'a syn::Ident>,
+    // E.g. IDirectDraw_QueryInterface for symbols within a module.
+    pub sym_name: syn::Ident,
     pub func: &'a syn::ItemFn,
 }
 
@@ -166,6 +168,7 @@ fn parse_fn(func: &syn::ItemFn) -> syn::Result<Option<DllExport>> {
         meta,
         args,
         vtable: None,
+        sym_name: func.sig.ident.clone(),
         func,
     }))
 }
@@ -181,6 +184,7 @@ fn parse_mod(item: &syn::ItemMod) -> syn::Result<Option<DllExports>> {
     gather_dllexports(body, &mut dllexports)?;
     for dllexport in &mut dllexports.fns {
         dllexport.vtable = Some(name);
+        dllexport.sym_name = quote::format_ident!("{}_{}", name, dllexport.sym_name);
     }
 
     // Look for a call to the vtable! macro.
