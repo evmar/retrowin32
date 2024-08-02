@@ -26,6 +26,13 @@ impl std::fmt::Debug for GUID {
     }
 }
 
+macro_rules! vtable_fwd {
+    (($iface:ident :: $fn:ident)) => {
+        $iface::shims::$fn
+    };
+}
+pub(crate) use vtable_fwd;
+
 macro_rules! vtable_entry {
     ($iface:ident $shims:ident $fn:ident todo) => {
         Err(format!(
@@ -37,8 +44,8 @@ macro_rules! vtable_entry {
     ($iface:ident $shims:ident $fn:ident ok) => {
         Ok(&$shims::$fn)
     };
-    ($iface:ident $shims:ident $fn:ident $shim:tt) => {
-        Ok(&$shim)
+    ($iface:ident $shims:ident $fn:ident $target:tt) => {
+        Ok(&$crate::winapi::com::vtable_fwd!($target))
     };
 }
 pub(crate) use vtable_entry;

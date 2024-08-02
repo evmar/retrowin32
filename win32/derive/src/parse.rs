@@ -248,19 +248,13 @@ fn parse_vtable(item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
             }
             syn::Expr::Paren(expr) => match &*expr.expr {
                 syn::Expr::Path(expr) => {
-                    // Gross: reference is like (IDirectDrawClipper::shims::QueryInterface), need
-                    // to extract the the part around the shims bit.
                     let parts = expr
                         .path
                         .segments
                         .iter()
                         .map(|s| s.ident.to_string())
                         .collect::<Vec<_>>();
-                    let name = match parts.len() {
-                        4 => [parts[1].as_str(), parts[3].as_str()].join("_"),
-                        3 => [parts[0].as_str(), parts[2].as_str()].join("_"),
-                        _ => unimplemented!("{}", parts.len()),
-                    };
+                    let name = parts.join("_");
                     Some(name)
                 }
                 expr => {
