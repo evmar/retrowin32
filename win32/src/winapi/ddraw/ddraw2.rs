@@ -218,7 +218,7 @@ pub mod IDirectDrawSurface2 {
         GetFlipStatus: todo,
         GetOverlayPosition: todo,
         GetPalette: todo,
-        GetPixelFormat: (ddraw7::IDirectDrawSurface7::shims::GetSurfaceDesc),
+        GetPixelFormat: (ddraw7::IDirectDrawSurface7::shims::GetPixelFormat),
         GetSurfaceDesc: ok,
         Initialize: todo,
         IsLost: todo,
