@@ -183,15 +183,12 @@ impl MachineX<Emulator> {
         self.emu.x86.execute_block(self.emu.memory.mem())
     }
 
-    pub fn call_x86(
-        &mut self,
-        func: u32,
-        args: Vec<u32>,
-    ) -> impl std::future::Future<Output = u32> {
+    pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
         self.emu
             .x86
             .cpu_mut()
             .call_x86(self.emu.memory.mem(), func, args)
+            .await
     }
 
     // pub fn dump_stack(&self) {

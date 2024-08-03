@@ -26,28 +26,6 @@ pub struct Shim {
     pub is_async: bool,
 }
 
-pub struct UnimplFuture<T = ()> {
-    pub value: T,
-}
-impl<T> UnimplFuture<T> {
-    pub fn new(value: T) -> Self {
-        UnimplFuture { value }
-    }
-}
-impl<T> std::future::Future for UnimplFuture<T>
-where
-    T: Clone,
-{
-    type Output = T;
-
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
-        std::task::Poll::Ready(self.value.clone())
-    }
-}
-
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
 #[allow(deref_nullptr)]
 pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {

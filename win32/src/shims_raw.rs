@@ -3,11 +3,7 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{
-    ldt::LDT,
-    shims::{Shim, UnimplFuture},
-    Machine,
-};
+use crate::{ldt::LDT, shims::Shim, Machine};
 use memory::Extensions;
 
 type Trampoline = [u8; 16];
@@ -179,7 +175,7 @@ impl Shims {
     }
 }
 
-pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFuture<u32> {
+pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
     // TODO: x86_64-apple-darwin vs x86_64-pc-windows-msvc calling conventions differ!
     #[cfg(target_arch = "x86_64")]
     unsafe {
@@ -255,7 +251,7 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
             stack32 = sym STACK32,
         );
 
-        UnimplFuture::new(ret)
+        ret
     }
 
     #[cfg(not(target_arch = "x86_64"))] // just to keep editor from getting confused

@@ -75,12 +75,8 @@ impl MachineX<Emulator> {
         })
     }
 
-    pub fn call_x86(
-        &mut self,
-        func: u32,
-        args: Vec<u32>,
-    ) -> impl std::future::Future<Output = u32> {
-        crate::shims_raw::call_x86(self, func, args)
+    pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
+        crate::shims_raw::call_x86(self, func, args).await
     }
 
     /// Transfer control to the executable's entry point.
