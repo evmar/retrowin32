@@ -4398,9 +4398,35 @@ pub mod ucrtbase {
             let _app_type = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::__set_app_type(machine, _app_type).to_raw()
         }
+        pub unsafe fn _configthreadlocale(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let per_thread_locale_type = <i32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_configthreadlocale(machine, per_thread_locale_type).to_raw()
+        }
+        pub unsafe fn _configure_narrow_argv(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _mode = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_configure_narrow_argv(machine, _mode).to_raw()
+        }
+        pub unsafe fn _controlfp_s(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _currentControl = <u32>::from_stack(mem, esp + 4u32);
+            let _newControl = <u32>::from_stack(mem, esp + 8u32);
+            let _mask = <u32>::from_stack(mem, esp + 12u32);
+            winapi::ucrtbase::_controlfp_s(machine, _currentControl, _newControl, _mask).to_raw()
+        }
+        pub unsafe fn _crt_atexit(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _function = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_crt_atexit(machine, _function).to_raw()
+        }
         pub unsafe fn _get_initial_narrow_environment(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::ucrtbase::_get_initial_narrow_environment(machine).to_raw()
+        }
+        pub unsafe fn _initialize_narrow_environment(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::_initialize_narrow_environment(machine).to_raw()
         }
         pub unsafe fn _initterm(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4456,6 +4482,21 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let locknum = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::_lock(machine, locknum).to_raw()
+        }
+        pub unsafe fn _set_app_type(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _app_type = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_set_app_type(machine, _app_type).to_raw()
+        }
+        pub unsafe fn _set_fmode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _mode = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_set_fmode(machine, _mode).to_raw()
+        }
+        pub unsafe fn _set_new_mode(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let newhandlermode = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_set_new_mode(machine, newhandlermode).to_raw()
         }
         pub unsafe fn _unlock(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4517,9 +4558,39 @@ pub mod ucrtbase {
             stack_consumed: 0u32,
             is_async: false,
         };
+        pub const _configthreadlocale: Shim = Shim {
+            name: "_configthreadlocale",
+            func: impls::_configthreadlocale,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _configure_narrow_argv: Shim = Shim {
+            name: "_configure_narrow_argv",
+            func: impls::_configure_narrow_argv,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _controlfp_s: Shim = Shim {
+            name: "_controlfp_s",
+            func: impls::_controlfp_s,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _crt_atexit: Shim = Shim {
+            name: "_crt_atexit",
+            func: impls::_crt_atexit,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const _get_initial_narrow_environment: Shim = Shim {
             name: "_get_initial_narrow_environment",
             func: impls::_get_initial_narrow_environment,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _initialize_narrow_environment: Shim = Shim {
+            name: "_initialize_narrow_environment",
+            func: impls::_initialize_narrow_environment,
             stack_consumed: 0u32,
             is_async: false,
         };
@@ -4538,6 +4609,24 @@ pub mod ucrtbase {
         pub const _lock: Shim = Shim {
             name: "_lock",
             func: impls::_lock,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _set_app_type: Shim = Shim {
+            name: "_set_app_type",
+            func: impls::_set_app_type,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _set_fmode: Shim = Shim {
+            name: "_set_fmode",
+            func: impls::_set_fmode,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
+        pub const _set_new_mode: Shim = Shim {
+            name: "_set_new_mode",
+            func: impls::_set_new_mode,
             stack_consumed: 0u32,
             is_async: false,
         };
@@ -4566,17 +4655,25 @@ pub mod ucrtbase {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 14usize] = [
+    const SHIMS: [Shim; 22usize] = [
         shims::__dllonexit,
         shims::__p___argc,
         shims::__p___argv,
         shims::__p__commode,
         shims::__p__fmode,
         shims::__set_app_type,
+        shims::_configthreadlocale,
+        shims::_configure_narrow_argv,
+        shims::_controlfp_s,
+        shims::_crt_atexit,
         shims::_get_initial_narrow_environment,
+        shims::_initialize_narrow_environment,
         shims::_initterm,
         shims::_initterm_e,
         shims::_lock,
+        shims::_set_app_type,
+        shims::_set_fmode,
+        shims::_set_new_mode,
         shims::_unlock,
         shims::exit,
         shims::free,
