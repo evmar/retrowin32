@@ -3,14 +3,11 @@
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #[doc = r" Generated code, do not edit."]
-use crate::shims;
-pub struct Symbol {
-    pub ordinal: Option<usize>,
-    pub shim: shims::Shim,
-}
+use crate::shims::Shim;
 pub struct BuiltinDLL {
     pub file_name: &'static str,
-    pub exports: &'static [Symbol],
+    #[doc = r" The xth function in the DLL represents a call to shims[x]."]
+    pub shims: &'static [Shim],
     #[doc = r" Raw bytes of generated .dll."]
     pub raw: &'static [u8],
 }
@@ -94,7 +91,7 @@ pub mod advapi32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const RegCloseKey: Shim = Shim {
             name: "RegCloseKey",
             func: impls::RegCloseKey,
@@ -120,27 +117,15 @@ pub mod advapi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 4usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::RegCloseKey,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegCreateKeyExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegQueryValueExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegSetValueExW,
-        },
+    const SHIMS: [Shim; 4usize] = [
+        shims::RegCloseKey,
+        shims::RegCreateKeyExW,
+        shims::RegQueryValueExW,
+        shims::RegSetValueExW,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "advapi32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/advapi32.dll"),
     };
 }
@@ -193,7 +178,7 @@ pub mod bass {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const BASS_ChannelGetPosition: Shim = Shim {
             name: "BASS_ChannelGetPosition",
             func: impls::BASS_ChannelGetPosition,
@@ -231,35 +216,17 @@ pub mod bass {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 6usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_ChannelGetPosition,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_Init,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_MusicLoad,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_MusicPlay,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_MusicSetPositionScaler,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BASS_Start,
-        },
+    const SHIMS: [Shim; 6usize] = [
+        shims::BASS_ChannelGetPosition,
+        shims::BASS_Init,
+        shims::BASS_MusicLoad,
+        shims::BASS_MusicPlay,
+        shims::BASS_MusicSetPositionScaler,
+        shims::BASS_Start,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "bass.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/bass.dll"),
     };
 }
@@ -809,7 +776,7 @@ pub mod ddraw {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const DirectDrawCreate: Shim = Shim {
             name: "DirectDrawCreate",
             func: impls::DirectDrawCreate,
@@ -1129,223 +1096,64 @@ pub mod ddraw {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 53usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::DirectDrawCreate,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DirectDrawCreateClipper,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DirectDrawCreateEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_CreateSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_EnumDisplayModes,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_GetDisplayMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_QueryInterface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw2_SetDisplayMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_CreatePalette,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_CreateSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_EnumDisplayModes,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_GetDisplayMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_RestoreDisplayMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_SetCooperativeLevel,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_SetDisplayMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw7_WaitForVerticalBlank,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawClipper_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawClipper_SetHWnd,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawPalette_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawPalette_SetEntries,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_GetAttachedSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_GetCaps,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_GetSurfaceDesc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_Lock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface2_Unlock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Blt,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_BltFast,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Flip,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_GetAttachedSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_GetCaps,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_GetDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_GetPixelFormat,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_GetSurfaceDesc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Lock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_ReleaseDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Restore,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_SetClipper,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_SetPalette,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface7_Unlock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface_GetAttachedSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface_GetCaps,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface_Lock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDrawSurface_Unlock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw_CreateSurface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw_EnumDisplayModes,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw_QueryInterface,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectDraw_SetDisplayMode,
-        },
+    const SHIMS: [Shim; 53usize] = [
+        shims::DirectDrawCreate,
+        shims::DirectDrawCreateClipper,
+        shims::DirectDrawCreateEx,
+        shims::IDirectDraw2_CreateSurface,
+        shims::IDirectDraw2_EnumDisplayModes,
+        shims::IDirectDraw2_GetDisplayMode,
+        shims::IDirectDraw2_QueryInterface,
+        shims::IDirectDraw2_Release,
+        shims::IDirectDraw2_SetDisplayMode,
+        shims::IDirectDraw7_CreatePalette,
+        shims::IDirectDraw7_CreateSurface,
+        shims::IDirectDraw7_EnumDisplayModes,
+        shims::IDirectDraw7_GetDisplayMode,
+        shims::IDirectDraw7_Release,
+        shims::IDirectDraw7_RestoreDisplayMode,
+        shims::IDirectDraw7_SetCooperativeLevel,
+        shims::IDirectDraw7_SetDisplayMode,
+        shims::IDirectDraw7_WaitForVerticalBlank,
+        shims::IDirectDrawClipper_Release,
+        shims::IDirectDrawClipper_SetHWnd,
+        shims::IDirectDrawPalette_Release,
+        shims::IDirectDrawPalette_SetEntries,
+        shims::IDirectDrawSurface2_GetAttachedSurface,
+        shims::IDirectDrawSurface2_GetCaps,
+        shims::IDirectDrawSurface2_GetSurfaceDesc,
+        shims::IDirectDrawSurface2_Lock,
+        shims::IDirectDrawSurface2_Release,
+        shims::IDirectDrawSurface2_Unlock,
+        shims::IDirectDrawSurface7_Blt,
+        shims::IDirectDrawSurface7_BltFast,
+        shims::IDirectDrawSurface7_Flip,
+        shims::IDirectDrawSurface7_GetAttachedSurface,
+        shims::IDirectDrawSurface7_GetCaps,
+        shims::IDirectDrawSurface7_GetDC,
+        shims::IDirectDrawSurface7_GetPixelFormat,
+        shims::IDirectDrawSurface7_GetSurfaceDesc,
+        shims::IDirectDrawSurface7_Lock,
+        shims::IDirectDrawSurface7_Release,
+        shims::IDirectDrawSurface7_ReleaseDC,
+        shims::IDirectDrawSurface7_Restore,
+        shims::IDirectDrawSurface7_SetClipper,
+        shims::IDirectDrawSurface7_SetPalette,
+        shims::IDirectDrawSurface7_Unlock,
+        shims::IDirectDrawSurface_GetAttachedSurface,
+        shims::IDirectDrawSurface_GetCaps,
+        shims::IDirectDrawSurface_Lock,
+        shims::IDirectDrawSurface_Release,
+        shims::IDirectDrawSurface_Unlock,
+        shims::IDirectDraw_CreateSurface,
+        shims::IDirectDraw_EnumDisplayModes,
+        shims::IDirectDraw_QueryInterface,
+        shims::IDirectDraw_Release,
+        shims::IDirectDraw_SetDisplayMode,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ddraw.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/ddraw.dll"),
     };
 }
@@ -1489,7 +1297,7 @@ pub mod dsound {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const DirectSoundCreate: Shim = Shim {
             name: "DirectSoundCreate",
             func: impls::DirectSoundCreate,
@@ -1563,59 +1371,23 @@ pub mod dsound {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 12usize] = [
-        Symbol {
-            ordinal: Some(1usize),
-            shim: shims::DirectSoundCreate,
-        },
-        Symbol {
-            ordinal: Some(2usize),
-            shim: shims::DirectSoundEnumerateA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_GetCurrentPosition,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_GetStatus,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_Lock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_Play,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_SetFormat,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSoundBuffer_Unlock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSound_CreateSoundBuffer,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSound_Release,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IDirectSound_SetCooperativeLevel,
-        },
+    const SHIMS: [Shim; 12usize] = [
+        shims::DirectSoundCreate,
+        shims::DirectSoundEnumerateA,
+        shims::IDirectSoundBuffer_GetCurrentPosition,
+        shims::IDirectSoundBuffer_GetStatus,
+        shims::IDirectSoundBuffer_Lock,
+        shims::IDirectSoundBuffer_Play,
+        shims::IDirectSoundBuffer_Release,
+        shims::IDirectSoundBuffer_SetFormat,
+        shims::IDirectSoundBuffer_Unlock,
+        shims::IDirectSound_CreateSoundBuffer,
+        shims::IDirectSound_Release,
+        shims::IDirectSound_SetCooperativeLevel,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "dsound.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/dsound.dll"),
     };
 }
@@ -1961,7 +1733,7 @@ pub mod gdi32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const BitBlt: Shim = Shim {
             name: "BitBlt",
             func: impls::BitBlt,
@@ -2185,159 +1957,48 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 37usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::BitBlt,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateBitmap,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateCompatibleBitmap,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateCompatibleDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateDIBSection,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateFontA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreatePen,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateSolidBrush,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DeleteDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DeleteObject,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetDCOrgEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetDeviceCaps,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetLayout,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetObjectA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetPixel,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetStockObject,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTextExtentPoint32A,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTextExtentPoint32W,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTextMetricsA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTextMetricsW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LineDDA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LineTo,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MoveToEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PatBlt,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PtVisible,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SelectObject,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetBkColor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetBkMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetBrushOrgEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetDIBitsToDevice,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetPixel,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetROP2,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetTextColor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::StretchBlt,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::StretchDIBits,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TextOutA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TextOutW,
-        },
+    const SHIMS: [Shim; 37usize] = [
+        shims::BitBlt,
+        shims::CreateBitmap,
+        shims::CreateCompatibleBitmap,
+        shims::CreateCompatibleDC,
+        shims::CreateDIBSection,
+        shims::CreateFontA,
+        shims::CreatePen,
+        shims::CreateSolidBrush,
+        shims::DeleteDC,
+        shims::DeleteObject,
+        shims::GetDCOrgEx,
+        shims::GetDeviceCaps,
+        shims::GetLayout,
+        shims::GetObjectA,
+        shims::GetPixel,
+        shims::GetStockObject,
+        shims::GetTextExtentPoint32A,
+        shims::GetTextExtentPoint32W,
+        shims::GetTextMetricsA,
+        shims::GetTextMetricsW,
+        shims::LineDDA,
+        shims::LineTo,
+        shims::MoveToEx,
+        shims::PatBlt,
+        shims::PtVisible,
+        shims::SelectObject,
+        shims::SetBkColor,
+        shims::SetBkMode,
+        shims::SetBrushOrgEx,
+        shims::SetDIBitsToDevice,
+        shims::SetPixel,
+        shims::SetROP2,
+        shims::SetTextColor,
+        shims::StretchBlt,
+        shims::StretchDIBits,
+        shims::TextOutA,
+        shims::TextOutW,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "gdi32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/gdi32.dll"),
     };
 }
@@ -3506,7 +3167,7 @@ pub mod kernel32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const AcquireSRWLockExclusive: Shim = Shim {
             name: "AcquireSRWLockExclusive",
             func: impls::AcquireSRWLockExclusive,
@@ -4396,603 +4057,159 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 148usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::AcquireSRWLockExclusive,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::AcquireSRWLockShared,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::AddVectoredExceptionHandler,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CloseHandle,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateEventA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateFileA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateFileW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateThread,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DeleteCriticalSection,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DeleteFileA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DisableThreadLibraryCalls,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::EnterCriticalSection,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ExitProcess,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FileTimeToSystemTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindClose,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindFirstFileA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindNextFileA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindResourceA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindResourceW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FormatMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FormatMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FreeEnvironmentStringsA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FreeLibrary,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetACP,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCPInfo,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCommandLineA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCommandLineW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetConsoleMode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetConsoleScreenBufferInfo,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCurrentDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCurrentProcessId,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCurrentThread,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetCurrentThreadId,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetEnvironmentStrings,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetEnvironmentStringsW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetEnvironmentVariableA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetEnvironmentVariableW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFileAttributesA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFileInformationByHandle,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFileSize,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFileTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFileType,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFullPathNameA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFullPathNameW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetLastError,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetLocalTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetModuleFileNameA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetModuleFileNameW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetModuleHandleA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetModuleHandleExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetModuleHandleW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetPrivateProfileIntW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetPrivateProfileStringW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProcAddress,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProcessHeap,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProfileIntW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetProfileStringW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetStartupInfoA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetStartupInfoW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetStdHandle,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemTimeAsFileTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTickCount,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetTimeZoneInformation,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetVersion,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetVersionExA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetWindowsDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GlobalAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GlobalFlags,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GlobalFree,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GlobalReAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapCreate,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapDestroy,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapFree,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapReAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapSetInformation,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::HeapSize,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitOnceBeginInitialize,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitOnceComplete,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitializeCriticalSection,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitializeCriticalSectionAndSpinCount,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitializeCriticalSectionEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InitializeSListHead,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InterlockedIncrement,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsBadReadPtr,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsBadWritePtr,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsDBCSLeadByte,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsDBCSLeadByteEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsDebuggerPresent,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsProcessorFeaturePresent,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsValidCodePage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LeaveCriticalSection,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadLibraryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadLibraryExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadResource,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LocalAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LocalFree,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LockResource,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MulDiv,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MultiByteToWideChar,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::NtCurrentTeb,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::OutputDebugStringA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::QueryPerformanceCounter,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::QueryPerformanceFrequency,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ReadFile,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ReleaseSRWLockExclusive,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ReleaseSRWLockShared,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RemoveDirectoryA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetConsoleCtrlHandler,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetEndOfFile,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetEvent,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetFileAttributesA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetFilePointer,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetFileTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetHandleCount,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetLastError,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetPriorityClass,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetStdHandle,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetThreadDescription,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetThreadPriority,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetThreadStackGuarantee,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetUnhandledExceptionFilter,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::Sleep,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SystemTimeToFileTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TlsAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TlsFree,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TlsGetValue,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TlsSetValue,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TryAcquireSRWLockExclusive,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::UnhandledExceptionFilter,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::VirtualAlloc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::VirtualFree,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::VirtualProtect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::VirtualQuery,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WaitForSingleObject,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WriteConsoleA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WriteConsoleW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WriteFile,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::lstrcmpiA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::lstrcpyA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::lstrcpyW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::lstrlenA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::lstrlenW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::retrowin32_main,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::retrowin32_thread_main,
-        },
+    const SHIMS: [Shim; 148usize] = [
+        shims::AcquireSRWLockExclusive,
+        shims::AcquireSRWLockShared,
+        shims::AddVectoredExceptionHandler,
+        shims::CloseHandle,
+        shims::CreateDirectoryA,
+        shims::CreateEventA,
+        shims::CreateFileA,
+        shims::CreateFileW,
+        shims::CreateThread,
+        shims::DeleteCriticalSection,
+        shims::DeleteFileA,
+        shims::DisableThreadLibraryCalls,
+        shims::EnterCriticalSection,
+        shims::ExitProcess,
+        shims::FileTimeToSystemTime,
+        shims::FindClose,
+        shims::FindFirstFileA,
+        shims::FindNextFileA,
+        shims::FindResourceA,
+        shims::FindResourceW,
+        shims::FormatMessageA,
+        shims::FormatMessageW,
+        shims::FreeEnvironmentStringsA,
+        shims::FreeLibrary,
+        shims::GetACP,
+        shims::GetCPInfo,
+        shims::GetCommandLineA,
+        shims::GetCommandLineW,
+        shims::GetConsoleMode,
+        shims::GetConsoleScreenBufferInfo,
+        shims::GetCurrentDirectoryA,
+        shims::GetCurrentProcessId,
+        shims::GetCurrentThread,
+        shims::GetCurrentThreadId,
+        shims::GetEnvironmentStrings,
+        shims::GetEnvironmentStringsW,
+        shims::GetEnvironmentVariableA,
+        shims::GetEnvironmentVariableW,
+        shims::GetFileAttributesA,
+        shims::GetFileInformationByHandle,
+        shims::GetFileSize,
+        shims::GetFileTime,
+        shims::GetFileType,
+        shims::GetFullPathNameA,
+        shims::GetFullPathNameW,
+        shims::GetLastError,
+        shims::GetLocalTime,
+        shims::GetModuleFileNameA,
+        shims::GetModuleFileNameW,
+        shims::GetModuleHandleA,
+        shims::GetModuleHandleExW,
+        shims::GetModuleHandleW,
+        shims::GetPrivateProfileIntW,
+        shims::GetPrivateProfileStringW,
+        shims::GetProcAddress,
+        shims::GetProcessHeap,
+        shims::GetProfileIntW,
+        shims::GetProfileStringW,
+        shims::GetStartupInfoA,
+        shims::GetStartupInfoW,
+        shims::GetStdHandle,
+        shims::GetSystemDirectoryA,
+        shims::GetSystemTime,
+        shims::GetSystemTimeAsFileTime,
+        shims::GetTickCount,
+        shims::GetTimeZoneInformation,
+        shims::GetVersion,
+        shims::GetVersionExA,
+        shims::GetWindowsDirectoryA,
+        shims::GlobalAlloc,
+        shims::GlobalFlags,
+        shims::GlobalFree,
+        shims::GlobalReAlloc,
+        shims::HeapAlloc,
+        shims::HeapCreate,
+        shims::HeapDestroy,
+        shims::HeapFree,
+        shims::HeapReAlloc,
+        shims::HeapSetInformation,
+        shims::HeapSize,
+        shims::InitOnceBeginInitialize,
+        shims::InitOnceComplete,
+        shims::InitializeCriticalSection,
+        shims::InitializeCriticalSectionAndSpinCount,
+        shims::InitializeCriticalSectionEx,
+        shims::InitializeSListHead,
+        shims::InterlockedIncrement,
+        shims::IsBadReadPtr,
+        shims::IsBadWritePtr,
+        shims::IsDBCSLeadByte,
+        shims::IsDBCSLeadByteEx,
+        shims::IsDebuggerPresent,
+        shims::IsProcessorFeaturePresent,
+        shims::IsValidCodePage,
+        shims::LeaveCriticalSection,
+        shims::LoadLibraryA,
+        shims::LoadLibraryExW,
+        shims::LoadResource,
+        shims::LocalAlloc,
+        shims::LocalFree,
+        shims::LockResource,
+        shims::MulDiv,
+        shims::MultiByteToWideChar,
+        shims::NtCurrentTeb,
+        shims::OutputDebugStringA,
+        shims::QueryPerformanceCounter,
+        shims::QueryPerformanceFrequency,
+        shims::ReadFile,
+        shims::ReleaseSRWLockExclusive,
+        shims::ReleaseSRWLockShared,
+        shims::RemoveDirectoryA,
+        shims::SetConsoleCtrlHandler,
+        shims::SetEndOfFile,
+        shims::SetEvent,
+        shims::SetFileAttributesA,
+        shims::SetFilePointer,
+        shims::SetFileTime,
+        shims::SetHandleCount,
+        shims::SetLastError,
+        shims::SetPriorityClass,
+        shims::SetStdHandle,
+        shims::SetThreadDescription,
+        shims::SetThreadPriority,
+        shims::SetThreadStackGuarantee,
+        shims::SetUnhandledExceptionFilter,
+        shims::Sleep,
+        shims::SystemTimeToFileTime,
+        shims::TlsAlloc,
+        shims::TlsFree,
+        shims::TlsGetValue,
+        shims::TlsSetValue,
+        shims::TryAcquireSRWLockExclusive,
+        shims::UnhandledExceptionFilter,
+        shims::VirtualAlloc,
+        shims::VirtualFree,
+        shims::VirtualProtect,
+        shims::VirtualQuery,
+        shims::WaitForSingleObject,
+        shims::WriteConsoleA,
+        shims::WriteConsoleW,
+        shims::WriteFile,
+        shims::lstrcmpiA,
+        shims::lstrcpyA,
+        shims::lstrcpyW,
+        shims::lstrlenA,
+        shims::lstrlenW,
+        shims::retrowin32_main,
+        shims::retrowin32_thread_main,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "kernel32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/kernel32.dll"),
     };
 }
@@ -5031,7 +4248,7 @@ pub mod ntdll {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const NtReadFile: Shim = Shim {
             name: "NtReadFile",
             func: impls::NtReadFile,
@@ -5039,13 +4256,10 @@ pub mod ntdll {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: None,
-        shim: shims::NtReadFile,
-    }];
+    const SHIMS: [Shim; 1usize] = [shims::NtReadFile];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ntdll.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/ntdll.dll"),
     };
 }
@@ -5061,12 +4275,12 @@ pub mod ole32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
     }
-    const EXPORTS: [Symbol; 0usize] = [];
+    const SHIMS: [Shim; 0usize] = [];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/ole32.dll"),
     };
 }
@@ -5082,12 +4296,12 @@ pub mod oleaut32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
     }
-    const EXPORTS: [Symbol; 0usize] = [];
+    const SHIMS: [Shim; 0usize] = [];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "oleaut32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/oleaut32.dll"),
     };
 }
@@ -5132,7 +4346,7 @@ pub mod retrowin32_test {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const retrowin32_test_callback1: Shim = Shim {
             name: "retrowin32_test_callback1",
             func: impls::retrowin32_test_callback1,
@@ -5140,13 +4354,10 @@ pub mod retrowin32_test {
             is_async: true,
         };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: None,
-        shim: shims::retrowin32_test_callback1,
-    }];
+    const SHIMS: [Shim; 1usize] = [shims::retrowin32_test_callback1];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "retrowin32_test.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/retrowin32_test.dll"),
     };
 }
@@ -5269,7 +4480,7 @@ pub mod ucrtbase {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const __dllonexit: Shim = Shim {
             name: "__dllonexit",
             func: impls::__dllonexit,
@@ -5355,67 +4566,25 @@ pub mod ucrtbase {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 14usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::__dllonexit,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::__p___argc,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::__p___argv,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::__p__commode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::__p__fmode,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::__set_app_type,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::_get_initial_narrow_environment,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::_initterm,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::_initterm_e,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::_lock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::_unlock,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::exit,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::free,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::malloc,
-        },
+    const SHIMS: [Shim; 14usize] = [
+        shims::__dllonexit,
+        shims::__p___argc,
+        shims::__p___argv,
+        shims::__p__commode,
+        shims::__p__fmode,
+        shims::__set_app_type,
+        shims::_get_initial_narrow_environment,
+        shims::_initterm,
+        shims::_initterm_e,
+        shims::_lock,
+        shims::_unlock,
+        shims::exit,
+        shims::free,
+        shims::malloc,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ucrtbase.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/ucrtbase.dll"),
     };
 }
@@ -5458,7 +4627,7 @@ pub mod vcruntime140 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const _CxxThrowException: Shim = Shim {
             name: "_CxxThrowException",
             func: impls::_CxxThrowException,
@@ -5484,27 +4653,15 @@ pub mod vcruntime140 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 4usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::_CxxThrowException,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::memcmp,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::memcpy,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::memset,
-        },
+    const SHIMS: [Shim; 4usize] = [
+        shims::_CxxThrowException,
+        shims::memcmp,
+        shims::memcpy,
+        shims::memset,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "vcruntime140.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/vcruntime140.dll"),
     };
 }
@@ -5526,7 +4683,7 @@ pub mod version {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const GetFileVersionInfoSizeA: Shim = Shim {
             name: "GetFileVersionInfoSizeA",
             func: impls::GetFileVersionInfoSizeA,
@@ -5534,13 +4691,10 @@ pub mod version {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 1usize] = [Symbol {
-        ordinal: None,
-        shim: shims::GetFileVersionInfoSizeA,
-    }];
+    const SHIMS: [Shim; 1usize] = [shims::GetFileVersionInfoSizeA];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "version.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/version.dll"),
     };
 }
@@ -6523,7 +5677,7 @@ pub mod user32 {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const AdjustWindowRect: Shim = Shim {
             name: "AdjustWindowRect",
             func: impls::AdjustWindowRect,
@@ -7047,359 +6201,98 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 87usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::AdjustWindowRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::AdjustWindowRectEx,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::AppendMenuA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::BeginPaint,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CheckMenuItem,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ClientToScreen,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateWindowExA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::CreateWindowExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DefWindowProcA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DefWindowProcW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DestroyWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DialogBoxIndirectParamA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DialogBoxParamA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DispatchMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DispatchMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::DrawTextW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::EndPaint,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FillRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FindWindowA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::FrameRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetActiveWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetClientRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetDesktopWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetFocus,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetForegroundWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetKeyState,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetLastActivePopup,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemMenu,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetSystemMetrics,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetWindowDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::GetWindowLongA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IntersectRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InvalidateRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::InvalidateRgn,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsIconic,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::IsRectEmpty,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadAcceleratorsW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadBitmapA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadCursorA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadCursorW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadIconA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadIconW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadImageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadImageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadMenuW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadStringA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::LoadStringW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MapWindowPoints,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MessageBoxA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MessageBoxW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MoveWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::MsgWaitForMultipleObjects,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PeekMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PeekMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PostMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PostQuitMessage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::PtInRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterClassA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterClassExA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterClassExW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterClassW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::RegisterWindowMessageW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ReleaseCapture,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ReleaseDC,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SendMessageA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetCapture,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetFocus,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetForegroundWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetMenu,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetRectEmpty,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetTimer,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetWindowPos,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::SetWindowTextA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ShowCursor,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ShowWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TranslateAcceleratorW,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::TranslateMessage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::UpdateWindow,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::ValidateRect,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::WaitMessage,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::wsprintfA,
-        },
+    const SHIMS: [Shim; 87usize] = [
+        shims::AdjustWindowRect,
+        shims::AdjustWindowRectEx,
+        shims::AppendMenuA,
+        shims::BeginPaint,
+        shims::CheckMenuItem,
+        shims::ClientToScreen,
+        shims::CreateCursor,
+        shims::CreateWindowExA,
+        shims::CreateWindowExW,
+        shims::DefWindowProcA,
+        shims::DefWindowProcW,
+        shims::DestroyWindow,
+        shims::DialogBoxIndirectParamA,
+        shims::DialogBoxParamA,
+        shims::DispatchMessageA,
+        shims::DispatchMessageW,
+        shims::DrawTextW,
+        shims::EndPaint,
+        shims::FillRect,
+        shims::FindWindowA,
+        shims::FrameRect,
+        shims::GetActiveWindow,
+        shims::GetClientRect,
+        shims::GetDC,
+        shims::GetDesktopWindow,
+        shims::GetFocus,
+        shims::GetForegroundWindow,
+        shims::GetKeyState,
+        shims::GetLastActivePopup,
+        shims::GetMessageA,
+        shims::GetMessageW,
+        shims::GetSystemMenu,
+        shims::GetSystemMetrics,
+        shims::GetWindowDC,
+        shims::GetWindowLongA,
+        shims::IntersectRect,
+        shims::InvalidateRect,
+        shims::InvalidateRgn,
+        shims::IsIconic,
+        shims::IsRectEmpty,
+        shims::LoadAcceleratorsW,
+        shims::LoadBitmapA,
+        shims::LoadCursorA,
+        shims::LoadCursorW,
+        shims::LoadIconA,
+        shims::LoadIconW,
+        shims::LoadImageA,
+        shims::LoadImageW,
+        shims::LoadMenuW,
+        shims::LoadStringA,
+        shims::LoadStringW,
+        shims::MapWindowPoints,
+        shims::MessageBoxA,
+        shims::MessageBoxW,
+        shims::MoveWindow,
+        shims::MsgWaitForMultipleObjects,
+        shims::PeekMessageA,
+        shims::PeekMessageW,
+        shims::PostMessageW,
+        shims::PostQuitMessage,
+        shims::PtInRect,
+        shims::RegisterClassA,
+        shims::RegisterClassExA,
+        shims::RegisterClassExW,
+        shims::RegisterClassW,
+        shims::RegisterWindowMessageW,
+        shims::ReleaseCapture,
+        shims::ReleaseDC,
+        shims::SendMessageA,
+        shims::SetCapture,
+        shims::SetCursor,
+        shims::SetFocus,
+        shims::SetForegroundWindow,
+        shims::SetMenu,
+        shims::SetRect,
+        shims::SetRectEmpty,
+        shims::SetTimer,
+        shims::SetWindowPos,
+        shims::SetWindowTextA,
+        shims::ShowCursor,
+        shims::ShowWindow,
+        shims::TranslateAcceleratorW,
+        shims::TranslateMessage,
+        shims::UpdateWindow,
+        shims::ValidateRect,
+        shims::WaitMessage,
+        shims::wsprintfA,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "user32.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/user32.dll"),
     };
 }
@@ -7489,7 +6382,7 @@ pub mod winmm {
     }
     mod shims {
         use super::impls;
-        use crate::shims::Shim;
+        use super::Shim;
         pub const timeBeginPeriod: Shim = Shim {
             name: "timeBeginPeriod",
             func: impls::timeBeginPeriod,
@@ -7557,55 +6450,22 @@ pub mod winmm {
             is_async: false,
         };
     }
-    const EXPORTS: [Symbol; 11usize] = [
-        Symbol {
-            ordinal: None,
-            shim: shims::timeBeginPeriod,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::timeGetTime,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::timeSetEvent,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutClose,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutGetDevCapsA,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutGetNumDevs,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutGetPosition,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutOpen,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutPrepareHeader,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutReset,
-        },
-        Symbol {
-            ordinal: None,
-            shim: shims::waveOutWrite,
-        },
+    const SHIMS: [Shim; 11usize] = [
+        shims::timeBeginPeriod,
+        shims::timeGetTime,
+        shims::timeSetEvent,
+        shims::waveOutClose,
+        shims::waveOutGetDevCapsA,
+        shims::waveOutGetNumDevs,
+        shims::waveOutGetPosition,
+        shims::waveOutOpen,
+        shims::waveOutPrepareHeader,
+        shims::waveOutReset,
+        shims::waveOutWrite,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "winmm.dll",
-        exports: &EXPORTS,
+        shims: &SHIMS,
         raw: std::include_bytes!("../../dll/winmm.dll"),
     };
 }

@@ -52,11 +52,8 @@ fn generate_dll(
     writeln!(f, "LIBRARY {}", module_name)?;
     writeln!(f, "EXPORTS")?;
     for dllexport in &dllexports.fns {
-        if let Some(ordinal) = dllexport.meta.ordinal {
-            writeln!(f, "  {} @{}", dllexport.sym_name, ordinal)?;
-        } else {
-            writeln!(f, "  {}", dllexport.sym_name)?;
-        }
+        let ordinal = dllexport.meta.ordinal.unwrap();
+        writeln!(f, "  {} @{}", dllexport.sym_name, ordinal)?;
     }
     for vtable in &dllexports.vtables {
         writeln!(f, "  {} DATA", vtable.name)?;
@@ -72,21 +69,17 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
 
     let mut impls = Vec::new();
     let mut shims = Vec::new();
-    let mut exports = Vec::new();
+    let mut shims_list = Vec::new();
     for dllexport in &dllexports.fns {
         let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, dllexport);
         impls.push(wrapper);
         shims.push(shim);
 
-        let ordinal = match dllexport.meta.ordinal {
-            Some(ord) => quote!(Some(#ord)),
-            None => quote!(None),
-        };
         let sym_name = &dllexport.sym_name;
-        exports.push(quote!(Symbol { ordinal: #ordinal, shim: shims::#sym_name }));
+        shims_list.push(quote!(shims::#sym_name));
     }
 
-    let exports_count = exports.len();
+    let shims_count = shims_list.len();
     let raw_dll_path = format!("../../dll/{}", dll_name);
     quote! {
         pub mod #module {
@@ -100,18 +93,18 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
             }
 
             mod shims {
-                use crate::shims::Shim;
                 use super::impls;
+                use super::Shim;
                 #(#shims)*
             }
 
-            const EXPORTS: [Symbol; #exports_count] = [
-                #(#exports),*
+            const SHIMS: [Shim; #shims_count] = [
+                #(#shims_list),*
             ];
 
             pub const DLL: BuiltinDLL = BuiltinDLL {
                 file_name: #dll_name,
-                exports: &EXPORTS,
+                shims: &SHIMS,
                 raw: std::include_bytes!(#raw_dll_path),
             };
         }
@@ -143,16 +136,12 @@ fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<Vec<u8>> {
     let out = quote! {
         /// Generated code, do not edit.
 
-        use crate::shims;
-
-        pub struct Symbol {
-            pub ordinal: Option<usize>,
-            pub shim: shims::Shim,
-        }
+        use crate::shims::Shim;
 
         pub struct BuiltinDLL {
             pub file_name: &'static str,
-            pub exports: &'static [Symbol],
+            /// The xth function in the DLL represents a call to shims[x].
+            pub shims: &'static [Shim],
             /// Raw bytes of generated .dll.
             pub raw: &'static [u8],
         }
@@ -197,6 +186,30 @@ fn rustfmt(tokens: &str) -> anyhow::Result<String> {
     Ok(String::from_utf8(output.stdout)?)
 }
 
+/// Assign ordinals to all fns that don't have them already.
+fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
+    let mut used_ordinals = std::collections::HashSet::new();
+    for dllexport in fns.iter_mut() {
+        if let Some(ordinal) = dllexport.meta.ordinal {
+            if !used_ordinals.insert(ordinal) {
+                return Err(syn::Error::new_spanned(dllexport.func, "duplicate ordinal").into());
+            }
+        }
+    }
+
+    let mut ordinal = 1;
+    for dllexport in fns {
+        if dllexport.meta.ordinal.is_none() {
+            while used_ordinals.contains(&ordinal) {
+                ordinal += 1;
+            }
+            dllexport.meta.ordinal = Some(ordinal);
+            ordinal += 1;
+        }
+    }
+    Ok(())
+}
+
 fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStream> {
     let module_name = path.file_stem().unwrap().to_string_lossy();
     eprintln!("{}.dll", module_name);
@@ -206,7 +219,12 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStrea
     for file in &files {
         parse::gather_dllexports(&file.items, &mut dllexports)?;
     }
+
+    // Sort by name, then assign ordinals satisfying the ordinals that were specified,
+    // then sort by ordinal to ensure the output is deterministic.
     dllexports.fns.sort_by(|a, b| a.sym_name.cmp(&b.sym_name));
+    assign_ordinals(&mut dllexports.fns).unwrap();
+    dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 
     generate_dll(dll_dir, &module_name, &dllexports)?;
 

@@ -43,19 +43,13 @@ impl DLL {
     ) -> Option<u32> {
         let builtin = self.builtin?;
 
-        let export = match *sym {
-            ImportSymbol::Name(name) => builtin
-                .exports
-                .iter()
-                .find(|&export| export.shim.name == name),
-            ImportSymbol::Ordinal(ord) => builtin
-                .exports
-                .iter()
-                .find(|&export| export.ordinal == Some(ord as usize)),
+        let shim = match *sym {
+            ImportSymbol::Name(name) => builtin.shims.iter().find(|&shim| shim.name == name),
+            ImportSymbol::Ordinal(ord) => builtin.shims.get(ord as usize - 1),
         };
 
-        let addr = match export {
-            Some(export) => register(Ok(&export.shim)),
+        let addr = match shim {
+            Some(shim) => register(Ok(shim)),
             None => {
                 let name = format!("{}:{}", self.name, sym);
                 log::debug!("unimplemented: {}", name);
