@@ -8,6 +8,7 @@ use crate::{
     shims::{Shim, UnimplFuture},
     Machine,
 };
+use memory::Extensions;
 
 type Trampoline = [u8; 16];
 
@@ -202,14 +203,14 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         // Push selector and reserve space for return address.
         let mut esp = STACK32;
         esp -= 4;
-        mem.put::<u32>(esp, machine.emu.shims.code64_selector as u32);
+        mem.put_pod::<u32>(esp, machine.emu.shims.code64_selector as u32);
         esp -= 4;
         let return_addr = esp;
 
         // Push arguments in reverse order.
         for &arg in args.iter().rev() {
             esp -= 4;
-            mem.put::<u32>(esp, arg);
+            mem.put_pod::<u32>(esp, arg);
         }
         STACK32 = esp;
 
