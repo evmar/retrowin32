@@ -114,10 +114,10 @@ pub fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> UnimplFutur
         .unwrap() as u32;
     for &arg in args.iter().rev() {
         esp -= 4;
-        mem.put(esp, arg);
+        mem.put_pod::<u32>(esp, arg);
     }
     esp -= 4;
-    mem.put(esp, ret_addr);
+    mem.put_pod::<u32>(esp, ret_addr);
 
     machine
         .emu
