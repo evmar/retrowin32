@@ -32,7 +32,11 @@ impl DLL {
     fn resolve_from_pe(&self, sym: &ImportSymbol) -> Option<u32> {
         match *sym {
             ImportSymbol::Name(name) => self.dll.names.get(name).copied(),
-            ImportSymbol::Ordinal(ord) => self.dll.ordinals.get(&ord).copied(),
+            ImportSymbol::Ordinal(ord) => self
+                .dll
+                .fns
+                .get((ord - self.dll.ordinal_base) as usize)
+                .copied(),
         }
     }
 
@@ -61,9 +65,7 @@ impl DLL {
             ImportSymbol::Name(name) => {
                 self.dll.names.insert(name.to_string(), addr);
             }
-            ImportSymbol::Ordinal(ord) => {
-                self.dll.ordinals.insert(ord, addr);
-            }
+            ImportSymbol::Ordinal(_) => {}
         }
         return Some(addr);
     }

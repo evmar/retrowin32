@@ -406,7 +406,8 @@ impl State {
                 dll: pe::DLL {
                     base: mapping.addr,
                     names: HashMap::new(),
-                    ordinals: HashMap::new(),
+                    ordinal_base: 1,
+                    fns: Default::default(),
                     resources: Default::default(),
                     entry_point: None,
                 },

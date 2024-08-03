@@ -213,9 +213,9 @@ pub struct DLL {
     /// Function name => resolved address.
     pub names: HashMap<String, u32>,
 
-    /// Function ordinal => resolved address.
-    // TODO: ords could be a flat array once we have ordinals for all the builtin DLLs.
-    pub ordinals: HashMap<u32, u32>,
+    /// fns[ordinal - ordinal base] => resolved address.
+    pub ordinal_base: u32,
+    pub fns: Vec<u32>,
 
     pub resources: Option<IMAGE_DATA_DIRECTORY>,
 
@@ -234,21 +234,20 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     } else {
         None
     };
-    let mut ordinals = HashMap::new();
+    let mut ordinal_base = 1;
+    let mut fns = Vec::new();
     let mut names = HashMap::new();
     if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let section = dir
             .as_slice(image)
             .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
         let dir = pe::read_exports(section);
-        for (i, addr) in dir.fns(image).enumerate() {
-            let ord = dir.Base + i as u32;
-            ordinals.insert(ord, base + addr);
+        ordinal_base = dir.Base;
+        for addr in dir.fns(image) {
+            fns.push(base + addr);
         }
         for (name, i) in dir.names(image) {
-            let ord = dir.Base + i as u32;
-            let addr = *ordinals.get(&ord).unwrap();
-            names.insert(name.to_string(), addr);
+            names.insert(name.to_string(), fns[i as usize]);
         }
     }
 
@@ -259,8 +258,9 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
 
     Ok(DLL {
         base,
-        ordinals,
         names,
+        ordinal_base,
+        fns,
         resources,
         entry_point,
     })
