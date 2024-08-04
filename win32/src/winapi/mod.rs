@@ -76,18 +76,13 @@ pub fn apiset(name: &str) -> Option<&'static str> {
     })
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     scratch: heap::Heap,
 
-    #[serde(skip)] // TODO
     pub ddraw: ddraw::State,
-    #[serde(skip)] // TODO
     pub dsound: dsound::State,
-    #[serde(skip)] // TODO
     pub gdi32: gdi32::State,
     pub kernel32: kernel32::State,
-    #[serde(skip)] // TODO
     pub user32: user32::State,
 }
 

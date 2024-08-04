@@ -359,15 +359,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_bytes"
-version = "0.11.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ab33ec92f677585af6d88c65593ae2375adde54efdbf16d597f2cbc7a6d368ff"
-dependencies = [
- "serde",
-]
-
-[[package]]
 name = "serde_derive"
 version = "1.0.188"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -555,7 +546,6 @@ dependencies = [
  "num-derive",
  "num-traits",
  "serde",
- "serde_bytes",
  "tsify",
  "typed-path",
  "unicorn-engine",

@@ -5,7 +5,7 @@
 use super::alloc::align_to;
 use memory::{Extensions, Mem};
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(Default)]
 pub struct Heap {
     pub addr: u32,
     pub size: u32,
@@ -105,7 +105,7 @@ impl Heap {
 }
 
 /// Entry in the FreeList.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug)]
 struct FreeNode {
     addr: u32,
     size: u32,

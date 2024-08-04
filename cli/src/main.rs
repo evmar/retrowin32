@@ -48,11 +48,6 @@ struct Args {
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
 
-    /// load snapshot from file
-    #[cfg(feature = "x86-emu")]
-    #[argh(option)]
-    snapshot: Option<String>,
-
     /// enable debug logging
     #[argh(switch)]
     debug: bool,
@@ -113,20 +108,6 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
     Ok(trace_points)
 }
 
-#[allow(unused)]
-static mut SNAPSHOT_REQUESTED: bool = false;
-
-#[cfg(target_family = "unix")]
-fn install_sigusr1_handler() {
-    unsafe extern "C" fn sigusr1(_sig: usize) {
-        SNAPSHOT_REQUESTED = true;
-    }
-    let ret = unsafe { libc::signal(libc::SIGUSR1, sigusr1 as *const fn(usize) as usize) };
-    if ret != 0 {
-        log::error!("failed to install signal handler for snapshot");
-    }
-}
-
 fn main() -> anyhow::Result<ExitCode> {
     #[cfg(feature = "x86-64")]
     unsafe {
@@ -173,9 +154,6 @@ fn main() -> anyhow::Result<ExitCode> {
         .load_exe(&buf, exe, None)
         .map_err(|err| anyhow!("loading {}: {}", exe, err))?;
 
-    #[cfg(target_family = "unix")]
-    install_sigusr1_handler();
-
     #[cfg(feature = "x86-64")]
     {
         assert!(args.trace_points.is_none());
@@ -189,11 +167,6 @@ fn main() -> anyhow::Result<ExitCode> {
     #[cfg(feature = "x86-emu")]
     {
         _ = addrs;
-
-        if let Some(snap) = args.snapshot {
-            let bytes = std::fs::read(snap).unwrap();
-            machine.load_snapshot(&bytes);
-        }
 
         let start = std::time::Instant::now();
         if args.trace_blocks {
@@ -224,17 +197,7 @@ fn main() -> anyhow::Result<ExitCode> {
                 print_trace(&machine);
             }
         } else {
-            while machine.run() {
-                unsafe {
-                    if SNAPSHOT_REQUESTED {
-                        let buf = machine.snapshot();
-                        let path = "snapshot";
-                        std::fs::write(path, buf).unwrap();
-                        log::info!("wrote snapshot to {path:?}");
-                        SNAPSHOT_REQUESTED = false;
-                    }
-                }
-            }
+            while machine.run() {}
         }
 
         match &machine.emu.x86.cpu().state {

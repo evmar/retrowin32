@@ -7,7 +7,6 @@ import { Instruction } from './glue/pkg/glue';
 import { Mappings } from './mappings';
 import { Memory, MemoryView } from './memory';
 import { RegistersComponent } from './registers';
-import { SnapshotsComponent } from './snapshots';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
 import { EmulatorComponent, loadEmulator } from './web';
@@ -225,16 +224,6 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
                   labels={this.props.emulator.labels}
                   highlight={eip}
                   {...this.memoryView}
-                />
-              ),
-
-              snapshots: () => (
-                <SnapshotsComponent
-                  take={() => this.props.emulator.emu.snapshot()}
-                  load={(snap) => {
-                    this.props.emulator.emu.load_snapshot(snap);
-                    this.forceUpdate();
-                  }}
                 />
               ),
             }}

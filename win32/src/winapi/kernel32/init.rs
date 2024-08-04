@@ -17,7 +17,6 @@ const TRACE_CONTEXT: &'static str = "kernel32/init";
 /// Process command line, as exposed in GetCommandLine() and also TEB.
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct CommandLine {
     /// Command line, split args.
     pub args: Vec<String>,
@@ -195,7 +194,6 @@ pub struct GDTEntries {
     pub ss: u16,
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct State {
     /// Memory for kernel32 data structures.
     arena: Arena,
@@ -208,19 +206,14 @@ pub struct State {
     heaps: HashMap<u32, Heap>,
     pub process_heap: u32,
 
-    #[serde(skip)] // TODO
     pub dlls: HashMap<HMODULE, DLL>,
 
-    #[serde(skip)] // TODO
     pub resources: pe::IMAGE_DATA_DIRECTORY,
 
-    #[serde(skip)] // TODO
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
-    #[serde(skip)] // TODO
     pub find_handles: Handles<HFIND, FindHandle>,
 
-    #[serde(skip)]
     #[cfg(feature = "x86-64")]
     pub ldt: crate::ldt::LDT,
 

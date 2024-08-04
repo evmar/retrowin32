@@ -10,7 +10,6 @@ pub fn align_to(n: u32, align: usize) -> u32 {
     (n + add) & !add
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Arena {
     pub addr: u32,
     pub size: u32,

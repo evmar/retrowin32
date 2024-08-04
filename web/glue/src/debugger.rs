@@ -1,10 +1,9 @@
 //! API used specifically for debugging the emulator.
 
-use serde::{Deserialize, Serialize};
 use tsify::Tsify;
 
 /// Registers are serialized as a JSON blob.
-#[derive(Tsify, Serialize, Deserialize)]
+#[derive(Tsify, serde::Serialize)]
 #[tsify(into_wasm_abi)]
 pub struct Registers {
     eax: u32,

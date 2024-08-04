@@ -2,7 +2,6 @@ use bitflags::bitflags;
 use iced_x86::Register::{self, *};
 
 bitflags! {
-    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
@@ -19,7 +18,7 @@ bitflags! {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize, Default)]
+#[derive(Default)]
 pub struct Registers {
     /// 32-bit registers, in order:
     ///   eax ecx edx ebx esp ebp esi edi,

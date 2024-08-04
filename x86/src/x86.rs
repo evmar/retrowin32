@@ -9,7 +9,7 @@ use crate::{
 };
 use memory::Mem;
 
-#[derive(Debug, Default, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, Default, PartialEq, Eq)]
 pub enum CPUState {
     #[default]
     Running,
@@ -28,7 +28,6 @@ impl CPUState {
 /// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
 const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct CPU {
     pub regs: Registers,
     // Flags are in principle a register but we moved it outside of regs for lifetime reasons,
@@ -41,7 +40,6 @@ pub struct CPU {
 
     /// If eip==MAGIC_ADDR, then the next step is to poll a future rather than
     /// executing a basic block.
-    #[serde(skip)]
     futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
 }
 
@@ -174,7 +172,6 @@ impl std::future::Future for BlockFuture {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct X86 {
     /// CPUs are boxed because their futures take pointers to self.
     /// In theory we could use Pin here but maybe we just need to revisit how this works in general.
@@ -184,7 +181,6 @@ pub struct X86 {
     /// Total number of instructions executed.
     pub instr_count: usize,
 
-    #[serde(skip)]
     pub icache: InstrCache,
 }
 

@@ -8,17 +8,15 @@ use crate::{
 use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
-// This is really Box<u8>, just using Vec<u8> to use serde_bytes.
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct BoxMem(#[serde(with = "serde_bytes")] Vec<u8>);
+pub struct BoxMem(Box<[u8]>);
 
 impl BoxMem {
     fn new(size: usize) -> Self {
-        let mut buf = Vec::with_capacity(size);
+        let mut buf = Vec::<u8>::with_capacity(size);
         unsafe {
             buf.set_len(size);
         }
-        Self(buf)
+        Self(buf.into_boxed_slice())
     }
 
     // TODO: we can support growing under wasm by using a custom allocator that
@@ -38,11 +36,9 @@ impl BoxMem {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct Emulator {
     pub x86: x86::X86,
     pub memory: BoxMem,
-    #[serde(skip)]
     pub shims: Shims,
 
     /// Places where we've patched out the instruction with an int3.
@@ -202,14 +198,6 @@ impl MachineX<Emulator> {
     //         );
     //     }
     // }
-
-    pub fn snapshot(&self) -> Box<[u8]> {
-        bincode::serialize(&self.emu).unwrap().into()
-    }
-
-    pub fn load_snapshot(&mut self, bytes: &[u8]) {
-        self.emu = bincode::deserialize(bytes).unwrap();
-    }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) {

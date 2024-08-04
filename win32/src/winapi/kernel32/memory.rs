@@ -14,7 +14,7 @@ pub fn round_up_to_page_granularity(size: u32) -> u32 {
 }
 
 /// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
-#[derive(Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Debug, serde::Serialize)]
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 pub struct Mapping {
     pub addr: u32,
@@ -31,7 +31,7 @@ impl Mapping {
 
 /// The set of Mappings managed by the kernel.
 /// These get visualized in the debugger when you hover a pointer.
-#[derive(serde::Serialize, serde::Deserialize, Debug)]
+#[derive(serde::Serialize, Debug)]
 pub struct Mappings(Vec<Mapping>);
 impl Mappings {
     pub fn new() -> Self {

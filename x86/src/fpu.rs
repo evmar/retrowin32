@@ -3,7 +3,6 @@
 use bitflags::bitflags;
 
 bitflags! {
-    #[derive(serde::Serialize, serde::Deserialize)]
     pub struct Status: u16 {
         const C3 = 1 << 14;
         const C2 = 1 << 10;
@@ -12,7 +11,6 @@ bitflags! {
     }
 }
 
-#[derive(serde::Serialize, serde::Deserialize)]
 pub struct FPU {
     /// FPU ST0 through ST7 registers.
     pub st: [f64; 8],

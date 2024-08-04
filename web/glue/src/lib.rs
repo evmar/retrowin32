@@ -114,13 +114,6 @@ impl Emulator {
         *self.machine.mem().view_mut::<u8>(addr) = value;
     }
 
-    pub fn snapshot(&self) -> Box<[u8]> {
-        self.machine.snapshot()
-    }
-    pub fn load_snapshot(&mut self, bytes: &[u8]) {
-        self.machine.load_snapshot(bytes)
-    }
-
     pub fn set_tracing_scheme(&self, scheme: &str) {
         win32::trace::set_scheme(scheme);
     }
