@@ -38,7 +38,10 @@
 
 use memory::Extensions;
 
-use crate::{machine::Machine, shims::Shim};
+use crate::{
+    machine::Machine,
+    shims::{Handler, Shim},
+};
 
 /// Code that calls from x86 to the host will jump to addresses in this
 /// magic range.
@@ -80,29 +83,42 @@ pub fn handle_shim_call(machine: &mut Machine) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    let crate::shims::Shim {
+    let Shim {
         func,
         stack_consumed,
-        is_async,
         ..
     } = *shim;
     let esp = regs.get32(x86::Register::ESP);
-    let ret = unsafe { func(machine, esp) };
-    if !is_async {
-        let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine
-            .emu
-            .memory
-            .mem()
-            .get_pod::<u32>(regs.get32(x86::Register::ESP));
-        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
-        regs.set32(x86::Register::EAX, ret);
+    match func {
+        Handler::Sync(func) => {
+            let ret = unsafe { func(machine, esp) };
+            let regs = &mut machine.emu.x86.cpu_mut().regs;
+            regs.eip = machine
+                .emu
+                .memory
+                .mem()
+                .get_pod::<u32>(regs.get32(x86::Register::ESP));
+            *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
+            regs.set32(x86::Register::EAX, ret);
 
-        // Clear registers to make traces clean.
-        // eax holds return value; other registers are callee-saved per ABI.
-        regs.set32(x86::Register::ECX, 0);
-        regs.set32(x86::Register::EDX, 0);
-    } else {
-        // Async handler will manage the return address etc.
+            // Clear registers to make traces clean.
+            // eax holds return value; other registers are callee-saved per ABI.
+            regs.set32(x86::Register::ECX, 0);
+            regs.set32(x86::Register::EDX, 0);
+        }
+        Handler::Async(func) => {
+            // Yuck: we know Machine will outlive the future, but Rust doesn't.
+            // At least we managed to isolate the yuck to this point.
+            let m: *mut Machine = machine;
+            let future = Box::pin(async move {
+                let machine = unsafe { &mut *m };
+                let ret = unsafe { func(machine, esp) }.await;
+                let regs = &mut machine.emu.x86.cpu_mut().regs;
+                regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
+                *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
+                regs.set32(x86::Register::EAX, ret);
+            });
+            machine.emu.x86.cpu_mut().call_async(future);
+        }
     }
 }
