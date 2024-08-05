@@ -37,7 +37,6 @@
 //! x86 code eventually invoked there will return control back to async_executor.
 
 use crate::{machine::Machine, shims::Shim};
-use memory::Extensions;
 use std::collections::HashMap;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
@@ -68,22 +67,11 @@ pub fn handle_shim_call(machine: &mut Machine) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    let crate::shims::Shim {
-        func,
-        stack_consumed,
-        is_async,
-        ..
-    } = *shim;
+    let crate::shims::Shim { func, is_async, .. } = *shim;
     let esp = regs.get32(x86::Register::ESP);
     let ret = unsafe { func(machine, esp) };
     if !is_async {
         let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine
-            .emu
-            .memory
-            .mem()
-            .get_pod::<u32>(regs.get32(x86::Register::ESP));
-        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
         regs.set32(x86::Register::EAX, ret);
 
         // Clear registers to make traces clean.
