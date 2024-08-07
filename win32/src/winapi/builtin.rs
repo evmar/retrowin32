@@ -4245,6 +4245,11 @@ pub mod ntdll {
             )
             .to_raw()
         }
+        pub unsafe fn RtlExitUserProcess(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let exit_code = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ntdll::RtlExitUserProcess(machine, exit_code).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -4255,8 +4260,14 @@ pub mod ntdll {
             stack_consumed: 36u32,
             is_async: false,
         };
+        pub const RtlExitUserProcess: Shim = Shim {
+            name: "RtlExitUserProcess",
+            func: impls::RtlExitUserProcess,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const SHIMS: [Shim; 1usize] = [shims::NtReadFile];
+    const SHIMS: [Shim; 2usize] = [shims::NtReadFile, shims::RtlExitUserProcess];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ntdll.dll",
         shims: &SHIMS,
