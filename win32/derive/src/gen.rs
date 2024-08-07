@@ -52,10 +52,9 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                 use memory::Extensions;
                 let machine = unsafe { &mut *m };
                 let result = #impl_name(machine, #(#args),*).await;
-                let regs = &mut machine.emu.x86.cpu_mut().regs;
-                regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
-                *regs.get32_mut(x86::Register::ESP) += #stack_consumed + 4;
-                regs.set32(x86::Register::EAX, result.to_raw());
+                let cpu = &mut machine.emu.x86.cpu_mut();
+                cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                cpu.regs.set32(x86::Register::EAX, result.to_raw());
             };
             machine.emu.x86.cpu_mut().call_async(Box::pin(result));
             // async block will set up the stack and eip.
