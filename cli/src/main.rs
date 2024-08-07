@@ -247,7 +247,7 @@ fn main() -> anyhow::Result<ExitCode> {
 
         #[cfg(feature = "x86-emu")]
         {
-            let millis = start.elapsed().as_millis() as u64;
+            let millis = start.elapsed().as_millis() as usize;
             if millis > 0 {
                 eprintln!(
                     "{} instrs in {} ms: {}m/s",

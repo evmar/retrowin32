@@ -273,6 +273,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "futures",
  "js-sys",
  "log",
  "serde",
