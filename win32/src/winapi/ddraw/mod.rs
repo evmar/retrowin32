@@ -91,14 +91,6 @@ impl Surface {
 
 pub struct State {
     heap: Heap,
-    vtable_IDirectDraw: Option<u32>,
-    vtable_IDirectDrawSurface: Option<u32>,
-    vtable_IDirectDraw2: Option<u32>,
-    vtable_IDirectDrawSurface2: Option<u32>,
-    vtable_IDirectDraw7: Option<u32>,
-    vtable_IDirectDrawSurface7: Option<u32>,
-    vtable_IDirectDrawPalette: Option<u32>,
-    vtable_IDirectDrawClipper: Option<u32>,
 
     // TODO: this is per-IDirectDraw state.
     hwnd: HWND,
@@ -128,14 +120,6 @@ impl Default for State {
     fn default() -> Self {
         State {
             heap: Heap::default(),
-            vtable_IDirectDraw: None,
-            vtable_IDirectDrawSurface: None,
-            vtable_IDirectDraw2: None,
-            vtable_IDirectDrawSurface2: None,
-            vtable_IDirectDraw7: None,
-            vtable_IDirectDrawSurface7: None,
-            vtable_IDirectDrawPalette: None,
-            vtable_IDirectDrawClipper: None,
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,

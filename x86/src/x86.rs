@@ -15,6 +15,7 @@ pub enum CPUState {
     Running,
     Blocked(Option<u32>),
     DebugBreak,
+    SysCall,
     Error(String),
     Exit(u32),
 }
@@ -240,7 +241,10 @@ impl X86 {
         for (i, cpu) in self.cpus.iter().enumerate() {
             match cpu.state {
                 CPUState::Running => {}
-                CPUState::DebugBreak | CPUState::Error(_) | CPUState::Exit(_) => {
+                CPUState::DebugBreak
+                | CPUState::Error(_)
+                | CPUState::Exit(_)
+                | CPUState::SysCall => {
                     self.cur_cpu = i;
                     return;
                 }

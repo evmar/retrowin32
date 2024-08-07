@@ -130,11 +130,13 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
             machine.labels.insert(iat_addr, format!("{}@IAT", name));
 
             let resolved_addr = if let Some(dll) = dll.as_mut() {
-                dll.resolve(&sym, |shim| machine.emu.shims.add(shim))
+                dll.resolve(&sym)
             } else {
-                machine.emu.shims.add(Err(format!("{name} not found")))
+                0
             };
-            machine.labels.insert(resolved_addr, name);
+            if resolved_addr != 0 {
+                machine.labels.insert(resolved_addr, name);
+            }
             patches.push((iat_addr, resolved_addr));
         }
     }

@@ -36,33 +36,23 @@
 //! and runs the async state machine.  In the case of call_x86 that means the
 //! x86 code eventually invoked there will return control back to async_executor.
 
-use memory::Extensions;
-
 use crate::{machine::Machine, shims::Shim};
-
-/// Code that calls from x86 to the host will jump to addresses in this
-/// magic range.
-/// "fake IAT" => "FIAT" => "F1A7"
-const SHIM_BASE: u32 = 0xF1A7_0000;
+use std::collections::HashMap;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 #[derive(Default)]
 pub struct Shims {
-    shims: Vec<Result<&'static Shim, String>>,
+    shims: HashMap<u32, Result<&'static Shim, String>>,
 }
 
 impl Shims {
-    /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
-        let id = SHIM_BASE | self.shims.len() as u32;
-        self.shims.push(shim);
-        id
+    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
+        self.shims.insert(addr, shim);
     }
 
     pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
-        let index = (addr & 0x0000_FFFF) as usize;
-        match self.shims.get(index) {
+        match self.shims.get(&addr) {
             Some(Ok(shim)) => Ok(shim),
             Some(Err(name)) => Err(name),
             None => panic!("unknown import reference at {:x}", addr),
@@ -70,32 +60,18 @@ impl Shims {
     }
 }
 
-pub fn is_ip_at_shim_call(ip: u32) -> bool {
-    ip & 0xFFFF_0000 == SHIM_BASE
-}
-
 pub fn handle_shim_call(machine: &mut Machine) {
     let regs = &mut machine.emu.x86.cpu_mut().regs;
-    let shim = match machine.emu.shims.get(regs.eip) {
+    let syscall_len = 2; // eip points to instr after the sycall instr
+    let shim = match machine.emu.shims.get(regs.eip - syscall_len) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    let crate::shims::Shim {
-        func,
-        stack_consumed,
-        is_async,
-        ..
-    } = *shim;
+    let crate::shims::Shim { func, is_async, .. } = *shim;
     let esp = regs.get32(x86::Register::ESP);
     let ret = unsafe { func(machine, esp) };
     if !is_async {
         let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine
-            .emu
-            .memory
-            .mem()
-            .get_pod::<u32>(regs.get32(x86::Register::ESP));
-        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
         regs.set32(x86::Register::EAX, ret);
 
         // Clear registers to make traces clean.
