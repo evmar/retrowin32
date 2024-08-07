@@ -79,43 +79,32 @@ pub fn is_ip_at_shim_call(ip: u32) -> bool {
     ip & 0xFFFF_0000 == SHIM_BASE
 }
 
-pub fn handle_shim_call(machine: &mut Machine, shim: &'static Shim) -> Option<BoxFuture<()>> {
-    let Shim {
-        func,
-        stack_consumed,
-        ..
-    } = *shim;
-    match func {
+pub fn handle_shim_call(machine: &mut Machine, shim: &'static Shim) -> Option<BoxFuture<u32>> {
+    let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
+    match shim.func {
         Handler::Sync(func) => {
-            let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
             let ret = unsafe { func(machine, esp) };
-            let regs = &mut machine.emu.x86.cpu_mut().regs;
-            regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
-            regs.set32(x86::Register::ESP, esp + stack_consumed + 4);
-            regs.set32(x86::Register::EAX, ret);
-
-            // Clear registers to make traces clean.
-            // eax holds return value; other registers are callee-saved per ABI.
-            regs.set32(x86::Register::ECX, 0);
-            regs.set32(x86::Register::EDX, 0);
+            finish_shim_call(machine, shim, ret);
             None
         }
         Handler::Async(func) => {
-            let machine: *mut Machine = machine;
-            Some(Box::pin(async move {
-                let machine = unsafe { &mut *machine };
-                let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
-                let ret = unsafe { func(machine, esp) }.await;
-                let regs = &mut machine.emu.x86.cpu_mut().regs;
-                regs.eip = machine.emu.memory.mem().get_pod::<u32>(esp);
-                regs.set32(x86::Register::ESP, esp + stack_consumed + 4);
-                regs.set32(x86::Register::EAX, ret);
-
-                // Clear registers to make traces clean.
-                // eax holds return value; other registers are callee-saved per ABI.
-                regs.set32(x86::Register::ECX, 0);
-                regs.set32(x86::Register::EDX, 0);
-            }))
+            let future = unsafe { func(machine, esp) };
+            machine.emu.x86.cpu_mut().regs.eip = x86::MAGIC_ADDR;
+            Some(future)
         }
     }
+}
+
+pub fn finish_shim_call(machine: &mut Machine, shim: &'static Shim, ret: u32) {
+    let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
+    let ret_addr = machine.emu.memory.mem().get_pod::<u32>(esp);
+    let regs = &mut machine.emu.x86.cpu_mut().regs;
+    regs.eip = ret_addr;
+    regs.set32(x86::Register::ESP, esp + shim.stack_consumed + 4);
+    regs.set32(x86::Register::EAX, ret);
+
+    // Clear registers to make traces clean.
+    // eax holds return value; other registers are callee-saved per ABI.
+    regs.set32(x86::Register::ECX, 0);
+    regs.set32(x86::Register::EDX, 0);
 }

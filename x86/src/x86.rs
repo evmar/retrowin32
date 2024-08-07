@@ -29,10 +29,7 @@ impl CPUState {
 }
 
 /// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
-const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
-
-// Similar to futures::future::BoxFuture, but 'static + !Send.
-pub type BoxFuture<T> = Pin<Box<dyn Future<Output = T>>>;
+pub const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 
 pub struct CPU {
     pub regs: Registers,
@@ -43,10 +40,6 @@ pub struct CPU {
     pub fpu: FPU,
 
     pub state: CPUState,
-
-    /// If eip==MAGIC_ADDR, then the next step is to poll a future rather than
-    /// executing a basic block.
-    futures: Vec<BoxFuture<()>>,
 }
 
 impl CPU {
@@ -59,7 +52,6 @@ impl CPU {
             flags: Flags::empty(),
             fpu: FPU::default(),
             state: Default::default(),
-            futures: Default::default(),
         }
     }
 
@@ -100,25 +92,6 @@ impl CPU {
         self.regs.set32(Register::EDX, 0);
 
         X86Future { cpu: self, esp }
-    }
-
-    /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
-    /// that is polled the next time the CPU executes.
-    pub fn call_async(&mut self, future: BoxFuture<()>) {
-        self.regs.eip = MAGIC_ADDR;
-        self.futures.push(future);
-    }
-
-    fn async_executor(&mut self) {
-        let future = self.futures.last_mut().unwrap();
-        let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
-        let poll = future.as_mut().poll(&mut ctx);
-        match poll {
-            Poll::Ready(()) => {
-                self.futures.pop();
-            }
-            Poll::Pending => {}
-        }
     }
 
     pub fn block(&mut self, wait: Option<u32>) -> BlockFuture {
@@ -252,10 +225,6 @@ impl X86 {
     pub fn execute_block(&mut self, mem: Mem, instruction_count: usize) -> usize {
         let cpu = &mut *self.cpus[self.cur_cpu];
         debug_assert!(cpu.state.is_running());
-        if cpu.regs.eip == MAGIC_ADDR {
-            cpu.async_executor();
-            return 0;
-        }
         let mut prev_ip = cpu.regs.eip;
         let block = self.icache.get_block(mem, prev_ip, instruction_count);
         for op in block.ops.iter() {
