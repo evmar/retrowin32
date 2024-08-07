@@ -32,12 +32,7 @@ pub fn GetLastError(machine: &mut Machine) -> u32 {
 #[win32_derive::dllexport]
 pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     machine.host.exit(uExitCode);
-    // TODO: this is unsatisfying.
-    // Maybe better is to generate a hlt instruction somewhere and jump to it?
-    #[cfg(feature = "x86-emu")]
-    {
-        machine.emu.x86.cpu_mut().state = x86::CPUState::Exit(uExitCode);
-    }
+    machine.exit(uExitCode);
     0
 }
 

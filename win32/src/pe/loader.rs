@@ -4,6 +4,7 @@ use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, winapi};
 use memory::{Extensions, ExtensionsMut};
 use std::collections::HashMap;
+use std::path::Path;
 
 /// Create a memory mapping, optionally copying some data to it.
 fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Option<&[u8]>) {
@@ -181,12 +182,13 @@ pub struct EXEFields {
 pub fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
-    filename: &str,
+    path: &Path,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
-    let base = load_pe(machine, filename, buf, &file, relocate)?;
+    let filename = path.file_name().unwrap().to_string_lossy();
+    let base = load_pe(machine, &filename, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;
 
     if let Some(res_data) = file

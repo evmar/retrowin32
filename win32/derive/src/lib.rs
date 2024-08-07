@@ -50,7 +50,7 @@ pub fn shims_from_x86(
 
     let shims_module: syn::ItemMod = syn::parse2::<syn::ItemMod>(quote! {
         pub mod shims {
-            use crate::shims::Shim;
+            use crate::shims::{Handler, Shim};
             use super::impls;
             #(#shims)*
         }

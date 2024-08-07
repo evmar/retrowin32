@@ -38,6 +38,7 @@
 
 use memory::Extensions;
 
+use crate::shims::{BoxFuture, Handler};
 use crate::{machine::Machine, shims::Shim};
 
 /// Code that calls from x86 to the host will jump to addresses in this
@@ -60,49 +61,50 @@ impl Shims {
         id
     }
 
-    pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
-        let index = (addr & 0x0000_FFFF) as usize;
-        match self.shims.get(index) {
-            Some(Ok(shim)) => Ok(shim),
-            Some(Err(name)) => Err(name),
-            None => panic!("unknown import reference at {:x}", addr),
+    pub fn get(&self, addr: u32) -> Option<Result<&'static Shim, &str>> {
+        if is_ip_at_shim_call(addr) {
+            let index = (addr & 0x0000_FFFF) as usize;
+            self.shims.get(index).map(|result| match result {
+                Ok(shim) => Ok(*shim),
+                Err(name) => Err(name.as_str()),
+            })
+        } else {
+            None
         }
     }
 }
 
+#[inline]
 pub fn is_ip_at_shim_call(ip: u32) -> bool {
     ip & 0xFFFF_0000 == SHIM_BASE
 }
 
-pub fn handle_shim_call(machine: &mut Machine) {
-    let regs = &mut machine.emu.x86.cpu_mut().regs;
-    let shim = match machine.emu.shims.get(regs.eip) {
-        Ok(shim) => shim,
-        Err(name) => unimplemented!("{}", name),
-    };
-    let crate::shims::Shim {
-        func,
-        stack_consumed,
-        is_async,
-        ..
-    } = *shim;
-    let esp = regs.get32(x86::Register::ESP);
-    let ret = unsafe { func(machine, esp) };
-    if !is_async {
-        let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine
-            .emu
-            .memory
-            .mem()
-            .get_pod::<u32>(regs.get32(x86::Register::ESP));
-        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
-        regs.set32(x86::Register::EAX, ret);
-
-        // Clear registers to make traces clean.
-        // eax holds return value; other registers are callee-saved per ABI.
-        regs.set32(x86::Register::ECX, 0);
-        regs.set32(x86::Register::EDX, 0);
-    } else {
-        // Async handler will manage the return address etc.
+pub fn handle_shim_call(machine: &mut Machine, shim: &'static Shim) -> Option<BoxFuture<u32>> {
+    let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
+    match shim.func {
+        Handler::Sync(func) => {
+            let ret = unsafe { func(machine, esp) };
+            finish_shim_call(machine, shim, ret);
+            None
+        }
+        Handler::Async(func) => {
+            let future = unsafe { func(machine, esp) };
+            machine.emu.x86.cpu_mut().regs.eip = x86::MAGIC_ADDR;
+            Some(future)
+        }
     }
+}
+
+pub fn finish_shim_call(machine: &mut Machine, shim: &'static Shim, ret: u32) {
+    let esp = machine.emu.x86.cpu_mut().regs.get32(x86::Register::ESP);
+    let ret_addr = machine.emu.memory.mem().get_pod::<u32>(esp);
+    let regs = &mut machine.emu.x86.cpu_mut().regs;
+    regs.eip = ret_addr;
+    regs.set32(x86::Register::ESP, esp + shim.stack_consumed + 4);
+    regs.set32(x86::Register::EAX, ret);
+
+    // Clear registers to make traces clean.
+    // eax holds return value; other registers are callee-saved per ABI.
+    regs.set32(x86::Register::ECX, 0);
+    regs.set32(x86::Register::EDX, 0);
 }
