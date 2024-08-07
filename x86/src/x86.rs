@@ -147,7 +147,7 @@ pub struct X86 {
     pub cur_cpu: usize,
 
     /// Total number of instructions executed.
-    pub instr_count: u64,
+    pub instr_count: usize,
 
     pub icache: InstrCache,
 }

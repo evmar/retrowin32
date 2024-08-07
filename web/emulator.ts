@@ -70,7 +70,7 @@ export class Emulator extends JsHost {
     const endTime = performance.now();
     const endSteps = this.emu.instr_count;
 
-    const steps = Number(endSteps - startSteps);
+    const steps = endSteps - startSteps;
     const deltaTime = endTime - startTime;
     if (steps > 1000 && deltaTime >= 1) { // only update if we ran enough instructions to get a good measurement
       const instrPerMs = steps / deltaTime;
@@ -106,8 +106,6 @@ export class Emulator extends JsHost {
         return false;
       }
       case wasm.CPUState.Blocked:
-        // Return control to the browser event loop.
-        return false;
       case wasm.CPUState.Error:
       case wasm.CPUState.Exit:
         this.emuHost.onStopped();

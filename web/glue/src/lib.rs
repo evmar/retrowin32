@@ -3,6 +3,7 @@ mod host;
 mod log;
 
 use crate::host::JsHost;
+use std::task::{Context, Poll};
 use wasm_bindgen::prelude::*;
 
 pub type JsResult<T> = Result<T, JsError>;
@@ -10,9 +11,16 @@ fn err_from_anyhow(err: anyhow::Error) -> JsError {
     JsError::new(&err.to_string())
 }
 
+struct AsyncShimCall {
+    shim: &'static win32::shims::Shim,
+    future: win32::shims::BoxFuture<u32>,
+}
+
 #[wasm_bindgen]
 pub struct Emulator {
     machine: win32::Machine,
+    shim_calls: Vec<AsyncShimCall>,
+    ctx: Context<'static>,
 }
 
 #[wasm_bindgen]
@@ -62,7 +70,7 @@ impl Emulator {
     }
 
     #[wasm_bindgen(getter)]
-    pub fn instr_count(&self) -> u64 {
+    pub fn instr_count(&self) -> usize {
         self.machine.emu.x86.instr_count
     }
 
@@ -80,10 +88,23 @@ impl Emulator {
         if count == 1 {
             return match self.machine.run(1) {
                 win32::StopReason::None => Ok(CPUState::Running),
-                win32::StopReason::Blocked => Ok(CPUState::Blocked),
+                win32::StopReason::Blocked => {
+                    // Poll the last future.
+                    let shim_call = self.shim_calls.last_mut().unwrap();
+                    match shim_call.future.as_mut().poll(&mut self.ctx) {
+                        Poll::Ready(ret) => {
+                            self.machine.finish_shim_call(shim_call.shim, ret);
+                            self.shim_calls.pop();
+                        }
+                        Poll::Pending => {}
+                    }
+                    Ok(CPUState::Running)
+                }
                 win32::StopReason::Breakpoint { .. } => Ok(CPUState::DebugBreak),
                 win32::StopReason::ShimCall(shim) => {
-                    self.machine.call_shim(shim);
+                    if let Some(future) = self.machine.call_shim(shim) {
+                        self.shim_calls.push(AsyncShimCall { shim, future });
+                    }
                     Ok(CPUState::Running)
                 }
                 win32::StopReason::Error { message, .. } => Err(JsError::new(&message)),
@@ -93,14 +114,31 @@ impl Emulator {
             // Note that instr_count overflows at 4b, but we don't expect to run
             // 4b instructions in a single run() invocation.
             let start = self.machine.emu.x86.instr_count;
-            while self.machine.emu.x86.instr_count.wrapping_sub(start) < count as u64 {
+            while self.machine.emu.x86.instr_count.wrapping_sub(start) < count {
                 match self.machine.run(0) {
                     win32::StopReason::None => {}
-                    win32::StopReason::Blocked => break,
+                    win32::StopReason::Blocked => {
+                        // Poll the last future.
+                        let shim_call = self.shim_calls.last_mut().unwrap();
+                        match shim_call.future.as_mut().poll(&mut self.ctx) {
+                            Poll::Ready(ret) => {
+                                self.machine.finish_shim_call(shim_call.shim, ret);
+                                self.shim_calls.pop();
+                                // Continue running after the shim call completes.
+                            }
+                            Poll::Pending => {
+                                // Return control to the event loop to allow the future to progress.
+                                break;
+                            }
+                        }
+                    }
                     win32::StopReason::Breakpoint { .. } => return Ok(CPUState::DebugBreak),
                     win32::StopReason::ShimCall(shim) => {
-                        self.machine.call_shim(shim);
-                        break;
+                        if let Some(future) = self.machine.call_shim(shim) {
+                            self.shim_calls.push(AsyncShimCall { shim, future });
+                            // Return control to the event loop to allow the future to progress.
+                            break;
+                        }
                     }
                     win32::StopReason::Error { message, .. } => return Err(JsError::new(&message)),
                     win32::StopReason::Exit { .. } => return Ok(CPUState::Exit),
@@ -140,5 +178,9 @@ impl Emulator {
 pub fn new_emulator(host: JsHost, cmdline: String) -> Emulator {
     log::init(log::JsLogger::unchecked_from_js(host.clone()));
     let machine = win32::Machine::new(Box::new(host), cmdline);
-    Emulator { machine }
+    Emulator {
+        machine,
+        shim_calls: Default::default(),
+        ctx: Context::from_waker(futures::task::noop_waker_ref()),
+    }
 }
