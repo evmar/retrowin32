@@ -1,5 +1,4 @@
-use crate::shims::Shim;
-use crate::shims_emu::handle_shim_call;
+use crate::shims::{BoxFuture, Shim};
 use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
@@ -8,7 +7,7 @@ use crate::{
     winapi, StopReason,
 };
 use memory::{Extensions, Mem};
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 use std::path::Path;
 
 pub struct BoxMem(Box<[u8]>);
@@ -166,7 +165,7 @@ impl MachineX<Emulator> {
                 signal: 11, // SIGSEGV, TODO?
                 eip,
             },
-            x86::CPUState::Exit(_) => unreachable!(),
+            x86::CPUState::Exit(code) => StopReason::Exit { code: *code },
         }
     }
 
@@ -174,6 +173,9 @@ impl MachineX<Emulator> {
     pub fn execute_block(&mut self, instruction_count: usize) -> StopReason {
         debug_assert!(self.emu.x86.cpu().state.is_running());
         let eip = self.emu.x86.cpu().regs.eip;
+        if eip == x86::MAGIC_ADDR {
+            return StopReason::Blocked;
+        }
         if crate::shims_emu::is_ip_at_shim_call(eip) {
             if self.emu.breakpoints.contains_key(&eip) {
                 return StopReason::Breakpoint { eip };
@@ -192,20 +194,13 @@ impl MachineX<Emulator> {
                 },
             };
         }
-        let ran = self
-            .emu
+        self.emu
             .x86
             .execute_block(self.emu.memory.mem(), instruction_count);
         let eip = self.emu.x86.cpu().regs.eip;
         match &self.emu.x86.cpu().state {
-            x86::CPUState::Running | x86::CPUState::Blocked(_) => {
-                if ran == 0 {
-                    // Inform the event loop that we're polling a future.
-                    StopReason::Blocked
-                } else {
-                    StopReason::None
-                }
-            }
+            x86::CPUState::Running => StopReason::None,
+            x86::CPUState::Blocked(_) => StopReason::Blocked,
             x86::CPUState::DebugBreak => StopReason::Breakpoint { eip },
             x86::CPUState::Error(message) => StopReason::Error {
                 message: message.clone(),
@@ -225,10 +220,13 @@ impl MachineX<Emulator> {
     }
 
     /// Call a shim function. If it returns a future, it will be scheduled to run.
-    pub fn call_shim(&mut self, shim: &'static Shim) {
-        if let Some(future) = handle_shim_call(self, shim) {
-            self.emu.x86.cpu_mut().call_async(future);
-        }
+    pub fn call_shim(&mut self, shim: &'static Shim) -> Option<BoxFuture<u32>> {
+        crate::shims_emu::handle_shim_call(self, shim)
+    }
+
+    /// Finish a shim call. This will set the return value and pop the stack.
+    pub fn finish_shim_call(&mut self, shim: &'static Shim, ret: u32) {
+        crate::shims_emu::finish_shim_call(self, shim, ret)
     }
 
     pub fn snapshot(&self) -> Box<[u8]> {
@@ -242,8 +240,8 @@ impl MachineX<Emulator> {
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
         match self.emu.breakpoints.entry(addr) {
-            std::collections::hash_map::Entry::Occupied(_) => false,
-            std::collections::hash_map::Entry::Vacant(entry) => {
+            hash_map::Entry::Occupied(_) => false,
+            hash_map::Entry::Vacant(entry) => {
                 if crate::shims_emu::is_ip_at_shim_call(addr) {
                     entry.insert(0);
                 } else {

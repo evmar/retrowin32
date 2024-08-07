@@ -13,6 +13,8 @@ mod resv32;
 use anyhow::anyhow;
 use std::borrow::Cow;
 use std::process::ExitCode;
+use std::task::{Context, Poll};
+use win32::shims::BoxFuture;
 use win32::winapi::types::win32_error_str;
 use win32::Host;
 
@@ -160,6 +162,12 @@ fn main() -> anyhow::Result<ExitCode> {
         } else {
             MachineState::Running
         };
+        struct AsyncShimCall {
+            shim: &'static win32::shims::Shim,
+            future: BoxFuture<u32>,
+        }
+        let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
+        let mut shim_calls = Vec::<AsyncShimCall>::new();
         let exit_code = loop {
             let mut instruction_count = 0; // used to step a single instruction or range
             match debugger.poll(&mut target)? {
@@ -181,13 +189,26 @@ fn main() -> anyhow::Result<ExitCode> {
             state = match state {
                 MachineState::Running => {
                     match target.machine.run(instruction_count) {
-                        win32::StopReason::None | win32::StopReason::Blocked => {
+                        win32::StopReason::None => {
                             if instruction_count > 0 {
                                 debugger.done_step(&mut target)?;
                                 MachineState::Stopped
                             } else {
                                 MachineState::Running
                             }
+                        }
+                        win32::StopReason::Blocked => {
+                            // Poll the last future.
+                            let shim_call = shim_calls.last_mut().unwrap();
+                            match shim_call.future.as_mut().poll(&mut ctx) {
+                                Poll::Ready(ret) => {
+                                    target.machine.finish_shim_call(shim_call.shim, ret);
+                                    shim_calls.pop();
+                                }
+                                Poll::Pending => {}
+                            }
+                            // TODO: handle single stepping
+                            MachineState::Running
                         }
                         win32::StopReason::Error {
                             message,
@@ -209,8 +230,10 @@ fn main() -> anyhow::Result<ExitCode> {
                         }
                         win32::StopReason::ShimCall(shim) => {
                             // log::info!("Shim call {}", shim.name);
-                            target.machine.call_shim(shim);
-                            // TODO: what if we were single stepping?
+                            if let Some(future) = target.machine.call_shim(shim) {
+                                shim_calls.push(AsyncShimCall { shim, future });
+                            }
+                            // TODO: handle single stepping
                             MachineState::Running
                         }
                     }

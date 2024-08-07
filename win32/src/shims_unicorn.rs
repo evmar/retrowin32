@@ -69,62 +69,45 @@ impl Shims {
 pub const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 
 /// Handle a call to a shim.
-pub fn handle_shim_call(
-    machine: &mut Machine,
-    shim: &'static Shim,
-) -> Option<BoxFuture<()>> {
-    let Shim {
-        func,
-        stack_consumed,
-        ..
-    } = *shim;
-    match func {
+pub fn handle_shim_call(machine: &mut Machine, shim: &'static Shim) -> Option<BoxFuture<u32>> {
+    let esp = machine.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+    match shim.func {
         Handler::Sync(func) => {
-            let esp = machine.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
             let ret = unsafe { func(machine, esp) };
-            let ret_addr = machine.mem().get_pod::<u32>(esp);
-            machine
-                .emu
-                .unicorn
-                .reg_write(RegisterX86::EIP, ret_addr as u64)
-                .unwrap();
-            machine
-                .emu
-                .unicorn
-                .reg_write(RegisterX86::ESP, (esp + stack_consumed + 4) as u64)
-                .unwrap();
-            machine
-                .emu
-                .unicorn
-                .reg_write(RegisterX86::EAX, ret as u64)
-                .unwrap();
+            finish_shim_call(machine, shim, ret);
             None
         }
         Handler::Async(func) => {
-            let machine: *mut Machine = machine;
-            Some(Box::pin(async move {
-                let machine = unsafe { &mut *machine };
-                let esp = machine.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
-                let ret = unsafe { func(machine, esp) }.await;
-                let ret_addr = machine.mem().get_pod::<u32>(esp);
-                machine
-                    .emu
-                    .unicorn
-                    .reg_write(RegisterX86::EIP, ret_addr as u64)
-                    .unwrap();
-                machine
-                    .emu
-                    .unicorn
-                    .reg_write(RegisterX86::ESP, (esp + stack_consumed + 4) as u64)
-                    .unwrap();
-                machine
-                    .emu
-                    .unicorn
-                    .reg_write(RegisterX86::EAX, ret as u64)
-                    .unwrap();
-            }))
+            let future = unsafe { func(machine, esp) };
+            // Set EIP to MAGIC_ADDR to indicate that we're running a future.
+            machine
+                .emu
+                .unicorn
+                .reg_write(RegisterX86::EIP, MAGIC_ADDR as u64)
+                .unwrap();
+            Some(future)
         }
     }
+}
+
+pub fn finish_shim_call(machine: &mut Machine, shim: &'static Shim, ret: u32) {
+    let esp = machine.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+    let ret_addr = machine.mem().get_pod::<u32>(esp);
+    machine
+        .emu
+        .unicorn
+        .reg_write(RegisterX86::EIP, ret_addr as u64)
+        .unwrap();
+    machine
+        .emu
+        .unicorn
+        .reg_write(RegisterX86::ESP, (esp + shim.stack_consumed + 4) as u64)
+        .unwrap();
+    machine
+        .emu
+        .unicorn
+        .reg_write(RegisterX86::EAX, ret as u64)
+        .unwrap();
 }
 
 struct UnicornFuture {

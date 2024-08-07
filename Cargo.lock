@@ -456,6 +456,7 @@ dependencies = [
  "anyhow",
  "argh",
  "chrono",
+ "futures",
  "gdbstub",
  "gdbstub_arch",
  "iced-x86",
@@ -698,7 +699,6 @@ dependencies = [
  "bincode",
  "bitflags 1.3.2",
  "chrono",
- "futures",
  "log",
  "memory",
  "num-derive",
@@ -810,7 +810,6 @@ name = "x86"
 version = "0.1.0"
 dependencies = [
  "bitflags 1.3.2",
- "futures",
  "iced-x86",
  "log",
  "memory",

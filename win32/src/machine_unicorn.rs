@@ -7,10 +7,9 @@ use crate::{
     winapi, StopReason,
 };
 use memory::Mem;
-use std::collections::HashMap;
+use std::collections::{hash_map, HashMap};
 use std::path::Path;
 use std::pin::Pin;
-use std::task::Context;
 use unicorn_engine::unicorn_const::{uc_error, Arch, Mode, Permission};
 use unicorn_engine::{RegisterX86, Unicorn, X86Mmr};
 
@@ -40,7 +39,6 @@ pub struct Emulator {
     pub shims: Shims,
     pub memory: MemImpl,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
-    futures: Vec<BoxFuture<()>>,
     exit_code: Option<u32>,
 }
 
@@ -79,7 +77,6 @@ impl MachineX<Emulator> {
                 shims,
                 memory,
                 breakpoints: Default::default(),
-                futures: Default::default(),
                 exit_code: None,
             },
             host,
@@ -211,14 +208,13 @@ impl MachineX<Emulator> {
     }
 
     /// Call a shim function. If it returns a future, it will be scheduled to run.
-    pub fn call_shim(&mut self, shim: &'static Shim) {
-        if let Some(future) = crate::shims_unicorn::handle_shim_call(self, shim) {
-            self.emu
-                .unicorn
-                .reg_write(RegisterX86::EIP, crate::shims_unicorn::MAGIC_ADDR as u64)
-                .unwrap();
-            self.emu.futures.push(future);
-        }
+    pub fn call_shim(&mut self, shim: &'static Shim) -> Option<BoxFuture<u32>> {
+        crate::shims_unicorn::handle_shim_call(self, shim)
+    }
+
+    /// Finish a shim call. This will set the return value and pop the stack.
+    pub fn finish_shim_call(&mut self, shim: &'static Shim, ret: u32) {
+        crate::shims_unicorn::finish_shim_call(self, shim, ret)
     }
 
     pub fn run(&mut self, mut instruction_count: usize) -> StopReason {
@@ -227,8 +223,7 @@ impl MachineX<Emulator> {
         }
         let eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
         if eip == crate::shims_unicorn::MAGIC_ADDR as u64 {
-            self.async_executor();
-            return StopReason::None;
+            return StopReason::Blocked;
         }
         if instruction_count == 0 {
             // Insert some reasonable number of instructions per loop.
@@ -268,11 +263,11 @@ impl MachineX<Emulator> {
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
         match self.emu.breakpoints.entry(addr) {
-            std::collections::hash_map::Entry::Occupied(_) => {
+            hash_map::Entry::Occupied(_) => {
                 log::warn!("machine_unicorn: breakpoint already set at {:#x}", addr);
                 false
             }
-            std::collections::hash_map::Entry::Vacant(entry) => {
+            hash_map::Entry::Vacant(entry) => {
                 let hook = self
                     .emu
                     .unicorn
@@ -299,17 +294,5 @@ impl MachineX<Emulator> {
 
     pub fn exit(&mut self, code: u32) {
         self.emu.exit_code = Some(code);
-    }
-
-    fn async_executor(&mut self) {
-        let future = self.emu.futures.last_mut().unwrap();
-        let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
-        let poll = future.as_mut().poll(&mut ctx);
-        match poll {
-            std::task::Poll::Ready(()) => {
-                self.emu.futures.pop();
-            }
-            std::task::Poll::Pending => {}
-        }
     }
 }
