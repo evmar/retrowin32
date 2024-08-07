@@ -1,11 +1,11 @@
 //! Process initialization and startup.
 
-use super::{ExitProcess, FindHandle, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
+use super::{FindHandle, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
 use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, types::*},
+    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, kernel32, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -523,13 +523,14 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
     machine.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
     // spawned threads before exiting.
-    ExitProcess(machine, 0);
+    kernel32::exit_process(machine, 0);
     0
 }
 
 #[win32_derive::dllexport]
 pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) -> u32 {
     machine.call_x86(entry_point, vec![param]).await;
-    ExitProcess(machine, 0);
+    log::warn!("TODO: thread exiting, but we don't have a way to stop a single thread yet");
+    kernel32::exit_process(machine, 0);
     0
 }

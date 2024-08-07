@@ -29,15 +29,23 @@ pub fn GetLastError(machine: &mut Machine) -> u32 {
     teb_mut(machine).LastErrorValue
 }
 
-#[win32_derive::dllexport]
-pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
-    machine.host.exit(uExitCode);
+pub fn exit_process(machine: &mut Machine, exit_code: u32) {
+    machine.host.exit(exit_code);
+    // Set the CPU state immediately here because otherwise the CPU will
+    // continue executing instructions after the exit call.
     // TODO: this is unsatisfying.
     // Maybe better is to generate a hlt instruction somewhere and jump to it?
+    // Note also we need a mechanism to exit a completed thread without stopping the whole
+    // program.
     #[cfg(feature = "x86-emu")]
     {
-        machine.emu.x86.cpu_mut().state = x86::CPUState::Exit(uExitCode);
+        machine.emu.x86.cpu_mut().state = x86::CPUState::Exit(exit_code);
     }
+}
+
+#[win32_derive::dllexport]
+pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
+    exit_process(machine, uExitCode);
     0
 }
 
