@@ -7,6 +7,7 @@
 
 set -e
 
+(cd appdb && ./run.sh)
 make -C web profile=lto
 (cd web && npm run build)
 cp web/*.css web/*.html web/*.wasm web/*.png deploy

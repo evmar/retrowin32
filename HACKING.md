@@ -125,3 +125,10 @@ And sometimes I add:
 - `memory/` -- a memory abstraction shared by `x86` and `win32`
 - [`appdb/`](appdb/) -- metadata about particular binaries, see README
 - `misc/` -- minor helper tools
+
+## The website
+
+The retrowin32 website lives in the `pages` branch. The [deploy.sh](deploy.sh)
+script runs the build process for generated files, which includes the
+application itself and the appdb. It has some comments about how it expects to
+be set up to run.
