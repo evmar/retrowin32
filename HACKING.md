@@ -116,19 +116,18 @@ And sometimes I add:
 
 ## Code layout
 
+The entries in this list that are links are links to READMEs with more
+information.
+
 - `x86/` -- the x86 emulator
-- [`win32/`](win32/) -- the win32 emulator, see README
+- [`win32/`](win32/) -- the win32 emulator
 - `cli/` -- a command-line emulator runner
-- `web/` -- a webapp that runs the emulator in a browser
-  - `web/glue/` -- wasm glue for the `win32/` API
+- [`web/`](web/) -- a webapp that runs the emulator in a browser
 - `exe/` -- some sample Windows executables
 - `memory/` -- a memory abstraction shared by `x86` and `win32`
-- [`appdb/`](appdb/) -- metadata about particular binaries, see README
+- [`appdb/`](appdb/) -- metadata about particular binaries
 - `misc/` -- minor helper tools
 
 ## The website
 
-The retrowin32 website lives in the `pages` branch. The [deploy.sh](deploy.sh)
-script runs the build process for generated files, which includes the
-application itself and the appdb. It has some comments about how it expects to
-be set up to run.
+The retrowin32 website is documented as part of the [web/README.md](web README).
