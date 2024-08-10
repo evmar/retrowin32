@@ -101,13 +101,15 @@ pub struct Mem<'m> {
 }
 
 impl<'m> Mem<'m> {
-    pub fn from_slice(s: &'m [u8]) -> Mem<'m> {
-        let range = s.as_ptr_range();
+    pub fn from_ptrs(range: std::ops::Range<*const u8>) -> Mem<'m> {
         Mem {
             ptr: range.start as *mut u8,
             end: range.end as *mut u8,
             _marker: std::marker::PhantomData::default(),
         }
+    }
+    pub fn from_slice(s: &'m [u8]) -> Mem<'m> {
+        Mem::from_ptrs(s.as_ptr_range())
     }
 
     pub fn is_oob<T>(&self, addr: u32) -> bool {

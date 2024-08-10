@@ -13,8 +13,7 @@ pub struct RawMem {}
 
 impl RawMem {
     pub fn mem(&self) -> Mem {
-        let s = unsafe { std::slice::from_raw_parts(0 as *const u8, 1 << 30) };
-        Mem::from_slice(s)
+        Mem::from_ptrs(0 as *mut u8..(1 << 30) as *mut u8)
     }
     pub fn len(&self) -> u32 {
         0xFFFF_FFFF
