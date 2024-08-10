@@ -55,7 +55,7 @@ unsafe extern "C" fn call64() -> u32 {
 // It's responsible for switching to the 64-bit stack and backing up the appropriate
 // registers to transition from stdcall ABI to SysV AMD64 ABI.
 // See "Calling conventions" in doc/x86-64.md; the summary is we only need to preserve
-// ESI/EDI.  EDI was already saved (due to being used to pass shim_index).
+// ESI/EDI.
 #[cfg(target_arch = "x86_64")]
 std::arch::global_asm!(
     "_trans64:",
