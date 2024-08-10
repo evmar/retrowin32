@@ -130,4 +130,4 @@ information.
 
 ## The website
 
-The retrowin32 website is documented as part of the [web/README.md](web README).
+The retrowin32 website is documented as part of the [web README](web/README.md).
