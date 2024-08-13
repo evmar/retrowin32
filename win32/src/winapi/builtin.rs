@@ -301,6 +301,7 @@ pub mod ddraw {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -401,6 +402,7 @@ pub mod ddraw {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -732,6 +734,7 @@ pub mod ddraw {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -2120,6 +2123,7 @@ pub mod kernel32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 24u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -2941,6 +2945,7 @@ pub mod kernel32 {
                     let result = winapi::kernel32::Sleep(machine, dwMilliseconds).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -3117,6 +3122,7 @@ pub mod kernel32 {
                     let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -3142,6 +3148,7 @@ pub mod kernel32 {
                         winapi::kernel32::retrowin32_thread_main(machine, entry_point, param).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -4333,6 +4340,7 @@ pub mod retrowin32_test {
                             .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -4444,6 +4452,7 @@ pub mod ucrtbase {
                     let result = winapi::ucrtbase::_initterm(machine, start, end).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 0u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -4468,6 +4477,7 @@ pub mod ucrtbase {
                     let result = winapi::ucrtbase::_initterm_e(machine, start, end).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 0u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -4899,6 +4909,7 @@ pub mod user32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 48u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -4962,6 +4973,7 @@ pub mod user32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 48u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5003,6 +5015,7 @@ pub mod user32 {
                         winapi::user32::DefWindowProcA(machine, hWnd, msg, wParam, lParam).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5032,6 +5045,7 @@ pub mod user32 {
                         winapi::user32::DefWindowProcW(machine, hWnd, msg, wParam, lParam).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5096,6 +5110,7 @@ pub mod user32 {
                     let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5119,6 +5134,7 @@ pub mod user32 {
                     let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5223,6 +5239,7 @@ pub mod user32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5262,6 +5279,7 @@ pub mod user32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5564,6 +5582,7 @@ pub mod user32 {
                         winapi::user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5653,6 +5672,7 @@ pub mod user32 {
                     .await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 28u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5697,6 +5717,7 @@ pub mod user32 {
                     let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));
@@ -5732,6 +5753,7 @@ pub mod user32 {
                     let result = winapi::user32::UpdateWindow(machine, hWnd).await;
                     let cpu = &mut machine.emu.x86.cpu_mut();
                     cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                    *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
                 machine.emu.x86.cpu_mut().call_async(Box::pin(result));

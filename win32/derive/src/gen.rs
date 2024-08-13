@@ -54,6 +54,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                 let result = #impl_name(machine, #(#args),*).await;
                 let cpu = &mut machine.emu.x86.cpu_mut();
                 cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
+                *cpu.regs.get32_mut(x86::Register::ESP) += #stack_consumed;
                 cpu.regs.set32(x86::Register::EAX, result.to_raw());
             };
             machine.emu.x86.cpu_mut().call_async(Box::pin(result));
