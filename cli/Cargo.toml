@@ -10,6 +10,9 @@ win32 = { workspace = true }
 anyhow = "1.0"
 argh = "0.1.10"
 chrono = "0.4.38"
+futures = "0.3.30"
+gdbstub = "0.7.1"
+gdbstub_arch = "0.3.0"
 libc = "0.2"
 typed-path = "0.9.1"
 

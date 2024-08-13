@@ -7,6 +7,7 @@ use crate::{
 };
 use memory::Mem;
 use std::collections::HashMap;
+use std::path::Path;
 
 #[derive(Default)]
 pub struct RawMem {}
@@ -45,6 +46,7 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
+            exe_path: Default::default(),
         }
     }
 
@@ -56,10 +58,11 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        filename: &str,
+        path: impl AsRef<Path>,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, filename, relocate)?;
+        let path = path.as_ref();
+        let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack = self.state.kernel32.mappings.alloc(
             exe.stack_size,
@@ -68,6 +71,7 @@ impl MachineX<Emulator> {
         );
         let stack_pointer = stack.addr + stack.size - 4;
 
+        self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,
@@ -86,13 +90,18 @@ impl MachineX<Emulator> {
         // that calls from/to it can be managed with 32-bit pointers.
         // (This arrangement is set up by the linker flags.)
         let mem_3gb_range = 0xc000_0000u64..0x1_0000_0000u64;
-        let fn_addr = &Self::jump_to_entry_point as *const _ as u64;
-        assert!(mem_3gb_range.contains(&fn_addr));
+        let fn_addr = Self::jump_to_entry_point as *const fn() as u64;
+        assert!(mem_3gb_range.contains(&fn_addr), "fn_addr ({fn_addr:x}) not in 3-4gb range");
 
-        println!("entry point at {:x}, about to jump", entry_point);
-        std::io::stdin().read_line(&mut String::new()).unwrap();
+        log::info!("entry point at {entry_point:x}, about to jump");
+        // std::io::stdin().read_line(&mut String::new()).unwrap();
 
         let pin = std::pin::pin!(self.call_x86(entry_point, vec![]));
         crate::shims::call_sync(pin);
+    }
+
+    pub fn exit(&mut self, code: u32) {
+        let code = u8::try_from(code).unwrap_or(255);
+        std::process::exit(code as i32);
     }
 }

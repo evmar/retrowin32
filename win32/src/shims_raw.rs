@@ -3,7 +3,7 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{ldt::LDT, shims::Shim, Machine};
+use crate::{ldt::LDT, shims::Handler, shims::Shim, Machine};
 use memory::Extensions;
 
 type Trampoline = [u8; 16];
@@ -48,7 +48,13 @@ unsafe extern "C" fn call64() -> u32 {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    (shim.func)(machine, STACK32 + 8)
+    match shim.func {
+        Handler::Sync(handler) => handler(machine, STACK32 + 8),
+        Handler::Async(handler) => {
+            let mut future = std::pin::pin!(handler(machine, STACK32 + 8));
+            crate::shims::call_sync(future.as_mut())
+        }
+    }
 }
 
 // trans64 is the code we jump to when transitioning from 32->64-bit.
@@ -211,7 +217,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         STACK32 = esp;
 
         #[allow(unused_mut)]
-        let mut ret = 0;
+        let mut ret;
         std::arch::asm!(
             // We need to back up all non-scratch registers (rbx/rbp),
             // because even callee-saved registers will only be saved as 32-bit,

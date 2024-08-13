@@ -25,6 +25,7 @@ mod machine_unicorn;
 mod shims_unicorn;
 
 pub use host::*;
-pub use machine::Machine;
+pub use machine::{Machine, StopReason};
+pub use memory as mem;
 #[cfg(feature = "x86-emu")]
 pub use x86::debug::disassemble;

@@ -238,8 +238,7 @@ impl<'m> Extensions<'m> for Mem<'m> {
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {
-        let ofs = ofs as usize;
-        let slice = &self.as_slice_todo()[ofs..];
+        let slice = self.slice(ofs..);
         let nul = slice.iter().position(|&c| c == 0).unwrap();
         &slice[..nul]
     }

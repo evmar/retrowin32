@@ -12,10 +12,16 @@
 
 use crate::Machine;
 
-#[cfg(feature = "x86-unicorn")]
-pub use crate::shims_unicorn::unicorn_loop;
+// Similar to futures::future::BoxFuture, but 'static + !Send.
+pub type BoxFuture<T> = std::pin::Pin<Box<dyn std::future::Future<Output = T>>>;
 
-pub type Handler = unsafe fn(&mut Machine, u32) -> u32;
+pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u32;
+pub type AsyncHandler = unsafe fn(&mut Machine, u32) -> BoxFuture<u32>;
+#[derive(Debug, Clone, Copy)]
+pub enum Handler {
+    Sync(SyncHandler),
+    Async(AsyncHandler),
+}
 
 pub struct Shim {
     pub name: &'static str,
@@ -23,12 +29,11 @@ pub struct Shim {
     /// Number of stack bytes popped by arguments.
     /// For cdecl calling convention (used in varargs) this is 0.
     pub stack_consumed: u32,
-    pub is_async: bool,
 }
 
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
 #[allow(deref_nullptr)]
-pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {
+pub fn call_sync<T>(future: std::pin::Pin<&mut (impl std::future::Future<Output = T> + ?Sized)>) -> T {
     let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
     match future.poll(context) {
         std::task::Poll::Pending => unreachable!(),
