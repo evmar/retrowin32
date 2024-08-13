@@ -1,3 +1,4 @@
+#[cfg(not(feature = "x86-64"))]
 mod debugger;
 mod host;
 mod logging;
@@ -13,8 +14,6 @@ mod resv32;
 use anyhow::anyhow;
 use std::borrow::Cow;
 use std::process::ExitCode;
-use std::task::{Context, Poll};
-use win32::shims::BoxFuture;
 use win32::winapi::types::win32_error_str;
 use win32::Host;
 
@@ -125,14 +124,13 @@ fn main() -> anyhow::Result<ExitCode> {
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
 
+    #[allow(unused)]
     let addrs = machine
         .load_exe(&buf, &exe, None)
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
-    _ = addrs;
 
     #[cfg(feature = "x86-64")]
     let exit_code = {
-        assert!(args.trace_points.is_none());
         unsafe {
             let ptr: *mut win32::Machine = &mut machine;
             machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
@@ -164,9 +162,9 @@ fn main() -> anyhow::Result<ExitCode> {
         };
         struct AsyncShimCall {
             shim: &'static win32::shims::Shim,
-            future: BoxFuture<u32>,
+            future: win32::shims::BoxFuture<u32>,
         }
-        let mut ctx = Context::from_waker(futures::task::noop_waker_ref());
+        let mut ctx = std::task::Context::from_waker(futures::task::noop_waker_ref());
         let mut shim_calls = Vec::<AsyncShimCall>::new();
         let exit_code = loop {
             let mut instruction_count = 0; // used to step a single instruction or range
@@ -201,11 +199,11 @@ fn main() -> anyhow::Result<ExitCode> {
                             // Poll the last future.
                             let shim_call = shim_calls.last_mut().unwrap();
                             match shim_call.future.as_mut().poll(&mut ctx) {
-                                Poll::Ready(ret) => {
+                                std::task::Poll::Ready(ret) => {
                                     target.machine.finish_shim_call(shim_call.shim, ret);
                                     shim_calls.pop();
                                 }
-                                Poll::Pending => {}
+                                std::task::Poll::Pending => {}
                             }
                             // TODO: handle single stepping
                             MachineState::Running

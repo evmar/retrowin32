@@ -33,7 +33,7 @@ pub struct Shim {
 
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
 #[allow(deref_nullptr)]
-pub fn call_sync<T>(future: std::pin::Pin<&mut impl std::future::Future<Output = T>>) -> T {
+pub fn call_sync<T>(future: std::pin::Pin<&mut (impl std::future::Future<Output = T> + ?Sized)>) -> T {
     let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
     match future.poll(context) {
         std::task::Poll::Pending => unreachable!(),
