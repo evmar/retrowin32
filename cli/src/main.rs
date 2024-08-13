@@ -1,4 +1,4 @@
-#[cfg(not(feature = "x86-64"))]
+#[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
 mod debugger;
 mod host;
 mod logging;
@@ -27,6 +27,11 @@ struct Args {
     /// winapi systems to trace; see trace.rs for docs
     #[argh(option)]
     win32_trace: Option<String>,
+
+    /// log CPU state first time each point reached
+    #[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
+    #[argh(option, from_str_fn(parse_trace_points))]
+    trace_points: Option<std::collections::VecDeque<u32>>,
 
     /// enable GDB stub
     #[argh(switch)]
@@ -79,6 +84,19 @@ fn print_trace(machine: &win32::Machine) {
     };
 
     println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x} st_top:{st_top}");
+}
+
+#[cfg(any(feature = "x86-emu", feature = "x86-unicorn"))]
+fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {
+    let mut trace_points = std::collections::VecDeque::new();
+    for addr in param.split(",") {
+        if addr.is_empty() {
+            continue;
+        }
+        let addr = u32::from_str_radix(addr, 16).map_err(|_| format!("bad addr {addr:?}"))?;
+        trace_points.push_back(addr);
+    }
+    Ok(trace_points)
 }
 
 fn main() -> anyhow::Result<ExitCode> {
@@ -166,6 +184,13 @@ fn main() -> anyhow::Result<ExitCode> {
         }
         let mut ctx = std::task::Context::from_waker(futures::task::noop_waker_ref());
         let mut shim_calls = Vec::<AsyncShimCall>::new();
+        
+        let mut trace_points_iter = args.trace_points.iter().flatten().copied();
+        let mut trace_point = trace_points_iter.next();
+        if let Some(address) = trace_point {
+            target.machine.add_breakpoint(address);
+        }
+        
         let exit_code = loop {
             let mut instruction_count = 0; // used to step a single instruction or range
             match debugger.poll(&mut target)? {
@@ -222,9 +247,21 @@ fn main() -> anyhow::Result<ExitCode> {
                             break ExitCode::from(code.try_into().unwrap_or(u8::MAX));
                         }
                         win32::StopReason::Breakpoint { eip } => {
-                            log::info!("Breakpoint hit @ {eip:x}");
-                            debugger.breakpoint(&mut target)?;
-                            MachineState::Stopped
+                            if trace_point == Some(eip) {
+                                target.machine.clear_breakpoint(eip);
+                                print_trace(&target.machine);
+                                trace_point = trace_points_iter.next();
+                                if let Some(address) = trace_point {
+                                    target.machine.add_breakpoint(address);
+                                    MachineState::Running
+                                } else {
+                                    break ExitCode::SUCCESS;
+                                }
+                            } else {
+                                log::info!("Breakpoint hit @ {eip:x}");
+                                debugger.breakpoint(&mut target)?;
+                                MachineState::Stopped
+                            }
                         }
                         win32::StopReason::ShimCall(shim) => {
                             // log::info!("Shim call {}", shim.name);
