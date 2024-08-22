@@ -98,7 +98,11 @@ impl CPU {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
     /// that is polled the next time the CPU executes.
-    pub fn call_async(&mut self, future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>) {
+    pub fn call_async(
+        &mut self,
+        _mem: Mem,
+        future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
+    ) {
         self.regs.eip = MAGIC_ADDR;
         self.futures.push(future);
     }

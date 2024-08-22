@@ -57,7 +57,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                 *cpu.regs.get32_mut(x86::Register::ESP) += #stack_consumed;
                 cpu.regs.set32(x86::Register::EAX, result.to_raw());
             };
-            machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+            machine.emu.x86.cpu_mut().call_async(machine.emu.memory.mem(), Box::pin(result));
             // async block will set up the stack and eip.
             0
         }

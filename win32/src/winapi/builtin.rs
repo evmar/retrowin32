@@ -304,7 +304,11 @@ pub mod ddraw {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -405,7 +409,11 @@ pub mod ddraw {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -737,7 +745,11 @@ pub mod ddraw {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 20u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -2126,7 +2138,11 @@ pub mod kernel32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 24u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -2948,7 +2964,11 @@ pub mod kernel32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3125,7 +3145,11 @@ pub mod kernel32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -3151,7 +3175,11 @@ pub mod kernel32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4343,7 +4371,11 @@ pub mod retrowin32_test {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4455,7 +4487,11 @@ pub mod ucrtbase {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 0u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4480,7 +4516,11 @@ pub mod ucrtbase {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 0u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4912,7 +4952,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 48u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -4976,7 +5020,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 48u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5018,7 +5066,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5048,7 +5100,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5113,7 +5169,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5137,7 +5197,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5242,7 +5306,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5282,7 +5350,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5585,7 +5657,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 16u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5675,7 +5751,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 28u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5720,7 +5800,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 8u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
@@ -5756,7 +5840,11 @@ pub mod user32 {
                     *cpu.regs.get32_mut(x86::Register::ESP) += 4u32;
                     cpu.regs.set32(x86::Register::EAX, result.to_raw());
                 };
-                machine.emu.x86.cpu_mut().call_async(Box::pin(result));
+                machine
+                    .emu
+                    .x86
+                    .cpu_mut()
+                    .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
             #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
