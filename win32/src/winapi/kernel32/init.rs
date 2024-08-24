@@ -214,9 +214,6 @@ pub struct State {
 
     pub find_handles: Handles<HFIND, FindHandle>,
 
-    #[cfg(feature = "x86-64")]
-    pub ldt: crate::ldt::LDT,
-
     pub(super) env: u32,
 
     pub cmdline: CommandLine,
@@ -238,33 +235,6 @@ impl State {
 
         let teb = init_teb(&cmdline, &mut arena, mem.mem());
 
-        #[cfg(feature = "x86-64")]
-        let ldt = {
-            let mut ldt = crate::ldt::LDT::default();
-
-            // NOTE: OSX seems extremely sensitive to the values used here, where like
-            // using a span size that is not exactly 0xFFF causes the entry to be rejected.
-            let fs_sel = ldt.add_entry(teb, 0xFFF, false);
-            unsafe {
-                std::arch::asm!(
-                    "mov fs,{fs_sel:x}",
-                    fs_sel = in(reg) fs_sel
-                );
-            }
-
-            // Rosetta doesn't appear to care about ds/es, but native x86 needs them.
-            let sel = ldt.add_entry(0, 0xFFFF_FFFF, false);
-            unsafe {
-                std::arch::asm!(
-                    "mov ds,{sel:x}",
-                    "mov es,{sel:x}",
-                    sel = in(reg) sel,
-                );
-            }
-
-            ldt
-        };
-
         State {
             arena,
             image_base: 0,
@@ -277,8 +247,6 @@ impl State {
             find_handles: Default::default(),
             env: env_addr,
             cmdline,
-            #[cfg(feature = "x86-64")]
-            ldt,
             resources: Default::default(),
         }
     }

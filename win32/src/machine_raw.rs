@@ -32,7 +32,7 @@ impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
-        let shims = Shims::new(&mut kernel32.ldt, |size: usize| {
+        let shims = Shims::new(kernel32.teb, |size: usize| {
             kernel32
                 .mappings
                 .alloc(size as u32, "shims x64 trampoline".into(), &mut memory)

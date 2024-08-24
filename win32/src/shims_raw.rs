@@ -4,7 +4,6 @@
 //! See doc/x86-64.md for an overview.
 
 use crate::{ldt::LDT, shims::Shim, Machine};
-use memory::Extensions;
 
 type Trampoline = [u8; 16];
 
@@ -107,7 +106,35 @@ extern "C" {
 static mut TRAMP32_M1632: u64 = 0;
 
 impl Shims {
-    pub fn new(ldt: &mut LDT, alloc32: impl FnOnce(usize) -> u32) -> Self {
+    fn init_ldt(teb: u32) -> LDT {
+        let mut ldt = LDT::default();
+
+        // NOTE: OSX seems extremely sensitive to the values used here, where like
+        // using a span size that is not exactly 0xFFF causes the entry to be rejected.
+        let fs_sel = ldt.add_entry(teb, 0xFFF, false);
+        unsafe {
+            std::arch::asm!(
+                "mov fs,{fs_sel:x}",
+                fs_sel = in(reg) fs_sel
+            );
+        }
+
+        // Rosetta doesn't appear to care about ds/es, but native x86 needs them.
+        let sel = ldt.add_entry(0, 0xFFFF_FFFF, false);
+        unsafe {
+            std::arch::asm!(
+                "mov ds,{sel:x}",
+                "mov es,{sel:x}",
+                sel = in(reg) sel,
+            );
+        }
+
+        ldt
+    }
+
+    pub fn new(teb: u32, alloc32: impl FnOnce(usize) -> u32) -> Self {
+        let mut ldt = Self::init_ldt(teb);
+
         // Wine marks all of memory as code.
         let code32_selector = ldt.add_entry(0, 0xFFFF_FFFF, true);
 
