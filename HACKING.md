@@ -114,6 +114,9 @@ And sometimes I add:
 - `--release` when the debug build runs too slowly, and
 - `-F x86-emu,sdl` for GUI support
 
+Note if you make a change to functions exported in the `win32/src/winapi/`
+layer, you must re-run the code generator as documented in [`win32/`](win32/).
+
 ## Code layout
 
 The entries in this list that are links are links to READMEs with more

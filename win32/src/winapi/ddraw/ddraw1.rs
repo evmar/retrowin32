@@ -2,14 +2,14 @@
 //! a "1" suffix but contrast with intefaces with names like IDirectDraw7.
 
 use super::{
-    ddraw2::{self, IDirectDrawSurface2},
+    ddraw2,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
     DD_OK,
 };
 use crate::winapi::com::GUID;
 use crate::{
-    winapi::{com::vtable, ddraw, types::*},
+    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
     Machine,
 };
 use memory::Extensions;
@@ -50,11 +50,7 @@ pub mod IDirectDraw {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *ddraw.vtable_IDirectDraw.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
@@ -219,11 +215,7 @@ pub mod IDirectDrawSurface {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDrawSurface = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *ddraw.vtable_IDirectDrawSurface.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
     }

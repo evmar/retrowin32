@@ -12,9 +12,19 @@ Each given Windows function like `CreateWindowA()` is written in Rust. A custom
 plumbing for those functions into the machinery so that they can be called from
 the x86 executable.
 
+## Code generator
+
+The code generator traverses the `dllexport` attributes and generates a Rust
+glue module as well as the code for special `.dll` files that end up inlined
+into the final binaries.
+
 To rerun the code generator after an API change, run `make` (or perhaps
 `make -B` to force it to run) in this directory. I typically `make -BC win32`
 from the project root.
+
+The `Makefile` also compiles these `.dll` files, which requires `clang-cl` from
+LLVM. I just unpack a pre-built
+[binary release of theirs](https://releases.llvm.org/download.html).
 
 ## The `Host` trait
 

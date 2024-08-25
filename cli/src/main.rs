@@ -206,8 +206,9 @@ fn main() -> anyhow::Result<ExitCode> {
                 dump_asm(&machine, 5);
             }
             x86::CPUState::Exit(_) => {}
-            x86::CPUState::Blocked(_) => unreachable!(),
-            x86::CPUState::Running => unreachable!(),
+            x86::CPUState::Running | x86::CPUState::Blocked(_) | x86::CPUState::SysCall => {
+                unreachable!()
+            }
             x86::CPUState::DebugBreak => todo!(),
         }
 

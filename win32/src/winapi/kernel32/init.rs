@@ -5,7 +5,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, kernel32, types::*},
+    winapi::{alloc::Arena, handle::Handles, heap::Heap, kernel32, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -355,27 +355,26 @@ impl State {
         }
     }
 
-    pub fn load_builtin_dll(&mut self, mem: &mut MemImpl, builtin: &'static BuiltinDLL) -> HMODULE {
-        let mapping = self
-            .mappings
-            .alloc(0x1000, format!("{} image", builtin.file_name), mem);
-        let hmodule = HMODULE::from_raw(mapping.addr);
-        self.dlls.insert(
-            hmodule,
+    pub fn init_retrowin32_dll(&mut self, mem: Mem, retrowin32_syscall: &[u8]) {
+        let dll = {
+            let addr = self.arena.alloc(retrowin32_syscall.len() as u32, 8);
+            mem.sub32_mut(addr, retrowin32_syscall.len() as u32)
+                .copy_from_slice(retrowin32_syscall);
+            let mut names = HashMap::new();
+            names.insert("retrowin32_syscall".into(), addr);
             DLL {
-                name: builtin.file_name.to_owned(),
+                name: "retrowin32.dll".into(),
                 dll: pe::DLL {
-                    base: mapping.addr,
-                    names: HashMap::new(),
-                    ordinal_base: 1,
-                    fns: Default::default(),
-                    resources: Default::default(),
+                    base: 0, // unused
+                    names,
+                    ordinal_base: 0,         // unused
+                    fns: Default::default(), // unused
+                    resources: None,
                     entry_point: None,
                 },
-                builtin: Some(builtin),
-            },
-        );
-        hmodule
+            }
+        };
+        self.dlls.insert(HMODULE::from_raw(dll.dll.base), dll);
     }
 }
 

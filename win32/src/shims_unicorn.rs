@@ -2,32 +2,31 @@
 //!
 //! This module implements Shims for use within the Unicorn CPU emulator.
 //!
-//! The basic approach is:
-//! 1) reserve some page of memory as special for shims, called `hooks_base`
-//! 2) use the address `hooks_base+x` to represent shim number x
-//! 3) tell Unicorn to stop emulation whenever the page is hit,
-//!    and use eip to compute which shim
+//! Shims eventually become syscalls.  We hook syscalls to have them stop Unicorn
+//! emulation, then use the current eip to look up which shim to call.
 
 use crate::{shims::Shim, Machine};
 use memory::Extensions;
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct Shims {
-    shims: Vec<Result<&'static Shim, String>>,
-    hooks_base: u32,
+    shims: HashMap<u32, Result<&'static Shim, String>>,
 }
 
 impl Shims {
-    pub fn new(unicorn: &mut unicorn_engine::Unicorn<'static, ()>, addr: u32) -> Self {
+    pub fn new(unicorn: &mut unicorn_engine::Unicorn<'static, ()>) -> Self {
         unicorn
-            .add_code_hook(
-                addr as u64,
-                addr as u64 + 0x1000,
-                |unicorn, _addr, _size| {
+            .add_insn_sys_hook(
+                unicorn_engine::InsnSysX86::SYSENTER,
+                0,
+                0xFFFF_FFFF,
+                |unicorn| {
                     unicorn.emu_stop().unwrap();
                 },
             )
             .unwrap();
+
         // Uncomment to trace every executed instruction:
         // unicorn
         //     .add_code_hook(0, 0xFFFF_FFFF, |_unicorn, addr, size| {
@@ -37,65 +36,37 @@ impl Shims {
 
         Shims {
             shims: Default::default(),
-            hooks_base: addr,
         }
     }
 
-    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
-        let index = self.shims.len() as u32;
-        let addr = self.hooks_base + index;
-        self.shims.push(shim);
-        addr
+    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
+        self.shims.insert(addr, shim);
     }
 }
 
-/// Handle a call to a shim.  Expects eip to point somewhere within the hooks_base page.
-fn handle_shim_call(machine: &mut Machine) -> u32 {
-    let eip = machine
-        .emu
-        .unicorn
-        .reg_read(unicorn_engine::RegisterX86::EIP)
-        .unwrap() as u32;
-    let index = eip - machine.emu.shims.hooks_base;
-    let shim = match &machine.emu.shims.shims[index as usize] {
-        Ok(shim) => shim,
-        Err(name) => unimplemented!("shim call to {name}"),
-    };
-
-    let crate::shims::Shim {
-        func,
-        stack_consumed,
-        ..
-    } = *shim;
-
+/// Handle a call to a shim.  Expects eip to point to the instruction immediately after
+/// a syscall that has already been registered as a shim.
+fn handle_shim_call(machine: &mut Machine) {
     let esp = machine
         .emu
         .unicorn
         .reg_read(unicorn_engine::RegisterX86::ESP)
         .unwrap() as u32;
-    let ret = unsafe { func(machine, esp) };
+    let addr = machine.emu.memory.mem().get_pod::<u32>(esp) - 6;
+    let shim = match &machine.emu.shims.shims.get(&addr) {
+        Some(Ok(shim)) => shim,
+        Some(Err(name)) => unimplemented!("shim call to {name}"),
+        None => panic!("unknown import reference at {addr:x}"),
+    };
 
-    let ret_addr = machine.mem().get_pod::<u32>(esp);
-    machine
-        .emu
-        .unicorn
-        .reg_write(unicorn_engine::RegisterX86::EIP, ret_addr as u64)
-        .unwrap();
-    machine
-        .emu
-        .unicorn
-        .reg_write(
-            unicorn_engine::RegisterX86::ESP,
-            (esp + stack_consumed + 4) as u64,
-        )
-        .unwrap();
+    let func = shim.func;
+    let ret = unsafe { func(machine, esp + 4) };
+
     machine
         .emu
         .unicorn
         .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
         .unwrap();
-
-    ret_addr
 }
 
 pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
@@ -149,10 +120,6 @@ pub fn unicorn_loop(machine: &mut Machine, begin: u32, until: u32) {
         if eip == until {
             return;
         }
-        if (machine.emu.shims.hooks_base..machine.emu.shims.hooks_base + 0x1000)
-            .contains(&(eip as u32))
-        {
-            eip = handle_shim_call(machine) as u64;
-        }
+        handle_shim_call(machine);
     }
 }

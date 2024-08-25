@@ -15,6 +15,7 @@ pub enum CPUState {
     Running,
     Blocked(Option<u32>),
     DebugBreak,
+    SysCall,
     Error(String),
     Exit(u32),
 }
@@ -100,9 +101,10 @@ impl CPU {
     /// that is polled the next time the CPU executes.
     pub fn call_async(
         &mut self,
-        _mem: Mem,
+        mem: Mem,
         future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
     ) {
+        crate::ops::push(self, mem, self.regs.eip); // push return address
         self.regs.eip = MAGIC_ADDR;
         self.futures.push(future);
     }
@@ -244,7 +246,10 @@ impl X86 {
         for (i, cpu) in self.cpus.iter().enumerate() {
             match cpu.state {
                 CPUState::Running => {}
-                CPUState::DebugBreak | CPUState::Error(_) | CPUState::Exit(_) => {
+                CPUState::DebugBreak
+                | CPUState::Error(_)
+                | CPUState::Exit(_)
+                | CPUState::SysCall => {
                     self.cur_cpu = i;
                     return;
                 }

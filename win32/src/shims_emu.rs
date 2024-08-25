@@ -1,9 +1,8 @@
 //! "Shims" are my word for the mechanism for x86 -> retrowin32 (and back) calls.
 //! This module implements shims under the x86 emulator.
 //!
-//! In the simple case, we register Rust functions like kernel32.dll!ExitProcess
-//! to associate with a special invalid x86 address.  If the x86 ever jumps to such an
-//! address, we forward the call to the registered shim handler.
+//! In the simple case, Rust functions like kernel32.dll!ExitProcess call into our
+//! custom kernel32.dll stub, which forwards to retrowin32_syscall.
 //!
 //! The complex case is when our Rust function needs to call back into x86
 //! code.  x86 emulation executes one basic block of instructions at a time, while
@@ -39,30 +38,22 @@
 use memory::Extensions;
 
 use crate::{machine::Machine, shims::Shim};
-
-/// Code that calls from x86 to the host will jump to addresses in this
-/// magic range.
-/// "fake IAT" => "FIAT" => "F1A7"
-const SHIM_BASE: u32 = 0xF1A7_0000;
+use std::collections::HashMap;
 
 /// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
 /// This is how emulated code calls out to hosting code for e.g. DLL imports.
 #[derive(Default)]
 pub struct Shims {
-    shims: Vec<Result<&'static Shim, String>>,
+    shims: HashMap<u32, Result<&'static Shim, String>>,
 }
 
 impl Shims {
-    /// Returns the (fake) address of the registered function.
-    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
-        let id = SHIM_BASE | self.shims.len() as u32;
-        self.shims.push(shim);
-        id
+    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
+        self.shims.insert(addr, shim);
     }
 
     pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
-        let index = (addr & 0x0000_FFFF) as usize;
-        match self.shims.get(index) {
+        match self.shims.get(&addr) {
             Some(Ok(shim)) => Ok(shim),
             Some(Err(name)) => Err(name),
             None => panic!("unknown import reference at {:x}", addr),
@@ -70,32 +61,40 @@ impl Shims {
     }
 }
 
-pub fn is_ip_at_shim_call(ip: u32) -> bool {
-    ip & 0xFFFF_0000 == SHIM_BASE
-}
-
 pub fn handle_shim_call(machine: &mut Machine) {
+    // The calling code looks like:
+    //
+    // SomeShimFn:
+    //   call retrowin32_syscall
+    //   ret
+    // ...
+    // retrowin32_syscall:
+    //   syscall   <- triggered this shim call
+    //   ret
+
+    // stack looks like:
+    //   return address within SomeShimFn (*1*)  <- esp
+    //   return address within SomeShimFn caller (*2*)
+    //   arg1 to SomeShimFn
+    //   arg2 to SomeShimFn
+
     let regs = &mut machine.emu.x86.cpu_mut().regs;
-    let shim = match machine.emu.shims.get(regs.eip) {
+
+    // Find the address of SomeShimFn by reading address marked *1* above.
+    // The 'call retrowin32_syscall' instruction is ff15+addr, for 6 bytes.
+    let esp = regs.get32(x86::Register::ESP);
+    let call_len = 6;
+    let shim_addr = machine.emu.memory.mem().get_pod::<u32>(esp) - call_len;
+    let shim = match machine.emu.shims.get(shim_addr) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    let crate::shims::Shim {
-        func,
-        stack_consumed,
-        is_async,
-        ..
-    } = *shim;
-    let esp = regs.get32(x86::Register::ESP);
-    let ret = unsafe { func(machine, esp) };
+    let crate::shims::Shim { func, is_async, .. } = *shim;
+
+    // Shim fn expects to read the stack starting at address marked *2* above
+    let ret = unsafe { func(machine, esp + 4) };
     if !is_async {
         let regs = &mut machine.emu.x86.cpu_mut().regs;
-        regs.eip = machine
-            .emu
-            .memory
-            .mem()
-            .get_pod::<u32>(regs.get32(x86::Register::ESP));
-        *regs.get32_mut(x86::Register::ESP) += stack_consumed + 4;
         regs.set32(x86::Register::EAX, ret);
 
         // Clear registers to make traces clean.
@@ -103,6 +102,6 @@ pub fn handle_shim_call(machine: &mut Machine) {
         regs.set32(x86::Register::ECX, 0);
         regs.set32(x86::Register::EDX, 0);
     } else {
-        // Async handler will manage the return address etc.
+        // async func will set up a future to handle returning.
     }
 }

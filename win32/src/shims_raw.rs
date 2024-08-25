@@ -4,23 +4,15 @@
 //! See doc/x86-64.md for an overview.
 
 use crate::{ldt::LDT, shims::Shim, Machine};
-
-type Trampoline = [u8; 16];
-
-/// A region of memory for us to generate code/etc. into.
-/// We initialize one of these structs at a low (32-bit) address.
-struct ScratchSpace {
-    /// 32-bit code to trampoline up to a 64-bit call to a shim, one entry per shim.
-    trampolines: [Trampoline; 0x200],
-}
+#[cfg(target_arch = "x86_64")]
+use memory::Extensions;
+use std::collections::HashMap;
 
 pub struct Shims {
-    scratch: &'static mut ScratchSpace,
-
     /// Segment selector for 64-bit code.
     code64_selector: u16,
 
-    shims: Vec<Result<&'static Shim, String>>,
+    shims: HashMap<u32, Result<&'static Shim, String>>,
 }
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
@@ -29,25 +21,28 @@ static mut STACK64: u64 = 0;
 
 unsafe extern "C" fn call64() -> u32 {
     let machine: &mut Machine = &mut *MACHINE;
+
+    // call sequence:
+    //   exe:
+    //     call WindowsFunc
+    //   dll!WindowFunc:
+    //     call retrowin32_syscall
+    //   retrowin32_syscall:
+    //     lcall trans64
+
     // 32-bit stack contents:
-    //   4 bytes return address (within scratch.trampolines)
-    //   4 bytes segment selector for far return
-    //   and the callee expected stack is below that.
+    //   stack[0]: return address in retrowin32_syscall
+    //   stack[1]: segment selector for far return
+    //   stack[2]: return address in dll!WindowsFunc
 
-    let ret_addr = unsafe { *(STACK32 as *const u32) };
-
-    // Map the return address back to a shim index.
-    // Though the return address points at a point after the call instruction in the
-    // trampoline, dividing by the size of a trampoline here rounds down
-    // to discard that offset.
-    let shim_index = (ret_addr - (&machine.emu.shims.scratch.trampolines[0] as *const _ as u32))
-        / std::mem::size_of::<Trampoline>() as u32;
-
-    let shim = match &machine.emu.shims.shims[shim_index as usize] {
+    let stack32 = STACK32 as *const u32;
+    let ret_addr = unsafe { *stack32.offset(2) };
+    let shim = match machine.emu.shims.shims.get(&(ret_addr - 6)).unwrap() {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    (shim.func)(machine, STACK32 + 8)
+    let ret = (shim.func)(machine, STACK32 + 12);
+    ret
 }
 
 // trans64 is the code we jump to when transitioning from 32->64-bit.
@@ -132,7 +127,7 @@ impl Shims {
         ldt
     }
 
-    pub fn new(teb: u32, alloc32: impl FnOnce(usize) -> u32) -> Self {
+    pub fn new(teb: u32) -> Self {
         let mut ldt = Self::init_ldt(teb);
 
         // Wine marks all of memory as code.
@@ -159,10 +154,7 @@ impl Shims {
             0u16
         };
 
-        let addr = alloc32(std::mem::size_of::<ScratchSpace>());
-        let scratch = unsafe { &mut *(addr as *mut ScratchSpace) };
         Shims {
-            scratch,
             code64_selector,
             shims: Default::default(),
         }
@@ -175,30 +167,20 @@ impl Shims {
         STACK32 = esp;
     }
 
-    pub fn add(&mut self, shim: Result<&'static Shim, String>) -> u32 {
-        let stack_consumed: u16 = match shim {
-            Ok(shim) => shim.stack_consumed,
-            Err(_) => 0, // we'll crash when it's hit anyway
-        } as u16;
+    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
+        self.shims.insert(addr, shim);
+    }
 
-        let shim_index = self.shims.len();
-        self.shims.push(shim);
-
-        assert!((trans64 as u64) < 0x1_0000_0000);
-        let tramp = [
+    pub fn retrowin32_syscall(&self) -> Vec<u8> {
+        [
             // lcalll trans64
             b"\x9a".as_slice(),
             &(trans64 as u32).to_le_bytes(),
             &(self.code64_selector).to_le_bytes(),
-            // retl
-            b"\xc2",
-            &stack_consumed.to_le_bytes(),
+            // ret
+            b"\xc3",
         ]
-        .concat();
-
-        self.scratch.trampolines[shim_index][..tramp.len()].copy_from_slice(&tramp);
-
-        &self.scratch.trampolines[shim_index] as *const _ as u32
+        .concat()
     }
 }
 

@@ -3,7 +3,10 @@
 
 use super::heap::Heap;
 pub use crate::winapi::com::GUID;
-use crate::{machine::Machine, winapi::com::vtable};
+use crate::{
+    machine::Machine,
+    winapi::{com::vtable, kernel32::get_symbol},
+};
 use memory::Extensions;
 use std::collections::HashMap;
 
@@ -29,8 +32,6 @@ const fn make_dhsresult(code: u32) -> u32 {
 pub struct State {
     heap: Heap,
     buffers: HashMap<u32, Buffer>,
-    vtable_IDirectSound: Option<u32>,
-    vtable_IDirectSoundBuffer: Option<u32>,
 }
 
 impl State {
@@ -130,11 +131,7 @@ pub mod IDirectSound {
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
         let lpDirectSound = dsound.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *dsound.vtable_IDirectSound.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "dsound.dll", "IDirectSound");
         machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
     }
@@ -199,11 +196,7 @@ pub mod IDirectSoundBuffer {
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
         let lpDirectSoundBuffer = dsound.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *dsound.vtable_IDirectSoundBuffer.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut dsound.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
         machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
     }

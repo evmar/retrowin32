@@ -33,7 +33,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
 
     let stack_consumed = dllexport.stack_consumed();
 
-    // If the function is async, we need to handle the return value a bit differently.
+    // If the function is async we need to wrap it in a Future.
     let is_async = dllexport.func.sig.asyncness.is_some();
     let args = dllexport
         .args
@@ -52,9 +52,11 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                 use memory::Extensions;
                 let machine = unsafe { &mut *m };
                 let result = #impl_name(machine, #(#args),*).await;
+
+                // Arguments will be popped by the shim wrapper function,
+                // so we only need to pop the return address here.
                 let cpu = &mut machine.emu.x86.cpu_mut();
                 cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
-                *cpu.regs.get32_mut(x86::Register::ESP) += #stack_consumed;
                 cpu.regs.set32(x86::Register::EAX, result.to_raw());
             };
             machine.emu.x86.cpu_mut().call_async(machine.emu.memory.mem(), Box::pin(result));
@@ -63,7 +65,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         }
         #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
         {
-            // In the non-emulated case, we synchronously evaluate the future.
+            // In the non-x86-emu case, we synchronously evaluate the future.
             let pin = std::pin::pin!(#impl_name(machine, #(#args),*));
             crate::shims::call_sync(pin).to_raw()
         }
