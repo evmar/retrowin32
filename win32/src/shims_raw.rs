@@ -175,7 +175,7 @@ impl Shims {
             b"\x9a".as_slice(),
             &(trans64 as u32).to_le_bytes(),
             &(get_code64_selector()).to_le_bytes(),
-            // ret
+            // retl
             b"\xc3",
         ]
         .concat()
