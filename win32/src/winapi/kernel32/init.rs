@@ -220,10 +220,32 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
+    pub fn new(mem: &mut MemImpl, cmdline: String, retrowin32_syscall: &[u8]) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);
+
+        let mut dlls = HashMap::new();
+        let dll = {
+            let addr = arena.alloc(retrowin32_syscall.len() as u32, 8);
+            mem.mem()
+                .sub32_mut(addr, retrowin32_syscall.len() as u32)
+                .copy_from_slice(retrowin32_syscall);
+            let mut names = HashMap::new();
+            names.insert("retrowin32_syscall".into(), addr);
+            DLL {
+                name: "retrowin32.dll".into(),
+                dll: pe::DLL {
+                    base: 0, // unused
+                    names,
+                    ordinal_base: 0,         // unused
+                    fns: Default::default(), // unused
+                    resources: None,
+                    entry_point: None,
+                },
+            }
+        };
+        dlls.insert(HMODULE::from_raw(dll.dll.base), dll);
 
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
@@ -242,7 +264,7 @@ impl State {
             process_heap: 0,
             mappings,
             heaps: HashMap::new(),
-            dlls: Default::default(),
+            dlls,
             files: Default::default(),
             find_handles: Default::default(),
             env: env_addr,
@@ -353,28 +375,6 @@ impl State {
             fs,
             ss,
         }
-    }
-
-    pub fn init_retrowin32_dll(&mut self, mem: Mem, retrowin32_syscall: &[u8]) {
-        let dll = {
-            let addr = self.arena.alloc(retrowin32_syscall.len() as u32, 8);
-            mem.sub32_mut(addr, retrowin32_syscall.len() as u32)
-                .copy_from_slice(retrowin32_syscall);
-            let mut names = HashMap::new();
-            names.insert("retrowin32_syscall".into(), addr);
-            DLL {
-                name: "retrowin32.dll".into(),
-                dll: pe::DLL {
-                    base: 0, // unused
-                    names,
-                    ordinal_base: 0,         // unused
-                    fns: Default::default(), // unused
-                    resources: None,
-                    entry_point: None,
-                },
-            }
-        };
-        self.dlls.insert(HMODULE::from_raw(dll.dll.base), dll);
     }
 }
 

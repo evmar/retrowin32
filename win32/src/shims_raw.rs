@@ -114,6 +114,18 @@ fn get_code64_selector() -> u16 {
     0u16
 }
 
+pub fn retrowin32_syscall() -> Vec<u8> {
+    [
+        // lcalll trans64
+        b"\x9a".as_slice(),
+        &(trans64 as u32).to_le_bytes(),
+        &(get_code64_selector()).to_le_bytes(),
+        // retl
+        b"\xc3",
+    ]
+    .concat()
+}
+
 impl Shims {
     fn init_ldt(teb: u32) -> LDT {
         let mut ldt = LDT::default();
@@ -167,18 +179,6 @@ impl Shims {
 
     pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
         self.shims.insert(addr, shim);
-    }
-
-    pub fn retrowin32_syscall(&self) -> Vec<u8> {
-        [
-            // lcalll trans64
-            b"\x9a".as_slice(),
-            &(trans64 as u32).to_le_bytes(),
-            &(get_code64_selector()).to_le_bytes(),
-            // retl
-            b"\xc3",
-        ]
-        .concat()
     }
 }
 

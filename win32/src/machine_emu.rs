@@ -2,7 +2,7 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims_emu::Shims,
+    shims_emu::{retrowin32_syscall, Shims},
     winapi,
 };
 use memory::{Extensions, Mem};
@@ -52,7 +52,7 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = BoxMem::new(256 << 20);
-        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall());
         let shims = Shims::default();
         let state = winapi::State::new(&mut memory, kernel32);
 
@@ -108,7 +108,7 @@ impl MachineX<Emulator> {
         let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
         let cpu = self.emu.x86.cpu_mut();
         x86::ops::push(cpu, self.emu.memory.mem(), exe.entry_point);
-        x86::ops::push(cpu, self.emu.memory.mem(), 0x111); // return address
+        x86::ops::push(cpu, self.emu.memory.mem(), 0); // return address
         cpu.regs.eip = retrowin32_main;
 
         Ok(LoadedAddrs {

@@ -9,6 +9,11 @@ use crate::{shims::Shim, Machine};
 use memory::Extensions;
 use std::collections::HashMap;
 
+pub fn retrowin32_syscall() -> &'static [u8] {
+    // sysenter; ret
+    b"\x0f\x34\xc3".as_slice()
+}
+
 #[derive(Default)]
 pub struct Shims {
     shims: HashMap<u32, Result<&'static Shim, String>>,
