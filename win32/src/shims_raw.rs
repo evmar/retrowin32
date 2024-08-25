@@ -19,9 +19,6 @@ struct ScratchSpace {
 pub struct Shims {
     scratch: &'static mut ScratchSpace,
 
-    /// Segment selector for 64-bit code.
-    code64_selector: u16,
-
     shims: Vec<Result<&'static Shim, String>>,
 }
 
@@ -107,6 +104,23 @@ extern "C" {
 /// A known m16:32 selector+address for the tramp32 function.
 static mut TRAMP32_M1632: u64 = 0;
 
+/// Get the segment selector for 64-bit mode,
+/// which in other words is the current code segment value.
+fn get_code64_selector() -> u16 {
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        let mut cs: u16;
+        std::arch::asm!(
+            "movw %cs,{out:x}",
+            out = out(reg) cs,
+            options(att_syntax)
+        );
+        cs
+    }
+    #[cfg(not(target_arch = "x86_64"))]
+    0u16
+}
+
 impl Shims {
     fn init_ldt(teb: u32) -> LDT {
         let mut ldt = LDT::default();
@@ -146,26 +160,10 @@ impl Shims {
             TRAMP32_M1632 = ((code32_selector as u64) << 32) | tramp32_addr;
         }
 
-        let code64_selector = {
-            #[cfg(target_arch = "x86_64")]
-            unsafe {
-                let mut cs: u16;
-                std::arch::asm!(
-                    "movw %cs,{out:x}",
-                    out = out(reg) cs,
-                    options(att_syntax)
-                );
-                cs
-            }
-            #[cfg(not(target_arch = "x86_64"))]
-            0u16
-        };
-
         let addr = alloc32(std::mem::size_of::<ScratchSpace>());
         let scratch = unsafe { &mut *(addr as *mut ScratchSpace) };
         Shims {
             scratch,
-            code64_selector,
             shims: Default::default(),
         }
     }
@@ -191,7 +189,7 @@ impl Shims {
             // lcalll trans64
             b"\x9a".as_slice(),
             &(trans64 as u32).to_le_bytes(),
-            &(self.code64_selector).to_le_bytes(),
+            &(get_code64_selector()).to_le_bytes(),
             // retl
             b"\xc2",
             &stack_consumed.to_le_bytes(),
@@ -228,7 +226,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         // Push selector and reserve space for return address.
         let mut esp = STACK32;
         esp -= 4;
-        mem.put_pod::<u32>(esp, machine.emu.shims.code64_selector as u32);
+        mem.put_pod::<u32>(esp, get_code64_selector() as u32);
         esp -= 4;
         let return_addr = esp;
 
