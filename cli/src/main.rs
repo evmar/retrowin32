@@ -131,7 +131,8 @@ fn main() -> anyhow::Result<ExitCode> {
         .cmdline
         .first()
         .ok_or_else(|| anyhow!("missing command line"))?;
-    let buf = std::fs::read(exe).map_err(|err| anyhow!("{}: {}", exe, err))?;
+    let exe = std::fs::canonicalize(exe).map_err(|err| anyhow!("{}: {}", exe, err))?;
+    let buf = std::fs::read(&exe).map_err(|err| anyhow!("{}: {}", exe.display(), err))?;
     let host = host::new_host();
 
     let mut cmdline = args.cmdline.clone();
@@ -151,8 +152,9 @@ fn main() -> anyhow::Result<ExitCode> {
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
 
     let addrs = machine
-        .load_exe(&buf, exe, None)
-        .map_err(|err| anyhow!("loading {}: {}", exe, err))?;
+        .load_exe(&buf, &exe, None)
+        .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
+    _ = addrs;
 
     #[cfg(feature = "x86-64")]
     {

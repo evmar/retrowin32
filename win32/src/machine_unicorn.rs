@@ -6,7 +6,7 @@ use crate::{
     winapi,
 };
 use memory::Mem;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path};
 
 pub struct MemImpl(Box<[u8]>);
 
@@ -76,6 +76,7 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
+            exe_path: Default::default(),
         }
     }
 
@@ -153,10 +154,10 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        filename: &str,
+        path: &Path,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, filename, relocate)?;
+        let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
         self.setup_segments();
@@ -188,6 +189,7 @@ impl MachineX<Emulator> {
             .reg_write(unicorn_engine::RegisterX86::EDI, exe.entry_point as u64)
             .unwrap();
 
+        self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,
