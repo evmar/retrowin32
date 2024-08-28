@@ -8,6 +8,9 @@ use crate::{
     Register,
 };
 use memory::Mem;
+use std::future::Future;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 
 #[derive(Debug, Default, PartialEq, Eq)]
 pub enum CPUState {
@@ -28,6 +31,9 @@ impl CPUState {
 /// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
 const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 
+// Similar to futures::future::BoxFuture, but 'static + !Send.
+pub type BoxFuture<T> = Pin<Box<dyn Future<Output = T>>>;
+
 pub struct CPU {
     pub regs: Registers,
     // Flags are in principle a register but we moved it outside of regs for lifetime reasons,
@@ -40,7 +46,7 @@ pub struct CPU {
 
     /// If eip==MAGIC_ADDR, then the next step is to poll a future rather than
     /// executing a basic block.
-    futures: Vec<std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>>,
+    futures: Vec<BoxFuture<()>>,
 }
 
 impl CPU {
@@ -98,28 +104,24 @@ impl CPU {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
     /// that is polled the next time the CPU executes.
-    pub fn call_async(
-        &mut self,
-        _mem: Mem,
-        future: std::pin::Pin<Box<dyn std::future::Future<Output = ()>>>,
-    ) {
+    pub fn call_async(&mut self, _mem: Mem, future: BoxFuture<()>) {
         self.regs.eip = MAGIC_ADDR;
         self.futures.push(future);
     }
 
-    #[allow(deref_nullptr)]
     fn async_executor(&mut self) {
-        let mut future = self.futures.pop().unwrap();
+        let future = self.futures.last_mut().unwrap();
         // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
         // here but it seems like nothing accesses it(?).
         //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
+        #[allow(deref_nullptr)]
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
         let poll = future.as_mut().poll(context);
         match poll {
-            std::task::Poll::Ready(()) => {}
-            std::task::Poll::Pending => {
-                self.futures.push(future);
+            Poll::Ready(()) => {
+                self.futures.pop();
             }
+            Poll::Pending => {}
         }
     }
 
@@ -135,19 +137,16 @@ pub struct X86Future {
     cpu: *mut CPU,
     esp: u32,
 }
-impl std::future::Future for X86Future {
+impl Future for X86Future {
     type Output = u32;
 
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
         let cpu = self.cpu;
         let cpu = unsafe { &mut *cpu };
         if cpu.regs.get32(Register::ESP) == self.esp {
-            std::task::Poll::Ready(cpu.regs.get32(Register::EAX))
+            Poll::Ready(cpu.regs.get32(Register::EAX))
         } else {
-            std::task::Poll::Pending
+            Poll::Pending
         }
     }
 }
@@ -159,27 +158,23 @@ pub struct BlockFuture {
     cpu: *mut CPU,
 }
 
-impl std::future::Future for BlockFuture {
+impl Future for BlockFuture {
     type Output = ();
 
-    fn poll(
-        self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<Self::Output> {
         let cpu = self.cpu;
         let cpu = unsafe { &mut *cpu };
         if matches!(cpu.state, CPUState::Blocked(_)) {
-            std::task::Poll::Pending
+            Poll::Pending
         } else {
-            std::task::Poll::Ready(())
+            Poll::Ready(())
         }
     }
 }
 
 pub struct X86 {
     /// CPUs are boxed because their futures take pointers to self.
-    /// In theory we could use Pin here but maybe we just need to revisit how this works in general.
-    pub cpus: Vec<Box<CPU>>,
+    pub cpus: Vec<Pin<Box<CPU>>>,
     pub cur_cpu: usize,
 
     /// Total number of instructions executed.
@@ -191,7 +186,7 @@ pub struct X86 {
 impl X86 {
     pub fn new() -> Self {
         X86 {
-            cpus: vec![Box::new(CPU::new())],
+            cpus: vec![Box::pin(CPU::new())],
             cur_cpu: 0,
             instr_count: 0,
             icache: InstrCache::default(),
@@ -207,7 +202,7 @@ impl X86 {
     }
 
     pub fn new_cpu(&mut self) -> &mut CPU {
-        self.cpus.push(Box::new(CPU::new()));
+        self.cpus.push(Box::pin(CPU::new()));
         self.cpus.last_mut().unwrap()
     }
 
@@ -278,7 +273,7 @@ impl X86 {
         for op in block.ops.iter() {
             prev_ip = cpu.regs.eip;
             cpu.regs.eip = op.instr.next_ip() as u32;
-            self.instr_count += 1;
+            self.instr_count = self.instr_count.wrapping_add(1);
             (op.op)(cpu, mem, &op.instr);
             if !cpu.state.is_running() {
                 break;
