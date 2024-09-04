@@ -6,15 +6,19 @@ use crate::{
     winapi,
 };
 use memory::Mem;
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
+use std::path::Path;
+use std::pin::Pin;
+use unicorn_engine::unicorn_const::{Arch, Mode, Permission};
+use unicorn_engine::{RegisterX86, Unicorn, X86Mmr};
 
-pub struct MemImpl(Box<[u8]>);
+pub struct MemImpl(Pin<Box<[u8]>>);
 
 impl MemImpl {
     pub fn new(size: usize) -> Self {
         let mut v = Vec::with_capacity(size);
         v.resize(size, 0);
-        Self(v.into_boxed_slice())
+        Self(Pin::from(v.into_boxed_slice()))
     }
 
     pub fn len(&self) -> u32 {
@@ -30,9 +34,10 @@ impl MemImpl {
 }
 
 pub struct Emulator {
-    pub unicorn: unicorn_engine::Unicorn<'static, ()>,
+    pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
     pub memory: MemImpl,
+    breakpoints: HashMap<u32, *mut core::ffi::c_void>,
 }
 
 pub type Machine = MachineX<Emulator>;
@@ -42,18 +47,15 @@ impl MachineX<Emulator> {
         let mut memory = MemImpl::new(32 << 20);
         let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
 
-        let mut unicorn = unicorn_engine::Unicorn::new(
-            unicorn_engine::unicorn_const::Arch::X86,
-            unicorn_engine::unicorn_const::Mode::MODE_32,
-        )
-        .unwrap();
+        let mut unicorn = Unicorn::new(Arch::X86, Mode::MODE_32).unwrap();
         unsafe {
+            let offset = 0x1000usize; // Leave the first 4k of memory unmapped
             unicorn
                 .mem_map_ptr(
-                    0,
-                    memory.len() as usize,
-                    unicorn_engine::unicorn_const::Permission::ALL,
-                    memory.ptr() as *mut _,
+                    offset as u64,
+                    (memory.len() as usize) - offset,
+                    Permission::ALL,
+                    memory.ptr().add(offset) as *mut _,
                 )
                 .unwrap();
         };
@@ -72,6 +74,7 @@ impl MachineX<Emulator> {
                 unicorn,
                 shims,
                 memory,
+                breakpoints: Default::default(),
             },
             host,
             state,
@@ -96,11 +99,11 @@ impl MachineX<Emulator> {
         // TODO: put this init somewhere better.
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::ESP, stack_pointer as u64)
+            .reg_write(RegisterX86::ESP, stack_pointer as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EBP, stack_pointer as u64)
+            .reg_write(RegisterX86::EBP, stack_pointer as u64)
             .unwrap();
 
         stack_pointer
@@ -114,7 +117,7 @@ impl MachineX<Emulator> {
         // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
         let gdt = self.state.kernel32.create_gdt(self.emu.memory.mem());
 
-        let gdtr = unicorn_engine::X86Mmr {
+        let gdtr = X86Mmr {
             selector: 0, // unused
             base: gdt.addr as u64,
             limit: 5 * 8,
@@ -124,29 +127,29 @@ impl MachineX<Emulator> {
         let gdtr_slice = unsafe {
             std::slice::from_raw_parts(
                 &gdtr as *const _ as *const u8,
-                std::mem::size_of::<unicorn_engine::X86Mmr>(),
+                std::mem::size_of::<X86Mmr>(),
             )
         };
 
         self.emu
             .unicorn
-            .reg_write_long(unicorn_engine::RegisterX86::GDTR, gdtr_slice)
+            .reg_write_long(RegisterX86::GDTR, gdtr_slice)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::CS, gdt.cs as u64)
+            .reg_write(RegisterX86::CS, gdt.cs as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::DS, gdt.ds as u64)
+            .reg_write(RegisterX86::DS, gdt.ds as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::SS, gdt.ss as u64)
+            .reg_write(RegisterX86::SS, gdt.ss as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::FS, gdt.fs as u64)
+            .reg_write(RegisterX86::FS, gdt.fs as u64)
             .unwrap();
     }
 
@@ -164,29 +167,33 @@ impl MachineX<Emulator> {
 
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EAX, 0xdeadbeea)
+            .reg_write(RegisterX86::EAX, 0xdeadbeea)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EBX, 0xdeadbeeb)
+            .reg_write(RegisterX86::EBX, 0xdeadbeeb)
+            .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(RegisterX86::EIP, exe.entry_point as u64)
             .unwrap();
         // To make CPU traces match more closely, set up some registers to what their
         // initial values appear to be from looking in a debugger.
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::ECX, exe.entry_point as u64)
+            .reg_write(RegisterX86::ECX, exe.entry_point as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EDX, exe.entry_point as u64)
+            .reg_write(RegisterX86::EDX, exe.entry_point as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::ESI, exe.entry_point as u64)
+            .reg_write(RegisterX86::ESI, exe.entry_point as u64)
             .unwrap();
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EDI, exe.entry_point as u64)
+            .reg_write(RegisterX86::EDI, exe.entry_point as u64)
             .unwrap();
 
         self.exe_path = path.to_path_buf();
@@ -198,5 +205,36 @@ impl MachineX<Emulator> {
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
         crate::shims_unicorn::call_x86(self, func, args).await
+    }
+
+    pub fn add_breakpoint(&mut self, addr: u32) -> bool {
+        match self.emu.breakpoints.entry(addr) {
+            std::collections::hash_map::Entry::Occupied(_) => {
+                log::warn!("machine_unicorn: breakpoint already set at {:#x}", addr);
+                false
+            }
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                let hook = self
+                    .emu
+                    .unicorn
+                    .add_code_hook(addr as u64, (addr + 1) as u64, |u, addr, _size| {
+                        log::debug!("machine_unicorn: breakpoint hit at {:#x}", addr);
+                        u.emu_stop().unwrap()
+                    })
+                    .unwrap();
+                entry.insert(hook);
+                true
+            }
+        }
+    }
+
+    pub fn clear_breakpoint(&mut self, addr: u32) -> bool {
+        if let Some(hook) = self.emu.breakpoints.remove(&addr) {
+            self.emu.unicorn.remove_hook(hook).unwrap();
+            true
+        } else {
+            log::warn!("machine_unicorn: no breakpoint at {:#x}", addr);
+            false
+        }
     }
 }
