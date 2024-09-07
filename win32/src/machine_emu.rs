@@ -202,25 +202,34 @@ impl MachineX<Emulator> {
     // }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
-    pub fn add_breakpoint(&mut self, addr: u32) {
-        if crate::shims_emu::is_ip_at_shim_call(addr) {
-            self.emu.breakpoints.insert(addr, 0);
-        } else {
-            let mem = self.emu.memory.mem();
-            self.emu.breakpoints.insert(addr, mem.get_pod::<u8>(addr));
-            mem.put_pod::<u8>(addr, 0xcc); // int3
-            self.emu.x86.icache.clear_cache(addr);
+    pub fn add_breakpoint(&mut self, addr: u32) -> bool {
+        match self.emu.breakpoints.entry(addr) {
+            std::collections::hash_map::Entry::Occupied(_) => false,
+            std::collections::hash_map::Entry::Vacant(entry) => {
+                if crate::shims_emu::is_ip_at_shim_call(addr) {
+                    entry.insert(0);
+                } else {
+                    let mem = self.emu.memory.mem();
+                    entry.insert(mem.get_pod::<u8>(addr));
+                    mem.put_pod::<u8>(addr, 0xcc); // int3
+                    self.emu.x86.icache.clear_cache(addr);
+                }
+                true
+            }
         }
     }
 
     /// Undo an add_breakpoint().
-    pub fn clear_breakpoint(&mut self, addr: u32) {
-        if crate::shims_emu::is_ip_at_shim_call(addr) {
-            self.emu.breakpoints.remove(&addr).unwrap();
-        } else {
-            self.emu.x86.icache.clear_cache(addr);
-            let prev = self.emu.breakpoints.remove(&addr).unwrap();
-            self.mem().put_pod::<u8>(addr, prev);
+    pub fn clear_breakpoint(&mut self, addr: u32) -> bool {
+        match self.emu.breakpoints.remove(&addr) {
+            Some(prev) => {
+                if !crate::shims_emu::is_ip_at_shim_call(addr) {
+                    self.emu.x86.icache.clear_cache(addr);
+                    self.mem().put_pod::<u8>(addr, prev);
+                }
+                true
+            }
+            None => false,
         }
     }
 }
