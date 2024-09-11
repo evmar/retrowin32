@@ -4457,6 +4457,27 @@ pub mod retrowin32_test {
         raw: std::include_bytes!("../../dll/retrowin32_test.dll"),
     };
 }
+pub mod shell32 {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::shell32::*;
+    }
+    mod shims {
+        use super::impls;
+        use super::Shim;
+    }
+    const SHIMS: [Shim; 0usize] = [];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "shell32.dll",
+        shims: &SHIMS,
+        raw: std::include_bytes!("../../dll/shell32.dll"),
+    };
+}
 pub mod ucrtbase {
     use super::*;
     mod impls {

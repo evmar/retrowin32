@@ -16,6 +16,7 @@ mod ntdll;
 mod ole32;
 mod oleaut32;
 mod retrowin32_test;
+mod shell32;
 mod stack_args;
 pub mod types;
 mod ucrtbase;
@@ -38,7 +39,7 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 15] = [
+pub const DLLS: [builtin::BuiltinDLL; 16] = [
     builtin::advapi32::DLL,
     builtin::bass::DLL,
     builtin::ddraw::DLL,
@@ -48,6 +49,7 @@ pub const DLLS: [builtin::BuiltinDLL; 15] = [
     builtin::ntdll::DLL,
     builtin::ole32::DLL,
     builtin::oleaut32::DLL,
+    builtin::shell32::DLL,
     builtin::ucrtbase::DLL,
     builtin::user32::DLL,
     builtin::vcruntime140::DLL,
