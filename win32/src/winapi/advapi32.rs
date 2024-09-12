@@ -39,6 +39,19 @@ pub fn RegCloseKey(_machine: &mut Machine, hKey: HKEY) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn RegQueryValueExA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpValueName: Option<&str>,
+    lpReserved: u32,
+    lpType: Option<&mut u32>,
+    lpData: u32,
+    lpcbData: Option<&mut u32>,
+) -> u32 {
+    2 // ERROR_FILE_NOT_FOUND
+}
+
+#[win32_derive::dllexport]
 pub fn RegQueryValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
