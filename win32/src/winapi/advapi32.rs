@@ -8,6 +8,16 @@ const TRACE_CONTEXT: &'static str = "advapi32";
 pub type HKEY = u32;
 
 #[win32_derive::dllexport]
+pub fn RegCreateKeyA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpSubKey: Option<&str>,
+    phkResult: Option<&mut u32>,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
 pub fn RegCreateKeyExW(
     _machine: &mut Machine,
     hKey: HKEY,
