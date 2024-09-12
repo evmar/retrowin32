@@ -152,6 +152,7 @@ impl win32::Host for EnvRef {
 
     fn set_current_dir(&self, path: &WindowsPath) -> Result<(), u32> {
         let path = windows_to_host_path(path);
+        log::info!("set_current_dir {:?}", path);
         std::env::set_current_dir(path).map_err(|e| io_error_to_win32(&e))
     }
 
