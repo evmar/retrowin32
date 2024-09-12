@@ -150,6 +150,11 @@ impl win32::Host for EnvRef {
         Ok(host_to_windows_path(&path))
     }
 
+    fn set_current_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        let path = windows_to_host_path(path);
+        std::env::set_current_dir(path).map_err(|e| io_error_to_win32(&e))
+    }
+
     fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn win32::File>, u32> {
         let path = windows_to_host_path(path);
         let result = std::fs::File::options()

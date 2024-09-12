@@ -141,6 +141,8 @@ pub trait Host {
 
     /// Retrieves the absolute (Windows-style) path of the current working directory.
     fn current_dir(&self) -> Result<WindowsPathBuf, u32>;
+    /// Sets the absolute (Windows-style) path of the current working directory.
+    fn set_current_dir(&self, path: &WindowsPath) -> Result<(), u32>;
     /// Open a file at the given (Windows-style) path.
     fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn File>, u32>;
     /// Retrieve file or directory metadata at the given (Windows-style) path.

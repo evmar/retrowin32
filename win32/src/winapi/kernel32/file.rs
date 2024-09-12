@@ -754,6 +754,31 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
     out_bytes.len() as u32
 }
 
+#[win32_derive::dllexport]
+pub fn SetCurrentDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool {
+    let Some(path_name) = lpPathName else {
+        log::debug!("SetCurrentDirectoryA failed: null lpPathName");
+        set_last_error(machine, ERROR_INVALID_DATA);
+        return false;
+    };
+
+    let path = WindowsPath::new(path_name);
+    match machine.host.set_current_dir(path) {
+        Ok(()) => {
+            set_last_error(machine, ERROR_SUCCESS);
+            true
+        }
+        Err(code) => {
+            log::debug!(
+                "SetCurrentDirectoryA({path_name:?}) failed: {}",
+                win32_error_str(code)
+            );
+            set_last_error(machine, code);
+            false
+        }
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct WIN32_FIND_DATAA {

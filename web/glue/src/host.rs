@@ -345,6 +345,10 @@ impl win32::Host for JsHost {
         todo!()
     }
 
+    fn set_current_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+        todo!("set_current_dir {path}")
+    }
+
     fn create_dir(&self, path: &WindowsPath) -> Result<(), u32> {
         todo!("create_dir {path}")
     }

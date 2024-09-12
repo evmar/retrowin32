@@ -2898,6 +2898,11 @@ pub mod kernel32 {
             let _add = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SetConsoleCtrlHandler(machine, _handlerRoutine, _add).to_raw()
         }
+        pub unsafe fn SetCurrentDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPathName = <Option<&str>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::SetCurrentDirectoryA(machine, lpPathName).to_raw()
+        }
         pub unsafe fn SetEndOfFile(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -3914,6 +3919,12 @@ pub mod kernel32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetCurrentDirectoryA: Shim = Shim {
+            name: "SetCurrentDirectoryA",
+            func: impls::SetCurrentDirectoryA,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetEndOfFile: Shim = Shim {
             name: "SetEndOfFile",
             func: impls::SetEndOfFile,
@@ -4137,7 +4148,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const SHIMS: [Shim; 149usize] = [
+    const SHIMS: [Shim; 150usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -4250,6 +4261,7 @@ pub mod kernel32 {
         shims::ReleaseSRWLockShared,
         shims::RemoveDirectoryA,
         shims::SetConsoleCtrlHandler,
+        shims::SetCurrentDirectoryA,
         shims::SetEndOfFile,
         shims::SetEvent,
         shims::SetFileAttributesA,
