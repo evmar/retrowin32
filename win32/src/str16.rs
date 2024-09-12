@@ -48,16 +48,7 @@ impl Str16 {
     }
 
     pub fn to_string(&self) -> String {
-        self.0
-            .iter()
-            .map(|&c| {
-                if c > 0xFF {
-                    // TODO
-                    panic!("unhandled non-ascii {:?}", char::from_u32(c as u32));
-                }
-                c as u8 as char
-            })
-            .collect()
+        String::from_utf16(&self.0).unwrap()
     }
 }
 
