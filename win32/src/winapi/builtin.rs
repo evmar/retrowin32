@@ -57,6 +57,25 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegQueryValueExA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
+            let lpType = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let lpcbData = <Option<&mut u32>>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegQueryValueExA(
+                machine,
+                hKey,
+                lpValueName,
+                lpReserved,
+                lpType,
+                lpData,
+                lpcbData,
+            )
+            .to_raw()
+        }
         pub unsafe fn RegQueryValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
@@ -117,6 +136,12 @@ pub mod advapi32 {
             stack_consumed: 36u32,
             is_async: false,
         };
+        pub const RegQueryValueExA: Shim = Shim {
+            name: "RegQueryValueExA",
+            func: impls::RegQueryValueExA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const RegQueryValueExW: Shim = Shim {
             name: "RegQueryValueExW",
             func: impls::RegQueryValueExW,
@@ -130,10 +155,11 @@ pub mod advapi32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 5usize] = [
+    const SHIMS: [Shim; 6usize] = [
         shims::RegCloseKey,
         shims::RegCreateKeyA,
         shims::RegCreateKeyExW,
+        shims::RegQueryValueExA,
         shims::RegQueryValueExW,
         shims::RegSetValueExW,
     ];
