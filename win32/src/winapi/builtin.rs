@@ -25,6 +25,13 @@ pub mod advapi32 {
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
             winapi::advapi32::RegCloseKey(machine, hKey).to_raw()
         }
+        pub unsafe fn RegCreateKeyA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpSubKey = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let phkResult = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::advapi32::RegCreateKeyA(machine, hKey, lpSubKey, phkResult).to_raw()
+        }
         pub unsafe fn RegCreateKeyExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
@@ -98,6 +105,12 @@ pub mod advapi32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const RegCreateKeyA: Shim = Shim {
+            name: "RegCreateKeyA",
+            func: impls::RegCreateKeyA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const RegCreateKeyExW: Shim = Shim {
             name: "RegCreateKeyExW",
             func: impls::RegCreateKeyExW,
@@ -117,8 +130,9 @@ pub mod advapi32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 4usize] = [
+    const SHIMS: [Shim; 5usize] = [
         shims::RegCloseKey,
+        shims::RegCreateKeyA,
         shims::RegCreateKeyExW,
         shims::RegQueryValueExW,
         shims::RegSetValueExW,
