@@ -52,3 +52,23 @@ pub fn SelectPalette(machine: &mut Machine, hdc: HDC, hpal: HGDIOBJ, bForceBackg
         Object::Pen(_) => panic!("SelectPalette called with a pen (use SelectObject)"),
     }
 }
+
+#[win32_derive::dllexport]
+pub fn RealizePalette(machine: &mut Machine, hdc: HDC) -> u32 {
+    let dc = match machine.state.gdi32.dcs.get_mut(hdc) {
+        None => return !0,
+        Some(dc) => dc,
+    };
+
+    let pal = match machine.state.gdi32.objects.get(dc.palette) {
+        None => return !0,
+        Some(pal) => pal,
+    };
+
+    match pal {
+        Object::Bitmap(_) => panic!("RealizePalette called with a bitmap"),
+        Object::Brush(_) => panic!("RealizePalette called with a brush"),
+        Object::Palette(palette) => palette.1.len() as u32,
+        Object::Pen(_) => panic!("RealizePalette called with a pen"),
+    }
+}
