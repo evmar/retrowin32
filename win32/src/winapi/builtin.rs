@@ -4377,12 +4377,23 @@ pub mod ole32 {
         };
         use memory::Extensions;
         use winapi::ole32::*;
+        pub unsafe fn OleInitialize(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _pvReserved = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ole32::OleInitialize(machine, _pvReserved).to_raw()
+        }
     }
     mod shims {
         use super::impls;
         use super::Shim;
+        pub const OleInitialize: Shim = Shim {
+            name: "OleInitialize",
+            func: impls::OleInitialize,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const SHIMS: [Shim; 0usize] = [];
+    const SHIMS: [Shim; 1usize] = [shims::OleInitialize];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
         shims: &SHIMS,
