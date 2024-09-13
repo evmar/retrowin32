@@ -1535,6 +1535,12 @@ pub mod gdi32 {
             let rop2 = <Result<R2, u32>>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetROP2(machine, hdc, rop2).to_raw()
         }
+        pub unsafe fn SetTextAlign(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let fMode = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetTextAlign(machine, hdc, fMode).to_raw()
+        }
         pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -1728,6 +1734,10 @@ pub mod gdi32 {
             name: "SetROP2",
             func: crate::shims::Handler::Sync(impls::SetROP2),
         };
+        pub const SetTextAlign: Shim = Shim {
+            name: "SetTextAlign",
+            func: crate::shims::Handler::Sync(impls::SetTextAlign),
+        };
         pub const SetTextColor: Shim = Shim {
             name: "SetTextColor",
             func: crate::shims::Handler::Sync(impls::SetTextColor),
@@ -1749,7 +1759,7 @@ pub mod gdi32 {
             func: crate::shims::Handler::Sync(impls::TextOutW),
         };
     }
-    const SHIMS: [Shim; 37usize] = [
+    const SHIMS: [Shim; 38usize] = [
         shims::BitBlt,
         shims::CreateBitmap,
         shims::CreateCompatibleBitmap,
@@ -1782,6 +1792,7 @@ pub mod gdi32 {
         shims::SetDIBitsToDevice,
         shims::SetPixel,
         shims::SetROP2,
+        shims::SetTextAlign,
         shims::SetTextColor,
         shims::StretchBlt,
         shims::StretchDIBits,

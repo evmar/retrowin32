@@ -32,6 +32,11 @@ pub fn CreateFontA(
 }
 
 #[win32_derive::dllexport]
+pub fn SetTextAlign(_machine: &mut Machine, hdc: HDC, fMode: u32) -> u32 {
+    0 // TA_LEFT | TA_TOP | TA_NOUPDATECP
+}
+
+#[win32_derive::dllexport]
 pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORREF {
     CLR_INVALID // fail
 }
