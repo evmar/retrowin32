@@ -1,13 +1,15 @@
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
-use crate::{winapi::types::HANDLE, Machine};
+use crate::{winapi::types::HEVENT, Machine};
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
+
+pub struct EventObject;
 
 #[win32_derive::dllexport]
 pub fn WaitForSingleObject(
     _machine: &mut Machine,
-    hHandle: HANDLE<()>,
+    hHandle: HEVENT,
     dwMilliseconds: u32,
 ) -> u32 {
     todo!()
@@ -15,16 +17,20 @@ pub fn WaitForSingleObject(
 
 #[win32_derive::dllexport]
 pub fn CreateEventA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     lpEventAttributes: u32,
     bManualReset: bool,
     bInitialState: bool,
     lpName: Option<&str>,
-) -> HANDLE<()> {
-    todo!()
+) -> HEVENT {
+    if lpName.is_some() {
+        todo!("CreateEventA: named events not supported");
+    }
+
+    machine.state.kernel32.event_handles.add(EventObject)
 }
 
 #[win32_derive::dllexport]
-pub fn SetEvent(_machine: &mut Machine, hEvent: HANDLE<()>) -> bool {
+pub fn SetEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
     todo!()
 }

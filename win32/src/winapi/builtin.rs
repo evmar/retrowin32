@@ -2937,7 +2937,7 @@ pub mod kernel32 {
         }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let hEvent = <HEVENT>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEvent(machine, hEvent).to_raw()
         }
         pub unsafe fn SetFileAttributesA(machine: &mut Machine, esp: u32) -> u32 {
@@ -3131,7 +3131,7 @@ pub mod kernel32 {
         }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hHandle = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let hHandle = <HEVENT>::from_stack(mem, esp + 4u32);
             let dwMilliseconds = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds).to_raw()
         }
