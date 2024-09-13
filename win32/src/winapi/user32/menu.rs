@@ -20,6 +20,11 @@ pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
 }
 
 #[win32_derive::dllexport]
+pub fn SetMenuItemInfoA(_machine: &mut Machine, hMenu: HMENU, item: u32, fByPosition: bool, lpmii: u32) -> bool {
+    false // fail
+}
+
+#[win32_derive::dllexport]
 pub fn GetSystemMenu(_machine: &mut Machine, hWnd: HWND, bRevert: bool) -> HMENU {
     0 // null
 }
