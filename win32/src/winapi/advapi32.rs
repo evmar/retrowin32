@@ -65,12 +65,25 @@ pub fn RegQueryValueExW(
 }
 
 #[win32_derive::dllexport]
+pub fn RegSetValueExA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpValueName: Option<&str>,
+    Reserved: u32,
+    dwType: u32,
+    lpData: u32,
+    cbData: u32,
+) -> u32 {
+    0 // success
+}
+
+#[win32_derive::dllexport]
 pub fn RegSetValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
     lpValueName: Option<&Str16>,
-    lpReserved: u32,
-    lpType: u32,
+    Reserved: u32,
+    dwType: u32,
     lpData: u32,
     cbData: u32,
 ) -> u32 {
