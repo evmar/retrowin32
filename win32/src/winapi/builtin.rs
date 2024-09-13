@@ -5026,6 +5026,10 @@ pub mod user32 {
             )
             .to_raw()
         }
+        pub unsafe fn CreatePopupMenu(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::user32::CreatePopupMenu(machine).to_raw()
+        }
         pub unsafe fn CreateWindowExA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, esp + 4u32);
@@ -6057,6 +6061,12 @@ pub mod user32 {
             stack_consumed: 28u32,
             is_async: false,
         };
+        pub const CreatePopupMenu: Shim = Shim {
+            name: "CreatePopupMenu",
+            func: impls::CreatePopupMenu,
+            stack_consumed: 0u32,
+            is_async: false,
+        };
         pub const CreateWindowExA: Shim = Shim {
             name: "CreateWindowExA",
             func: impls::CreateWindowExA,
@@ -6562,7 +6572,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 91usize] = [
+    const SHIMS: [Shim; 92usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6570,6 +6580,7 @@ pub mod user32 {
         shims::CheckMenuItem,
         shims::ClientToScreen,
         shims::CreateCursor,
+        shims::CreatePopupMenu,
         shims::CreateWindowExA,
         shims::CreateWindowExW,
         shims::DefWindowProcA,
