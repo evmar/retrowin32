@@ -4906,6 +4906,12 @@ pub mod user32 {
             let lprc = <Option<&RECT>>::from_stack(mem, esp + 4u32);
             winapi::user32::IsRectEmpty(machine, lprc).to_raw()
         }
+        pub unsafe fn KillTimer(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let uIDEvent = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::KillTimer(machine, hWnd, uIDEvent).to_raw()
+        }
         pub unsafe fn LoadAcceleratorsW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -5479,6 +5485,10 @@ pub mod user32 {
             name: "IsRectEmpty",
             func: crate::shims::Handler::Sync(impls::IsRectEmpty),
         };
+        pub const KillTimer: Shim = Shim {
+            name: "KillTimer",
+            func: crate::shims::Handler::Sync(impls::KillTimer),
+        };
         pub const LoadAcceleratorsW: Shim = Shim {
             name: "LoadAcceleratorsW",
             func: crate::shims::Handler::Sync(impls::LoadAcceleratorsW),
@@ -5680,7 +5690,7 @@ pub mod user32 {
             func: crate::shims::Handler::Sync(impls::wsprintfA),
         };
     }
-    const SHIMS: [Shim; 95usize] = [
+    const SHIMS: [Shim; 96usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -5726,6 +5736,7 @@ pub mod user32 {
         shims::InvalidateRgn,
         shims::IsIconic,
         shims::IsRectEmpty,
+        shims::KillTimer,
         shims::LoadAcceleratorsW,
         shims::LoadBitmapA,
         shims::LoadCursorA,

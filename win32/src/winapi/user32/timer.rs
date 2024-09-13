@@ -55,6 +55,21 @@ impl Timers {
 }
 
 #[win32_derive::dllexport]
+pub fn KillTimer(machine: &mut Machine, hWnd: HWND, uIDEvent: u32) -> bool {
+    let timers = &mut machine.state.user32.timers.0;
+    let index = timers
+        .iter()
+        .position(|t| t.hwnd == hWnd && t.id == uIDEvent);
+
+    if let Some(index) = index {
+        timers.swap_remove(index);
+        true
+    } else {
+        false
+    }
+}
+
+#[win32_derive::dllexport]
 pub fn SetTimer(
     machine: &mut Machine,
     hWnd: HWND,
