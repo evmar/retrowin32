@@ -5825,6 +5825,14 @@ pub mod user32 {
             let hMenu = <HMENU>::from_stack(mem, esp + 8u32);
             winapi::user32::SetMenu(machine, hWnd, hMenu).to_raw()
         }
+        pub unsafe fn SetMenuItemInfoA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let item = <u32>::from_stack(mem, esp + 8u32);
+            let fByPosition = <bool>::from_stack(mem, esp + 12u32);
+            let lpmii = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::SetMenuItemInfoA(machine, hMenu, item, fByPosition, lpmii).to_raw()
+        }
         pub unsafe fn SetRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
@@ -6457,6 +6465,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetMenuItemInfoA: Shim = Shim {
+            name: "SetMenuItemInfoA",
+            func: impls::SetMenuItemInfoA,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const SetRect: Shim = Shim {
             name: "SetRect",
             func: impls::SetRect,
@@ -6536,7 +6550,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 89usize] = [
+    const SHIMS: [Shim; 90usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6613,6 +6627,7 @@ pub mod user32 {
         shims::SetFocus,
         shims::SetForegroundWindow,
         shims::SetMenu,
+        shims::SetMenuItemInfoA,
         shims::SetRect,
         shims::SetRectEmpty,
         shims::SetTimer,
