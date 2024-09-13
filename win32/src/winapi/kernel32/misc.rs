@@ -98,6 +98,15 @@ pub fn GetEnvironmentVariableW(
     false
 }
 
+#[win32_derive::dllexport]
+pub fn SetEnvironmentVariableA(
+    _machine: &mut Machine,
+    name: Option<&str>,
+    value: Option<&str>,
+) -> bool {
+    true
+}
+
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum ProcessorFeature {
     FLOATING_POINT_PRECISION_ERRATA = 0,

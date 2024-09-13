@@ -2903,6 +2903,12 @@ pub mod kernel32 {
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEndOfFile(machine, hFile).to_raw()
         }
+        pub unsafe fn SetEnvironmentVariableA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let name = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let value = <Option<&str>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetEnvironmentVariableA(machine, name, value).to_raw()
+        }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
@@ -3920,6 +3926,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const SetEnvironmentVariableA: Shim = Shim {
+            name: "SetEnvironmentVariableA",
+            func: impls::SetEnvironmentVariableA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: impls::SetEvent,
@@ -4137,7 +4149,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const SHIMS: [Shim; 149usize] = [
+    const SHIMS: [Shim; 150usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -4251,6 +4263,7 @@ pub mod kernel32 {
         shims::RemoveDirectoryA,
         shims::SetConsoleCtrlHandler,
         shims::SetEndOfFile,
+        shims::SetEnvironmentVariableA,
         shims::SetEvent,
         shims::SetFileAttributesA,
         shims::SetFilePointer,
