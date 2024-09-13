@@ -37,6 +37,7 @@ pub struct DC {
     // per object type.
     pub brush: HGDIOBJ,
     pub pen: HGDIOBJ,
+    pub palette: HGDIOBJ,
 }
 
 impl DC {
@@ -48,6 +49,7 @@ impl DC {
             y: 0,
             brush: Default::default(),
             pen: Default::default(),
+            palette: Default::default(),
         }
     }
 
