@@ -4591,6 +4591,29 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn ExitThread(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwExitCode = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/thread") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/thread",
+                    "ExitThread",
+                    &[("dwExitCode", &dwExitCode)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::ExitThread(machine, dwExitCode);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::ExitThread_pos.0,
+                    winapi::kernel32::ExitThread_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn FileTimeToSystemTime(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
@@ -8778,7 +8801,7 @@ pub mod kernel32 {
             })
         }
     }
-    const SHIMS: [Shim; 172usize] = [
+    const SHIMS: [Shim; 173usize] = [
         Shim {
             name: "AcquireSRWLockExclusive",
             func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -8838,6 +8861,10 @@ pub mod kernel32 {
         Shim {
             name: "ExitProcess",
             func: Handler::Sync(wrappers::ExitProcess),
+        },
+        Shim {
+            name: "ExitThread",
+            func: Handler::Sync(wrappers::ExitThread),
         },
         Shim {
             name: "FileTimeToSystemTime",

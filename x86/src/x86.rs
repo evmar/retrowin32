@@ -20,6 +20,7 @@ pub enum CPUState {
     DebugBreak,
     SysCall,
     Error(String),
+    Free,
 }
 
 impl CPUState {
@@ -273,7 +274,7 @@ impl X86 {
         let mut soonest = None;
         for (i, cpu) in self.cpus.iter().enumerate() {
             match cpu.state {
-                CPUState::Running => {}
+                CPUState::Running | CPUState::Free => {}
                 CPUState::DebugBreak | CPUState::Error(_) | CPUState::SysCall => {
                     self.cur_cpu = i;
                     return;
