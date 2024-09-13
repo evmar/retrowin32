@@ -79,6 +79,8 @@ pub struct Window {
     pub height: u32,
     pub wndclass: Rc<WndClass>,
     pub style: WindowStyle,
+    /// The current show state of the window.
+    pub show_cmd: SW,
 }
 
 pub enum WindowType {
@@ -485,6 +487,7 @@ pub async fn CreateWindowExW(
         height,
         wndclass,
         style,
+        show_cmd: SW::HIDE,
     };
     machine.state.user32.windows.set(hwnd, window);
 
@@ -583,7 +586,7 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
 }
 
 /// nCmdShow passed to ShowWindow().
-#[derive(Debug, win32_derive::TryFromEnum)]
+#[derive(Copy, Clone, Debug, win32_derive::TryFromEnum)]
 pub enum SW {
     HIDE = 0,
     NORMAL = 1,
@@ -601,6 +604,9 @@ pub enum SW {
 
 #[win32_derive::dllexport]
 pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+    // Store the show command for returning from GetWindowPlacement.
+    machine.state.user32.windows.get_mut(hWnd).unwrap().show_cmd = nCmdShow.unwrap();
+
     dispatch_message(
         machine,
         &MSG {
@@ -963,9 +969,42 @@ pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
     true
 }
 
+#[repr(C, packed)]
+#[derive(Clone, Debug)]
+pub struct WINDOWPLACEMENT {
+    length: u32,
+    flags: u32,
+    showCmd: u32,
+    ptMinPosition: POINT,
+    ptMaxPosition: POINT,
+    rcNormalPosition: RECT,
+}
+unsafe impl memory::Pod for WINDOWPLACEMENT {}
+
 #[win32_derive::dllexport]
-pub fn GetWindowPlacement(_machine: &mut Machine, hWnd: HWND, lpwndpl: Option<&mut u32>) -> bool {
-    false
+pub fn GetWindowPlacement(
+    machine: &mut Machine,
+    hWnd: HWND,
+    lpwndpl: Option<&mut WINDOWPLACEMENT>,
+) -> bool {
+    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let wndpl = lpwndpl.unwrap();
+
+    *wndpl = WINDOWPLACEMENT {
+        length: std::mem::size_of::<WINDOWPLACEMENT>() as u32,
+        flags: 0,
+        showCmd: window.show_cmd as u32,
+        ptMinPosition: POINT { x: 0, y: 0 },
+        ptMaxPosition: POINT { x: 0, y: 0 },
+        rcNormalPosition: RECT {
+            left: 0,
+            top: 0,
+            right: window.width as i32,
+            bottom: window.height as i32,
+        },
+    };
+
+    true
 }
 
 #[win32_derive::dllexport]

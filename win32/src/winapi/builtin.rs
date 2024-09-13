@@ -12425,7 +12425,7 @@ pub mod user32 {
         pub unsafe fn GetWindowPlacement(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-            let lpwndpl = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+            let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, stack_args + 4u32);
             let __trace_context = if crate::trace::enabled("user32/window") {
                 Some(crate::trace::trace_begin(
                     "user32/window",
