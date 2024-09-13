@@ -2918,6 +2918,11 @@ pub mod kernel32 {
             let lpPathName = <Option<&str>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::RemoveDirectoryA(machine, lpPathName).to_raw()
         }
+        pub unsafe fn ResumeThread(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::ResumeThread(machine, hThread).to_raw()
+        }
         pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _handlerRoutine = <DWORD>::from_stack(mem, esp + 4u32);
@@ -3940,6 +3945,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const ResumeThread: Shim = Shim {
+            name: "ResumeThread",
+            func: impls::ResumeThread,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetConsoleCtrlHandler: Shim = Shim {
             name: "SetConsoleCtrlHandler",
             func: impls::SetConsoleCtrlHandler,
@@ -4175,7 +4186,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const SHIMS: [Shim; 150usize] = [
+    const SHIMS: [Shim; 151usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -4287,6 +4298,7 @@ pub mod kernel32 {
         shims::ReleaseSRWLockExclusive,
         shims::ReleaseSRWLockShared,
         shims::RemoveDirectoryA,
+        shims::ResumeThread,
         shims::SetConsoleCtrlHandler,
         shims::SetEndOfFile,
         shims::SetEnvironmentVariableA,
