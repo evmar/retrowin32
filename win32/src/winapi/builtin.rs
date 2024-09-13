@@ -95,20 +95,39 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegSetValueExA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let Reserved = <u32>::from_stack(mem, esp + 12u32);
+            let dwType = <u32>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let cbData = <u32>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegSetValueExA(
+                machine,
+                hKey,
+                lpValueName,
+                Reserved,
+                dwType,
+                lpData,
+                cbData,
+            )
+            .to_raw()
+        }
         pub unsafe fn RegSetValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
             let lpValueName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
-            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
-            let lpType = <u32>::from_stack(mem, esp + 16u32);
+            let Reserved = <u32>::from_stack(mem, esp + 12u32);
+            let dwType = <u32>::from_stack(mem, esp + 16u32);
             let lpData = <u32>::from_stack(mem, esp + 20u32);
             let cbData = <u32>::from_stack(mem, esp + 24u32);
             winapi::advapi32::RegSetValueExW(
                 machine,
                 hKey,
                 lpValueName,
-                lpReserved,
-                lpType,
+                Reserved,
+                dwType,
                 lpData,
                 cbData,
             )
@@ -148,6 +167,12 @@ pub mod advapi32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const RegSetValueExA: Shim = Shim {
+            name: "RegSetValueExA",
+            func: impls::RegSetValueExA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const RegSetValueExW: Shim = Shim {
             name: "RegSetValueExW",
             func: impls::RegSetValueExW,
@@ -155,12 +180,13 @@ pub mod advapi32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 6usize] = [
+    const SHIMS: [Shim; 7usize] = [
         shims::RegCloseKey,
         shims::RegCreateKeyA,
         shims::RegCreateKeyExW,
         shims::RegQueryValueExA,
         shims::RegQueryValueExW,
+        shims::RegSetValueExA,
         shims::RegSetValueExW,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
