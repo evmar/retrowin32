@@ -15,6 +15,11 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 }
 
 #[win32_derive::dllexport]
+pub fn GetSubMenu(_machine: &mut Machine, hMenu: HMENU, nPos: i32) -> HMENU {
+    0 // null
+}
+
+#[win32_derive::dllexport]
 pub fn LoadMenuA(_machine: &mut Machine, hInstance: u32, lpMenuName: u32) -> HMENU {
     0 // null
 }
