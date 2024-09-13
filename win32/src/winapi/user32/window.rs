@@ -910,6 +910,15 @@ pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
 }
 
 #[win32_derive::dllexport]
+pub fn GetWindowPlacement(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    lpwndpl: Option<&mut WINDOWPLACEMENT>,
+) -> bool {
+    false
+}
+
+#[win32_derive::dllexport]
 pub fn ClientToScreen(_machine: &mut Machine, hWnd: HWND, lpPoint: Option<&mut POINT>) -> bool {
     true
 }
