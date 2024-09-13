@@ -136,7 +136,8 @@ pub fn GetDeviceCaps(
         GetDeviceCapsArg::NUMCOLORS => -1i32 as u32, // true color
         GetDeviceCapsArg::HORZRES => 640,
         GetDeviceCapsArg::VERTRES => 480,
-        _ => unimplemented!(),
+        GetDeviceCapsArg::RASTERCAPS => 0x100, // RC_PALETTE
+        index => unimplemented!("GetDeviceCaps index={:?}", index),
     }
 }
 
