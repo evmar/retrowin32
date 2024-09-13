@@ -5506,6 +5506,12 @@ pub mod user32 {
             let nIndex = <i32>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowLongA(machine, hWnd, nIndex).to_raw()
         }
+        pub unsafe fn GetWindowPlacement(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetWindowPlacement(machine, hWnd, lpwndpl).to_raw()
+        }
         pub unsafe fn GetWindowRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -6219,6 +6225,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetWindowPlacement: Shim = Shim {
+            name: "GetWindowPlacement",
+            func: impls::GetWindowPlacement,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetWindowRect: Shim = Shim {
             name: "GetWindowRect",
             func: impls::GetWindowRect,
@@ -6550,7 +6562,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 90usize] = [
+    const SHIMS: [Shim; 91usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6586,6 +6598,7 @@ pub mod user32 {
         shims::GetSystemMetrics,
         shims::GetWindowDC,
         shims::GetWindowLongA,
+        shims::GetWindowPlacement,
         shims::GetWindowRect,
         shims::IntersectRect,
         shims::InvalidateRect,
