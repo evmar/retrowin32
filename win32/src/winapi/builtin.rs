@@ -2949,6 +2949,12 @@ pub mod kernel32 {
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter)
                 .to_raw()
         }
+        pub unsafe fn SizeofResource(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let hResInfo = <HRSRC>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SizeofResource(machine, hModule, hResInfo).to_raw()
+        }
         pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, esp + 4u32);
@@ -3946,6 +3952,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const SizeofResource: Shim = Shim {
+            name: "SizeofResource",
+            func: impls::SizeofResource,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const Sleep: Shim = Shim {
             name: "Sleep",
             func: impls::Sleep,
@@ -4085,7 +4097,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const SHIMS: [Shim; 148usize] = [
+    const SHIMS: [Shim; 149usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -4211,6 +4223,7 @@ pub mod kernel32 {
         shims::SetThreadPriority,
         shims::SetThreadStackGuarantee,
         shims::SetUnhandledExceptionFilter,
+        shims::SizeofResource,
         shims::Sleep,
         shims::SystemTimeToFileTime,
         shims::TlsAlloc,
