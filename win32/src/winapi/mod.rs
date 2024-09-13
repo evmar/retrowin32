@@ -22,6 +22,7 @@ mod ucrtbase;
 pub mod user32;
 mod vcruntime140;
 mod version;
+mod wininet;
 mod winmm;
 
 #[derive(Debug)]
@@ -38,7 +39,8 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 15] = [
+pub const DLLS: [builtin::BuiltinDLL; 16] = [
+
     builtin::advapi32::DLL,
     builtin::bass::DLL,
     builtin::ddraw::DLL,
@@ -52,6 +54,7 @@ pub const DLLS: [builtin::BuiltinDLL; 15] = [
     builtin::user32::DLL,
     builtin::vcruntime140::DLL,
     builtin::version::DLL,
+    builtin::wininet::DLL,
     builtin::winmm::DLL,
     builtin::retrowin32_test::DLL,
 ];

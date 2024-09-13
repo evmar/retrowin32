@@ -6545,6 +6545,50 @@ pub mod user32 {
         raw: std::include_bytes!("../../dll/user32.dll"),
     };
 }
+pub mod wininet {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::wininet::*;
+        pub unsafe fn InternetOpenA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpszAgent = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let dwAccessType = <u32>::from_stack(mem, esp + 8u32);
+            let lpszProxy = <Option<&str>>::from_stack(mem, esp + 12u32);
+            let lpszProxyBypass = <Option<&str>>::from_stack(mem, esp + 16u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 20u32);
+            winapi::wininet::InternetOpenA(
+                machine,
+                lpszAgent,
+                dwAccessType,
+                lpszProxy,
+                lpszProxyBypass,
+                dwFlags,
+            )
+            .to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use super::Shim;
+        pub const InternetOpenA: Shim = Shim {
+            name: "InternetOpenA",
+            func: impls::InternetOpenA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+    }
+    const SHIMS: [Shim; 1usize] = [shims::InternetOpenA];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "wininet.dll",
+        shims: &SHIMS,
+        raw: std::include_bytes!("../../dll/wininet.dll"),
+    };
+}
 pub mod winmm {
     use super::*;
     mod impls {
