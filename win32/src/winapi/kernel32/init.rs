@@ -505,6 +505,6 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
 #[win32_derive::dllexport]
 pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) {
     machine.call_x86(entry_point, vec![param]).await;
-    log::warn!("TODO: thread exiting, but we don't have a way to stop a single thread yet");
     machine.exit(0);
+    machine.emu.x86.cpu_mut().state = x86::CPUState::Free;
 }
