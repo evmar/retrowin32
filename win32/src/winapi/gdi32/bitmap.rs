@@ -152,6 +152,11 @@ pub fn BitBlt(
     y1: i32,
     rop: u32,
 ) -> bool {
+    if rop == BLACKNESS {
+        // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
+        return PatBlt(machine, hdc, x, y, cx as i32, cy as i32, BLACKNESS);
+    }
+
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let src_bitmap = match src_dc.target {
         DCTarget::Memory(bitmap) => {
