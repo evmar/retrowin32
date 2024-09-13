@@ -75,6 +75,7 @@ fn load_bitmap(
         ResourceKey::Id(pe::RT::BITMAP as u32),
         name,
     )?;
+    let buf = machine.mem().slice(buf);
     let bmp = BitmapRGBA32::parse(buf, None);
     Some(
         machine
@@ -166,6 +167,7 @@ fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<&[u8
         ResourceKey::Id(pe::RT::STRING as u32),
         ResourceKey::Id(resource_id),
     )?;
+    let block = machine.mem().slice(block);
 
     // Each block is a sequence of two byte length-prefixed strings.
     // Iterate through them to find the requested index.

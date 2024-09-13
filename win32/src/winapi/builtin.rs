@@ -2805,8 +2805,8 @@ pub mod kernel32 {
         }
         pub unsafe fn LoadResource(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let hResInfo = <u32>::from_stack(mem, esp + 8u32);
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let hResInfo = <HRSRC>::from_stack(mem, esp + 8u32);
             winapi::kernel32::LoadResource(machine, hModule, hResInfo).to_raw()
         }
         pub unsafe fn LocalAlloc(machine: &mut Machine, esp: u32) -> u32 {
@@ -2822,7 +2822,7 @@ pub mod kernel32 {
         }
         pub unsafe fn LockResource(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hResData = <u32>::from_stack(mem, esp + 4u32);
+            let hResData = <HRSRC>::from_stack(mem, esp + 4u32);
             winapi::kernel32::LockResource(machine, hResData).to_raw()
         }
         pub unsafe fn MulDiv(machine: &mut Machine, esp: u32) -> u32 {
