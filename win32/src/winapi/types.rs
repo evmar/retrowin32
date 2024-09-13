@@ -30,7 +30,7 @@ pub struct HWNDT;
 pub type HWND = HANDLE<HWNDT>;
 
 #[repr(C, packed)]
-#[derive(Debug, Default, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct RECT {
     pub left: i32,
     pub top: i32,
