@@ -5488,6 +5488,12 @@ pub mod user32 {
                 crate::shims::call_sync(pin).to_raw()
             }
         }
+        pub unsafe fn GetSubMenu(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let nPos = <i32>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetSubMenu(machine, hMenu, nPos).to_raw()
+        }
         pub unsafe fn GetSystemMenu(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -6211,6 +6217,12 @@ pub mod user32 {
             stack_consumed: 16u32,
             is_async: true,
         };
+        pub const GetSubMenu: Shim = Shim {
+            name: "GetSubMenu",
+            func: impls::GetSubMenu,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const GetSystemMenu: Shim = Shim {
             name: "GetSystemMenu",
             func: impls::GetSystemMenu,
@@ -6572,7 +6584,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 92usize] = [
+    const SHIMS: [Shim; 93usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6605,6 +6617,7 @@ pub mod user32 {
         shims::GetLastActivePopup,
         shims::GetMessageA,
         shims::GetMessageW,
+        shims::GetSubMenu,
         shims::GetSystemMenu,
         shims::GetSystemMetrics,
         shims::GetWindowDC,
