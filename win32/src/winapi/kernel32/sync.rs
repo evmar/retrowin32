@@ -4,7 +4,9 @@ use crate::{winapi::types::HEVENT, Machine};
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
-pub struct EventObject;
+pub struct EventObject {
+    state: bool,
+}
 
 #[win32_derive::dllexport]
 pub fn WaitForSingleObject(
@@ -27,10 +29,19 @@ pub fn CreateEventA(
         todo!("CreateEventA: named events not supported");
     }
 
-    machine.state.kernel32.event_handles.add(EventObject)
+    machine.state.kernel32.event_handles.add(EventObject { state: false })
 }
 
 #[win32_derive::dllexport]
-pub fn SetEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
-    todo!()
+pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
+    match machine.state.kernel32.event_handles.get_mut(hEvent) {
+        Some(handle) => {
+            handle.state = true;
+            true
+        }
+        None => {
+            log::warn!("SetEvent: invalid handle");
+            false
+        }
+    }
 }
