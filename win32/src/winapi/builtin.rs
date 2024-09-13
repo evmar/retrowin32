@@ -5555,6 +5555,12 @@ pub mod user32 {
             let fuLoad = <u32>::from_stack(mem, esp + 24u32);
             winapi::user32::LoadImageW(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
         }
+        pub unsafe fn LoadMenuA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpMenuName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadMenuA(machine, hInstance, lpMenuName).to_raw()
+        }
         pub unsafe fn LoadMenuW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInstance = <u32>::from_stack(mem, esp + 4u32);
@@ -6239,6 +6245,12 @@ pub mod user32 {
             stack_consumed: 24u32,
             is_async: false,
         };
+        pub const LoadMenuA: Shim = Shim {
+            name: "LoadMenuA",
+            func: impls::LoadMenuA,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const LoadMenuW: Shim = Shim {
             name: "LoadMenuW",
             func: impls::LoadMenuW,
@@ -6474,7 +6486,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 87usize] = [
+    const SHIMS: [Shim; 88usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6523,6 +6535,7 @@ pub mod user32 {
         shims::LoadIconW,
         shims::LoadImageA,
         shims::LoadImageW,
+        shims::LoadMenuA,
         shims::LoadMenuW,
         shims::LoadStringA,
         shims::LoadStringW,
