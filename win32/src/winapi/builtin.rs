@@ -1672,6 +1672,13 @@ pub mod gdi32 {
             let hGdiObj = <HGDIOBJ>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SelectObject(machine, hdc, hGdiObj).to_raw()
         }
+        pub unsafe fn SelectPalette(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let hpal = <HGDIOBJ>::from_stack(mem, esp + 8u32);
+            let bForceBackground = <bool>::from_stack(mem, esp + 12u32);
+            winapi::gdi32::SelectPalette(machine, hdc, hpal, bForceBackground).to_raw()
+        }
         pub unsafe fn SetBkColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -1953,6 +1960,12 @@ pub mod gdi32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SelectPalette: Shim = Shim {
+            name: "SelectPalette",
+            func: impls::SelectPalette,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const SetBkColor: Shim = Shim {
             name: "SetBkColor",
             func: impls::SetBkColor,
@@ -2020,7 +2033,7 @@ pub mod gdi32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 38usize] = [
+    const SHIMS: [Shim; 39usize] = [
         shims::BitBlt,
         shims::CreateBitmap,
         shims::CreateCompatibleBitmap,
@@ -2048,6 +2061,7 @@ pub mod gdi32 {
         shims::PatBlt,
         shims::PtVisible,
         shims::SelectObject,
+        shims::SelectPalette,
         shims::SetBkColor,
         shims::SetBkMode,
         shims::SetBrushOrgEx,

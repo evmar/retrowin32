@@ -1,4 +1,4 @@
-use crate::{winapi::{gdi32::{Object, HGDIOBJ}, types::WORD}, Machine};
+use crate::{winapi::{gdi32::{Object, HDC, HGDIOBJ}, types::WORD}, Machine};
 
 const TRACE_CONTEXT: &'static str = "gdi32/palette";
 
@@ -31,4 +31,24 @@ pub fn CreatePalette(machine: &mut Machine, plpal: u32) -> HGDIOBJ {
     let entries = machine.mem().view_n::<PALETTEENTRY>(entries, header.palNumEntries as u32).to_vec();
 
     machine.state.gdi32.objects.add(Object::Palette(Palette(header, entries)))
+}
+
+#[win32_derive::dllexport]
+pub fn SelectPalette(machine: &mut Machine, hdc: HDC, hpal: HGDIOBJ, bForceBackground: bool) -> HGDIOBJ {
+    let dc = match machine.state.gdi32.dcs.get_mut(hdc) {
+        None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
+        Some(dc) => dc,
+    };
+
+    let pal = match machine.state.gdi32.objects.get(hpal) {
+        None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
+        Some(pal) => pal,
+    };
+
+    match pal {
+        Object::Bitmap(_) => panic!("SelectPalette called with a bitmap (use SelectObject)"),
+        Object::Brush(_) => panic!("SelectPalette called with a brush (use SelectObject)"),
+        Object::Palette(_) => std::mem::replace(&mut dc.palette, hpal),
+        Object::Pen(_) => panic!("SelectPalette called with a pen (use SelectObject)"),
+    }
 }
