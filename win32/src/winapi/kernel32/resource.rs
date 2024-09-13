@@ -141,3 +141,11 @@ pub fn LockResource(machine: &mut Machine, hResData: HRSRC) -> u32 {
         Some(handle) => handle.0.start,
     }
 }
+
+#[win32_derive::dllexport]
+pub fn SizeofResource(machine: &mut Machine, hModule: HMODULE, hResInfo: HRSRC) -> u32 {
+    match machine.state.kernel32.resource_handles.get(hResInfo) {
+        None => 0,
+        Some(handle) => handle.0.len() as u32,
+    }
+}
