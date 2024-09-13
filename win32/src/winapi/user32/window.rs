@@ -869,7 +869,7 @@ pub fn MoveWindow(
 
 #[win32_derive::dllexport]
 pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap();
     let rect = lpRect.unwrap();
     *rect = RECT {
         left: 0,
@@ -877,6 +877,35 @@ pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
         right: window.width as i32,
         bottom: window.height as i32,
     };
+    true
+}
+
+#[win32_derive::dllexport]
+pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
+    let window = machine.state.user32.windows.get(hWnd).unwrap();
+
+    let mut result = RECT {
+        left: 0,
+        top: 0,
+        right: window.width as i32,
+        bottom: window.height as i32,
+    };
+
+    let menu = true; // TODO
+    window_rect(&mut result, window.style, menu);
+
+    // TODO: this pretends that the window is at 0,0
+    let offset_x = -result.left;
+    let offset_y = -result.top;
+
+    result.left += offset_x;
+    result.right += offset_x;
+
+    result.top += offset_y;
+    result.bottom += offset_y;
+
+    let rect = lpRect.unwrap();
+    *rect = result;
     true
 }
 
