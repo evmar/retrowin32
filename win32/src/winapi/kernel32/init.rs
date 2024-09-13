@@ -1,6 +1,6 @@
 //! Process initialization and startup.
 
-use super::{FindHandle, Mappings, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
+use super::{FindHandle, Mappings, ResourceHandle, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
 use crate::{
     machine::MemImpl,
     pe,
@@ -209,6 +209,7 @@ pub struct State {
     pub dlls: HashMap<HMODULE, DLL>,
 
     pub resources: pe::IMAGE_DATA_DIRECTORY,
+    pub resource_handles: Handles<HRSRC, ResourceHandle>,
 
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
@@ -248,6 +249,7 @@ impl State {
             env: env_addr,
             cmdline,
             resources: Default::default(),
+            resource_handles: Default::default(),
         }
     }
 
