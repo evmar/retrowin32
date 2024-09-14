@@ -841,6 +841,13 @@ pub fn imul_r32_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.set32(instr.op0_register(), value as u32);
 }
 
+pub fn imul_r16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = cpu.regs.get16(instr.op0_register()) as i16;
+    let y = op1_rm16(cpu, mem, instr) as i16;
+    let value = imul_trunc(x, y, &mut cpu.flags);
+    cpu.regs.set16(instr.op0_register(), value as u16);
+}
+
 pub fn idiv_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = get_edx_eax(cpu) as i64;
     let y = rm32(cpu, mem, instr).get() as i32 as i64;
