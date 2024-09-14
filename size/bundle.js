@@ -8459,9 +8459,9 @@ function main() {
       break;
     }
   }
-  const width = 640;
+  const width = 800;
   const height = 400;
-  const margin = { top: 20, right: 20, bottom: 30, left: 80 };
+  const margin = { top: 20, right: 20, bottom: 30, left: 50 };
   const dateExtent = extent(commits, (d) => d.date);
   const x2 = utcTime().domain([timeDay.offset(dateExtent[0], -1), dateExtent[1]]).range([margin.left, width - margin.right]);
   const y2 = linear2().domain(extent(commits, (d) => d.size)).range([height - margin.bottom, margin.top]).nice();
@@ -8495,6 +8495,6 @@ function main() {
     render(xz);
   }
   svg.call(zoom);
-  document.body.appendChild(svg.node());
+  document.getElementById("graph").appendChild(svg.node());
 }
 main();
