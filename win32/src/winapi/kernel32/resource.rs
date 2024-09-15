@@ -85,14 +85,16 @@ pub fn find_resource<'a>(
     let image = mem.slice(hInstance..);
     if hInstance == kernel32.image_base {
         let section = kernel32.resources.as_slice(image)?;
-        pe::find_resource(section, typ.into_pe(), name.into_pe()).map(|r| (hInstance + r.start)..(hInstance + r.end))
+        pe::find_resource(section, typ.into_pe(), name.into_pe())
+            .map(|r| (hInstance + r.start)..(hInstance + r.end))
     } else {
         let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
         match dll.dll.resources.clone() {
             None => return None,
             Some(resources) => {
                 let section = resources.as_slice(image)?;
-                pe::find_resource(section, typ.into_pe(), name.into_pe()).map(|r| (hInstance + r.start)..(hInstance + r.end))
+                pe::find_resource(section, typ.into_pe(), name.into_pe())
+                    .map(|r| (hInstance + r.start)..(hInstance + r.end))
             }
         }
     }
@@ -125,7 +127,11 @@ pub fn FindResourceW(
         lpName,
     ) {
         None => HRSRC::null(),
-        Some(mem) => machine.state.kernel32.resource_handles.add(ResourceHandle(mem)),
+        Some(mem) => machine
+            .state
+            .kernel32
+            .resource_handles
+            .add(ResourceHandle(mem)),
     }
 }
 

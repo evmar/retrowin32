@@ -9,11 +9,7 @@ pub struct EventObject {
 }
 
 #[win32_derive::dllexport]
-pub fn WaitForSingleObject(
-    _machine: &mut Machine,
-    hHandle: HEVENT,
-    dwMilliseconds: u32,
-) -> u32 {
+pub fn WaitForSingleObject(_machine: &mut Machine, hHandle: HEVENT, dwMilliseconds: u32) -> u32 {
     todo!()
 }
 
@@ -29,7 +25,11 @@ pub fn CreateEventA(
         todo!("CreateEventA: named events not supported");
     }
 
-    machine.state.kernel32.event_handles.add(EventObject { state: false })
+    machine
+        .state
+        .kernel32
+        .event_handles
+        .add(EventObject { state: false })
 }
 
 #[win32_derive::dllexport]

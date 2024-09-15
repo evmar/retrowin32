@@ -20,7 +20,13 @@ pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn SetMenuItemInfoA(_machine: &mut Machine, hMenu: HMENU, item: u32, fByPosition: bool, lpmii: u32) -> bool {
+pub fn SetMenuItemInfoA(
+    _machine: &mut Machine,
+    hMenu: HMENU,
+    item: u32,
+    fByPosition: bool,
+    lpmii: u32,
+) -> bool {
     false // fail
 }
 

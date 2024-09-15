@@ -12,7 +12,7 @@ pub fn InternetOpenA(
     dwAccessType: u32,
     lpszProxy: Option<&str>,
     lpszProxyBypass: Option<&str>,
-    dwFlags: u32
+    dwFlags: u32,
 ) -> u32 {
     0
 }

@@ -1,6 +1,8 @@
 //! Process initialization and startup.
 
-use super::{EventObject, FindHandle, Mappings, ResourceHandle, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE};
+use super::{
+    EventObject, FindHandle, Mappings, ResourceHandle, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE,
+};
 use crate::{
     machine::MemImpl,
     pe,

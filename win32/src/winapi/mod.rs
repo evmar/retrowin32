@@ -40,7 +40,6 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
 }
 
 pub const DLLS: [builtin::BuiltinDLL; 16] = [
-
     builtin::advapi32::DLL,
     builtin::bass::DLL,
     builtin::ddraw::DLL,
