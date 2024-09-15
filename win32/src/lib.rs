@@ -26,5 +26,3 @@ mod shims_unicorn;
 
 pub use host::*;
 pub use machine::Machine;
-#[cfg(feature = "x86-emu")]
-pub use x86::debug::disassemble;

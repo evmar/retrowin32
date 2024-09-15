@@ -15,19 +15,6 @@ use std::process::ExitCode;
 use win32::winapi::types::win32_error_str;
 use win32::Host;
 
-#[cfg(feature = "x86-emu")]
-fn dump_asm(machine: &win32::Machine, count: usize) {
-    let instrs = win32::disassemble(machine.mem(), machine.emu.x86.cpu().regs.eip, count);
-
-    for instr in instrs {
-        print!("{:08x} {:10} ", instr.addr, instr.bytes);
-        for part in &instr.code {
-            print!("{}", part.text);
-        }
-        println!();
-    }
-}
-
 #[derive(argh::FromArgs)]
 /// win32 emulator.
 struct Args {
@@ -205,7 +192,7 @@ fn main() -> anyhow::Result<ExitCode> {
         match &machine.emu.x86.cpu().state {
             x86::CPUState::Error(error) => {
                 log::error!("{:?}", error);
-                dump_asm(&machine, 5);
+                x86::debug::dump_state(machine.emu.x86.cpu(), machine.mem(), 0);
             }
             x86::CPUState::Exit(_) => {}
             x86::CPUState::Blocked(_) => unreachable!(),

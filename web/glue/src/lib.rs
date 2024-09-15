@@ -72,7 +72,8 @@ impl Emulator {
     }
 
     pub fn disassemble_json(&self, addr: u32, limit: usize) -> String {
-        serde_json::to_string(&win32::disassemble(self.machine.mem(), addr, limit)).unwrap_throw()
+        serde_json::to_string(&x86::debug::disassemble(self.machine.mem(), addr, limit))
+            .unwrap_throw()
     }
 
     pub fn unblock(&mut self) {
