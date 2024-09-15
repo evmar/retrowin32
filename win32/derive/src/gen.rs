@@ -53,8 +53,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                 let machine = unsafe { &mut *m };
                 let result = #impl_name(machine, #(#args),*).await;
 
-                // Arguments will be popped by the shim wrapper function,
-                // so we only need to pop the return address here.
+                // Return to retrowin32_syscall by simulating a 'ret'.
                 let cpu = &mut machine.emu.x86.cpu_mut();
                 cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
                 cpu.regs.set32(x86::Register::EAX, result.to_raw());
