@@ -107,7 +107,7 @@ pub fn test_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 
 pub fn bt_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = rm32(cpu, mem, instr).get();
-    let y = op1_rm32(cpu, mem, instr);
+    let y = op1_rm32(cpu, mem, instr) % 32;
     cpu.flags.set(Flags::CF, ((x >> y) & 1) != 0);
 }
 

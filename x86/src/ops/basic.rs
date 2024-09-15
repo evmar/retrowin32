@@ -473,7 +473,7 @@ pub fn xlat_m8(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
 }
 
 pub fn bts_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm32(cpu, mem, instr);
+    let y = op1_rm32(cpu, mem, instr) % 32;
     let x = rm32(cpu, mem, instr);
     let mask = 1u32 << y;
     cpu.flags.set(Flags::CF, x.get() & mask != 0);
