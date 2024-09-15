@@ -6,7 +6,6 @@
     "build": "esbuild --bundle --format=esm --sourcemap --outfile=../deploy/bundle.js main.ts"
   },
   "devDependencies": {
-    "dprint": "^0.32.1",
     "esbuild": "^0.15.7",
     "typescript": "^4.8.3"
   },

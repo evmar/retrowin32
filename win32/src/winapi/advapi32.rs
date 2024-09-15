@@ -8,6 +8,16 @@ const TRACE_CONTEXT: &'static str = "advapi32";
 pub type HKEY = u32;
 
 #[win32_derive::dllexport]
+pub fn RegCreateKeyA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpSubKey: Option<&str>,
+    phkResult: Option<&mut u32>,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport]
 pub fn RegCreateKeyExW(
     _machine: &mut Machine,
     hKey: HKEY,
@@ -29,6 +39,19 @@ pub fn RegCloseKey(_machine: &mut Machine, hKey: HKEY) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn RegQueryValueExA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpValueName: Option<&str>,
+    lpReserved: u32,
+    lpType: Option<&mut u32>,
+    lpData: u32,
+    lpcbData: Option<&mut u32>,
+) -> u32 {
+    2 // ERROR_FILE_NOT_FOUND
+}
+
+#[win32_derive::dllexport]
 pub fn RegQueryValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
@@ -42,12 +65,25 @@ pub fn RegQueryValueExW(
 }
 
 #[win32_derive::dllexport]
+pub fn RegSetValueExA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpValueName: Option<&str>,
+    Reserved: u32,
+    dwType: u32,
+    lpData: u32,
+    cbData: u32,
+) -> u32 {
+    0 // success
+}
+
+#[win32_derive::dllexport]
 pub fn RegSetValueExW(
     _machine: &mut Machine,
     hKey: HKEY,
     lpValueName: Option<&Str16>,
-    lpReserved: u32,
-    lpType: u32,
+    Reserved: u32,
+    dwType: u32,
     lpData: u32,
     cbData: u32,
 ) -> u32 {

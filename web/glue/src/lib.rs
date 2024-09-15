@@ -28,8 +28,13 @@ pub enum CPUState {
 impl Emulator {
     #[wasm_bindgen]
     pub fn load_exe(&mut self, name: &str, buf: &[u8], relocate: bool) -> JsResult<()> {
+        // TODO: maybe we shouldn't be bundling std::path code on web?
         self.machine
-            .load_exe(buf, name, if relocate { Some(None) } else { None })
+            .load_exe(
+                buf,
+                std::path::Path::new(name),
+                if relocate { Some(None) } else { None },
+            )
             .map_err(err_from_anyhow)?;
         Ok(())
     }
@@ -67,7 +72,8 @@ impl Emulator {
     }
 
     pub fn disassemble_json(&self, addr: u32, limit: usize) -> String {
-        serde_json::to_string(&win32::disassemble(self.machine.mem(), addr, limit)).unwrap_throw()
+        serde_json::to_string(&x86::debug::disassemble(self.machine.mem(), addr, limit))
+            .unwrap_throw()
     }
 
     pub fn unblock(&mut self) {
@@ -100,10 +106,10 @@ impl Emulator {
     }
 
     pub fn breakpoint_add(&mut self, addr: u32) {
-        self.machine.add_breakpoint(addr)
+        self.machine.add_breakpoint(addr);
     }
     pub fn breakpoint_clear(&mut self, addr: u32) {
-        self.machine.clear_breakpoint(addr)
+        self.machine.clear_breakpoint(addr);
     }
 
     pub fn mappings_json(&self) -> String {

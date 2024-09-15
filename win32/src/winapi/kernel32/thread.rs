@@ -102,6 +102,11 @@ pub async fn CreateThread(
 }
 
 #[win32_derive::dllexport]
+pub fn ResumeThread(_machine: &mut Machine, hThread: HTHREAD) -> u32 {
+    1
+}
+
+#[win32_derive::dllexport]
 pub fn SetThreadDescription(
     _machine: &mut Machine,
     hThread: HTHREAD,

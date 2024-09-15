@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 
 use crate::winapi::kernel32::HMODULE;
+use crate::winapi::types::HRSRC;
 use crate::winapi::user32::HINSTANCE;
 use crate::{
     pe,
@@ -12,12 +13,15 @@ use crate::{
     Machine,
 };
 use memory::Mem;
+use std::ops::Range;
 
 const TRACE_CONTEXT: &'static str = "kernel32/resource";
 
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }
+
+pub struct ResourceHandle(Range<u32>);
 
 /// ResourceKey is the type of queries into the Windows resources system, including
 /// e.g. LoadResource() as well as LoadBitmap() etc.
@@ -77,18 +81,20 @@ pub fn find_resource<'a>(
     hInstance: HINSTANCE,
     typ: ResourceKey<&Str16>,
     name: ResourceKey<&Str16>,
-) -> Option<&'a [u8]> {
+) -> Option<Range<u32>> {
     let image = mem.slice(hInstance..);
     if hInstance == kernel32.image_base {
         let section = kernel32.resources.as_slice(image)?;
-        Some(&image[pe::find_resource(section, typ.into_pe(), name.into_pe())?])
+        pe::find_resource(section, typ.into_pe(), name.into_pe())
+            .map(|r| (hInstance + r.start)..(hInstance + r.end))
     } else {
         let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
         match dll.dll.resources.clone() {
             None => return None,
             Some(resources) => {
                 let section = resources.as_slice(image)?;
-                Some(&image[pe::find_resource(section, typ.into_pe(), name.into_pe())?])
+                pe::find_resource(section, typ.into_pe(), name.into_pe())
+                    .map(|r| (hInstance + r.start)..(hInstance + r.end))
             }
         }
     }
@@ -100,7 +106,7 @@ pub fn FindResourceA(
     hModule: HMODULE,
     lpName: ResourceKey<&str>,
     lpType: ResourceKey<&str>,
-) -> u32 {
+) -> HRSRC {
     let name = lpName.to_string16();
     let type_ = lpType.to_string16();
     FindResourceW(machine, hModule, name.as_ref(), type_.as_ref())
@@ -112,7 +118,7 @@ pub fn FindResourceW(
     hModule: HMODULE,
     lpName: ResourceKey<&Str16>,
     lpType: ResourceKey<&Str16>,
-) -> u32 {
+) -> HRSRC {
     match find_resource(
         &machine.state.kernel32,
         machine.mem(),
@@ -120,17 +126,32 @@ pub fn FindResourceW(
         lpType,
         lpName,
     ) {
-        None => 0,
-        Some(mem) => machine.mem().offset_of(mem.as_ptr()),
+        None => HRSRC::null(),
+        Some(mem) => machine
+            .state
+            .kernel32
+            .resource_handles
+            .add(ResourceHandle(mem)),
     }
 }
 
 #[win32_derive::dllexport]
-pub fn LoadResource(_machine: &mut Machine, hModule: u32, hResInfo: u32) -> u32 {
-    hResInfo
+pub fn LoadResource(machine: &mut Machine, hModule: HMODULE, hResInfo: HRSRC) -> u32 {
+    hResInfo.to_raw()
 }
 
 #[win32_derive::dllexport]
-pub fn LockResource(_machine: &mut Machine, hResData: u32) -> u32 {
-    hResData
+pub fn LockResource(machine: &mut Machine, hResData: HRSRC) -> u32 {
+    match machine.state.kernel32.resource_handles.get(hResData) {
+        None => 0,
+        Some(handle) => handle.0.start,
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn SizeofResource(machine: &mut Machine, hModule: HMODULE, hResInfo: HRSRC) -> u32 {
+    match machine.state.kernel32.resource_handles.get(hResInfo) {
+        None => 0,
+        Some(handle) => handle.0.len() as u32,
+    }
 }

@@ -25,6 +25,13 @@ pub mod advapi32 {
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
             winapi::advapi32::RegCloseKey(machine, hKey).to_raw()
         }
+        pub unsafe fn RegCreateKeyA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpSubKey = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let phkResult = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            winapi::advapi32::RegCreateKeyA(machine, hKey, lpSubKey, phkResult).to_raw()
+        }
         pub unsafe fn RegCreateKeyExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
@@ -50,6 +57,25 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegQueryValueExA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
+            let lpType = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let lpcbData = <Option<&mut u32>>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegQueryValueExA(
+                machine,
+                hKey,
+                lpValueName,
+                lpReserved,
+                lpType,
+                lpData,
+                lpcbData,
+            )
+            .to_raw()
+        }
         pub unsafe fn RegQueryValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
@@ -69,20 +95,39 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegSetValueExA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpValueName = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let Reserved = <u32>::from_stack(mem, esp + 12u32);
+            let dwType = <u32>::from_stack(mem, esp + 16u32);
+            let lpData = <u32>::from_stack(mem, esp + 20u32);
+            let cbData = <u32>::from_stack(mem, esp + 24u32);
+            winapi::advapi32::RegSetValueExA(
+                machine,
+                hKey,
+                lpValueName,
+                Reserved,
+                dwType,
+                lpData,
+                cbData,
+            )
+            .to_raw()
+        }
         pub unsafe fn RegSetValueExW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
             let lpValueName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
-            let lpReserved = <u32>::from_stack(mem, esp + 12u32);
-            let lpType = <u32>::from_stack(mem, esp + 16u32);
+            let Reserved = <u32>::from_stack(mem, esp + 12u32);
+            let dwType = <u32>::from_stack(mem, esp + 16u32);
             let lpData = <u32>::from_stack(mem, esp + 20u32);
             let cbData = <u32>::from_stack(mem, esp + 24u32);
             winapi::advapi32::RegSetValueExW(
                 machine,
                 hKey,
                 lpValueName,
-                lpReserved,
-                lpType,
+                Reserved,
+                dwType,
                 lpData,
                 cbData,
             )
@@ -98,15 +143,33 @@ pub mod advapi32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const RegCreateKeyA: Shim = Shim {
+            name: "RegCreateKeyA",
+            func: impls::RegCreateKeyA,
+            stack_consumed: 12u32,
+            is_async: false,
+        };
         pub const RegCreateKeyExW: Shim = Shim {
             name: "RegCreateKeyExW",
             func: impls::RegCreateKeyExW,
             stack_consumed: 36u32,
             is_async: false,
         };
+        pub const RegQueryValueExA: Shim = Shim {
+            name: "RegQueryValueExA",
+            func: impls::RegQueryValueExA,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
         pub const RegQueryValueExW: Shim = Shim {
             name: "RegQueryValueExW",
             func: impls::RegQueryValueExW,
+            stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const RegSetValueExA: Shim = Shim {
+            name: "RegSetValueExA",
+            func: impls::RegSetValueExA,
             stack_consumed: 24u32,
             is_async: false,
         };
@@ -117,10 +180,13 @@ pub mod advapi32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 4usize] = [
+    const SHIMS: [Shim; 7usize] = [
         shims::RegCloseKey,
+        shims::RegCreateKeyA,
         shims::RegCreateKeyExW,
+        shims::RegQueryValueExA,
         shims::RegQueryValueExW,
+        shims::RegSetValueExA,
         shims::RegSetValueExW,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -310,7 +376,7 @@ pub mod ddraw {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::ddraw::IDirectDraw2::EnumDisplayModes(
                     machine,
@@ -414,7 +480,7 @@ pub mod ddraw {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::ddraw::IDirectDraw7::EnumDisplayModes(
                     machine,
@@ -749,7 +815,7 @@ pub mod ddraw {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::ddraw::IDirectDraw::EnumDisplayModes(
                     machine,
@@ -2141,7 +2207,7 @@ pub mod kernel32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::CreateThread(
                     machine,
@@ -2761,8 +2827,8 @@ pub mod kernel32 {
         }
         pub unsafe fn LoadResource(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hModule = <u32>::from_stack(mem, esp + 4u32);
-            let hResInfo = <u32>::from_stack(mem, esp + 8u32);
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let hResInfo = <HRSRC>::from_stack(mem, esp + 8u32);
             winapi::kernel32::LoadResource(machine, hModule, hResInfo).to_raw()
         }
         pub unsafe fn LocalAlloc(machine: &mut Machine, esp: u32) -> u32 {
@@ -2778,7 +2844,7 @@ pub mod kernel32 {
         }
         pub unsafe fn LockResource(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hResData = <u32>::from_stack(mem, esp + 4u32);
+            let hResData = <HRSRC>::from_stack(mem, esp + 4u32);
             winapi::kernel32::LockResource(machine, hResData).to_raw()
         }
         pub unsafe fn MulDiv(machine: &mut Machine, esp: u32) -> u32 {
@@ -2848,6 +2914,11 @@ pub mod kernel32 {
             let lpPathName = <Option<&str>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::RemoveDirectoryA(machine, lpPathName).to_raw()
         }
+        pub unsafe fn ResumeThread(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::ResumeThread(machine, hThread).to_raw()
+        }
         pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let _handlerRoutine = <DWORD>::from_stack(mem, esp + 4u32);
@@ -2859,9 +2930,15 @@ pub mod kernel32 {
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEndOfFile(machine, hFile).to_raw()
         }
+        pub unsafe fn SetEnvironmentVariableA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let name = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let value = <Option<&str>>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SetEnvironmentVariableA(machine, name, value).to_raw()
+        }
         pub unsafe fn SetEvent(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hEvent = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let hEvent = <HEVENT>::from_stack(mem, esp + 4u32);
             winapi::kernel32::SetEvent(machine, hEvent).to_raw()
         }
         pub unsafe fn SetFileAttributesA(machine: &mut Machine, esp: u32) -> u32 {
@@ -2945,6 +3022,12 @@ pub mod kernel32 {
             winapi::kernel32::SetUnhandledExceptionFilter(machine, _lpTopLevelExceptionFilter)
                 .to_raw()
         }
+        pub unsafe fn SizeofResource(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hModule = <HMODULE>::from_stack(mem, esp + 4u32);
+            let hResInfo = <HRSRC>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::SizeofResource(machine, hModule, hResInfo).to_raw()
+        }
         pub unsafe fn Sleep(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let dwMilliseconds = <u32>::from_stack(mem, esp + 4u32);
@@ -2966,7 +3049,7 @@ pub mod kernel32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::Sleep(machine, dwMilliseconds));
                 crate::shims::call_sync(pin).to_raw()
@@ -3048,7 +3131,7 @@ pub mod kernel32 {
         }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hHandle = <HANDLE<()>>::from_stack(mem, esp + 4u32);
+            let hHandle = <HEVENT>::from_stack(mem, esp + 4u32);
             let dwMilliseconds = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds).to_raw()
         }
@@ -3146,7 +3229,7 @@ pub mod kernel32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::retrowin32_main(machine, entry_point));
                 crate::shims::call_sync(pin).to_raw()
@@ -3175,7 +3258,7 @@ pub mod kernel32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::kernel32::retrowin32_thread_main(
                     machine,
@@ -3855,6 +3938,12 @@ pub mod kernel32 {
             stack_consumed: 4u32,
             is_async: false,
         };
+        pub const ResumeThread: Shim = Shim {
+            name: "ResumeThread",
+            func: impls::ResumeThread,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
         pub const SetConsoleCtrlHandler: Shim = Shim {
             name: "SetConsoleCtrlHandler",
             func: impls::SetConsoleCtrlHandler,
@@ -3865,6 +3954,12 @@ pub mod kernel32 {
             name: "SetEndOfFile",
             func: impls::SetEndOfFile,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const SetEnvironmentVariableA: Shim = Shim {
+            name: "SetEnvironmentVariableA",
+            func: impls::SetEnvironmentVariableA,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const SetEvent: Shim = Shim {
@@ -3937,6 +4032,12 @@ pub mod kernel32 {
             name: "SetUnhandledExceptionFilter",
             func: impls::SetUnhandledExceptionFilter,
             stack_consumed: 4u32,
+            is_async: false,
+        };
+        pub const SizeofResource: Shim = Shim {
+            name: "SizeofResource",
+            func: impls::SizeofResource,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const Sleep: Shim = Shim {
@@ -4078,7 +4179,7 @@ pub mod kernel32 {
             is_async: true,
         };
     }
-    const SHIMS: [Shim; 148usize] = [
+    const SHIMS: [Shim; 151usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -4190,8 +4291,10 @@ pub mod kernel32 {
         shims::ReleaseSRWLockExclusive,
         shims::ReleaseSRWLockShared,
         shims::RemoveDirectoryA,
+        shims::ResumeThread,
         shims::SetConsoleCtrlHandler,
         shims::SetEndOfFile,
+        shims::SetEnvironmentVariableA,
         shims::SetEvent,
         shims::SetFileAttributesA,
         shims::SetFilePointer,
@@ -4204,6 +4307,7 @@ pub mod kernel32 {
         shims::SetThreadPriority,
         shims::SetThreadStackGuarantee,
         shims::SetUnhandledExceptionFilter,
+        shims::SizeofResource,
         shims::Sleep,
         shims::SystemTimeToFileTime,
         shims::TlsAlloc,
@@ -4304,12 +4408,23 @@ pub mod ole32 {
         };
         use memory::Extensions;
         use winapi::ole32::*;
+        pub unsafe fn OleInitialize(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _pvReserved = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ole32::OleInitialize(machine, _pvReserved).to_raw()
+        }
     }
     mod shims {
         use super::impls;
         use super::Shim;
+        pub const OleInitialize: Shim = Shim {
+            name: "OleInitialize",
+            func: impls::OleInitialize,
+            stack_consumed: 4u32,
+            is_async: false,
+        };
     }
-    const SHIMS: [Shim; 0usize] = [];
+    const SHIMS: [Shim; 1usize] = [shims::OleInitialize];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
         shims: &SHIMS,
@@ -4370,7 +4485,7 @@ pub mod retrowin32_test {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::retrowin32_test::retrowin32_test_callback1(
                     machine, func, data
@@ -4485,7 +4600,7 @@ pub mod ucrtbase {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::ucrtbase::_initterm(machine, start, end));
                 crate::shims::call_sync(pin).to_raw()
@@ -4513,7 +4628,7 @@ pub mod ucrtbase {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::ucrtbase::_initterm_e(machine, start, end));
                 crate::shims::call_sync(pin).to_raw()
@@ -4948,7 +5063,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExA(
                     machine,
@@ -5015,7 +5130,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::CreateWindowExW(
                     machine,
@@ -5060,7 +5175,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DefWindowProcA(
                     machine, hWnd, msg, wParam, lParam
@@ -5093,7 +5208,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DefWindowProcW(
                     machine, hWnd, msg, wParam, lParam
@@ -5161,7 +5276,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageA(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()
@@ -5188,7 +5303,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::DispatchMessageW(machine, lpMsg));
                 crate::shims::call_sync(pin).to_raw()
@@ -5296,7 +5411,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::GetMessageA(
                     machine,
@@ -5339,7 +5454,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::GetMessageW(
                     machine,
@@ -5372,6 +5487,12 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let nIndex = <i32>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowLongA(machine, hWnd, nIndex).to_raw()
+        }
+        pub unsafe fn GetWindowRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetWindowRect(machine, hWnd, lpRect).to_raw()
         }
         pub unsafe fn IntersectRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5459,6 +5580,12 @@ pub mod user32 {
             let cy = <u32>::from_stack(mem, esp + 20u32);
             let fuLoad = <u32>::from_stack(mem, esp + 24u32);
             winapi::user32::LoadImageW(machine, hInstance, name, typ, cx, cy, fuLoad).to_raw()
+        }
+        pub unsafe fn LoadMenuA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpMenuName = <u32>::from_stack(mem, esp + 8u32);
+            winapi::user32::LoadMenuA(machine, hInstance, lpMenuName).to_raw()
         }
         pub unsafe fn LoadMenuW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5645,7 +5772,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::SendMessageA(
                     machine, hWnd, Msg, wParam, lParam
@@ -5678,6 +5805,14 @@ pub mod user32 {
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
             let hMenu = <HMENU>::from_stack(mem, esp + 8u32);
             winapi::user32::SetMenu(machine, hWnd, hMenu).to_raw()
+        }
+        pub unsafe fn SetMenuItemInfoA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let item = <u32>::from_stack(mem, esp + 8u32);
+            let fByPosition = <bool>::from_stack(mem, esp + 12u32);
+            let lpmii = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::SetMenuItemInfoA(machine, hMenu, item, fByPosition, lpmii).to_raw()
         }
         pub unsafe fn SetRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5738,7 +5873,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::SetWindowPos(
                     machine,
@@ -5786,7 +5921,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::ShowWindow(machine, hWnd, nCmdShow));
                 crate::shims::call_sync(pin).to_raw()
@@ -5825,7 +5960,7 @@ pub mod user32 {
                     .call_async(machine.emu.memory.mem(), Box::pin(result));
                 0
             }
-            #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
+            #[cfg(not(efeature = "x86-emu"))]
             {
                 let pin = std::pin::pin!(winapi::user32::UpdateWindow(machine, hWnd));
                 crate::shims::call_sync(pin).to_raw()
@@ -6062,6 +6197,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const GetWindowRect: Shim = Shim {
+            name: "GetWindowRect",
+            func: impls::GetWindowRect,
+            stack_consumed: 8u32,
+            is_async: false,
+        };
         pub const IntersectRect: Shim = Shim {
             name: "IntersectRect",
             func: impls::IntersectRect,
@@ -6138,6 +6279,12 @@ pub mod user32 {
             name: "LoadImageW",
             func: impls::LoadImageW,
             stack_consumed: 24u32,
+            is_async: false,
+        };
+        pub const LoadMenuA: Shim = Shim {
+            name: "LoadMenuA",
+            func: impls::LoadMenuA,
+            stack_consumed: 8u32,
             is_async: false,
         };
         pub const LoadMenuW: Shim = Shim {
@@ -6296,6 +6443,12 @@ pub mod user32 {
             stack_consumed: 8u32,
             is_async: false,
         };
+        pub const SetMenuItemInfoA: Shim = Shim {
+            name: "SetMenuItemInfoA",
+            func: impls::SetMenuItemInfoA,
+            stack_consumed: 16u32,
+            is_async: false,
+        };
         pub const SetRect: Shim = Shim {
             name: "SetRect",
             func: impls::SetRect,
@@ -6375,7 +6528,7 @@ pub mod user32 {
             is_async: false,
         };
     }
-    const SHIMS: [Shim; 87usize] = [
+    const SHIMS: [Shim; 90usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -6411,6 +6564,7 @@ pub mod user32 {
         shims::GetSystemMetrics,
         shims::GetWindowDC,
         shims::GetWindowLongA,
+        shims::GetWindowRect,
         shims::IntersectRect,
         shims::InvalidateRect,
         shims::InvalidateRgn,
@@ -6424,6 +6578,7 @@ pub mod user32 {
         shims::LoadIconW,
         shims::LoadImageA,
         shims::LoadImageW,
+        shims::LoadMenuA,
         shims::LoadMenuW,
         shims::LoadStringA,
         shims::LoadStringW,
@@ -6450,6 +6605,7 @@ pub mod user32 {
         shims::SetFocus,
         shims::SetForegroundWindow,
         shims::SetMenu,
+        shims::SetMenuItemInfoA,
         shims::SetRect,
         shims::SetRectEmpty,
         shims::SetTimer,
@@ -6468,6 +6624,50 @@ pub mod user32 {
         file_name: "user32.dll",
         shims: &SHIMS,
         raw: std::include_bytes!("../../dll/user32.dll"),
+    };
+}
+pub mod wininet {
+    use super::*;
+    mod impls {
+        use crate::{
+            machine::Machine,
+            winapi::{self, stack_args::*, types::*},
+        };
+        use memory::Extensions;
+        use winapi::wininet::*;
+        pub unsafe fn InternetOpenA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpszAgent = <Option<&str>>::from_stack(mem, esp + 4u32);
+            let dwAccessType = <u32>::from_stack(mem, esp + 8u32);
+            let lpszProxy = <Option<&str>>::from_stack(mem, esp + 12u32);
+            let lpszProxyBypass = <Option<&str>>::from_stack(mem, esp + 16u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 20u32);
+            winapi::wininet::InternetOpenA(
+                machine,
+                lpszAgent,
+                dwAccessType,
+                lpszProxy,
+                lpszProxyBypass,
+                dwFlags,
+            )
+            .to_raw()
+        }
+    }
+    mod shims {
+        use super::impls;
+        use super::Shim;
+        pub const InternetOpenA: Shim = Shim {
+            name: "InternetOpenA",
+            func: impls::InternetOpenA,
+            stack_consumed: 20u32,
+            is_async: false,
+        };
+    }
+    const SHIMS: [Shim; 1usize] = [shims::InternetOpenA];
+    pub const DLL: BuiltinDLL = BuiltinDLL {
+        file_name: "wininet.dll",
+        shims: &SHIMS,
+        raw: std::include_bytes!("../../dll/wininet.dll"),
     };
 }
 pub mod winmm {

@@ -67,3 +67,33 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
     }
     instrs
 }
+
+/// Print the current CPU state and relevant context to stdout, useful when printf debugging.
+/// eip_offset offsets eip backwards, useful when eip has already been advanced beyond an
+/// instruction.  Call like `dump_state(..., instr.len())` to include the current instruction.
+#[allow(unused)]
+pub fn dump_state(cpu: &crate::CPU, mem: Mem, eip_offset: usize) {
+    use iced_x86::Register::*;
+    println!(
+        "\
+        eax {eax:08x}    eip {eip:08x}\n\
+        ecx {ecx:08x}    esp {esp:08x}\n\
+        edx {edx:08x}    ebp {ebp:08x}\n\
+        ebx {ebx:08x}",
+        eax = cpu.regs.get32(EAX),
+        ecx = cpu.regs.get32(ECX),
+        edx = cpu.regs.get32(EDX),
+        ebx = cpu.regs.get32(EBX),
+        eip = cpu.regs.eip,
+        esp = cpu.regs.get32(ESP),
+        ebp = cpu.regs.get32(EBP),
+    );
+    let instrs = disassemble(mem, cpu.regs.eip - eip_offset as u32, 5);
+    for instr in instrs {
+        print!("{:08x} {:10} ", instr.addr, instr.bytes);
+        for part in &instr.code {
+            print!("{}", part.text);
+        }
+        println!();
+    }
+}

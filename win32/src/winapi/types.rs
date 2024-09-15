@@ -8,12 +8,20 @@ pub type WORD = u16;
 pub type DWORD = u32;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HEVENTT;
+pub type HEVENT = HANDLE<HEVENTT>;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFILET;
 pub type HFILE = HANDLE<HFILET>;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFINDT;
 pub type HFIND = HANDLE<HFINDT>;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub struct HRSRCT;
+pub type HRSRC = HANDLE<HRSRCT>;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HWNDT;

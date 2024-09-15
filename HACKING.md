@@ -81,10 +81,6 @@ working on different sets of features:
 
 ```json
 "rust-analyzer.cargo.noDefaultFeatures": true,
-"rust-analyzer.check.features": [
-  "x86-emu",
-  "sdl"
-],
 "rust-analyzer.cargo.features": [
   "x86-emu",
   "sdl"
