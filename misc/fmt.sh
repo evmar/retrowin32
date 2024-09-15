@@ -4,5 +4,16 @@
 
 set -e
 
-cargo fmt
-web/node_modules/.bin/dprint fmt
+if [ "$1" = "--check" ]; then
+    if ! (
+        cargo fmt -- --check &&
+        dprint check
+    ); then
+        echo
+        echo "error: formatting check failed; run 'misc/fmt.sh' to fix"
+        exit 1
+    fi
+else
+    cargo fmt
+    dprint fmt
+fi
