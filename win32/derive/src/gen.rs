@@ -63,7 +63,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
             // async block will set up the stack and eip.
             0
         }
-        #[cfg(not(efeature = "x86-emu"))]
+        #[cfg(not(feature = "x86-emu"))]
         {
             // In the non-x86-emu case, we synchronously evaluate the future.
             let pin = std::pin::pin!(#impl_name(machine, #(#args),*));
