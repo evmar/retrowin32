@@ -1,3 +1,5 @@
+# We check in the .dll files so people can build retrowin32 without the clang
+# toolchain, but otherwise we don't want to check in the build artifacts.
 *.s
 *.lib
 *.def
