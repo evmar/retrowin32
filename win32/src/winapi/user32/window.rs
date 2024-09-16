@@ -910,11 +910,7 @@ pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowPlacement(
-    _machine: &mut Machine,
-    hWnd: HWND,
-    lpwndpl: Option<&mut WINDOWPLACEMENT>,
-) -> bool {
+pub fn GetWindowPlacement(_machine: &mut Machine, hWnd: HWND, lpwndpl: Option<&mut u32>) -> bool {
     false
 }
 

@@ -5519,7 +5519,7 @@ pub mod user32 {
         pub unsafe fn GetWindowPlacement(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
-            let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, esp + 8u32);
+            let lpwndpl = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowPlacement(machine, hWnd, lpwndpl).to_raw()
         }
         pub unsafe fn GetWindowRect(machine: &mut Machine, esp: u32) -> u32 {
