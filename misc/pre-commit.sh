@@ -1,3 +1,3 @@
 #!/bin/sh
 
-exec ./misc/fmt.sh
+exec ./misc/fmt.sh --check
