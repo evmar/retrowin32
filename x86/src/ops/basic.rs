@@ -455,6 +455,10 @@ pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.regs.eip -= 1;
 }
 
+pub fn sysenter(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.state = CPUState::SysCall;
+}
+
 pub fn bswap_r32(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let reg = instr.op0_register();
     let val = cpu.regs.get32(reg);
