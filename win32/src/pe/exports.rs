@@ -28,10 +28,12 @@ impl IMAGE_EXPORT_DIRECTORY {
         expect_ascii(image.slicez(self.Name))
     }
 
+    /// Returns an iterator of function addresses in ordinal order.
     pub fn fns<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = u32> + 'a {
         image.iter_pod::<u32>(self.AddressOfFunctions, self.NumberOfFunctions)
     }
 
+    /// Returns an iterator of (name, index) pairs, where index is an index into fn()s.
     pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
         let names = image.iter_pod::<u32>(self.AddressOfNames, self.NumberOfNames);
         let ords = image.iter_pod::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
