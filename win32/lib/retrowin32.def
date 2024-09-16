@@ -1,0 +1,3 @@
+LIBRARY retrowin32
+EXPORTS
+  retrowin32_syscall@0
