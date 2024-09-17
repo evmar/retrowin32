@@ -33,46 +33,35 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
 
     let stack_consumed = dllexport.stack_consumed();
 
-    // If the function is async, we need to handle the return value a bit differently.
-    let is_async = dllexport.func.sig.asyncness.is_some();
     let args = dllexport
         .args
         .iter()
         .map(|arg| arg.name)
         .collect::<Vec<_>>();
-    let body = if dllexport.func.sig.asyncness.is_some() {
-        quote! {
-        #fetch_args
-        #[cfg(feature = "x86-emu")]
-        {
-            // Yuck: we know Machine will outlive the future, but Rust doesn't.
-            // At least we managed to isolate the yuck to this point.
-            let m: *mut Machine = machine;
-            let result = async move {
-                use memory::Extensions;
-                let machine = unsafe { &mut *m };
-                let result = #impl_name(machine, #(#args),*).await;
-                let cpu = &mut machine.emu.x86.cpu_mut();
-                cpu.regs.eip = x86::ops::pop(cpu, machine.emu.memory.mem());
-                *cpu.regs.get32_mut(x86::Register::ESP) += #stack_consumed;
-                cpu.regs.set32(x86::Register::EAX, result.to_raw());
-            };
-            machine.emu.x86.cpu_mut().call_async(machine.emu.memory.mem(), Box::pin(result));
-            // async block will set up the stack and eip.
-            0
-        }
-        #[cfg(any(feature = "x86-64", feature = "x86-unicorn"))]
-        {
-            // In the non-emulated case, we synchronously evaluate the future.
-            let pin = std::pin::pin!(#impl_name(machine, #(#args),*));
-            crate::shims::call_sync(pin).to_raw()
-        }
-        }
+    let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
+        (
+            quote!(crate::shims::Handler::Async(impls::#sym_name)),
+            quote! {
+                pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+                    #fetch_args
+                    let machine: *mut Machine = machine;
+                    Box::pin(async move {
+                        let machine = unsafe { &mut *machine };
+                        #impl_name(machine, #(#args),*).await.to_raw()
+                    })
+                }
+            },
+        )
     } else {
-        quote! {
-            #fetch_args
-            #impl_name(machine, #(#args),*).to_raw()
-        }
+        (
+            quote!(crate::shims::Handler::Sync(impls::#sym_name)),
+            quote! {
+                pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> u32 {
+                    #fetch_args
+                    #impl_name(machine, #(#args),*).to_raw()
+                }
+            },
+        )
     };
 
     let name_str = match dllexport.vtable {
@@ -81,12 +70,11 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
     };
 
     (
-        quote!(pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> u32 { #body }),
+        defn,
         quote!(pub const #sym_name: Shim = Shim {
             name: #name_str,
-            func: impls::#sym_name,
+            func: #func,
             stack_consumed: #stack_consumed,
-            is_async: #is_async,
         };),
     )
 }

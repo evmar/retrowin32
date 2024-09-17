@@ -99,7 +99,7 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
 
             mod shims {
                 use super::impls;
-                use super::Shim;
+                use crate::shims::Shim;
                 #(#shims)*
             }
 
