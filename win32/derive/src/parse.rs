@@ -54,8 +54,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
         return Ok(None);
     }
     let seg = &path.segments[1];
-    // TODO: remove shims_from_x86
-    if seg.ident != "dllexport" && seg.ident != "shims_from_x86" {
+    if seg.ident != "dllexport" {
         return Ok(None);
     }
 

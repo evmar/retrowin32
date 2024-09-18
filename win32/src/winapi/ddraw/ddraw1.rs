@@ -17,7 +17,7 @@ use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/1";
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDraw {
     use super::*;
 
@@ -169,7 +169,7 @@ pub mod IDirectDraw {
     }
 }
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDrawSurface {
     use super::*;
 

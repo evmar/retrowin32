@@ -11,6 +11,3 @@ which logs winapi functions as they're called.
 
 The `TryFromEnum` derive macro adds a `try_from()` method to enums, mapping
 integers back to enum values.
-
-The `shims_from_x86` macro is used in generating vtables and I hope to remove it
-soon so I won't discuss it further.

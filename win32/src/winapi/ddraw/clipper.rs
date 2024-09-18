@@ -19,7 +19,7 @@ pub fn DirectDrawCreateClipper(
     DD_OK
 }
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDrawClipper {
     use super::*;
 

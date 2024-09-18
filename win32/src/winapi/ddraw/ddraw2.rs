@@ -21,7 +21,7 @@ pub const IID_IDirectDraw2: GUID = GUID {
     Data4: [0xa2, 0xde, 0x00, 0xaa, 0x00, 0xb9, 0x33, 0x56],
 };
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDraw2 {
     use super::*;
 
@@ -188,7 +188,7 @@ pub mod IDirectDraw2 {
     }
 }
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDrawSurface2 {
     use super::*;
 

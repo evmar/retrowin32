@@ -64,7 +64,7 @@ impl TryFrom<u32> for DDFLIP {
     }
 }
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDraw7 {
     use super::*;
 
@@ -286,7 +286,7 @@ pub mod IDirectDraw7 {
     }
 }
 
-#[win32_derive::shims_from_x86]
+#[win32_derive::dllexport]
 pub mod IDirectDrawSurface7 {
     use super::*;
 
