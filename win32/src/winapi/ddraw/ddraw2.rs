@@ -25,7 +25,7 @@ pub const IID_IDirectDraw2: GUID = GUID {
 pub mod IDirectDraw2 {
     use super::*;
 
-    vtable![IDirectDraw2 shims
+    vtable![
         QueryInterface: ok,
         AddRef: todo,
         Release: ok,
@@ -192,7 +192,7 @@ pub mod IDirectDraw2 {
 pub mod IDirectDrawSurface2 {
     use super::*;
 
-    vtable![IDirectDrawSurface2 shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,

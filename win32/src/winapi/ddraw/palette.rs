@@ -12,7 +12,7 @@ pub mod IDirectDrawPalette {
 
     use super::*;
 
-    vtable![IDirectDrawPalette shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,

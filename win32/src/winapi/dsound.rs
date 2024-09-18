@@ -174,7 +174,7 @@ pub mod IDirectSound {
         DS_OK
     }
 
-    vtable![IDirectSound shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,
@@ -313,7 +313,7 @@ pub mod IDirectSoundBuffer {
         DS_OK
     }
 
-    vtable![IDirectSoundBuffer shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,

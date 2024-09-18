@@ -21,7 +21,7 @@ const TRACE_CONTEXT: &'static str = "ddraw/1";
 pub mod IDirectDraw {
     use super::*;
 
-    vtable![IDirectDraw shims
+    vtable![
         QueryInterface: ok,
         AddRef: todo,
         Release: ok,
@@ -173,7 +173,7 @@ pub mod IDirectDraw {
 pub mod IDirectDrawSurface {
     use super::*;
 
-    vtable![IDirectDrawSurface shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,

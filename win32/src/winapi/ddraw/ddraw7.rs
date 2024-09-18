@@ -68,7 +68,7 @@ impl TryFrom<u32> for DDFLIP {
 pub mod IDirectDraw7 {
     use super::*;
 
-    vtable![IDirectDraw7 shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,
@@ -290,7 +290,7 @@ pub mod IDirectDraw7 {
 pub mod IDirectDrawSurface7 {
     use super::*;
 
-    vtable![IDirectDrawSurface7 shims
+    vtable![
         QueryInterface: todo,
         AddRef: todo,
         Release: ok,

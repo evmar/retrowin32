@@ -1,5 +1,7 @@
 //! Parsing of dllexport attributes and functions that use them.
 
+use syn::parse::Parser;
+
 #[derive(Clone, Copy)]
 pub enum CallConv {
     Stdcall,
@@ -191,7 +193,7 @@ fn parse_mod(item: &syn::ItemMod) -> syn::Result<Option<DllExports>> {
     for item in body {
         match item {
             syn::Item::Macro(item) => {
-                if let Some(vtable) = parse_vtable(item)? {
+                if let Some(vtable) = parse_vtable(name, item)? {
                     dllexports.vtables.push(vtable);
                     break;
                 }
@@ -204,42 +206,25 @@ fn parse_mod(item: &syn::ItemMod) -> syn::Result<Option<DllExports>> {
 }
 
 /// Parse a call to the vtable! macro.
-fn parse_vtable(item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
+fn parse_vtable(name: &syn::Ident, item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
     let mac = &item.mac;
     if !mac.path.is_ident("vtable") {
         return Ok(None);
     }
 
-    struct VtableMacro {
-        name: syn::Ident,
-        fields: syn::punctuated::Punctuated<syn::FieldValue, syn::Token![,]>,
-    }
-    impl syn::parse::Parse for VtableMacro {
-        fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-            /*
-               vtable![IDirectDrawClipper shims
-               QueryInterface: todo,
-               AddRef: todo,
-            */
-            let name = input.parse::<syn::Ident>()?;
-            input.parse::<syn::Ident>()?; // "shims"
-            let fields = input.parse_terminated(syn::FieldValue::parse, syn::Token![,])?;
-            Ok(VtableMacro { name, fields })
-        }
-    }
-
-    let vt = syn::parse2::<VtableMacro>(mac.tokens.clone())?;
+    let parser = syn::punctuated::Punctuated::<syn::FieldValue, syn::Token![,]>::parse_terminated;
+    let fields = parser.parse2(mac.tokens.clone())?;
 
     let mut fns = Vec::new();
-    for field in vt.fields {
-        let name = match field.member {
+    for field in fields {
+        let field_name = match field.member {
             syn::Member::Named(name) => name,
             syn::Member::Unnamed(_) => todo!(),
         };
         let imp = match field.expr {
             syn::Expr::Path(expr) => {
                 if expr.path.is_ident("ok") {
-                    Some(format!("{}_{}", vt.name, name))
+                    Some(format!("{name}_{field_name}"))
                 } else if expr.path.is_ident("todo") {
                     None
                 } else {
@@ -265,10 +250,13 @@ fn parse_vtable(item: &syn::ItemMacro) -> syn::Result<Option<Vtable>> {
                 return Err(syn::Error::new_spanned(e, "bad input"));
             }
         };
-        fns.push((name, imp));
+        fns.push((field_name, imp));
     }
 
-    Ok(Some(Vtable { name: vt.name, fns }))
+    Ok(Some(Vtable {
+        name: name.clone(),
+        fns,
+    }))
 }
 
 /// Gather all the dllexports in a list of syn::Items (module contents).

@@ -27,9 +27,8 @@ impl std::fmt::Debug for GUID {
 }
 
 macro_rules! vtable {
-    ($iface:ident $shims:ident $($fn:ident: $impl:tt,)*) => {
-        // XXX: no longer used, macro is parsed by win32-derive codegen instead
-        // TODO: reduce arguments to macro
+    ($($fn:ident: $impl:tt,)*) => {
+        // macro is parsed by win32-derive codegen
     };
 }
 pub(crate) use vtable;
