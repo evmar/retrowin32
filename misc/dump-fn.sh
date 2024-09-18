@@ -4,8 +4,6 @@
 
 set -e
 
-bin=~/.local/opt/llvm/bin
-
 path="$1"
 if [[ ! $path ]]; then
     echo "usage: $0 path/to/binary [filter] [index]"
@@ -13,7 +11,7 @@ if [[ ! $path ]]; then
 fi
 
 nm() {
-    $bin/llvm-nm "$@" | cut -w -f3 | grep -v '^$' | uniq
+    llvm-nm "$@" | cut -w -f3 | grep -v '^$' | uniq
 }
 
 filter="$2"
@@ -36,4 +34,4 @@ if [[ ! $index ]]; then
 fi
 
 sym=$(nm "$path" | grep "$filter" | sed "${index}q;d")
-$bin/llvm-otool -tV -p "$sym" "$path" | c++filt
+llvm-otool -tV -p "$sym" "$path" | c++filt

@@ -23,7 +23,7 @@ To rerun the code generator after an API change, run `make` (or perhaps
 from the project root.
 
 The `Makefile` also compiles these `.dll` files, which requires `clang-cl` from
-LLVM. I just unpack a pre-built
+LLVM in your `$PATH`. I just unpack a pre-built
 [binary release of theirs](https://releases.llvm.org/download.html).
 
 ## The `Host` trait
