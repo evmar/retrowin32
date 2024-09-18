@@ -109,6 +109,11 @@ pub fn __dllonexit(_machine: &mut Machine, func: u32, d: u32, f: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
+pub fn _controlfp(_machine: &mut Machine, _new: u32, _mask: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
 pub fn _controlfp_s(
     _machine: &mut Machine,
     _currentControl: u32,
@@ -144,6 +149,18 @@ pub fn _set_new_mode(_machine: &mut Machine, newhandlermode: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
+pub fn __getmainargs(
+    _machine: &mut Machine,
+    argc: Option<&mut u32>,
+    argv: Option<&mut u32>,
+    env: Option<&mut u32>,
+    doWildCard: u32,
+    startInfo: u32,
+) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
 pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
     let heap = machine
         .state
@@ -160,4 +177,22 @@ pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
         .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
     heap.free(machine.emu.memory.mem(), ptr);
     0
+}
+
+static mut RAND_STATE: u32 = 0;
+
+#[win32_derive::dllexport(cdecl)]
+pub fn srand(machine: &mut Machine, seed: u32) {
+    unsafe {
+        RAND_STATE = seed % (1 << 31);
+    }
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn rand(machine: &mut Machine) -> u32 {
+    // https://en.wikipedia.org/wiki/Linear_congruential_generator
+    unsafe {
+        RAND_STATE = ((RAND_STATE.wrapping_mul(134775813)).wrapping_add(1)) % (1 << 31);
+        RAND_STATE
+    }
 }

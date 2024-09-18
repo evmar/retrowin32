@@ -3841,6 +3841,16 @@ pub mod ucrtbase {
             let f = <u32>::from_stack(mem, esp + 12u32);
             winapi::ucrtbase::__dllonexit(machine, func, d, f).to_raw()
         }
+        pub unsafe fn __getmainargs(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let argc = <Option<&mut u32>>::from_stack(mem, esp + 4u32);
+            let argv = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            let env = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let doWildCard = <u32>::from_stack(mem, esp + 16u32);
+            let startInfo = <u32>::from_stack(mem, esp + 20u32);
+            winapi::ucrtbase::__getmainargs(machine, argc, argv, env, doWildCard, startInfo)
+                .to_raw()
+        }
         pub unsafe fn __p___argc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::ucrtbase::__p___argc(machine).to_raw()
@@ -3871,6 +3881,12 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let _mode = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::_configure_narrow_argv(machine, _mode).to_raw()
+        }
+        pub unsafe fn _controlfp(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let _new = <u32>::from_stack(mem, esp + 4u32);
+            let _mask = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ucrtbase::_controlfp(machine, _new, _mask).to_raw()
         }
         pub unsafe fn _controlfp_s(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -3962,6 +3978,15 @@ pub mod ucrtbase {
             let size = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::malloc(machine, size).to_raw()
         }
+        pub unsafe fn rand(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::ucrtbase::rand(machine).to_raw()
+        }
+        pub unsafe fn srand(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let seed = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::srand(machine, seed).to_raw()
+        }
     }
     mod shims {
         use super::impls;
@@ -3969,6 +3994,10 @@ pub mod ucrtbase {
         pub const __dllonexit: Shim = Shim {
             name: "__dllonexit",
             func: crate::shims::Handler::Sync(impls::__dllonexit),
+        };
+        pub const __getmainargs: Shim = Shim {
+            name: "__getmainargs",
+            func: crate::shims::Handler::Sync(impls::__getmainargs),
         };
         pub const __p___argc: Shim = Shim {
             name: "__p___argc",
@@ -3997,6 +4026,10 @@ pub mod ucrtbase {
         pub const _configure_narrow_argv: Shim = Shim {
             name: "_configure_narrow_argv",
             func: crate::shims::Handler::Sync(impls::_configure_narrow_argv),
+        };
+        pub const _controlfp: Shim = Shim {
+            name: "_controlfp",
+            func: crate::shims::Handler::Sync(impls::_controlfp),
         };
         pub const _controlfp_s: Shim = Shim {
             name: "_controlfp_s",
@@ -4054,9 +4087,18 @@ pub mod ucrtbase {
             name: "malloc",
             func: crate::shims::Handler::Sync(impls::malloc),
         };
+        pub const rand: Shim = Shim {
+            name: "rand",
+            func: crate::shims::Handler::Sync(impls::rand),
+        };
+        pub const srand: Shim = Shim {
+            name: "srand",
+            func: crate::shims::Handler::Sync(impls::srand),
+        };
     }
-    const SHIMS: [Shim; 22usize] = [
+    const SHIMS: [Shim; 26usize] = [
         shims::__dllonexit,
+        shims::__getmainargs,
         shims::__p___argc,
         shims::__p___argv,
         shims::__p__commode,
@@ -4064,6 +4106,7 @@ pub mod ucrtbase {
         shims::__set_app_type,
         shims::_configthreadlocale,
         shims::_configure_narrow_argv,
+        shims::_controlfp,
         shims::_controlfp_s,
         shims::_crt_atexit,
         shims::_get_initial_narrow_environment,
@@ -4078,6 +4121,8 @@ pub mod ucrtbase {
         shims::exit,
         shims::free,
         shims::malloc,
+        shims::rand,
+        shims::srand,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ucrtbase.dll",
