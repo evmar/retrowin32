@@ -4,7 +4,7 @@
 
 use iced_x86::{Formatter, IntelFormatter};
 use memory::{Extensions, Mem};
-use std::fmt::Write;
+use std::{collections::HashMap, fmt::Write};
 
 #[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
 #[derive(serde::Serialize)]
@@ -72,7 +72,7 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
 /// eip_offset offsets eip backwards, useful when eip has already been advanced beyond an
 /// instruction.  Call like `dump_state(..., instr.len())` to include the current instruction.
 #[allow(unused)]
-pub fn dump_state(cpu: &crate::CPU, mem: Mem, eip_offset: usize) {
+pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip_offset: usize) {
     use iced_x86::Register::*;
     println!(
         "\
@@ -88,11 +88,19 @@ pub fn dump_state(cpu: &crate::CPU, mem: Mem, eip_offset: usize) {
         esp = cpu.regs.get32(ESP),
         ebp = cpu.regs.get32(EBP),
     );
+    println!("nearby instructions:");
     let instrs = disassemble(mem, cpu.regs.eip - eip_offset as u32, 5);
     for instr in instrs {
         print!("{:08x} {:10} ", instr.addr, instr.bytes);
         for part in &instr.code {
             print!("{}", part.text);
+            if part.kind == "Number" && part.text.ends_with(('h')) {
+                if let Ok(addr) = u32::from_str_radix(&part.text[..part.text.len() - 1], 16) {
+                    if let Some(label) = labels.get(&addr) {
+                        print!(" {}", label);
+                    }
+                }
+            }
         }
         println!();
     }

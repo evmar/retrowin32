@@ -193,7 +193,8 @@ impl MachineX<Emulator> {
     }
 
     pub fn dump_state(&self, eip_offset: usize) {
-        x86::debug::dump_state(self.emu.x86.cpu(), self.mem(), eip_offset);
+        x86::debug::dump_state(self.emu.x86.cpu(), self.mem(), &self.labels, eip_offset);
+        println!("stack:");
         self.dump_stack();
     }
 
