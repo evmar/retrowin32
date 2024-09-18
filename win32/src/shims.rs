@@ -35,9 +35,6 @@ pub enum Handler {
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
-    /// Number of stack bytes popped by arguments.
-    /// For cdecl calling convention (used in varargs) this is 0.
-    pub stack_consumed: u32,
 }
 
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.

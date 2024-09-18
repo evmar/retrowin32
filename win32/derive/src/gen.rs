@@ -31,8 +31,6 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         stack_offset += stack.consumed();
     }
 
-    let stack_consumed = dllexport.stack_consumed();
-
     let args = dllexport
         .args
         .iter()
@@ -74,7 +72,6 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         quote!(pub const #sym_name: Shim = Shim {
             name: #name_str,
             func: #func,
-            stack_consumed: #stack_consumed,
         };),
     )
 }

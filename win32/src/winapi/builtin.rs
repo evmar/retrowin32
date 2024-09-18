@@ -140,37 +140,30 @@ pub mod advapi32 {
         pub const RegCloseKey: Shim = Shim {
             name: "RegCloseKey",
             func: crate::shims::Handler::Sync(impls::RegCloseKey),
-            stack_consumed: 4u32,
         };
         pub const RegCreateKeyA: Shim = Shim {
             name: "RegCreateKeyA",
             func: crate::shims::Handler::Sync(impls::RegCreateKeyA),
-            stack_consumed: 12u32,
         };
         pub const RegCreateKeyExW: Shim = Shim {
             name: "RegCreateKeyExW",
             func: crate::shims::Handler::Sync(impls::RegCreateKeyExW),
-            stack_consumed: 36u32,
         };
         pub const RegQueryValueExA: Shim = Shim {
             name: "RegQueryValueExA",
             func: crate::shims::Handler::Sync(impls::RegQueryValueExA),
-            stack_consumed: 24u32,
         };
         pub const RegQueryValueExW: Shim = Shim {
             name: "RegQueryValueExW",
             func: crate::shims::Handler::Sync(impls::RegQueryValueExW),
-            stack_consumed: 24u32,
         };
         pub const RegSetValueExA: Shim = Shim {
             name: "RegSetValueExA",
             func: crate::shims::Handler::Sync(impls::RegSetValueExA),
-            stack_consumed: 24u32,
         };
         pub const RegSetValueExW: Shim = Shim {
             name: "RegSetValueExW",
             func: crate::shims::Handler::Sync(impls::RegSetValueExW),
-            stack_consumed: 24u32,
         };
     }
     const SHIMS: [Shim; 7usize] = [
@@ -241,32 +234,26 @@ pub mod bass {
         pub const BASS_ChannelGetPosition: Shim = Shim {
             name: "BASS_ChannelGetPosition",
             func: crate::shims::Handler::Sync(impls::BASS_ChannelGetPosition),
-            stack_consumed: 4u32,
         };
         pub const BASS_Init: Shim = Shim {
             name: "BASS_Init",
             func: crate::shims::Handler::Sync(impls::BASS_Init),
-            stack_consumed: 16u32,
         };
         pub const BASS_MusicLoad: Shim = Shim {
             name: "BASS_MusicLoad",
             func: crate::shims::Handler::Sync(impls::BASS_MusicLoad),
-            stack_consumed: 20u32,
         };
         pub const BASS_MusicPlay: Shim = Shim {
             name: "BASS_MusicPlay",
             func: crate::shims::Handler::Sync(impls::BASS_MusicPlay),
-            stack_consumed: 4u32,
         };
         pub const BASS_MusicSetPositionScaler: Shim = Shim {
             name: "BASS_MusicSetPositionScaler",
             func: crate::shims::Handler::Sync(impls::BASS_MusicSetPositionScaler),
-            stack_consumed: 8u32,
         };
         pub const BASS_Start: Shim = Shim {
             name: "BASS_Start",
             func: crate::shims::Handler::Sync(impls::BASS_Start),
-            stack_consumed: 0u32,
         };
     }
     const SHIMS: [Shim; 6usize] = [
@@ -779,267 +766,214 @@ pub mod ddraw {
         pub const DirectDrawCreate: Shim = Shim {
             name: "DirectDrawCreate",
             func: crate::shims::Handler::Sync(impls::DirectDrawCreate),
-            stack_consumed: 12u32,
         };
         pub const DirectDrawCreateClipper: Shim = Shim {
             name: "DirectDrawCreateClipper",
             func: crate::shims::Handler::Sync(impls::DirectDrawCreateClipper),
-            stack_consumed: 12u32,
         };
         pub const DirectDrawCreateEx: Shim = Shim {
             name: "DirectDrawCreateEx",
             func: crate::shims::Handler::Sync(impls::DirectDrawCreateEx),
-            stack_consumed: 16u32,
         };
         pub const IDirectDraw2_CreateSurface: Shim = Shim {
             name: "IDirectDraw2::CreateSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDraw2_CreateSurface),
-            stack_consumed: 16u32,
         };
         pub const IDirectDraw2_EnumDisplayModes: Shim = Shim {
             name: "IDirectDraw2::EnumDisplayModes",
             func: crate::shims::Handler::Async(impls::IDirectDraw2_EnumDisplayModes),
-            stack_consumed: 20u32,
         };
         pub const IDirectDraw2_GetDisplayMode: Shim = Shim {
             name: "IDirectDraw2::GetDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw2_GetDisplayMode),
-            stack_consumed: 8u32,
         };
         pub const IDirectDraw2_QueryInterface: Shim = Shim {
             name: "IDirectDraw2::QueryInterface",
             func: crate::shims::Handler::Sync(impls::IDirectDraw2_QueryInterface),
-            stack_consumed: 12u32,
         };
         pub const IDirectDraw2_Release: Shim = Shim {
             name: "IDirectDraw2::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDraw2_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDraw2_SetDisplayMode: Shim = Shim {
             name: "IDirectDraw2::SetDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw2_SetDisplayMode),
-            stack_consumed: 16u32,
         };
         pub const IDirectDraw7_CreatePalette: Shim = Shim {
             name: "IDirectDraw7::CreatePalette",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_CreatePalette),
-            stack_consumed: 20u32,
         };
         pub const IDirectDraw7_CreateSurface: Shim = Shim {
             name: "IDirectDraw7::CreateSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_CreateSurface),
-            stack_consumed: 16u32,
         };
         pub const IDirectDraw7_EnumDisplayModes: Shim = Shim {
             name: "IDirectDraw7::EnumDisplayModes",
             func: crate::shims::Handler::Async(impls::IDirectDraw7_EnumDisplayModes),
-            stack_consumed: 20u32,
         };
         pub const IDirectDraw7_GetDisplayMode: Shim = Shim {
             name: "IDirectDraw7::GetDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_GetDisplayMode),
-            stack_consumed: 8u32,
         };
         pub const IDirectDraw7_Release: Shim = Shim {
             name: "IDirectDraw7::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDraw7_RestoreDisplayMode: Shim = Shim {
             name: "IDirectDraw7::RestoreDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_RestoreDisplayMode),
-            stack_consumed: 4u32,
         };
         pub const IDirectDraw7_SetCooperativeLevel: Shim = Shim {
             name: "IDirectDraw7::SetCooperativeLevel",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_SetCooperativeLevel),
-            stack_consumed: 12u32,
         };
         pub const IDirectDraw7_SetDisplayMode: Shim = Shim {
             name: "IDirectDraw7::SetDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_SetDisplayMode),
-            stack_consumed: 24u32,
         };
         pub const IDirectDraw7_WaitForVerticalBlank: Shim = Shim {
             name: "IDirectDraw7::WaitForVerticalBlank",
             func: crate::shims::Handler::Sync(impls::IDirectDraw7_WaitForVerticalBlank),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawClipper_Release: Shim = Shim {
             name: "IDirectDrawClipper::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDrawClipper_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawClipper_SetHWnd: Shim = Shim {
             name: "IDirectDrawClipper::SetHWnd",
             func: crate::shims::Handler::Sync(impls::IDirectDrawClipper_SetHWnd),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawPalette_Release: Shim = Shim {
             name: "IDirectDrawPalette::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDrawPalette_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawPalette_SetEntries: Shim = Shim {
             name: "IDirectDrawPalette::SetEntries",
             func: crate::shims::Handler::Sync(impls::IDirectDrawPalette_SetEntries),
-            stack_consumed: 20u32,
         };
         pub const IDirectDrawSurface2_GetAttachedSurface: Shim = Shim {
             name: "IDirectDrawSurface2::GetAttachedSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_GetAttachedSurface),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawSurface2_GetCaps: Shim = Shim {
             name: "IDirectDrawSurface2::GetCaps",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_GetCaps),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface2_GetSurfaceDesc: Shim = Shim {
             name: "IDirectDrawSurface2::GetSurfaceDesc",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_GetSurfaceDesc),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface2_Lock: Shim = Shim {
             name: "IDirectDrawSurface2::Lock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_Lock),
-            stack_consumed: 20u32,
         };
         pub const IDirectDrawSurface2_Release: Shim = Shim {
             name: "IDirectDrawSurface2::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawSurface2_Unlock: Shim = Shim {
             name: "IDirectDrawSurface2::Unlock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface2_Unlock),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_Blt: Shim = Shim {
             name: "IDirectDrawSurface7::Blt",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Blt),
-            stack_consumed: 24u32,
         };
         pub const IDirectDrawSurface7_BltFast: Shim = Shim {
             name: "IDirectDrawSurface7::BltFast",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_BltFast),
-            stack_consumed: 24u32,
         };
         pub const IDirectDrawSurface7_Flip: Shim = Shim {
             name: "IDirectDrawSurface7::Flip",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Flip),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawSurface7_GetAttachedSurface: Shim = Shim {
             name: "IDirectDrawSurface7::GetAttachedSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_GetAttachedSurface),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawSurface7_GetCaps: Shim = Shim {
             name: "IDirectDrawSurface7::GetCaps",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_GetCaps),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_GetDC: Shim = Shim {
             name: "IDirectDrawSurface7::GetDC",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_GetDC),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_GetPixelFormat: Shim = Shim {
             name: "IDirectDrawSurface7::GetPixelFormat",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_GetPixelFormat),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_GetSurfaceDesc: Shim = Shim {
             name: "IDirectDrawSurface7::GetSurfaceDesc",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_GetSurfaceDesc),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_Lock: Shim = Shim {
             name: "IDirectDrawSurface7::Lock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Lock),
-            stack_consumed: 20u32,
         };
         pub const IDirectDrawSurface7_Release: Shim = Shim {
             name: "IDirectDrawSurface7::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawSurface7_ReleaseDC: Shim = Shim {
             name: "IDirectDrawSurface7::ReleaseDC",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_ReleaseDC),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_Restore: Shim = Shim {
             name: "IDirectDrawSurface7::Restore",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Restore),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawSurface7_SetClipper: Shim = Shim {
             name: "IDirectDrawSurface7::SetClipper",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_SetClipper),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_SetPalette: Shim = Shim {
             name: "IDirectDrawSurface7::SetPalette",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_SetPalette),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface7_Unlock: Shim = Shim {
             name: "IDirectDrawSurface7::Unlock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface7_Unlock),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface_GetAttachedSurface: Shim = Shim {
             name: "IDirectDrawSurface::GetAttachedSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface_GetAttachedSurface),
-            stack_consumed: 12u32,
         };
         pub const IDirectDrawSurface_GetCaps: Shim = Shim {
             name: "IDirectDrawSurface::GetCaps",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface_GetCaps),
-            stack_consumed: 8u32,
         };
         pub const IDirectDrawSurface_Lock: Shim = Shim {
             name: "IDirectDrawSurface::Lock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface_Lock),
-            stack_consumed: 20u32,
         };
         pub const IDirectDrawSurface_Release: Shim = Shim {
             name: "IDirectDrawSurface::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDrawSurface_Unlock: Shim = Shim {
             name: "IDirectDrawSurface::Unlock",
             func: crate::shims::Handler::Sync(impls::IDirectDrawSurface_Unlock),
-            stack_consumed: 8u32,
         };
         pub const IDirectDraw_CreateSurface: Shim = Shim {
             name: "IDirectDraw::CreateSurface",
             func: crate::shims::Handler::Sync(impls::IDirectDraw_CreateSurface),
-            stack_consumed: 16u32,
         };
         pub const IDirectDraw_EnumDisplayModes: Shim = Shim {
             name: "IDirectDraw::EnumDisplayModes",
             func: crate::shims::Handler::Async(impls::IDirectDraw_EnumDisplayModes),
-            stack_consumed: 20u32,
         };
         pub const IDirectDraw_QueryInterface: Shim = Shim {
             name: "IDirectDraw::QueryInterface",
             func: crate::shims::Handler::Sync(impls::IDirectDraw_QueryInterface),
-            stack_consumed: 12u32,
         };
         pub const IDirectDraw_Release: Shim = Shim {
             name: "IDirectDraw::Release",
             func: crate::shims::Handler::Sync(impls::IDirectDraw_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectDraw_SetDisplayMode: Shim = Shim {
             name: "IDirectDraw::SetDisplayMode",
             func: crate::shims::Handler::Sync(impls::IDirectDraw_SetDisplayMode),
-            stack_consumed: 16u32,
         };
     }
     const SHIMS: [Shim; 53usize] = [
@@ -1247,62 +1181,50 @@ pub mod dsound {
         pub const DirectSoundCreate: Shim = Shim {
             name: "DirectSoundCreate",
             func: crate::shims::Handler::Sync(impls::DirectSoundCreate),
-            stack_consumed: 12u32,
         };
         pub const DirectSoundEnumerateA: Shim = Shim {
             name: "DirectSoundEnumerateA",
             func: crate::shims::Handler::Sync(impls::DirectSoundEnumerateA),
-            stack_consumed: 8u32,
         };
         pub const IDirectSoundBuffer_GetCurrentPosition: Shim = Shim {
             name: "IDirectSoundBuffer::GetCurrentPosition",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_GetCurrentPosition),
-            stack_consumed: 12u32,
         };
         pub const IDirectSoundBuffer_GetStatus: Shim = Shim {
             name: "IDirectSoundBuffer::GetStatus",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_GetStatus),
-            stack_consumed: 8u32,
         };
         pub const IDirectSoundBuffer_Lock: Shim = Shim {
             name: "IDirectSoundBuffer::Lock",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_Lock),
-            stack_consumed: 32u32,
         };
         pub const IDirectSoundBuffer_Play: Shim = Shim {
             name: "IDirectSoundBuffer::Play",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_Play),
-            stack_consumed: 16u32,
         };
         pub const IDirectSoundBuffer_Release: Shim = Shim {
             name: "IDirectSoundBuffer::Release",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectSoundBuffer_SetFormat: Shim = Shim {
             name: "IDirectSoundBuffer::SetFormat",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_SetFormat),
-            stack_consumed: 8u32,
         };
         pub const IDirectSoundBuffer_Unlock: Shim = Shim {
             name: "IDirectSoundBuffer::Unlock",
             func: crate::shims::Handler::Sync(impls::IDirectSoundBuffer_Unlock),
-            stack_consumed: 20u32,
         };
         pub const IDirectSound_CreateSoundBuffer: Shim = Shim {
             name: "IDirectSound::CreateSoundBuffer",
             func: crate::shims::Handler::Sync(impls::IDirectSound_CreateSoundBuffer),
-            stack_consumed: 16u32,
         };
         pub const IDirectSound_Release: Shim = Shim {
             name: "IDirectSound::Release",
             func: crate::shims::Handler::Sync(impls::IDirectSound_Release),
-            stack_consumed: 4u32,
         };
         pub const IDirectSound_SetCooperativeLevel: Shim = Shim {
             name: "IDirectSound::SetCooperativeLevel",
             func: crate::shims::Handler::Sync(impls::IDirectSound_SetCooperativeLevel),
-            stack_consumed: 12u32,
         };
     }
     const SHIMS: [Shim; 12usize] = [
@@ -1671,187 +1593,150 @@ pub mod gdi32 {
         pub const BitBlt: Shim = Shim {
             name: "BitBlt",
             func: crate::shims::Handler::Sync(impls::BitBlt),
-            stack_consumed: 36u32,
         };
         pub const CreateBitmap: Shim = Shim {
             name: "CreateBitmap",
             func: crate::shims::Handler::Sync(impls::CreateBitmap),
-            stack_consumed: 20u32,
         };
         pub const CreateCompatibleBitmap: Shim = Shim {
             name: "CreateCompatibleBitmap",
             func: crate::shims::Handler::Sync(impls::CreateCompatibleBitmap),
-            stack_consumed: 12u32,
         };
         pub const CreateCompatibleDC: Shim = Shim {
             name: "CreateCompatibleDC",
             func: crate::shims::Handler::Sync(impls::CreateCompatibleDC),
-            stack_consumed: 4u32,
         };
         pub const CreateDIBSection: Shim = Shim {
             name: "CreateDIBSection",
             func: crate::shims::Handler::Sync(impls::CreateDIBSection),
-            stack_consumed: 24u32,
         };
         pub const CreateFontA: Shim = Shim {
             name: "CreateFontA",
             func: crate::shims::Handler::Sync(impls::CreateFontA),
-            stack_consumed: 56u32,
         };
         pub const CreatePen: Shim = Shim {
             name: "CreatePen",
             func: crate::shims::Handler::Sync(impls::CreatePen),
-            stack_consumed: 12u32,
         };
         pub const CreateSolidBrush: Shim = Shim {
             name: "CreateSolidBrush",
             func: crate::shims::Handler::Sync(impls::CreateSolidBrush),
-            stack_consumed: 4u32,
         };
         pub const DeleteDC: Shim = Shim {
             name: "DeleteDC",
             func: crate::shims::Handler::Sync(impls::DeleteDC),
-            stack_consumed: 4u32,
         };
         pub const DeleteObject: Shim = Shim {
             name: "DeleteObject",
             func: crate::shims::Handler::Sync(impls::DeleteObject),
-            stack_consumed: 4u32,
         };
         pub const GetDCOrgEx: Shim = Shim {
             name: "GetDCOrgEx",
             func: crate::shims::Handler::Sync(impls::GetDCOrgEx),
-            stack_consumed: 8u32,
         };
         pub const GetDeviceCaps: Shim = Shim {
             name: "GetDeviceCaps",
             func: crate::shims::Handler::Sync(impls::GetDeviceCaps),
-            stack_consumed: 8u32,
         };
         pub const GetLayout: Shim = Shim {
             name: "GetLayout",
             func: crate::shims::Handler::Sync(impls::GetLayout),
-            stack_consumed: 4u32,
         };
         pub const GetObjectA: Shim = Shim {
             name: "GetObjectA",
             func: crate::shims::Handler::Sync(impls::GetObjectA),
-            stack_consumed: 12u32,
         };
         pub const GetPixel: Shim = Shim {
             name: "GetPixel",
             func: crate::shims::Handler::Sync(impls::GetPixel),
-            stack_consumed: 12u32,
         };
         pub const GetStockObject: Shim = Shim {
             name: "GetStockObject",
             func: crate::shims::Handler::Sync(impls::GetStockObject),
-            stack_consumed: 4u32,
         };
         pub const GetTextExtentPoint32A: Shim = Shim {
             name: "GetTextExtentPoint32A",
             func: crate::shims::Handler::Sync(impls::GetTextExtentPoint32A),
-            stack_consumed: 16u32,
         };
         pub const GetTextExtentPoint32W: Shim = Shim {
             name: "GetTextExtentPoint32W",
             func: crate::shims::Handler::Sync(impls::GetTextExtentPoint32W),
-            stack_consumed: 16u32,
         };
         pub const GetTextMetricsA: Shim = Shim {
             name: "GetTextMetricsA",
             func: crate::shims::Handler::Sync(impls::GetTextMetricsA),
-            stack_consumed: 8u32,
         };
         pub const GetTextMetricsW: Shim = Shim {
             name: "GetTextMetricsW",
             func: crate::shims::Handler::Sync(impls::GetTextMetricsW),
-            stack_consumed: 8u32,
         };
         pub const LineDDA: Shim = Shim {
             name: "LineDDA",
             func: crate::shims::Handler::Sync(impls::LineDDA),
-            stack_consumed: 24u32,
         };
         pub const LineTo: Shim = Shim {
             name: "LineTo",
             func: crate::shims::Handler::Sync(impls::LineTo),
-            stack_consumed: 12u32,
         };
         pub const MoveToEx: Shim = Shim {
             name: "MoveToEx",
             func: crate::shims::Handler::Sync(impls::MoveToEx),
-            stack_consumed: 16u32,
         };
         pub const PatBlt: Shim = Shim {
             name: "PatBlt",
             func: crate::shims::Handler::Sync(impls::PatBlt),
-            stack_consumed: 24u32,
         };
         pub const PtVisible: Shim = Shim {
             name: "PtVisible",
             func: crate::shims::Handler::Sync(impls::PtVisible),
-            stack_consumed: 12u32,
         };
         pub const SelectObject: Shim = Shim {
             name: "SelectObject",
             func: crate::shims::Handler::Sync(impls::SelectObject),
-            stack_consumed: 8u32,
         };
         pub const SetBkColor: Shim = Shim {
             name: "SetBkColor",
             func: crate::shims::Handler::Sync(impls::SetBkColor),
-            stack_consumed: 8u32,
         };
         pub const SetBkMode: Shim = Shim {
             name: "SetBkMode",
             func: crate::shims::Handler::Sync(impls::SetBkMode),
-            stack_consumed: 8u32,
         };
         pub const SetBrushOrgEx: Shim = Shim {
             name: "SetBrushOrgEx",
             func: crate::shims::Handler::Sync(impls::SetBrushOrgEx),
-            stack_consumed: 16u32,
         };
         pub const SetDIBitsToDevice: Shim = Shim {
             name: "SetDIBitsToDevice",
             func: crate::shims::Handler::Sync(impls::SetDIBitsToDevice),
-            stack_consumed: 48u32,
         };
         pub const SetPixel: Shim = Shim {
             name: "SetPixel",
             func: crate::shims::Handler::Sync(impls::SetPixel),
-            stack_consumed: 16u32,
         };
         pub const SetROP2: Shim = Shim {
             name: "SetROP2",
             func: crate::shims::Handler::Sync(impls::SetROP2),
-            stack_consumed: 8u32,
         };
         pub const SetTextColor: Shim = Shim {
             name: "SetTextColor",
             func: crate::shims::Handler::Sync(impls::SetTextColor),
-            stack_consumed: 8u32,
         };
         pub const StretchBlt: Shim = Shim {
             name: "StretchBlt",
             func: crate::shims::Handler::Sync(impls::StretchBlt),
-            stack_consumed: 44u32,
         };
         pub const StretchDIBits: Shim = Shim {
             name: "StretchDIBits",
             func: crate::shims::Handler::Sync(impls::StretchDIBits),
-            stack_consumed: 52u32,
         };
         pub const TextOutA: Shim = Shim {
             name: "TextOutA",
             func: crate::shims::Handler::Sync(impls::TextOutA),
-            stack_consumed: 20u32,
         };
         pub const TextOutW: Shim = Shim {
             name: "TextOutW",
             func: crate::shims::Handler::Sync(impls::TextOutW),
-            stack_consumed: 20u32,
         };
     }
     const SHIMS: [Shim; 37usize] = [
@@ -3031,757 +2916,606 @@ pub mod kernel32 {
         pub const AcquireSRWLockExclusive: Shim = Shim {
             name: "AcquireSRWLockExclusive",
             func: crate::shims::Handler::Sync(impls::AcquireSRWLockExclusive),
-            stack_consumed: 4u32,
         };
         pub const AcquireSRWLockShared: Shim = Shim {
             name: "AcquireSRWLockShared",
             func: crate::shims::Handler::Sync(impls::AcquireSRWLockShared),
-            stack_consumed: 4u32,
         };
         pub const AddVectoredExceptionHandler: Shim = Shim {
             name: "AddVectoredExceptionHandler",
             func: crate::shims::Handler::Sync(impls::AddVectoredExceptionHandler),
-            stack_consumed: 8u32,
         };
         pub const CloseHandle: Shim = Shim {
             name: "CloseHandle",
             func: crate::shims::Handler::Sync(impls::CloseHandle),
-            stack_consumed: 4u32,
         };
         pub const CreateDirectoryA: Shim = Shim {
             name: "CreateDirectoryA",
             func: crate::shims::Handler::Sync(impls::CreateDirectoryA),
-            stack_consumed: 8u32,
         };
         pub const CreateEventA: Shim = Shim {
             name: "CreateEventA",
             func: crate::shims::Handler::Sync(impls::CreateEventA),
-            stack_consumed: 16u32,
         };
         pub const CreateFileA: Shim = Shim {
             name: "CreateFileA",
             func: crate::shims::Handler::Sync(impls::CreateFileA),
-            stack_consumed: 28u32,
         };
         pub const CreateFileW: Shim = Shim {
             name: "CreateFileW",
             func: crate::shims::Handler::Sync(impls::CreateFileW),
-            stack_consumed: 28u32,
         };
         pub const CreateThread: Shim = Shim {
             name: "CreateThread",
             func: crate::shims::Handler::Async(impls::CreateThread),
-            stack_consumed: 24u32,
         };
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",
             func: crate::shims::Handler::Sync(impls::DeleteCriticalSection),
-            stack_consumed: 4u32,
         };
         pub const DeleteFileA: Shim = Shim {
             name: "DeleteFileA",
             func: crate::shims::Handler::Sync(impls::DeleteFileA),
-            stack_consumed: 4u32,
         };
         pub const DisableThreadLibraryCalls: Shim = Shim {
             name: "DisableThreadLibraryCalls",
             func: crate::shims::Handler::Sync(impls::DisableThreadLibraryCalls),
-            stack_consumed: 4u32,
         };
         pub const EnterCriticalSection: Shim = Shim {
             name: "EnterCriticalSection",
             func: crate::shims::Handler::Sync(impls::EnterCriticalSection),
-            stack_consumed: 4u32,
         };
         pub const ExitProcess: Shim = Shim {
             name: "ExitProcess",
             func: crate::shims::Handler::Sync(impls::ExitProcess),
-            stack_consumed: 4u32,
         };
         pub const FileTimeToSystemTime: Shim = Shim {
             name: "FileTimeToSystemTime",
             func: crate::shims::Handler::Sync(impls::FileTimeToSystemTime),
-            stack_consumed: 8u32,
         };
         pub const FindClose: Shim = Shim {
             name: "FindClose",
             func: crate::shims::Handler::Sync(impls::FindClose),
-            stack_consumed: 4u32,
         };
         pub const FindFirstFileA: Shim = Shim {
             name: "FindFirstFileA",
             func: crate::shims::Handler::Sync(impls::FindFirstFileA),
-            stack_consumed: 8u32,
         };
         pub const FindNextFileA: Shim = Shim {
             name: "FindNextFileA",
             func: crate::shims::Handler::Sync(impls::FindNextFileA),
-            stack_consumed: 8u32,
         };
         pub const FindResourceA: Shim = Shim {
             name: "FindResourceA",
             func: crate::shims::Handler::Sync(impls::FindResourceA),
-            stack_consumed: 12u32,
         };
         pub const FindResourceW: Shim = Shim {
             name: "FindResourceW",
             func: crate::shims::Handler::Sync(impls::FindResourceW),
-            stack_consumed: 12u32,
         };
         pub const FormatMessageA: Shim = Shim {
             name: "FormatMessageA",
             func: crate::shims::Handler::Sync(impls::FormatMessageA),
-            stack_consumed: 28u32,
         };
         pub const FormatMessageW: Shim = Shim {
             name: "FormatMessageW",
             func: crate::shims::Handler::Sync(impls::FormatMessageW),
-            stack_consumed: 28u32,
         };
         pub const FreeEnvironmentStringsA: Shim = Shim {
             name: "FreeEnvironmentStringsA",
             func: crate::shims::Handler::Sync(impls::FreeEnvironmentStringsA),
-            stack_consumed: 4u32,
         };
         pub const FreeLibrary: Shim = Shim {
             name: "FreeLibrary",
             func: crate::shims::Handler::Sync(impls::FreeLibrary),
-            stack_consumed: 4u32,
         };
         pub const GetACP: Shim = Shim {
             name: "GetACP",
             func: crate::shims::Handler::Sync(impls::GetACP),
-            stack_consumed: 0u32,
         };
         pub const GetCPInfo: Shim = Shim {
             name: "GetCPInfo",
             func: crate::shims::Handler::Sync(impls::GetCPInfo),
-            stack_consumed: 8u32,
         };
         pub const GetCommandLineA: Shim = Shim {
             name: "GetCommandLineA",
             func: crate::shims::Handler::Sync(impls::GetCommandLineA),
-            stack_consumed: 0u32,
         };
         pub const GetCommandLineW: Shim = Shim {
             name: "GetCommandLineW",
             func: crate::shims::Handler::Sync(impls::GetCommandLineW),
-            stack_consumed: 0u32,
         };
         pub const GetConsoleMode: Shim = Shim {
             name: "GetConsoleMode",
             func: crate::shims::Handler::Sync(impls::GetConsoleMode),
-            stack_consumed: 8u32,
         };
         pub const GetConsoleScreenBufferInfo: Shim = Shim {
             name: "GetConsoleScreenBufferInfo",
             func: crate::shims::Handler::Sync(impls::GetConsoleScreenBufferInfo),
-            stack_consumed: 8u32,
         };
         pub const GetCurrentDirectoryA: Shim = Shim {
             name: "GetCurrentDirectoryA",
             func: crate::shims::Handler::Sync(impls::GetCurrentDirectoryA),
-            stack_consumed: 8u32,
         };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
             func: crate::shims::Handler::Sync(impls::GetCurrentProcessId),
-            stack_consumed: 0u32,
         };
         pub const GetCurrentThread: Shim = Shim {
             name: "GetCurrentThread",
             func: crate::shims::Handler::Sync(impls::GetCurrentThread),
-            stack_consumed: 0u32,
         };
         pub const GetCurrentThreadId: Shim = Shim {
             name: "GetCurrentThreadId",
             func: crate::shims::Handler::Sync(impls::GetCurrentThreadId),
-            stack_consumed: 0u32,
         };
         pub const GetEnvironmentStrings: Shim = Shim {
             name: "GetEnvironmentStrings",
             func: crate::shims::Handler::Sync(impls::GetEnvironmentStrings),
-            stack_consumed: 0u32,
         };
         pub const GetEnvironmentStringsW: Shim = Shim {
             name: "GetEnvironmentStringsW",
             func: crate::shims::Handler::Sync(impls::GetEnvironmentStringsW),
-            stack_consumed: 0u32,
         };
         pub const GetEnvironmentVariableA: Shim = Shim {
             name: "GetEnvironmentVariableA",
             func: crate::shims::Handler::Sync(impls::GetEnvironmentVariableA),
-            stack_consumed: 12u32,
         };
         pub const GetEnvironmentVariableW: Shim = Shim {
             name: "GetEnvironmentVariableW",
             func: crate::shims::Handler::Sync(impls::GetEnvironmentVariableW),
-            stack_consumed: 12u32,
         };
         pub const GetFileAttributesA: Shim = Shim {
             name: "GetFileAttributesA",
             func: crate::shims::Handler::Sync(impls::GetFileAttributesA),
-            stack_consumed: 4u32,
         };
         pub const GetFileInformationByHandle: Shim = Shim {
             name: "GetFileInformationByHandle",
             func: crate::shims::Handler::Sync(impls::GetFileInformationByHandle),
-            stack_consumed: 8u32,
         };
         pub const GetFileSize: Shim = Shim {
             name: "GetFileSize",
             func: crate::shims::Handler::Sync(impls::GetFileSize),
-            stack_consumed: 8u32,
         };
         pub const GetFileTime: Shim = Shim {
             name: "GetFileTime",
             func: crate::shims::Handler::Sync(impls::GetFileTime),
-            stack_consumed: 16u32,
         };
         pub const GetFileType: Shim = Shim {
             name: "GetFileType",
             func: crate::shims::Handler::Sync(impls::GetFileType),
-            stack_consumed: 4u32,
         };
         pub const GetFullPathNameA: Shim = Shim {
             name: "GetFullPathNameA",
             func: crate::shims::Handler::Sync(impls::GetFullPathNameA),
-            stack_consumed: 16u32,
         };
         pub const GetFullPathNameW: Shim = Shim {
             name: "GetFullPathNameW",
             func: crate::shims::Handler::Sync(impls::GetFullPathNameW),
-            stack_consumed: 16u32,
         };
         pub const GetLastError: Shim = Shim {
             name: "GetLastError",
             func: crate::shims::Handler::Sync(impls::GetLastError),
-            stack_consumed: 0u32,
         };
         pub const GetLocalTime: Shim = Shim {
             name: "GetLocalTime",
             func: crate::shims::Handler::Sync(impls::GetLocalTime),
-            stack_consumed: 4u32,
         };
         pub const GetModuleFileNameA: Shim = Shim {
             name: "GetModuleFileNameA",
             func: crate::shims::Handler::Sync(impls::GetModuleFileNameA),
-            stack_consumed: 12u32,
         };
         pub const GetModuleFileNameW: Shim = Shim {
             name: "GetModuleFileNameW",
             func: crate::shims::Handler::Sync(impls::GetModuleFileNameW),
-            stack_consumed: 12u32,
         };
         pub const GetModuleHandleA: Shim = Shim {
             name: "GetModuleHandleA",
             func: crate::shims::Handler::Sync(impls::GetModuleHandleA),
-            stack_consumed: 4u32,
         };
         pub const GetModuleHandleExW: Shim = Shim {
             name: "GetModuleHandleExW",
             func: crate::shims::Handler::Sync(impls::GetModuleHandleExW),
-            stack_consumed: 12u32,
         };
         pub const GetModuleHandleW: Shim = Shim {
             name: "GetModuleHandleW",
             func: crate::shims::Handler::Sync(impls::GetModuleHandleW),
-            stack_consumed: 4u32,
         };
         pub const GetPrivateProfileIntW: Shim = Shim {
             name: "GetPrivateProfileIntW",
             func: crate::shims::Handler::Sync(impls::GetPrivateProfileIntW),
-            stack_consumed: 16u32,
         };
         pub const GetPrivateProfileStringW: Shim = Shim {
             name: "GetPrivateProfileStringW",
             func: crate::shims::Handler::Sync(impls::GetPrivateProfileStringW),
-            stack_consumed: 24u32,
         };
         pub const GetProcAddress: Shim = Shim {
             name: "GetProcAddress",
             func: crate::shims::Handler::Sync(impls::GetProcAddress),
-            stack_consumed: 8u32,
         };
         pub const GetProcessHeap: Shim = Shim {
             name: "GetProcessHeap",
             func: crate::shims::Handler::Sync(impls::GetProcessHeap),
-            stack_consumed: 0u32,
         };
         pub const GetProfileIntW: Shim = Shim {
             name: "GetProfileIntW",
             func: crate::shims::Handler::Sync(impls::GetProfileIntW),
-            stack_consumed: 12u32,
         };
         pub const GetProfileStringW: Shim = Shim {
             name: "GetProfileStringW",
             func: crate::shims::Handler::Sync(impls::GetProfileStringW),
-            stack_consumed: 20u32,
         };
         pub const GetStartupInfoA: Shim = Shim {
             name: "GetStartupInfoA",
             func: crate::shims::Handler::Sync(impls::GetStartupInfoA),
-            stack_consumed: 4u32,
         };
         pub const GetStartupInfoW: Shim = Shim {
             name: "GetStartupInfoW",
             func: crate::shims::Handler::Sync(impls::GetStartupInfoW),
-            stack_consumed: 4u32,
         };
         pub const GetStdHandle: Shim = Shim {
             name: "GetStdHandle",
             func: crate::shims::Handler::Sync(impls::GetStdHandle),
-            stack_consumed: 4u32,
         };
         pub const GetSystemDirectoryA: Shim = Shim {
             name: "GetSystemDirectoryA",
             func: crate::shims::Handler::Sync(impls::GetSystemDirectoryA),
-            stack_consumed: 8u32,
         };
         pub const GetSystemTime: Shim = Shim {
             name: "GetSystemTime",
             func: crate::shims::Handler::Sync(impls::GetSystemTime),
-            stack_consumed: 4u32,
         };
         pub const GetSystemTimeAsFileTime: Shim = Shim {
             name: "GetSystemTimeAsFileTime",
             func: crate::shims::Handler::Sync(impls::GetSystemTimeAsFileTime),
-            stack_consumed: 4u32,
         };
         pub const GetTickCount: Shim = Shim {
             name: "GetTickCount",
             func: crate::shims::Handler::Sync(impls::GetTickCount),
-            stack_consumed: 0u32,
         };
         pub const GetTimeZoneInformation: Shim = Shim {
             name: "GetTimeZoneInformation",
             func: crate::shims::Handler::Sync(impls::GetTimeZoneInformation),
-            stack_consumed: 4u32,
         };
         pub const GetVersion: Shim = Shim {
             name: "GetVersion",
             func: crate::shims::Handler::Sync(impls::GetVersion),
-            stack_consumed: 0u32,
         };
         pub const GetVersionExA: Shim = Shim {
             name: "GetVersionExA",
             func: crate::shims::Handler::Sync(impls::GetVersionExA),
-            stack_consumed: 4u32,
         };
         pub const GetWindowsDirectoryA: Shim = Shim {
             name: "GetWindowsDirectoryA",
             func: crate::shims::Handler::Sync(impls::GetWindowsDirectoryA),
-            stack_consumed: 8u32,
         };
         pub const GlobalAlloc: Shim = Shim {
             name: "GlobalAlloc",
             func: crate::shims::Handler::Sync(impls::GlobalAlloc),
-            stack_consumed: 8u32,
         };
         pub const GlobalFlags: Shim = Shim {
             name: "GlobalFlags",
             func: crate::shims::Handler::Sync(impls::GlobalFlags),
-            stack_consumed: 4u32,
         };
         pub const GlobalFree: Shim = Shim {
             name: "GlobalFree",
             func: crate::shims::Handler::Sync(impls::GlobalFree),
-            stack_consumed: 4u32,
         };
         pub const GlobalReAlloc: Shim = Shim {
             name: "GlobalReAlloc",
             func: crate::shims::Handler::Sync(impls::GlobalReAlloc),
-            stack_consumed: 12u32,
         };
         pub const HeapAlloc: Shim = Shim {
             name: "HeapAlloc",
             func: crate::shims::Handler::Sync(impls::HeapAlloc),
-            stack_consumed: 12u32,
         };
         pub const HeapCreate: Shim = Shim {
             name: "HeapCreate",
             func: crate::shims::Handler::Sync(impls::HeapCreate),
-            stack_consumed: 12u32,
         };
         pub const HeapDestroy: Shim = Shim {
             name: "HeapDestroy",
             func: crate::shims::Handler::Sync(impls::HeapDestroy),
-            stack_consumed: 4u32,
         };
         pub const HeapFree: Shim = Shim {
             name: "HeapFree",
             func: crate::shims::Handler::Sync(impls::HeapFree),
-            stack_consumed: 12u32,
         };
         pub const HeapReAlloc: Shim = Shim {
             name: "HeapReAlloc",
             func: crate::shims::Handler::Sync(impls::HeapReAlloc),
-            stack_consumed: 16u32,
         };
         pub const HeapSetInformation: Shim = Shim {
             name: "HeapSetInformation",
             func: crate::shims::Handler::Sync(impls::HeapSetInformation),
-            stack_consumed: 16u32,
         };
         pub const HeapSize: Shim = Shim {
             name: "HeapSize",
             func: crate::shims::Handler::Sync(impls::HeapSize),
-            stack_consumed: 12u32,
         };
         pub const InitOnceBeginInitialize: Shim = Shim {
             name: "InitOnceBeginInitialize",
             func: crate::shims::Handler::Sync(impls::InitOnceBeginInitialize),
-            stack_consumed: 16u32,
         };
         pub const InitOnceComplete: Shim = Shim {
             name: "InitOnceComplete",
             func: crate::shims::Handler::Sync(impls::InitOnceComplete),
-            stack_consumed: 12u32,
         };
         pub const InitializeCriticalSection: Shim = Shim {
             name: "InitializeCriticalSection",
             func: crate::shims::Handler::Sync(impls::InitializeCriticalSection),
-            stack_consumed: 4u32,
         };
         pub const InitializeCriticalSectionAndSpinCount: Shim = Shim {
             name: "InitializeCriticalSectionAndSpinCount",
             func: crate::shims::Handler::Sync(impls::InitializeCriticalSectionAndSpinCount),
-            stack_consumed: 8u32,
         };
         pub const InitializeCriticalSectionEx: Shim = Shim {
             name: "InitializeCriticalSectionEx",
             func: crate::shims::Handler::Sync(impls::InitializeCriticalSectionEx),
-            stack_consumed: 12u32,
         };
         pub const InitializeSListHead: Shim = Shim {
             name: "InitializeSListHead",
             func: crate::shims::Handler::Sync(impls::InitializeSListHead),
-            stack_consumed: 4u32,
         };
         pub const InterlockedIncrement: Shim = Shim {
             name: "InterlockedIncrement",
             func: crate::shims::Handler::Sync(impls::InterlockedIncrement),
-            stack_consumed: 4u32,
         };
         pub const IsBadReadPtr: Shim = Shim {
             name: "IsBadReadPtr",
             func: crate::shims::Handler::Sync(impls::IsBadReadPtr),
-            stack_consumed: 8u32,
         };
         pub const IsBadWritePtr: Shim = Shim {
             name: "IsBadWritePtr",
             func: crate::shims::Handler::Sync(impls::IsBadWritePtr),
-            stack_consumed: 8u32,
         };
         pub const IsDBCSLeadByte: Shim = Shim {
             name: "IsDBCSLeadByte",
             func: crate::shims::Handler::Sync(impls::IsDBCSLeadByte),
-            stack_consumed: 4u32,
         };
         pub const IsDBCSLeadByteEx: Shim = Shim {
             name: "IsDBCSLeadByteEx",
             func: crate::shims::Handler::Sync(impls::IsDBCSLeadByteEx),
-            stack_consumed: 8u32,
         };
         pub const IsDebuggerPresent: Shim = Shim {
             name: "IsDebuggerPresent",
             func: crate::shims::Handler::Sync(impls::IsDebuggerPresent),
-            stack_consumed: 0u32,
         };
         pub const IsProcessorFeaturePresent: Shim = Shim {
             name: "IsProcessorFeaturePresent",
             func: crate::shims::Handler::Sync(impls::IsProcessorFeaturePresent),
-            stack_consumed: 4u32,
         };
         pub const IsValidCodePage: Shim = Shim {
             name: "IsValidCodePage",
             func: crate::shims::Handler::Sync(impls::IsValidCodePage),
-            stack_consumed: 4u32,
         };
         pub const LeaveCriticalSection: Shim = Shim {
             name: "LeaveCriticalSection",
             func: crate::shims::Handler::Sync(impls::LeaveCriticalSection),
-            stack_consumed: 4u32,
         };
         pub const LoadLibraryA: Shim = Shim {
             name: "LoadLibraryA",
             func: crate::shims::Handler::Sync(impls::LoadLibraryA),
-            stack_consumed: 4u32,
         };
         pub const LoadLibraryExW: Shim = Shim {
             name: "LoadLibraryExW",
             func: crate::shims::Handler::Sync(impls::LoadLibraryExW),
-            stack_consumed: 12u32,
         };
         pub const LoadResource: Shim = Shim {
             name: "LoadResource",
             func: crate::shims::Handler::Sync(impls::LoadResource),
-            stack_consumed: 8u32,
         };
         pub const LocalAlloc: Shim = Shim {
             name: "LocalAlloc",
             func: crate::shims::Handler::Sync(impls::LocalAlloc),
-            stack_consumed: 8u32,
         };
         pub const LocalFree: Shim = Shim {
             name: "LocalFree",
             func: crate::shims::Handler::Sync(impls::LocalFree),
-            stack_consumed: 4u32,
         };
         pub const LockResource: Shim = Shim {
             name: "LockResource",
             func: crate::shims::Handler::Sync(impls::LockResource),
-            stack_consumed: 4u32,
         };
         pub const MulDiv: Shim = Shim {
             name: "MulDiv",
             func: crate::shims::Handler::Sync(impls::MulDiv),
-            stack_consumed: 12u32,
         };
         pub const MultiByteToWideChar: Shim = Shim {
             name: "MultiByteToWideChar",
             func: crate::shims::Handler::Sync(impls::MultiByteToWideChar),
-            stack_consumed: 24u32,
         };
         pub const NtCurrentTeb: Shim = Shim {
             name: "NtCurrentTeb",
             func: crate::shims::Handler::Sync(impls::NtCurrentTeb),
-            stack_consumed: 0u32,
         };
         pub const OutputDebugStringA: Shim = Shim {
             name: "OutputDebugStringA",
             func: crate::shims::Handler::Sync(impls::OutputDebugStringA),
-            stack_consumed: 4u32,
         };
         pub const QueryPerformanceCounter: Shim = Shim {
             name: "QueryPerformanceCounter",
             func: crate::shims::Handler::Sync(impls::QueryPerformanceCounter),
-            stack_consumed: 4u32,
         };
         pub const QueryPerformanceFrequency: Shim = Shim {
             name: "QueryPerformanceFrequency",
             func: crate::shims::Handler::Sync(impls::QueryPerformanceFrequency),
-            stack_consumed: 4u32,
         };
         pub const ReadFile: Shim = Shim {
             name: "ReadFile",
             func: crate::shims::Handler::Sync(impls::ReadFile),
-            stack_consumed: 20u32,
         };
         pub const ReleaseSRWLockExclusive: Shim = Shim {
             name: "ReleaseSRWLockExclusive",
             func: crate::shims::Handler::Sync(impls::ReleaseSRWLockExclusive),
-            stack_consumed: 4u32,
         };
         pub const ReleaseSRWLockShared: Shim = Shim {
             name: "ReleaseSRWLockShared",
             func: crate::shims::Handler::Sync(impls::ReleaseSRWLockShared),
-            stack_consumed: 4u32,
         };
         pub const RemoveDirectoryA: Shim = Shim {
             name: "RemoveDirectoryA",
             func: crate::shims::Handler::Sync(impls::RemoveDirectoryA),
-            stack_consumed: 4u32,
         };
         pub const ResumeThread: Shim = Shim {
             name: "ResumeThread",
             func: crate::shims::Handler::Sync(impls::ResumeThread),
-            stack_consumed: 4u32,
         };
         pub const SetConsoleCtrlHandler: Shim = Shim {
             name: "SetConsoleCtrlHandler",
             func: crate::shims::Handler::Sync(impls::SetConsoleCtrlHandler),
-            stack_consumed: 8u32,
         };
         pub const SetEndOfFile: Shim = Shim {
             name: "SetEndOfFile",
             func: crate::shims::Handler::Sync(impls::SetEndOfFile),
-            stack_consumed: 4u32,
         };
         pub const SetEnvironmentVariableA: Shim = Shim {
             name: "SetEnvironmentVariableA",
             func: crate::shims::Handler::Sync(impls::SetEnvironmentVariableA),
-            stack_consumed: 8u32,
         };
         pub const SetEvent: Shim = Shim {
             name: "SetEvent",
             func: crate::shims::Handler::Sync(impls::SetEvent),
-            stack_consumed: 4u32,
         };
         pub const SetFileAttributesA: Shim = Shim {
             name: "SetFileAttributesA",
             func: crate::shims::Handler::Sync(impls::SetFileAttributesA),
-            stack_consumed: 8u32,
         };
         pub const SetFilePointer: Shim = Shim {
             name: "SetFilePointer",
             func: crate::shims::Handler::Sync(impls::SetFilePointer),
-            stack_consumed: 16u32,
         };
         pub const SetFileTime: Shim = Shim {
             name: "SetFileTime",
             func: crate::shims::Handler::Sync(impls::SetFileTime),
-            stack_consumed: 16u32,
         };
         pub const SetHandleCount: Shim = Shim {
             name: "SetHandleCount",
             func: crate::shims::Handler::Sync(impls::SetHandleCount),
-            stack_consumed: 4u32,
         };
         pub const SetLastError: Shim = Shim {
             name: "SetLastError",
             func: crate::shims::Handler::Sync(impls::SetLastError),
-            stack_consumed: 4u32,
         };
         pub const SetPriorityClass: Shim = Shim {
             name: "SetPriorityClass",
             func: crate::shims::Handler::Sync(impls::SetPriorityClass),
-            stack_consumed: 8u32,
         };
         pub const SetStdHandle: Shim = Shim {
             name: "SetStdHandle",
             func: crate::shims::Handler::Sync(impls::SetStdHandle),
-            stack_consumed: 8u32,
         };
         pub const SetThreadDescription: Shim = Shim {
             name: "SetThreadDescription",
             func: crate::shims::Handler::Sync(impls::SetThreadDescription),
-            stack_consumed: 8u32,
         };
         pub const SetThreadPriority: Shim = Shim {
             name: "SetThreadPriority",
             func: crate::shims::Handler::Sync(impls::SetThreadPriority),
-            stack_consumed: 8u32,
         };
         pub const SetThreadStackGuarantee: Shim = Shim {
             name: "SetThreadStackGuarantee",
             func: crate::shims::Handler::Sync(impls::SetThreadStackGuarantee),
-            stack_consumed: 4u32,
         };
         pub const SetUnhandledExceptionFilter: Shim = Shim {
             name: "SetUnhandledExceptionFilter",
             func: crate::shims::Handler::Sync(impls::SetUnhandledExceptionFilter),
-            stack_consumed: 4u32,
         };
         pub const SizeofResource: Shim = Shim {
             name: "SizeofResource",
             func: crate::shims::Handler::Sync(impls::SizeofResource),
-            stack_consumed: 8u32,
         };
         pub const Sleep: Shim = Shim {
             name: "Sleep",
             func: crate::shims::Handler::Async(impls::Sleep),
-            stack_consumed: 4u32,
         };
         pub const SystemTimeToFileTime: Shim = Shim {
             name: "SystemTimeToFileTime",
             func: crate::shims::Handler::Sync(impls::SystemTimeToFileTime),
-            stack_consumed: 8u32,
         };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
             func: crate::shims::Handler::Sync(impls::TlsAlloc),
-            stack_consumed: 0u32,
         };
         pub const TlsFree: Shim = Shim {
             name: "TlsFree",
             func: crate::shims::Handler::Sync(impls::TlsFree),
-            stack_consumed: 4u32,
         };
         pub const TlsGetValue: Shim = Shim {
             name: "TlsGetValue",
             func: crate::shims::Handler::Sync(impls::TlsGetValue),
-            stack_consumed: 4u32,
         };
         pub const TlsSetValue: Shim = Shim {
             name: "TlsSetValue",
             func: crate::shims::Handler::Sync(impls::TlsSetValue),
-            stack_consumed: 8u32,
         };
         pub const TryAcquireSRWLockExclusive: Shim = Shim {
             name: "TryAcquireSRWLockExclusive",
             func: crate::shims::Handler::Sync(impls::TryAcquireSRWLockExclusive),
-            stack_consumed: 4u32,
         };
         pub const UnhandledExceptionFilter: Shim = Shim {
             name: "UnhandledExceptionFilter",
             func: crate::shims::Handler::Sync(impls::UnhandledExceptionFilter),
-            stack_consumed: 4u32,
         };
         pub const VirtualAlloc: Shim = Shim {
             name: "VirtualAlloc",
             func: crate::shims::Handler::Sync(impls::VirtualAlloc),
-            stack_consumed: 16u32,
         };
         pub const VirtualFree: Shim = Shim {
             name: "VirtualFree",
             func: crate::shims::Handler::Sync(impls::VirtualFree),
-            stack_consumed: 12u32,
         };
         pub const VirtualProtect: Shim = Shim {
             name: "VirtualProtect",
             func: crate::shims::Handler::Sync(impls::VirtualProtect),
-            stack_consumed: 16u32,
         };
         pub const VirtualQuery: Shim = Shim {
             name: "VirtualQuery",
             func: crate::shims::Handler::Sync(impls::VirtualQuery),
-            stack_consumed: 12u32,
         };
         pub const WaitForSingleObject: Shim = Shim {
             name: "WaitForSingleObject",
             func: crate::shims::Handler::Sync(impls::WaitForSingleObject),
-            stack_consumed: 8u32,
         };
         pub const WriteConsoleA: Shim = Shim {
             name: "WriteConsoleA",
             func: crate::shims::Handler::Sync(impls::WriteConsoleA),
-            stack_consumed: 20u32,
         };
         pub const WriteConsoleW: Shim = Shim {
             name: "WriteConsoleW",
             func: crate::shims::Handler::Sync(impls::WriteConsoleW),
-            stack_consumed: 20u32,
         };
         pub const WriteFile: Shim = Shim {
             name: "WriteFile",
             func: crate::shims::Handler::Sync(impls::WriteFile),
-            stack_consumed: 20u32,
         };
         pub const lstrcmpiA: Shim = Shim {
             name: "lstrcmpiA",
             func: crate::shims::Handler::Sync(impls::lstrcmpiA),
-            stack_consumed: 8u32,
         };
         pub const lstrcpyA: Shim = Shim {
             name: "lstrcpyA",
             func: crate::shims::Handler::Sync(impls::lstrcpyA),
-            stack_consumed: 8u32,
         };
         pub const lstrcpyW: Shim = Shim {
             name: "lstrcpyW",
             func: crate::shims::Handler::Sync(impls::lstrcpyW),
-            stack_consumed: 8u32,
         };
         pub const lstrlenA: Shim = Shim {
             name: "lstrlenA",
             func: crate::shims::Handler::Sync(impls::lstrlenA),
-            stack_consumed: 4u32,
         };
         pub const lstrlenW: Shim = Shim {
             name: "lstrlenW",
             func: crate::shims::Handler::Sync(impls::lstrlenW),
-            stack_consumed: 4u32,
         };
         pub const retrowin32_main: Shim = Shim {
             name: "retrowin32_main",
             func: crate::shims::Handler::Async(impls::retrowin32_main),
-            stack_consumed: 4u32,
         };
         pub const retrowin32_thread_main: Shim = Shim {
             name: "retrowin32_thread_main",
             func: crate::shims::Handler::Async(impls::retrowin32_thread_main),
-            stack_consumed: 8u32,
         };
     }
     const SHIMS: [Shim; 151usize] = [
@@ -3987,12 +3721,10 @@ pub mod ntdll {
         pub const NtReadFile: Shim = Shim {
             name: "NtReadFile",
             func: crate::shims::Handler::Sync(impls::NtReadFile),
-            stack_consumed: 36u32,
         };
         pub const RtlExitUserProcess: Shim = Shim {
             name: "RtlExitUserProcess",
             func: crate::shims::Handler::Sync(impls::RtlExitUserProcess),
-            stack_consumed: 4u32,
         };
     }
     const SHIMS: [Shim; 2usize] = [shims::NtReadFile, shims::RtlExitUserProcess];
@@ -4023,7 +3755,6 @@ pub mod ole32 {
         pub const OleInitialize: Shim = Shim {
             name: "OleInitialize",
             func: crate::shims::Handler::Sync(impls::OleInitialize),
-            stack_consumed: 4u32,
         };
     }
     const SHIMS: [Shim; 1usize] = [shims::OleInitialize];
@@ -4085,7 +3816,6 @@ pub mod retrowin32_test {
         pub const retrowin32_test_callback1: Shim = Shim {
             name: "retrowin32_test_callback1",
             func: crate::shims::Handler::Async(impls::retrowin32_test_callback1),
-            stack_consumed: 8u32,
         };
     }
     const SHIMS: [Shim; 1usize] = [shims::retrowin32_test_callback1];
@@ -4239,112 +3969,90 @@ pub mod ucrtbase {
         pub const __dllonexit: Shim = Shim {
             name: "__dllonexit",
             func: crate::shims::Handler::Sync(impls::__dllonexit),
-            stack_consumed: 0u32,
         };
         pub const __p___argc: Shim = Shim {
             name: "__p___argc",
             func: crate::shims::Handler::Sync(impls::__p___argc),
-            stack_consumed: 0u32,
         };
         pub const __p___argv: Shim = Shim {
             name: "__p___argv",
             func: crate::shims::Handler::Sync(impls::__p___argv),
-            stack_consumed: 0u32,
         };
         pub const __p__commode: Shim = Shim {
             name: "__p__commode",
             func: crate::shims::Handler::Sync(impls::__p__commode),
-            stack_consumed: 0u32,
         };
         pub const __p__fmode: Shim = Shim {
             name: "__p__fmode",
             func: crate::shims::Handler::Sync(impls::__p__fmode),
-            stack_consumed: 0u32,
         };
         pub const __set_app_type: Shim = Shim {
             name: "__set_app_type",
             func: crate::shims::Handler::Sync(impls::__set_app_type),
-            stack_consumed: 0u32,
         };
         pub const _configthreadlocale: Shim = Shim {
             name: "_configthreadlocale",
             func: crate::shims::Handler::Sync(impls::_configthreadlocale),
-            stack_consumed: 0u32,
         };
         pub const _configure_narrow_argv: Shim = Shim {
             name: "_configure_narrow_argv",
             func: crate::shims::Handler::Sync(impls::_configure_narrow_argv),
-            stack_consumed: 0u32,
         };
         pub const _controlfp_s: Shim = Shim {
             name: "_controlfp_s",
             func: crate::shims::Handler::Sync(impls::_controlfp_s),
-            stack_consumed: 0u32,
         };
         pub const _crt_atexit: Shim = Shim {
             name: "_crt_atexit",
             func: crate::shims::Handler::Sync(impls::_crt_atexit),
-            stack_consumed: 0u32,
         };
         pub const _get_initial_narrow_environment: Shim = Shim {
             name: "_get_initial_narrow_environment",
             func: crate::shims::Handler::Sync(impls::_get_initial_narrow_environment),
-            stack_consumed: 0u32,
         };
         pub const _initialize_narrow_environment: Shim = Shim {
             name: "_initialize_narrow_environment",
             func: crate::shims::Handler::Sync(impls::_initialize_narrow_environment),
-            stack_consumed: 0u32,
         };
         pub const _initterm: Shim = Shim {
             name: "_initterm",
             func: crate::shims::Handler::Async(impls::_initterm),
-            stack_consumed: 0u32,
         };
         pub const _initterm_e: Shim = Shim {
             name: "_initterm_e",
             func: crate::shims::Handler::Async(impls::_initterm_e),
-            stack_consumed: 0u32,
         };
         pub const _lock: Shim = Shim {
             name: "_lock",
             func: crate::shims::Handler::Sync(impls::_lock),
-            stack_consumed: 0u32,
         };
         pub const _set_app_type: Shim = Shim {
             name: "_set_app_type",
             func: crate::shims::Handler::Sync(impls::_set_app_type),
-            stack_consumed: 0u32,
         };
         pub const _set_fmode: Shim = Shim {
             name: "_set_fmode",
             func: crate::shims::Handler::Sync(impls::_set_fmode),
-            stack_consumed: 0u32,
         };
         pub const _set_new_mode: Shim = Shim {
             name: "_set_new_mode",
             func: crate::shims::Handler::Sync(impls::_set_new_mode),
-            stack_consumed: 0u32,
         };
         pub const _unlock: Shim = Shim {
             name: "_unlock",
             func: crate::shims::Handler::Sync(impls::_unlock),
-            stack_consumed: 0u32,
         };
         pub const exit: Shim = Shim {
             name: "exit",
             func: crate::shims::Handler::Sync(impls::exit),
-            stack_consumed: 0u32,
         };
         pub const free: Shim = Shim {
             name: "free",
             func: crate::shims::Handler::Sync(impls::free),
-            stack_consumed: 0u32,
         };
         pub const malloc: Shim = Shim {
             name: "malloc",
             func: crate::shims::Handler::Sync(impls::malloc),
-            stack_consumed: 0u32,
         };
     }
     const SHIMS: [Shim; 22usize] = [
@@ -4420,22 +4128,18 @@ pub mod vcruntime140 {
         pub const _CxxThrowException: Shim = Shim {
             name: "_CxxThrowException",
             func: crate::shims::Handler::Sync(impls::_CxxThrowException),
-            stack_consumed: 0u32,
         };
         pub const memcmp: Shim = Shim {
             name: "memcmp",
             func: crate::shims::Handler::Sync(impls::memcmp),
-            stack_consumed: 0u32,
         };
         pub const memcpy: Shim = Shim {
             name: "memcpy",
             func: crate::shims::Handler::Sync(impls::memcpy),
-            stack_consumed: 0u32,
         };
         pub const memset: Shim = Shim {
             name: "memset",
             func: crate::shims::Handler::Sync(impls::memset),
-            stack_consumed: 0u32,
         };
     }
     const SHIMS: [Shim; 4usize] = [
@@ -4472,7 +4176,6 @@ pub mod version {
         pub const GetFileVersionInfoSizeA: Shim = Shim {
             name: "GetFileVersionInfoSizeA",
             func: crate::shims::Handler::Sync(impls::GetFileVersionInfoSizeA),
-            stack_consumed: 8u32,
         };
     }
     const SHIMS: [Shim; 1usize] = [shims::GetFileVersionInfoSizeA];
@@ -5295,467 +4998,374 @@ pub mod user32 {
         pub const AdjustWindowRect: Shim = Shim {
             name: "AdjustWindowRect",
             func: crate::shims::Handler::Sync(impls::AdjustWindowRect),
-            stack_consumed: 12u32,
         };
         pub const AdjustWindowRectEx: Shim = Shim {
             name: "AdjustWindowRectEx",
             func: crate::shims::Handler::Sync(impls::AdjustWindowRectEx),
-            stack_consumed: 16u32,
         };
         pub const AppendMenuA: Shim = Shim {
             name: "AppendMenuA",
             func: crate::shims::Handler::Sync(impls::AppendMenuA),
-            stack_consumed: 16u32,
         };
         pub const BeginPaint: Shim = Shim {
             name: "BeginPaint",
             func: crate::shims::Handler::Sync(impls::BeginPaint),
-            stack_consumed: 8u32,
         };
         pub const CheckMenuItem: Shim = Shim {
             name: "CheckMenuItem",
             func: crate::shims::Handler::Sync(impls::CheckMenuItem),
-            stack_consumed: 12u32,
         };
         pub const ClientToScreen: Shim = Shim {
             name: "ClientToScreen",
             func: crate::shims::Handler::Sync(impls::ClientToScreen),
-            stack_consumed: 8u32,
         };
         pub const CreateCursor: Shim = Shim {
             name: "CreateCursor",
             func: crate::shims::Handler::Sync(impls::CreateCursor),
-            stack_consumed: 28u32,
         };
         pub const CreatePopupMenu: Shim = Shim {
             name: "CreatePopupMenu",
             func: crate::shims::Handler::Sync(impls::CreatePopupMenu),
-            stack_consumed: 0u32,
         };
         pub const CreateWindowExA: Shim = Shim {
             name: "CreateWindowExA",
             func: crate::shims::Handler::Async(impls::CreateWindowExA),
-            stack_consumed: 48u32,
         };
         pub const CreateWindowExW: Shim = Shim {
             name: "CreateWindowExW",
             func: crate::shims::Handler::Async(impls::CreateWindowExW),
-            stack_consumed: 48u32,
         };
         pub const DefWindowProcA: Shim = Shim {
             name: "DefWindowProcA",
             func: crate::shims::Handler::Async(impls::DefWindowProcA),
-            stack_consumed: 16u32,
         };
         pub const DefWindowProcW: Shim = Shim {
             name: "DefWindowProcW",
             func: crate::shims::Handler::Async(impls::DefWindowProcW),
-            stack_consumed: 16u32,
         };
         pub const DestroyWindow: Shim = Shim {
             name: "DestroyWindow",
             func: crate::shims::Handler::Sync(impls::DestroyWindow),
-            stack_consumed: 4u32,
         };
         pub const DialogBoxIndirectParamA: Shim = Shim {
             name: "DialogBoxIndirectParamA",
             func: crate::shims::Handler::Sync(impls::DialogBoxIndirectParamA),
-            stack_consumed: 20u32,
         };
         pub const DialogBoxParamA: Shim = Shim {
             name: "DialogBoxParamA",
             func: crate::shims::Handler::Sync(impls::DialogBoxParamA),
-            stack_consumed: 20u32,
         };
         pub const DispatchMessageA: Shim = Shim {
             name: "DispatchMessageA",
             func: crate::shims::Handler::Async(impls::DispatchMessageA),
-            stack_consumed: 4u32,
         };
         pub const DispatchMessageW: Shim = Shim {
             name: "DispatchMessageW",
             func: crate::shims::Handler::Async(impls::DispatchMessageW),
-            stack_consumed: 4u32,
         };
         pub const DrawTextW: Shim = Shim {
             name: "DrawTextW",
             func: crate::shims::Handler::Sync(impls::DrawTextW),
-            stack_consumed: 20u32,
         };
         pub const EndPaint: Shim = Shim {
             name: "EndPaint",
             func: crate::shims::Handler::Sync(impls::EndPaint),
-            stack_consumed: 8u32,
         };
         pub const FillRect: Shim = Shim {
             name: "FillRect",
             func: crate::shims::Handler::Sync(impls::FillRect),
-            stack_consumed: 12u32,
         };
         pub const FindWindowA: Shim = Shim {
             name: "FindWindowA",
             func: crate::shims::Handler::Sync(impls::FindWindowA),
-            stack_consumed: 8u32,
         };
         pub const FrameRect: Shim = Shim {
             name: "FrameRect",
             func: crate::shims::Handler::Sync(impls::FrameRect),
-            stack_consumed: 12u32,
         };
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: crate::shims::Handler::Sync(impls::GetActiveWindow),
-            stack_consumed: 0u32,
         };
         pub const GetClientRect: Shim = Shim {
             name: "GetClientRect",
             func: crate::shims::Handler::Sync(impls::GetClientRect),
-            stack_consumed: 8u32,
         };
         pub const GetDC: Shim = Shim {
             name: "GetDC",
             func: crate::shims::Handler::Sync(impls::GetDC),
-            stack_consumed: 4u32,
         };
         pub const GetDesktopWindow: Shim = Shim {
             name: "GetDesktopWindow",
             func: crate::shims::Handler::Sync(impls::GetDesktopWindow),
-            stack_consumed: 0u32,
         };
         pub const GetFocus: Shim = Shim {
             name: "GetFocus",
             func: crate::shims::Handler::Sync(impls::GetFocus),
-            stack_consumed: 0u32,
         };
         pub const GetForegroundWindow: Shim = Shim {
             name: "GetForegroundWindow",
             func: crate::shims::Handler::Sync(impls::GetForegroundWindow),
-            stack_consumed: 0u32,
         };
         pub const GetKeyState: Shim = Shim {
             name: "GetKeyState",
             func: crate::shims::Handler::Sync(impls::GetKeyState),
-            stack_consumed: 4u32,
         };
         pub const GetLastActivePopup: Shim = Shim {
             name: "GetLastActivePopup",
             func: crate::shims::Handler::Sync(impls::GetLastActivePopup),
-            stack_consumed: 0u32,
         };
         pub const GetMessageA: Shim = Shim {
             name: "GetMessageA",
             func: crate::shims::Handler::Async(impls::GetMessageA),
-            stack_consumed: 16u32,
         };
         pub const GetMessageW: Shim = Shim {
             name: "GetMessageW",
             func: crate::shims::Handler::Async(impls::GetMessageW),
-            stack_consumed: 16u32,
         };
         pub const GetSubMenu: Shim = Shim {
             name: "GetSubMenu",
             func: crate::shims::Handler::Sync(impls::GetSubMenu),
-            stack_consumed: 8u32,
         };
         pub const GetSystemMenu: Shim = Shim {
             name: "GetSystemMenu",
             func: crate::shims::Handler::Sync(impls::GetSystemMenu),
-            stack_consumed: 8u32,
         };
         pub const GetSystemMetrics: Shim = Shim {
             name: "GetSystemMetrics",
             func: crate::shims::Handler::Sync(impls::GetSystemMetrics),
-            stack_consumed: 4u32,
         };
         pub const GetWindowDC: Shim = Shim {
             name: "GetWindowDC",
             func: crate::shims::Handler::Sync(impls::GetWindowDC),
-            stack_consumed: 4u32,
         };
         pub const GetWindowLongA: Shim = Shim {
             name: "GetWindowLongA",
             func: crate::shims::Handler::Sync(impls::GetWindowLongA),
-            stack_consumed: 8u32,
         };
         pub const GetWindowPlacement: Shim = Shim {
             name: "GetWindowPlacement",
             func: crate::shims::Handler::Sync(impls::GetWindowPlacement),
-            stack_consumed: 8u32,
         };
         pub const GetWindowRect: Shim = Shim {
             name: "GetWindowRect",
             func: crate::shims::Handler::Sync(impls::GetWindowRect),
-            stack_consumed: 8u32,
         };
         pub const IntersectRect: Shim = Shim {
             name: "IntersectRect",
             func: crate::shims::Handler::Sync(impls::IntersectRect),
-            stack_consumed: 12u32,
         };
         pub const InvalidateRect: Shim = Shim {
             name: "InvalidateRect",
             func: crate::shims::Handler::Sync(impls::InvalidateRect),
-            stack_consumed: 12u32,
         };
         pub const InvalidateRgn: Shim = Shim {
             name: "InvalidateRgn",
             func: crate::shims::Handler::Sync(impls::InvalidateRgn),
-            stack_consumed: 12u32,
         };
         pub const IsIconic: Shim = Shim {
             name: "IsIconic",
             func: crate::shims::Handler::Sync(impls::IsIconic),
-            stack_consumed: 4u32,
         };
         pub const IsRectEmpty: Shim = Shim {
             name: "IsRectEmpty",
             func: crate::shims::Handler::Sync(impls::IsRectEmpty),
-            stack_consumed: 4u32,
         };
         pub const LoadAcceleratorsW: Shim = Shim {
             name: "LoadAcceleratorsW",
             func: crate::shims::Handler::Sync(impls::LoadAcceleratorsW),
-            stack_consumed: 8u32,
         };
         pub const LoadBitmapA: Shim = Shim {
             name: "LoadBitmapA",
             func: crate::shims::Handler::Sync(impls::LoadBitmapA),
-            stack_consumed: 8u32,
         };
         pub const LoadCursorA: Shim = Shim {
             name: "LoadCursorA",
             func: crate::shims::Handler::Sync(impls::LoadCursorA),
-            stack_consumed: 8u32,
         };
         pub const LoadCursorW: Shim = Shim {
             name: "LoadCursorW",
             func: crate::shims::Handler::Sync(impls::LoadCursorW),
-            stack_consumed: 8u32,
         };
         pub const LoadIconA: Shim = Shim {
             name: "LoadIconA",
             func: crate::shims::Handler::Sync(impls::LoadIconA),
-            stack_consumed: 8u32,
         };
         pub const LoadIconW: Shim = Shim {
             name: "LoadIconW",
             func: crate::shims::Handler::Sync(impls::LoadIconW),
-            stack_consumed: 8u32,
         };
         pub const LoadImageA: Shim = Shim {
             name: "LoadImageA",
             func: crate::shims::Handler::Sync(impls::LoadImageA),
-            stack_consumed: 24u32,
         };
         pub const LoadImageW: Shim = Shim {
             name: "LoadImageW",
             func: crate::shims::Handler::Sync(impls::LoadImageW),
-            stack_consumed: 24u32,
         };
         pub const LoadMenuA: Shim = Shim {
             name: "LoadMenuA",
             func: crate::shims::Handler::Sync(impls::LoadMenuA),
-            stack_consumed: 8u32,
         };
         pub const LoadMenuW: Shim = Shim {
             name: "LoadMenuW",
             func: crate::shims::Handler::Sync(impls::LoadMenuW),
-            stack_consumed: 8u32,
         };
         pub const LoadStringA: Shim = Shim {
             name: "LoadStringA",
             func: crate::shims::Handler::Sync(impls::LoadStringA),
-            stack_consumed: 16u32,
         };
         pub const LoadStringW: Shim = Shim {
             name: "LoadStringW",
             func: crate::shims::Handler::Sync(impls::LoadStringW),
-            stack_consumed: 16u32,
         };
         pub const MapWindowPoints: Shim = Shim {
             name: "MapWindowPoints",
             func: crate::shims::Handler::Sync(impls::MapWindowPoints),
-            stack_consumed: 16u32,
         };
         pub const MessageBoxA: Shim = Shim {
             name: "MessageBoxA",
             func: crate::shims::Handler::Sync(impls::MessageBoxA),
-            stack_consumed: 16u32,
         };
         pub const MessageBoxW: Shim = Shim {
             name: "MessageBoxW",
             func: crate::shims::Handler::Sync(impls::MessageBoxW),
-            stack_consumed: 16u32,
         };
         pub const MoveWindow: Shim = Shim {
             name: "MoveWindow",
             func: crate::shims::Handler::Sync(impls::MoveWindow),
-            stack_consumed: 24u32,
         };
         pub const MsgWaitForMultipleObjects: Shim = Shim {
             name: "MsgWaitForMultipleObjects",
             func: crate::shims::Handler::Sync(impls::MsgWaitForMultipleObjects),
-            stack_consumed: 20u32,
         };
         pub const PeekMessageA: Shim = Shim {
             name: "PeekMessageA",
             func: crate::shims::Handler::Sync(impls::PeekMessageA),
-            stack_consumed: 20u32,
         };
         pub const PeekMessageW: Shim = Shim {
             name: "PeekMessageW",
             func: crate::shims::Handler::Sync(impls::PeekMessageW),
-            stack_consumed: 20u32,
         };
         pub const PostMessageW: Shim = Shim {
             name: "PostMessageW",
             func: crate::shims::Handler::Sync(impls::PostMessageW),
-            stack_consumed: 16u32,
         };
         pub const PostQuitMessage: Shim = Shim {
             name: "PostQuitMessage",
             func: crate::shims::Handler::Sync(impls::PostQuitMessage),
-            stack_consumed: 4u32,
         };
         pub const PtInRect: Shim = Shim {
             name: "PtInRect",
             func: crate::shims::Handler::Sync(impls::PtInRect),
-            stack_consumed: 12u32,
         };
         pub const RegisterClassA: Shim = Shim {
             name: "RegisterClassA",
             func: crate::shims::Handler::Sync(impls::RegisterClassA),
-            stack_consumed: 4u32,
         };
         pub const RegisterClassExA: Shim = Shim {
             name: "RegisterClassExA",
             func: crate::shims::Handler::Sync(impls::RegisterClassExA),
-            stack_consumed: 4u32,
         };
         pub const RegisterClassExW: Shim = Shim {
             name: "RegisterClassExW",
             func: crate::shims::Handler::Sync(impls::RegisterClassExW),
-            stack_consumed: 4u32,
         };
         pub const RegisterClassW: Shim = Shim {
             name: "RegisterClassW",
             func: crate::shims::Handler::Sync(impls::RegisterClassW),
-            stack_consumed: 4u32,
         };
         pub const RegisterWindowMessageW: Shim = Shim {
             name: "RegisterWindowMessageW",
             func: crate::shims::Handler::Sync(impls::RegisterWindowMessageW),
-            stack_consumed: 4u32,
         };
         pub const ReleaseCapture: Shim = Shim {
             name: "ReleaseCapture",
             func: crate::shims::Handler::Sync(impls::ReleaseCapture),
-            stack_consumed: 0u32,
         };
         pub const ReleaseDC: Shim = Shim {
             name: "ReleaseDC",
             func: crate::shims::Handler::Sync(impls::ReleaseDC),
-            stack_consumed: 8u32,
         };
         pub const SendMessageA: Shim = Shim {
             name: "SendMessageA",
             func: crate::shims::Handler::Async(impls::SendMessageA),
-            stack_consumed: 16u32,
         };
         pub const SetCapture: Shim = Shim {
             name: "SetCapture",
             func: crate::shims::Handler::Sync(impls::SetCapture),
-            stack_consumed: 4u32,
         };
         pub const SetCursor: Shim = Shim {
             name: "SetCursor",
             func: crate::shims::Handler::Sync(impls::SetCursor),
-            stack_consumed: 4u32,
         };
         pub const SetFocus: Shim = Shim {
             name: "SetFocus",
             func: crate::shims::Handler::Sync(impls::SetFocus),
-            stack_consumed: 4u32,
         };
         pub const SetForegroundWindow: Shim = Shim {
             name: "SetForegroundWindow",
             func: crate::shims::Handler::Sync(impls::SetForegroundWindow),
-            stack_consumed: 4u32,
         };
         pub const SetMenu: Shim = Shim {
             name: "SetMenu",
             func: crate::shims::Handler::Sync(impls::SetMenu),
-            stack_consumed: 8u32,
         };
         pub const SetMenuItemInfoA: Shim = Shim {
             name: "SetMenuItemInfoA",
             func: crate::shims::Handler::Sync(impls::SetMenuItemInfoA),
-            stack_consumed: 16u32,
         };
         pub const SetRect: Shim = Shim {
             name: "SetRect",
             func: crate::shims::Handler::Sync(impls::SetRect),
-            stack_consumed: 20u32,
         };
         pub const SetRectEmpty: Shim = Shim {
             name: "SetRectEmpty",
             func: crate::shims::Handler::Sync(impls::SetRectEmpty),
-            stack_consumed: 4u32,
         };
         pub const SetTimer: Shim = Shim {
             name: "SetTimer",
             func: crate::shims::Handler::Sync(impls::SetTimer),
-            stack_consumed: 16u32,
         };
         pub const SetWindowPos: Shim = Shim {
             name: "SetWindowPos",
             func: crate::shims::Handler::Async(impls::SetWindowPos),
-            stack_consumed: 28u32,
         };
         pub const SetWindowTextA: Shim = Shim {
             name: "SetWindowTextA",
             func: crate::shims::Handler::Sync(impls::SetWindowTextA),
-            stack_consumed: 8u32,
         };
         pub const ShowCursor: Shim = Shim {
             name: "ShowCursor",
             func: crate::shims::Handler::Sync(impls::ShowCursor),
-            stack_consumed: 4u32,
         };
         pub const ShowWindow: Shim = Shim {
             name: "ShowWindow",
             func: crate::shims::Handler::Async(impls::ShowWindow),
-            stack_consumed: 8u32,
         };
         pub const TranslateAcceleratorW: Shim = Shim {
             name: "TranslateAcceleratorW",
             func: crate::shims::Handler::Sync(impls::TranslateAcceleratorW),
-            stack_consumed: 12u32,
         };
         pub const TranslateMessage: Shim = Shim {
             name: "TranslateMessage",
             func: crate::shims::Handler::Sync(impls::TranslateMessage),
-            stack_consumed: 4u32,
         };
         pub const UpdateWindow: Shim = Shim {
             name: "UpdateWindow",
             func: crate::shims::Handler::Async(impls::UpdateWindow),
-            stack_consumed: 4u32,
         };
         pub const ValidateRect: Shim = Shim {
             name: "ValidateRect",
             func: crate::shims::Handler::Sync(impls::ValidateRect),
-            stack_consumed: 8u32,
         };
         pub const WaitMessage: Shim = Shim {
             name: "WaitMessage",
             func: crate::shims::Handler::Sync(impls::WaitMessage),
-            stack_consumed: 0u32,
         };
         pub const wsprintfA: Shim = Shim {
             name: "wsprintfA",
             func: crate::shims::Handler::Sync(impls::wsprintfA),
-            stack_consumed: 0u32,
         };
     }
     const SHIMS: [Shim; 93usize] = [
@@ -5892,7 +5502,6 @@ pub mod wininet {
         pub const InternetOpenA: Shim = Shim {
             name: "InternetOpenA",
             func: crate::shims::Handler::Sync(impls::InternetOpenA),
-            stack_consumed: 20u32,
         };
     }
     const SHIMS: [Shim; 1usize] = [shims::InternetOpenA];
@@ -5992,57 +5601,46 @@ pub mod winmm {
         pub const timeBeginPeriod: Shim = Shim {
             name: "timeBeginPeriod",
             func: crate::shims::Handler::Sync(impls::timeBeginPeriod),
-            stack_consumed: 4u32,
         };
         pub const timeGetTime: Shim = Shim {
             name: "timeGetTime",
             func: crate::shims::Handler::Sync(impls::timeGetTime),
-            stack_consumed: 0u32,
         };
         pub const timeSetEvent: Shim = Shim {
             name: "timeSetEvent",
             func: crate::shims::Handler::Sync(impls::timeSetEvent),
-            stack_consumed: 20u32,
         };
         pub const waveOutClose: Shim = Shim {
             name: "waveOutClose",
             func: crate::shims::Handler::Sync(impls::waveOutClose),
-            stack_consumed: 4u32,
         };
         pub const waveOutGetDevCapsA: Shim = Shim {
             name: "waveOutGetDevCapsA",
             func: crate::shims::Handler::Sync(impls::waveOutGetDevCapsA),
-            stack_consumed: 12u32,
         };
         pub const waveOutGetNumDevs: Shim = Shim {
             name: "waveOutGetNumDevs",
             func: crate::shims::Handler::Sync(impls::waveOutGetNumDevs),
-            stack_consumed: 0u32,
         };
         pub const waveOutGetPosition: Shim = Shim {
             name: "waveOutGetPosition",
             func: crate::shims::Handler::Sync(impls::waveOutGetPosition),
-            stack_consumed: 12u32,
         };
         pub const waveOutOpen: Shim = Shim {
             name: "waveOutOpen",
             func: crate::shims::Handler::Sync(impls::waveOutOpen),
-            stack_consumed: 24u32,
         };
         pub const waveOutPrepareHeader: Shim = Shim {
             name: "waveOutPrepareHeader",
             func: crate::shims::Handler::Sync(impls::waveOutPrepareHeader),
-            stack_consumed: 12u32,
         };
         pub const waveOutReset: Shim = Shim {
             name: "waveOutReset",
             func: crate::shims::Handler::Sync(impls::waveOutReset),
-            stack_consumed: 4u32,
         };
         pub const waveOutWrite: Shim = Shim {
             name: "waveOutWrite",
             func: crate::shims::Handler::Sync(impls::waveOutWrite),
-            stack_consumed: 12u32,
         };
     }
     const SHIMS: [Shim; 11usize] = [
