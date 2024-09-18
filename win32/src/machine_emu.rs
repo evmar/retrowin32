@@ -189,17 +189,22 @@ impl MachineX<Emulator> {
             .await
     }
 
-    // pub fn dump_stack(&self) {
-    //     let esp = self.emu.x86.cpu.regs.esp;
-    //     for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
-    //         let extra = if addr == esp { " <- esp" } else { "" };
-    //         log::info!(
-    //             "{:08x} {:08x}{extra}",
-    //             addr,
-    //             self.mem().get_pod::<u32>(addr)
-    //         );
-    //     }
-    // }
+    pub fn dump_stack(&self) {
+        let esp = self.emu.x86.cpu().regs.get32(x86::Register::ESP);
+        for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
+            let extra = if addr == esp { " <- esp" } else { "" };
+            println!(
+                "{:08x} {:08x}{extra}",
+                addr,
+                self.mem().get_pod::<u32>(addr)
+            );
+        }
+    }
+
+    pub fn dump_state(&self, eip_offset: usize) {
+        x86::debug::dump_state(self.emu.x86.cpu(), self.mem(), eip_offset);
+        self.dump_stack();
+    }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {

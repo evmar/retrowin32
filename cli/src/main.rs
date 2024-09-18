@@ -192,7 +192,7 @@ fn main() -> anyhow::Result<ExitCode> {
         match &machine.emu.x86.cpu().state {
             x86::CPUState::Error(error) => {
                 log::error!("{:?}", error);
-                x86::debug::dump_state(machine.emu.x86.cpu(), machine.mem(), 0);
+                machine.dump_state(0);
             }
             x86::CPUState::Exit(_) => {}
             x86::CPUState::Running | x86::CPUState::Blocked(_) | x86::CPUState::SysCall => {
