@@ -45,6 +45,7 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
+            exe_path: Default::default(),
         }
     }
 
@@ -56,10 +57,10 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        filename: &str,
+        path: &std::path::Path,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
-        let exe = pe::load_exe(self, buf, filename, relocate)?;
+        let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack = self.state.kernel32.mappings.alloc(
             exe.stack_size,

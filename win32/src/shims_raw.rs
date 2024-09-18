@@ -3,7 +3,11 @@
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
 
-use crate::{ldt::LDT, shims::Shim, Machine};
+use crate::{
+    ldt::LDT,
+    shims::{Handler, Shim},
+    Machine,
+};
 #[cfg(target_arch = "x86_64")]
 use memory::Extensions;
 
@@ -46,7 +50,10 @@ unsafe extern "C" fn call64() -> u32 {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
-    (shim.func)(machine, STACK32 + 8)
+    match shim.func {
+        Handler::Sync(func) => func(machine, STACK32 + 8),
+        Handler::Async(_) => unimplemented!(),
+    }
 }
 
 // trans64 is the code we jump to when transitioning from 32->64-bit.
