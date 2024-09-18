@@ -105,9 +105,15 @@ impl CPU {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
     /// that is polled the next time the CPU executes.
-    pub fn call_async(&mut self, _mem: Mem, future: BoxFuture<()>) {
+    pub fn call_async(&mut self, future: BoxFuture<u32>, return_address: u32) {
         self.regs.eip = MAGIC_ADDR;
-        self.futures.push(future);
+        let cpu = self as *mut CPU;
+        self.futures.push(Box::pin(async move {
+            let cpu = unsafe { &mut *cpu };
+            let ret = future.await;
+            cpu.regs.set32(Register::EAX, ret);
+            cpu.regs.eip = return_address;
+        }));
     }
 
     fn async_executor(&mut self) {

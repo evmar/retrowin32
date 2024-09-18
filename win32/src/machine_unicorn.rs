@@ -2,7 +2,7 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims_unicorn::Shims,
+    shims_unicorn::{retrowin32_syscall, Shims},
     winapi,
 };
 use memory::Mem;
@@ -45,7 +45,7 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::new(32 << 20);
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall());
 
         let mut unicorn = Unicorn::new(Arch::X86, Mode::MODE_32).unwrap();
         unsafe {
@@ -60,13 +60,7 @@ impl MachineX<Emulator> {
                 .unwrap();
         };
 
-        let shims = {
-            let mapping = kernel32
-                .mappings
-                .alloc(0x1000, "syscall hooks".into(), &mut memory);
-            Shims::new(&mut unicorn, mapping.addr)
-        };
-
+        let shims = Shims::new(&mut unicorn);
         let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {

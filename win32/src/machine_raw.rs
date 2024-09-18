@@ -2,7 +2,7 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims_raw::Shims,
+    shims_raw::{retrowin32_syscall, Shims},
     winapi,
 };
 use memory::Mem;
@@ -31,13 +31,8 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, cmdline);
-        let shims = Shims::new(kernel32.teb, |size: usize| {
-            kernel32
-                .mappings
-                .alloc(size as u32, "shims x64 trampoline".into(), &mut memory)
-                .addr
-        });
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, &retrowin32_syscall());
+        let shims = Shims::new(kernel32.teb);
         let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {

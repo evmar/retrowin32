@@ -3,7 +3,7 @@
 use super::{palette::IDirectDrawPalette, types::*, DD_OK};
 pub use crate::winapi::com::GUID;
 use crate::{
-    winapi::{com::vtable, ddraw, types::*},
+    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
     Machine,
 };
 use bitflags::bitflags;
@@ -104,11 +104,7 @@ pub mod IDirectDraw7 {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *ddraw.vtable_IDirectDraw7.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw7");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
     }
@@ -349,11 +345,7 @@ pub mod IDirectDrawSurface7 {
     pub fn new(machine: &mut Machine) -> u32 {
         let ddraw = &mut machine.state.ddraw;
         let lpDirectDrawSurface7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
-        let vtable = *ddraw.vtable_IDirectDrawSurface7.get_or_insert_with(|| {
-            vtable(machine.emu.memory.mem(), &mut ddraw.heap, |shim| {
-                machine.emu.shims.add(shim)
-            })
-        });
+        let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
     }

@@ -6,7 +6,7 @@ use crate::{
     machine::Machine,
     pe,
     str16::expect_ascii,
-    winapi::{self, builtin::BuiltinDLL, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
+    winapi::{self, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::io::Write;
 use typed_path::WindowsPath;
@@ -23,65 +23,18 @@ pub struct DLL {
     pub name: String,
 
     pub dll: pe::DLL,
-
-    /// If present, DLL is one defined in winapi/...
-    pub builtin: Option<&'static BuiltinDLL>,
 }
 
 impl DLL {
-    fn resolve_from_pe(&self, sym: &ImportSymbol) -> Option<u32> {
-        match *sym {
-            ImportSymbol::Name(name) => self.dll.names.get(name).copied(),
-            ImportSymbol::Ordinal(ord) => self
-                .dll
-                .fns
-                .get((ord - self.dll.ordinal_base) as usize)
-                .copied(),
-        }
-    }
-
-    pub fn resolve_from_builtin(
-        &mut self,
-        sym: &ImportSymbol,
-        register: impl FnOnce(Result<&'static crate::shims::Shim, String>) -> u32,
-    ) -> Option<u32> {
-        let builtin = self.builtin?;
-
-        let shim = match *sym {
-            ImportSymbol::Name(name) => builtin.shims.iter().find(|&shim| shim.name == name),
-            ImportSymbol::Ordinal(ord) => builtin.shims.get(ord as usize - 1),
+    pub fn resolve(&mut self, sym: &ImportSymbol) -> u32 {
+        let addr = match *sym {
+            ImportSymbol::Name(name) => self.dll.names.get(name),
+            ImportSymbol::Ordinal(ord) => self.dll.fns.get((ord - self.dll.ordinal_base) as usize),
         };
-
-        let addr = match shim {
-            Some(shim) => register(Ok(shim)),
-            None => {
-                let name = format!("{}:{}", self.name, sym);
-                log::debug!("unimplemented: {}", name);
-                register(Err(name))
-            }
-        };
-
-        match *sym {
-            ImportSymbol::Name(name) => {
-                self.dll.names.insert(name.to_string(), addr);
-            }
-            ImportSymbol::Ordinal(_) => {}
-        }
-        return Some(addr);
-    }
-
-    pub fn resolve(
-        &mut self,
-        sym: &ImportSymbol,
-        register: impl FnOnce(Result<&'static crate::shims::Shim, String>) -> u32,
-    ) -> u32 {
-        if let Some(addr) = self.resolve_from_pe(&sym) {
+        if let Some(&addr) = addr {
             return addr;
         }
-        if let Some(addr) = self.resolve_from_builtin(&sym, register) {
-            return addr;
-        }
-        log::warn!("failed to resolve {}:{}", self.name, sym);
+        log::error!("failed to resolve {}:{}", self.name, sym);
         0
     }
 }
@@ -192,39 +145,54 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
         filename = alias.to_string();
     }
 
-    // Check if builtin.
-    if let Some(builtin) = winapi::DLLS.iter().find(|&dll| dll.file_name == filename) {
-        return machine
-            .state
-            .kernel32
-            .load_builtin_dll(&mut machine.emu.memory, builtin);
-    }
+    // Builtin DLLs are special in that we load the DLL from an in-binary buffer,
+    // and the symbols in the DLL are mapped to shims.
+    let builtin = winapi::DLLS.iter().find(|&dll| dll.file_name == filename);
+    let mut buf = Vec::new();
 
-    let mut contents = Vec::new();
-    let exe = machine.state.kernel32.cmdline.args.first().unwrap();
-    let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
-    let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
-    for path in &dll_paths {
-        let path = WindowsPath::new(path);
-        let mut file = match machine.host.open(path, host::FileOptions::read()) {
-            Ok(file) => file,
-            Err(_) => continue,
-        };
-        file.read_to_end(&mut contents).unwrap();
-    }
+    let contents = {
+        if let Some(builtin) = builtin {
+            builtin.raw
+        } else {
+            let exe = machine.state.kernel32.cmdline.args.first().unwrap();
+            let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
+            let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
+            for path in &dll_paths {
+                let path = WindowsPath::new(path);
+                let mut file = match machine.host.open(path, host::FileOptions::read()) {
+                    Ok(file) => file,
+                    Err(_) => continue,
+                };
+                file.read_to_end(&mut buf).unwrap();
+                // TODO: close file.
+                break;
+            }
+            &buf
+        }
+    };
+
     if contents.is_empty() {
         log::warn!("load_library({filename:?}): not found");
         return HMODULE::null();
     }
 
-    let dll = pe::load_dll(machine, &filename, &contents).unwrap();
+    let dll = pe::load_dll(machine, &filename, contents).unwrap();
+
+    // For builtins, register all the exports as known symbols.
+    // It is critical that the DLL's exports match up to the shims array;
+    // this is ensured by both being generated by the same generator.
+    if let Some(builtin) = builtin {
+        for (&addr, shim) in dll.fns.iter().zip(builtin.shims) {
+            machine.emu.shims.register(addr, Ok(shim));
+        }
+    }
+
     let hmodule = HMODULE::from_raw(dll.base);
     machine.state.kernel32.dlls.insert(
         hmodule,
         DLL {
             name: filename,
             dll,
-            builtin: None,
         },
     );
     hmodule
@@ -267,14 +235,14 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
     }
 }
 
-pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
-    let hmodule = load_library(machine, "kernel32.dll");
+pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
+    let hmodule = load_library(machine, dll);
     let dll = machine.state.kernel32.dlls.get_mut(&hmodule).unwrap();
-    dll.resolve(&ImportSymbol::Name(name), |shim| {
-        let addr = machine.emu.shims.add(shim);
-        machine.labels.insert(addr, format!("{}", name));
-        addr
-    })
+    dll.resolve(&ImportSymbol::Name(name))
+}
+
+pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
+    get_symbol(machine, "kernel32.dll", name)
 }
 
 #[win32_derive::dllexport]
@@ -284,11 +252,7 @@ pub fn GetProcAddress(
     lpProcName: GetProcAddressArg,
 ) -> u32 {
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(&hModule) {
-        return dll.resolve(&lpProcName.0, |shim| {
-            let addr = machine.emu.shims.add(shim);
-            machine.labels.insert(addr, format!("{}", lpProcName.0));
-            addr
-        });
+        return dll.resolve(&lpProcName.0);
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail

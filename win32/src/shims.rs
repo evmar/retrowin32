@@ -12,6 +12,13 @@
 
 use crate::Machine;
 
+#[cfg(feature = "x86-emu")]
+pub use crate::shims_emu::Shims;
+#[cfg(feature = "x86-64")]
+pub use crate::shims_raw::Shims;
+#[cfg(feature = "x86-unicorn")]
+pub use crate::shims_unicorn::Shims;
+
 #[cfg(feature = "x86-unicorn")]
 pub use crate::shims_unicorn::unicorn_loop;
 
@@ -24,6 +31,7 @@ pub enum Handler {
     Async(AsyncHandler),
 }
 
+#[derive(Debug)]
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,

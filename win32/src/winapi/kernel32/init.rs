@@ -7,7 +7,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, builtin::BuiltinDLL, handle::Handles, heap::Heap, kernel32, types::*},
+    winapi::{alloc::Arena, handle::Handles, heap::Heap, kernel32, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -225,10 +225,32 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, cmdline: String) -> Self {
+    pub fn new(mem: &mut MemImpl, cmdline: String, retrowin32_syscall: &[u8]) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);
+
+        let mut dlls = HashMap::new();
+        let dll = {
+            let addr = arena.alloc(retrowin32_syscall.len() as u32, 8);
+            mem.mem()
+                .sub32_mut(addr, retrowin32_syscall.len() as u32)
+                .copy_from_slice(retrowin32_syscall);
+            let mut names = HashMap::new();
+            names.insert("retrowin32_syscall".into(), addr);
+            DLL {
+                name: "retrowin32.dll".into(),
+                dll: pe::DLL {
+                    base: 0, // unused
+                    names,
+                    ordinal_base: 0,         // unused
+                    fns: Default::default(), // unused
+                    resources: None,
+                    entry_point: None,
+                },
+            }
+        };
+        dlls.insert(HMODULE::from_raw(dll.dll.base), dll);
 
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
@@ -247,7 +269,7 @@ impl State {
             process_heap: 0,
             mappings,
             heaps: HashMap::new(),
-            dlls: Default::default(),
+            dlls,
             event_handles: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
@@ -360,29 +382,6 @@ impl State {
             fs,
             ss,
         }
-    }
-
-    pub fn load_builtin_dll(&mut self, mem: &mut MemImpl, builtin: &'static BuiltinDLL) -> HMODULE {
-        let mapping = self
-            .mappings
-            .alloc(0x1000, format!("{} image", builtin.file_name), mem);
-        let hmodule = HMODULE::from_raw(mapping.addr);
-        self.dlls.insert(
-            hmodule,
-            DLL {
-                name: builtin.file_name.to_owned(),
-                dll: pe::DLL {
-                    base: mapping.addr,
-                    names: HashMap::new(),
-                    ordinal_base: 1,
-                    fns: Default::default(),
-                    resources: Default::default(),
-                    entry_point: None,
-                },
-                builtin: Some(builtin),
-            },
-        );
-        hmodule
     }
 }
 
