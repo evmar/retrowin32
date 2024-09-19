@@ -34,7 +34,7 @@ impl DLL {
         if let Some(&addr) = addr {
             return addr;
         }
-        log::error!("failed to resolve {}:{}", self.name, sym);
+        log::warn!("failed to resolve {}:{}", self.name, sym);
         0
     }
 }
