@@ -245,7 +245,7 @@ pub mod IDirectDraw7 {
         let flags = flags.unwrap();
         if flags.contains(DDSCL::EXCLUSIVE) {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.host.fullscreen();
+            window.expect_toplevel_mut().host.fullscreen();
         }
         DD_OK
     }

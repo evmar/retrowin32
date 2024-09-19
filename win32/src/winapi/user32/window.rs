@@ -73,32 +73,83 @@ pub struct UpdateRegion {
 
 pub struct Window {
     pub hwnd: HWND,
-    pub hdc: HDC,
-    pub host: Box<dyn host::Window>,
-    pub surface: Box<dyn host::Surface>,
+    pub typ: WindowType,
     /// Client area width (not total window width).
     pub width: u32,
     /// Client area height (not total window height).
     pub height: u32,
     pub wndclass: Rc<WndClass>,
-    pub pixels: Option<WindowPixels>,
-    pub dirty: Option<UpdateRegion>,
     pub style: WindowStyle,
 }
 
+pub enum WindowType {
+    TopLevel(WindowTopLevel),
+    Child,
+}
+
+/// Properties of only top-level windows.
+pub struct WindowTopLevel {
+    pub host: Box<dyn host::Window>,
+    pub surface: Box<dyn host::Surface>,
+    pub hdc: HDC,
+    pub pixels: Option<WindowPixels>,
+    pub dirty: Option<UpdateRegion>,
+}
+
 impl Window {
-    fn ensure_pixels(&mut self) -> &mut WindowPixels {
-        match self.pixels {
-            Some(ref mut px) => px,
-            None => {
-                self.pixels = Some(WindowPixels::new(self.width, self.height));
-                self.pixels.as_mut().unwrap()
-            }
+    // TODO: expect_toplevel was added to introduce child windows,
+    // but many callers just need to handle child windows instead of calling these.
+    pub fn expect_toplevel(&self) -> &WindowTopLevel {
+        match &self.typ {
+            WindowType::TopLevel(win) => win,
+            _ => panic!("expected top-level window, see TODO"),
+        }
+    }
+    pub fn expect_toplevel_mut(&mut self) -> &mut WindowTopLevel {
+        match &mut self.typ {
+            WindowType::TopLevel(win) => win,
+            _ => panic!("expected top-level window, see TODO"),
         }
     }
 
     pub fn bitmap_mut<'a>(&mut self) -> &mut BitmapRGBA32 {
-        &mut self.ensure_pixels().bitmap
+        let Window { width, height, .. } = *self;
+        &mut self
+            .expect_toplevel_mut()
+            .ensure_pixels(width, height)
+            .bitmap
+    }
+
+    pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
+        self.width = width;
+        self.height = height;
+        match &mut self.typ {
+            WindowType::TopLevel(w) => {
+                w.host.set_size(width, height);
+                w.surface = host.create_surface(
+                    self.hwnd.to_raw(),
+                    &host::SurfaceOptions {
+                        width,
+                        height,
+                        primary: true,
+                    },
+                );
+                w.pixels = None; // recreate lazily
+            }
+            _ => {}
+        }
+    }
+}
+
+impl WindowTopLevel {
+    fn ensure_pixels(&mut self, width: u32, height: u32) -> &mut WindowPixels {
+        match self.pixels {
+            Some(ref mut px) => px,
+            None => {
+                self.pixels = Some(WindowPixels::new(width, height));
+                self.pixels.as_mut().unwrap()
+            }
+        }
     }
 
     pub fn flush_pixels(&mut self, mem: Mem) {
@@ -107,21 +158,6 @@ impl Window {
                 .write_pixels(&pixels.bitmap.pixels.as_slice(mem));
             self.surface.show();
         }
-    }
-
-    pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
-        self.width = width;
-        self.height = height;
-        self.host.set_size(width, height);
-        self.surface = host.create_surface(
-            self.hwnd.to_raw(),
-            &host::SurfaceOptions {
-                width,
-                height,
-                primary: true,
-            },
-        );
-        self.pixels = None; // recreate lazily
     }
 }
 
@@ -400,15 +436,13 @@ pub async fn CreateWindowExW(
         }
     };
 
-    let _style = dwStyle.unwrap();
+    let style = dwStyle.unwrap();
     const CW_USEDEFAULT: u32 = 0x8000_0000;
 
     // hInstance is only relevant when multiple DLLs register classes:
     //   https://devblogs.microsoft.com/oldnewthing/20050418-59/?p=35873
 
     let hwnd = machine.state.user32.windows.reserve();
-    let mut host_win = machine.host.create_window(hwnd.to_raw());
-    host_win.set_title(&lpWindowName.unwrap().to_string());
     let width = if nWidth == CW_USEDEFAULT { 640 } else { nWidth };
     let height = if nHeight == CW_USEDEFAULT {
         480
@@ -419,30 +453,40 @@ pub async fn CreateWindowExW(
     let style = dwStyle.unwrap();
     let menu = false; // TODO
     let (width, height) = client_size_from_window_size(style, menu, width, height);
-    host_win.set_size(width, height);
-    let surface = machine.host.create_surface(
-        hwnd.to_raw(),
-        &SurfaceOptions {
-            width,
-            height,
-            primary: true,
-        },
-    );
+
+    let typ = if style.contains(WindowStyle::CHILD) {
+        WindowType::Child
+    } else {
+        let mut host_win = machine.host.create_window(hwnd.to_raw());
+        host_win.set_title(&lpWindowName.unwrap().to_string());
+        host_win.set_size(width, height);
+        let surface = machine.host.create_surface(
+            hwnd.to_raw(),
+            &SurfaceOptions {
+                width,
+                height,
+                primary: true,
+            },
+        );
+        WindowType::TopLevel(WindowTopLevel {
+            host: host_win,
+            surface,
+            hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(
+                crate::winapi::gdi32::DCTarget::Window(hwnd),
+            )),
+            pixels: None,
+            dirty: Some(UpdateRegion {
+                erase_background: true,
+            }),
+        })
+    };
 
     let window = Window {
         hwnd,
-        hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(
-            crate::winapi::gdi32::DCTarget::Window(hwnd),
-        )),
-        host: host_win,
-        surface,
+        typ,
         width,
         height,
         wndclass,
-        pixels: None,
-        dirty: Some(UpdateRegion {
-            erase_background: true,
-        }),
         style,
     };
     machine.state.user32.windows.set(hwnd, window);
@@ -516,9 +560,17 @@ pub fn FindWindowA(
 #[win32_derive::dllexport]
 pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
     let window = machine.state.user32.windows.get(hWnd).unwrap();
-    if window.dirty.is_none() {
-        return true;
+    match &window.typ {
+        WindowType::TopLevel(top) => {
+            if top.dirty.is_none() {
+                return true;
+            }
+        }
+        _ => {
+            log::warn!("TODO: UpdateWindow for child windows");
+        }
     }
+
     let windowpos_addr = machine.state.scratch.alloc(
         machine.emu.memory.mem(),
         std::mem::size_of::<WINDOWPOS>() as u32,
@@ -646,7 +698,13 @@ pub async fn DefWindowProcA(
     };
     match msg {
         WM::PAINT => {
-            let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+            let window = machine
+                .state
+                .user32
+                .windows
+                .get_mut(hWnd)
+                .unwrap()
+                .expect_toplevel_mut();
             window.dirty = None;
         }
         WM::WINDOWPOSCHANGED => {
@@ -948,7 +1006,13 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
     match hWnd.to_option() {
         Some(hWnd) => {
             let window = machine.state.user32.windows.get(hWnd).unwrap();
-            window.hdc
+            match &window.typ {
+                WindowType::TopLevel(top) => top.hdc,
+                _ => {
+                    log::warn!("GetDC for non-top-level window");
+                    HDC::null()
+                }
+            }
         }
         None => machine.state.gdi32.screen_dc,
     }
@@ -984,7 +1048,10 @@ pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
 pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>) -> bool {
     match machine.state.user32.windows.get_mut(hWnd) {
         Some(window) => {
-            window.host.set_title(lpString.unwrap());
+            window
+                .expect_toplevel_mut()
+                .host
+                .set_title(lpString.unwrap());
             true
         }
         None => {

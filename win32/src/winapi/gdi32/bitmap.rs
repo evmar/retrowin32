@@ -225,7 +225,9 @@ pub fn BitBlt(
                 rop,
             );
 
-            window.flush_pixels(machine.emu.memory.mem());
+            window
+                .expect_toplevel_mut()
+                .flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
@@ -265,7 +267,10 @@ pub fn StretchBlt(
 
 #[win32_derive::dllexport]
 pub fn PatBlt(machine: &mut Machine, hdc: HDC, x: i32, y: i32, w: i32, h: i32, rop: u32) -> bool {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let Some(dc) = machine.state.gdi32.dcs.get(hdc) else {
+        log::warn!("PatBlt: ignoring invalid DC {hdc:?}");
+        return false;
+    };
 
     const DEFAULT_COLOR: [u8; 4] = [255, 255, 255, 255];
     // get brush color
@@ -311,7 +316,9 @@ pub fn PatBlt(machine: &mut Machine, hdc: HDC, x: i32, y: i32, w: i32, h: i32, r
                 color,
                 rop,
             );
-            window.flush_pixels(machine.emu.memory.mem());
+            window
+                .expect_toplevel_mut()
+                .flush_pixels(machine.emu.memory.mem());
         }
         _ => todo!(),
     };
@@ -499,7 +506,13 @@ pub fn SetDIBitsToDevice(
 
     match dc.target {
         DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine
+                .state
+                .user32
+                .windows
+                .get_mut(hwnd)
+                .unwrap()
+                .expect_toplevel_mut();
             window.flush_pixels(machine.emu.memory.mem());
         }
         _ => {}

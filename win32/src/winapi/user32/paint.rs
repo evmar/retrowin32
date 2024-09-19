@@ -1,4 +1,4 @@
-use super::{UpdateRegion, HBRUSH, HDC};
+use super::{UpdateRegion, WindowType, HBRUSH, HDC};
 use crate::str16::Str16;
 use crate::{
     winapi::{
@@ -18,7 +18,13 @@ pub fn InvalidateRect(
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let window = machine
+        .state
+        .user32
+        .windows
+        .get_mut(hWnd)
+        .unwrap()
+        .expect_toplevel_mut();
     window.dirty = Some(UpdateRegion {
         erase_background: bErase,
     });
@@ -27,7 +33,13 @@ pub fn InvalidateRect(
 
 #[win32_derive::dllexport]
 pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let window = machine
+        .state
+        .user32
+        .windows
+        .get_mut(hWnd)
+        .unwrap()
+        .expect_toplevel_mut();
     match lpRect {
         Some(_rect) => {
             // TODO: ignored.
@@ -44,7 +56,13 @@ pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool
     if hRgn != 0 {
         todo!("invalidate specific region");
     }
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let window = machine
+        .state
+        .user32
+        .windows
+        .get_mut(hWnd)
+        .unwrap()
+        .expect_toplevel_mut();
     window.dirty = Some(UpdateRegion {
         erase_background: bErase,
     });
@@ -66,7 +84,6 @@ unsafe impl memory::Pod for PAINTSTRUCT {}
 #[win32_derive::dllexport]
 pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    let update = window.dirty.as_ref().unwrap();
     // TODO: take from update region
     let dirty_rect = RECT {
         left: 0,
@@ -76,7 +93,13 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
     };
 
     let mut background_drawn = false;
-    let hdc = window.hdc;
+
+    let WindowType::TopLevel(toplevel) = &window.typ else {
+        log::warn!("TODO: BeginPaint for child windows");
+        return HDC::null();
+    };
+    let hdc = toplevel.hdc;
+    let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {
         if let Some(hbrush) = window.wndclass.background.to_option() {
@@ -103,8 +126,15 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 #[win32_derive::dllexport]
 pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
-    window.flush_pixels(machine.emu.memory.mem());
-    window.dirty = None;
+    match &mut window.typ {
+        WindowType::TopLevel(toplevel) => {
+            toplevel.flush_pixels(machine.emu.memory.mem());
+            toplevel.dirty = None;
+        }
+        _ => {
+            log::warn!("TODO: EndPaint for child windows");
+        }
+    }
     true
 }
 

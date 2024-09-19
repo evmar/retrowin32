@@ -1,3 +1,4 @@
+use super::WindowType;
 use crate::{host, winapi::types::*, Machine, MouseButton};
 use bitflags::bitflags;
 
@@ -164,13 +165,10 @@ impl TryFrom<u32> for RemoveMsg {
 /// Enqueues a WM_PAINT if the given hwnd (or any hwnd) needs a paint.
 fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
     let hwnd = if hwnd.is_null() {
-        match machine
-            .state
-            .user32
-            .windows
-            .iter()
-            .find(|w| w.dirty.is_some())
-        {
+        match machine.state.user32.windows.iter().find(|w| match &w.typ {
+            WindowType::TopLevel(w) => w.dirty.is_some(),
+            _ => false,
+        }) {
             Some(w) => w.hwnd,
             None => return false,
         }
@@ -181,6 +179,7 @@ fn enqueue_paint_if_needed(machine: &mut Machine, hwnd: HWND) -> bool {
             .windows
             .get(hwnd)
             .unwrap()
+            .expect_toplevel()
             .dirty
             .is_some()
         {

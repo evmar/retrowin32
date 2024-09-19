@@ -145,7 +145,9 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
                 .pixels
                 .as_slice_mut()
                 .fill(color.to_pixel());
-            window.flush_pixels(machine.emu.memory.mem());
+            window
+                .expect_toplevel_mut()
+                .flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
@@ -165,7 +167,9 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> 
             let pixels = window.bitmap_mut().pixels.as_slice_mut();
             pixels[((y * stride) + x) as usize] = color.to_pixel();
             // TODO: don't need to flush whole window for just one pixel
-            window.flush_pixels(machine.emu.memory.mem());
+            window
+                .expect_toplevel_mut()
+                .flush_pixels(machine.emu.memory.mem());
         }
         DCTarget::Memory(_) => {
             log::warn!("SetPixel for Memory DC is not implemented");
