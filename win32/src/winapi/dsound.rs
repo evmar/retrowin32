@@ -7,7 +7,7 @@ use crate::{
     machine::Machine,
     winapi::{com::vtable, kernel32::get_symbol},
 };
-use memory::Extensions;
+use memory::ExtensionsMut;
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "dsound";

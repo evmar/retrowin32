@@ -3,14 +3,9 @@ use std::mem::size_of;
 
 pub trait Extensions<'m>: Sized {
     fn as_slice(self) -> &'m [u8];
-    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T;
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *const T;
     fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
-    }
-    fn put_pod<T: Clone + Pod>(self, ofs: u32, val: T) {
-        unsafe {
-            std::ptr::write_unaligned(self.get_ptr::<T>(ofs), val);
-        }
     }
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
@@ -30,7 +25,13 @@ pub trait Extensions<'m>: Sized {
 }
 
 pub trait ExtensionsMut<'m>: Sized {
+    fn get_ptr_mut<T: Pod>(self, ofs: u32) -> *mut T;
     fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8];
+    fn put_pod<T: Clone + Pod>(self, ofs: u32, val: T) {
+        unsafe {
+            std::ptr::write_unaligned(self.get_ptr_mut::<T>(ofs), val);
+        }
+    }
 }
 
 /// See iter_pod.
@@ -56,12 +57,12 @@ impl<'m> Extensions<'m> for &'m [u8] {
         self
     }
 
-    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *const T {
         unsafe {
             if ofs as usize + size_of::<T>() > self.len() {
                 oob_panic(ofs, size_of::<T>());
             }
-            self.as_ptr().add(ofs as usize) as *mut T
+            self.as_ptr().add(ofs as usize) as *const T
         }
     }
 
@@ -78,6 +79,9 @@ impl<'m> Extensions<'m> for &'m [u8] {
 }
 
 impl<'m> ExtensionsMut<'m> for &'m mut [u8] {
+    fn get_ptr_mut<T: Pod>(self, ofs: u32) -> *mut T {
+        (self as &[u8]).get_ptr::<T>(ofs) as *mut T
+    }
     fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8] {
         &mut self[ofs as usize..][..len as usize]
     }
@@ -125,7 +129,7 @@ impl<'m> Mem<'m> {
     pub fn copy(&self, src: u32, dst: u32, len: u32) {
         unsafe {
             let src = self.get_ptr::<u8>(src);
-            let dst = self.get_ptr::<u8>(dst);
+            let dst = self.get_ptr_mut::<u8>(dst);
             std::ptr::copy(src, dst, len as usize);
         }
     }
@@ -202,11 +206,6 @@ impl<'m> Mem<'m> {
         }
     }
 
-    /// Note: can returned unaligned pointers depending on addr.
-    pub fn ptr_mut<T: Pod + Copy>(&self, addr: u32) -> *mut T {
-        self.get_ptr::<T>(addr)
-    }
-
     /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in stack_args codegen.
     pub unsafe fn detach<'a, 'b>(&'a self) -> Mem<'b> {
         std::mem::transmute(*self)
@@ -223,8 +222,8 @@ impl<'m> Extensions<'m> for Mem<'m> {
         self.as_slice_todo()
     }
 
-    fn get_ptr<T: Pod>(self, ofs: u32) -> *mut T {
-        let ptr = self.get_ptr_unchecked(ofs) as *mut T;
+    fn get_ptr<T: Pod>(self, ofs: u32) -> *const T {
+        let ptr = self.get_ptr_unchecked(ofs) as *const T;
         unsafe {
             if ptr.add(1) as *const _ > self.end {
                 oob_panic(ofs, size_of::<T>());
@@ -246,6 +245,9 @@ impl<'m> Extensions<'m> for Mem<'m> {
 }
 
 impl<'m> ExtensionsMut<'m> for Mem<'m> {
+    fn get_ptr_mut<T: Pod>(self, ofs: u32) -> *mut T {
+        self.get_ptr::<T>(ofs) as *mut T
+    }
     fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8] {
         assert!(ofs + len <= self.len());
         unsafe { std::slice::from_raw_parts_mut(self.ptr.add(ofs as usize), len as usize) }

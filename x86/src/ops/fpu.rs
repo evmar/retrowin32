@@ -1,7 +1,7 @@
 use super::helpers::*;
 use crate::{fpu, registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 pub fn finit(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.fpu.st_top = 8;

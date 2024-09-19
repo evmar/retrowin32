@@ -7,7 +7,7 @@ use crate::{
     Machine,
 };
 use bitflags::bitflags;
-use memory::Extensions;
+use memory::ExtensionsMut;
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/7";

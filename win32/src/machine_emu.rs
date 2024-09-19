@@ -6,7 +6,7 @@ use crate::{
     shims_emu::retrowin32_syscall,
     winapi,
 };
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, path::Path};
 
 pub struct BoxMem(Box<[u8]>);

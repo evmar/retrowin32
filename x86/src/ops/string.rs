@@ -3,7 +3,7 @@
 use super::math::sub;
 use crate::{registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 /// Width of an operation, e.g. movsb/w/d.
 #[derive(Clone, Copy)]

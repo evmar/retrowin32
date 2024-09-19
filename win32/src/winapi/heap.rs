@@ -3,7 +3,7 @@
 //! DirectDraw).
 
 use super::alloc::align_to;
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 #[derive(Default)]
 pub struct Heap {

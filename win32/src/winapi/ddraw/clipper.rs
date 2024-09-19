@@ -3,7 +3,7 @@ use crate::{
     winapi::{com::vtable, kernel32::get_symbol, types::HWND},
     Machine,
 };
-use memory::Extensions;
+use memory::ExtensionsMut;
 
 const TRACE_CONTEXT: &'static str = "ddraw/clipper";
 

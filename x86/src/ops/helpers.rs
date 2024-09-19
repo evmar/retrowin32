@@ -1,7 +1,7 @@
 //! Functions for common behaviors across all operations.
 
 use crate::{x86::CPU, Register};
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 // TODO: maybe there are no 64-bit memory reads needed (?)
 pub fn rm64_x(
@@ -56,7 +56,7 @@ pub fn rm32<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Ar
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            Arg(mem.ptr_mut::<u32>(addr))
+            Arg(mem.get_ptr_mut::<u32>(addr))
         }
         _ => unimplemented!(),
     }
@@ -70,7 +70,7 @@ pub fn rm16<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Ar
         }
         iced_x86::OpKind::Memory => {
             let addr = x86_addr(cpu, instr);
-            Arg(mem.ptr_mut::<u16>(addr))
+            Arg(mem.get_ptr_mut::<u16>(addr))
         }
         _ => unimplemented!(),
     }
@@ -88,7 +88,7 @@ pub fn rm8<'a>(cpu: &'a mut CPU, mem: Mem, instr: &iced_x86::Instruction) -> Arg
                 cpu.err(format!("oob at {addr:x}"));
                 addr = 0;
             }
-            Arg(mem.ptr_mut::<u8>(addr))
+            Arg(mem.get_ptr_mut::<u8>(addr))
         }
         _ => unimplemented!(),
     }

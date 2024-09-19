@@ -308,7 +308,7 @@ impl State {
     pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {
         const COUNT: usize = 5;
         let addr = self.arena.alloc(COUNT as u32 * 8, 8);
-        let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.ptr_mut::<u64>(addr) as *mut _) };
+        let gdt: &mut [u64; COUNT] = unsafe { &mut *(mem.get_ptr_mut::<u64>(addr) as *mut _) };
 
         gdt[0] = 0;
 

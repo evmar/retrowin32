@@ -2,7 +2,7 @@ use super::{set_last_error, FILETIME};
 use crate::winapi::types::ERROR_INVALID_DATA;
 use crate::Machine;
 use chrono::{Datelike, Timelike};
-use memory::{Extensions, Pod};
+use memory::{ExtensionsMut, Pod};
 
 const TRACE_CONTEXT: &'static str = "kernel32/time";
 

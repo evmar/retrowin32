@@ -12,7 +12,7 @@ use crate::{
     winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
     Machine,
 };
-use memory::Extensions;
+use memory::ExtensionsMut;
 use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/1";
