@@ -1,0 +1,9 @@
+title = "Solitaire"
+desc = "the classic Windows game"
+dir = "archive/win2k/"
+files = ["cards.dll"]
+path = "sol.exe"
+category = "other"
+
+[origin]
+desc = "Windows 2000"
