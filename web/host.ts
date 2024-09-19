@@ -97,20 +97,20 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
     switch (level) {
-      case 5:
+      case 1:
         console.error(msg);
-        this.emuHost.onError(msg);
+        // TODO: this.emuHost is null during init, e.g. before the page DOM is constructed.
+        // Should construct page DOM, then load emu.
+        if (this.emuHost) this.emuHost.onError(msg);
         break;
-      case 4:
+      case 2:
         console.warn(msg);
         break;
       case 3:
         console.info(msg);
         break;
-      case 2:
-        console.log(msg);
-        break;
-      case 1:
+      case 4:
+      case 5: // "trace"
         console.debug(msg);
         break;
       default:
