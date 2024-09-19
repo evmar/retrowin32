@@ -254,8 +254,7 @@ pub fn PeekMessageW(
     )
 }
 
-#[win32_derive::dllexport]
-pub async fn GetMessageA(
+async fn get_message(
     machine: &mut Machine,
     lpMsg: Option<&mut MSG>,
     hWnd: HWND,
@@ -284,6 +283,17 @@ pub async fn GetMessageA(
 }
 
 #[win32_derive::dllexport]
+pub async fn GetMessageA(
+    machine: &mut Machine,
+    lpMsg: Option<&mut MSG>,
+    hWnd: HWND,
+    wMsgFilterMin: u32,
+    wMsgFilterMax: u32,
+) -> i32 {
+    get_message(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
+}
+
+#[win32_derive::dllexport]
 pub async fn GetMessageW(
     machine: &mut Machine,
     lpMsg: Option<&mut MSG>,
@@ -291,7 +301,7 @@ pub async fn GetMessageW(
     wMsgFilterMin: u32,
     wMsgFilterMax: u32,
 ) -> i32 {
-    GetMessageA(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
+    get_message(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
 }
 
 #[win32_derive::dllexport]

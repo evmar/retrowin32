@@ -684,12 +684,11 @@ pub fn GetFocus(machine: &mut Machine) -> HWND {
     machine.state.user32.windows.iter().next().unwrap().hwnd
 }
 
-#[win32_derive::dllexport]
-pub async fn DefWindowProcA(
+async fn def_window_proc(
     machine: &mut Machine,
     hWnd: HWND,
     msg: Result<WM, u32>,
-    wParam: u32,
+    _wParam: u32,
     lParam: u32,
 ) -> u32 {
     let msg = match msg {
@@ -746,6 +745,17 @@ pub async fn DefWindowProcA(
 }
 
 #[win32_derive::dllexport]
+pub async fn DefWindowProcA(
+    machine: &mut Machine,
+    hWnd: HWND,
+    msg: Result<WM, u32>,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    def_window_proc(machine, hWnd, msg, wParam, lParam).await
+}
+
+#[win32_derive::dllexport]
 pub async fn DefWindowProcW(
     machine: &mut Machine,
     hWnd: HWND,
@@ -753,7 +763,7 @@ pub async fn DefWindowProcW(
     wParam: u32,
     lParam: u32,
 ) -> u32 {
-    DefWindowProcA(machine, hWnd, msg, wParam, lParam).await
+    def_window_proc(machine, hWnd, msg, wParam, lParam).await
 }
 
 /// Compute window rectangle from client rectangle.
