@@ -239,8 +239,7 @@ export interface JsHost {
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
-  open(path: string, access: {}): JsFile;
-  log(buf: Uint8Array);
+  open(path: string, access: {}): JsFile|null;
   
   create_window(hwnd: number): JsWindow;
 }"#;
@@ -262,7 +261,7 @@ extern "C" {
     fn get_event(this: &JsHost) -> web_sys::Event;
 
     #[wasm_bindgen(method)]
-    fn open(this: &JsHost, path: &str, options: win32::FileOptions) -> JsFile;
+    fn open(this: &JsHost, path: &str, options: win32::FileOptions) -> Option<JsFile>;
     #[wasm_bindgen(method)]
     fn stdout(this: &JsHost, buf: &[u8]);
 
@@ -309,11 +308,10 @@ impl win32::Host for JsHost {
         path: &WindowsPath,
         options: win32::FileOptions,
     ) -> Result<Box<dyn win32::File>, u32> {
-        Ok(Box::new(JsHost::open(
-            self,
-            &path.to_string_lossy(),
-            options,
-        )))
+        match JsHost::open(self, &path.to_string_lossy(), options) {
+            Some(file) => Ok(Box::new(file)),
+            None => Err(win32::winapi::types::ERROR_FILE_NOT_FOUND),
+        }
     }
 
     fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {

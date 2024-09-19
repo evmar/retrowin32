@@ -149,12 +149,11 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     return this.events.shift();
   }
 
-  open(path: string): glue.JsFile {
+  open(path: string): glue.JsFile | null {
     // TODO: async file loading.
     let bytes = this.files.get(path);
     if (!bytes) {
-      console.error(`unknown file ${path}, returning empty file`);
-      bytes = new Uint8Array();
+      return null;
     }
     return new File(path, bytes);
   }
