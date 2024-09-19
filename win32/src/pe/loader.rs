@@ -163,7 +163,21 @@ fn load_pe(
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
             let image = machine.mem().slice(base..);
             if let Some(sec) = relocs.as_slice(image) {
-                apply_relocs(image, file.opt_header.ImageBase, base, sec);
+                // Warning: apply_relocs wants to mutate arbitrary memory, which violates Rust aliasing rules.
+                // It has started silently failing in release builds in the past...
+                apply_relocs(
+                    file.opt_header.ImageBase,
+                    base,
+                    sec,
+                    |addr| {
+                        let addr = base + addr;
+                        machine.mem().get_pod::<u32>(addr)
+                    },
+                    |addr, val| {
+                        let addr = base + addr;
+                        machine.mem().put_pod::<u32>(addr, val);
+                    },
+                );
             }
         }
     }
