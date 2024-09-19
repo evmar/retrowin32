@@ -17,6 +17,7 @@ class Window implements glue.JsWindow {
     };
     this.canvas.onmousedown = stashEvent;
     this.canvas.onmouseup = stashEvent;
+    this.canvas.onmousemove = stashEvent;
     this.canvas.oncontextmenu = (ev) => {
       return false;
     };

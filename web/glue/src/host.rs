@@ -220,6 +220,12 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
             event.down = true;
             win32::MessageDetail::Mouse(event)
         }
+        "mousemove" => {
+            let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
+            event.down = false;
+            event.button = win32::MouseButton::None;
+            win32::MessageDetail::Mouse(event)
+        }
         "mouseup" => {
             let mut event = map_mousevent(event.unchecked_into::<web_sys::MouseEvent>())?;
             event.down = false;
