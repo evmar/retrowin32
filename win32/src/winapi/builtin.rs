@@ -3958,6 +3958,11 @@ pub mod ucrtbase {
             let newhandlermode = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::_set_new_mode(machine, newhandlermode).to_raw()
         }
+        pub unsafe fn _time64(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let destTime = <Option<&mut u64>>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_time64(machine, destTime).to_raw()
+        }
         pub unsafe fn _unlock(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let locknum = <u32>::from_stack(mem, esp + 4u32);
@@ -3986,6 +3991,11 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let seed = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::srand(machine, seed).to_raw()
+        }
+        pub unsafe fn time(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let destTime = <Option<&mut u64>>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::time(machine, destTime).to_raw()
         }
     }
     mod shims {
@@ -4071,6 +4081,10 @@ pub mod ucrtbase {
             name: "_set_new_mode",
             func: crate::shims::Handler::Sync(impls::_set_new_mode),
         };
+        pub const _time64: Shim = Shim {
+            name: "_time64",
+            func: crate::shims::Handler::Sync(impls::_time64),
+        };
         pub const _unlock: Shim = Shim {
             name: "_unlock",
             func: crate::shims::Handler::Sync(impls::_unlock),
@@ -4095,8 +4109,12 @@ pub mod ucrtbase {
             name: "srand",
             func: crate::shims::Handler::Sync(impls::srand),
         };
+        pub const time: Shim = Shim {
+            name: "time",
+            func: crate::shims::Handler::Sync(impls::time),
+        };
     }
-    const SHIMS: [Shim; 26usize] = [
+    const SHIMS: [Shim; 28usize] = [
         shims::__dllonexit,
         shims::__getmainargs,
         shims::__p___argc,
@@ -4117,12 +4135,14 @@ pub mod ucrtbase {
         shims::_set_app_type,
         shims::_set_fmode,
         shims::_set_new_mode,
+        shims::_time64,
         shims::_unlock,
         shims::exit,
         shims::free,
         shims::malloc,
         shims::rand,
         shims::srand,
+        shims::time,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ucrtbase.dll",

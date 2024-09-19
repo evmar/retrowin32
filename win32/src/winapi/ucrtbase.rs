@@ -196,3 +196,33 @@ pub fn rand(machine: &mut Machine) -> u32 {
         RAND_STATE
     }
 }
+
+fn time64(machine: &mut Machine, destTime: Option<&mut u64>) -> u64 {
+    let time = machine.host.time() as u64 / 1000;
+    if let Some(destTime) = destTime {
+        *destTime = time;
+    }
+
+    // TODO: need to figure out 64-bit return values in general.
+    // It appears to go through edx:eax.
+
+    #[cfg(feature = "x86-emu")]
+    {
+        x86::set_edx_eax(machine.emu.x86.cpu_mut(), time);
+        time
+    }
+    #[cfg(not(feature = "x86-emu"))]
+    {
+        unimplemented!();
+    }
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn time(machine: &mut Machine, destTime: Option<&mut u64>) {
+    time64(machine, destTime);
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn _time64(machine: &mut Machine, destTime: Option<&mut u64>) {
+    time64(machine, destTime);
+}
