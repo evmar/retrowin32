@@ -37,36 +37,11 @@
 
 use memory::Extensions;
 
-use crate::{
-    machine::Machine,
-    shims::{Handler, Shim},
-};
-use std::collections::HashMap;
+use crate::{machine::Machine, shims::Handler};
 
 pub fn retrowin32_syscall() -> &'static [u8] {
     // sysenter; ret
     b"\x0f\x34\xc3".as_slice()
-}
-
-/// Jumps to memory address SHIM_BASE+x are interpreted as calling shims[x].
-/// This is how emulated code calls out to hosting code for e.g. DLL imports.
-#[derive(Default)]
-pub struct Shims {
-    shims: HashMap<u32, Result<&'static Shim, String>>,
-}
-
-impl Shims {
-    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
-        self.shims.insert(addr, shim);
-    }
-
-    pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
-        match self.shims.get(&addr) {
-            Some(Ok(shim)) => Ok(shim),
-            Some(Err(name)) => Err(name),
-            None => panic!("unknown import reference at {:x}", addr),
-        }
-    }
 }
 
 pub fn handle_shim_call(machine: &mut Machine) {

@@ -6,18 +6,15 @@
 //! We hook syscalls via the Unicorn API to have them stop Unicorn
 //! emulation, then use the current eip to look up which shim to call.
 
-use crate::{shims::Shim, Machine};
+use crate::{
+    shims::{Handler, Shims},
+    Machine,
+};
 use memory::Extensions;
-use std::collections::HashMap;
 
 pub fn retrowin32_syscall() -> &'static [u8] {
     // sysenter; ret
     b"\x0f\x34\xc3".as_slice()
-}
-
-#[derive(Default)]
-pub struct Shims {
-    shims: HashMap<u32, Result<&'static Shim, String>>,
 }
 
 impl Shims {
@@ -40,13 +37,7 @@ impl Shims {
             })
             .unwrap();
 
-        Shims {
-            shims: Default::default(),
-        }
-    }
-
-    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
-        self.shims.insert(addr, shim);
+        Shims::default()
     }
 }
 
@@ -63,14 +54,16 @@ fn handle_shim_call(machine: &mut Machine) {
         .unwrap() as u32;
     // Return address - 6 = address of foo.dll!Foo
     let addr = machine.emu.memory.mem().get_pod::<u32>(esp) - 6;
-    let shim = match machine.emu.shims.shims.get(&addr) {
-        Some(Ok(shim)) => shim,
-        Some(Err(name)) => unimplemented!("shim call to {name}"),
-        None => panic!("unknown import reference at {addr:x}"),
+    let shim = match machine.emu.shims.get(addr) {
+        Ok(shim) => shim,
+        Err(name) => unimplemented!("shim call to {name}"),
     };
     let name = shim.name;
 
-    let func = shim.func;
+    let func = match shim.func {
+        Handler::Sync(func) => func,
+        Handler::Async(_) => unimplemented!("async shim {name}"),
+    };
     let ret = unsafe { func(machine, esp + 4) }; // address of *2* above
 
     machine

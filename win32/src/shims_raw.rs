@@ -5,16 +5,11 @@
 
 use crate::{
     ldt::LDT,
-    shims::{Handler, Shim},
+    shims::{Handler, Shims},
     Machine,
 };
 #[cfg(target_arch = "x86_64")]
 use memory::Extensions;
-use std::collections::HashMap;
-
-pub struct Shims {
-    shims: HashMap<u32, Result<&'static Shim, String>>,
-}
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
@@ -38,7 +33,7 @@ unsafe extern "C" fn call64() -> u32 {
 
     let stack32 = STACK32 as *const u32;
     let ret_addr = unsafe { *stack32.offset(2) };
-    let shim = match machine.emu.shims.shims.get(&(ret_addr - 6)).unwrap() {
+    let shim = match machine.emu.shims.get(ret_addr - 6) {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
@@ -171,9 +166,7 @@ impl Shims {
             TRAMP32_M1632 = ((code32_selector as u64) << 32) | tramp32_addr;
         }
 
-        Shims {
-            shims: Default::default(),
-        }
+        Shims::default()
     }
 
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
@@ -181,10 +174,6 @@ impl Shims {
     pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine, esp: u32) {
         MACHINE = machine;
         STACK32 = esp;
-    }
-
-    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
-        self.shims.insert(addr, shim);
     }
 }
 
@@ -223,8 +212,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         }
         STACK32 = esp;
 
-        #[allow(unused_mut)]
-        let mut ret = 0;
+        let mut ret;
         std::arch::asm!(
             // We need to back up all non-scratch registers (rbx/rbp),
             // because even callee-saved registers will only be saved as 32-bit,

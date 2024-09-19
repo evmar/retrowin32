@@ -2,7 +2,8 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims_emu::{retrowin32_syscall, Shims},
+    shims::Shims,
+    shims_emu::retrowin32_syscall,
     winapi,
 };
 use memory::{Extensions, Mem};

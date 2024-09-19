@@ -11,13 +11,7 @@
 //! 3. shims_unicorn.rs, which is used with the Unicorn CPU emulator
 
 use crate::Machine;
-
-#[cfg(feature = "x86-emu")]
-pub use crate::shims_emu::Shims;
-#[cfg(feature = "x86-64")]
-pub use crate::shims_raw::Shims;
-#[cfg(feature = "x86-unicorn")]
-pub use crate::shims_unicorn::Shims;
+use std::collections::HashMap;
 
 #[cfg(feature = "x86-unicorn")]
 pub use crate::shims_unicorn::unicorn_loop;
@@ -35,6 +29,25 @@ pub enum Handler {
 pub struct Shim {
     pub name: &'static str,
     pub func: Handler,
+}
+
+#[derive(Default)]
+pub struct Shims {
+    shims: HashMap<u32, Result<&'static Shim, String>>,
+}
+
+impl Shims {
+    pub fn register(&mut self, addr: u32, shim: Result<&'static Shim, String>) {
+        self.shims.insert(addr, shim);
+    }
+
+    pub fn get(&self, addr: u32) -> Result<&Shim, &str> {
+        match self.shims.get(&addr) {
+            Some(Ok(shim)) => Ok(shim),
+            Some(Err(name)) => Err(name),
+            None => panic!("unknown import reference at {:x}", addr),
+        }
+    }
 }
 
 /// Synchronously evaluate a Future, under the assumption that it is always immediately Ready.
