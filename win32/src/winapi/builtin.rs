@@ -5652,6 +5652,13 @@ pub mod winmm {
             let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
             winapi::winmm::waveOutReset(machine, hwo).to_raw()
         }
+        pub unsafe fn waveOutUnprepareHeader(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
+            let pwh = <Option<&mut WAVEHDR>>::from_stack(mem, esp + 8u32);
+            let cbwh = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::waveOutUnprepareHeader(machine, hwo, pwh, cbwh).to_raw()
+        }
         pub unsafe fn waveOutWrite(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, esp + 4u32);
@@ -5703,12 +5710,16 @@ pub mod winmm {
             name: "waveOutReset",
             func: crate::shims::Handler::Sync(impls::waveOutReset),
         };
+        pub const waveOutUnprepareHeader: Shim = Shim {
+            name: "waveOutUnprepareHeader",
+            func: crate::shims::Handler::Sync(impls::waveOutUnprepareHeader),
+        };
         pub const waveOutWrite: Shim = Shim {
             name: "waveOutWrite",
             func: crate::shims::Handler::Sync(impls::waveOutWrite),
         };
     }
-    const SHIMS: [Shim; 11usize] = [
+    const SHIMS: [Shim; 12usize] = [
         shims::timeBeginPeriod,
         shims::timeGetTime,
         shims::timeSetEvent,
@@ -5719,6 +5730,7 @@ pub mod winmm {
         shims::waveOutOpen,
         shims::waveOutPrepareHeader,
         shims::waveOutReset,
+        shims::waveOutUnprepareHeader,
         shims::waveOutWrite,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {

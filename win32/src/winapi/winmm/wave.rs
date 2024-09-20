@@ -181,6 +181,16 @@ pub fn waveOutPrepareHeader(
 }
 
 #[win32_derive::dllexport]
+pub fn waveOutUnprepareHeader(
+    _machine: &mut Machine,
+    hwo: HWAVEOUT,
+    pwh: Option<&mut WAVEHDR>,
+    cbwh: u32,
+) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
 pub fn waveOutWrite(
     _machine: &mut Machine,
     hwo: HWAVEOUT,
