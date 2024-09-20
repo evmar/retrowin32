@@ -80,7 +80,7 @@ pub fn SetTimer(
     {
         Some(timer) => {
             timer.period = uElapse;
-            timer.next = machine.host.time() + uElapse;
+            timer.next = machine.host.ticks() + uElapse;
             timer.func = lpTimerFunc;
             timer.id
         }
@@ -90,7 +90,7 @@ pub fn SetTimer(
                 id,
                 hwnd: hWnd,
                 period: uElapse,
-                next: machine.host.time() + uElapse,
+                next: machine.host.ticks() + uElapse,
                 func: lpTimerFunc,
             };
             machine.state.user32.timers.0.push(timer);

@@ -179,7 +179,8 @@ pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
     0
 }
 
-static mut RAND_STATE: u32 = 0;
+// MSDN: "Calling rand before any call to srand generates the same sequence as calling srand with seed passed as 1."
+static mut RAND_STATE: u32 = 1;
 
 #[win32_derive::dllexport(cdecl)]
 pub fn srand(machine: &mut Machine, seed: u32) {
@@ -197,32 +198,24 @@ pub fn rand(machine: &mut Machine) -> u32 {
     }
 }
 
-fn time64(machine: &mut Machine, destTime: Option<&mut u64>) -> u64 {
-    let time = machine.host.time() as u64 / 1000;
+fn time64(machine: &mut Machine, destTime: Option<&mut u64>) -> u32 {
+    let time = machine.host.system_time().timestamp() as u64;
     if let Some(destTime) = destTime {
         *destTime = time;
     }
 
-    // TODO: need to figure out 64-bit return values in general.
-    // It appears to go through edx:eax.
-
-    #[cfg(feature = "x86-emu")]
-    {
-        x86::set_edx_eax(machine.emu.x86.cpu_mut(), time);
-        time
-    }
-    #[cfg(not(feature = "x86-emu"))]
-    {
-        unimplemented!();
-    }
+    // TODO: 64-bit return values go through edx:eax, which is not yet modeled in the shims
+    // machinery, so we only return 32 bits here.
+    // Thankfully 32-bit time_t only overflows in 2038 anyway.
+    time as u32
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn time(machine: &mut Machine, destTime: Option<&mut u64>) {
-    time64(machine, destTime);
+pub fn time(machine: &mut Machine, destTime: Option<&mut u64>) -> u32 {
+    time64(machine, destTime)
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _time64(machine: &mut Machine, destTime: Option<&mut u64>) {
-    time64(machine, destTime);
+pub fn _time64(machine: &mut Machine, destTime: Option<&mut u64>) -> u32 {
+    time64(machine, destTime)
 }

@@ -127,7 +127,8 @@ pub struct Message {
 
 pub trait Host {
     fn exit(&self, code: u32);
-    fn time(&self) -> u32;
+    /// Get an arbitrary time counter, measured in milliseconds.
+    fn ticks(&self) -> u32;
     fn system_time(&self) -> chrono::DateTime<chrono::Local>;
 
     /// Get the next pending message, or None if no message waiting.

@@ -104,7 +104,7 @@ fn enqueue_timer_event_if_ready(machine: &mut Machine, hwnd: HWND) -> Result<(),
         return Err(None);
     }
 
-    let now = machine.host.time();
+    let now = machine.host.ticks();
     if let Some(timer) = machine.state.user32.timers.find_next(hwnd, now) {
         machine
             .state

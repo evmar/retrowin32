@@ -123,7 +123,7 @@ impl win32::Host for EnvRef {
         self.0.borrow_mut().exit_code = Some(code);
     }
 
-    fn time(&self) -> u32 {
+    fn ticks(&self) -> u32 {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.time()

@@ -283,7 +283,7 @@ impl win32::Host for JsHost {
         JsHost::exit(self, exit_code)
     }
 
-    fn time(&self) -> u32 {
+    fn ticks(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }
 

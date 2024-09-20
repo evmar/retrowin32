@@ -16,7 +16,7 @@ pub fn timeSetEvent(
 
 #[win32_derive::dllexport]
 pub fn timeGetTime(machine: &mut Machine) -> u32 {
-    machine.host.time()
+    machine.host.ticks()
 }
 
 const TIMERR_NOERROR: u32 = 0;
