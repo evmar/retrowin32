@@ -1,6 +1,6 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    winapi::{stack_args::ArrayWithSize, types::HANDLE},
+    winapi::{gdi32::COLORREF, stack_args::ArrayWithSize, types::HANDLE},
     Machine,
 };
 use memory::Pod;
@@ -32,7 +32,7 @@ pub fn CreateFontA(
 }
 
 #[win32_derive::dllexport]
-pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
+pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORREF {
     CLR_INVALID // fail
 }
 

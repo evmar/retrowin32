@@ -186,9 +186,9 @@ impl BrushOrColor {
             BrushOrColor::Brush(hbr) => *hbr,
             BrushOrColor::Color(c) => {
                 let color = match c {
-                    COLOR::WINDOW => Some(COLORREF((0xc0, 0xc0, 0xc0))),
-                    COLOR::MENU => Some(COLORREF((0xc0, 0xc0, 0xc0))),
-                    COLOR::APPWORKSPACE => Some(COLORREF((0x80, 0x80, 0x80))),
+                    COLOR::WINDOW => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
+                    COLOR::MENU => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
+                    COLOR::APPWORKSPACE => Some(COLORREF::from_rgb(0x80, 0x80, 0x80)),
                     _ => todo!("{c:?}"),
                 };
                 machine

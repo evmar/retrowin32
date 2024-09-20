@@ -1,6 +1,6 @@
 //! Pens, brushes, color.
 
-use super::{DCTarget, Object, CLR_INVALID, HDC, HGDIOBJ};
+use super::{DCTarget, Object, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
     winapi::types::{POINT, RECT},
@@ -8,17 +8,48 @@ use crate::{
 
 const TRACE_CONTEXT: &'static str = "gdi32/draw";
 
-#[derive(Debug, Clone, Copy)]
-pub struct COLORREF(pub (u8, u8, u8));
+/// COLORREF is a u32 containing RGB0, modeled specially here because there is the
+/// invalid marker value CLR_INVALID=0xffffffff.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct COLORREF(u32);
+
 impl COLORREF {
-    pub fn from_u32(raw: u32) -> Self {
-        Self((raw as u8, (raw >> 8) as u8, (raw >> 16) as u8))
+    pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
+        Self(u32::from_le_bytes([r, g, b, 0]))
     }
     pub fn to_pixel(&self) -> [u8; 4] {
-        let (r, g, b) = self.0;
+        let [r, g, b, _] = self.0.to_le_bytes();
         [r, g, b, 0xff]
     }
+
+    pub fn white() -> Self {
+        Self::from_rgb(0xff, 0xff, 0xff)
+    }
 }
+
+impl std::fmt::Debug for COLORREF {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if *self == CLR_INVALID {
+            return write!(f, "CLR_INVALID");
+        }
+        let [r, g, b, _] = self.0.to_le_bytes();
+        write!(f, "COLORREF(#{r:02x}{g:02x}{b:02x})")
+    }
+}
+
+impl<'a> crate::winapi::stack_args::FromArg<'a> for COLORREF {
+    unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
+        COLORREF(arg)
+    }
+}
+
+impl crate::winapi::stack_args::ToX86 for COLORREF {
+    fn to_raw(&self) -> u32 {
+        self.0
+    }
+}
+
+pub const CLR_INVALID: COLORREF = COLORREF(0xffff_ffff);
 
 #[derive(Debug)]
 pub struct Pen {
@@ -36,7 +67,7 @@ pub fn SetBkMode(_machine: &mut Machine, hdc: HDC, mode: i32) -> i32 {
 }
 
 #[win32_derive::dllexport]
-pub fn SetBkColor(_machine: &mut Machine, hdc: HDC, color: u32) -> u32 {
+pub fn SetBkColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORREF {
     CLR_INVALID // fail
 }
 
@@ -50,16 +81,14 @@ pub fn CreatePen(
     machine: &mut Machine,
     iStyle: Result<PS, u32>,
     cWidth: u32,
-    color: u32,
+    color: COLORREF,
 ) -> HGDIOBJ {
     iStyle.unwrap();
     if cWidth != 1 {
         todo!();
     }
 
-    machine.state.gdi32.objects.add(Object::Pen(Pen {
-        color: COLORREF::from_u32(color),
-    }))
+    machine.state.gdi32.objects.add(Object::Pen(Pen { color }))
 }
 
 #[win32_derive::dllexport]
@@ -98,7 +127,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
             Object::Pen(pen) => pen.color.to_pixel(),
             _ => todo!(),
         },
-        R2::WHITE => COLORREF((0xff, 0xff, 0xff)).to_pixel(),
+        R2::WHITE => COLORREF::white().to_pixel(),
     };
 
     let (dstX, dstY) = (x, y);
@@ -154,8 +183,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
 }
 
 #[win32_derive::dllexport]
-pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> u32 {
-    let color = COLORREF::from_u32(color);
+pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF) -> COLORREF {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
@@ -178,11 +206,11 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: u32) -> 
             todo!("unimplemented SetPixel for {:?}", dc.target);
         }
     }
-    u32::from_le_bytes(color.to_pixel())
+    color
 }
 
 #[win32_derive::dllexport]
-pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
+pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
@@ -190,21 +218,22 @@ pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> u32 {
             let stride = window.width;
             let pixels = window.bitmap_mut().pixels.as_slice_mut();
             let color = pixels[((y * stride) + x) as usize];
-            u32::from_le_bytes(color)
+            COLORREF::from_rgb(color[0], color[1], color[2])
         }
         _ => {
             // TODO: actually read
-            let color = COLORREF((0, 0, 0));
-            u32::from_le_bytes(color.to_pixel())
+            COLORREF::from_rgb(0, 0, 0)
         }
     }
 }
 
 #[win32_derive::dllexport]
-pub fn CreateSolidBrush(machine: &mut Machine, color: u32) -> HGDIOBJ {
-    machine.state.gdi32.objects.add(Object::Brush(Brush {
-        color: Some(COLORREF::from_u32(color)),
-    }))
+pub fn CreateSolidBrush(machine: &mut Machine, color: COLORREF) -> HGDIOBJ {
+    machine
+        .state
+        .gdi32
+        .objects
+        .add(Object::Brush(Brush { color: Some(color) }))
 }
 
 #[win32_derive::dllexport]

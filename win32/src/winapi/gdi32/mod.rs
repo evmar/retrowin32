@@ -15,5 +15,3 @@ pub use state::*;
 pub use text::*;
 
 pub use super::bitmap::BITMAPINFOHEADER;
-
-pub const CLR_INVALID: u32 = 0xFFFF_FFFF;

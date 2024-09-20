@@ -1341,12 +1341,12 @@ pub mod gdi32 {
             let mem = machine.mem().detach();
             let iStyle = <Result<PS, u32>>::from_stack(mem, esp + 4u32);
             let cWidth = <u32>::from_stack(mem, esp + 8u32);
-            let color = <u32>::from_stack(mem, esp + 12u32);
+            let color = <COLORREF>::from_stack(mem, esp + 12u32);
             winapi::gdi32::CreatePen(machine, iStyle, cWidth, color).to_raw()
         }
         pub unsafe fn CreateSolidBrush(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
-            let color = <u32>::from_stack(mem, esp + 4u32);
+            let color = <COLORREF>::from_stack(mem, esp + 4u32);
             winapi::gdi32::CreateSolidBrush(machine, color).to_raw()
         }
         pub unsafe fn DeleteDC(machine: &mut Machine, esp: u32) -> u32 {
@@ -1474,7 +1474,7 @@ pub mod gdi32 {
         pub unsafe fn SetBkColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let color = <u32>::from_stack(mem, esp + 8u32);
+            let color = <COLORREF>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetBkColor(machine, hdc, color).to_raw()
         }
         pub unsafe fn SetBkMode(machine: &mut Machine, esp: u32) -> u32 {
@@ -1516,7 +1516,7 @@ pub mod gdi32 {
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
             let x = <u32>::from_stack(mem, esp + 8u32);
             let y = <u32>::from_stack(mem, esp + 12u32);
-            let color = <u32>::from_stack(mem, esp + 16u32);
+            let color = <COLORREF>::from_stack(mem, esp + 16u32);
             winapi::gdi32::SetPixel(machine, hdc, x, y, color).to_raw()
         }
         pub unsafe fn SetROP2(machine: &mut Machine, esp: u32) -> u32 {
@@ -1528,7 +1528,7 @@ pub mod gdi32 {
         pub unsafe fn SetTextColor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
-            let color = <u32>::from_stack(mem, esp + 8u32);
+            let color = <COLORREF>::from_stack(mem, esp + 8u32);
             winapi::gdi32::SetTextColor(machine, hdc, color).to_raw()
         }
         pub unsafe fn StretchBlt(machine: &mut Machine, esp: u32) -> u32 {

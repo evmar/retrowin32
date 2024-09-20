@@ -56,13 +56,13 @@ pub enum GetStockObjectArg {
 pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
     match i.unwrap() {
         GetStockObjectArg::WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: Some(COLORREF((0xff, 0xff, 0xff))),
+            color: Some(COLORREF::white()),
         })),
         GetStockObjectArg::LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: Some(COLORREF((0xc0, 0xc0, 0xc0))),
+            color: Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
         })),
         GetStockObjectArg::BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
-            color: Some(COLORREF((0x00, 0x00, 0x00))),
+            color: Some(COLORREF::from_rgb(0x00, 0x00, 0x00)),
         })),
         GetStockObjectArg::NULL_BRUSH => machine
             .state
