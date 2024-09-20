@@ -70,14 +70,19 @@ pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> u32 {
-    1 // success
+pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> bool {
+    true // success
 }
 
 #[win32_derive::dllexport]
 pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
     // CRT startup appears to fallback on non-W version of this if it returns null.
     0
+}
+
+#[win32_derive::dllexport]
+pub fn FreeEnvironmentStringsW(_machine: &mut Machine) -> bool {
+    true // success
 }
 
 #[win32_derive::dllexport]

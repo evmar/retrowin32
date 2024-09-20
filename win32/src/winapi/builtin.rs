@@ -2015,6 +2015,10 @@ pub mod kernel32 {
             let _penv = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::FreeEnvironmentStringsA(machine, _penv).to_raw()
         }
+        pub unsafe fn FreeEnvironmentStringsW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::FreeEnvironmentStringsW(machine).to_raw()
+        }
         pub unsafe fn FreeLibrary(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hLibModule = <HMODULE>::from_stack(mem, esp + 4u32);
@@ -3005,6 +3009,10 @@ pub mod kernel32 {
             name: "FreeEnvironmentStringsA",
             func: crate::shims::Handler::Sync(impls::FreeEnvironmentStringsA),
         };
+        pub const FreeEnvironmentStringsW: Shim = Shim {
+            name: "FreeEnvironmentStringsW",
+            func: crate::shims::Handler::Sync(impls::FreeEnvironmentStringsW),
+        };
         pub const FreeLibrary: Shim = Shim {
             name: "FreeLibrary",
             func: crate::shims::Handler::Sync(impls::FreeLibrary),
@@ -3518,7 +3526,7 @@ pub mod kernel32 {
             func: crate::shims::Handler::Async(impls::retrowin32_thread_main),
         };
     }
-    const SHIMS: [Shim; 151usize] = [
+    const SHIMS: [Shim; 152usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -3542,6 +3550,7 @@ pub mod kernel32 {
         shims::FormatMessageA,
         shims::FormatMessageW,
         shims::FreeEnvironmentStringsA,
+        shims::FreeEnvironmentStringsW,
         shims::FreeLibrary,
         shims::GetACP,
         shims::GetCPInfo,
