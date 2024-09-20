@@ -18,9 +18,8 @@ The code generator traverses the `dllexport` attributes and generates a Rust
 glue module as well as the code for special `.dll` files that end up inlined
 into the final binaries.
 
-To rerun the code generator after an API change, run `make` (or perhaps
-`make -B` to force it to run) in this directory. I typically `make -BC win32`
-from the project root.
+To rerun the code generator after an API change, run `make` in this directory. I
+typically `make -C win32` from the project root.
 
 The `Makefile` also compiles these `.dll` files, which requires `clang-cl` from
 LLVM in your `$PATH`. I just unpack a pre-built
