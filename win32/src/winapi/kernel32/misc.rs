@@ -1,14 +1,8 @@
 //! kernel32 API without a better home.
 
-use super::{teb_mut, WriteFile};
-use crate::{
-    winapi::{
-        stack_args::{ArrayWithSize, ArrayWithSizeMut},
-        types::*,
-    },
-    Machine,
-};
-use ::memory::{Extensions, Pod};
+use super::teb_mut;
+use crate::{winapi::types::*, Machine};
+use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
 
@@ -47,69 +41,6 @@ pub fn exit_process(machine: &mut Machine, exit_code: u32) {
 pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     exit_process(machine, uExitCode);
     0
-}
-
-#[win32_derive::dllexport]
-pub fn GetACP(_machine: &mut Machine) -> u32 {
-    1252 // windows-1252
-}
-
-#[win32_derive::dllexport]
-pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
-    CodePage == 1252
-}
-
-#[win32_derive::dllexport]
-pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 {
-    0 // fail
-}
-
-#[win32_derive::dllexport]
-pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.env
-}
-
-#[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> bool {
-    true // success
-}
-
-#[win32_derive::dllexport]
-pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
-    // CRT startup appears to fallback on non-W version of this if it returns null.
-    0
-}
-
-#[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsW(_machine: &mut Machine) -> bool {
-    true // success
-}
-
-#[win32_derive::dllexport]
-pub fn GetEnvironmentVariableA(
-    _machine: &mut Machine,
-    name: Option<&str>,
-    buf: ArrayWithSize<u8>,
-) -> bool {
-    false
-}
-
-#[win32_derive::dllexport]
-pub fn GetEnvironmentVariableW(
-    _machine: &mut Machine,
-    name: Option<&Str16>,
-    buf: ArrayWithSize<u16>,
-) -> bool {
-    false
-}
-
-#[win32_derive::dllexport]
-pub fn SetEnvironmentVariableA(
-    _machine: &mut Machine,
-    name: Option<&str>,
-    value: Option<&str>,
-) -> bool {
-    true
 }
 
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -217,22 +148,6 @@ pub fn OutputDebugStringA(_machine: &mut Machine, msg: Option<&str>) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn WriteConsoleA(
-    _machine: &mut Machine,
-    hConsoleOutput: HANDLE<()>,
-    lpBuffer: ArrayWithSize<u8>,
-    lpNumberOfCharsWritten: Option<&mut u32>,
-    lpReserved: u32,
-) -> bool {
-    let msg = std::str::from_utf8(lpBuffer.unwrap()).unwrap();
-    log::debug!("WriteConsoleA: {:?}", msg);
-    if let Some(w) = lpNumberOfCharsWritten {
-        *w = msg.len() as u32;
-    }
-    true // success
-}
-
-#[win32_derive::dllexport]
 pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
@@ -262,85 +177,6 @@ unsafe impl ::memory::Pod for SLIST_HEADER {}
 pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
     ListHead.unwrap().Next = 0;
     0
-}
-
-/// Code pages
-#[derive(Debug, win32_derive::TryFromEnum)]
-pub enum CP {
-    /// The system default Windows ANSI code page.
-    ACP = 0,
-    OEMCP = 1,
-    WINDOWS_1252 = 1252,
-    UTF8 = 65001,
-}
-
-#[win32_derive::dllexport]
-pub fn MultiByteToWideChar(
-    machine: &mut Machine,
-    CodePage: Result<CP, u32>,
-    dwFlags: u32,
-    lpMultiByteStr: u32,
-    cbMultiByte: i32,
-    lpWideCharStr: ArrayWithSizeMut<u16>,
-) -> u32 {
-    match CodePage {
-        Err(value) => unimplemented!("MultiByteToWideChar code page {value}"),
-        _ => {} // treat all others as ansi for now
-    }
-    // TODO: dwFlags
-
-    let input_len = match cbMultiByte {
-        0 => return 0,                                               // TODO: invalid param
-        -1 => machine.mem().slicez(lpMultiByteStr).len() as u32 + 1, // include nul
-        len => len as u32,
-    };
-
-    let mut lpWideCharStr = lpWideCharStr.to_option();
-    match lpWideCharStr {
-        Some(buf) if buf.len() == 0 => lpWideCharStr = None,
-        _ => (),
-    };
-
-    match lpWideCharStr {
-        None => input_len,
-        Some(buf) => {
-            let input = machine.mem().sub32(lpMultiByteStr, input_len);
-            let mut len = 0;
-            for (&c_in, c_out) in std::iter::zip(input, buf) {
-                if c_in > 0x7f {
-                    unimplemented!("unicode");
-                }
-                *c_out = c_in as u16;
-                len += 1;
-            }
-            len
-        }
-    }
-}
-
-#[win32_derive::dllexport]
-pub fn WriteConsoleW(
-    machine: &mut Machine,
-    hConsoleOutput: HFILE,
-    lpBuffer: ArrayWithSize<u16>,
-    lpNumberOfCharsWritten: Option<&mut u32>,
-    _lpReserved: u32,
-) -> bool {
-    let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
-    let mut bytes_written = 0;
-    if !WriteFile(
-        machine,
-        hConsoleOutput,
-        Some(buf.as_bytes()),
-        Some(&mut bytes_written),
-        0,
-    ) {
-        return false;
-    }
-    if let Some(chars_written) = lpNumberOfCharsWritten {
-        *chars_written = bytes_written;
-    }
-    return bytes_written == buf.len() as u32;
 }
 
 #[win32_derive::dllexport]
@@ -506,15 +342,4 @@ pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominato
     }
 
     result as i32
-}
-
-#[win32_derive::dllexport]
-pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -> bool {
-    // TODO
-    false
-}
-
-#[win32_derive::dllexport]
-pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
-    false
 }

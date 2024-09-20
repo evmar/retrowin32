@@ -1,5 +1,8 @@
+use crate::str16::Str16;
 use crate::winapi::handle::HANDLE;
-use crate::winapi::types::{DWORD, WORD};
+use crate::winapi::kernel32::WriteFile;
+use crate::winapi::stack_args::ArrayWithSize;
+use crate::winapi::types::{DWORD, HFILE, WORD};
 use crate::Machine;
 
 const TRACE_CONTEXT: &'static str = "kernel32/console";
@@ -57,4 +60,45 @@ pub fn GetConsoleScreenBufferInfo(
         info.dwMaximumWindowSize = COORD { X: 80, Y: 25 };
     }
     true // success
+}
+
+#[win32_derive::dllexport]
+pub fn WriteConsoleA(
+    _machine: &mut Machine,
+    hConsoleOutput: HANDLE<()>,
+    lpBuffer: ArrayWithSize<u8>,
+    lpNumberOfCharsWritten: Option<&mut u32>,
+    lpReserved: u32,
+) -> bool {
+    let msg = std::str::from_utf8(lpBuffer.unwrap()).unwrap();
+    log::debug!("WriteConsoleA: {:?}", msg);
+    if let Some(w) = lpNumberOfCharsWritten {
+        *w = msg.len() as u32;
+    }
+    true // success
+}
+
+#[win32_derive::dllexport]
+pub fn WriteConsoleW(
+    machine: &mut Machine,
+    hConsoleOutput: HFILE,
+    lpBuffer: ArrayWithSize<u16>,
+    lpNumberOfCharsWritten: Option<&mut u32>,
+    _lpReserved: u32,
+) -> bool {
+    let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
+    let mut bytes_written = 0;
+    if !WriteFile(
+        machine,
+        hConsoleOutput,
+        Some(buf.as_bytes()),
+        Some(&mut bytes_written),
+        0,
+    ) {
+        return false;
+    }
+    if let Some(chars_written) = lpNumberOfCharsWritten {
+        *chars_written = bytes_written;
+    }
+    return bytes_written == buf.len() as u32;
 }
