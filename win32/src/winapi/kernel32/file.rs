@@ -1194,3 +1194,8 @@ mod tests {
         assert!(glob_match("FOO.txt", "foo.txt"));
     }
 }
+
+#[win32_derive::dllexport]
+pub fn FlushFileBuffers(machine: &mut Machine, hFile: HFILE) -> bool {
+    todo!();
+}

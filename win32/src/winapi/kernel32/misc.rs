@@ -43,6 +43,11 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
+pub fn TerminateProcess(_machine: &mut Machine, hProcess: u32, uExitCode: u32) -> bool {
+    todo!();
+}
+
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum ProcessorFeature {
     FLOATING_POINT_PRECISION_ERRATA = 0,
@@ -92,6 +97,16 @@ pub fn IsProcessorFeaturePresent(
 #[win32_derive::dllexport]
 pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
     true // Might cause a binary to log info via the debug API? Not sure.
+}
+
+#[win32_derive::dllexport]
+pub fn DebugBreak(_machine: &mut Machine) {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetCurrentProcess(_machine: &mut Machine) -> u32 {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -156,6 +171,17 @@ pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionF
 pub fn UnhandledExceptionFilter(_machine: &mut Machine, _exceptionInfo: u32) -> u32 {
     // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
     0 // EXCEPTION_CONTINUE_SEARCH
+}
+
+#[win32_derive::dllexport]
+pub fn RaiseException(
+    _machine: &mut Machine,
+    dwExceptionCode: u32,
+    dwExceptionFlags: u32,
+    nNumberOfArguments: u32,
+    lpArguments: u32,
+) {
+    todo!();
 }
 
 #[win32_derive::dllexport]
@@ -342,4 +368,15 @@ pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominato
     }
 
     result as i32
+}
+
+#[win32_derive::dllexport]
+pub fn RtlUnwind(
+    _machine: &mut Machine,
+    TargetFrame: u32,
+    TargetIp: u32,
+    ExceptionRecord: u32,
+    ReturnValue: u32,
+) {
+    todo!();
 }

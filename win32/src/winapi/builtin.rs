@@ -1906,6 +1906,10 @@ pub mod kernel32 {
                 .to_raw()
             })
         }
+        pub unsafe fn DebugBreak(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::DebugBreak(machine).to_raw()
+        }
         pub unsafe fn DeleteCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, esp + 4u32);
@@ -1967,6 +1971,11 @@ pub mod kernel32 {
             let lpName = <ResourceKey<&Str16>>::from_stack(mem, esp + 8u32);
             let lpType = <ResourceKey<&Str16>>::from_stack(mem, esp + 12u32);
             winapi::kernel32::FindResourceW(machine, hModule, lpName, lpType).to_raw()
+        }
+        pub unsafe fn FlushFileBuffers(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::FlushFileBuffers(machine, hFile).to_raw()
         }
         pub unsafe fn FormatMessageA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2065,6 +2074,10 @@ pub mod kernel32 {
             let nBufferLength = <u32>::from_stack(mem, esp + 4u32);
             let lpBuffer = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::GetCurrentDirectoryA(machine, nBufferLength, lpBuffer).to_raw()
+        }
+        pub unsafe fn GetCurrentProcess(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::GetCurrentProcess(machine).to_raw()
         }
         pub unsafe fn GetCurrentProcessId(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2205,6 +2218,10 @@ pub mod kernel32 {
             let lpModuleName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetModuleHandleW(machine, lpModuleName).to_raw()
         }
+        pub unsafe fn GetOEMCP(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::kernel32::GetOEMCP(machine).to_raw()
+        }
         pub unsafe fn GetPrivateProfileIntW(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpAppName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
@@ -2279,6 +2296,27 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let nStdHandle = <Result<STD, u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::GetStdHandle(machine, nStdHandle).to_raw()
+        }
+        pub unsafe fn GetStringTypeA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let Locale = <LCID>::from_stack(mem, esp + 4u32);
+            let dwInfoType = <u32>::from_stack(mem, esp + 8u32);
+            let lpSrcStr = <u32>::from_stack(mem, esp + 12u32);
+            let cchSrc = <i32>::from_stack(mem, esp + 16u32);
+            let lpCharType = <Option<&mut u32>>::from_stack(mem, esp + 20u32);
+            winapi::kernel32::GetStringTypeA(
+                machine, Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType,
+            )
+            .to_raw()
+        }
+        pub unsafe fn GetStringTypeW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwInfoType = <u32>::from_stack(mem, esp + 4u32);
+            let lpSrcStr = <u32>::from_stack(mem, esp + 8u32);
+            let cchSrc = <i32>::from_stack(mem, esp + 12u32);
+            let lpCharType = <Option<&mut u32>>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::GetStringTypeW(machine, dwInfoType, lpSrcStr, cchSrc, lpCharType)
+                .to_raw()
         }
         pub unsafe fn GetSystemDirectoryA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2400,6 +2438,13 @@ pub mod kernel32 {
             let lpMem = <u32>::from_stack(mem, esp + 12u32);
             winapi::kernel32::HeapSize(machine, hHeap, dwFlags, lpMem).to_raw()
         }
+        pub unsafe fn HeapValidate(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hHeap = <u32>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpMem = <u32>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::HeapValidate(machine, hHeap, dwFlags, lpMem).to_raw()
+        }
         pub unsafe fn InitOnceBeginInitialize(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, esp + 4u32);
@@ -2455,10 +2500,20 @@ pub mod kernel32 {
             let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::InitializeSListHead(machine, ListHead).to_raw()
         }
+        pub unsafe fn InterlockedDecrement(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let addend = <Option<&mut u32>>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::InterlockedDecrement(machine, addend).to_raw()
+        }
         pub unsafe fn InterlockedIncrement(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let addend = <Option<&mut u32>>::from_stack(mem, esp + 4u32);
             winapi::kernel32::InterlockedIncrement(machine, addend).to_raw()
+        }
+        pub unsafe fn IsBadCodePtr(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpfn = <u32>::from_stack(mem, esp + 4u32);
+            winapi::kernel32::IsBadCodePtr(machine, lpfn).to_raw()
         }
         pub unsafe fn IsBadReadPtr(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2496,6 +2551,26 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let CodePage = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::IsValidCodePage(machine, CodePage).to_raw()
+        }
+        pub unsafe fn LCMapStringA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locale = <LCID>::from_stack(mem, esp + 4u32);
+            let dwMapFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpSrcStr = <u32>::from_stack(mem, esp + 12u32);
+            let cchSrc = <i32>::from_stack(mem, esp + 16u32);
+            let lpDestStr = <ArrayWithSizeMut<u8>>::from_stack(mem, esp + 20u32);
+            winapi::kernel32::LCMapStringA(machine, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr)
+                .to_raw()
+        }
+        pub unsafe fn LCMapStringW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let locale = <LCID>::from_stack(mem, esp + 4u32);
+            let dwMapFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpSrcStr = <u32>::from_stack(mem, esp + 12u32);
+            let cchSrc = <i32>::from_stack(mem, esp + 16u32);
+            let lpDestStr = <ArrayWithSizeMut<u16>>::from_stack(mem, esp + 20u32);
+            winapi::kernel32::LCMapStringW(machine, locale, dwMapFlags, lpSrcStr, cchSrc, lpDestStr)
+                .to_raw()
         }
         pub unsafe fn LeaveCriticalSection(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2579,6 +2654,21 @@ pub mod kernel32 {
             let lpFrequency = <u32>::from_stack(mem, esp + 4u32);
             winapi::kernel32::QueryPerformanceFrequency(machine, lpFrequency).to_raw()
         }
+        pub unsafe fn RaiseException(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let dwExceptionCode = <u32>::from_stack(mem, esp + 4u32);
+            let dwExceptionFlags = <u32>::from_stack(mem, esp + 8u32);
+            let nNumberOfArguments = <u32>::from_stack(mem, esp + 12u32);
+            let lpArguments = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::RaiseException(
+                machine,
+                dwExceptionCode,
+                dwExceptionFlags,
+                nNumberOfArguments,
+                lpArguments,
+            )
+            .to_raw()
+        }
         pub unsafe fn ReadFile(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hFile = <HFILE>::from_stack(mem, esp + 4u32);
@@ -2607,6 +2697,21 @@ pub mod kernel32 {
             let mem = machine.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, esp + 4u32);
             winapi::kernel32::ResumeThread(machine, hThread).to_raw()
+        }
+        pub unsafe fn RtlUnwind(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let TargetFrame = <u32>::from_stack(mem, esp + 4u32);
+            let TargetIp = <u32>::from_stack(mem, esp + 8u32);
+            let ExceptionRecord = <u32>::from_stack(mem, esp + 12u32);
+            let ReturnValue = <u32>::from_stack(mem, esp + 16u32);
+            winapi::kernel32::RtlUnwind(
+                machine,
+                TargetFrame,
+                TargetIp,
+                ExceptionRecord,
+                ReturnValue,
+            )
+            .to_raw()
         }
         pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2737,6 +2842,12 @@ pub mod kernel32 {
             let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, esp + 8u32);
             winapi::kernel32::SystemTimeToFileTime(machine, lpSystemTime, lpFileTime).to_raw()
         }
+        pub unsafe fn TerminateProcess(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hProcess = <u32>::from_stack(mem, esp + 4u32);
+            let uExitCode = <u32>::from_stack(mem, esp + 8u32);
+            winapi::kernel32::TerminateProcess(machine, hProcess, uExitCode).to_raw()
+        }
         pub unsafe fn TlsAlloc(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::kernel32::TlsAlloc(machine).to_raw()
@@ -2810,6 +2921,27 @@ pub mod kernel32 {
             let hHandle = <HEVENT>::from_stack(mem, esp + 4u32);
             let dwMilliseconds = <u32>::from_stack(mem, esp + 8u32);
             winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds).to_raw()
+        }
+        pub unsafe fn WideCharToMultiByte(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let CodePage = <Result<CP, u32>>::from_stack(mem, esp + 4u32);
+            let dwFlags = <u32>::from_stack(mem, esp + 8u32);
+            let lpWideCharStr = <u32>::from_stack(mem, esp + 12u32);
+            let cchWideChar = <i32>::from_stack(mem, esp + 16u32);
+            let lpMultiByteStr = <u32>::from_stack(mem, esp + 20u32);
+            let cbMultiByte = <i32>::from_stack(mem, esp + 24u32);
+            let lpUsedDefaultChar = <Option<&mut u32>>::from_stack(mem, esp + 28u32);
+            winapi::kernel32::WideCharToMultiByte(
+                machine,
+                CodePage,
+                dwFlags,
+                lpWideCharStr,
+                cchWideChar,
+                lpMultiByteStr,
+                cbMultiByte,
+                lpUsedDefaultChar,
+            )
+            .to_raw()
         }
         pub unsafe fn WriteConsoleA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -2953,6 +3085,10 @@ pub mod kernel32 {
             name: "CreateThread",
             func: crate::shims::Handler::Async(impls::CreateThread),
         };
+        pub const DebugBreak: Shim = Shim {
+            name: "DebugBreak",
+            func: crate::shims::Handler::Sync(impls::DebugBreak),
+        };
         pub const DeleteCriticalSection: Shim = Shim {
             name: "DeleteCriticalSection",
             func: crate::shims::Handler::Sync(impls::DeleteCriticalSection),
@@ -2996,6 +3132,10 @@ pub mod kernel32 {
         pub const FindResourceW: Shim = Shim {
             name: "FindResourceW",
             func: crate::shims::Handler::Sync(impls::FindResourceW),
+        };
+        pub const FlushFileBuffers: Shim = Shim {
+            name: "FlushFileBuffers",
+            func: crate::shims::Handler::Sync(impls::FlushFileBuffers),
         };
         pub const FormatMessageA: Shim = Shim {
             name: "FormatMessageA",
@@ -3044,6 +3184,10 @@ pub mod kernel32 {
         pub const GetCurrentDirectoryA: Shim = Shim {
             name: "GetCurrentDirectoryA",
             func: crate::shims::Handler::Sync(impls::GetCurrentDirectoryA),
+        };
+        pub const GetCurrentProcess: Shim = Shim {
+            name: "GetCurrentProcess",
+            func: crate::shims::Handler::Sync(impls::GetCurrentProcess),
         };
         pub const GetCurrentProcessId: Shim = Shim {
             name: "GetCurrentProcessId",
@@ -3129,6 +3273,10 @@ pub mod kernel32 {
             name: "GetModuleHandleW",
             func: crate::shims::Handler::Sync(impls::GetModuleHandleW),
         };
+        pub const GetOEMCP: Shim = Shim {
+            name: "GetOEMCP",
+            func: crate::shims::Handler::Sync(impls::GetOEMCP),
+        };
         pub const GetPrivateProfileIntW: Shim = Shim {
             name: "GetPrivateProfileIntW",
             func: crate::shims::Handler::Sync(impls::GetPrivateProfileIntW),
@@ -3164,6 +3312,14 @@ pub mod kernel32 {
         pub const GetStdHandle: Shim = Shim {
             name: "GetStdHandle",
             func: crate::shims::Handler::Sync(impls::GetStdHandle),
+        };
+        pub const GetStringTypeA: Shim = Shim {
+            name: "GetStringTypeA",
+            func: crate::shims::Handler::Sync(impls::GetStringTypeA),
+        };
+        pub const GetStringTypeW: Shim = Shim {
+            name: "GetStringTypeW",
+            func: crate::shims::Handler::Sync(impls::GetStringTypeW),
         };
         pub const GetSystemDirectoryA: Shim = Shim {
             name: "GetSystemDirectoryA",
@@ -3241,6 +3397,10 @@ pub mod kernel32 {
             name: "HeapSize",
             func: crate::shims::Handler::Sync(impls::HeapSize),
         };
+        pub const HeapValidate: Shim = Shim {
+            name: "HeapValidate",
+            func: crate::shims::Handler::Sync(impls::HeapValidate),
+        };
         pub const InitOnceBeginInitialize: Shim = Shim {
             name: "InitOnceBeginInitialize",
             func: crate::shims::Handler::Sync(impls::InitOnceBeginInitialize),
@@ -3265,9 +3425,17 @@ pub mod kernel32 {
             name: "InitializeSListHead",
             func: crate::shims::Handler::Sync(impls::InitializeSListHead),
         };
+        pub const InterlockedDecrement: Shim = Shim {
+            name: "InterlockedDecrement",
+            func: crate::shims::Handler::Sync(impls::InterlockedDecrement),
+        };
         pub const InterlockedIncrement: Shim = Shim {
             name: "InterlockedIncrement",
             func: crate::shims::Handler::Sync(impls::InterlockedIncrement),
+        };
+        pub const IsBadCodePtr: Shim = Shim {
+            name: "IsBadCodePtr",
+            func: crate::shims::Handler::Sync(impls::IsBadCodePtr),
         };
         pub const IsBadReadPtr: Shim = Shim {
             name: "IsBadReadPtr",
@@ -3296,6 +3464,14 @@ pub mod kernel32 {
         pub const IsValidCodePage: Shim = Shim {
             name: "IsValidCodePage",
             func: crate::shims::Handler::Sync(impls::IsValidCodePage),
+        };
+        pub const LCMapStringA: Shim = Shim {
+            name: "LCMapStringA",
+            func: crate::shims::Handler::Sync(impls::LCMapStringA),
+        };
+        pub const LCMapStringW: Shim = Shim {
+            name: "LCMapStringW",
+            func: crate::shims::Handler::Sync(impls::LCMapStringW),
         };
         pub const LeaveCriticalSection: Shim = Shim {
             name: "LeaveCriticalSection",
@@ -3349,6 +3525,10 @@ pub mod kernel32 {
             name: "QueryPerformanceFrequency",
             func: crate::shims::Handler::Sync(impls::QueryPerformanceFrequency),
         };
+        pub const RaiseException: Shim = Shim {
+            name: "RaiseException",
+            func: crate::shims::Handler::Sync(impls::RaiseException),
+        };
         pub const ReadFile: Shim = Shim {
             name: "ReadFile",
             func: crate::shims::Handler::Sync(impls::ReadFile),
@@ -3368,6 +3548,10 @@ pub mod kernel32 {
         pub const ResumeThread: Shim = Shim {
             name: "ResumeThread",
             func: crate::shims::Handler::Sync(impls::ResumeThread),
+        };
+        pub const RtlUnwind: Shim = Shim {
+            name: "RtlUnwind",
+            func: crate::shims::Handler::Sync(impls::RtlUnwind),
         };
         pub const SetConsoleCtrlHandler: Shim = Shim {
             name: "SetConsoleCtrlHandler",
@@ -3441,6 +3625,10 @@ pub mod kernel32 {
             name: "SystemTimeToFileTime",
             func: crate::shims::Handler::Sync(impls::SystemTimeToFileTime),
         };
+        pub const TerminateProcess: Shim = Shim {
+            name: "TerminateProcess",
+            func: crate::shims::Handler::Sync(impls::TerminateProcess),
+        };
         pub const TlsAlloc: Shim = Shim {
             name: "TlsAlloc",
             func: crate::shims::Handler::Sync(impls::TlsAlloc),
@@ -3485,6 +3673,10 @@ pub mod kernel32 {
             name: "WaitForSingleObject",
             func: crate::shims::Handler::Sync(impls::WaitForSingleObject),
         };
+        pub const WideCharToMultiByte: Shim = Shim {
+            name: "WideCharToMultiByte",
+            func: crate::shims::Handler::Sync(impls::WideCharToMultiByte),
+        };
         pub const WriteConsoleA: Shim = Shim {
             name: "WriteConsoleA",
             func: crate::shims::Handler::Sync(impls::WriteConsoleA),
@@ -3526,7 +3718,7 @@ pub mod kernel32 {
             func: crate::shims::Handler::Async(impls::retrowin32_thread_main),
         };
     }
-    const SHIMS: [Shim; 152usize] = [
+    const SHIMS: [Shim; 167usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -3536,6 +3728,7 @@ pub mod kernel32 {
         shims::CreateFileA,
         shims::CreateFileW,
         shims::CreateThread,
+        shims::DebugBreak,
         shims::DeleteCriticalSection,
         shims::DeleteFileA,
         shims::DisableThreadLibraryCalls,
@@ -3547,6 +3740,7 @@ pub mod kernel32 {
         shims::FindNextFileA,
         shims::FindResourceA,
         shims::FindResourceW,
+        shims::FlushFileBuffers,
         shims::FormatMessageA,
         shims::FormatMessageW,
         shims::FreeEnvironmentStringsA,
@@ -3559,6 +3753,7 @@ pub mod kernel32 {
         shims::GetConsoleMode,
         shims::GetConsoleScreenBufferInfo,
         shims::GetCurrentDirectoryA,
+        shims::GetCurrentProcess,
         shims::GetCurrentProcessId,
         shims::GetCurrentThread,
         shims::GetCurrentThreadId,
@@ -3580,6 +3775,7 @@ pub mod kernel32 {
         shims::GetModuleHandleA,
         shims::GetModuleHandleExW,
         shims::GetModuleHandleW,
+        shims::GetOEMCP,
         shims::GetPrivateProfileIntW,
         shims::GetPrivateProfileStringW,
         shims::GetProcAddress,
@@ -3589,6 +3785,8 @@ pub mod kernel32 {
         shims::GetStartupInfoA,
         shims::GetStartupInfoW,
         shims::GetStdHandle,
+        shims::GetStringTypeA,
+        shims::GetStringTypeW,
         shims::GetSystemDirectoryA,
         shims::GetSystemTime,
         shims::GetSystemTimeAsFileTime,
@@ -3608,13 +3806,16 @@ pub mod kernel32 {
         shims::HeapReAlloc,
         shims::HeapSetInformation,
         shims::HeapSize,
+        shims::HeapValidate,
         shims::InitOnceBeginInitialize,
         shims::InitOnceComplete,
         shims::InitializeCriticalSection,
         shims::InitializeCriticalSectionAndSpinCount,
         shims::InitializeCriticalSectionEx,
         shims::InitializeSListHead,
+        shims::InterlockedDecrement,
         shims::InterlockedIncrement,
+        shims::IsBadCodePtr,
         shims::IsBadReadPtr,
         shims::IsBadWritePtr,
         shims::IsDBCSLeadByte,
@@ -3622,6 +3823,8 @@ pub mod kernel32 {
         shims::IsDebuggerPresent,
         shims::IsProcessorFeaturePresent,
         shims::IsValidCodePage,
+        shims::LCMapStringA,
+        shims::LCMapStringW,
         shims::LeaveCriticalSection,
         shims::LoadLibraryA,
         shims::LoadLibraryExW,
@@ -3635,11 +3838,13 @@ pub mod kernel32 {
         shims::OutputDebugStringA,
         shims::QueryPerformanceCounter,
         shims::QueryPerformanceFrequency,
+        shims::RaiseException,
         shims::ReadFile,
         shims::ReleaseSRWLockExclusive,
         shims::ReleaseSRWLockShared,
         shims::RemoveDirectoryA,
         shims::ResumeThread,
+        shims::RtlUnwind,
         shims::SetConsoleCtrlHandler,
         shims::SetEndOfFile,
         shims::SetEnvironmentVariableA,
@@ -3658,6 +3863,7 @@ pub mod kernel32 {
         shims::SizeofResource,
         shims::Sleep,
         shims::SystemTimeToFileTime,
+        shims::TerminateProcess,
         shims::TlsAlloc,
         shims::TlsFree,
         shims::TlsGetValue,
@@ -3669,6 +3875,7 @@ pub mod kernel32 {
         shims::VirtualProtect,
         shims::VirtualQuery,
         shims::WaitForSingleObject,
+        shims::WideCharToMultiByte,
         shims::WriteConsoleA,
         shims::WriteConsoleW,
         shims::WriteFile,

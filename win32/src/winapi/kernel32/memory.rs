@@ -307,6 +307,11 @@ pub fn HeapDestroy(_machine: &mut Machine, hHeap: u32) -> u32 {
     1 // success
 }
 
+#[win32_derive::dllexport]
+pub fn HeapValidate(_machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
+    todo!();
+}
+
 bitflags! {
     pub struct MEM: u32 {
         const COMMIT = 0x00001000;
@@ -425,6 +430,11 @@ pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
 
 #[win32_derive::dllexport]
 pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
+    false // all pointers are valid
+}
+
+#[win32_derive::dllexport]
+pub fn IsBadCodePtr(_machine: &mut Machine, lpfn: u32) -> bool {
     false // all pointers are valid
 }
 

@@ -133,6 +133,11 @@ pub fn InterlockedIncrement(_machine: &mut Machine, addend: Option<&mut u32>) ->
     *addend
 }
 
+#[win32_derive::dllexport]
+pub fn InterlockedDecrement(_machine: &mut Machine, addend: Option<&mut u32>) -> u32 {
+    todo!()
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct INIT_ONCE {

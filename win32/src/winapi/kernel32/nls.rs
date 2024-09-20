@@ -21,6 +21,11 @@ pub fn GetACP(_machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GetOEMCP(_machine: &mut Machine) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
     CodePage == 1252
 }
@@ -75,6 +80,20 @@ pub fn MultiByteToWideChar(
 }
 
 #[win32_derive::dllexport]
+pub fn WideCharToMultiByte(
+    machine: &mut Machine,
+    CodePage: Result<CP, u32>,
+    dwFlags: u32,
+    lpWideCharStr: u32,
+    cchWideChar: i32,
+    lpMultiByteStr: u32,
+    cbMultiByte: i32,
+    lpUsedDefaultChar: Option<&mut u32>,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -> bool {
     // TODO
     false
@@ -83,4 +102,53 @@ pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -
 #[win32_derive::dllexport]
 pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
     false
+}
+
+pub type LCID = u32;
+
+#[win32_derive::dllexport]
+pub fn LCMapStringA(
+    _machine: &mut Machine,
+    locale: LCID,
+    dwMapFlags: u32,
+    lpSrcStr: u32,
+    cchSrc: i32,
+    lpDestStr: ArrayWithSizeMut<u8>,
+) -> i32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn LCMapStringW(
+    _machine: &mut Machine,
+    locale: LCID,
+    dwMapFlags: u32,
+    lpSrcStr: u32,
+    cchSrc: i32,
+    lpDestStr: ArrayWithSizeMut<u16>,
+) -> i32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetStringTypeA(
+    _machine: &mut Machine,
+    Locale: LCID,
+    dwInfoType: u32,
+    lpSrcStr: u32,
+    cchSrc: i32,
+    lpCharType: Option<&mut u32>,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetStringTypeW(
+    _machine: &mut Machine,
+    dwInfoType: u32,
+    lpSrcStr: u32,
+    cchSrc: i32,
+    lpCharType: Option<&mut u32>,
+) -> bool {
+    todo!();
 }
