@@ -113,7 +113,7 @@ func render(entries map[string][]*Entry) error {
 		Categories []*catEntries
 	}
 
-	for _, cat := range []string{"demoscene", "other", "retrowin32 test"} {
+	for _, cat := range []string{"demoscene", "windows", "retrowin32 test"} {
 		tmplData.Categories = append(tmplData.Categories, &catEntries{Category: cat, Entries: entries[cat]})
 		delete(entries, cat)
 	}
