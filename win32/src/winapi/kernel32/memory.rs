@@ -443,8 +443,7 @@ impl<'a> stack_args::FromArg<'a> for GMEM {
     }
 }
 
-#[win32_derive::dllexport]
-pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
+fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     if uFlags.contains(GMEM::MOVEABLE) {
         todo!("GMEM_MOVEABLE");
     }
@@ -457,6 +456,11 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
         machine.mem().sub32_mut(addr, dwBytes).fill(0);
     }
     addr
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
+    alloc(machine, uFlags, dwBytes)
 }
 
 #[win32_derive::dllexport]
@@ -482,8 +486,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     addr
 }
 
-#[win32_derive::dllexport]
-pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+fn free(machine: &mut Machine, hMem: u32) -> u32 {
     let heap = machine
         .state
         .kernel32
@@ -493,18 +496,24 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
+    free(machine, hMem)
+}
+
+#[win32_derive::dllexport]
 pub fn GlobalFlags(_machine: &mut Machine, hMem: u32) -> u32 {
     0 // stub
 }
 
 #[win32_derive::dllexport]
 pub fn LocalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
-    GlobalAlloc(machine, uFlags, dwBytes)
+    // In theory this takes LMEM_* flags, but they are the same as GMEM_*.
+    alloc(machine, uFlags, dwBytes)
 }
 
 #[win32_derive::dllexport]
 pub fn LocalFree(machine: &mut Machine, hMem: u32) -> u32 {
-    GlobalFree(machine, hMem)
+    free(machine, hMem)
 }
 
 #[win32_derive::dllexport]
