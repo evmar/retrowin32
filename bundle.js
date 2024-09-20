@@ -623,109 +623,6 @@ var RegistersComponent = class extends d {
   }
 };
 
-// snapshots.tsx
-function idbRequest(req) {
-  return new Promise((res, rej) => {
-    req.onerror = (err) => {
-      rej(err);
-    };
-    req.onsuccess = function() {
-      res(this.result);
-    };
-  });
-}
-function finishTransaction(t2) {
-  return new Promise((res, rej) => {
-    t2.onerror = (err) => {
-      rej(err);
-    };
-    t2.oncomplete = function() {
-      res();
-    };
-  });
-}
-var SnapshotsComponent = class extends d {
-  async load() {
-    const req = indexedDB.open("retrowin32");
-    req.onupgradeneeded = () => {
-      const db2 = req.result;
-      db2.createObjectStore("image", { autoIncrement: true });
-      db2.createObjectStore("snap", { keyPath: "idbKey" });
-    };
-    const db = await idbRequest(req);
-    const snaps = await idbRequest(db.transaction("snap").objectStore("snap").getAll());
-    const st = { db, snaps };
-    this.setState({ state: "ok", data: st });
-    db.onerror = (error) => {
-      this.setState({
-        state: "error",
-        data: error.toString()
-      });
-    };
-    return st;
-  }
-  componentDidMount() {
-    this.load();
-  }
-  render() {
-    if (this.state.state === "ok") {
-      return /* @__PURE__ */ h(Snapshots, {
-        ...this.props,
-        ...this.state.data,
-        reload: () => this.load()
-      });
-    } else if (this.state.state === "error") {
-      return /* @__PURE__ */ h("section", null, "error: ", this.state.data);
-    } else {
-      return /* @__PURE__ */ h("section", null, "loading");
-    }
-  }
-};
-var Snapshots = class extends d {
-  async save() {
-    const image = this.props.take();
-    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
-    const idbKey = await idbRequest(t2.objectStore("image").add(image));
-    const snap = { idbKey, size: image.length };
-    await idbRequest(t2.objectStore("snap").add(snap));
-    await finishTransaction(t2);
-    this.props.reload();
-  }
-  async load(key) {
-    const t2 = this.props.db.transaction(["image"], "readonly");
-    const image = await idbRequest(t2.objectStore("image").get(key));
-    await finishTransaction(t2);
-    this.props.load(image);
-  }
-  async clear() {
-    const t2 = this.props.db.transaction(["snap", "image"], "readwrite");
-    t2.objectStore("snap").clear();
-    t2.objectStore("image").clear();
-    await finishTransaction(t2);
-    this.props.reload();
-  }
-  render() {
-    let snaps = [];
-    if (this.props.snaps.length > 0) {
-      for (const snap of this.props.snaps) {
-        snaps.push(
-          /* @__PURE__ */ h("div", null, snap.size, " bytes ", /* @__PURE__ */ h("button", {
-            onClick: () => this.load(snap.idbKey)
-          }, "load"))
-        );
-      }
-      snaps.push(
-        /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
-          onClick: () => this.clear()
-        }, "clear snapshots"))
-      );
-    }
-    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("p", null, /* @__PURE__ */ h("button", {
-      onClick: () => this.save()
-    }, "save snapshot")), snaps);
-  }
-};
-
 // stack.tsx
 var Stack = class extends d {
   render() {
@@ -917,6 +814,15 @@ function passStringToWasm0(arg, malloc, realloc) {
   WASM_VECTOR_LEN = offset;
   return ptr;
 }
+function getArrayU8FromWasm0(ptr, len) {
+  ptr = ptr >>> 0;
+  return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+function addToExternrefTable0(obj) {
+  const idx = wasm.__externref_table_alloc();
+  wasm.__wbindgen_export_2.set(idx, obj);
+  return idx;
+}
 function passArray8ToWasm0(arg, malloc) {
   const ptr = malloc(arg.length * 1, 1) >>> 0;
   getUint8Memory0().set(arg, ptr / 1);
@@ -928,20 +834,11 @@ function takeFromExternrefTable0(idx) {
   wasm.__externref_table_dealloc(idx);
   return value;
 }
-function getArrayU8FromWasm0(ptr, len) {
-  ptr = ptr >>> 0;
-  return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
-}
 function new_emulator(host, cmdline) {
   const ptr0 = passStringToWasm0(cmdline, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
   const len0 = WASM_VECTOR_LEN;
   const ret = wasm.new_emulator(host, ptr0, len0);
   return Emulator.__wrap(ret);
-}
-function addToExternrefTable0(obj) {
-  const idx = wasm.__externref_table_alloc();
-  wasm.__wbindgen_export_2.set(idx, obj);
-  return idx;
 }
 function handleError(f2, args) {
   try {
@@ -962,7 +859,7 @@ function getClampedArrayU8FromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-var CPUState = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", Exit: 3, "3": "Exit" });
+var CPUState = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", DebugBreak: 3, "3": "DebugBreak", Exit: 4, "4": "Exit" });
 var EmulatorFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
 }, unregister: () => {
 } } : new FinalizationRegistry((ptr) => wasm.__wbg_emulator_free(ptr >>> 0));
@@ -1105,28 +1002,67 @@ var Emulator = class {
   poke(addr, value) {
     wasm.emulator_poke(this.__wbg_ptr, addr, value);
   }
-  snapshot() {
-    try {
-      const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-      wasm.emulator_snapshot(retptr, this.__wbg_ptr);
-      var r0 = getInt32Memory0()[retptr / 4 + 0];
-      var r1 = getInt32Memory0()[retptr / 4 + 1];
-      var v1 = getArrayU8FromWasm0(r0, r1).slice();
-      wasm.__wbindgen_free(r0, r1 * 1, 1);
-      return v1;
-    } finally {
-      wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-  }
-  load_snapshot(bytes) {
-    const ptr0 = passArray8ToWasm0(bytes, wasm.__wbindgen_malloc);
-    const len0 = WASM_VECTOR_LEN;
-    wasm.emulator_load_snapshot(this.__wbg_ptr, ptr0, len0);
-  }
   set_tracing_scheme(scheme) {
     const ptr0 = passStringToWasm0(scheme, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
     const len0 = WASM_VECTOR_LEN;
     wasm.emulator_set_tracing_scheme(this.__wbg_ptr, ptr0, len0);
+  }
+};
+var FileOptionsFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
+}, unregister: () => {
+} } : new FinalizationRegistry((ptr) => wasm.__wbg_fileoptions_free(ptr >>> 0));
+var FileOptions = class {
+  static __wrap(ptr) {
+    ptr = ptr >>> 0;
+    const obj = Object.create(FileOptions.prototype);
+    obj.__wbg_ptr = ptr;
+    FileOptionsFinalization.register(obj, obj.__wbg_ptr, obj);
+    return obj;
+  }
+  __destroy_into_raw() {
+    const ptr = this.__wbg_ptr;
+    this.__wbg_ptr = 0;
+    FileOptionsFinalization.unregister(this);
+    return ptr;
+  }
+  free() {
+    const ptr = this.__destroy_into_raw();
+    wasm.__wbg_fileoptions_free(ptr);
+  }
+  get read() {
+    const ret = wasm.__wbg_get_fileoptions_read(this.__wbg_ptr);
+    return ret !== 0;
+  }
+  set read(arg0) {
+    wasm.__wbg_set_fileoptions_read(this.__wbg_ptr, arg0);
+  }
+  get write() {
+    const ret = wasm.__wbg_get_fileoptions_write(this.__wbg_ptr);
+    return ret !== 0;
+  }
+  set write(arg0) {
+    wasm.__wbg_set_fileoptions_write(this.__wbg_ptr, arg0);
+  }
+  get truncate() {
+    const ret = wasm.__wbg_get_fileoptions_truncate(this.__wbg_ptr);
+    return ret !== 0;
+  }
+  set truncate(arg0) {
+    wasm.__wbg_set_fileoptions_truncate(this.__wbg_ptr, arg0);
+  }
+  get create() {
+    const ret = wasm.__wbg_get_fileoptions_create(this.__wbg_ptr);
+    return ret !== 0;
+  }
+  set create(arg0) {
+    wasm.__wbg_set_fileoptions_create(this.__wbg_ptr, arg0);
+  }
+  get create_new() {
+    const ret = wasm.__wbg_get_fileoptions_create_new(this.__wbg_ptr);
+    return ret !== 0;
+  }
+  set create_new(arg0) {
+    wasm.__wbg_set_fileoptions_create_new(this.__wbg_ptr, arg0);
   }
 };
 var SurfaceOptionsFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
@@ -1159,34 +1095,47 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
   const imports = {};
   imports.wbg = {};
-  imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
-    const ret = new Error(getStringFromWasm0(arg0, arg1));
+  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
+    const ret = arg0.read(getArrayU8FromWasm0(arg1, arg2));
     return ret;
   };
-  imports.wbg.__wbindgen_memory = function() {
-    const ret = wasm.memory;
+  imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function(arg0, arg1) {
+    const ret = arg0.seek(arg1 >>> 0);
     return ret;
   };
-  imports.wbg.__wbg_buffer_12d079cc21e14bdb = function(arg0) {
-    const ret = arg0.buffer;
+  imports.wbg.__wbg_write_3b537d4aeda328c0 = function(arg0, arg1, arg2) {
+    const ret = arg0.write(getArrayU8FromWasm0(arg1, arg2));
     return ret;
   };
-  imports.wbg.__wbg_byteLength_2e8dcbbe54bdad62 = function(arg0) {
-    const ret = arg0.byteLength;
-    return ret;
-  };
-  imports.wbg.__wbg_new_6308304d72aede55 = function(arg0, arg1, arg2) {
-    const ret = new DataView(arg0, arg1 >>> 0, arg2 >>> 0);
-    return ret;
-  };
-  imports.wbg.__wbg_parse_66d1801634e099ac = function() {
-    return handleError(function(arg0, arg1) {
-      const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
+  imports.wbg.__wbg_newwithu8clampedarray_ae824147b27925fc = function() {
+    return handleError(function(arg0, arg1, arg2) {
+      const ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
       return ret;
     }, arguments);
   };
-  imports.wbg.__wbg_read_ca96830ec9aacdcf = function(arg0, arg1, arg2) {
-    const ret = arg0.read(getArrayU8FromWasm0(arg1, arg2));
+  imports.wbg.__wbg_putImageData_044c08ad889366e1 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3) {
+      arg0.putImageData(arg1, arg2, arg3);
+    }, arguments);
+  };
+  imports.wbg.__wbg_drawImage_26ad546f3bb64a22 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3) {
+      arg0.drawImage(arg1, arg2, arg3);
+    }, arguments);
+  };
+  imports.wbg.__wbg_drawImage_5a754349d9fbf4a6 = function() {
+    return handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
+      arg0.drawImage(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
+    }, arguments);
+  };
+  imports.wbg.__wbg_settitle_b48ee927b9814f5c = function(arg0, arg1, arg2) {
+    arg0.title = getStringFromWasm0(arg1, arg2);
+  };
+  imports.wbg.__wbg_setsize_7bcb3132fd38238f = function(arg0, arg1, arg2) {
+    arg0.set_size(arg1 >>> 0, arg2 >>> 0);
+  };
+  imports.wbg.__wbg_info_2551d10805917111 = function(arg0) {
+    const ret = arg0.info();
     return ret;
   };
   imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
@@ -1208,6 +1157,26 @@ function __wbg_get_imports() {
   };
   imports.wbg.__wbg_now_4e659b3d15f470d9 = function(arg0) {
     const ret = arg0.now();
+    return ret;
+  };
+  imports.wbg.__wbg_new0_7d84e5b2cd9fdc73 = function() {
+    const ret = new Date();
+    return ret;
+  };
+  imports.wbg.__wbg_getTime_2bc4375165f02d15 = function(arg0) {
+    const ret = arg0.getTime();
+    return ret;
+  };
+  imports.wbg.__wbindgen_number_new = function(arg0) {
+    const ret = arg0;
+    return ret;
+  };
+  imports.wbg.__wbg_new_cf3ec55744a78578 = function(arg0) {
+    const ret = new Date(arg0);
+    return ret;
+  };
+  imports.wbg.__wbg_getTimezoneOffset_38257122e236c190 = function(arg0) {
+    const ret = arg0.getTimezoneOffset();
     return ret;
   };
   imports.wbg.__wbg_getevent_4f4de425a52104de = function(arg0) {
@@ -1234,6 +1203,10 @@ function __wbg_get_imports() {
     getFloat64Memory0()[arg0 / 8 + 1] = isLikeNone(ret) ? 0 : ret;
     getInt32Memory0()[arg0 / 4 + 0] = !isLikeNone(ret);
   };
+  imports.wbg.__wbg_timeStamp_33be24162c74bf21 = function(arg0) {
+    const ret = arg0.timeStamp;
+    return ret;
+  };
   imports.wbg.__wbg_type_c7f33162571befe7 = function(arg0, arg1) {
     const ret = arg1.type;
     const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
@@ -1256,17 +1229,9 @@ function __wbg_get_imports() {
   imports.wbg.__wbg_ensuretimer_752ace6fb471cdd4 = function(arg0, arg1) {
     arg0.ensure_timer(arg1 >>> 0);
   };
-  imports.wbg.__wbg_open_61490d64358619c7 = function(arg0, arg1, arg2) {
-    const ret = arg0.open(getStringFromWasm0(arg1, arg2));
-    return ret;
-  };
-  imports.wbg.__wbg_info_2551d10805917111 = function(arg0) {
-    const ret = arg0.info();
-    return ret;
-  };
-  imports.wbg.__wbg_seek_c5471dc2ba4d64bc = function(arg0, arg1) {
-    const ret = arg0.seek(arg1 >>> 0);
-    return ret;
+  imports.wbg.__wbg_open_61490d64358619c7 = function(arg0, arg1, arg2, arg3) {
+    const ret = arg0.open(getStringFromWasm0(arg1, arg2), FileOptions.__wrap(arg3));
+    return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
   };
   imports.wbg.__wbg_stdout_e61c589931436d69 = function(arg0, arg1, arg2) {
     arg0.stdout(getArrayU8FromWasm0(arg1, arg2));
@@ -1274,12 +1239,6 @@ function __wbg_get_imports() {
   imports.wbg.__wbg_createwindow_79bbfe483866ee8c = function(arg0, arg1) {
     const ret = arg0.create_window(arg1 >>> 0);
     return ret;
-  };
-  imports.wbg.__wbg_settitle_b48ee927b9814f5c = function(arg0, arg1, arg2) {
-    arg0.title = getStringFromWasm0(arg1, arg2);
-  };
-  imports.wbg.__wbg_setsize_7bcb3132fd38238f = function(arg0, arg1, arg2) {
-    arg0.set_size(arg1 >>> 0, arg2 >>> 0);
   };
   imports.wbg.__wbg_screen_0825c896804feac9 = function(arg0) {
     const ret = arg0.screen();
@@ -1326,25 +1285,30 @@ function __wbg_get_imports() {
   imports.wbg.__wbg_fill_7f376d2e52c3054e = function(arg0) {
     arg0.fill();
   };
-  imports.wbg.__wbg_newwithu8clampedarray_ae824147b27925fc = function() {
-    return handleError(function(arg0, arg1, arg2) {
-      const ret = new ImageData(getClampedArrayU8FromWasm0(arg0, arg1), arg2 >>> 0);
+  imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
+    const ret = new Error(getStringFromWasm0(arg0, arg1));
+    return ret;
+  };
+  imports.wbg.__wbindgen_memory = function() {
+    const ret = wasm.memory;
+    return ret;
+  };
+  imports.wbg.__wbg_buffer_12d079cc21e14bdb = function(arg0) {
+    const ret = arg0.buffer;
+    return ret;
+  };
+  imports.wbg.__wbg_byteLength_2e8dcbbe54bdad62 = function(arg0) {
+    const ret = arg0.byteLength;
+    return ret;
+  };
+  imports.wbg.__wbg_new_6308304d72aede55 = function(arg0, arg1, arg2) {
+    const ret = new DataView(arg0, arg1 >>> 0, arg2 >>> 0);
+    return ret;
+  };
+  imports.wbg.__wbg_parse_66d1801634e099ac = function() {
+    return handleError(function(arg0, arg1) {
+      const ret = JSON.parse(getStringFromWasm0(arg0, arg1));
       return ret;
-    }, arguments);
-  };
-  imports.wbg.__wbg_putImageData_044c08ad889366e1 = function() {
-    return handleError(function(arg0, arg1, arg2, arg3) {
-      arg0.putImageData(arg1, arg2, arg3);
-    }, arguments);
-  };
-  imports.wbg.__wbg_drawImage_26ad546f3bb64a22 = function() {
-    return handleError(function(arg0, arg1, arg2, arg3) {
-      arg0.drawImage(arg1, arg2, arg3);
-    }, arguments);
-  };
-  imports.wbg.__wbg_drawImage_5a754349d9fbf4a6 = function() {
-    return handleError(function(arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9) {
-      arg0.drawImage(arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9);
     }, arguments);
   };
   imports.wbg.__wbg_log_21bd4d15c3d236fe = function(arg0, arg1, arg2, arg3) {
@@ -1460,6 +1424,7 @@ var Window2 = class {
     };
     this.canvas.onmousedown = stashEvent;
     this.canvas.onmouseup = stashEvent;
+    this.canvas.onmousemove = stashEvent;
     this.canvas.oncontextmenu = (ev) => {
       return false;
     };
@@ -1497,6 +1462,10 @@ var File = class {
     this.ofs += n2;
     return n2;
   }
+  write(buf) {
+    console.warn("ignoring write");
+    return buf.length;
+  }
 };
 async function fetchFileSet(files, dir = "") {
   const fileset = /* @__PURE__ */ new Map();
@@ -1516,20 +1485,19 @@ var JsHost = class {
   decoder = new TextDecoder();
   log(level, msg) {
     switch (level) {
-      case 5:
+      case 1:
         console.error(msg);
-        this.emuHost.onError(msg);
+        if (this.emuHost)
+          this.emuHost.onError(msg);
         break;
-      case 4:
+      case 2:
         console.warn(msg);
         break;
       case 3:
         console.info(msg);
         break;
-      case 2:
-        console.log(msg);
-        break;
-      case 1:
+      case 4:
+      case 5:
         console.debug(msg);
         break;
       default:
@@ -1564,8 +1532,7 @@ var JsHost = class {
   open(path) {
     let bytes = this.files.get(path);
     if (!bytes) {
-      console.error(`unknown file ${path}, returning empty file`);
-      bytes = new Uint8Array();
+      return null;
     }
     return new File(path, bytes);
   }
@@ -1688,7 +1655,7 @@ var Emulator2 = class extends JsHost {
     switch (cpuState) {
       case CPUState.Running:
         return true;
-      case CPUState.Blocked: {
+      case CPUState.DebugBreak: {
         const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
         if (bp) {
           if (!bp.oneShot) {
@@ -1698,6 +1665,7 @@ var Emulator2 = class extends JsHost {
         }
         return false;
       }
+      case CPUState.Blocked:
       case CPUState.Error:
       case CPUState.Exit:
         this.emuHost.onStopped();
@@ -1965,13 +1933,6 @@ exited with code ${code}`);
           labels: this.props.emulator.labels,
           highlight: eip,
           ...this.memoryView
-        }),
-        snapshots: () => /* @__PURE__ */ h(SnapshotsComponent, {
-          take: () => this.props.emulator.emu.snapshot(),
-          load: (snap) => {
-            this.props.emulator.emu.load_snapshot(snap);
-            this.forceUpdate();
-          }
         })
       },
       selected: this.state.selectedTab,
