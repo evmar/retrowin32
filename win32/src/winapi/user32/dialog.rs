@@ -106,3 +106,18 @@ pub fn DialogBoxIndirectParamA(
     log::warn!("TODO: not showing dialog");
     -1 // error
 }
+
+#[win32_derive::dllexport]
+pub fn SetDlgItemTextA(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    lpString: Option<&str>,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn EndDialog(_machine: &mut Machine, hDlg: HWND, nResult: Option<&mut u32>) -> bool {
+    todo!();
+}

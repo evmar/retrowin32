@@ -195,6 +195,11 @@ pub mod bass {
             let mode = <u32>::from_stack(mem, esp + 4u32);
             winapi::bass::BASS_ChannelGetPosition(machine, mode).to_raw()
         }
+        pub unsafe fn BASS_Free(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let arg1 = <u32>::from_stack(mem, esp + 4u32);
+            winapi::bass::BASS_Free(machine, arg1).to_raw()
+        }
         pub unsafe fn BASS_Init(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let arg1 = <u32>::from_stack(mem, esp + 4u32);
@@ -235,6 +240,10 @@ pub mod bass {
             name: "BASS_ChannelGetPosition",
             func: crate::shims::Handler::Sync(impls::BASS_ChannelGetPosition),
         };
+        pub const BASS_Free: Shim = Shim {
+            name: "BASS_Free",
+            func: crate::shims::Handler::Sync(impls::BASS_Free),
+        };
         pub const BASS_Init: Shim = Shim {
             name: "BASS_Init",
             func: crate::shims::Handler::Sync(impls::BASS_Init),
@@ -256,8 +265,9 @@ pub mod bass {
             func: crate::shims::Handler::Sync(impls::BASS_Start),
         };
     }
-    const SHIMS: [Shim; 6usize] = [
+    const SHIMS: [Shim; 7usize] = [
         shims::BASS_ChannelGetPosition,
+        shims::BASS_Free,
         shims::BASS_Init,
         shims::BASS_MusicLoad,
         shims::BASS_MusicPlay,
@@ -4723,6 +4733,12 @@ pub mod user32 {
             let uFormat = <u32>::from_stack(mem, esp + 20u32);
             winapi::user32::DrawTextW(machine, hDC, lpString, nCount, lpRect, uFormat).to_raw()
         }
+        pub unsafe fn EndDialog(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nResult = <Option<&mut u32>>::from_stack(mem, esp + 8u32);
+            winapi::user32::EndDialog(machine, hDlg, nResult).to_raw()
+        }
         pub unsafe fn EndPaint(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -5139,6 +5155,13 @@ pub mod user32 {
             let hCursor = <u32>::from_stack(mem, esp + 4u32);
             winapi::user32::SetCursor(machine, hCursor).to_raw()
         }
+        pub unsafe fn SetDlgItemTextA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            let lpString = <Option<&str>>::from_stack(mem, esp + 12u32);
+            winapi::user32::SetDlgItemTextA(machine, hDlg, nIDDlgItem, lpString).to_raw()
+        }
         pub unsafe fn SetFocus(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -5347,6 +5370,10 @@ pub mod user32 {
         pub const DrawTextW: Shim = Shim {
             name: "DrawTextW",
             func: crate::shims::Handler::Sync(impls::DrawTextW),
+        };
+        pub const EndDialog: Shim = Shim {
+            name: "EndDialog",
+            func: crate::shims::Handler::Sync(impls::EndDialog),
         };
         pub const EndPaint: Shim = Shim {
             name: "EndPaint",
@@ -5580,6 +5607,10 @@ pub mod user32 {
             name: "SetCursor",
             func: crate::shims::Handler::Sync(impls::SetCursor),
         };
+        pub const SetDlgItemTextA: Shim = Shim {
+            name: "SetDlgItemTextA",
+            func: crate::shims::Handler::Sync(impls::SetDlgItemTextA),
+        };
         pub const SetFocus: Shim = Shim {
             name: "SetFocus",
             func: crate::shims::Handler::Sync(impls::SetFocus),
@@ -5649,7 +5680,7 @@ pub mod user32 {
             func: crate::shims::Handler::Sync(impls::wsprintfA),
         };
     }
-    const SHIMS: [Shim; 93usize] = [
+    const SHIMS: [Shim; 95usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -5668,6 +5699,7 @@ pub mod user32 {
         shims::DispatchMessageA,
         shims::DispatchMessageW,
         shims::DrawTextW,
+        shims::EndDialog,
         shims::EndPaint,
         shims::FillRect,
         shims::FindWindowA,
@@ -5726,6 +5758,7 @@ pub mod user32 {
         shims::SendMessageA,
         shims::SetCapture,
         shims::SetCursor,
+        shims::SetDlgItemTextA,
         shims::SetFocus,
         shims::SetForegroundWindow,
         shims::SetMenu,

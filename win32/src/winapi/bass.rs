@@ -68,3 +68,8 @@ pub fn BASS_ChannelGetPosition(machine: &mut Machine, mode: u32) -> u32 {
 pub fn BASS_MusicSetPositionScaler(_machine: &mut Machine, arg1: u32, arg2: u32) -> u32 {
     1
 }
+
+#[win32_derive::dllexport]
+pub fn BASS_Free(_machine: &mut Machine, arg1: u32) -> u32 {
+    1
+}
