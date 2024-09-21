@@ -36,7 +36,7 @@ fn bit_blt(
     mut sy: isize,
     sstride: usize,
     flush_alpha: bool,
-    rop: u32,
+    rop: RasterOp,
 ) {
     let min_x = min(dx, sx);
     let min_y = min(dy, sy);
@@ -65,10 +65,10 @@ fn bit_blt(
         let dst_row = &mut dst[dst_off as usize..][..w as usize];
         let src_row = &src[src_off as usize..][..w as usize];
         match rop {
-            SRCCOPY => {
+            RasterOp::SRCCOPY => {
                 dst_row.copy_from_slice(src_row);
             }
-            NOTSRCCOPY => {
+            RasterOp::NOTSRCCOPY => {
                 for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
                     d[0] = !s[0];
                     d[1] = !s[1];
@@ -76,7 +76,7 @@ fn bit_blt(
                     d[3] = s[3];
                 }
             }
-            SRCAND => {
+            RasterOp::SRCAND => {
                 for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
                     d[0] &= s[0];
                     d[1] &= s[1];
@@ -84,7 +84,7 @@ fn bit_blt(
                     d[3] &= s[3];
                 }
             }
-            _ => todo!("unimplemented BitBlt with rop={:x}", rop),
+            _ => todo!("unimplemented BitBlt with rop={rop:?}"),
         }
         if flush_alpha {
             for p in dst_row {
@@ -102,7 +102,7 @@ fn pat_blt(
     mut w: isize,
     mut h: isize,
     color: [u8; 4],
-    rop: u32,
+    rop: RasterOp,
 ) {
     if x < 0 {
         w += x;
@@ -122,22 +122,25 @@ fn pat_blt(
         }
         let dst_row = &mut dst[dst_off as usize..][..w as usize];
         match rop {
-            PATCOPY => {
+            RasterOp::PATCOPY => {
                 dst_row.fill(color);
             }
-            BLACKNESS => {
+            RasterOp::BLACKNESS => {
                 dst_row.fill([0, 0, 0, 0xFF]);
             }
-            _ => todo!("unimplemented PatBlt with rop={:x}", rop),
+            _ => todo!("unimplemented PatBlt with rop={rop:?}"),
         }
     }
 }
 
-const SRCCOPY: u32 = 0xcc0020;
-const NOTSRCCOPY: u32 = 0x330008;
-const SRCAND: u32 = 0x8800c6;
-const PATCOPY: u32 = 0xf00021;
-const BLACKNESS: u32 = 0x000042;
+#[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
+pub enum RasterOp {
+    SRCCOPY = 0xcc0020,
+    NOTSRCCOPY = 0x330008,
+    SRCAND = 0x8800c6,
+    PATCOPY = 0xf00021,
+    BLACKNESS = 0x000042,
+}
 
 #[win32_derive::dllexport]
 pub fn BitBlt(
@@ -150,11 +153,20 @@ pub fn BitBlt(
     hdcSrc: HDC,
     x1: i32,
     y1: i32,
-    rop: u32,
+    rop: Result<RasterOp, u32>,
 ) -> bool {
-    if rop == BLACKNESS {
+    let rop = rop.unwrap();
+    if rop == RasterOp::BLACKNESS {
         // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
-        return PatBlt(machine, hdc, x, y, cx as i32, cy as i32, BLACKNESS);
+        return PatBlt(
+            machine,
+            hdc,
+            x,
+            y,
+            cx as i32,
+            cy as i32,
+            Ok(RasterOp::BLACKNESS),
+        );
     }
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
@@ -255,7 +267,7 @@ pub fn StretchBlt(
     ySrc: i32,
     wSrc: u32,
     hSrc: u32,
-    rop: u32,
+    rop: Result<RasterOp, u32>,
 ) -> bool {
     if wDest != wSrc || hDest != hSrc {
         todo!("unimp: StretchBlt with actual stretching");
@@ -266,7 +278,16 @@ pub fn StretchBlt(
 }
 
 #[win32_derive::dllexport]
-pub fn PatBlt(machine: &mut Machine, hdc: HDC, x: i32, y: i32, w: i32, h: i32, rop: u32) -> bool {
+pub fn PatBlt(
+    machine: &mut Machine,
+    hdc: HDC,
+    x: i32,
+    y: i32,
+    w: i32,
+    h: i32,
+    rop: Result<RasterOp, u32>,
+) -> bool {
+    let rop = rop.unwrap();
     let Some(dc) = machine.state.gdi32.dcs.get(hdc) else {
         log::warn!("PatBlt: ignoring invalid DC {hdc:?}");
         return false;
@@ -501,7 +522,7 @@ pub fn SetDIBitsToDevice(
         ySrc as isize,
         src_bitmap.width as usize,
         flush_alpha,
-        SRCCOPY,
+        RasterOp::SRCCOPY,
     );
 
     match dc.target {
@@ -519,11 +540,6 @@ pub fn SetDIBitsToDevice(
     }
 
     cLines
-}
-
-#[derive(Debug, win32_derive::TryFromEnum)]
-pub enum RasterOp {
-    SRCCOPY = 0xcc0020,
 }
 
 #[win32_derive::dllexport]

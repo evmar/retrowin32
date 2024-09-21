@@ -1276,7 +1276,7 @@ pub mod gdi32 {
             let hdcSrc = <HDC>::from_stack(mem, esp + 24u32);
             let x1 = <i32>::from_stack(mem, esp + 28u32);
             let y1 = <i32>::from_stack(mem, esp + 32u32);
-            let rop = <u32>::from_stack(mem, esp + 36u32);
+            let rop = <Result<RasterOp, u32>>::from_stack(mem, esp + 36u32);
             winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop).to_raw()
         }
         pub unsafe fn CreateBitmap(machine: &mut Machine, esp: u32) -> u32 {
@@ -1465,7 +1465,7 @@ pub mod gdi32 {
             let y = <i32>::from_stack(mem, esp + 12u32);
             let w = <i32>::from_stack(mem, esp + 16u32);
             let h = <i32>::from_stack(mem, esp + 20u32);
-            let rop = <u32>::from_stack(mem, esp + 24u32);
+            let rop = <Result<RasterOp, u32>>::from_stack(mem, esp + 24u32);
             winapi::gdi32::PatBlt(machine, hdc, x, y, w, h, rop).to_raw()
         }
         pub unsafe fn PtVisible(machine: &mut Machine, esp: u32) -> u32 {
@@ -1553,7 +1553,7 @@ pub mod gdi32 {
             let ySrc = <i32>::from_stack(mem, esp + 32u32);
             let wSrc = <u32>::from_stack(mem, esp + 36u32);
             let hSrc = <u32>::from_stack(mem, esp + 40u32);
-            let rop = <u32>::from_stack(mem, esp + 44u32);
+            let rop = <Result<RasterOp, u32>>::from_stack(mem, esp + 44u32);
             winapi::gdi32::StretchBlt(
                 machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
             )
