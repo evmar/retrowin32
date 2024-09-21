@@ -2,6 +2,12 @@
 
 ## Setup
 
+Build requirements:
+
+- the Rust toolchain
+- [optional] for native graphics, [SDL](https://www.libsdl.org/)
+- [optional] if making Windows API changes, the Clang toolchain
+
 ### Mac
 
 ```
@@ -110,8 +116,8 @@ And sometimes I add:
 - `--release` when the debug build runs too slowly, and
 - `-F x86-emu,sdl` for GUI support
 
-Note if you make a change to functions exported in the `win32/src/winapi/`
-layer, you must re-run the code generator as documented in [`win32/`](win32/).
+If you make a change to functions exported in the `win32/src/winapi/` layer, you
+must re-run the code generator as documented in [`win32/`](win32/).
 
 ## Code layout
 
