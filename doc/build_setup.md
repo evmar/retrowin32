@@ -14,7 +14,7 @@ If you're making Windows API changes or see build errors about missing
 [win32/README.md](../win32/README.md).
 
 If you are building the various helper test programs or see build errors about a
-missing `$XWIN` variable, you need the Windows SDK (see below for setup).
+missing `kernel32.lib`, you need the Windows SDK (see below for setup).
 
 ## SDL
 
