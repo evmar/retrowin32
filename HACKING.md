@@ -2,26 +2,7 @@
 
 ## Setup
 
-Build requirements:
-
-- the Rust toolchain
-- [optional] for native graphics, [SDL](https://www.libsdl.org/)
-- [optional] if making Windows API changes, the Clang toolchain
-
-### Mac
-
-```
-$ brew install sdl2
-$ export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
-```
-
-### Linux
-
-Debian/Ubuntu:
-
-```
-$ sudo apt install libsdl2-dev
-```
+See [build setup docs](doc/build_setup.md) for initial build requirements.
 
 ## CLI build
 
@@ -91,9 +72,6 @@ working on different sets of features:
   "x86-emu",
   "sdl"
 ],
-"rust-analyzer.cargo.extraEnv": {
-  "XWIN": "/Users/evmar/redist"
-}
 ```
 
 ## Building while developing
