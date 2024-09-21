@@ -18,3 +18,9 @@ impl Default for State {
         }
     }
 }
+
+impl State {
+    pub fn new_window_dc(&mut self, hwnd: HWND) -> HDC {
+        self.dcs.add(DC::new(DCTarget::Window(hwnd)))
+    }
+}

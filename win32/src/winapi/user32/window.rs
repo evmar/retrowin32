@@ -3,6 +3,7 @@ use crate::{
     host,
     str16::expect_ascii,
     winapi::{
+        self,
         bitmap::{self, BitmapRGBA32},
         gdi32::HDC,
         stack_args::{ArrayWithSize, FromArg},
@@ -91,7 +92,8 @@ pub enum WindowType {
 pub struct WindowTopLevel {
     pub host: Box<dyn host::Window>,
     pub surface: Box<dyn host::Surface>,
-    pub hdc: HDC,
+    // TODO: CS_OWNDC windows do own a DC, but otherwise they don't.
+    // pub hdc: HDC,
     pub pixels: Option<WindowPixels>,
     pub dirty: Option<UpdateRegion>,
 }
@@ -471,9 +473,6 @@ pub async fn CreateWindowExW(
         WindowType::TopLevel(WindowTopLevel {
             host: host_win,
             surface,
-            hdc: machine.state.gdi32.dcs.add(crate::winapi::gdi32::DC::new(
-                crate::winapi::gdi32::DCTarget::Window(hwnd),
-            )),
             pixels: None,
             dirty: Some(UpdateRegion {
                 erase_background: true,
@@ -993,9 +992,27 @@ pub fn GetWindowDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
 }
 
 #[win32_derive::dllexport]
-pub fn ReleaseDC(_machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
-    // Note: there is also DeleteDC; this one is specific for some specific DC types...
-    false // fail
+pub fn ReleaseDC(machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
+    // Note: there is also DeleteDC; this one is specifically for GetWindowDC/GetDC.
+    if let Some(dc) = machine.state.gdi32.dcs.remove(hdc) {
+        match dc.target {
+            winapi::gdi32::DCTarget::Window(dc_hwnd) => {
+                if dc_hwnd == hwnd {
+                    true
+                } else {
+                    log::warn!("ReleaseDC of DC not matching HWND");
+                    false // fail
+                }
+            }
+            _ => {
+                log::warn!("ReleaseDC of non-window DC");
+                false // fail
+            }
+        }
+    } else {
+        log::warn!("ReleaseDC of unknown DC");
+        false // fail
+    }
 }
 
 #[win32_derive::dllexport]
@@ -1014,10 +1031,10 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
 #[win32_derive::dllexport]
 pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
     match hWnd.to_option() {
-        Some(hWnd) => {
-            let window = machine.state.user32.windows.get(hWnd).unwrap();
+        Some(hwnd) => {
+            let window = machine.state.user32.windows.get(hwnd).unwrap();
             match &window.typ {
-                WindowType::TopLevel(top) => top.hdc,
+                WindowType::TopLevel(_) => machine.state.gdi32.new_window_dc(hwnd),
                 _ => {
                     log::warn!("GetDC for non-top-level window");
                     HDC::null()

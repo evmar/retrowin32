@@ -98,7 +98,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         log::warn!("TODO: BeginPaint for child windows");
         return HDC::null();
     };
-    let hdc = toplevel.hdc;
+    let hdc = machine.state.gdi32.new_window_dc(hWnd);
     let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {
