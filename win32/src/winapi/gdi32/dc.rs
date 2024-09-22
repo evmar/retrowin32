@@ -134,6 +134,7 @@ pub fn GetDeviceCaps(
         GetDeviceCapsArg::NUMCOLORS => -1i32 as u32, // true color
         GetDeviceCapsArg::HORZRES => 640,
         GetDeviceCapsArg::VERTRES => 480,
+        GetDeviceCapsArg::RASTERCAPS => 0, // none
         _ => unimplemented!(),
     }
 }
