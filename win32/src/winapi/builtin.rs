@@ -1347,6 +1347,11 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn CreatePalette(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let plpal = <u32>::from_stack(mem, esp + 4u32);
+            winapi::gdi32::CreatePalette(machine, plpal).to_raw()
+        }
         pub unsafe fn CreatePen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let iStyle = <Result<PS, u32>>::from_stack(mem, esp + 4u32);
@@ -1624,6 +1629,10 @@ pub mod gdi32 {
             name: "CreateFontA",
             func: crate::shims::Handler::Sync(impls::CreateFontA),
         };
+        pub const CreatePalette: Shim = Shim {
+            name: "CreatePalette",
+            func: crate::shims::Handler::Sync(impls::CreatePalette),
+        };
         pub const CreatePen: Shim = Shim {
             name: "CreatePen",
             func: crate::shims::Handler::Sync(impls::CreatePen),
@@ -1749,13 +1758,14 @@ pub mod gdi32 {
             func: crate::shims::Handler::Sync(impls::TextOutW),
         };
     }
-    const SHIMS: [Shim; 37usize] = [
+    const SHIMS: [Shim; 38usize] = [
         shims::BitBlt,
         shims::CreateBitmap,
         shims::CreateCompatibleBitmap,
         shims::CreateCompatibleDC,
         shims::CreateDIBSection,
         shims::CreateFontA,
+        shims::CreatePalette,
         shims::CreatePen,
         shims::CreateSolidBrush,
         shims::DeleteDC,
