@@ -914,6 +914,11 @@ pub async fn SetWindowPos(
     };
     dispatch_message(machine, &msg).await;
 
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let menu = true; // TODO
+    let (width, height) = client_size_from_window_size(window.style, menu, cx as u32, cy as u32);
+    window.set_client_size(&mut *machine.host, width, height);
+
     true
 }
 
