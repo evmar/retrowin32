@@ -3047,6 +3047,13 @@ pub mod kernel32 {
             )
             .to_raw()
         }
+        pub unsafe fn WriteProfileStringW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAppName = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            let lpKeyName = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let lpString = <Option<&Str16>>::from_stack(mem, esp + 12u32);
+            winapi::kernel32::WriteProfileStringW(machine, lpAppName, lpKeyName, lpString).to_raw()
+        }
         pub unsafe fn lstrcmpiA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString1 = <Option<&str>>::from_stack(mem, esp + 4u32);
@@ -3748,6 +3755,10 @@ pub mod kernel32 {
             name: "WriteFile",
             func: crate::shims::Handler::Sync(impls::WriteFile),
         };
+        pub const WriteProfileStringW: Shim = Shim {
+            name: "WriteProfileStringW",
+            func: crate::shims::Handler::Sync(impls::WriteProfileStringW),
+        };
         pub const lstrcmpiA: Shim = Shim {
             name: "lstrcmpiA",
             func: crate::shims::Handler::Sync(impls::lstrcmpiA),
@@ -3777,7 +3788,7 @@ pub mod kernel32 {
             func: crate::shims::Handler::Async(impls::retrowin32_thread_main),
         };
     }
-    const SHIMS: [Shim; 167usize] = [
+    const SHIMS: [Shim; 168usize] = [
         shims::AcquireSRWLockExclusive,
         shims::AcquireSRWLockShared,
         shims::AddVectoredExceptionHandler,
@@ -3938,6 +3949,7 @@ pub mod kernel32 {
         shims::WriteConsoleA,
         shims::WriteConsoleW,
         shims::WriteFile,
+        shims::WriteProfileStringW,
         shims::lstrcmpiA,
         shims::lstrcpyA,
         shims::lstrcpyW,
@@ -4614,12 +4626,34 @@ pub mod user32 {
             let lpPaint = <Option<&mut PAINTSTRUCT>>::from_stack(mem, esp + 8u32);
             winapi::user32::BeginPaint(machine, hWnd, lpPaint).to_raw()
         }
+        pub unsafe fn CheckDlgButton(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDButton = <i32>::from_stack(mem, esp + 8u32);
+            let uCheck = <u32>::from_stack(mem, esp + 12u32);
+            winapi::user32::CheckDlgButton(machine, hDlg, nIDButton, uCheck).to_raw()
+        }
         pub unsafe fn CheckMenuItem(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
             let uIDCheckItem = <u32>::from_stack(mem, esp + 8u32);
             let uCheck = <u32>::from_stack(mem, esp + 12u32);
             winapi::user32::CheckMenuItem(machine, hMenu, uIDCheckItem, uCheck).to_raw()
+        }
+        pub unsafe fn CheckRadioButton(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDFirstButton = <i32>::from_stack(mem, esp + 8u32);
+            let nIDLastButton = <i32>::from_stack(mem, esp + 12u32);
+            let nIDCheckButton = <i32>::from_stack(mem, esp + 16u32);
+            winapi::user32::CheckRadioButton(
+                machine,
+                hDlg,
+                nIDFirstButton,
+                nIDLastButton,
+                nIDCheckButton,
+            )
+            .to_raw()
         }
         pub unsafe fn ClientToScreen(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4863,6 +4897,12 @@ pub mod user32 {
             let uEnable = <u32>::from_stack(mem, esp + 12u32);
             winapi::user32::EnableMenuItem(machine, hMenu, uIDEnableItem, uEnable).to_raw()
         }
+        pub unsafe fn EnableWindow(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let bEnable = <bool>::from_stack(mem, esp + 8u32);
+            winapi::user32::EnableWindow(machine, hWnd, bEnable).to_raw()
+        }
         pub unsafe fn EndDialog(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hDlg = <HWND>::from_stack(mem, esp + 4u32);
@@ -5009,6 +5049,11 @@ pub mod user32 {
             let nPos = <i32>::from_stack(mem, esp + 8u32);
             winapi::user32::GetSubMenu(machine, hMenu, nPos).to_raw()
         }
+        pub unsafe fn GetSysColor(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nIndex = <i32>::from_stack(mem, esp + 4u32);
+            winapi::user32::GetSysColor(machine, nIndex).to_raw()
+        }
         pub unsafe fn GetSystemMenu(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -5076,6 +5121,12 @@ pub mod user32 {
             let hDC = <HDC>::from_stack(mem, esp + 4u32);
             let lpr = <Option<&RECT>>::from_stack(mem, esp + 8u32);
             winapi::user32::InvertRect(machine, hDC, lpr).to_raw()
+        }
+        pub unsafe fn IsDlgButtonChecked(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDButton = <i32>::from_stack(mem, esp + 8u32);
+            winapi::user32::IsDlgButtonChecked(machine, hDlg, nIDButton).to_raw()
         }
         pub unsafe fn IsIconic(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5359,6 +5410,12 @@ pub mod user32 {
             let hCursor = <u32>::from_stack(mem, esp + 4u32);
             winapi::user32::SetCursor(machine, hCursor).to_raw()
         }
+        pub unsafe fn SetCursorPos(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let x = <i32>::from_stack(mem, esp + 4u32);
+            let y = <i32>::from_stack(mem, esp + 8u32);
+            winapi::user32::SetCursorPos(machine, x, y).to_raw()
+        }
         pub unsafe fn SetDlgItemInt(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hDlg = <HWND>::from_stack(mem, esp + 4u32);
@@ -5549,9 +5606,17 @@ pub mod user32 {
             name: "BeginPaint",
             func: crate::shims::Handler::Sync(impls::BeginPaint),
         };
+        pub const CheckDlgButton: Shim = Shim {
+            name: "CheckDlgButton",
+            func: crate::shims::Handler::Sync(impls::CheckDlgButton),
+        };
         pub const CheckMenuItem: Shim = Shim {
             name: "CheckMenuItem",
             func: crate::shims::Handler::Sync(impls::CheckMenuItem),
+        };
+        pub const CheckRadioButton: Shim = Shim {
+            name: "CheckRadioButton",
+            func: crate::shims::Handler::Sync(impls::CheckRadioButton),
         };
         pub const ClientToScreen: Shim = Shim {
             name: "ClientToScreen",
@@ -5616,6 +5681,10 @@ pub mod user32 {
         pub const EnableMenuItem: Shim = Shim {
             name: "EnableMenuItem",
             func: crate::shims::Handler::Sync(impls::EnableMenuItem),
+        };
+        pub const EnableWindow: Shim = Shim {
+            name: "EnableWindow",
+            func: crate::shims::Handler::Sync(impls::EnableWindow),
         };
         pub const EndDialog: Shim = Shim {
             name: "EndDialog",
@@ -5705,6 +5774,10 @@ pub mod user32 {
             name: "GetSubMenu",
             func: crate::shims::Handler::Sync(impls::GetSubMenu),
         };
+        pub const GetSysColor: Shim = Shim {
+            name: "GetSysColor",
+            func: crate::shims::Handler::Sync(impls::GetSysColor),
+        };
         pub const GetSystemMenu: Shim = Shim {
             name: "GetSystemMenu",
             func: crate::shims::Handler::Sync(impls::GetSystemMenu),
@@ -5748,6 +5821,10 @@ pub mod user32 {
         pub const InvertRect: Shim = Shim {
             name: "InvertRect",
             func: crate::shims::Handler::Sync(impls::InvertRect),
+        };
+        pub const IsDlgButtonChecked: Shim = Shim {
+            name: "IsDlgButtonChecked",
+            func: crate::shims::Handler::Sync(impls::IsDlgButtonChecked),
         };
         pub const IsIconic: Shim = Shim {
             name: "IsIconic",
@@ -5893,6 +5970,10 @@ pub mod user32 {
             name: "SetCursor",
             func: crate::shims::Handler::Sync(impls::SetCursor),
         };
+        pub const SetCursorPos: Shim = Shim {
+            name: "SetCursorPos",
+            func: crate::shims::Handler::Sync(impls::SetCursorPos),
+        };
         pub const SetDlgItemInt: Shim = Shim {
             name: "SetDlgItemInt",
             func: crate::shims::Handler::Sync(impls::SetDlgItemInt),
@@ -5982,12 +6063,14 @@ pub mod user32 {
             func: crate::shims::Handler::Sync(impls::wsprintfW),
         };
     }
-    const SHIMS: [Shim; 112usize] = [
+    const SHIMS: [Shim; 118usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
         shims::BeginPaint,
+        shims::CheckDlgButton,
         shims::CheckMenuItem,
+        shims::CheckRadioButton,
         shims::ClientToScreen,
         shims::CopyRect,
         shims::CreateCursor,
@@ -6004,6 +6087,7 @@ pub mod user32 {
         shims::DispatchMessageW,
         shims::DrawTextW,
         shims::EnableMenuItem,
+        shims::EnableWindow,
         shims::EndDialog,
         shims::EndPaint,
         shims::FillRect,
@@ -6026,6 +6110,7 @@ pub mod user32 {
         shims::GetMessageA,
         shims::GetMessageW,
         shims::GetSubMenu,
+        shims::GetSysColor,
         shims::GetSystemMenu,
         shims::GetSystemMetrics,
         shims::GetWindowDC,
@@ -6037,6 +6122,7 @@ pub mod user32 {
         shims::InvalidateRect,
         shims::InvalidateRgn,
         shims::InvertRect,
+        shims::IsDlgButtonChecked,
         shims::IsIconic,
         shims::IsRectEmpty,
         shims::KillTimer,
@@ -6073,6 +6159,7 @@ pub mod user32 {
         shims::SendMessageW,
         shims::SetCapture,
         shims::SetCursor,
+        shims::SetCursorPos,
         shims::SetDlgItemInt,
         shims::SetDlgItemTextA,
         shims::SetDlgItemTextW,

@@ -47,6 +47,11 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SystemMetric, u32
     }
 }
 
+#[win32_derive::dllexport]
+pub fn GetSysColor(_machine: &mut Machine, nIndex: i32) -> u32 {
+    todo!();
+}
+
 #[win32_derive::dllexport(cdecl)]
 pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: VarArgs) -> u32 {
     const BUF_LEN: u32 = 1024;
@@ -142,5 +147,10 @@ pub fn WinHelpW(
     uCommand: u32,
     dwData: u32,
 ) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
     todo!();
 }

@@ -180,6 +180,27 @@ pub fn GetDlgItemInt(
 }
 
 #[win32_derive::dllexport]
+pub fn CheckRadioButton(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDFirstButton: i32,
+    nIDLastButton: i32,
+    nIDCheckButton: i32,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn CheckDlgButton(_machine: &mut Machine, hDlg: HWND, nIDButton: i32, uCheck: u32) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn IsDlgButtonChecked(_machine: &mut Machine, hDlg: HWND, nIDButton: i32) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
 pub fn EndDialog(_machine: &mut Machine, hDlg: HWND, nResult: Option<&mut u32>) -> bool {
     todo!();
 }

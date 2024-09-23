@@ -60,3 +60,13 @@ pub fn GetProfileStringW(
     dst[copy_len] = 0;
     copy_len as u32
 }
+
+#[win32_derive::dllexport]
+pub fn WriteProfileStringW(
+    _machine: &mut Machine,
+    lpAppName: Option<&Str16>,
+    lpKeyName: Option<&Str16>,
+    lpString: Option<&Str16>,
+) -> bool {
+    todo!();
+}

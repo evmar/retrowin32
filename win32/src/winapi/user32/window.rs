@@ -1104,3 +1104,8 @@ pub fn RegisterWindowMessageW(machine: &mut Machine, lpString: Option<&Str16>) -
 pub fn GetCapture(machine: &mut Machine) -> HWND {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub fn EnableWindow(_machine: &mut Machine, hWnd: HWND, bEnable: bool) -> bool {
+    todo!();
+}
