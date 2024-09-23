@@ -261,9 +261,10 @@ pub fn FormatMessageW(
         todo!();
     }
     let msg = if flags.contains(FormatMessageFlags::FROM_SYSTEM) {
-        match dwMessageId {
-            0x1c => "The printer is out of paper.",
-            id => todo!("system message {:x}", id),
+        match ERROR::try_from(dwMessageId) {
+            Ok(ERROR::FILE_NOT_FOUND) => "The system cannot find the file specified.",
+            Ok(ERROR::OUT_OF_PAPER) => "The printer is out of paper.",
+            err => todo!("system error {err:x?}"),
         }
     } else {
         todo!();
