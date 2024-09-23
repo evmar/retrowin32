@@ -234,3 +234,8 @@ pub fn DrawTextW(
     log::info!("DrawTextW: {:?}", lpString);
     0
 }
+
+#[win32_derive::dllexport]
+pub fn InvertRect(_machine: &mut Machine, hDC: HDC, lpr: Option<&RECT>) -> bool {
+    todo!()
+}

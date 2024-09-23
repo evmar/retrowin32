@@ -78,3 +78,17 @@ pub fn IntersectRect(
     dst.bottom = src1.bottom.min(src2.bottom);
     dst.left < dst.right && dst.top < dst.bottom
 }
+
+#[win32_derive::dllexport]
+pub fn CopyRect(
+    _machine: &mut Machine,
+    lprcDst: Option<&mut RECT>,
+    lprcSrc: Option<&RECT>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn InflateRect(_machine: &mut Machine, lprc: Option<&mut RECT>, dx: i32, dy: i32) -> bool {
+    todo!()
+}

@@ -4627,6 +4627,12 @@ pub mod user32 {
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, esp + 8u32);
             winapi::user32::ClientToScreen(machine, hWnd, lpPoint).to_raw()
         }
+        pub unsafe fn CopyRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprcDst = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let lprcSrc = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::CopyRect(machine, lprcDst, lprcSrc).to_raw()
+        }
         pub unsafe fn CreateCursor(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hInst = <u32>::from_stack(mem, esp + 4u32);
@@ -5037,6 +5043,13 @@ pub mod user32 {
             let lpRect = <Option<&mut RECT>>::from_stack(mem, esp + 8u32);
             winapi::user32::GetWindowRect(machine, hWnd, lpRect).to_raw()
         }
+        pub unsafe fn InflateRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lprc = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
+            let dx = <i32>::from_stack(mem, esp + 8u32);
+            let dy = <i32>::from_stack(mem, esp + 12u32);
+            winapi::user32::InflateRect(machine, lprc, dx, dy).to_raw()
+        }
         pub unsafe fn IntersectRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let lprcDst = <Option<&mut RECT>>::from_stack(mem, esp + 4u32);
@@ -5057,6 +5070,12 @@ pub mod user32 {
             let hRgn = <HRGN>::from_stack(mem, esp + 8u32);
             let bErase = <bool>::from_stack(mem, esp + 12u32);
             winapi::user32::InvalidateRgn(machine, hWnd, hRgn, bErase).to_raw()
+        }
+        pub unsafe fn InvertRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDC = <HDC>::from_stack(mem, esp + 4u32);
+            let lpr = <Option<&RECT>>::from_stack(mem, esp + 8u32);
+            winapi::user32::InvertRect(machine, hDC, lpr).to_raw()
         }
         pub unsafe fn IsIconic(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5538,6 +5557,10 @@ pub mod user32 {
             name: "ClientToScreen",
             func: crate::shims::Handler::Sync(impls::ClientToScreen),
         };
+        pub const CopyRect: Shim = Shim {
+            name: "CopyRect",
+            func: crate::shims::Handler::Sync(impls::CopyRect),
+        };
         pub const CreateCursor: Shim = Shim {
             name: "CreateCursor",
             func: crate::shims::Handler::Sync(impls::CreateCursor),
@@ -5706,6 +5729,10 @@ pub mod user32 {
             name: "GetWindowRect",
             func: crate::shims::Handler::Sync(impls::GetWindowRect),
         };
+        pub const InflateRect: Shim = Shim {
+            name: "InflateRect",
+            func: crate::shims::Handler::Sync(impls::InflateRect),
+        };
         pub const IntersectRect: Shim = Shim {
             name: "IntersectRect",
             func: crate::shims::Handler::Sync(impls::IntersectRect),
@@ -5717,6 +5744,10 @@ pub mod user32 {
         pub const InvalidateRgn: Shim = Shim {
             name: "InvalidateRgn",
             func: crate::shims::Handler::Sync(impls::InvalidateRgn),
+        };
+        pub const InvertRect: Shim = Shim {
+            name: "InvertRect",
+            func: crate::shims::Handler::Sync(impls::InvertRect),
         };
         pub const IsIconic: Shim = Shim {
             name: "IsIconic",
@@ -5951,13 +5982,14 @@ pub mod user32 {
             func: crate::shims::Handler::Sync(impls::wsprintfW),
         };
     }
-    const SHIMS: [Shim; 109usize] = [
+    const SHIMS: [Shim; 112usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
         shims::BeginPaint,
         shims::CheckMenuItem,
         shims::ClientToScreen,
+        shims::CopyRect,
         shims::CreateCursor,
         shims::CreatePopupMenu,
         shims::CreateWindowExA,
@@ -6000,9 +6032,11 @@ pub mod user32 {
         shims::GetWindowLongA,
         shims::GetWindowPlacement,
         shims::GetWindowRect,
+        shims::InflateRect,
         shims::IntersectRect,
         shims::InvalidateRect,
         shims::InvalidateRgn,
+        shims::InvertRect,
         shims::IsIconic,
         shims::IsRectEmpty,
         shims::KillTimer,
