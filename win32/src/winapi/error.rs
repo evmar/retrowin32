@@ -17,15 +17,15 @@ pub enum ERROR {
     ALREADY_EXISTS = 183,
 }
 
-impl ERROR {
-    pub fn from_io_error(err: &std::io::Error) -> ERROR {
+impl From<std::io::Error> for ERROR {
+    fn from(err: std::io::Error) -> Self {
         match err.kind() {
             std::io::ErrorKind::NotFound => ERROR::FILE_NOT_FOUND,
             std::io::ErrorKind::PermissionDenied => ERROR::ACCESS_DENIED,
             std::io::ErrorKind::InvalidData => ERROR::INVALID_DATA,
             std::io::ErrorKind::AlreadyExists => ERROR::FILE_EXISTS,
             std::io::ErrorKind::InvalidInput => ERROR::INVALID_ACCESS,
-            _ => ERROR::OPEN_FAILED,
+            _ => unimplemented!(),
         }
     }
 }

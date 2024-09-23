@@ -387,7 +387,7 @@ pub fn SetFilePointer(
         Ok(pos) => pos,
         Err(err) => {
             log::debug!("SetFilePointer({hFile:?}) failed: {:?}", err);
-            set_last_error(machine, ERROR::from_io_error(&err));
+            set_last_error(machine, ERROR::from(err));
             return u32::MAX;
         }
     };
@@ -441,7 +441,7 @@ pub fn ReadFile(
             }
             Err(err) => {
                 log::debug!("ReadFile({hFile:?}) failed: {:?}", err);
-                set_last_error(machine, ERROR::from_io_error(&err));
+                set_last_error(machine, ERROR::from(err));
                 return false;
             }
         }
@@ -496,7 +496,7 @@ pub fn WriteFile(
                     }
                     Err(err) => {
                         log::debug!("WriteFile({hFile:?}) failed: {:?}", err);
-                        set_last_error(machine, ERROR::from_io_error(&err));
+                        set_last_error(machine, ERROR::from(err));
                         return false;
                     }
                 }
@@ -999,7 +999,7 @@ pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
         Ok(pos) => pos,
         Err(err) => {
             log::debug!("SetEndOfFile({hFile:?}) failed: {:?}", err);
-            set_last_error(machine, ERROR::from_io_error(&err));
+            set_last_error(machine, ERROR::from(err));
             return false;
         }
     };
