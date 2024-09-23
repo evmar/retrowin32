@@ -1,12 +1,7 @@
 //! The C runtime library.  This module is also the implementation of msvcrt.dll.
 
-/*
-Remaining missing symbols:
-char* msvcrt.dll!_acmdln
-int msvcrt.dll!_adjust_fdiv
-*/
-
 #![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
 
 use super::kernel32::ExitProcess;
 use crate::Machine;
@@ -253,3 +248,9 @@ pub fn _except_handler3(
 pub fn __setusermatherr(machine: &mut Machine, pf: u32) {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub const _adjust_fdiv: &'static str = "_adjust_fdiv";
+
+#[win32_derive::dllexport]
+pub const _acmdln: &'static str = "_acmdln";

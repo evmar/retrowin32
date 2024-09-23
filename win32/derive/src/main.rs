@@ -60,6 +60,17 @@ fn generate_dll(
             writeln!(f, "  .long _{}", name)?;
         }
     }
+
+    for data in &dllexports.data {
+        writeln!(f, ".globl _{}", data.name)?;
+        writeln!(f, "_{}:", data.name)?;
+        // Note: we could do `.comm foo, 4` here to place this in a rw .data section
+        // distinct from the read-only data section the vtables are in,
+        // but given retrowin32 doesn't enforce read-only data anyway we might as
+        // well keep it all together.
+        writeln!(f, "  .long 0")?;
+    }
+
     write_if_changed(&out_dir.join(format!("{}.s", module_name)), f.as_bytes())?;
 
     let mut f = String::new();
@@ -72,6 +83,9 @@ fn generate_dll(
     }
     for vtable in &dllexports.vtables {
         writeln!(f, "  {} DATA", vtable.name)?;
+    }
+    for data in &dllexports.data {
+        writeln!(f, "  {} DATA", data.name)?;
     }
     write_if_changed(&out_dir.join(format!("{}.def", module_name)), f.as_bytes())?;
 

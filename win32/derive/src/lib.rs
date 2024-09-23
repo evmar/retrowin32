@@ -13,7 +13,8 @@ pub fn dllexport(
     match item {
         syn::Item::Fn(func) => trace::add_trace(func).into(),
         syn::Item::Mod(_) => item.into_token_stream().into(), // ignore
-        _ => syn::Error::new_spanned(&item, "expected fn or mod")
+        syn::Item::Const(_) => item.into_token_stream().into(), // ignore
+        _ => syn::Error::new_spanned(&item, "expected fn, mod, or const")
             .to_compile_error()
             .into(),
     }

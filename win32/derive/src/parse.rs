@@ -13,6 +13,7 @@ pub struct DllExportMeta {
     pub callconv: CallConv,
 }
 
+/// A dllexport function.
 pub struct DllExport<'a> {
     pub meta: DllExportMeta,
     pub args: Vec<Argument<'a>>,
@@ -36,6 +37,10 @@ impl<'a> DllExport<'a> {
     }
 }
 
+pub struct DllExportData<'a> {
+    pub name: &'a syn::Ident,
+}
+
 pub struct Vtable {
     pub name: syn::Ident,
     pub fns: Vec<(syn::Ident, Option<String>)>,
@@ -44,6 +49,7 @@ pub struct Vtable {
 #[derive(Default)]
 pub struct DllExports<'a> {
     pub fns: Vec<DllExport<'a>>,
+    pub data: Vec<DllExportData<'a>>,
     pub vtables: Vec<Vtable>,
 }
 
@@ -258,6 +264,14 @@ fn parse_vtable(name: &syn::Ident, item: &syn::ItemMacro) -> syn::Result<Option<
     }))
 }
 
+fn parse_const(item: &syn::ItemConst) -> syn::Result<Option<DllExportData>> {
+    if find_dllexport(&item.attrs)?.is_none() {
+        return Ok(None);
+    }
+
+    Ok(Some(DllExportData { name: &item.ident }))
+}
+
 /// Gather all the dllexports in a list of syn::Items (module contents).
 pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -> syn::Result<()> {
     for item in items {
@@ -271,6 +285,11 @@ pub fn gather_dllexports<'a>(items: &'a [syn::Item], out: &mut DllExports<'a>) -
                 if let Some(exports) = parse_mod(item)? {
                     out.fns.extend(exports.fns);
                     out.vtables.extend(exports.vtables);
+                }
+            }
+            syn::Item::Const(item) => {
+                if let Some(item) = parse_const(item)? {
+                    out.data.push(item);
                 }
             }
             _ => continue,
