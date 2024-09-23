@@ -1099,3 +1099,8 @@ pub fn RegisterWindowMessageW(machine: &mut Machine, lpString: Option<&Str16>) -
     machine.state.user32.user_window_message_count += 1;
     WM::USER as u32 + machine.state.user32.user_window_message_count
 }
+
+#[win32_derive::dllexport]
+pub fn GetCapture(machine: &mut Machine) -> HWND {
+    todo!();
+}

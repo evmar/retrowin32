@@ -18,6 +18,21 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 }
 
 #[win32_derive::dllexport]
+pub fn EnableMenuItem(
+    _machine: &mut Machine,
+    hMenu: HMENU,
+    uIDEnableItem: u32,
+    uEnable: u32,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetMenu(_machine: &mut Machine, hWnd: HWND) -> HMENU {
+    0 // null
+}
+
+#[win32_derive::dllexport]
 pub fn GetSubMenu(_machine: &mut Machine, hMenu: HMENU, nPos: i32) -> HMENU {
     0 // null
 }

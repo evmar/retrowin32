@@ -4850,6 +4850,13 @@ pub mod user32 {
             let uFormat = <u32>::from_stack(mem, esp + 20u32);
             winapi::user32::DrawTextW(machine, hDC, lpString, nCount, lpRect, uFormat).to_raw()
         }
+        pub unsafe fn EnableMenuItem(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hMenu = <HMENU>::from_stack(mem, esp + 4u32);
+            let uIDEnableItem = <u32>::from_stack(mem, esp + 8u32);
+            let uEnable = <u32>::from_stack(mem, esp + 12u32);
+            winapi::user32::EnableMenuItem(machine, hMenu, uIDEnableItem, uEnable).to_raw()
+        }
         pub unsafe fn EndDialog(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hDlg = <HWND>::from_stack(mem, esp + 4u32);
@@ -4885,6 +4892,10 @@ pub mod user32 {
         pub unsafe fn GetActiveWindow(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetActiveWindow(machine).to_raw()
+        }
+        pub unsafe fn GetCapture(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            winapi::user32::GetCapture(machine).to_raw()
         }
         pub unsafe fn GetClientRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4938,6 +4949,11 @@ pub mod user32 {
         pub unsafe fn GetLastActivePopup(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetLastActivePopup(machine).to_raw()
+        }
+        pub unsafe fn GetMenu(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            winapi::user32::GetMenu(machine, hWnd).to_raw()
         }
         pub unsafe fn GetMenuItemRect(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5574,6 +5590,10 @@ pub mod user32 {
             name: "DrawTextW",
             func: crate::shims::Handler::Sync(impls::DrawTextW),
         };
+        pub const EnableMenuItem: Shim = Shim {
+            name: "EnableMenuItem",
+            func: crate::shims::Handler::Sync(impls::EnableMenuItem),
+        };
         pub const EndDialog: Shim = Shim {
             name: "EndDialog",
             func: crate::shims::Handler::Sync(impls::EndDialog),
@@ -5597,6 +5617,10 @@ pub mod user32 {
         pub const GetActiveWindow: Shim = Shim {
             name: "GetActiveWindow",
             func: crate::shims::Handler::Sync(impls::GetActiveWindow),
+        };
+        pub const GetCapture: Shim = Shim {
+            name: "GetCapture",
+            func: crate::shims::Handler::Sync(impls::GetCapture),
         };
         pub const GetClientRect: Shim = Shim {
             name: "GetClientRect",
@@ -5637,6 +5661,10 @@ pub mod user32 {
         pub const GetLastActivePopup: Shim = Shim {
             name: "GetLastActivePopup",
             func: crate::shims::Handler::Sync(impls::GetLastActivePopup),
+        };
+        pub const GetMenu: Shim = Shim {
+            name: "GetMenu",
+            func: crate::shims::Handler::Sync(impls::GetMenu),
         };
         pub const GetMenuItemRect: Shim = Shim {
             name: "GetMenuItemRect",
@@ -5923,7 +5951,7 @@ pub mod user32 {
             func: crate::shims::Handler::Sync(impls::wsprintfW),
         };
     }
-    const SHIMS: [Shim; 106usize] = [
+    const SHIMS: [Shim; 109usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -5943,12 +5971,14 @@ pub mod user32 {
         shims::DispatchMessageA,
         shims::DispatchMessageW,
         shims::DrawTextW,
+        shims::EnableMenuItem,
         shims::EndDialog,
         shims::EndPaint,
         shims::FillRect,
         shims::FindWindowA,
         shims::FrameRect,
         shims::GetActiveWindow,
+        shims::GetCapture,
         shims::GetClientRect,
         shims::GetDC,
         shims::GetDesktopWindow,
@@ -5959,6 +5989,7 @@ pub mod user32 {
         shims::GetForegroundWindow,
         shims::GetKeyState,
         shims::GetLastActivePopup,
+        shims::GetMenu,
         shims::GetMenuItemRect,
         shims::GetMessageA,
         shims::GetMessageW,
