@@ -26,16 +26,15 @@ pub struct DLL {
 }
 
 impl DLL {
-    pub fn resolve(&mut self, sym: &ImportSymbol) -> u32 {
-        let addr = match *sym {
-            ImportSymbol::Name(name) => self.dll.names.get(name),
-            ImportSymbol::Ordinal(ord) => self.dll.fns.get((ord - self.dll.ordinal_base) as usize),
-        };
-        if let Some(&addr) = addr {
-            return addr;
+    pub fn resolve(&mut self, sym: &ImportSymbol) -> Option<u32> {
+        match *sym {
+            ImportSymbol::Name(name) => self.dll.names.get(name).copied(),
+            ImportSymbol::Ordinal(ord) => self
+                .dll
+                .fns
+                .get((ord - self.dll.ordinal_base) as usize)
+                .copied(),
         }
-        log::warn!("failed to resolve {}:{}", self.name, sym);
-        0
     }
 }
 
@@ -238,7 +237,7 @@ impl<'a> winapi::stack_args::FromStack<'a> for GetProcAddressArg<'a> {
 pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
     let hmodule = load_library(machine, dll);
     let dll = machine.state.kernel32.dlls.get_mut(&hmodule).unwrap();
-    dll.resolve(&ImportSymbol::Name(name))
+    dll.resolve(&ImportSymbol::Name(name)).unwrap()
 }
 
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
@@ -252,7 +251,9 @@ pub fn GetProcAddress(
     lpProcName: GetProcAddressArg,
 ) -> u32 {
     if let Some(dll) = machine.state.kernel32.dlls.get_mut(&hModule) {
-        return dll.resolve(&lpProcName.0);
+        if let Some(addr) = dll.resolve(&lpProcName.0) {
+            return addr;
+        }
     }
     log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
     0 // fail
