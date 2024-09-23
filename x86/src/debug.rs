@@ -76,17 +76,19 @@ pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip
     use iced_x86::Register::*;
     println!(
         "\
-        eax {eax:08x}    eip {eip:08x}\n\
-        ecx {ecx:08x}    esp {esp:08x}\n\
-        edx {edx:08x}    ebp {ebp:08x}\n\
-        ebx {ebx:08x}",
+        eax {eax:08x}    esi {esi:08x}     eip {eip:08x}\n\
+        ecx {ecx:08x}    edi {edi:08x}\n\
+        edx {edx:08x}    esp {esp:08x}\n\
+        ebx {ebx:08x}    ebp {ebp:08x}",
         eax = cpu.regs.get32(EAX),
         ecx = cpu.regs.get32(ECX),
         edx = cpu.regs.get32(EDX),
         ebx = cpu.regs.get32(EBX),
-        eip = cpu.regs.eip,
+        esi = cpu.regs.get32(ESI),
+        edi = cpu.regs.get32(EDI),
         esp = cpu.regs.get32(ESP),
         ebp = cpu.regs.get32(EBP),
+        eip = cpu.regs.eip,
     );
     println!("nearby instructions:");
     let instrs = disassemble(mem, cpu.regs.eip - eip_offset as u32, 5);
