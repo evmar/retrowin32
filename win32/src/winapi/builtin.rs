@@ -57,6 +57,18 @@ pub mod advapi32 {
             )
             .to_raw()
         }
+        pub unsafe fn RegOpenKeyExA(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hKey = <HKEY>::from_stack(mem, esp + 4u32);
+            let lpSubKey = <Option<&str>>::from_stack(mem, esp + 8u32);
+            let ulOptions = <u32>::from_stack(mem, esp + 12u32);
+            let samDesired = <u32>::from_stack(mem, esp + 16u32);
+            let phkResult = <Option<&mut HKEY>>::from_stack(mem, esp + 20u32);
+            winapi::advapi32::RegOpenKeyExA(
+                machine, hKey, lpSubKey, ulOptions, samDesired, phkResult,
+            )
+            .to_raw()
+        }
         pub unsafe fn RegQueryValueExA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hKey = <HKEY>::from_stack(mem, esp + 4u32);
@@ -149,6 +161,10 @@ pub mod advapi32 {
             name: "RegCreateKeyExW",
             func: crate::shims::Handler::Sync(impls::RegCreateKeyExW),
         };
+        pub const RegOpenKeyExA: Shim = Shim {
+            name: "RegOpenKeyExA",
+            func: crate::shims::Handler::Sync(impls::RegOpenKeyExA),
+        };
         pub const RegQueryValueExA: Shim = Shim {
             name: "RegQueryValueExA",
             func: crate::shims::Handler::Sync(impls::RegQueryValueExA),
@@ -166,10 +182,11 @@ pub mod advapi32 {
             func: crate::shims::Handler::Sync(impls::RegSetValueExW),
         };
     }
-    const SHIMS: [Shim; 7usize] = [
+    const SHIMS: [Shim; 8usize] = [
         shims::RegCloseKey,
         shims::RegCreateKeyA,
         shims::RegCreateKeyExW,
+        shims::RegOpenKeyExA,
         shims::RegQueryValueExA,
         shims::RegQueryValueExW,
         shims::RegSetValueExA,
@@ -1526,6 +1543,12 @@ pub mod gdi32 {
             )
             .to_raw()
         }
+        pub unsafe fn SetLayout(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, esp + 4u32);
+            let l = <u32>::from_stack(mem, esp + 8u32);
+            winapi::gdi32::SetLayout(machine, hdc, l).to_raw()
+        }
         pub unsafe fn SetPixel(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, esp + 4u32);
@@ -1735,6 +1758,10 @@ pub mod gdi32 {
             name: "SetDIBitsToDevice",
             func: crate::shims::Handler::Sync(impls::SetDIBitsToDevice),
         };
+        pub const SetLayout: Shim = Shim {
+            name: "SetLayout",
+            func: crate::shims::Handler::Sync(impls::SetLayout),
+        };
         pub const SetPixel: Shim = Shim {
             name: "SetPixel",
             func: crate::shims::Handler::Sync(impls::SetPixel),
@@ -1768,7 +1795,7 @@ pub mod gdi32 {
             func: crate::shims::Handler::Sync(impls::TextOutW),
         };
     }
-    const SHIMS: [Shim; 39usize] = [
+    const SHIMS: [Shim; 40usize] = [
         shims::BitBlt,
         shims::CreateBitmap,
         shims::CreateCompatibleBitmap,
@@ -1800,6 +1827,7 @@ pub mod gdi32 {
         shims::SetBkMode,
         shims::SetBrushOrgEx,
         shims::SetDIBitsToDevice,
+        shims::SetLayout,
         shims::SetPixel,
         shims::SetROP2,
         shims::SetTextAlign,
@@ -4768,6 +4796,23 @@ pub mod user32 {
             )
             .to_raw()
         }
+        pub unsafe fn DialogBoxParamW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hInstance = <u32>::from_stack(mem, esp + 4u32);
+            let lpTemplateName = <u32>::from_stack(mem, esp + 8u32);
+            let hWndParent = <HWND>::from_stack(mem, esp + 12u32);
+            let lpDialogFunc = <u32>::from_stack(mem, esp + 16u32);
+            let dwInitParam = <u32>::from_stack(mem, esp + 20u32);
+            winapi::user32::DialogBoxParamW(
+                machine,
+                hInstance,
+                lpTemplateName,
+                hWndParent,
+                lpDialogFunc,
+                dwInitParam,
+            )
+            .to_raw()
+        }
         pub unsafe fn DispatchMessageA(
             machine: &mut Machine,
             esp: u32,
@@ -4856,6 +4901,27 @@ pub mod user32 {
             let mem = machine.mem().detach();
             winapi::user32::GetDesktopWindow(machine).to_raw()
         }
+        pub unsafe fn GetDlgItem(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            winapi::user32::GetDlgItem(machine, hDlg, nIDDlgItem).to_raw()
+        }
+        pub unsafe fn GetDlgItemInt(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            let lpTranslated = <Option<&mut u32>>::from_stack(mem, esp + 12u32);
+            let bSigned = <bool>::from_stack(mem, esp + 16u32);
+            winapi::user32::GetDlgItemInt(machine, hDlg, nIDDlgItem, lpTranslated, bSigned).to_raw()
+        }
+        pub unsafe fn GetDlgItemTextW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            let lpString = <ArrayWithSizeMut<u16>>::from_stack(mem, esp + 12u32);
+            winapi::user32::GetDlgItemTextW(machine, hDlg, nIDDlgItem, lpString).to_raw()
+        }
         pub unsafe fn GetFocus(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetFocus(machine).to_raw()
@@ -4872,6 +4938,14 @@ pub mod user32 {
         pub unsafe fn GetLastActivePopup(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             winapi::user32::GetLastActivePopup(machine).to_raw()
+        }
+        pub unsafe fn GetMenuItemRect(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let hMenu = <HMENU>::from_stack(mem, esp + 8u32);
+            let uItem = <u32>::from_stack(mem, esp + 12u32);
+            let lprcItem = <Option<&mut RECT>>::from_stack(mem, esp + 16u32);
+            winapi::user32::GetMenuItemRect(machine, hWnd, hMenu, uItem, lprcItem).to_raw()
         }
         pub unsafe fn GetMessageA(
             machine: &mut Machine,
@@ -5223,6 +5297,23 @@ pub mod user32 {
                     .to_raw()
             })
         }
+        pub unsafe fn SendMessageW(
+            machine: &mut Machine,
+            esp: u32,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, esp + 4u32);
+            let Msg = <Result<WM, u32>>::from_stack(mem, esp + 8u32);
+            let wParam = <u32>::from_stack(mem, esp + 12u32);
+            let lParam = <u32>::from_stack(mem, esp + 16u32);
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = unsafe { &mut *machine };
+                winapi::user32::SendMessageW(machine, hWnd, Msg, wParam, lParam)
+                    .await
+                    .to_raw()
+            })
+        }
         pub unsafe fn SetCapture(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwnd = <HWND>::from_stack(mem, esp + 4u32);
@@ -5233,12 +5324,27 @@ pub mod user32 {
             let hCursor = <u32>::from_stack(mem, esp + 4u32);
             winapi::user32::SetCursor(machine, hCursor).to_raw()
         }
+        pub unsafe fn SetDlgItemInt(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            let uValue = <u32>::from_stack(mem, esp + 12u32);
+            let _bSigned = <bool>::from_stack(mem, esp + 16u32);
+            winapi::user32::SetDlgItemInt(machine, hDlg, nIDDlgItem, uValue, _bSigned).to_raw()
+        }
         pub unsafe fn SetDlgItemTextA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let hDlg = <HWND>::from_stack(mem, esp + 4u32);
             let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
             let lpString = <Option<&str>>::from_stack(mem, esp + 12u32);
             winapi::user32::SetDlgItemTextA(machine, hDlg, nIDDlgItem, lpString).to_raw()
+        }
+        pub unsafe fn SetDlgItemTextW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, esp + 4u32);
+            let nIDDlgItem = <i32>::from_stack(mem, esp + 8u32);
+            let lpString = <Option<&Str16>>::from_stack(mem, esp + 12u32);
+            winapi::user32::SetDlgItemTextW(machine, hDlg, nIDDlgItem, lpString).to_raw()
         }
         pub unsafe fn SetFocus(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5366,12 +5472,27 @@ pub mod user32 {
             let mem = machine.mem().detach();
             winapi::user32::WaitMessage(machine).to_raw()
         }
+        pub unsafe fn WinHelpW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWndMain = <HWND>::from_stack(mem, esp + 4u32);
+            let lpszHelp = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let uCommand = <u32>::from_stack(mem, esp + 12u32);
+            let dwData = <u32>::from_stack(mem, esp + 16u32);
+            winapi::user32::WinHelpW(machine, hWndMain, lpszHelp, uCommand, dwData).to_raw()
+        }
         pub unsafe fn wsprintfA(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let buf = <u32>::from_stack(mem, esp + 4u32);
             let fmt = <Option<&str>>::from_stack(mem, esp + 8u32);
             let args = <VarArgs>::from_stack(mem, esp + 12u32);
             winapi::user32::wsprintfA(machine, buf, fmt, args).to_raw()
+        }
+        pub unsafe fn wsprintfW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let buf = <u32>::from_stack(mem, esp + 4u32);
+            let fmt = <Option<&Str16>>::from_stack(mem, esp + 8u32);
+            let args = <VarArgs>::from_stack(mem, esp + 12u32);
+            winapi::user32::wsprintfW(machine, buf, fmt, args).to_raw()
         }
     }
     mod shims {
@@ -5437,6 +5558,10 @@ pub mod user32 {
             name: "DialogBoxParamA",
             func: crate::shims::Handler::Sync(impls::DialogBoxParamA),
         };
+        pub const DialogBoxParamW: Shim = Shim {
+            name: "DialogBoxParamW",
+            func: crate::shims::Handler::Sync(impls::DialogBoxParamW),
+        };
         pub const DispatchMessageA: Shim = Shim {
             name: "DispatchMessageA",
             func: crate::shims::Handler::Async(impls::DispatchMessageA),
@@ -5485,6 +5610,18 @@ pub mod user32 {
             name: "GetDesktopWindow",
             func: crate::shims::Handler::Sync(impls::GetDesktopWindow),
         };
+        pub const GetDlgItem: Shim = Shim {
+            name: "GetDlgItem",
+            func: crate::shims::Handler::Sync(impls::GetDlgItem),
+        };
+        pub const GetDlgItemInt: Shim = Shim {
+            name: "GetDlgItemInt",
+            func: crate::shims::Handler::Sync(impls::GetDlgItemInt),
+        };
+        pub const GetDlgItemTextW: Shim = Shim {
+            name: "GetDlgItemTextW",
+            func: crate::shims::Handler::Sync(impls::GetDlgItemTextW),
+        };
         pub const GetFocus: Shim = Shim {
             name: "GetFocus",
             func: crate::shims::Handler::Sync(impls::GetFocus),
@@ -5500,6 +5637,10 @@ pub mod user32 {
         pub const GetLastActivePopup: Shim = Shim {
             name: "GetLastActivePopup",
             func: crate::shims::Handler::Sync(impls::GetLastActivePopup),
+        };
+        pub const GetMenuItemRect: Shim = Shim {
+            name: "GetMenuItemRect",
+            func: crate::shims::Handler::Sync(impls::GetMenuItemRect),
         };
         pub const GetMessageA: Shim = Shim {
             name: "GetMessageA",
@@ -5681,6 +5822,10 @@ pub mod user32 {
             name: "SendMessageA",
             func: crate::shims::Handler::Async(impls::SendMessageA),
         };
+        pub const SendMessageW: Shim = Shim {
+            name: "SendMessageW",
+            func: crate::shims::Handler::Async(impls::SendMessageW),
+        };
         pub const SetCapture: Shim = Shim {
             name: "SetCapture",
             func: crate::shims::Handler::Sync(impls::SetCapture),
@@ -5689,9 +5834,17 @@ pub mod user32 {
             name: "SetCursor",
             func: crate::shims::Handler::Sync(impls::SetCursor),
         };
+        pub const SetDlgItemInt: Shim = Shim {
+            name: "SetDlgItemInt",
+            func: crate::shims::Handler::Sync(impls::SetDlgItemInt),
+        };
         pub const SetDlgItemTextA: Shim = Shim {
             name: "SetDlgItemTextA",
             func: crate::shims::Handler::Sync(impls::SetDlgItemTextA),
+        };
+        pub const SetDlgItemTextW: Shim = Shim {
+            name: "SetDlgItemTextW",
+            func: crate::shims::Handler::Sync(impls::SetDlgItemTextW),
         };
         pub const SetFocus: Shim = Shim {
             name: "SetFocus",
@@ -5757,12 +5910,20 @@ pub mod user32 {
             name: "WaitMessage",
             func: crate::shims::Handler::Sync(impls::WaitMessage),
         };
+        pub const WinHelpW: Shim = Shim {
+            name: "WinHelpW",
+            func: crate::shims::Handler::Sync(impls::WinHelpW),
+        };
         pub const wsprintfA: Shim = Shim {
             name: "wsprintfA",
             func: crate::shims::Handler::Sync(impls::wsprintfA),
         };
+        pub const wsprintfW: Shim = Shim {
+            name: "wsprintfW",
+            func: crate::shims::Handler::Sync(impls::wsprintfW),
+        };
     }
-    const SHIMS: [Shim; 96usize] = [
+    const SHIMS: [Shim; 106usize] = [
         shims::AdjustWindowRect,
         shims::AdjustWindowRectEx,
         shims::AppendMenuA,
@@ -5778,6 +5939,7 @@ pub mod user32 {
         shims::DestroyWindow,
         shims::DialogBoxIndirectParamA,
         shims::DialogBoxParamA,
+        shims::DialogBoxParamW,
         shims::DispatchMessageA,
         shims::DispatchMessageW,
         shims::DrawTextW,
@@ -5790,10 +5952,14 @@ pub mod user32 {
         shims::GetClientRect,
         shims::GetDC,
         shims::GetDesktopWindow,
+        shims::GetDlgItem,
+        shims::GetDlgItemInt,
+        shims::GetDlgItemTextW,
         shims::GetFocus,
         shims::GetForegroundWindow,
         shims::GetKeyState,
         shims::GetLastActivePopup,
+        shims::GetMenuItemRect,
         shims::GetMessageA,
         shims::GetMessageW,
         shims::GetSubMenu,
@@ -5839,9 +6005,12 @@ pub mod user32 {
         shims::ReleaseCapture,
         shims::ReleaseDC,
         shims::SendMessageA,
+        shims::SendMessageW,
         shims::SetCapture,
         shims::SetCursor,
+        shims::SetDlgItemInt,
         shims::SetDlgItemTextA,
+        shims::SetDlgItemTextW,
         shims::SetFocus,
         shims::SetForegroundWindow,
         shims::SetMenu,
@@ -5858,7 +6027,9 @@ pub mod user32 {
         shims::UpdateWindow,
         shims::ValidateRect,
         shims::WaitMessage,
+        shims::WinHelpW,
         shims::wsprintfA,
+        shims::wsprintfW,
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "user32.dll",
@@ -5917,6 +6088,13 @@ pub mod winmm {
         };
         use memory::Extensions;
         use winapi::winmm::*;
+        pub unsafe fn PlaySoundW(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let pszSound = <Option<&Str16>>::from_stack(mem, esp + 4u32);
+            let hmod = <HMODULE>::from_stack(mem, esp + 8u32);
+            let fdwSound = <u32>::from_stack(mem, esp + 12u32);
+            winapi::winmm::PlaySoundW(machine, pszSound, hmod, fdwSound).to_raw()
+        }
         pub unsafe fn timeBeginPeriod(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let uPeriod = <u32>::from_stack(mem, esp + 4u32);
@@ -6002,6 +6180,10 @@ pub mod winmm {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const PlaySoundW: Shim = Shim {
+            name: "PlaySoundW",
+            func: crate::shims::Handler::Sync(impls::PlaySoundW),
+        };
         pub const timeBeginPeriod: Shim = Shim {
             name: "timeBeginPeriod",
             func: crate::shims::Handler::Sync(impls::timeBeginPeriod),
@@ -6051,7 +6233,8 @@ pub mod winmm {
             func: crate::shims::Handler::Sync(impls::waveOutWrite),
         };
     }
-    const SHIMS: [Shim; 12usize] = [
+    const SHIMS: [Shim; 13usize] = [
+        shims::PlaySoundW,
         shims::timeBeginPeriod,
         shims::timeGetTime,
         shims::timeSetEvent,

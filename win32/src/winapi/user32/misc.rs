@@ -1,8 +1,8 @@
-use crate::winapi::types::HWND;
 use crate::{
+    str16::Str16,
     winapi::{
         stack_args::VarArgs,
-        types::{POINT, RECT},
+        types::{HWND, POINT, RECT},
     },
     Machine,
 };
@@ -148,6 +148,11 @@ pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: V
     out.position() as u32 - 1
 }
 
+#[win32_derive::dllexport(cdecl)]
+pub fn wsprintfW(machine: &mut Machine, buf: u32, fmt: Option<&Str16>, args: VarArgs) -> u32 {
+    todo!()
+}
+
 #[win32_derive::dllexport]
 pub fn GetKeyState(_machine: &mut Machine, nVirtKey: u32) -> u32 {
     0
@@ -204,4 +209,15 @@ pub fn IntersectRect(
     dst.top = src1.top.max(src2.top);
     dst.bottom = src1.bottom.min(src2.bottom);
     dst.left < dst.right && dst.top < dst.bottom
+}
+
+#[win32_derive::dllexport]
+pub fn WinHelpW(
+    _machine: &mut Machine,
+    hWndMain: HWND,
+    lpszHelp: Option<&Str16>,
+    uCommand: u32,
+    dwData: u32,
+) -> bool {
+    todo!();
 }

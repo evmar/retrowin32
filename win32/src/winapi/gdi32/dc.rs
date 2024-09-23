@@ -145,6 +145,11 @@ pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn SetLayout(_machine: &mut Machine, hdc: HDC, l: u32) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
 pub fn GetDCOrgEx(machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     if let Some(lpPoint) = lpPoint {

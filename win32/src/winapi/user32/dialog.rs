@@ -1,4 +1,7 @@
-use crate::{winapi::types::*, Machine};
+use crate::{
+    winapi::{stack_args::ArrayWithSizeMut, types::*},
+    Machine,
+};
 
 const TRACE_CONTEXT: &'static str = "user32/dialog";
 
@@ -95,6 +98,18 @@ pub fn DialogBoxParamA(
 }
 
 #[win32_derive::dllexport]
+pub fn DialogBoxParamW(
+    _machine: &mut Machine,
+    hInstance: u32,
+    lpTemplateName: u32,
+    hWndParent: HWND,
+    lpDialogFunc: u32,
+    dwInitParam: u32,
+) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
 pub fn DialogBoxIndirectParamA(
     _machine: &mut Machine,
     hInstance: u32,
@@ -114,6 +129,53 @@ pub fn SetDlgItemTextA(
     nIDDlgItem: i32,
     lpString: Option<&str>,
 ) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn SetDlgItemTextW(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    lpString: Option<&Str16>,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn SetDlgItemInt(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    uValue: u32,
+    _bSigned: bool,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetDlgItem(machine: &mut Machine, hDlg: HWND, nIDDlgItem: i32) -> HWND {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetDlgItemTextW(
+    machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    lpString: ArrayWithSizeMut<u16>,
+) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetDlgItemInt(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    lpTranslated: Option<&mut u32>,
+    bSigned: bool,
+) -> u32 {
     todo!();
 }
 

@@ -34,6 +34,18 @@ pub fn RegCreateKeyExW(
 }
 
 #[win32_derive::dllexport]
+pub fn RegOpenKeyExA(
+    _machine: &mut Machine,
+    hKey: HKEY,
+    lpSubKey: Option<&str>,
+    ulOptions: u32,
+    samDesired: u32,
+    phkResult: Option<&mut HKEY>,
+) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport]
 pub fn RegCloseKey(_machine: &mut Machine, hKey: HKEY) -> u32 {
     0 // success
 }

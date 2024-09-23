@@ -1,4 +1,7 @@
-use crate::{winapi::types::HWND, Machine};
+use crate::{
+    winapi::types::{HWND, RECT},
+    Machine,
+};
 
 const TRACE_CONTEXT: &'static str = "user32/menu";
 
@@ -54,4 +57,15 @@ pub fn AppendMenuA(
     lpNewItem: Option<&str>,
 ) -> bool {
     false // fail
+}
+
+#[win32_derive::dllexport]
+pub fn GetMenuItemRect(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    hMenu: HMENU,
+    uItem: u32,
+    lprcItem: Option<&mut RECT>,
+) -> bool {
+    todo!();
 }

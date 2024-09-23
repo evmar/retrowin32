@@ -426,6 +426,17 @@ pub async fn SendMessageA(
 }
 
 #[win32_derive::dllexport]
+pub async fn SendMessageW(
+    machine: &mut Machine,
+    hWnd: HWND,
+    Msg: Result<WM, u32>,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn MsgWaitForMultipleObjects(
     _machine: &mut Machine,
     nCount: u32,
