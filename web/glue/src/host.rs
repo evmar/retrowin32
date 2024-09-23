@@ -2,7 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
-use win32::{ReadDir, Stat, StatKind, WindowsPath};
+use win32::{ReadDir, Stat, StatKind, WindowsPath, ERROR};
 
 struct WebSurface {
     _hwnd: u32,
@@ -145,7 +145,7 @@ extern "C" {
 }
 
 impl win32::File for JsFile {
-    fn stat(&self) -> Result<Stat, u32> {
+    fn stat(&self) -> Result<Stat, ERROR> {
         Ok(Stat {
             kind: StatKind::File,
             size: JsFile::info(self),
@@ -155,7 +155,7 @@ impl win32::File for JsFile {
         })
     }
 
-    fn set_len(&self, len: u64) -> Result<(), u32> {
+    fn set_len(&self, len: u64) -> Result<(), ERROR> {
         todo!("set_len {len}")
     }
 }
@@ -313,18 +313,18 @@ impl win32::Host for JsHost {
         &self,
         path: &WindowsPath,
         options: win32::FileOptions,
-    ) -> Result<Box<dyn win32::File>, u32> {
+    ) -> Result<Box<dyn win32::File>, ERROR> {
         match JsHost::open(self, &path.to_string_lossy(), options) {
             Some(file) => Ok(Box::new(file)),
-            None => Err(win32::winapi::types::ERROR_FILE_NOT_FOUND),
+            None => Err(ERROR::FILE_NOT_FOUND),
         }
     }
 
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32> {
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, ERROR> {
         todo!("stat {path}")
     }
 
-    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, u32> {
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, ERROR> {
         todo!("read_dir {path}")
     }
 
@@ -345,19 +345,19 @@ impl win32::Host for JsHost {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
     }
 
-    fn current_dir(&self) -> Result<win32::WindowsPathBuf, u32> {
+    fn current_dir(&self) -> Result<win32::WindowsPathBuf, ERROR> {
         todo!()
     }
 
-    fn create_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), ERROR> {
         todo!("create_dir {path}")
     }
 
-    fn remove_file(&self, path: &WindowsPath) -> Result<(), u32> {
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), ERROR> {
         todo!("remove_file {path}")
     }
 
-    fn remove_dir(&self, path: &WindowsPath) -> Result<(), u32> {
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR> {
         todo!("remove_dir {path}")
     }
 }

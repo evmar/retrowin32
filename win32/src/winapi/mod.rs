@@ -8,6 +8,7 @@ mod builtin;
 mod com;
 pub mod ddraw;
 pub mod dsound;
+mod error;
 pub mod gdi32;
 mod handle;
 mod heap;
@@ -24,6 +25,8 @@ mod vcruntime140;
 mod version;
 mod wininet;
 mod winmm;
+
+pub use error::ERROR;
 
 #[derive(Debug)]
 pub enum ImportSymbol<'a> {

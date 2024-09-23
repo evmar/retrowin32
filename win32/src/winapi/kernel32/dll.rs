@@ -66,7 +66,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         return *hmodule;
     }
 
-    set_last_error(machine, ERROR_MOD_NOT_FOUND);
+    set_last_error(machine, winapi::ERROR::MOD_NOT_FOUND);
     return HMODULE::null();
 }
 

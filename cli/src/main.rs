@@ -12,7 +12,6 @@ mod resv32;
 use anyhow::anyhow;
 use std::borrow::Cow;
 use std::process::ExitCode;
-use win32::winapi::types::win32_error_str;
 use win32::Host;
 
 #[derive(argh::FromArgs)]
@@ -125,7 +124,7 @@ fn main() -> anyhow::Result<ExitCode> {
     let mut cmdline = args.cmdline.clone();
     let cwd = host
         .current_dir()
-        .map_err(|e| anyhow!("failed to get current dir: {}", win32_error_str(e)))?;
+        .map_err(|e| anyhow!("failed to get current dir: {e:?}"))?;
     cmdline[0] = cwd
         .join(&cmdline[0])
         .normalize()

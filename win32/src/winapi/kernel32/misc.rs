@@ -1,20 +1,24 @@
 //! kernel32 API without a better home.
 
 use super::teb_mut;
-use crate::{winapi::types::*, Machine};
+use crate::{
+    winapi::{types::*, ERROR},
+    Machine,
+};
 use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
 
 const TRACE_CONTEXT: &'static str = "kernel32/misc";
 
-pub fn set_last_error(machine: &mut Machine, err: u32) {
-    teb_mut(machine).LastErrorValue = err;
+pub fn set_last_error(machine: &mut Machine, err: ERROR) {
+    teb_mut(machine).LastErrorValue = err.into();
 }
 
 #[win32_derive::dllexport]
 pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
-    set_last_error(machine, dwErrCode);
+    // Avoid set_last_error to allow for unknown error codes.
+    teb_mut(machine).LastErrorValue = dwErrCode;
     0 // unused
 }
 
@@ -281,11 +285,11 @@ pub fn FormatMessageW(
 pub fn CloseHandle(machine: &mut Machine, hObject: HFILE) -> bool {
     if machine.state.kernel32.files.remove(hObject).is_none() {
         log::debug!("CloseHandle({hObject:?}): unknown handle");
-        set_last_error(machine, ERROR_INVALID_HANDLE);
+        set_last_error(machine, ERROR::INVALID_HANDLE);
         return false;
     }
 
-    set_last_error(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR::SUCCESS);
     true
 }
 
@@ -296,7 +300,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }
-    set_last_error(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR::SUCCESS);
     if lpBuffer != 0 {
         let buf = machine.mem().sub32_mut(lpBuffer, uSize);
         buf[..path_bytes.len()].copy_from_slice(path_bytes);
@@ -309,7 +313,7 @@ pub fn GetSystemDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> 
 pub fn GetWindowsDirectoryA(machine: &mut Machine, lpBuffer: u32, uSize: u32) -> u32 {
     let path = "C:\\Windows";
     let path_bytes = path.as_bytes();
-    set_last_error(machine, ERROR_SUCCESS);
+    set_last_error(machine, ERROR::SUCCESS);
     if uSize < path_bytes.len() as u32 + 1 {
         return path_bytes.len() as u32 + 1;
     }

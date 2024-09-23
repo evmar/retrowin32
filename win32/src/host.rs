@@ -1,5 +1,6 @@
 //! Interfaces expected of the x86 host.
 
+pub use crate::winapi::ERROR;
 pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 /// DirectDraw surface.
@@ -65,12 +66,12 @@ impl FileOptions {
 }
 
 pub trait File: std::io::Read + std::io::Write + std::io::Seek {
-    fn stat(&self) -> Result<Stat, u32>;
-    fn set_len(&self, len: u64) -> Result<(), u32>;
+    fn stat(&self) -> Result<Stat, ERROR>;
+    fn set_len(&self, len: u64) -> Result<(), ERROR>;
 }
 
 pub trait ReadDir {
-    fn next(&mut self) -> Result<Option<ReadDirEntry>, u32>;
+    fn next(&mut self) -> Result<Option<ReadDirEntry>, ERROR>;
 }
 
 #[derive(Debug, Clone)]
@@ -141,19 +142,19 @@ pub trait Host {
     fn block(&self, wait: Option<u32>) -> bool;
 
     /// Retrieves the absolute (Windows-style) path of the current working directory.
-    fn current_dir(&self) -> Result<WindowsPathBuf, u32>;
+    fn current_dir(&self) -> Result<WindowsPathBuf, ERROR>;
     /// Open a file at the given (Windows-style) path.
-    fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn File>, u32>;
+    fn open(&self, path: &WindowsPath, options: FileOptions) -> Result<Box<dyn File>, ERROR>;
     /// Retrieve file or directory metadata at the given (Windows-style) path.
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, u32>;
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, ERROR>;
     /// Iterate the contents of a directory at the given (Windows-style) path.
-    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, u32>;
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, ERROR>;
     /// Create a new directory at the given (Windows-style) path.
-    fn create_dir(&self, path: &WindowsPath) -> Result<(), u32>;
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), ERROR>;
     /// Remove a file at the given (Windows-style) path.
-    fn remove_file(&self, path: &WindowsPath) -> Result<(), u32>;
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), ERROR>;
     /// Remove a directory at the given (Windows-style) path.
-    fn remove_dir(&self, path: &WindowsPath) -> Result<(), u32>;
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR>;
     fn log(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
