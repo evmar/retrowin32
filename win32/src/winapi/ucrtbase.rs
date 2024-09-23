@@ -1,3 +1,11 @@
+//! The C runtime library.  This module is also the implementation of msvcrt.dll.
+
+/*
+Remaining missing symbols:
+char* msvcrt.dll!_acmdln
+int msvcrt.dll!_adjust_fdiv
+*/
+
 #![allow(non_snake_case)]
 
 use super::kernel32::ExitProcess;
@@ -86,6 +94,11 @@ pub fn _crt_atexit(_machine: &mut Machine, _function: u32) -> u32 {
 #[win32_derive::dllexport(cdecl)]
 pub fn _configure_narrow_argv(_machine: &mut Machine, _mode: u32) -> u32 {
     0
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn _exit(machine: &mut Machine, status: u32) -> u32 {
+    ExitProcess(machine, status)
 }
 
 #[win32_derive::dllexport(cdecl)]
@@ -218,4 +231,25 @@ pub fn time(machine: &mut Machine, destTime: Option<&mut u64>) -> u32 {
 #[win32_derive::dllexport(cdecl)]
 pub fn _time64(machine: &mut Machine, destTime: Option<&mut u64>) -> u32 {
     time64(machine, destTime)
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn _XcptFilter(machine: &mut Machine, xcptnum: u32, pxcptinfoptrs: u32) -> u32 {
+    todo!();
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn _except_handler3(
+    _machine: &mut Machine,
+    exception_record: u32,
+    registration: u32,
+    context: u32,
+    dispatcher: u32,
+) -> i32 {
+    todo!();
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn __setusermatherr(machine: &mut Machine, pf: u32) {
+    todo!();
 }

@@ -4081,6 +4081,12 @@ pub mod ucrtbase {
         };
         use memory::Extensions;
         use winapi::ucrtbase::*;
+        pub unsafe fn _XcptFilter(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let xcptnum = <u32>::from_stack(mem, esp + 4u32);
+            let pxcptinfoptrs = <u32>::from_stack(mem, esp + 8u32);
+            winapi::ucrtbase::_XcptFilter(machine, xcptnum, pxcptinfoptrs).to_raw()
+        }
         pub unsafe fn __dllonexit(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let func = <u32>::from_stack(mem, esp + 4u32);
@@ -4119,6 +4125,11 @@ pub mod ucrtbase {
             let _app_type = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::__set_app_type(machine, _app_type).to_raw()
         }
+        pub unsafe fn __setusermatherr(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let pf = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::__setusermatherr(machine, pf).to_raw()
+        }
         pub unsafe fn _configthreadlocale(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
             let per_thread_locale_type = <i32>::from_stack(mem, esp + 4u32);
@@ -4146,6 +4157,26 @@ pub mod ucrtbase {
             let mem = machine.mem().detach();
             let _function = <u32>::from_stack(mem, esp + 4u32);
             winapi::ucrtbase::_crt_atexit(machine, _function).to_raw()
+        }
+        pub unsafe fn _except_handler3(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let exception_record = <u32>::from_stack(mem, esp + 4u32);
+            let registration = <u32>::from_stack(mem, esp + 8u32);
+            let context = <u32>::from_stack(mem, esp + 12u32);
+            let dispatcher = <u32>::from_stack(mem, esp + 16u32);
+            winapi::ucrtbase::_except_handler3(
+                machine,
+                exception_record,
+                registration,
+                context,
+                dispatcher,
+            )
+            .to_raw()
+        }
+        pub unsafe fn _exit(machine: &mut Machine, esp: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let status = <u32>::from_stack(mem, esp + 4u32);
+            winapi::ucrtbase::_exit(machine, status).to_raw()
         }
         pub unsafe fn _get_initial_narrow_environment(machine: &mut Machine, esp: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -4248,6 +4279,10 @@ pub mod ucrtbase {
     mod shims {
         use super::impls;
         use crate::shims::Shim;
+        pub const _XcptFilter: Shim = Shim {
+            name: "_XcptFilter",
+            func: crate::shims::Handler::Sync(impls::_XcptFilter),
+        };
         pub const __dllonexit: Shim = Shim {
             name: "__dllonexit",
             func: crate::shims::Handler::Sync(impls::__dllonexit),
@@ -4276,6 +4311,10 @@ pub mod ucrtbase {
             name: "__set_app_type",
             func: crate::shims::Handler::Sync(impls::__set_app_type),
         };
+        pub const __setusermatherr: Shim = Shim {
+            name: "__setusermatherr",
+            func: crate::shims::Handler::Sync(impls::__setusermatherr),
+        };
         pub const _configthreadlocale: Shim = Shim {
             name: "_configthreadlocale",
             func: crate::shims::Handler::Sync(impls::_configthreadlocale),
@@ -4295,6 +4334,14 @@ pub mod ucrtbase {
         pub const _crt_atexit: Shim = Shim {
             name: "_crt_atexit",
             func: crate::shims::Handler::Sync(impls::_crt_atexit),
+        };
+        pub const _except_handler3: Shim = Shim {
+            name: "_except_handler3",
+            func: crate::shims::Handler::Sync(impls::_except_handler3),
+        };
+        pub const _exit: Shim = Shim {
+            name: "_exit",
+            func: crate::shims::Handler::Sync(impls::_exit),
         };
         pub const _get_initial_narrow_environment: Shim = Shim {
             name: "_get_initial_narrow_environment",
@@ -4361,7 +4408,8 @@ pub mod ucrtbase {
             func: crate::shims::Handler::Sync(impls::time),
         };
     }
-    const SHIMS: [Shim; 28usize] = [
+    const SHIMS: [Shim; 32usize] = [
+        shims::_XcptFilter,
         shims::__dllonexit,
         shims::__getmainargs,
         shims::__p___argc,
@@ -4369,11 +4417,14 @@ pub mod ucrtbase {
         shims::__p__commode,
         shims::__p__fmode,
         shims::__set_app_type,
+        shims::__setusermatherr,
         shims::_configthreadlocale,
         shims::_configure_narrow_argv,
         shims::_controlfp,
         shims::_controlfp_s,
         shims::_crt_atexit,
+        shims::_except_handler3,
+        shims::_exit,
         shims::_get_initial_narrow_environment,
         shims::_initialize_narrow_environment,
         shims::_initterm,
