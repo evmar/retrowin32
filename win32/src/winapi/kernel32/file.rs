@@ -630,7 +630,7 @@ pub fn GetFullPathNameW(
     buf[..out_bytes.len()].copy_from_slice(&out_bytes);
     buf[out_bytes.len()] = 0;
 
-    file_name.len() as u32
+    out_bytes.len() as u32
 }
 
 #[win32_derive::dllexport]
