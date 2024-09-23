@@ -7,7 +7,7 @@ use windows_sys::Win32::{
     Storage::FileSystem::WriteFile,
     System::{
         Console::{GetStdHandle, STD_OUTPUT_HANDLE},
-        Threading::{CreateThread, GetCurrentThreadId, Sleep},
+        Threading::{CreateThread, GetCurrentThreadId, Sleep, TlsAlloc, TlsGetValue, TlsSetValue},
     },
 };
 
@@ -26,33 +26,60 @@ fn print(msg: String) {
     }
 }
 
-unsafe extern "system" fn thread_proc(param: *mut std::ffi::c_void) -> u32 {
-    let param = if param.is_null() {
-        None
-    } else {
-        Some(*(param as *const &str))
-    };
-    let fast = param.is_some();
-    for i in 0..(if fast { 10 } else { 5 }) {
-        let thread_id = GetCurrentThreadId();
-        print(format!("thread={thread_id} param={param:?} i={i}\n"));
-        Sleep(if fast { 100 } else { 200 });
+struct ThreadParams {
+    name: &'static str,
+    steps: u32,
+    tls_key: u32,
+}
+
+fn run_thread(params: &ThreadParams) {
+    for i in 0..params.steps {
+        let thread_id = unsafe { GetCurrentThreadId() };
+        let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
+        print(format!(
+            "thread={thread_id} name={name:?} tls={tls} i={i}\n",
+            name = params.name
+        ));
+        unsafe { Sleep(1000 / params.steps) };
     }
-    let thread_id = GetCurrentThreadId();
-    print(format!("thread={thread_id} param={param:?} returning\n"));
+    let thread_id = unsafe { GetCurrentThreadId() };
+    let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
+    print(format!(
+        "thread={thread_id} name={name:?} tls={tls} returning\n",
+        name = params.name,
+    ));
+}
+
+unsafe extern "system" fn thread_proc(param: *mut std::ffi::c_void) -> u32 {
+    let params = &*(param as *const ThreadParams);
+    TlsSetValue(params.tls_key, 2 as *const _);
+    run_thread(params);
     0
 }
 
 fn main() {
     unsafe {
+        let tls_key = TlsAlloc();
+        TlsSetValue(tls_key, 1 as *const _);
+        let thread_params = ThreadParams {
+            name: "i_am_thread",
+            steps: 5,
+            tls_key,
+        };
+
         CreateThread(
             std::ptr::null(),
             0x1000,
             Some(thread_proc),
-            &"i_am_thread" as *const _ as *const _,
+            &thread_params as *const _ as *const _,
             0,
             std::ptr::null_mut(),
         );
-        thread_proc(std::ptr::null_mut());
+
+        run_thread(&ThreadParams {
+            name: "main",
+            steps: 10,
+            tls_key,
+        });
     }
 }
