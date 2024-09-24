@@ -1,9 +1,10 @@
+//! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
+
 use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims::Shims,
-    shims_emu::retrowin32_syscall,
+    shims::{Handler, Shims},
     winapi,
 };
 use memory::{Extensions, ExtensionsMut, Mem};
@@ -53,7 +54,8 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = BoxMem::new(256 << 20);
-        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall());
+        let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall);
         let shims = Shims::default();
         let state = winapi::State::new(&mut memory, kernel32);
 
@@ -170,7 +172,43 @@ impl MachineX<Emulator> {
 
     fn syscall(&mut self) {
         self.emu.x86.cpu_mut().state = x86::CPUState::Running;
-        crate::shims_emu::handle_shim_call(self);
+
+        // See doc/shims.md for the state of the stack when we get here.
+
+        let regs = &mut self.emu.x86.cpu_mut().regs;
+
+        // stack[0] is the return address within the shim DLL, after the call instruction.
+        // The 'call retrowin32_syscall' instruction is ff15+addr, for 6 bytes.
+        // Subtract to find the address of the shim function.
+        let esp = regs.get32(x86::Register::ESP);
+        let call_len = 6;
+        let shim_addr = self.emu.memory.mem().get_pod::<u32>(esp) - call_len;
+
+        let shim = match self.emu.shims.get(shim_addr) {
+            Ok(shim) => shim,
+            Err(name) => unimplemented!("{}", name),
+        };
+
+        // Shim fn expects to read the stack starting at the return address within the exe.
+        let esp = esp + 4;
+        match shim.func {
+            Handler::Sync(func) => {
+                let ret = unsafe { func(self, esp) };
+                let regs = &mut self.emu.x86.cpu_mut().regs;
+                regs.set32(x86::Register::EAX, ret);
+
+                // Clear registers to make traces clean.
+                // eax holds return value; other registers are callee-saved per ABI.
+                regs.set32(x86::Register::ECX, 0);
+                regs.set32(x86::Register::EDX, 0);
+            }
+
+            Handler::Async(func) => {
+                let eip = regs.eip; // return address
+                let future = unsafe { func(self, esp) };
+                self.emu.x86.cpu_mut().call_async(future, eip);
+            }
+        }
     }
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {

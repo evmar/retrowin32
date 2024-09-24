@@ -9,8 +9,6 @@ pub mod winapi;
 
 #[cfg(feature = "x86-emu")]
 mod machine_emu;
-#[cfg(feature = "x86-emu")]
-mod shims_emu;
 
 #[cfg(feature = "x86-64")]
 mod ldt;

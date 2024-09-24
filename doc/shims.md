@@ -7,9 +7,33 @@ in 2024 and described in
 [this blog post](https://neugierig.org/software/blog/2024/09/retrowin32-syscalls.html)
 which eventually I ought to fold into here.
 
-In the simple case, Rust functions like `kernel32.dll!ExitProcess` call into our
-custom `kernel32.dll` stub, which forwards to `retrowin32_syscall`, which then
-has emulator-specific implementations.
+In the simple case, Rust functions like `kernel32.dll!Foo` call into our custom
+`kernel32.dll` stub, which forwards to `retrowin32_syscall`, which then has
+emulator-specific implementations.
+
+When a shim is invoked, the code that invoked it looks like this:
+
+```
+foo.exe:
+  ...
+  push 1234  ; argument to Foo
+  call [kernel32!Foo]
+
+kernel32!Foo:
+  call [retrowin32_syscall]
+  ret 4  ; clean up argument
+
+retrowin32.dll!retrowin32_syscall:
+  ...specific to emulator backend...
+```
+
+So at the time `retrowin32_syscall` is invoked, the stack looks like:
+
+```
+return address within kernel32.dll!Foo, after the call
+return address within foo.exe, after the call
+arg1 to Foo
+```
 
 ## Async calls
 
