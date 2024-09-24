@@ -282,6 +282,7 @@ async fn get_message(
     return 1;
 }
 
+// Note: the docs say this returns BOOL, but really it can return -1/0/nonzero.
 #[win32_derive::dllexport]
 pub async fn GetMessageA(
     machine: &mut Machine,
@@ -293,6 +294,7 @@ pub async fn GetMessageA(
     get_message(machine, lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax).await
 }
 
+// Note: the docs say this returns BOOL, but really it can return -1/0/nonzero.
 #[win32_derive::dllexport]
 pub async fn GetMessageW(
     machine: &mut Machine,
