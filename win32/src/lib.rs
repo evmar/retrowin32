@@ -19,8 +19,6 @@ mod shims_raw;
 
 #[cfg(feature = "x86-unicorn")]
 mod machine_unicorn;
-#[cfg(feature = "x86-unicorn")]
-mod shims_unicorn;
 
 pub use host::*;
 pub use machine::Machine;

@@ -14,7 +14,7 @@ use crate::Machine;
 use std::collections::HashMap;
 
 #[cfg(feature = "x86-unicorn")]
-pub use crate::shims_unicorn::unicorn_loop;
+pub use crate::machine_unicorn::unicorn_loop;
 
 pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u32;
 pub type AsyncHandler =

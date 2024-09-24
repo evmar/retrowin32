@@ -2,11 +2,10 @@ use crate::{
     host,
     machine::{LoadedAddrs, MachineX},
     pe,
-    shims::Shims,
-    shims_unicorn::retrowin32_syscall,
+    shims::{Handler, Shims},
     winapi,
 };
-use memory::Mem;
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
 use std::path::Path;
 use std::pin::Pin;
@@ -46,7 +45,8 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::new(32 << 20);
-        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall());
+        let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
+        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall);
 
         let mut unicorn = Unicorn::new(Arch::X86, Mode::MODE_32).unwrap();
         unsafe {
@@ -61,13 +61,30 @@ impl MachineX<Emulator> {
                 .unwrap();
         };
 
-        let shims = Shims::new(&mut unicorn);
+        unicorn
+            .add_insn_sys_hook(
+                unicorn_engine::InsnSysX86::SYSENTER,
+                0,
+                0xFFFF_FFFF,
+                |unicorn| {
+                    unicorn.emu_stop().unwrap();
+                },
+            )
+            .unwrap();
+
+        // Uncomment to trace every executed instruction:
+        unicorn
+            .add_code_hook(0, 0xFFFF_FFFF, |_unicorn, addr, size| {
+                println!("u {addr:x}+{size:x}");
+            })
+            .unwrap();
+
         let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
             emu: Emulator {
                 unicorn,
-                shims,
+                shims: Shims::default(),
                 memory,
                 breakpoints: Default::default(),
             },
@@ -198,8 +215,66 @@ impl MachineX<Emulator> {
         })
     }
 
+    fn handle_shim_call(&mut self) {
+        // See doc/shims.md for the state of the stack when we get here.
+
+        // address of shim = return address - length of call instruction
+        let esp = self
+            .emu
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::ESP)
+            .unwrap() as u32;
+        let addr = self.emu.memory.mem().get_pod::<u32>(esp) - 6;
+        let shim = match self.emu.shims.get(addr) {
+            Ok(shim) => shim,
+            Err(name) => unimplemented!("shim call to {name}"),
+        };
+        let name = shim.name;
+
+        let func = match shim.func {
+            Handler::Sync(func) => func,
+            Handler::Async(_) => unimplemented!("async shim {name}"),
+        };
+        let ret = unsafe { func(self, esp + 4) };
+
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
+            .unwrap();
+    }
+
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
-        crate::shims_unicorn::call_x86(self, func, args).await
+        let mem = self.emu.memory.mem();
+
+        let ret_addr = self
+            .emu
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::EIP)
+            .unwrap() as u32;
+
+        let mut esp = self
+            .emu
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::ESP)
+            .unwrap() as u32;
+        for &arg in args.iter().rev() {
+            esp -= 4;
+            mem.put_pod::<u32>(esp, arg);
+        }
+        esp -= 4;
+        mem.put_pod::<u32>(esp, ret_addr);
+
+        self.emu
+            .unicorn
+            .reg_write(unicorn_engine::RegisterX86::ESP, esp as u64)
+            .unwrap();
+
+        unicorn_loop(self, func, ret_addr);
+
+        self.emu
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::EAX)
+            .unwrap() as u32
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
@@ -231,5 +306,24 @@ impl MachineX<Emulator> {
             log::warn!("machine_unicorn: no breakpoint at {:#x}", addr);
             false
         }
+    }
+}
+
+/// Run emulation via machine.emu starting from eip=begin until eip==until is hit.
+/// This is like unicorn.emu_start() but handles shim calls as well.
+pub fn unicorn_loop(machine: &mut Machine, begin: u32, until: u32) {
+    let mut eip = begin as u64;
+    let until = until as u64;
+    loop {
+        machine.emu.unicorn.emu_start(eip, until, 0, 0).unwrap();
+        eip = machine
+            .emu
+            .unicorn
+            .reg_read(unicorn_engine::RegisterX86::EIP)
+            .unwrap();
+        if eip == until {
+            return;
+        }
+        machine.handle_shim_call();
     }
 }
