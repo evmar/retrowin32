@@ -38,7 +38,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         .collect::<Vec<_>>();
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
         (
-            quote!(crate::shims::Handler::Async(impls::#sym_name)),
+            quote!(Handler::Async(impls::#sym_name)),
             quote! {
                 pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
                     #fetch_args
@@ -52,7 +52,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         )
     } else {
         (
-            quote!(crate::shims::Handler::Sync(impls::#sym_name)),
+            quote!(Handler::Sync(impls::#sym_name)),
             quote! {
                 pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> u32 {
                     #fetch_args
@@ -69,9 +69,9 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
 
     (
         defn,
-        quote!(pub const #sym_name: Shim = Shim {
+        quote!(Shim {
             name: #name_str,
             func: #func,
-        };),
+        }),
     )
 }

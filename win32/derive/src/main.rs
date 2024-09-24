@@ -99,17 +99,13 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
 
     let mut impls = Vec::new();
     let mut shims = Vec::new();
-    let mut shims_list = Vec::new();
     for dllexport in &dllexports.fns {
         let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, dllexport);
         impls.push(wrapper);
         shims.push(shim);
-
-        let sym_name = &dllexport.sym_name;
-        shims_list.push(quote!(shims::#sym_name));
     }
 
-    let shims_count = shims_list.len();
+    let shims_count = shims.len();
     let raw_dll_path = format!("../../dll/{}", dll_name);
     quote! {
         pub mod #module {
@@ -122,14 +118,8 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
                 #(#impls)*
             }
 
-            mod shims {
-                use super::impls;
-                use crate::shims::Shim;
-                #(#shims)*
-            }
-
             const SHIMS: [Shim; #shims_count] = [
-                #(#shims_list),*
+                #(#shims),*
             ];
 
             pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -166,7 +156,7 @@ fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<String> {
     let out = quote! {
         /// Generated code, do not edit.
 
-        use crate::shims::Shim;
+        use crate::shims::{Shim, Handler};
 
         pub struct BuiltinDLL {
             pub file_name: &'static str,
