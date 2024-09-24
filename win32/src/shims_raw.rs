@@ -1,4 +1,5 @@
-//! "Shims" are my word for the mechanism for x86 -> retrowin32 (and back) calls.
+//! "Shims" are the word used within retrowin32 for the mechanism for x86 ->
+//! retrowin32 (and back) calls.  See doc/shims.md.
 //!
 //! This module implements Shims for non-emulated cpu case, using raw 32-bit memory.
 //! See doc/x86-64.md for an overview.
