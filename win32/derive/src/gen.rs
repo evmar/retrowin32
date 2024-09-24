@@ -21,12 +21,12 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
 
     let mut fetch_args = TokenStream::new();
     fetch_args.extend(quote!(let mem = machine.mem().detach();));
-    let mut stack_offset = 4u32; // return address
+    let mut stack_offset = 0u32;
     for parse::Argument { name, ty, stack } in dllexport.args.iter() {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         fetch_args.extend(quote! {
-            let #name = <#ty>::from_stack(mem, esp + #stack_offset);
+            let #name = <#ty>::from_stack(mem, stack_args + #stack_offset);
         });
         stack_offset += stack.consumed();
     }
@@ -40,7 +40,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         (
             quote!(Handler::Async(impls::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
                     #fetch_args
                     let machine: *mut Machine = machine;
                     Box::pin(async move {
@@ -54,7 +54,7 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         (
             quote!(Handler::Sync(impls::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, esp: u32) -> u32 {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> u32 {
                     #fetch_args
                     #impl_name(machine, #(#args),*).to_raw()
                 }

@@ -189,11 +189,10 @@ impl MachineX<Emulator> {
             Err(name) => unimplemented!("{}", name),
         };
 
-        // Shim fn expects to read the stack starting at the return address within the exe.
-        let esp = esp + 4;
+        let stack_args = esp + 8;
         match shim.func {
             Handler::Sync(func) => {
-                let ret = unsafe { func(self, esp) };
+                let ret = unsafe { func(self, stack_args) };
                 let regs = &mut self.emu.x86.cpu_mut().regs;
                 regs.set32(x86::Register::EAX, ret);
 
@@ -205,7 +204,7 @@ impl MachineX<Emulator> {
 
             Handler::Async(func) => {
                 let eip = regs.eip; // return address
-                let future = unsafe { func(self, esp) };
+                let future = unsafe { func(self, stack_args) };
                 self.emu.x86.cpu_mut().call_async(future, eip);
             }
         }

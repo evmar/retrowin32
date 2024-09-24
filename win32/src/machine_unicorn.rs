@@ -235,7 +235,8 @@ impl MachineX<Emulator> {
             Handler::Sync(func) => func,
             Handler::Async(_) => unimplemented!("async shim {name}"),
         };
-        let ret = unsafe { func(self, esp + 4) };
+        let stack_args = esp + 8;
+        let ret = unsafe { func(self, stack_args) };
 
         self.emu
             .unicorn

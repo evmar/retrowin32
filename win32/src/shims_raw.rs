@@ -22,7 +22,7 @@ unsafe extern "C" fn call64() -> u32 {
     // call sequence:
     //   exe:
     //     call WindowsFunc
-    //   dll!WindowFunc:
+    //   dll!WindowsFunc:
     //     call retrowin32_syscall
     //   retrowin32_syscall:
     //     lcall trans64
@@ -31,6 +31,8 @@ unsafe extern "C" fn call64() -> u32 {
     //   stack[0]: return address in retrowin32_syscall
     //   stack[1]: segment selector for far return
     //   stack[2]: return address in dll!WindowsFunc
+    //   stack[3]: return address in exe
+    //   stack[4]: first arg to WindowsFunc
 
     let stack32 = STACK32 as *const u32;
     let ret_addr = unsafe { *stack32.offset(2) };
@@ -38,8 +40,9 @@ unsafe extern "C" fn call64() -> u32 {
         Ok(shim) => shim,
         Err(name) => unimplemented!("{}", name),
     };
+    let stack_args = STACK32 + 16; // stack[4]
     match shim.func {
-        Handler::Sync(func) => func(machine, STACK32 + 12),
+        Handler::Sync(func) => func(machine, stack_args),
         Handler::Async(_) => unimplemented!(),
     }
 }
