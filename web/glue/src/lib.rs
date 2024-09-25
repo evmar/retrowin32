@@ -62,6 +62,14 @@ impl Emulator {
         self.machine.emu.x86.cpu().regs.eip
     }
 
+    #[wasm_bindgen(getter)]
+    pub fn exit_code(&self) -> u32 {
+        match self.machine.status {
+            win32::Status::Exit(code) => code,
+            _ => 0,
+        }
+    }
+
     pub fn regs(&self) -> debugger::Registers {
         debugger::Registers::from_x86(&self.machine.emu.x86.cpu())
     }

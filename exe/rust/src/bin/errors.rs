@@ -9,7 +9,10 @@ fn main() {
     let mode = &args[1];
 
     match mode.as_str() {
-        "exit" => std::process::exit(2),
+        "exit" => {
+            println!("expect: exit code 2");
+            std::process::exit(2);
+        }
         "write-null" => {
             // Note: Rust appears to optimize this out if we don't print, eek.
             println!("writing mem[0]");

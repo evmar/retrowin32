@@ -108,8 +108,11 @@ export class Emulator extends JsHost {
       }
       case wasm.Status.Blocked:
       case wasm.Status.Error:
+        this.emuHost.onStopped();
+        return false;
       case wasm.Status.Exit:
         this.emuHost.onStopped();
+        this.emuHost.exit(this.emu.exit_code);
         return false;
     }
   }
