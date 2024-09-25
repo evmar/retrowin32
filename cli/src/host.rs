@@ -90,15 +90,11 @@ impl ReadDir for ReadDirFile {
 
 pub struct Env {
     gui: Option<GUI>,
-    exit_code: Option<u32>,
 }
 
 impl Env {
     pub fn new() -> Self {
-        Env {
-            gui: None,
-            exit_code: None,
-        }
+        Env { gui: None }
     }
 
     pub fn ensure_gui(&mut self) -> anyhow::Result<&mut GUI> {
@@ -107,20 +103,12 @@ impl Env {
         }
         Ok(self.gui.as_mut().unwrap())
     }
-
-    pub fn exit_code(&self) -> Option<u32> {
-        self.exit_code
-    }
 }
 
 #[derive(Clone)]
 pub struct EnvRef(pub Rc<RefCell<Env>>);
 
 impl win32::Host for EnvRef {
-    fn exit(&self, code: u32) {
-        self.0.borrow_mut().exit_code = Some(code);
-    }
-
     fn ticks(&self) -> u32 {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();

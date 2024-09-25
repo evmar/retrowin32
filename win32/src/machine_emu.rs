@@ -264,7 +264,6 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        self.host.exit(exit_code);
         // Set the CPU state immediately here because otherwise the CPU will
         // continue executing instructions after the exit call.
         // TODO: this is unsatisfying.

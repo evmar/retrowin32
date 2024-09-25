@@ -1,6 +1,6 @@
 use crate::{
     host,
-    machine::{LoadedAddrs, MachineX},
+    machine::{LoadedAddrs, MachineX, Status},
     pe,
     shims::{Handler, Shims},
     winapi,
@@ -303,10 +303,11 @@ impl MachineX<Emulator> {
 
     fn run(&mut self, eip: u32) {
         let mut eip = eip as u64;
-        loop {
+        while matches!(self.status, Status::Running) {
             if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR, 0, 0) {
-                log::error!("machine_unicorn: {:?}", err);
-                self.dump_state();
+                self.status = Status::Error {
+                    message: format!("unicorn: {:?}", err),
+                };
                 return;
             }
             eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
@@ -322,11 +323,12 @@ impl MachineX<Emulator> {
         }
     }
 
-    pub fn main(&mut self, entry_point: u32) {
+    pub fn main(&mut self, entry_point: u32) -> &Status {
         self.emu.unicorn.reg_write(RegisterX86::EIP, 0).unwrap();
         let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
         self.setup_call_x86(retrowin32_main, vec![entry_point]);
         self.run(retrowin32_main);
+        &self.status
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
@@ -399,8 +401,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        // TODO: interrupt unicorn run() loop.
-        self.host.exit(exit_code);
+        self.status = Status::Exit(exit_code);
     }
 }
 

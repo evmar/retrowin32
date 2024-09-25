@@ -142,6 +142,8 @@ fn main() -> anyhow::Result<ExitCode> {
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
     _ = addrs;
 
+    let exit_code: u32;
+
     #[cfg(feature = "x86-64")]
     {
         assert!(args.trace_points.is_none());
@@ -150,6 +152,7 @@ fn main() -> anyhow::Result<ExitCode> {
             machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
             machine.jump_to_entry_point(addrs.entry_point);
         }
+        exit_code = 0; // TODO: exit code path never hit
     }
 
     #[cfg(feature = "x86-emu")]
@@ -189,8 +192,11 @@ fn main() -> anyhow::Result<ExitCode> {
             x86::CPUState::Error(error) => {
                 log::error!("{:?}", error);
                 machine.dump_state(0);
+                exit_code = 1;
             }
-            x86::CPUState::Exit(_) => {}
+            x86::CPUState::Exit(code) => {
+                exit_code = *code;
+            }
             x86::CPUState::Running | x86::CPUState::Blocked(_) | x86::CPUState::SysCall => {
                 unreachable!()
             }
@@ -215,17 +221,21 @@ fn main() -> anyhow::Result<ExitCode> {
             print_trace(&machine);
             todo!();
         } else {
-            machine.main(addrs.entry_point);
+            match machine.main(addrs.entry_point) {
+                win32::Status::Exit(code) => {
+                    exit_code = *code;
+                }
+                win32::Status::Error { message } => {
+                    log::error!("{}", message);
+                    machine.dump_state();
+                    exit_code = 1;
+                }
+                _ => unreachable!(),
+            }
         }
     }
 
-    let exit_code = host
-        .0
-        .borrow()
-        .exit_code()
-        .map(|c| ExitCode::from(c.try_into().unwrap_or(u8::MAX)))
-        .unwrap_or(ExitCode::SUCCESS);
-    Ok(exit_code)
+    Ok(ExitCode::from(exit_code as u8))
 }
 
 fn escape_arg(arg: &str) -> Cow<str> {

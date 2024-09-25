@@ -1,6 +1,6 @@
 use crate::{
     host,
-    machine::{LoadedAddrs, MachineX},
+    machine::{LoadedAddrs, MachineX, Status},
     pe,
     shims::Shims,
     shims_raw::retrowin32_syscall,
@@ -95,6 +95,6 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        self.host.exit(exit_code);
+        self.status = Status::Exit(exit_code);
     }
 }

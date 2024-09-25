@@ -33,7 +33,11 @@ pub enum Status {
     /// All threads are blocked awaiting results.
     Blocked,
     /// CPU error.
-    Error { message: String, signal: u8 },
+    Error {
+        message: String,
+        // TODO:
+        // signal: u8
+    },
     /// Process exited.
-    Exit { code: u32 },
+    Exit(u32),
 }

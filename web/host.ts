@@ -119,6 +119,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     }
   }
 
+  // TODO: now unused
   exit(code: number) {
     this.emuHost.exit(code);
   }

@@ -240,8 +240,6 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
 #[wasm_bindgen(typescript_custom_section)]
 const JSHOST_TS: &'static str = r#"
 export interface JsHost {
-  exit(code: number): void;
-  
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
@@ -256,9 +254,6 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn log(this: &JsHost, level: u8, msg: String);
-
-    #[wasm_bindgen(method)]
-    fn exit(this: &JsHost, exit_code: u32);
 
     #[wasm_bindgen(method)]
     fn ensure_timer(this: &JsHost, when: u32);
@@ -279,10 +274,6 @@ extern "C" {
 }
 
 impl win32::Host for JsHost {
-    fn exit(&self, exit_code: u32) {
-        JsHost::exit(self, exit_code)
-    }
-
     fn ticks(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
     }

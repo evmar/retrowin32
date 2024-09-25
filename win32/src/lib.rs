@@ -21,4 +21,4 @@ mod shims_raw;
 mod machine_unicorn;
 
 pub use host::*;
-pub use machine::Machine;
+pub use machine::{Machine, Status};
