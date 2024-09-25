@@ -13,9 +13,6 @@
 use crate::Machine;
 use std::collections::HashMap;
 
-#[cfg(feature = "x86-unicorn")]
-pub use crate::machine_unicorn::unicorn_loop;
-
 pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u32;
 pub type AsyncHandler =
     unsafe fn(&mut Machine, u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>;

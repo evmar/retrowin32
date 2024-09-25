@@ -211,17 +211,11 @@ fn main() -> anyhow::Result<ExitCode> {
 
     #[cfg(feature = "x86-unicorn")]
     {
-        let mut trace_points = args.trace_points.unwrap_or_default();
-        let mut eip = addrs.entry_point;
-        loop {
-            let end = trace_points.pop_front().unwrap_or(0);
-            win32::shims::unicorn_loop(&mut machine, eip, end);
-            if end == 0 {
-                break;
-            } else {
-                print_trace(&machine);
-                eip = end;
-            }
+        if let Some(_trace_points) = args.trace_points {
+            print_trace(&machine);
+            todo!();
+        } else {
+            machine.main(addrs.entry_point);
         }
     }
 

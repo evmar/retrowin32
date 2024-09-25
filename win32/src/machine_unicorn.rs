@@ -219,13 +219,11 @@ impl MachineX<Emulator> {
         // See doc/shims.md for the state of the stack when we get here.
 
         // address of shim = return address - length of call instruction
-        let esp = self
-            .emu
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::ESP)
-            .unwrap() as u32;
-        let addr = self.emu.memory.mem().get_pod::<u32>(esp) - 6;
-        let shim = match self.emu.shims.get(addr) {
+        let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+        assert!(esp != 0);
+        let return_addr = self.emu.memory.mem().get_pod::<u32>(esp);
+        assert!(return_addr != 0);
+        let shim = match self.emu.shims.get(return_addr - 6) {
             Ok(shim) => shim,
             Err(name) => unimplemented!("shim call to {name}"),
         };
@@ -240,24 +238,16 @@ impl MachineX<Emulator> {
 
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::EAX, ret as u64)
+            .reg_write(RegisterX86::EAX, ret as u64)
             .unwrap();
     }
 
-    pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
+    /// Push return address and arguments to set up for an x86 call.
+    pub fn push_args_x86(&mut self, args: Vec<u32>) {
         let mem = self.emu.memory.mem();
 
-        let ret_addr = self
-            .emu
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::EIP)
-            .unwrap() as u32;
-
-        let mut esp = self
-            .emu
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::ESP)
-            .unwrap() as u32;
+        let ret_addr = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap() as u32;
+        let mut esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
         for &arg in args.iter().rev() {
             esp -= 4;
             mem.put_pod::<u32>(esp, arg);
@@ -267,15 +257,32 @@ impl MachineX<Emulator> {
 
         self.emu
             .unicorn
-            .reg_write(unicorn_engine::RegisterX86::ESP, esp as u64)
+            .reg_write(RegisterX86::ESP, esp as u64)
             .unwrap();
+    }
 
-        unicorn_loop(self, func, ret_addr);
+    pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
+        self.push_args_x86(args);
+        self.run(func); // xxx
 
-        self.emu
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::EAX)
-            .unwrap() as u32
+        self.emu.unicorn.reg_read(RegisterX86::EAX).unwrap() as u32
+    }
+
+    fn run(&mut self, eip: u32) {
+        let mut eip = eip as u64;
+        loop {
+            self.emu.unicorn.emu_start(eip as u64, 0, 0, 0).unwrap();
+            self.handle_shim_call();
+            eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
+        }
+    }
+
+    pub fn main(&mut self, entry_point: u32) {
+        // TODO: enter via retrowin32_main.
+        // let retrowin32_main = winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_main");
+        // machine.push_args_x86(vec![entry_point]);
+        // unicorn_loop(machine, retrowin32_main);
+        self.run(entry_point);
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
@@ -308,23 +315,42 @@ impl MachineX<Emulator> {
             false
         }
     }
-}
 
-/// Run emulation via machine.emu starting from eip=begin until eip==until is hit.
-/// This is like unicorn.emu_start() but handles shim calls as well.
-pub fn unicorn_loop(machine: &mut Machine, begin: u32, until: u32) {
-    let mut eip = begin as u64;
-    let until = until as u64;
-    loop {
-        machine.emu.unicorn.emu_start(eip, until, 0, 0).unwrap();
-        eip = machine
-            .emu
-            .unicorn
-            .reg_read(unicorn_engine::RegisterX86::EIP)
-            .unwrap();
-        if eip == until {
-            return;
+    pub fn dump_stack(&self) {
+        let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+        for addr in ((esp - 0x8)..(esp + 0x18)).step_by(4) {
+            let extra = if addr == esp { " <- esp" } else { "" };
+            println!(
+                "{:08x} {:08x}{extra}",
+                addr,
+                self.mem().get_pod::<u32>(addr)
+            );
         }
-        machine.handle_shim_call();
+    }
+
+    pub fn dump_regs(&self) {
+        use RegisterX86::*;
+        println!(
+            "\
+            eax {eax:08x}    esi {esi:08x}     eip {eip:08x}\n\
+            ecx {ecx:08x}    edi {edi:08x}\n\
+            edx {edx:08x}    esp {esp:08x}\n\
+            ebx {ebx:08x}    ebp {ebp:08x}",
+            eax = self.emu.unicorn.reg_read(EAX).unwrap() as u32,
+            ecx = self.emu.unicorn.reg_read(ECX).unwrap() as u32,
+            edx = self.emu.unicorn.reg_read(EDX).unwrap() as u32,
+            ebx = self.emu.unicorn.reg_read(EBX).unwrap() as u32,
+            esi = self.emu.unicorn.reg_read(ESI).unwrap() as u32,
+            edi = self.emu.unicorn.reg_read(EDI).unwrap() as u32,
+            esp = self.emu.unicorn.reg_read(ESP).unwrap() as u32,
+            ebp = self.emu.unicorn.reg_read(EBP).unwrap() as u32,
+            eip = self.emu.unicorn.reg_read(EIP).unwrap() as u32,
+        );
+    }
+
+    pub fn dump_state(&self) {
+        self.dump_regs();
+        println!("stack:");
+        self.dump_stack();
     }
 }
