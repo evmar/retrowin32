@@ -161,9 +161,6 @@ fn main() -> anyhow::Result<ExitCode> {
             let mut seen_blocks = std::collections::HashSet::new();
             while machine.run() {
                 let regs = &machine.emu.x86.cpu().regs;
-                if regs.eip & 0xFFFF_0000 == 0xF1A7_0000 {
-                    continue;
-                }
                 if seen_blocks.contains(&regs.eip) {
                     continue;
                 }
