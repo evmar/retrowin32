@@ -6,9 +6,7 @@ use crate::{
     winapi,
 };
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::collections::HashMap;
-use std::path::Path;
-use std::pin::Pin;
+use std::{collections::HashMap, future::Future, path::Path, pin::Pin};
 use unicorn_engine::unicorn_const::{Arch, Mode, Permission};
 use unicorn_engine::{RegisterX86, Unicorn, X86Mmr};
 
@@ -33,11 +31,16 @@ impl MemImpl {
     }
 }
 
+/// When eip==MAGIC_ADDR, the CPU executes futures (async tasks) rather than x86 code.
+/// This is a u64 only because Unicorn wants u64s for registers/addresses.
+const MAGIC_ADDR: u64 = 0xFFFF_FFF0;
+
 pub struct Emulator {
     pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
     pub memory: MemImpl,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
+    futures: Vec<Pin<Box<dyn Future<Output = ()>>>>,
 }
 
 pub type Machine = MachineX<Emulator>;
@@ -73,11 +76,11 @@ impl MachineX<Emulator> {
             .unwrap();
 
         // Uncomment to trace every executed instruction:
-        unicorn
-            .add_code_hook(0, 0xFFFF_FFFF, |_unicorn, addr, size| {
-                println!("u {addr:x}+{size:x}");
-            })
-            .unwrap();
+        // unicorn
+        //     .add_code_hook(0, 0xFFFF_FFFF, |_unicorn, addr, size| {
+        //         println!("u {addr:x}+{size:x}");
+        //     })
+        //     .unwrap();
 
         let state = winapi::State::new(&mut memory, kernel32);
 
@@ -87,6 +90,7 @@ impl MachineX<Emulator> {
                 shims: Shims::default(),
                 memory,
                 breakpoints: Default::default(),
+                futures: Default::default(),
             },
             host,
             state,
@@ -185,28 +189,6 @@ impl MachineX<Emulator> {
             .unicorn
             .reg_write(RegisterX86::EBX, 0xdeadbeeb)
             .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EIP, exe.entry_point as u64)
-            .unwrap();
-        // To make CPU traces match more closely, set up some registers to what their
-        // initial values appear to be from looking in a debugger.
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::ECX, exe.entry_point as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EDX, exe.entry_point as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::ESI, exe.entry_point as u64)
-            .unwrap();
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EDI, exe.entry_point as u64)
-            .unwrap();
 
         self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
@@ -217,6 +199,10 @@ impl MachineX<Emulator> {
 
     fn handle_shim_call(&mut self) {
         // See doc/shims.md for the state of the stack when we get here.
+        // It explains the below accesses relative to esp.
+
+        let eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
+        assert!(eip != MAGIC_ADDR); // sanity check
 
         // address of shim = return address - length of call instruction
         let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
@@ -227,23 +213,64 @@ impl MachineX<Emulator> {
             Ok(shim) => shim,
             Err(name) => unimplemented!("shim call to {name}"),
         };
-        let name = shim.name;
 
-        let func = match shim.func {
-            Handler::Sync(func) => func,
-            Handler::Async(_) => unimplemented!("async shim {name}"),
-        };
         let stack_args = esp + 8;
-        let ret = unsafe { func(self, stack_args) };
+        match shim.func {
+            Handler::Sync(func) => {
+                let ret = unsafe { func(self, stack_args) };
 
-        self.emu
-            .unicorn
-            .reg_write(RegisterX86::EAX, ret as u64)
-            .unwrap();
+                self.emu
+                    .unicorn
+                    .reg_write(RegisterX86::EAX, ret as u64)
+                    .unwrap();
+            }
+            Handler::Async(func) => {
+                let return_address = eip;
+                let future = unsafe { func(self, stack_args) };
+                self.call_async(future, return_address as u32);
+            }
+        };
     }
 
-    /// Push return address and arguments to set up for an x86 call.
-    pub fn push_args_x86(&mut self, args: Vec<u32>) {
+    /// Set up the CPU such that we are making an x86->async call, enqueuing a Future.
+    /// When it finishes we will return to return_address.
+    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u32>>>, return_address: u32) {
+        self.emu
+            .unicorn
+            .reg_write(RegisterX86::EIP, MAGIC_ADDR)
+            .unwrap();
+
+        let emu: *mut Emulator = &mut self.emu;
+        self.emu.futures.push(Box::pin(async move {
+            let emu = unsafe { &mut *emu };
+            let ret = future.await;
+            emu.unicorn.reg_write(RegisterX86::EAX, ret as u64).unwrap();
+            emu.unicorn
+                .reg_write(RegisterX86::EIP, return_address as u64)
+                .unwrap();
+        }));
+    }
+
+    /// Poll the current future, removing it from the queue if it's done.
+    fn async_executor(&mut self) {
+        let future = self.emu.futures.last_mut().unwrap();
+        // TODO: we don't use the waker at all.  Rust doesn't like us passing a random null pointer
+        // here but it seems like nothing accesses it(?).
+        //let c = unsafe { std::task::Context::from_waker(&Waker::from_raw(std::task::RawWaker::)) };
+        #[allow(deref_nullptr)]
+        let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
+        let poll = future.as_mut().poll(context);
+        match poll {
+            std::task::Poll::Ready(()) => {
+                self.emu.futures.pop();
+            }
+            std::task::Poll::Pending => {}
+        }
+    }
+
+    /// Set up the CPU as if a function was just called with arguments,
+    /// with return address and arguments on the stack.
+    fn setup_call_x86(&mut self, func: u32, args: Vec<u32>) {
         let mem = self.emu.memory.mem();
 
         let ret_addr = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap() as u32;
@@ -259,30 +286,47 @@ impl MachineX<Emulator> {
             .unicorn
             .reg_write(RegisterX86::ESP, esp as u64)
             .unwrap();
+        self.emu
+            .unicorn
+            .reg_write(RegisterX86::EIP, func as u64)
+            .unwrap();
     }
 
-    pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
-        self.push_args_x86(args);
-        self.run(func); // xxx
-
-        self.emu.unicorn.reg_read(RegisterX86::EAX).unwrap() as u32
+    pub fn call_x86(&mut self, func: u32, args: Vec<u32>) -> impl Future<Output = u32> {
+        let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+        self.setup_call_x86(func, args);
+        // setup_call_x86 pushed data on the stack; the future completes once that is all popped
+        // back to the original esp.
+        UnicornFuture { machine: self, esp }
     }
 
     fn run(&mut self, eip: u32) {
         let mut eip = eip as u64;
         loop {
-            self.emu.unicorn.emu_start(eip as u64, 0, 0, 0).unwrap();
-            self.handle_shim_call();
+            if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR, 0, 0) {
+                log::error!("machine_unicorn: {:?}", err);
+                self.dump_state();
+                return;
+            }
             eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
+
+            // There are two reasons Unicorn might have stopped:
+            // either we hit the magic address, or we hit a shim call.
+            if eip == MAGIC_ADDR as u64 {
+                self.async_executor();
+                eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
+            } else {
+                self.handle_shim_call();
+                eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
+            }
         }
     }
 
     pub fn main(&mut self, entry_point: u32) {
-        // TODO: enter via retrowin32_main.
-        // let retrowin32_main = winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_main");
-        // machine.push_args_x86(vec![entry_point]);
-        // unicorn_loop(machine, retrowin32_main);
-        self.run(entry_point);
+        self.emu.unicorn.reg_write(RegisterX86::EIP, 0).unwrap();
+        let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
+        self.setup_call_x86(retrowin32_main, vec![entry_point]);
+        self.run(retrowin32_main);
     }
 
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
@@ -352,5 +396,28 @@ impl MachineX<Emulator> {
         self.dump_regs();
         println!("stack:");
         self.dump_stack();
+    }
+}
+
+struct UnicornFuture {
+    // We assume the machine is around for the duration of the future execution.
+    // https://github.com/rust-lang/futures-rs/issues/316
+    machine: *mut Machine,
+    esp: u32,
+}
+impl Future for UnicornFuture {
+    type Output = u32;
+
+    fn poll(
+        mut self: Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Self::Output> {
+        let machine = unsafe { &mut *self.machine };
+        let esp = machine.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
+        if esp == self.esp {
+            std::task::Poll::Ready(machine.emu.unicorn.reg_read(RegisterX86::EAX).unwrap() as u32)
+        } else {
+            std::task::Poll::Pending
+        }
     }
 }
