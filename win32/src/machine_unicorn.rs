@@ -314,11 +314,10 @@ impl MachineX<Emulator> {
             // either we hit the magic address, or we hit a shim call.
             if eip == MAGIC_ADDR as u64 {
                 self.async_executor();
-                eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
             } else {
                 self.handle_shim_call();
-                eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
             }
+            eip = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap();
         }
     }
 
