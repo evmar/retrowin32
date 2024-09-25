@@ -1,0 +1,9 @@
+title = "invalid address test"
+desc = "tests dereferencing an invalid address"
+path = "local/target/i586-pc-windows-msvc/release/errors.exe"
+category = "retrowin32 test"
+cmdline = "errors.exe write-high"
+
+[origin]
+desc = "retrowin32"
+url = "https://github.com/evmar/retrowin32/blob/main/exe/rust/src/bin/errors.rs"
