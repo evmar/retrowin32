@@ -2,7 +2,8 @@ profile?=debug
 
 all: wasm index.html
 
-index.html: ../appdb/appdb.go index.tmpl
+appdb_entries = $(shell find ../appdb -type f -name '*.toml')
+index.html: ../appdb/appdb.go index.tmpl $(appdb_entries)
 	cd ../appdb && ./run.sh
 
 wasm glue/pkg/glue.d.ts:
