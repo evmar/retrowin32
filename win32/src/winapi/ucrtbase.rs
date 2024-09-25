@@ -3,7 +3,6 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
-use super::kernel32::ExitProcess;
 use crate::Machine;
 use memory::Extensions;
 
@@ -92,13 +91,13 @@ pub fn _configure_narrow_argv(_machine: &mut Machine, _mode: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _exit(machine: &mut Machine, status: u32) -> u32 {
-    ExitProcess(machine, status)
+pub fn _exit(machine: &mut Machine, status: u32) {
+    machine.exit(status);
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn exit(machine: &mut Machine, status: u32) -> u32 {
-    ExitProcess(machine, status)
+pub fn exit(machine: &mut Machine, status: u32) {
+    machine.exit(status);
 }
 
 #[win32_derive::dllexport(cdecl)]

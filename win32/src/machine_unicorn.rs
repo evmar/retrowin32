@@ -396,6 +396,11 @@ impl MachineX<Emulator> {
         println!("stack:");
         self.dump_stack();
     }
+
+    pub fn exit(&mut self, exit_code: u32) {
+        // TODO: interrupt unicorn run() loop.
+        self.host.exit(exit_code);
+    }
 }
 
 struct UnicornFuture {

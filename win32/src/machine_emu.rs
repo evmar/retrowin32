@@ -261,4 +261,15 @@ impl MachineX<Emulator> {
             None => false,
         }
     }
+
+    pub fn exit(&mut self, exit_code: u32) {
+        self.host.exit(exit_code);
+        // Set the CPU state immediately here because otherwise the CPU will
+        // continue executing instructions after the exit call.
+        // TODO: this is unsatisfying.
+        // Maybe better is to generate a hlt instruction somewhere and jump to it?
+        // Note also we need a mechanism to exit a completed thread without stopping the whole
+        // program.
+        self.emu.x86.cpu_mut().state = x86::CPUState::Exit(exit_code);
+    }
 }

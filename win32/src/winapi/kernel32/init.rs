@@ -7,7 +7,7 @@ use crate::{
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, handle::Handles, heap::Heap, kernel32, types::*},
+    winapi::{alloc::Arena, handle::Handles, heap::Heap, types::*},
     Machine,
 };
 use ::memory::Mem;
@@ -467,7 +467,7 @@ pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
 /// point for when retrowin32 starts/stops a process, initializing DLLs and calling main.
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
-pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
+pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
     struct DllData {
         base: u32,
         entry_point: u32,
@@ -497,14 +497,12 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) -> u32 {
     machine.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
     // spawned threads before exiting.
-    kernel32::exit_process(machine, 0);
-    0
+    machine.exit(0);
 }
 
 #[win32_derive::dllexport]
-pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) -> u32 {
+pub async fn retrowin32_thread_main(machine: &mut Machine, entry_point: u32, param: u32) {
     machine.call_x86(entry_point, vec![param]).await;
     log::warn!("TODO: thread exiting, but we don't have a way to stop a single thread yet");
-    kernel32::exit_process(machine, 0);
-    0
+    machine.exit(0);
 }

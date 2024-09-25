@@ -92,4 +92,8 @@ impl MachineX<Emulator> {
         let pin = std::pin::pin!(self.call_x86(entry_point, vec![]));
         crate::shims::call_sync(pin);
     }
+
+    pub fn exit(&mut self, exit_code: u32) {
+        self.host.exit(exit_code);
+    }
 }

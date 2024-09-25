@@ -3,7 +3,7 @@
 
 use crate::{
     machine::Machine,
-    winapi::{kernel32, stack_args::ArrayWithSizeMut, types::HFILE},
+    winapi::{stack_args::ArrayWithSizeMut, types::HFILE},
 };
 
 const TRACE_CONTEXT: &'static str = "ntdll";
@@ -49,7 +49,6 @@ pub fn NtReadFile(
 }
 
 #[win32_derive::dllexport]
-pub fn RtlExitUserProcess(machine: &mut Machine, exit_code: u32) -> u32 {
-    kernel32::exit_process(machine, exit_code);
-    0
+pub fn RtlExitUserProcess(machine: &mut Machine, exit_code: u32) {
+    machine.exit(exit_code);
 }
