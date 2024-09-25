@@ -303,7 +303,7 @@ impl MachineX<Emulator> {
 
     fn run(&mut self, eip: u32) {
         let mut eip = eip as u64;
-        while matches!(self.status, Status::Running) {
+        while self.status.is_running() {
             if let Err(err) = self.emu.unicorn.emu_start(eip, MAGIC_ADDR, 0, 0) {
                 self.status = Status::Error {
                     message: format!("unicorn: {:?}", err),

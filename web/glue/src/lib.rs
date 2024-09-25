@@ -16,7 +16,7 @@ pub struct Emulator {
 }
 
 #[wasm_bindgen]
-pub enum CPUState {
+pub enum Status {
     Running,
     Blocked,
     Error,
@@ -82,7 +82,7 @@ impl Emulator {
 
     /// Run code until at least count instructions have run.
     /// This exists to avoid many round-trips from JS to Rust in the execution loop.
-    pub fn run(&mut self, count: usize) -> JsResult<CPUState> {
+    pub fn run(&mut self, count: usize) -> JsResult<Status> {
         if count == 1 {
             self.machine.single_step();
         } else {
@@ -96,12 +96,14 @@ impl Emulator {
             }
         }
 
-        Ok(match &self.machine.emu.x86.cpu().state {
-            x86::CPUState::Running | x86::CPUState::SysCall => CPUState::Running,
-            x86::CPUState::Blocked(_) => CPUState::Blocked,
-            x86::CPUState::Error(msg) => return Err(JsError::new(msg)),
-            x86::CPUState::DebugBreak => CPUState::DebugBreak,
-            x86::CPUState::Exit(_) => CPUState::Exit,
+        Ok(match &self.machine.status {
+            win32::Status::Running => Status::Running,
+            win32::Status::Blocked => Status::Blocked,
+            win32::Status::Error { message } => return Err(JsError::new(message)),
+            win32::Status::Exit(_code) => {
+                // TODO: use exit code
+                Status::Exit
+            }
         })
     }
 

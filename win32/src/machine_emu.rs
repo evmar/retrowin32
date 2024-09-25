@@ -2,7 +2,7 @@
 
 use crate::{
     host,
-    machine::{LoadedAddrs, MachineX},
+    machine::{LoadedAddrs, MachineX, Status},
     pe,
     shims::{Handler, Shims},
     winapi,
@@ -135,6 +135,7 @@ impl MachineX<Emulator> {
                 x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
             ) {
                 cpu.state = x86::CPUState::Running;
+                self.status = Status::Running;
             }
         }
     }
@@ -146,6 +147,7 @@ impl MachineX<Emulator> {
             x86::CPUState::Blocked(_) | x86::CPUState::DebugBreak
         ) {
             cpu.state = x86::CPUState::Running;
+            self.status = Status::Running;
         }
     }
 
@@ -159,12 +161,17 @@ impl MachineX<Emulator> {
                 if self.host.block(wait) {
                     self.unblock();
                 } else {
-                    return false;
+                    self.status = Status::Blocked;
                 }
             }
-            _ => return false,
+            x86::CPUState::Error(message) => {
+                self.status = Status::Error {
+                    message: message.clone(),
+                };
+            }
+            _ => unimplemented!(),
         }
-        true
+        self.status.is_running()
     }
 
     fn execute_block(&mut self) {
@@ -264,12 +271,6 @@ impl MachineX<Emulator> {
     }
 
     pub fn exit(&mut self, exit_code: u32) {
-        // Set the CPU state immediately here because otherwise the CPU will
-        // continue executing instructions after the exit call.
-        // TODO: this is unsatisfying.
-        // Maybe better is to generate a hlt instruction somewhere and jump to it?
-        // Note also we need a mechanism to exit a completed thread without stopping the whole
-        // program.
-        self.emu.x86.cpu_mut().state = x86::CPUState::Exit(exit_code);
+        self.status = Status::Exit(exit_code);
     }
 }

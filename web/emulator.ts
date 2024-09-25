@@ -66,7 +66,7 @@ export class Emulator extends JsHost {
   private runBatch() {
     const startTime = performance.now();
     const startSteps = this.emu.instr_count;
-    const cpuState = this.emu.run(this.stepSize) as wasm.CPUState;
+    const cpuState = this.emu.run(this.stepSize) as wasm.Status;
     const endTime = performance.now();
     const endSteps = this.emu.instr_count;
 
@@ -94,9 +94,9 @@ export class Emulator extends JsHost {
     this.breakpoints.uninstall(this.emu);
 
     switch (cpuState) {
-      case wasm.CPUState.Running:
+      case wasm.Status.Running:
         return true;
-      case wasm.CPUState.DebugBreak: {
+      case wasm.Status.DebugBreak: {
         const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
         if (bp) {
           if (!bp.oneShot) {
@@ -106,9 +106,9 @@ export class Emulator extends JsHost {
         }
         return false;
       }
-      case wasm.CPUState.Blocked:
-      case wasm.CPUState.Error:
-      case wasm.CPUState.Exit:
+      case wasm.Status.Blocked:
+      case wasm.Status.Error:
+      case wasm.Status.Exit:
         this.emuHost.onStopped();
         return false;
     }

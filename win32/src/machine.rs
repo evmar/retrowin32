@@ -41,3 +41,9 @@ pub enum Status {
     /// Process exited.
     Exit(u32),
 }
+
+impl Status {
+    pub fn is_running(&self) -> bool {
+        matches!(self, Status::Running)
+    }
+}

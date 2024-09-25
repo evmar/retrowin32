@@ -188,19 +188,16 @@ fn main() -> anyhow::Result<ExitCode> {
             while machine.run() {}
         }
 
-        match &machine.emu.x86.cpu().state {
-            x86::CPUState::Error(error) => {
-                log::error!("{:?}", error);
+        match &machine.status {
+            win32::Status::Exit(code) => {
+                exit_code = *code;
+            }
+            win32::Status::Error { message } => {
+                log::error!("{}", message);
                 machine.dump_state(0);
                 exit_code = 1;
             }
-            x86::CPUState::Exit(code) => {
-                exit_code = *code;
-            }
-            x86::CPUState::Running | x86::CPUState::Blocked(_) | x86::CPUState::SysCall => {
-                unreachable!()
-            }
-            x86::CPUState::DebugBreak => todo!(),
+            _ => unreachable!(),
         }
 
         let millis = start.elapsed().as_millis() as usize;
