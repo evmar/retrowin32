@@ -10,7 +10,7 @@ use crate::{
     Machine,
 };
 #[cfg(target_arch = "x86_64")]
-use memory::Extensions;
+use memory::ExtensionsMut;
 
 static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
