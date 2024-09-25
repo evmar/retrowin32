@@ -20,4 +20,20 @@ pub struct MachineX<Emu> {
     pub state: winapi::State,
     pub labels: HashMap<u32, String>,
     pub exe_path: PathBuf,
+    pub status: Status,
+}
+
+/// Status of the machine/process.  Separate from CPU state because multiple threads
+/// can be in different states.
+#[derive(Default)]
+pub enum Status {
+    /// Running normally.
+    #[default]
+    Running,
+    /// All threads are blocked awaiting results.
+    Blocked,
+    /// CPU error.
+    Error { message: String, signal: u8 },
+    /// Process exited.
+    Exit { code: u32 },
 }

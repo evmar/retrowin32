@@ -42,6 +42,7 @@ impl MachineX<Emulator> {
             state,
             labels: HashMap::new(),
             exe_path: Default::default(),
+            status: Default::default(),
         }
     }
 
