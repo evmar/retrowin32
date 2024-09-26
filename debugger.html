@@ -11,14 +11,21 @@
         white-space: pre-wrap;
     }
 
-    section.panel {
-        margin: 1ex;
-        padding: 1ex;
+    html {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
     }
 
     body {
+        flex: 1;
         display: flex;
         flex-direction: column;
+        gap: 8px;
+    }
+
+    section.panel {
+        padding: 1ex;
     }
 
     .clicky {

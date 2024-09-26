@@ -2,53 +2,58 @@
 var n;
 var l;
 var u;
-var i;
 var t;
+var i;
 var o;
 var r;
-var f = {};
-var e = [];
-var c = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
-function s(n2, l2) {
+var f;
+var e;
+var c;
+var s;
+var a;
+var h = {};
+var v = [];
+var p = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i;
+var y = Array.isArray;
+function d(n2, l2) {
   for (var u2 in l2)
     n2[u2] = l2[u2];
   return n2;
 }
-function a(n2) {
-  var l2 = n2.parentNode;
-  l2 && l2.removeChild(n2);
+function w(n2) {
+  n2 && n2.parentNode && n2.parentNode.removeChild(n2);
 }
-function h(l2, u2, i2) {
-  var t2, o2, r2, f2 = {};
+function _(l2, u2, t2) {
+  var i2, o2, r2, f2 = {};
   for (r2 in u2)
-    "key" == r2 ? t2 = u2[r2] : "ref" == r2 ? o2 = u2[r2] : f2[r2] = u2[r2];
-  if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n.call(arguments, 2) : i2), "function" == typeof l2 && null != l2.defaultProps)
+    "key" == r2 ? i2 = u2[r2] : "ref" == r2 ? o2 = u2[r2] : f2[r2] = u2[r2];
+  if (arguments.length > 2 && (f2.children = arguments.length > 3 ? n.call(arguments, 2) : t2), "function" == typeof l2 && null != l2.defaultProps)
     for (r2 in l2.defaultProps)
       void 0 === f2[r2] && (f2[r2] = l2.defaultProps[r2]);
-  return v(l2, f2, t2, o2, null);
+  return g(l2, f2, i2, o2, null);
 }
-function v(n2, i2, t2, o2, r2) {
-  var f2 = { type: n2, props: i2, key: t2, ref: o2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, __h: null, constructor: void 0, __v: null == r2 ? ++u : r2 };
+function g(n2, t2, i2, o2, r2) {
+  var f2 = { type: n2, props: t2, key: i2, ref: o2, __k: null, __: null, __b: 0, __e: null, __d: void 0, __c: null, constructor: void 0, __v: null == r2 ? ++u : r2, __i: -1, __u: 0 };
   return null == r2 && null != l.vnode && l.vnode(f2), f2;
 }
-function y() {
+function m() {
   return { current: null };
 }
-function p(n2) {
+function b(n2) {
   return n2.children;
 }
-function d(n2, l2) {
+function k(n2, l2) {
   this.props = n2, this.context = l2;
 }
-function _(n2, l2) {
+function x(n2, l2) {
   if (null == l2)
-    return n2.__ ? _(n2.__, n2.__.__k.indexOf(n2) + 1) : null;
+    return n2.__ ? x(n2.__, n2.__i + 1) : null;
   for (var u2; l2 < n2.__k.length; l2++)
     if (null != (u2 = n2.__k[l2]) && null != u2.__e)
       return u2.__e;
-  return "function" == typeof n2.type ? _(n2) : null;
+  return "function" == typeof n2.type ? x(n2) : null;
 }
-function k(n2) {
+function C(n2) {
   var l2, u2;
   if (null != (n2 = n2.__) && null != n2.__c) {
     for (n2.__e = n2.__c.base = null, l2 = 0; l2 < n2.__k.length; l2++)
@@ -56,144 +61,156 @@ function k(n2) {
         n2.__e = n2.__c.base = u2.__e;
         break;
       }
-    return k(n2);
+    return C(n2);
   }
 }
-function b(n2) {
-  (!n2.__d && (n2.__d = true) && t.push(n2) && !g.__r++ || o !== l.debounceRendering) && ((o = l.debounceRendering) || setTimeout)(g);
+function M(n2) {
+  (!n2.__d && (n2.__d = true) && i.push(n2) && !P.__r++ || o !== l.debounceRendering) && ((o = l.debounceRendering) || r)(P);
 }
-function g() {
-  for (var n2; g.__r = t.length; )
-    n2 = t.sort(function(n3, l2) {
-      return n3.__v.__b - l2.__v.__b;
-    }), t = [], n2.some(function(n3) {
-      var l2, u2, i2, t2, o2, r2;
-      n3.__d && (o2 = (t2 = (l2 = n3).__v).__e, (r2 = l2.__P) && (u2 = [], (i2 = s({}, t2)).__v = t2.__v + 1, j(r2, t2, i2, l2.__n, void 0 !== r2.ownerSVGElement, null != t2.__h ? [o2] : null, u2, null == o2 ? _(t2) : o2, t2.__h), z(u2, t2), t2.__e != o2 && k(t2)));
-    });
+function P() {
+  var n2, u2, t2, o2, r2, e2, c2, s2;
+  for (i.sort(f); n2 = i.shift(); )
+    n2.__d && (u2 = i.length, o2 = void 0, e2 = (r2 = (t2 = n2).__v).__e, c2 = [], s2 = [], t2.__P && ((o2 = d({}, r2)).__v = r2.__v + 1, l.vnode && l.vnode(o2), O(t2.__P, o2, r2, t2.__n, t2.__P.namespaceURI, 32 & r2.__u ? [e2] : null, c2, null == e2 ? x(r2) : e2, !!(32 & r2.__u), s2), o2.__v = r2.__v, o2.__.__k[o2.__i] = o2, j(c2, o2, s2), o2.__e != e2 && C(o2)), i.length > u2 && i.sort(f));
+  P.__r = 0;
 }
-function w(n2, l2, u2, i2, t2, o2, r2, c2, s2, a2) {
-  var h2, y2, d2, k2, b2, g2, w2, x = i2 && i2.__k || e, C2 = x.length;
-  for (u2.__k = [], h2 = 0; h2 < l2.length; h2++)
-    if (null != (k2 = u2.__k[h2] = null == (k2 = l2[h2]) || "boolean" == typeof k2 ? null : "string" == typeof k2 || "number" == typeof k2 || "bigint" == typeof k2 ? v(null, k2, null, null, k2) : Array.isArray(k2) ? v(p, { children: k2 }, null, null, null) : k2.__b > 0 ? v(k2.type, k2.props, k2.key, k2.ref ? k2.ref : null, k2.__v) : k2)) {
-      if (k2.__ = u2, k2.__b = u2.__b + 1, null === (d2 = x[h2]) || d2 && k2.key == d2.key && k2.type === d2.type)
-        x[h2] = void 0;
-      else
-        for (y2 = 0; y2 < C2; y2++) {
-          if ((d2 = x[y2]) && k2.key == d2.key && k2.type === d2.type) {
-            x[y2] = void 0;
-            break;
-          }
-          d2 = null;
-        }
-      j(n2, k2, d2 = d2 || f, t2, o2, r2, c2, s2, a2), b2 = k2.__e, (y2 = k2.ref) && d2.ref != y2 && (w2 || (w2 = []), d2.ref && w2.push(d2.ref, null, k2), w2.push(y2, k2.__c || b2, k2)), null != b2 ? (null == g2 && (g2 = b2), "function" == typeof k2.type && k2.__k === d2.__k ? k2.__d = s2 = m(k2, s2, n2) : s2 = A(n2, k2, d2, x, b2, s2), "function" == typeof u2.type && (u2.__d = s2)) : s2 && d2.__e == s2 && s2.parentNode != n2 && (s2 = _(d2));
-    }
-  for (u2.__e = g2, h2 = C2; h2--; )
-    null != x[h2] && ("function" == typeof u2.type && null != x[h2].__e && x[h2].__e == u2.__d && (u2.__d = _(i2, h2 + 1)), N(x[h2], x[h2]));
-  if (w2)
-    for (h2 = 0; h2 < w2.length; h2++)
-      M(w2[h2], w2[++h2], w2[++h2]);
-}
-function m(n2, l2, u2) {
-  for (var i2, t2 = n2.__k, o2 = 0; t2 && o2 < t2.length; o2++)
-    (i2 = t2[o2]) && (i2.__ = n2, l2 = "function" == typeof i2.type ? m(i2, l2, u2) : A(u2, i2, i2, t2, i2.__e, l2));
-  return l2;
-}
-function A(n2, l2, u2, i2, t2, o2) {
-  var r2, f2, e2;
-  if (void 0 !== l2.__d)
-    r2 = l2.__d, l2.__d = void 0;
-  else if (null == u2 || t2 != o2 || null == t2.parentNode)
-    n:
-      if (null == o2 || o2.parentNode !== n2)
-        n2.appendChild(t2), r2 = null;
-      else {
-        for (f2 = o2, e2 = 0; (f2 = f2.nextSibling) && e2 < i2.length; e2 += 2)
-          if (f2 == t2)
-            break n;
-        n2.insertBefore(t2, o2), r2 = o2;
-      }
-  return void 0 !== r2 ? r2 : t2.nextSibling;
-}
-function C(n2, l2, u2, i2, t2) {
-  var o2;
-  for (o2 in u2)
-    "children" === o2 || "key" === o2 || o2 in l2 || H(n2, o2, null, u2[o2], i2);
-  for (o2 in l2)
-    t2 && "function" != typeof l2[o2] || "children" === o2 || "key" === o2 || "value" === o2 || "checked" === o2 || u2[o2] === l2[o2] || H(n2, o2, l2[o2], u2[o2], i2);
+function S(n2, l2, u2, t2, i2, o2, r2, f2, e2, c2, s2) {
+  var a2, p2, y2, d2, w2, _2 = t2 && t2.__k || v, g2 = l2.length;
+  for (u2.__d = e2, $(u2, l2, _2), e2 = u2.__d, a2 = 0; a2 < g2; a2++)
+    null != (y2 = u2.__k[a2]) && (p2 = -1 === y2.__i ? h : _2[y2.__i] || h, y2.__i = a2, O(n2, y2, p2, i2, o2, r2, f2, e2, c2, s2), d2 = y2.__e, y2.ref && p2.ref != y2.ref && (p2.ref && N(p2.ref, null, y2), s2.push(y2.ref, y2.__c || d2, y2)), null == w2 && null != d2 && (w2 = d2), 65536 & y2.__u || p2.__k === y2.__k ? e2 = I(y2, e2, n2) : "function" == typeof y2.type && void 0 !== y2.__d ? e2 = y2.__d : d2 && (e2 = d2.nextSibling), y2.__d = void 0, y2.__u &= -196609);
+  u2.__d = e2, u2.__e = w2;
 }
 function $(n2, l2, u2) {
-  "-" === l2[0] ? n2.setProperty(l2, u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || c.test(l2) ? u2 : u2 + "px";
+  var t2, i2, o2, r2, f2, e2 = l2.length, c2 = u2.length, s2 = c2, a2 = 0;
+  for (n2.__k = [], t2 = 0; t2 < e2; t2++)
+    null != (i2 = l2[t2]) && "boolean" != typeof i2 && "function" != typeof i2 ? (r2 = t2 + a2, (i2 = n2.__k[t2] = "string" == typeof i2 || "number" == typeof i2 || "bigint" == typeof i2 || i2.constructor == String ? g(null, i2, null, null, null) : y(i2) ? g(b, { children: i2 }, null, null, null) : void 0 === i2.constructor && i2.__b > 0 ? g(i2.type, i2.props, i2.key, i2.ref ? i2.ref : null, i2.__v) : i2).__ = n2, i2.__b = n2.__b + 1, o2 = null, -1 !== (f2 = i2.__i = L(i2, u2, r2, s2)) && (s2--, (o2 = u2[f2]) && (o2.__u |= 131072)), null == o2 || null === o2.__v ? (-1 == f2 && a2--, "function" != typeof i2.type && (i2.__u |= 65536)) : f2 !== r2 && (f2 == r2 - 1 ? a2-- : f2 == r2 + 1 ? a2++ : (f2 > r2 ? a2-- : a2++, i2.__u |= 65536))) : i2 = n2.__k[t2] = null;
+  if (s2)
+    for (t2 = 0; t2 < c2; t2++)
+      null != (o2 = u2[t2]) && 0 == (131072 & o2.__u) && (o2.__e == n2.__d && (n2.__d = x(o2)), V(o2, o2));
 }
-function H(n2, l2, u2, i2, t2) {
+function I(n2, l2, u2) {
+  var t2, i2;
+  if ("function" == typeof n2.type) {
+    for (t2 = n2.__k, i2 = 0; t2 && i2 < t2.length; i2++)
+      t2[i2] && (t2[i2].__ = n2, l2 = I(t2[i2], l2, u2));
+    return l2;
+  }
+  n2.__e != l2 && (l2 && n2.type && !u2.contains(l2) && (l2 = x(n2)), u2.insertBefore(n2.__e, l2 || null), l2 = n2.__e);
+  do {
+    l2 = l2 && l2.nextSibling;
+  } while (null != l2 && 8 === l2.nodeType);
+  return l2;
+}
+function L(n2, l2, u2, t2) {
+  var i2 = n2.key, o2 = n2.type, r2 = u2 - 1, f2 = u2 + 1, e2 = l2[u2];
+  if (null === e2 || e2 && i2 == e2.key && o2 === e2.type && 0 == (131072 & e2.__u))
+    return u2;
+  if (t2 > (null != e2 && 0 == (131072 & e2.__u) ? 1 : 0))
+    for (; r2 >= 0 || f2 < l2.length; ) {
+      if (r2 >= 0) {
+        if ((e2 = l2[r2]) && 0 == (131072 & e2.__u) && i2 == e2.key && o2 === e2.type)
+          return r2;
+        r2--;
+      }
+      if (f2 < l2.length) {
+        if ((e2 = l2[f2]) && 0 == (131072 & e2.__u) && i2 == e2.key && o2 === e2.type)
+          return f2;
+        f2++;
+      }
+    }
+  return -1;
+}
+function T(n2, l2, u2) {
+  "-" === l2[0] ? n2.setProperty(l2, null == u2 ? "" : u2) : n2[l2] = null == u2 ? "" : "number" != typeof u2 || p.test(l2) ? u2 : u2 + "px";
+}
+function A(n2, l2, u2, t2, i2) {
   var o2;
   n:
     if ("style" === l2)
       if ("string" == typeof u2)
         n2.style.cssText = u2;
       else {
-        if ("string" == typeof i2 && (n2.style.cssText = i2 = ""), i2)
-          for (l2 in i2)
-            u2 && l2 in u2 || $(n2.style, l2, "");
+        if ("string" == typeof t2 && (n2.style.cssText = t2 = ""), t2)
+          for (l2 in t2)
+            u2 && l2 in u2 || T(n2.style, l2, "");
         if (u2)
           for (l2 in u2)
-            i2 && u2[l2] === i2[l2] || $(n2.style, l2, u2[l2]);
+            t2 && u2[l2] === t2[l2] || T(n2.style, l2, u2[l2]);
       }
     else if ("o" === l2[0] && "n" === l2[1])
-      o2 = l2 !== (l2 = l2.replace(/Capture$/, "")), l2 = l2.toLowerCase() in n2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + o2] = u2, u2 ? i2 || n2.addEventListener(l2, o2 ? T : I, o2) : n2.removeEventListener(l2, o2 ? T : I, o2);
-    else if ("dangerouslySetInnerHTML" !== l2) {
-      if (t2)
+      o2 = l2 !== (l2 = l2.replace(/(PointerCapture)$|Capture$/i, "$1")), l2 = l2.toLowerCase() in n2 || "onFocusOut" === l2 || "onFocusIn" === l2 ? l2.toLowerCase().slice(2) : l2.slice(2), n2.l || (n2.l = {}), n2.l[l2 + o2] = u2, u2 ? t2 ? u2.u = t2.u : (u2.u = e, n2.addEventListener(l2, o2 ? s : c, o2)) : n2.removeEventListener(l2, o2 ? s : c, o2);
+    else {
+      if ("http://www.w3.org/2000/svg" == i2)
         l2 = l2.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
-      else if ("href" !== l2 && "list" !== l2 && "form" !== l2 && "tabIndex" !== l2 && "download" !== l2 && l2 in n2)
+      else if ("width" != l2 && "height" != l2 && "href" != l2 && "list" != l2 && "form" != l2 && "tabIndex" != l2 && "download" != l2 && "rowSpan" != l2 && "colSpan" != l2 && "role" != l2 && "popover" != l2 && l2 in n2)
         try {
           n2[l2] = null == u2 ? "" : u2;
           break n;
         } catch (n3) {
         }
-      "function" == typeof u2 || (null != u2 && (false !== u2 || "a" === l2[0] && "r" === l2[1]) ? n2.setAttribute(l2, u2) : n2.removeAttribute(l2));
+      "function" == typeof u2 || (null == u2 || false === u2 && "-" !== l2[4] ? n2.removeAttribute(l2) : n2.setAttribute(l2, "popover" == l2 && 1 == u2 ? "" : u2));
     }
 }
-function I(n2) {
-  this.l[n2.type + false](l.event ? l.event(n2) : n2);
+function F(n2) {
+  return function(u2) {
+    if (this.l) {
+      var t2 = this.l[u2.type + n2];
+      if (null == u2.t)
+        u2.t = e++;
+      else if (u2.t < t2.u)
+        return;
+      return t2(l.event ? l.event(u2) : u2);
+    }
+  };
 }
-function T(n2) {
-  this.l[n2.type + true](l.event ? l.event(n2) : n2);
-}
-function j(n2, u2, i2, t2, o2, r2, f2, e2, c2) {
-  var a2, h2, v2, y2, _2, k2, b2, g2, m2, x, A2, C2, $2, H2 = u2.type;
+function O(n2, u2, t2, i2, o2, r2, f2, e2, c2, s2) {
+  var a2, h2, v2, p2, w2, _2, g2, m2, x2, C2, M2, P2, $2, I2, H, L2, T2 = u2.type;
   if (void 0 !== u2.constructor)
     return null;
-  null != i2.__h && (c2 = i2.__h, e2 = u2.__e = i2.__e, u2.__h = null, r2 = [e2]), (a2 = l.__b) && a2(u2);
-  try {
-    n:
-      if ("function" == typeof H2) {
-        if (g2 = u2.props, m2 = (a2 = H2.contextType) && t2[a2.__c], x = a2 ? m2 ? m2.props.value : a2.__ : t2, i2.__c ? b2 = (h2 = u2.__c = i2.__c).__ = h2.__E : ("prototype" in H2 && H2.prototype.render ? u2.__c = h2 = new H2(g2, x) : (u2.__c = h2 = new d(g2, x), h2.constructor = H2, h2.render = O), m2 && m2.sub(h2), h2.props = g2, h2.state || (h2.state = {}), h2.context = x, h2.__n = t2, v2 = h2.__d = true, h2.__h = []), null == h2.__s && (h2.__s = h2.state), null != H2.getDerivedStateFromProps && (h2.__s == h2.state && (h2.__s = s({}, h2.__s)), s(h2.__s, H2.getDerivedStateFromProps(g2, h2.__s))), y2 = h2.props, _2 = h2.state, v2)
-          null == H2.getDerivedStateFromProps && null != h2.componentWillMount && h2.componentWillMount(), null != h2.componentDidMount && h2.__h.push(h2.componentDidMount);
+  128 & t2.__u && (c2 = !!(32 & t2.__u), r2 = [e2 = u2.__e = t2.__e]), (a2 = l.__b) && a2(u2);
+  n:
+    if ("function" == typeof T2)
+      try {
+        if (m2 = u2.props, x2 = "prototype" in T2 && T2.prototype.render, C2 = (a2 = T2.contextType) && i2[a2.__c], M2 = a2 ? C2 ? C2.props.value : a2.__ : i2, t2.__c ? g2 = (h2 = u2.__c = t2.__c).__ = h2.__E : (x2 ? u2.__c = h2 = new T2(m2, M2) : (u2.__c = h2 = new k(m2, M2), h2.constructor = T2, h2.render = q), C2 && C2.sub(h2), h2.props = m2, h2.state || (h2.state = {}), h2.context = M2, h2.__n = i2, v2 = h2.__d = true, h2.__h = [], h2._sb = []), x2 && null == h2.__s && (h2.__s = h2.state), x2 && null != T2.getDerivedStateFromProps && (h2.__s == h2.state && (h2.__s = d({}, h2.__s)), d(h2.__s, T2.getDerivedStateFromProps(m2, h2.__s))), p2 = h2.props, w2 = h2.state, h2.__v = u2, v2)
+          x2 && null == T2.getDerivedStateFromProps && null != h2.componentWillMount && h2.componentWillMount(), x2 && null != h2.componentDidMount && h2.__h.push(h2.componentDidMount);
         else {
-          if (null == H2.getDerivedStateFromProps && g2 !== y2 && null != h2.componentWillReceiveProps && h2.componentWillReceiveProps(g2, x), !h2.__e && null != h2.shouldComponentUpdate && false === h2.shouldComponentUpdate(g2, h2.__s, x) || u2.__v === i2.__v) {
-            h2.props = g2, h2.state = h2.__s, u2.__v !== i2.__v && (h2.__d = false), h2.__v = u2, u2.__e = i2.__e, u2.__k = i2.__k, u2.__k.forEach(function(n3) {
+          if (x2 && null == T2.getDerivedStateFromProps && m2 !== p2 && null != h2.componentWillReceiveProps && h2.componentWillReceiveProps(m2, M2), !h2.__e && (null != h2.shouldComponentUpdate && false === h2.shouldComponentUpdate(m2, h2.__s, M2) || u2.__v === t2.__v)) {
+            for (u2.__v !== t2.__v && (h2.props = m2, h2.state = h2.__s, h2.__d = false), u2.__e = t2.__e, u2.__k = t2.__k, u2.__k.some(function(n3) {
               n3 && (n3.__ = u2);
-            }), h2.__h.length && f2.push(h2);
+            }), P2 = 0; P2 < h2._sb.length; P2++)
+              h2.__h.push(h2._sb[P2]);
+            h2._sb = [], h2.__h.length && f2.push(h2);
             break n;
           }
-          null != h2.componentWillUpdate && h2.componentWillUpdate(g2, h2.__s, x), null != h2.componentDidUpdate && h2.__h.push(function() {
-            h2.componentDidUpdate(y2, _2, k2);
+          null != h2.componentWillUpdate && h2.componentWillUpdate(m2, h2.__s, M2), x2 && null != h2.componentDidUpdate && h2.__h.push(function() {
+            h2.componentDidUpdate(p2, w2, _2);
           });
         }
-        if (h2.context = x, h2.props = g2, h2.__v = u2, h2.__P = n2, A2 = l.__r, C2 = 0, "prototype" in H2 && H2.prototype.render)
-          h2.state = h2.__s, h2.__d = false, A2 && A2(u2), a2 = h2.render(h2.props, h2.state, h2.context);
-        else
+        if (h2.context = M2, h2.props = m2, h2.__P = n2, h2.__e = false, $2 = l.__r, I2 = 0, x2) {
+          for (h2.state = h2.__s, h2.__d = false, $2 && $2(u2), a2 = h2.render(h2.props, h2.state, h2.context), H = 0; H < h2._sb.length; H++)
+            h2.__h.push(h2._sb[H]);
+          h2._sb = [];
+        } else
           do {
-            h2.__d = false, A2 && A2(u2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
-          } while (h2.__d && ++C2 < 25);
-        h2.state = h2.__s, null != h2.getChildContext && (t2 = s(s({}, t2), h2.getChildContext())), v2 || null == h2.getSnapshotBeforeUpdate || (k2 = h2.getSnapshotBeforeUpdate(y2, _2)), $2 = null != a2 && a2.type === p && null == a2.key ? a2.props.children : a2, w(n2, Array.isArray($2) ? $2 : [$2], u2, i2, t2, o2, r2, f2, e2, c2), h2.base = u2.__e, u2.__h = null, h2.__h.length && f2.push(h2), b2 && (h2.__E = h2.__ = null), h2.__e = false;
-      } else
-        null == r2 && u2.__v === i2.__v ? (u2.__k = i2.__k, u2.__e = i2.__e) : u2.__e = L(i2.__e, u2, i2, t2, o2, r2, f2, c2);
-    (a2 = l.diffed) && a2(u2);
-  } catch (n3) {
-    u2.__v = null, (c2 || null != r2) && (u2.__e = e2, u2.__h = !!c2, r2[r2.indexOf(e2)] = null), l.__e(n3, u2, i2);
-  }
+            h2.__d = false, $2 && $2(u2), a2 = h2.render(h2.props, h2.state, h2.context), h2.state = h2.__s;
+          } while (h2.__d && ++I2 < 25);
+        h2.state = h2.__s, null != h2.getChildContext && (i2 = d(d({}, i2), h2.getChildContext())), x2 && !v2 && null != h2.getSnapshotBeforeUpdate && (_2 = h2.getSnapshotBeforeUpdate(p2, w2)), S(n2, y(L2 = null != a2 && a2.type === b && null == a2.key ? a2.props.children : a2) ? L2 : [L2], u2, t2, i2, o2, r2, f2, e2, c2, s2), h2.base = u2.__e, u2.__u &= -161, h2.__h.length && f2.push(h2), g2 && (h2.__E = h2.__ = null);
+      } catch (n3) {
+        if (u2.__v = null, c2 || null != r2) {
+          for (u2.__u |= c2 ? 160 : 32; e2 && 8 === e2.nodeType && e2.nextSibling; )
+            e2 = e2.nextSibling;
+          r2[r2.indexOf(e2)] = null, u2.__e = e2;
+        } else
+          u2.__e = t2.__e, u2.__k = t2.__k;
+        l.__e(n3, u2, t2);
+      }
+    else
+      null == r2 && u2.__v === t2.__v ? (u2.__k = t2.__k, u2.__e = t2.__e) : u2.__e = z(t2.__e, u2, t2, i2, o2, r2, f2, c2, s2);
+  (a2 = l.diffed) && a2(u2);
 }
-function z(n2, u2) {
+function j(n2, u2, t2) {
+  u2.__d = void 0;
+  for (var i2 = 0; i2 < t2.length; i2++)
+    N(t2[i2], t2[++i2], t2[++i2]);
   l.__c && l.__c(u2, n2), n2.some(function(u3) {
     try {
       n2 = u3.__h, u3.__h = [], n2.some(function(n3) {
@@ -204,96 +221,160 @@ function z(n2, u2) {
     }
   });
 }
-function L(l2, u2, i2, t2, o2, r2, e2, c2) {
-  var s2, h2, v2, y2 = i2.props, p2 = u2.props, d2 = u2.type, k2 = 0;
-  if ("svg" === d2 && (o2 = true), null != r2) {
-    for (; k2 < r2.length; k2++)
-      if ((s2 = r2[k2]) && "setAttribute" in s2 == !!d2 && (d2 ? s2.localName === d2 : 3 === s2.nodeType)) {
-        l2 = s2, r2[k2] = null;
+function z(u2, t2, i2, o2, r2, f2, e2, c2, s2) {
+  var a2, v2, p2, d2, _2, g2, m2, b2 = i2.props, k2 = t2.props, C2 = t2.type;
+  if ("svg" === C2 ? r2 = "http://www.w3.org/2000/svg" : "math" === C2 ? r2 = "http://www.w3.org/1998/Math/MathML" : r2 || (r2 = "http://www.w3.org/1999/xhtml"), null != f2) {
+    for (a2 = 0; a2 < f2.length; a2++)
+      if ((_2 = f2[a2]) && "setAttribute" in _2 == !!C2 && (C2 ? _2.localName === C2 : 3 === _2.nodeType)) {
+        u2 = _2, f2[a2] = null;
         break;
       }
   }
-  if (null == l2) {
-    if (null === d2)
-      return document.createTextNode(p2);
-    l2 = o2 ? document.createElementNS("http://www.w3.org/2000/svg", d2) : document.createElement(d2, p2.is && p2), r2 = null, c2 = false;
+  if (null == u2) {
+    if (null === C2)
+      return document.createTextNode(k2);
+    u2 = document.createElementNS(r2, C2, k2.is && k2), c2 && (l.__m && l.__m(t2, f2), c2 = false), f2 = null;
   }
-  if (null === d2)
-    y2 === p2 || c2 && l2.data === p2 || (l2.data = p2);
+  if (null === C2)
+    b2 === k2 || c2 && u2.data === k2 || (u2.data = k2);
   else {
-    if (r2 = r2 && n.call(l2.childNodes), h2 = (y2 = i2.props || f).dangerouslySetInnerHTML, v2 = p2.dangerouslySetInnerHTML, !c2) {
-      if (null != r2)
-        for (y2 = {}, k2 = 0; k2 < l2.attributes.length; k2++)
-          y2[l2.attributes[k2].name] = l2.attributes[k2].value;
-      (v2 || h2) && (v2 && (h2 && v2.__html == h2.__html || v2.__html === l2.innerHTML) || (l2.innerHTML = v2 && v2.__html || ""));
-    }
-    if (C(l2, p2, y2, o2, c2), v2)
-      u2.__k = [];
-    else if (k2 = u2.props.children, w(l2, Array.isArray(k2) ? k2 : [k2], u2, i2, t2, o2 && "foreignObject" !== d2, r2, e2, r2 ? r2[0] : i2.__k && _(i2, 0), c2), null != r2)
-      for (k2 = r2.length; k2--; )
-        null != r2[k2] && a(r2[k2]);
-    c2 || ("value" in p2 && void 0 !== (k2 = p2.value) && (k2 !== l2.value || "progress" === d2 && !k2 || "option" === d2 && k2 !== y2.value) && H(l2, "value", k2, y2.value, false), "checked" in p2 && void 0 !== (k2 = p2.checked) && k2 !== l2.checked && H(l2, "checked", k2, y2.checked, false));
+    if (f2 = f2 && n.call(u2.childNodes), b2 = i2.props || h, !c2 && null != f2)
+      for (b2 = {}, a2 = 0; a2 < u2.attributes.length; a2++)
+        b2[(_2 = u2.attributes[a2]).name] = _2.value;
+    for (a2 in b2)
+      if (_2 = b2[a2], "children" == a2)
+        ;
+      else if ("dangerouslySetInnerHTML" == a2)
+        p2 = _2;
+      else if (!(a2 in k2)) {
+        if ("value" == a2 && "defaultValue" in k2 || "checked" == a2 && "defaultChecked" in k2)
+          continue;
+        A(u2, a2, null, _2, r2);
+      }
+    for (a2 in k2)
+      _2 = k2[a2], "children" == a2 ? d2 = _2 : "dangerouslySetInnerHTML" == a2 ? v2 = _2 : "value" == a2 ? g2 = _2 : "checked" == a2 ? m2 = _2 : c2 && "function" != typeof _2 || b2[a2] === _2 || A(u2, a2, _2, b2[a2], r2);
+    if (v2)
+      c2 || p2 && (v2.__html === p2.__html || v2.__html === u2.innerHTML) || (u2.innerHTML = v2.__html), t2.__k = [];
+    else if (p2 && (u2.innerHTML = ""), S(u2, y(d2) ? d2 : [d2], t2, i2, o2, "foreignObject" === C2 ? "http://www.w3.org/1999/xhtml" : r2, f2, e2, f2 ? f2[0] : i2.__k && x(i2, 0), c2, s2), null != f2)
+      for (a2 = f2.length; a2--; )
+        w(f2[a2]);
+    c2 || (a2 = "value", "progress" === C2 && null == g2 ? u2.removeAttribute("value") : void 0 !== g2 && (g2 !== u2[a2] || "progress" === C2 && !g2 || "option" === C2 && g2 !== b2[a2]) && A(u2, a2, g2, b2[a2], r2), a2 = "checked", void 0 !== m2 && m2 !== u2[a2] && A(u2, a2, m2, b2[a2], r2));
   }
-  return l2;
+  return u2;
 }
-function M(n2, u2, i2) {
+function N(n2, u2, t2) {
   try {
-    "function" == typeof n2 ? n2(u2) : n2.current = u2;
+    if ("function" == typeof n2) {
+      var i2 = "function" == typeof n2.__u;
+      i2 && n2.__u(), i2 && null == u2 || (n2.__u = n2(u2));
+    } else
+      n2.current = u2;
   } catch (n3) {
-    l.__e(n3, i2);
+    l.__e(n3, t2);
   }
 }
-function N(n2, u2, i2) {
-  var t2, o2;
-  if (l.unmount && l.unmount(n2), (t2 = n2.ref) && (t2.current && t2.current !== n2.__e || M(t2, null, u2)), null != (t2 = n2.__c)) {
-    if (t2.componentWillUnmount)
+function V(n2, u2, t2) {
+  var i2, o2;
+  if (l.unmount && l.unmount(n2), (i2 = n2.ref) && (i2.current && i2.current !== n2.__e || N(i2, null, u2)), null != (i2 = n2.__c)) {
+    if (i2.componentWillUnmount)
       try {
-        t2.componentWillUnmount();
+        i2.componentWillUnmount();
       } catch (n3) {
         l.__e(n3, u2);
       }
-    t2.base = t2.__P = null, n2.__c = void 0;
+    i2.base = i2.__P = null;
   }
-  if (t2 = n2.__k)
-    for (o2 = 0; o2 < t2.length; o2++)
-      t2[o2] && N(t2[o2], u2, "function" != typeof n2.type);
-  i2 || null == n2.__e || a(n2.__e), n2.__ = n2.__e = n2.__d = void 0;
+  if (i2 = n2.__k)
+    for (o2 = 0; o2 < i2.length; o2++)
+      i2[o2] && V(i2[o2], u2, t2 || "function" != typeof n2.type);
+  t2 || w(n2.__e), n2.__c = n2.__ = n2.__e = n2.__d = void 0;
 }
-function O(n2, l2, u2) {
+function q(n2, l2, u2) {
   return this.constructor(n2, u2);
 }
-function P(u2, i2, t2) {
-  var o2, r2, e2;
-  l.__ && l.__(u2, i2), r2 = (o2 = "function" == typeof t2) ? null : t2 && t2.__k || i2.__k, e2 = [], j(i2, u2 = (!o2 && t2 || i2).__k = h(p, null, [u2]), r2 || f, f, void 0 !== i2.ownerSVGElement, !o2 && t2 ? [t2] : r2 ? null : i2.firstChild ? n.call(i2.childNodes) : null, e2, !o2 && t2 ? t2 : r2 ? r2.__e : i2.firstChild, o2), z(e2, u2);
+function B(u2, t2, i2) {
+  var o2, r2, f2, e2;
+  l.__ && l.__(u2, t2), r2 = (o2 = "function" == typeof i2) ? null : i2 && i2.__k || t2.__k, f2 = [], e2 = [], O(t2, u2 = (!o2 && i2 || t2).__k = _(b, null, [u2]), r2 || h, h, t2.namespaceURI, !o2 && i2 ? [i2] : r2 ? null : t2.firstChild ? n.call(t2.childNodes) : null, f2, !o2 && i2 ? i2 : r2 ? r2.__e : t2.firstChild, o2, e2), j(f2, u2, e2);
 }
-n = e.slice, l = { __e: function(n2, l2, u2, i2) {
-  for (var t2, o2, r2; l2 = l2.__; )
-    if ((t2 = l2.__c) && !t2.__)
+n = v.slice, l = { __e: function(n2, l2, u2, t2) {
+  for (var i2, o2, r2; l2 = l2.__; )
+    if ((i2 = l2.__c) && !i2.__)
       try {
-        if ((o2 = t2.constructor) && null != o2.getDerivedStateFromError && (t2.setState(o2.getDerivedStateFromError(n2)), r2 = t2.__d), null != t2.componentDidCatch && (t2.componentDidCatch(n2, i2 || {}), r2 = t2.__d), r2)
-          return t2.__E = t2;
+        if ((o2 = i2.constructor) && null != o2.getDerivedStateFromError && (i2.setState(o2.getDerivedStateFromError(n2)), r2 = i2.__d), null != i2.componentDidCatch && (i2.componentDidCatch(n2, t2 || {}), r2 = i2.__d), r2)
+          return i2.__E = i2;
       } catch (l3) {
         n2 = l3;
       }
   throw n2;
-} }, u = 0, i = function(n2) {
-  return null != n2 && void 0 === n2.constructor;
-}, d.prototype.setState = function(n2, l2) {
+} }, u = 0, t = function(n2) {
+  return null != n2 && null == n2.constructor;
+}, k.prototype.setState = function(n2, l2) {
   var u2;
-  u2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = s({}, this.state), "function" == typeof n2 && (n2 = n2(s({}, u2), this.props)), n2 && s(u2, n2), null != n2 && this.__v && (l2 && this.__h.push(l2), b(this));
-}, d.prototype.forceUpdate = function(n2) {
-  this.__v && (this.__e = true, n2 && this.__h.push(n2), b(this));
-}, d.prototype.render = p, t = [], g.__r = 0, r = 0;
+  u2 = null != this.__s && this.__s !== this.state ? this.__s : this.__s = d({}, this.state), "function" == typeof n2 && (n2 = n2(d({}, u2), this.props)), n2 && d(u2, n2), null != n2 && this.__v && (l2 && this._sb.push(l2), M(this));
+}, k.prototype.forceUpdate = function(n2) {
+  this.__v && (this.__e = true, n2 && this.__h.push(n2), M(this));
+}, k.prototype.render = b, i = [], r = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, f = function(n2, l2) {
+  return n2.__v.__b - l2.__v.__b;
+}, P.__r = 0, e = 0, c = F(false), s = F(true), a = 0;
 
-// util.ts
+// debugger/util.ts
 function hex(i2, digits = 2) {
   return i2.toString(16).padStart(digits, "0");
 }
 
-// memory.tsx
-var Number = class extends d {
+// debugger/labels.ts
+function* parseCSV(text) {
+  for (const line of text.split("\n")) {
+    const [name, addr] = line.split("	");
+    yield [parseInt(addr, 16), name];
+  }
+}
+var Labels = class {
+  byAddr;
+  constructor(labels) {
+    this.byAddr = Array.from(labels.entries());
+    this.byAddr = this.byAddr.filter(([addr, _2]) => addr > 4096);
+    this.byAddr.sort(([a2, _2], [b2, __]) => a2 - b2);
+  }
+  find(target) {
+    if (this.byAddr.length === 0)
+      return void 0;
+    let lo = 0, hi = this.byAddr.length;
+    while (lo < hi - 1) {
+      const mid = Math.floor((lo + hi) / 2);
+      const [cur2, label2] = this.byAddr[mid];
+      if (cur2 < target) {
+        lo = mid;
+      } else if (cur2 > target) {
+        hi = mid;
+      } else if (cur2 === target) {
+        return [label2, 0];
+      }
+    }
+    const [cur, label] = this.byAddr[lo];
+    if (cur <= target) {
+      const delta = target - cur;
+      if (delta < 4096) {
+        return [label, delta];
+      }
+    }
+    return void 0;
+  }
+  get(addr) {
+    const match = this.find(addr);
+    if (!match)
+      return;
+    let str = match[0];
+    if (match[1])
+      str += `+${hex(match[1], 0)}`;
+    return str;
+  }
+};
+
+// debugger/memory.tsx
+var Number = class extends k {
   render() {
-    return /* @__PURE__ */ h("span", {
+    return /* @__PURE__ */ _("span", {
       class: "clicky",
       title: "show in memory dump",
       onMouseOver: () => {
@@ -305,7 +386,7 @@ var Number = class extends d {
     }, this.props.text ? this.props.text : hex(this.props.children, this.props.digits));
   }
 };
-var Memory = class extends d {
+var Memory = class extends k {
   onSubmit = (e2) => {
     e2.preventDefault();
     const form = e2.target;
@@ -346,33 +427,33 @@ var Memory = class extends d {
             row.push(" ");
           let value = hex(this.props.mem.getUint8(addr));
           if (addr === this.props.highlight) {
-            value = /* @__PURE__ */ h("span", {
+            value = /* @__PURE__ */ _("span", {
               class: "highlight"
             }, value);
           }
           row.push(value);
         }
-        rows.push(/* @__PURE__ */ h("div", null, row));
+        rows.push(/* @__PURE__ */ _("div", null, row));
       }
     }
-    return /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("form", {
+    return /* @__PURE__ */ _("div", null, /* @__PURE__ */ _("form", {
       style: { display: "flex", justifyContent: "center" },
       onSubmit: this.onSubmit
-    }, /* @__PURE__ */ h("button", {
+    }, /* @__PURE__ */ _("button", {
       type: "button",
       onClick: this.onJumpBack
-    }, "<"), /* @__PURE__ */ h("input", {
+    }, "<"), /* @__PURE__ */ _("input", {
       name: "addr",
       size: 8,
       value: hex(this.props.base, 8)
-    }), /* @__PURE__ */ h("button", {
+    }), /* @__PURE__ */ _("button", {
       type: "button",
       onClick: this.onJumpForward
-    }, ">")), /* @__PURE__ */ h("code", null, rows));
+    }, ">")), /* @__PURE__ */ _("code", null, rows));
   }
 };
 
-// break.tsx
+// debugger/break.tsx
 var Breakpoints = class {
   constructor(storageKey) {
     this.storageKey = storageKey;
@@ -441,7 +522,7 @@ var Breakpoints = class {
     }
   }
 };
-var BreakpointsComponent = class extends d {
+var BreakpointsComponent = class extends k {
   toggle(addr) {
     this.props.breakpoints.toggleBreak(addr);
     this.forceUpdate();
@@ -461,28 +542,28 @@ var BreakpointsComponent = class extends d {
       const className = bp.addr === this.props.highlight ? "highlight" : void 0;
       const label = this.props.labels.get(bp.addr);
       rows.push(
-        /* @__PURE__ */ h("div", {
+        /* @__PURE__ */ _("div", {
           className,
           style: { display: "flex", alignItems: "center", gap: "0.5ex" }
-        }, /* @__PURE__ */ h("input", {
+        }, /* @__PURE__ */ _("input", {
           type: "checkbox",
           checked: !bp.disabled,
           onChange: () => this.toggle(bp.addr)
-        }), /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h(Number, {
+        }), /* @__PURE__ */ _("div", null, /* @__PURE__ */ _("code", null, /* @__PURE__ */ _(Number, {
           digits: 8,
           ...this.props
-        }, bp.addr))), bp.oneShot ? "[once]" : null, label ? /* @__PURE__ */ h("div", null, "(", /* @__PURE__ */ h("code", null, label), ")") : null, /* @__PURE__ */ h("button", {
+        }, bp.addr))), bp.oneShot ? "[once]" : null, label ? /* @__PURE__ */ _("div", null, "(", /* @__PURE__ */ _("code", null, label), ")") : null, /* @__PURE__ */ _("button", {
           class: "x",
           onClick: () => this.remove(bp.addr)
         }, "x"))
       );
     }
-    return /* @__PURE__ */ h("section", null, rows, /* @__PURE__ */ h(AddComponent, {
+    return /* @__PURE__ */ _("section", null, rows, /* @__PURE__ */ _(AddComponent, {
       onAccept: (text) => this.add(text)
     }));
   }
 };
-var AddComponent = class extends d {
+var AddComponent = class extends k {
   onInput = (ev) => {
     const text = ev.target.value;
     this.setState({ text });
@@ -494,186 +575,12 @@ var AddComponent = class extends d {
     }
   };
   render() {
-    return /* @__PURE__ */ h("form", {
+    return /* @__PURE__ */ _("form", {
       onSubmit: this.onSubmit
-    }, "add: ", /* @__PURE__ */ h("input", {
+    }, "add: ", /* @__PURE__ */ _("input", {
       value: this.state.text,
       onInput: this.onInput
     }));
-  }
-};
-
-// code.tsx
-var Code = class extends d {
-  render() {
-    const instrs = this.props.instrs.map((instr) => {
-      let code = instr.code.map(({ kind, text }) => {
-        switch (kind) {
-          case "FunctionAddress":
-          case "LabelAddress":
-          case "Number": {
-            const addr = parseInt(text, 16);
-            let label = this.props.labels.get(addr);
-            if (label) {
-              label = ` ${label}`;
-            }
-            return /* @__PURE__ */ h(p, null, /* @__PURE__ */ h(Number, {
-              text,
-              ...this.props
-            }, addr), label);
-          }
-          default:
-            return text;
-        }
-      });
-      return /* @__PURE__ */ h("tr", null, /* @__PURE__ */ h("td", {
-        style: { width: "10ch" }
-      }, /* @__PURE__ */ h("span", {
-        class: "clicky",
-        title: "run to this address",
-        onClick: (event) => {
-          this.props.runTo(instr.addr);
-        }
-      }, hex(instr.addr, 8))), /* @__PURE__ */ h("td", {
-        title: `${instr.bytes} (${instr.ops.join(",")})`
-      }, code));
-    });
-    return /* @__PURE__ */ h("section", {
-      class: "code"
-    }, /* @__PURE__ */ h("code", {
-      class: "disassembly"
-    }, /* @__PURE__ */ h("table", null, instrs)));
-  }
-};
-
-// mappings.tsx
-var Mappings = class extends d {
-  render() {
-    const rows = this.props.mappings.map((mapping) => {
-      let className;
-      const highlight = this.props.highlight;
-      if (highlight !== void 0 && highlight >= mapping.addr && highlight < mapping.addr + mapping.size) {
-        className = "highlight";
-      }
-      return /* @__PURE__ */ h("tr", {
-        class: className
-      }, /* @__PURE__ */ h("td", {
-        style: { width: "10ch" }
-      }, hex(mapping.addr, 8)), /* @__PURE__ */ h("td", {
-        style: { width: "8ch" }
-      }, hex(mapping.size)), /* @__PURE__ */ h("td", null, mapping.desc));
-    });
-    return /* @__PURE__ */ h("section", null, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("table", null, /* @__PURE__ */ h("thead", null, /* @__PURE__ */ h("tr", null, /* @__PURE__ */ h("td", null, "addr"), /* @__PURE__ */ h("td", null, "size"), /* @__PURE__ */ h("td", null, "desc"))), rows)));
-  }
-};
-
-// registers.tsx
-var RegistersComponent = class extends d {
-  render() {
-    const { regs } = this.props;
-    const st = regs.st;
-    return /* @__PURE__ */ h("section", {
-      class: "panel"
-    }, /* @__PURE__ */ h("code", null, /* @__PURE__ */ h("div", null, "eax\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.eax), /* @__PURE__ */ h("br", null), "ebx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ebx), /* @__PURE__ */ h("br", null), "ecx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ecx), /* @__PURE__ */ h("br", null), "edx\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.edx), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "eip\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.eip), /* @__PURE__ */ h("br", null), "esp\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.esp), /* @__PURE__ */ h("br", null), "ebp\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.ebp), /* @__PURE__ */ h("br", null), "esi\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.esi), /* @__PURE__ */ h("br", null), "edi\xA0", /* @__PURE__ */ h(Number, {
-      digits: 8,
-      ...this.props
-    }, regs.edi), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "cs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.cs), " ", "fs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.fs), /* @__PURE__ */ h("br", null), "ds\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.ds), " ", "gs\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.gs), /* @__PURE__ */ h("br", null), "es\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.es), " ", "ss\xA0", /* @__PURE__ */ h(Number, {
-      digits: 4,
-      ...this.props
-    }, regs.ss), /* @__PURE__ */ h("br", null)), /* @__PURE__ */ h("br", null), /* @__PURE__ */ h("div", null, "flags\xA0", hex(regs.flags), " ", regs.flags_str), /* @__PURE__ */ h("br", null), st.length > 0 ? /* @__PURE__ */ h("div", null, "fpu", /* @__PURE__ */ h("br", null), Array.from(regs.st).map((n2) => /* @__PURE__ */ h("span", null, n2, /* @__PURE__ */ h("br", null)))) : null));
-  }
-};
-
-// stack.tsx
-var Stack = class extends d {
-  render() {
-    const { emu } = this.props;
-    const esp = emu.esp;
-    const memory = emu.memory();
-    const rows = [];
-    for (let addr = esp - 16; addr < esp + 32; addr += 4) {
-      const value = memory.getUint32(addr, true);
-      let label = this.props.labels.get(value);
-      if (label) {
-        label = ` ${label}`;
-      }
-      let row = /* @__PURE__ */ h("div", null, /* @__PURE__ */ h(Number, {
-        digits: 8,
-        ...this.props
-      }, addr), "\xA0", /* @__PURE__ */ h(Number, {
-        digits: 8,
-        ...this.props
-      }, value), label);
-      if (addr === esp) {
-        row = /* @__PURE__ */ h("b", null, row);
-      }
-      rows.push(row);
-    }
-    return /* @__PURE__ */ h("section", {
-      class: "panel"
-    }, /* @__PURE__ */ h("code", null, rows));
-  }
-};
-
-// tabs.tsx
-var Tabs = class extends d {
-  render() {
-    const { style, tabs, selected, switchTab } = this.props;
-    const content = tabs[selected]();
-    return /* @__PURE__ */ h("section", {
-      class: "panel",
-      style
-    }, /* @__PURE__ */ h("div", {
-      class: "tabs-strip"
-    }, "|", Object.keys(tabs).map((name) => {
-      let button = /* @__PURE__ */ h("span", {
-        class: "clicky",
-        onClick: () => switchTab(name)
-      }, name);
-      if (name === selected) {
-        button = /* @__PURE__ */ h("b", null, button);
-      }
-      return /* @__PURE__ */ h(p, null, "\xA0", button, "\xA0|");
-    })), content);
   }
 };
 
@@ -696,8 +603,8 @@ function getStringFromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
-function isLikeNone(x) {
-  return x === void 0 || x === null;
+function isLikeNone(x2) {
+  return x2 === void 0 || x2 === null;
 }
 var cachedFloat64Memory0 = null;
 function getFloat64Memory0() {
@@ -859,7 +766,7 @@ function getClampedArrayU8FromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return getUint8ClampedMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-var CPUState = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", DebugBreak: 3, "3": "DebugBreak", Exit: 4, "4": "Exit" });
+var Status = Object.freeze({ Running: 0, "0": "Running", Blocked: 1, "1": "Blocked", Error: 2, "2": "Error", DebugBreak: 3, "3": "DebugBreak", Exit: 4, "4": "Exit" });
 var EmulatorFinalization = typeof FinalizationRegistry === "undefined" ? { register: () => {
 }, unregister: () => {
 } } : new FinalizationRegistry((ptr) => wasm.__wbg_emulator_free(ptr >>> 0));
@@ -933,6 +840,10 @@ var Emulator = class {
   }
   get eip() {
     const ret = wasm.emulator_eip(this.__wbg_ptr);
+    return ret >>> 0;
+  }
+  get exit_code() {
+    const ret = wasm.emulator_exit_code(this.__wbg_ptr);
     return ret >>> 0;
   }
   regs() {
@@ -1137,9 +1048,6 @@ function __wbg_get_imports() {
   imports.wbg.__wbg_info_2551d10805917111 = function(arg0) {
     const ret = arg0.info();
     return ret;
-  };
-  imports.wbg.__wbg_exit_42080a4462444014 = function(arg0, arg1) {
-    arg0.exit(arg1 >>> 0);
   };
   imports.wbg.__wbg_instanceof_Window_f401953a2cf86220 = function(arg0) {
     let result;
@@ -1552,55 +1460,6 @@ var JsHost = class {
   }
 };
 
-// labels.ts
-function* parseCSV(text) {
-  for (const line of text.split("\n")) {
-    const [name, addr] = line.split("	");
-    yield [parseInt(addr, 16), name];
-  }
-}
-var Labels = class {
-  byAddr;
-  constructor(labels) {
-    this.byAddr = Array.from(labels.entries());
-    this.byAddr = this.byAddr.filter(([addr, _2]) => addr > 4096);
-    this.byAddr.sort(([a2, _2], [b2, __]) => a2 - b2);
-  }
-  find(target) {
-    if (this.byAddr.length === 0)
-      return void 0;
-    let lo = 0, hi = this.byAddr.length;
-    while (lo < hi - 1) {
-      const mid = Math.floor((lo + hi) / 2);
-      const [cur2, label2] = this.byAddr[mid];
-      if (cur2 < target) {
-        lo = mid;
-      } else if (cur2 > target) {
-        hi = mid;
-      } else if (cur2 === target) {
-        return [label2, 0];
-      }
-    }
-    const [cur, label] = this.byAddr[lo];
-    if (cur <= target) {
-      const delta = target - cur;
-      if (delta < 4096) {
-        return [label, delta];
-      }
-    }
-    return void 0;
-  }
-  get(addr) {
-    const match = this.find(addr);
-    if (!match)
-      return;
-    let str = match[0];
-    if (match[1])
-      str += `+${hex(match[1], 0)}`;
-    return str;
-  }
-};
-
 // emulator.ts
 var Emulator2 = class extends JsHost {
   emu;
@@ -1653,9 +1512,9 @@ var Emulator2 = class extends JsHost {
     const cpuState = this.runBatch();
     this.breakpoints.uninstall(this.emu);
     switch (cpuState) {
-      case CPUState.Running:
+      case Status.Running:
         return true;
-      case CPUState.DebugBreak: {
+      case Status.DebugBreak: {
         const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
         if (bp) {
           if (!bp.oneShot) {
@@ -1665,10 +1524,13 @@ var Emulator2 = class extends JsHost {
         }
         return false;
       }
-      case CPUState.Blocked:
-      case CPUState.Error:
-      case CPUState.Exit:
+      case Status.Blocked:
+      case Status.Error:
         this.emuHost.onStopped();
+        return false;
+      case Status.Exit:
+        this.emuHost.onStopped();
+        this.emuHost.exit(this.emu.exit_code);
         return false;
     }
   }
@@ -1680,7 +1542,7 @@ var Emulator2 = class extends JsHost {
       this.step();
     }
     this.running = true;
-    this.loop();
+    this.channel.port1.postMessage(null);
   }
   loop() {
     if (!this.running)
@@ -1703,11 +1565,11 @@ var Emulator2 = class extends JsHost {
 };
 
 // web.tsx
-var WindowComponent = class extends d {
+var WindowComponent = class extends k {
   state = {
     pos: [200, 200]
   };
-  ref = y();
+  ref = m();
   beginDrag = (e2) => {
     const node = e2.currentTarget;
     this.setState({ drag: [e2.offsetX, e2.offsetY] });
@@ -1736,23 +1598,23 @@ var WindowComponent = class extends d {
   }
   render() {
     this.ensureCanvas();
-    return /* @__PURE__ */ h("div", {
+    return /* @__PURE__ */ _("div", {
       class: "window",
       style: { left: `${this.state.pos[0]}px`, top: `${this.state.pos[1]}px` }
-    }, /* @__PURE__ */ h("div", {
+    }, /* @__PURE__ */ _("div", {
       class: "titlebar",
       onPointerDown: this.beginDrag,
       onPointerUp: this.endDrag,
       onPointerMove: this.onDrag
-    }, this.props.title), /* @__PURE__ */ h("div", {
+    }, this.props.title), /* @__PURE__ */ _("div", {
       ref: this.ref
     }));
   }
 };
-var EmulatorComponent = class extends d {
+var EmulatorComponent = class extends k {
   render() {
     return this.props.emulator.windows.map((window2) => {
-      return /* @__PURE__ */ h(WindowComponent, {
+      return /* @__PURE__ */ _(WindowComponent, {
         key: window2.hwnd,
         title: window2.title,
         canvas: window2.canvas
@@ -1799,20 +1661,196 @@ async function loadEmulator() {
   );
 }
 
-// debugger.tsx
-var StartStop = class extends d {
+// debugger/code.tsx
+var Code = class extends k {
+  render() {
+    const instrs = this.props.instrs.map((instr) => {
+      let code = instr.code.map(({ kind, text }) => {
+        switch (kind) {
+          case "FunctionAddress":
+          case "LabelAddress":
+          case "Number": {
+            const addr = parseInt(text, 16);
+            let label = this.props.labels.get(addr);
+            if (label) {
+              label = ` ${label}`;
+            }
+            return /* @__PURE__ */ _(b, null, /* @__PURE__ */ _(Number, {
+              text,
+              ...this.props
+            }, addr), label);
+          }
+          default:
+            return text;
+        }
+      });
+      return /* @__PURE__ */ _("tr", null, /* @__PURE__ */ _("td", {
+        style: { width: "10ch" }
+      }, /* @__PURE__ */ _("span", {
+        class: "clicky",
+        title: "run to this address",
+        onClick: (event) => {
+          this.props.runTo(instr.addr);
+        }
+      }, hex(instr.addr, 8))), /* @__PURE__ */ _("td", {
+        title: `${instr.bytes} (${instr.ops.join(",")})`
+      }, code));
+    });
+    return /* @__PURE__ */ _("section", {
+      class: "code"
+    }, /* @__PURE__ */ _("code", {
+      class: "disassembly"
+    }, /* @__PURE__ */ _("table", null, instrs)));
+  }
+};
+
+// debugger/mappings.tsx
+var Mappings = class extends k {
+  render() {
+    const rows = this.props.mappings.map((mapping) => {
+      let className;
+      const highlight = this.props.highlight;
+      if (highlight !== void 0 && highlight >= mapping.addr && highlight < mapping.addr + mapping.size) {
+        className = "highlight";
+      }
+      return /* @__PURE__ */ _("tr", {
+        class: className
+      }, /* @__PURE__ */ _("td", {
+        style: { width: "10ch" }
+      }, hex(mapping.addr, 8)), /* @__PURE__ */ _("td", {
+        style: { width: "8ch" }
+      }, hex(mapping.size)), /* @__PURE__ */ _("td", null, mapping.desc));
+    });
+    return /* @__PURE__ */ _("section", {
+      style: { overflow: "scroll", flex: 1 }
+    }, /* @__PURE__ */ _("code", null, /* @__PURE__ */ _("table", null, /* @__PURE__ */ _("thead", null, /* @__PURE__ */ _("tr", null, /* @__PURE__ */ _("td", null, "addr"), /* @__PURE__ */ _("td", null, "size"), /* @__PURE__ */ _("td", null, "desc"))), rows)));
+  }
+};
+
+// debugger/registers.tsx
+var RegistersComponent = class extends k {
+  render() {
+    const { regs } = this.props;
+    const st = regs.st;
+    return /* @__PURE__ */ _("section", {
+      class: "panel"
+    }, /* @__PURE__ */ _("code", null, /* @__PURE__ */ _("div", null, "eax\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.eax), /* @__PURE__ */ _("br", null), "ebx\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ebx), /* @__PURE__ */ _("br", null), "ecx\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ecx), /* @__PURE__ */ _("br", null), "edx\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.edx), /* @__PURE__ */ _("br", null)), /* @__PURE__ */ _("br", null), /* @__PURE__ */ _("div", null, "eip\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.eip), /* @__PURE__ */ _("br", null), "esp\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.esp), /* @__PURE__ */ _("br", null), "ebp\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.ebp), /* @__PURE__ */ _("br", null), "esi\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.esi), /* @__PURE__ */ _("br", null), "edi\xA0", /* @__PURE__ */ _(Number, {
+      digits: 8,
+      ...this.props
+    }, regs.edi), /* @__PURE__ */ _("br", null)), /* @__PURE__ */ _("br", null), /* @__PURE__ */ _("div", null, "cs\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.cs), " ", "fs\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.fs), /* @__PURE__ */ _("br", null), "ds\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.ds), " ", "gs\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.gs), /* @__PURE__ */ _("br", null), "es\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.es), " ", "ss\xA0", /* @__PURE__ */ _(Number, {
+      digits: 4,
+      ...this.props
+    }, regs.ss), /* @__PURE__ */ _("br", null)), /* @__PURE__ */ _("br", null), /* @__PURE__ */ _("div", null, "flags\xA0", hex(regs.flags), " ", regs.flags_str), /* @__PURE__ */ _("br", null), st.length > 0 ? /* @__PURE__ */ _("div", null, "fpu", /* @__PURE__ */ _("br", null), Array.from(regs.st).map((n2) => /* @__PURE__ */ _("span", null, n2, /* @__PURE__ */ _("br", null)))) : null));
+  }
+};
+
+// debugger/stack.tsx
+var Stack = class extends k {
+  render() {
+    const { emu } = this.props;
+    const esp = emu.esp;
+    const memory = emu.memory();
+    const rows = [];
+    for (let addr = esp - 16; addr < esp + 32; addr += 4) {
+      const value = memory.getUint32(addr, true);
+      let label = this.props.labels.get(value);
+      if (label) {
+        label = ` ${label}`;
+      }
+      let row = /* @__PURE__ */ _("div", null, /* @__PURE__ */ _(Number, {
+        digits: 8,
+        ...this.props
+      }, addr), "\xA0", /* @__PURE__ */ _(Number, {
+        digits: 8,
+        ...this.props
+      }, value), label);
+      if (addr === esp) {
+        row = /* @__PURE__ */ _("b", null, row);
+      }
+      rows.push(row);
+    }
+    return /* @__PURE__ */ _("section", {
+      class: "panel"
+    }, /* @__PURE__ */ _("code", null, rows));
+  }
+};
+
+// debugger/tabs.tsx
+var Tabs = class extends k {
+  render() {
+    const { style, tabs, selected, switchTab } = this.props;
+    const content = tabs[selected]();
+    return /* @__PURE__ */ _("section", {
+      class: "panel",
+      style
+    }, /* @__PURE__ */ _("div", {
+      class: "tabs-strip"
+    }, "|", Object.keys(tabs).map((name) => {
+      let button = /* @__PURE__ */ _("span", {
+        class: "clicky",
+        onClick: () => switchTab(name)
+      }, name);
+      if (name === selected) {
+        button = /* @__PURE__ */ _("b", null, button);
+      }
+      return /* @__PURE__ */ _(b, null, "\xA0", button, "\xA0|");
+    })), content);
+  }
+};
+
+// debugger/debugger.tsx
+var StartStop = class extends k {
   render() {
     const { running, start, stop, step, stepOver } = this.props;
-    return /* @__PURE__ */ h("span", null, /* @__PURE__ */ h("button", {
+    return /* @__PURE__ */ _("span", null, /* @__PURE__ */ _("button", {
       onClick: () => running ? stop() : start()
-    }, running ? "stop" : "run"), "\xA0", /* @__PURE__ */ h("button", {
+    }, running ? "stop" : "run"), "\xA0", /* @__PURE__ */ _("button", {
       onClick: () => step()
-    }, "step"), "\xA0", /* @__PURE__ */ h("button", {
+    }, "step"), "\xA0", /* @__PURE__ */ _("button", {
       onClick: () => stepOver()
     }, "step over"));
   }
 };
-var Debugger = class extends d {
+var Debugger = class extends k {
   state = { error: "", memBase: 4198400, selectedTab: "output" };
   constructor(props) {
     super(props);
@@ -1879,56 +1917,56 @@ exited with code ${code}`);
     const eip = this.props.emulator.emu.eip;
     if (eip >= 4054253568) {
       const label = eip == 4294967280 ? "async" : this.props.emulator.labels.get(eip) ?? "shim";
-      code = /* @__PURE__ */ h("section", {
+      code = /* @__PURE__ */ _("section", {
         class: "code"
       }, "(in ", label, ")");
     } else {
       instrs = this.props.emulator.disassemble(eip);
-      code = /* @__PURE__ */ h(Code, {
+      code = /* @__PURE__ */ _(Code, {
         instrs,
         labels: this.props.emulator.labels,
         ...this.memoryView,
         runTo: this.runTo
       });
     }
-    return /* @__PURE__ */ h(p, null, /* @__PURE__ */ h(EmulatorComponent, {
+    return /* @__PURE__ */ _(b, null, /* @__PURE__ */ _(EmulatorComponent, {
       emulator: this.props.emulator
-    }), /* @__PURE__ */ h("section", {
+    }), /* @__PURE__ */ _("section", {
       class: "panel",
       style: { display: "flex", alignItems: "baseline" }
-    }, /* @__PURE__ */ h(StartStop, {
+    }, /* @__PURE__ */ _(StartStop, {
       running: this.state.running != null,
       start: this.start,
       stop: this.stop,
       step: this.step,
       stepOver: () => instrs ? this.runTo(instrs[1].addr) : this.step()
-    }), "\xA0", /* @__PURE__ */ h("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ h("div", {
-      style: { display: "flex", margin: "1ex" }
-    }, code, /* @__PURE__ */ h("div", {
-      style: { width: "12ex" }
-    }), /* @__PURE__ */ h(RegistersComponent, {
+    }), "\xA0", /* @__PURE__ */ _("div", null, this.props.emulator.emu.instr_count, " instrs executed | ", Math.floor(this.props.emulator.instrPerMs), "/ms")), /* @__PURE__ */ _("div", {
+      style: { display: "flex", gap: "8px" }
+    }, code, /* @__PURE__ */ _(RegistersComponent, {
       ...this.memoryView,
       regs: this.props.emulator.emu.regs()
-    })), /* @__PURE__ */ h("div", {
-      style: { display: "flex" }
-    }, /* @__PURE__ */ h(Tabs, {
-      style: { width: "80ex" },
+    }), /* @__PURE__ */ _(Stack, {
+      ...this.memoryView,
+      labels: this.props.emulator.labels,
+      emu: this.props.emulator.emu
+    })), /* @__PURE__ */ _(Tabs, {
+      style: { width: "80ex", flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" },
       tabs: {
-        output: () => /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.state.stdout, this.state.error ? /* @__PURE__ */ h("div", {
+        output: () => /* @__PURE__ */ _("div", null, /* @__PURE__ */ _("code", null, this.state.stdout, this.state.error ? /* @__PURE__ */ _("div", {
           class: "error"
         }, "ERROR: ", this.state.error) : null)),
-        memory: () => /* @__PURE__ */ h(Memory, {
+        memory: () => /* @__PURE__ */ _(Memory, {
           mem: this.props.emulator.emu.memory(),
           base: this.state.memBase,
           highlight: this.state.memHighlight,
           jumpTo: (addr) => this.setState({ memBase: addr })
         }),
-        mappings: () => /* @__PURE__ */ h(Mappings, {
+        mappings: () => /* @__PURE__ */ _(Mappings, {
           mappings: this.props.emulator.mappings(),
           highlight: this.state.memHighlight
         }),
-        imports: () => /* @__PURE__ */ h("div", null, /* @__PURE__ */ h("code", null, this.props.emulator.imports.map((imp) => /* @__PURE__ */ h("div", null, imp)))),
-        breakpoints: () => /* @__PURE__ */ h(BreakpointsComponent, {
+        imports: () => /* @__PURE__ */ _("div", null, /* @__PURE__ */ _("code", null, this.props.emulator.imports.map((imp) => /* @__PURE__ */ _("div", null, imp)))),
+        breakpoints: () => /* @__PURE__ */ _(BreakpointsComponent, {
           breakpoints: this.props.emulator.breakpoints,
           labels: this.props.emulator.labels,
           highlight: eip,
@@ -1937,65 +1975,107 @@ exited with code ${code}`);
       },
       selected: this.state.selectedTab,
       switchTab: (selectedTab) => this.setState({ selectedTab })
-    }), /* @__PURE__ */ h(Stack, {
-      ...this.memoryView,
-      labels: this.props.emulator.labels,
-      emu: this.props.emulator.emu
-    })));
+    }));
   }
 };
 async function main() {
   const emulator = await loadEmulator();
   emulator.emu.set_tracing_scheme("*");
-  P(/* @__PURE__ */ h(Debugger, {
+  B(/* @__PURE__ */ _(Debugger, {
     emulator
   }), document.body);
 }
 
 // run.tsx
-var Runner = class extends d {
-  constructor(props) {
-    super(props);
-    this.props.emulator.emuHost = this;
+var Panel = class extends k {
+  debugger() {
+    window.location.pathname = window.location.pathname.replace("/run.html", "/debugger.html");
   }
-  print(text) {
-    this.setState((state) => ({ output: (state.output ?? "") + text }));
-  }
-  componentDidMount() {
-    this.props.emulator.start();
-  }
-  exit(code) {
-    this.print(`exited with code ${code}
-`);
-  }
-  onWindowChanged() {
-    this.forceUpdate();
-  }
-  showTab(name) {
-    throw new Error("Method not implemented.");
-  }
-  onError(msg) {
-    this.print(msg + "\n");
-  }
-  onStdOut(stdout) {
-    this.print(stdout);
-  }
-  onStopped() {
+  updateStatus = () => {
+    if (!this.props.emulator)
+      return;
+    this.setState({
+      status: {
+        instrCount: this.props.emulator.emu.instr_count,
+        instrPerMs: Math.floor(this.props.emulator.instrPerMs)
+      }
+    });
+  };
+  interval;
+  componentDidUpdate() {
+    if (this.props.emulator && !this.interval) {
+      this.updateStatus();
+      this.interval = setInterval(this.updateStatus, 500);
+    } else if (!this.props.emulator && this.interval) {
+      clearInterval(this.interval);
+      this.interval = void 0;
+    }
   }
   render() {
-    return /* @__PURE__ */ h(p, null, this.state.output ? /* @__PURE__ */ h("pre", {
-      class: "stdout"
-    }, this.state.output) : null, /* @__PURE__ */ h(EmulatorComponent, {
-      emulator: this.props.emulator
-    }));
+    let status;
+    if (this.state.status) {
+      status = /* @__PURE__ */ _("div", null, this.state.status.instrCount, " instrs executed, ", Math.floor(this.state.status.instrPerMs), "/ms");
+    }
+    return /* @__PURE__ */ _("header", {
+      class: "panel"
+    }, /* @__PURE__ */ _("a", {
+      style: "font-weight: bold; color: inherit",
+      href: "https://evmar.github.io/retrowin32/"
+    }, "retrowin32"), ": a windows emulator", /* @__PURE__ */ _("div", {
+      style: "width: 2ex"
+    }), /* @__PURE__ */ _("button", {
+      onClick: this.debugger
+    }, "view in debugger"), /* @__PURE__ */ _("div", {
+      style: { flex: "1" }
+    }), status);
   }
 };
-async function main2() {
-  const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme("-");
-  P(/* @__PURE__ */ h(Runner, {
-    emulator
-  }), document.getElementById("main"));
+var Page = class extends k {
+  async load() {
+    const emulator = await loadEmulator();
+    emulator.emu.set_tracing_scheme("-");
+    const host = {
+      exit: (code) => {
+        this.print(`exited with code ${code}
+`);
+      },
+      onWindowChanged: () => {
+        this.forceUpdate();
+      },
+      showTab: (name) => {
+      },
+      onError: (msg) => {
+        this.print(msg + "\n");
+        this.setState({ emulator: void 0 });
+      },
+      onStdOut: (stdout) => {
+        this.print(stdout);
+      },
+      onStopped: () => {
+      }
+    };
+    emulator.emuHost = host;
+    this.setState({ emulator });
+    emulator.start();
+  }
+  print = (text) => {
+    this.setState((state) => ({ output: (state.output ?? "") + text }));
+  };
+  componentDidMount() {
+    this.load().catch((e2) => this.print(e2.stack ?? e2.toString()));
+  }
+  render() {
+    return /* @__PURE__ */ _(b, null, /* @__PURE__ */ _(Panel, {
+      emulator: this.state.emulator
+    }), /* @__PURE__ */ _("main", null, this.state.output ? /* @__PURE__ */ _("pre", {
+      class: "stdout"
+    }, this.state.output) : null, this.state.emulator ? /* @__PURE__ */ _(EmulatorComponent, {
+      emulator: this.state.emulator
+    }) : null));
+  }
+};
+function main2() {
+  B(/* @__PURE__ */ _(Page, null), document.body);
 }
 export {
   main as debuggerMain,

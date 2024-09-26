@@ -2,33 +2,37 @@
 <title>retrowin32</title>
 <link rel='stylesheet' href='win2k.css'>
 <style>
+    html {
+        height: 100%;
+        overflow: hidden;
+        display: flex;
+    }
+
     body {
-        background: #3a6ea5;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+
+    main {
+        flex: 1;
     }
 
     header {
         padding: 8px;
+        display: flex;
+        align-items: baseline;
     }
 
     .stdout {
-        width: 80ex;
+        min-width: 80ex;
         padding: 1ex;
         color: grey;
         background: black;
     }
 </style>
 
-<body>
-    <header class='panel'>
-        <a style='font-weight: bold; color: inherit' href='https://evmar.github.io/retrowin32/'>retrowin32</a>: a
-        windows emulator
-        | <button onclick='location.reload()'>reload page</button> if it crashes
-        | <button
-            onclick='window.location.pathname = window.location.pathname.replace("/run.html", "/debugger.html")'>view in
-            debugger</a>
-    </header>
-    <main id='main'></main>
-</body>
+<body></body>
 
 <script type='module'>
     import { runMain } from './bundle.js';
