@@ -603,17 +603,13 @@ pub enum SW {
 
 #[win32_derive::dllexport]
 pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
-    let windowpos_addr = machine.state.scratch.alloc(
-        machine.emu.memory.mem(),
-        std::mem::size_of::<WINDOWPOS>() as u32,
-    );
     dispatch_message(
         machine,
         &MSG {
             hwnd: hWnd,
             message: WM::ACTIVATEAPP as u32,
-            wParam: 0,
-            lParam: windowpos_addr,
+            wParam: true as u32, // activating
+            lParam: 0,           // TODO: thread id
             time: 0,
             pt_x: 0,
             pt_y: 0,
@@ -621,13 +617,14 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
     )
     .await;
 
+    const WA_ACTIVE: u32 = 1;
     dispatch_message(
         machine,
         &MSG {
             hwnd: hWnd,
             message: WM::ACTIVATE as u32,
-            wParam: 1,
-            lParam: 0,
+            wParam: WA_ACTIVE,
+            lParam: 0, // TODO: previous window hwnd
             time: 0,
             pt_x: 0,
             pt_y: 0,
@@ -635,6 +632,9 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
     )
     .await;
 
+    // TODO: WM_WINDOWPOSCHANGED should pass a WINDOWPOS struct,
+    // but the DefWindowProc we provide ignores it and calls WM_MOVE/WM_SIZE directly.
+    let windowpos_addr = 0;
     dispatch_message(
         machine,
         &MSG {
@@ -842,7 +842,7 @@ impl TryFrom<u32> for SWP {
 }
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct WINDOWPOS {
     pub hwnd: HWND,
     pub hwndInsertAfter: HWND,
