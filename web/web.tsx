@@ -1,9 +1,9 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
+import { parseCSV } from './debugger/labels';
 import { Emulator } from './emulator';
 import * as wasm from './glue/pkg/glue';
 import { fetchFileSet } from './host';
-import { parseCSV } from './labels';
 
 namespace WindowComponent {
   export interface Props {

@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Instruction } from './glue/pkg/glue';
+import { Instruction } from '../glue/pkg/glue';
 import { Labels } from './labels';
 import { MemoryView, Number } from './memory';
 import { hex } from './util';

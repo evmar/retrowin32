@@ -1,15 +1,15 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
+import { Emulator, EmulatorHost } from '../emulator';
+import { Instruction } from '../glue/pkg/glue';
+import { EmulatorComponent, loadEmulator } from '../web';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
-import { Emulator, EmulatorHost } from './emulator';
-import { Instruction } from './glue/pkg/glue';
 import { Mappings } from './mappings';
 import { Memory, MemoryView } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
-import { EmulatorComponent, loadEmulator } from './web';
 
 namespace StartStop {
   export interface Props {

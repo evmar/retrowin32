@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { h } from 'preact';
-import { Emulator } from './glue/pkg/glue';
+import { Emulator } from '../glue/pkg/glue';
 import { Labels } from './labels';
 import { MemoryView, Number } from './memory';
 

@@ -1,8 +1,8 @@
-import { Breakpoints } from './break';
+import { Breakpoints } from './debugger/break';
+import { Labels } from './debugger/labels';
+import { hex } from './debugger/util';
 import * as wasm from './glue/pkg/glue';
 import { FileSet, JsHost } from './host';
-import { Labels } from './labels';
-import { hex } from './util';
 
 /** Functions the emulator may need to call. */
 export interface EmulatorHost {

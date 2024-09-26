@@ -16,6 +16,7 @@ There are two web frontends that share the emulator integration logic:
 ## Code layout
 
 - `glue/` -- the Rust library that becomes wasm
+- `debugger/` -- the debugging UI
 
 ## The retrowin32 website
 

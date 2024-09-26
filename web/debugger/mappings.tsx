@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { h } from 'preact';
-import * as wasm from './glue/pkg/glue';
+import * as wasm from '../glue/pkg/glue';
 import { hex } from './util';
 
 namespace Mappings {
