@@ -3,6 +3,61 @@ import { Fragment, h } from 'preact';
 import { Emulator, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
+interface Status {
+  instrCount: number;
+  instrPerMs: number;
+}
+
+class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status }> {
+  private debugger() {
+    window.location.pathname = window.location.pathname.replace('/run.html', '/debugger.html');
+  }
+
+  private updateStatus = () => {
+    if (!this.props.emulator) return;
+
+    this.setState({
+      status: {
+        instrCount: this.props.emulator.emu.instr_count,
+        instrPerMs: Math.floor(this.props.emulator.instrPerMs),
+      },
+    });
+  };
+  interval?: number;
+  componentDidUpdate(): void {
+    if (this.props.emulator && !this.interval) {
+      this.interval = setInterval(this.updateStatus, 500);
+    } else if (!this.props.emulator && this.interval) {
+      clearInterval(this.interval);
+      this.interval = undefined;
+    }
+  }
+
+  render() {
+    let status;
+    if (this.state.status) {
+      status = (
+        <div>
+          {this.state.status.instrCount} instrs executed, {Math.floor(this.state.status.instrPerMs)}/ms
+        </div>
+      );
+    }
+
+    return (
+      <header class='panel'>
+        <a style='font-weight: bold; color: inherit' href='https://evmar.github.io/retrowin32/'>retrowin32</a>: a
+        windows emulator
+        <div style='width: 2ex'></div>
+        <button onClick={this.debugger}>
+          view in debugger
+        </button>
+        <div style={{ flex: '1' }} />
+        {status}
+      </header>
+    );
+  }
+}
+
 namespace Page {
   export interface State {
     emulator?: Emulator;
@@ -21,10 +76,11 @@ class Page extends preact.Component<{}, Page.State> {
       onWindowChanged: () => {
         this.forceUpdate();
       },
-      showTab: function(name: string): void {
+      showTab: (name: string) => {
       },
       onError: (msg) => {
         this.print(msg + '\n');
+        this.setState({ emulator: undefined });
       },
       onStdOut: (stdout) => {
         this.print(stdout);
@@ -38,10 +94,6 @@ class Page extends preact.Component<{}, Page.State> {
     emulator.start();
   }
 
-  private debugger() {
-    window.location.pathname = window.location.pathname.replace('/run.html', '/debugger.html');
-  }
-
   private print = (text: string) => {
     this.setState((state) => ({ output: (state.output ?? '') + text }));
   };
@@ -53,15 +105,7 @@ class Page extends preact.Component<{}, Page.State> {
   render() {
     return (
       <>
-        <header class='panel'>
-          <a style='font-weight: bold; color: inherit' href='https://evmar.github.io/retrowin32/'>retrowin32</a>: a
-          windows emulator
-          <div style='width: 2ex'></div>
-          <button onClick={this.debugger}>
-            view in debugger
-          </button>
-        </header>
-
+        <Panel emulator={this.state.emulator} />
         <main>
           {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
           {this.state.emulator ? <EmulatorComponent emulator={this.state.emulator} /> : null}
