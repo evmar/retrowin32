@@ -60,10 +60,3 @@ pub unsafe extern "C" fn mainCRTStartup() {
     flags_test();
     no_std::fpu::test();
 }
-
-#[cfg(not(test))]
-#[panic_handler]
-unsafe fn handle_panic(_: &core::panic::PanicInfo) -> ! {
-    print(b"panicked");
-    windows_sys::Win32::System::Threading::ExitProcess(1);
-}

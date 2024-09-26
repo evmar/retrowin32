@@ -169,7 +169,7 @@ impl MachineX<Emulator> {
                     message: message.clone(),
                 };
             }
-            _ => unimplemented!(),
+            state => unimplemented!("{state:?}"),
         }
         self.status.is_running()
     }
