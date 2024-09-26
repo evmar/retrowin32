@@ -255,7 +255,7 @@ pub fn GetProcAddress(
             return addr;
         }
     }
-    log::error!("GetProcAddress({:x?}, {:?})", hModule, lpProcName);
+    log::warn!("GetProcAddress({:x?}, {:?}) failed", hModule, lpProcName);
     0 // fail
 }
 
