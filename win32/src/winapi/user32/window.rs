@@ -570,11 +570,6 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
         }
     }
 
-    let windowpos_addr = machine.state.scratch.alloc(
-        machine.emu.memory.mem(),
-        std::mem::size_of::<WINDOWPOS>() as u32,
-    );
-
     let msg = MSG {
         hwnd: hWnd,
         message: WM::PAINT as u32,
@@ -584,21 +579,7 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
         pt_x: 0,
         pt_y: 0,
     };
-    DispatchMessageA(machine, Some(&msg)).await;
-
-    dispatch_message(
-        machine,
-        &MSG {
-            hwnd: hWnd,
-            message: WM::WINDOWPOSCHANGED as u32,
-            wParam: 0,
-            lParam: windowpos_addr,
-            time: 0,
-            pt_x: 0,
-            pt_y: 0,
-        },
-    )
-    .await;
+    dispatch_message(machine, &msg).await;
 
     true // success
 }
