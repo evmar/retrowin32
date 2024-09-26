@@ -42,11 +42,21 @@ impl log::Log for JsLogger {
 unsafe impl Sync for JsLogger {}
 unsafe impl Send for JsLogger {}
 
+static mut LOGGER: Option<JsLogger> = None;
+
 fn panic_hook(info: &std::panic::PanicInfo) {
-    log::error!("{}", info);
+    // Don't use log::error!() here, because that includes the current file and line
+    // which just points at the logging code.
+    unsafe {
+        LOGGER
+            .as_mut()
+            .unwrap()
+            .log(log::Level::Error as u8, format!("{}", info));
+    }
 }
 
 pub fn init(host: JsLogger) {
+    unsafe { LOGGER = Some(host.clone().unchecked_into()) };
     let logger: &'static mut JsLogger = Box::leak(Box::new(host));
     log::set_logger(logger).unwrap();
     log::set_max_level(log::LevelFilter::Debug);
