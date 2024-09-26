@@ -174,61 +174,11 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
           </div>
         </section>
-        <div style={{ display: 'flex', margin: '1ex' }}>
+        <div style={{ display: 'flex', gap: '8px' }}>
           {code}
-          <div style={{ width: '12ex' }} />
           <RegistersComponent
             {...this.memoryView}
             regs={this.props.emulator.emu.regs()}
-          />
-        </div>
-        <div style={{ display: 'flex' }}>
-          <Tabs
-            style={{ width: '80ex' }}
-            tabs={{
-              output: () => (
-                <div>
-                  <code>
-                    {this.state.stdout}
-                    {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
-                  </code>
-                </div>
-              ),
-
-              memory: () => (
-                <Memory
-                  mem={this.props.emulator.emu.memory()}
-                  base={this.state.memBase}
-                  highlight={this.state.memHighlight}
-                  jumpTo={(addr) => this.setState({ memBase: addr })}
-                />
-              ),
-              mappings: () => (
-                <Mappings
-                  mappings={this.props.emulator.mappings()}
-                  highlight={this.state.memHighlight}
-                />
-              ),
-
-              imports: () => (
-                <div>
-                  <code>
-                    {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
-                  </code>
-                </div>
-              ),
-
-              breakpoints: () => (
-                <BreakpointsComponent
-                  breakpoints={this.props.emulator.breakpoints}
-                  labels={this.props.emulator.labels}
-                  highlight={eip}
-                  {...this.memoryView}
-                />
-              ),
-            }}
-            selected={this.state.selectedTab}
-            switchTab={(selectedTab) => this.setState({ selectedTab })}
           />
           <Stack
             {...this.memoryView}
@@ -236,6 +186,53 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             emu={this.props.emulator.emu}
           />
         </div>
+        <Tabs
+          style={{ width: '80ex', flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+          tabs={{
+            output: () => (
+              <div>
+                <code>
+                  {this.state.stdout}
+                  {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
+                </code>
+              </div>
+            ),
+
+            memory: () => (
+              <Memory
+                mem={this.props.emulator.emu.memory()}
+                base={this.state.memBase}
+                highlight={this.state.memHighlight}
+                jumpTo={(addr) => this.setState({ memBase: addr })}
+              />
+            ),
+            mappings: () => (
+              <Mappings
+                mappings={this.props.emulator.mappings()}
+                highlight={this.state.memHighlight}
+              />
+            ),
+
+            imports: () => (
+              <div>
+                <code>
+                  {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
+                </code>
+              </div>
+            ),
+
+            breakpoints: () => (
+              <BreakpointsComponent
+                breakpoints={this.props.emulator.breakpoints}
+                labels={this.props.emulator.labels}
+                highlight={eip}
+                {...this.memoryView}
+              />
+            ),
+          }}
+          selected={this.state.selectedTab}
+          switchTab={(selectedTab) => this.setState({ selectedTab })}
+        />
       </>
     );
   }

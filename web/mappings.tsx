@@ -26,7 +26,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
       );
     });
     return (
-      <section>
+      <section style={{ overflow: 'scroll', flex: 1 }}>
         <code>
           <table>
             <thead>
