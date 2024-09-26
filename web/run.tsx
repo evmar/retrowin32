@@ -3,26 +3,25 @@ import { Fragment, h } from 'preact';
 import { Emulator, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
-interface State {
-  output?: string;
+namespace Host {
+  export interface Props {
+    emulator: Emulator;
+    print(text: string): void;
+  }
 }
 
-class Runner extends preact.Component<{ emulator: Emulator }, State> implements EmulatorHost {
-  constructor(props: { emulator: Emulator }) {
+class Host extends preact.Component<Host.Props, {}> implements EmulatorHost {
+  constructor(props: Host.Props) {
     super(props);
     this.props.emulator.emuHost = this;
   }
 
-  private print(text: string) {
-    this.setState((state) => ({ output: (state.output ?? '') + text }));
-  }
-
-  componentDidMount(): void {
+  override componentDidMount(): void {
     this.props.emulator.start();
   }
 
   exit(code: number): void {
-    this.print(`exited with code ${code}\n`);
+    this.props.print(`exited with code ${code}\n`);
   }
 
   onWindowChanged(): void {
@@ -34,11 +33,11 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 
   onError(msg: string): void {
-    this.print(msg + '\n');
+    this.props.print(msg + '\n');
   }
 
   onStdOut(stdout: string): void {
-    this.print(stdout);
+    this.props.print(stdout);
   }
 
   onStopped(): void {
@@ -46,21 +45,37 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 
   render() {
-    return (
-      <>
-        {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
-        <EmulatorComponent emulator={this.props.emulator} />
-      </>
-    );
+    return <EmulatorComponent emulator={this.props.emulator} />;
   }
 }
 
-class Page extends preact.Component<{ emulator: Emulator }> {
+namespace Page {
+  export interface State {
+    emulator?: Emulator;
+    output?: string;
+  }
+}
+
+class Page extends preact.Component<{}, Page.State> {
+  private async load() {
+    const emulator = await loadEmulator();
+    emulator.emu.set_tracing_scheme('-');
+    this.setState({ emulator });
+  }
+
   private debugger() {
     window.location.pathname = window.location.pathname.replace('/run.html', '/debugger.html');
   }
 
-  render({ emulator }: { emulator: Emulator }) {
+  private print = (text: string) => {
+    this.setState((state) => ({ output: (state.output ?? '') + text }));
+  };
+
+  componentDidMount(): void {
+    this.load().catch((e) => this.print(e.stack ?? e.toString()));
+  }
+
+  render() {
     return (
       <>
         <header class='panel'>
@@ -73,15 +88,14 @@ class Page extends preact.Component<{ emulator: Emulator }> {
         </header>
 
         <main>
-          <Runner emulator={emulator} />
+          {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
+          {this.state.emulator ? <Host emulator={this.state.emulator} print={this.print} /> : null}
         </main>
       </>
     );
   }
 }
 
-export async function main() {
-  const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme('-');
-  preact.render(<Page emulator={emulator} />, document.body);
+export function main() {
+  preact.render(<Page />, document.body);
 }
