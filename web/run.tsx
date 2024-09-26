@@ -3,52 +3,6 @@ import { Fragment, h } from 'preact';
 import { Emulator, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
-namespace Host {
-  export interface Props {
-    emulator: Emulator;
-    print(text: string): void;
-  }
-}
-
-class Host extends preact.Component<Host.Props, {}> implements EmulatorHost {
-  constructor(props: Host.Props) {
-    super(props);
-    this.props.emulator.emuHost = this;
-  }
-
-  override componentDidMount(): void {
-    this.props.emulator.start();
-  }
-
-  exit(code: number): void {
-    this.props.print(`exited with code ${code}\n`);
-  }
-
-  onWindowChanged(): void {
-    this.forceUpdate();
-  }
-
-  showTab(name: string): void {
-    throw new Error('Method not implemented.');
-  }
-
-  onError(msg: string): void {
-    this.props.print(msg + '\n');
-  }
-
-  onStdOut(stdout: string): void {
-    this.props.print(stdout);
-  }
-
-  onStopped(): void {
-    // this.print(`emulator stopped`);
-  }
-
-  render() {
-    return <EmulatorComponent emulator={this.props.emulator} />;
-  }
-}
-
 namespace Page {
   export interface State {
     emulator?: Emulator;
@@ -60,7 +14,28 @@ class Page extends preact.Component<{}, Page.State> {
   private async load() {
     const emulator = await loadEmulator();
     emulator.emu.set_tracing_scheme('-');
+    const host: EmulatorHost = {
+      exit: (code) => {
+        this.print(`exited with code ${code}\n`);
+      },
+      onWindowChanged: () => {
+        this.forceUpdate();
+      },
+      showTab: function(name: string): void {
+      },
+      onError: (msg) => {
+        this.print(msg + '\n');
+      },
+      onStdOut: (stdout) => {
+        this.print(stdout);
+      },
+      onStopped: () => {
+        // TODO
+      },
+    };
+    emulator.emuHost = host;
     this.setState({ emulator });
+    emulator.start();
   }
 
   private debugger() {
@@ -89,7 +64,7 @@ class Page extends preact.Component<{}, Page.State> {
 
         <main>
           {this.state.output ? <pre class='stdout'>{this.state.output}</pre> : null}
-          {this.state.emulator ? <Host emulator={this.state.emulator} print={this.print} /> : null}
+          {this.state.emulator ? <EmulatorComponent emulator={this.state.emulator} /> : null}
         </main>
       </>
     );
