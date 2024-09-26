@@ -27,7 +27,7 @@ pub fn add_trace(mut func: syn::ItemFn) -> proc_macro2::TokenStream {
         .collect::<Vec<_>>();
     let trace_arg_count = trace_arg_values.len();
     let prolog = quote! {
-        let __trace_context = if crate::trace::enabled(TRACE_CONTEXT) {
+        let __trace_context = if crate::trace::enabled(const_format::concatcp!(TRACE_CONTEXT, "/", #name_string)) {
             let args: &[(&str, &dyn std::fmt::Debug); #trace_arg_count] = &[#(#trace_arg_values),*];
             Some(crate::trace::trace_begin(TRACE_CONTEXT, #name_string, args))
         } else {
