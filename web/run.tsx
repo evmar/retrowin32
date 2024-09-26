@@ -55,8 +55,33 @@ class Runner extends preact.Component<{ emulator: Emulator }, State> implements 
   }
 }
 
+class Page extends preact.Component<{ emulator: Emulator }> {
+  private debugger() {
+    window.location.pathname = window.location.pathname.replace('/run.html', '/debugger.html');
+  }
+
+  render({ emulator }: { emulator: Emulator }) {
+    return (
+      <>
+        <header class='panel'>
+          <a style='font-weight: bold; color: inherit' href='https://evmar.github.io/retrowin32/'>retrowin32</a>: a
+          windows emulator
+          <div style='width: 2ex'></div>
+          <button onClick={this.debugger}>
+            view in debugger
+          </button>
+        </header>
+
+        <main>
+          <Runner emulator={emulator} />
+        </main>
+      </>
+    );
+  }
+}
+
 export async function main() {
   const emulator = await loadEmulator();
   emulator.emu.set_tracing_scheme('-');
-  preact.render(<Runner emulator={emulator} />, document.getElementById('main')!);
+  preact.render(<Page emulator={emulator} />, document.body);
 }
