@@ -5227,9 +5227,16 @@ pub mod user32 {
             let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             winapi::user32::ValidateRect(machine, hWnd, lpRect).to_raw()
         }
-        pub unsafe fn WaitMessage(machine: &mut Machine, stack_args: u32) -> u32 {
+        pub unsafe fn WaitMessage(
+            machine: &mut Machine,
+            stack_args: u32,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
             let mem = machine.mem().detach();
-            winapi::user32::WaitMessage(machine).to_raw()
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = unsafe { &mut *machine };
+                winapi::user32::WaitMessage(machine).await.to_raw()
+            })
         }
         pub unsafe fn WinHelpW(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -5713,7 +5720,7 @@ pub mod user32 {
         },
         Shim {
             name: "WaitMessage",
-            func: Handler::Sync(impls::WaitMessage),
+            func: Handler::Async(impls::WaitMessage),
         },
         Shim {
             name: "WinHelpW",

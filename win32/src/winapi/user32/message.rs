@@ -138,12 +138,12 @@ fn fill_message_queue(machine: &mut Machine, hwnd: HWND) -> Result<(), Option<u3
 }
 
 #[cfg(feature = "x86-emu")]
-async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
+async fn await_message(machine: &mut Machine, wait: Option<u32>) {
     machine.emu.x86.cpu_mut().block(wait).await;
 }
 
 #[cfg(not(feature = "x86-emu"))]
-async fn await_message(machine: &mut Machine, _hwnd: HWND, wait: Option<u32>) {
+async fn await_message(machine: &mut Machine, wait: Option<u32>) {
     machine.host.block(wait);
 }
 
@@ -267,7 +267,7 @@ async fn get_message(
     loop {
         match fill_message_queue(machine, hWnd) {
             Ok(_) => break,
-            Err(wait_until) => await_message(machine, hWnd, wait_until).await,
+            Err(wait_until) => await_message(machine, wait_until).await,
         }
     }
 
@@ -307,7 +307,13 @@ pub async fn GetMessageW(
 }
 
 #[win32_derive::dllexport]
-pub fn WaitMessage(_machine: &mut Machine) -> bool {
+pub async fn WaitMessage(machine: &mut Machine) -> bool {
+    loop {
+        match fill_message_queue(machine, HWND::null()) {
+            Ok(_) => break,
+            Err(wait_until) => await_message(machine, wait_until).await,
+        }
+    }
     true
 }
 
