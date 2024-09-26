@@ -26,6 +26,7 @@ class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status 
   interval?: number;
   componentDidUpdate(): void {
     if (this.props.emulator && !this.interval) {
+      this.updateStatus();
       this.interval = setInterval(this.updateStatus, 500);
     } else if (!this.props.emulator && this.interval) {
       clearInterval(this.interval);

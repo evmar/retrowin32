@@ -125,7 +125,8 @@ export class Emulator extends JsHost {
       this.step();
     }
     this.running = true;
-    this.loop();
+    // Don't loop() immediately, to allow the message loop one tick before emulation starts.
+    this.channel.port1.postMessage(null);
   }
 
   /** Runs a batch of instructions; called in a loop. */
