@@ -34,6 +34,11 @@ struct Args {
     #[argh(option, from_str_fn(parse_trace_points))]
     trace_points: Option<std::collections::VecDeque<u32>>,
 
+    /// exit after executing this many instructions
+    #[argh(option)]
+    #[cfg(feature = "x86-emu")]
+    exit_after: Option<usize>,
+
     /// enable debug logging
     #[argh(switch)]
     debug: bool,
@@ -185,7 +190,14 @@ fn main() -> anyhow::Result<ExitCode> {
                 print_trace(&machine);
             }
         } else {
-            while machine.run() {}
+            while machine.run() {
+                if let Some(exit_after) = args.exit_after {
+                    if machine.emu.x86.instr_count >= exit_after {
+                        machine.status = win32::Status::Exit(0);
+                        break;
+                    }
+                }
+            }
         }
 
         match &machine.status {
