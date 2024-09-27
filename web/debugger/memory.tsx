@@ -61,18 +61,23 @@ export class Memory extends preact.Component<Memory.Props> {
     this.props.jumpTo(parseInt(addr, 16));
   };
 
-  jump(e: PointerEvent, direction: number) {
+  jump(e: MouseEvent, direction: number) {
     let step = 0x100;
     if (e.shiftKey) step *= 0x10;
     if (e.altKey) step *= 0x100;
     step *= direction;
     this.props.jumpTo(this.props.base + step);
   }
-  onJumpForward = (e: Event) => {
-    this.jump(e as PointerEvent, 1);
+  onJumpForward = (e: MouseEvent) => {
+    this.jump(e, 1);
   };
-  onJumpBack = (e: Event) => {
-    this.jump(e as PointerEvent, -1);
+  onJumpBack = (e: MouseEvent) => {
+    this.jump(e, -1);
+  };
+
+  onWheel = (ev: WheelEvent) => {
+    const ofs = Math.round(ev.deltaY) * 2;
+    this.props.jumpTo(this.props.base + ofs);
   };
 
   render() {
@@ -115,7 +120,7 @@ export class Memory extends preact.Component<Memory.Props> {
           <input name='addr' size={8} value={hex(this.props.base, 8)} />
           <button type='button' onClick={this.onJumpForward}>&gt;</button>
         </form>
-        <div style={{ display: 'flex', gap: '2ex' }}>
+        <div style={{ display: 'flex', gap: '2ex' }} onWheel={this.onWheel}>
           <code>{addrs}</code>
           <code class='grid'>{hexRows}</code>
           <code>{asciiRows}</code>
