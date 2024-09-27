@@ -1,7 +1,6 @@
 title = "Minesweeper"
 desc = "the classic Windows game"
 dir = "archive/win2k/"
-files = ["msvcrt.dll"]
 path = "winmine.exe"
 category = "windows"
 
