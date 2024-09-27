@@ -5,11 +5,13 @@ import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent, loadEmulator } from '../web';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
+import { Labels, parseCSV } from './labels';
 import { Mappings } from './mappings';
 import { Memory, MemoryView } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
+import { hex } from './util';
 
 namespace StartStop {
   export interface Props {
@@ -61,10 +63,12 @@ namespace Debugger {
     /** When running, the setInterval id that is updating the UI.  Note that Emulator.running has slightly different semantics. */
     running?: number;
     selectedTab: string;
+    labels: Labels;
+    imports: string[];
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
-  state: Debugger.State = { error: '', memBase: 0, selectedTab: 'output' };
+  state: Debugger.State = { error: '', memBase: 0, labels: new Labels(), selectedTab: 'output', imports: [] };
 
   private async load() {
     this.print('Loading...\n');
@@ -98,9 +102,29 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
         this.stop();
       },
     };
-    this.setState({ stdout: undefined });
     emulator.emuHost = host;
-    this.setState({ emulator });
+
+    const labels = emulator.labels();
+    const imports = [];
+    for (const [addr, name] of labels) {
+      imports.push(`${hex(addr, 8)}: ${name}`);
+    }
+    this.state.labels.load(labels);
+
+    this.setState({ stdout: undefined, emulator, imports });
+
+    this.loadLabelsCSV(emulator).catch((e) => this.print(e.stack ?? e.toString()));
+  }
+
+  /** Load ghidra CSV, if any exists, into the label list. */
+  async loadLabelsCSV(emulator: Emulator) {
+    const resp = await fetch(emulator.exePath + '.csv');
+    if (!resp.ok) {
+      return;
+    }
+    const labels = parseCSV(await resp.text());
+    this.state.labels.load(labels);
+    this.setState({ labels: this.state.labels });
   }
 
   componentDidMount(): void {
@@ -147,7 +171,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
   };
 
   render() {
-    const { emulator } = this.state;
+    const { emulator, labels } = this.state;
 
     const console = (
       <div>
@@ -167,14 +191,14 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
     let code;
     const eip = emulator.emu.eip;
     if (eip >= 0xf1a7_0000) {
-      const label = eip == 0xffff_fff0 ? 'async' : emulator.labels.get(eip) ?? 'shim';
+      const label = eip == 0xffff_fff0 ? 'async' : labels.get(eip) ?? 'shim';
       code = <section class='code'>(in {label})</section>;
     } else {
       instrs = emulator.disassemble(eip);
       code = (
         <Code
           instrs={instrs}
-          labels={emulator.labels}
+          labels={labels}
           {...this.memoryView}
           runTo={this.runTo}
         />
@@ -204,7 +228,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           />
           <Stack
             {...this.memoryView}
-            labels={emulator.labels}
+            labels={labels}
             emu={emulator.emu}
           />
         </div>
@@ -231,7 +255,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
             imports: () => (
               <div style={{ flex: 1, overflow: 'auto' }}>
-                {emulator.imports.map(imp => (
+                {this.state.imports.map(imp => (
                   <div>
                     <code>{imp}</code>
                   </div>
@@ -242,7 +266,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             breakpoints: () => (
               <BreakpointsComponent
                 breakpoints={emulator.breakpoints}
-                labels={emulator.labels}
+                labels={labels}
                 highlight={eip}
                 {...this.memoryView}
               />

@@ -19,10 +19,10 @@ export function* parseCSV(text: string): Iterable<[number, string]> {
 
 /** Manages the collection of labels, as an ordered list. */
 export class Labels {
-  byAddr: Array<[number, string]>;
+  byAddr: Array<[number, string]> = [];
 
-  constructor(labels: Map<number, string>) {
-    this.byAddr = Array.from(labels.entries());
+  load(labels: Iterable<[number, string]>) {
+    this.byAddr.push(...labels);
     // Avoid labelling small numbers.
     this.byAddr = this.byAddr.filter(([addr, _]) => addr > 0x1000);
     this.byAddr.sort(([a, _], [b, __]) => a - b);
@@ -48,7 +48,7 @@ export class Labels {
       // Show the offset relative to the nearest labelled entry.
       const delta = target - cur;
       // We don't want very high addresses to appear as last+largenumber, so cap delta.
-      if (delta < 0x1000) {
+      if (delta < 0x100) {
         return [label, delta];
       }
     }

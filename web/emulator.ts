@@ -1,6 +1,4 @@
 import { Breakpoints } from './debugger/break';
-import { Labels } from './debugger/labels';
-import { hex } from './debugger/util';
 import * as wasm from './glue/pkg/glue';
 import { FileSet, JsHost } from './host';
 
@@ -17,8 +15,6 @@ export interface EmulatorHost {
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
 export class Emulator extends JsHost {
   readonly emu: wasm.Emulator;
-  imports: string[] = [];
-  labels: Labels;
   /** True when the emulator is actively trying to loop and executing instructions, false when stopped or blocked. */
   running = false;
   breakpoints: Breakpoints;
@@ -27,25 +23,15 @@ export class Emulator extends JsHost {
   constructor(
     host: EmulatorHost,
     files: FileSet,
-    exePath: string,
+    readonly exePath: string,
     cmdLine: string,
     bytes: Uint8Array,
-    labels: Map<number, string>,
     relocate: boolean,
   ) {
     super(host, files);
     this.emu = wasm.new_emulator(this, cmdLine);
     this.emu.load_exe(exePath, bytes, relocate);
     this.breakpoints = new Breakpoints(exePath);
-
-    const importsJSON = JSON.parse(this.emu.labels());
-    for (const [jsAddr, jsName] of Object.entries(importsJSON)) {
-      const addr = parseInt(jsAddr);
-      const name = jsName as string;
-      this.imports.push(`${hex(addr, 8)}: ${name}`);
-      labels.set(addr, name);
-    }
-    this.labels = new Labels(labels);
 
     // // Hack: twiddle msvcrt output mode to use console.
     // this.x86.poke(0x004095a4, 1);
@@ -145,6 +131,11 @@ export class Emulator extends JsHost {
 
   mappings(): wasm.Mapping[] {
     return JSON.parse(this.emu.mappings_json()) as wasm.Mapping[];
+  }
+
+  labels(): Array<[number, string]> {
+    const obj = JSON.parse(this.emu.labels()) as Record<number, string>;
+    return Object.entries(obj).map(([addr, label]) => [parseInt(addr, 10), label]);
   }
 
   disassemble(addr: number): wasm.Instruction[] {

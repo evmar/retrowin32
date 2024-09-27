@@ -1,6 +1,5 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { parseCSV } from './debugger/labels';
 import { Emulator } from './emulator';
 import * as wasm from './glue/pkg/glue';
 import { fetchFileSet } from './host';
@@ -117,14 +116,6 @@ export async function loadEmulator() {
 
   await wasm.default(new URL('wasm.wasm', document.location.href));
 
-  const csvLabels = new Map<number, string>();
-  const resp = await fetch(params.dir + params.exe + '.csv');
-  if (resp.ok) {
-    for (const [addr, name] of parseCSV(await resp.text())) {
-      csvLabels.set(addr, name);
-    }
-  }
-
   const cmdLine = params.cmdLine ?? params.exe;
   const exePath = (params.dir ?? '') + params.exe;
   return new Emulator(
@@ -133,7 +124,6 @@ export async function loadEmulator() {
     exePath,
     cmdLine,
     fileset.get(params.exe)!,
-    csvLabels,
     params.relocate ?? false,
   );
 }
