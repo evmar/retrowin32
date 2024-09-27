@@ -91,14 +91,14 @@ export class Memory extends preact.Component<Memory.Props> {
       }
     }
     return (
-      <div>
+      <section style={{ minHeight: '0', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
         <form style={{ display: 'flex', justifyContent: 'center' }} onSubmit={this.onSubmit}>
           <button type='button' onClick={this.onJumpBack}>&lt;</button>
           <input name='addr' size={8} value={hex(this.props.base, 8)} />
           <button type='button' onClick={this.onJumpForward}>&gt;</button>
         </form>
-        <code>{rows}</code>
-      </div>
+        <code style={{ minHeight: '0', overflow: 'auto', flex: 1 }}>{rows}</code>
+      </section>
     );
   }
 }
