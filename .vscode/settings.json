@@ -1,0 +1,8 @@
+{
+  "rust-analyzer.cargo.noDefaultFeatures": true,
+  "rust-analyzer.cargo.features": [
+    "x86-emu",
+    "sdl"
+  ],
+  "typescript.tsdk": "./web/node_modules/typescript/lib"
+}

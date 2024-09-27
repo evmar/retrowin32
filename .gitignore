@@ -1,8 +1,6 @@
 /target
 /deploy
 
-/.vscode
-
 # mac so annoying
 .DS_Store
 
