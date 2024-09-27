@@ -49,9 +49,9 @@ class StartStop extends preact.Component<StartStop.Props> {
 
 namespace Debugger {
   export interface Props {
-    emulator: Emulator;
   }
   export interface State {
+    emulator?: Emulator;
     stdout?: string;
     error: string;
     /** Initial address to show in memory pane. */
@@ -63,50 +63,57 @@ namespace Debugger {
     selectedTab: string;
   }
 }
-export class Debugger extends preact.Component<Debugger.Props, Debugger.State> implements EmulatorHost {
+export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
   state: Debugger.State = { error: '', memBase: 0x40_1000, selectedTab: 'output' };
 
-  constructor(props: Debugger.Props) {
-    super(props);
-    this.props.emulator.emuHost = this;
+  private async load() {
+    this.print('Loading...\n');
+    const emulator = await loadEmulator();
+    emulator.emu.set_tracing_scheme('*');
+    const host: EmulatorHost = {
+      exit: (code: number) => {
+        this.print(`\nexited with code ${code}`);
+        this.stop();
+      },
+      onWindowChanged: () => {
+        this.forceUpdate();
+      },
+      showTab: (name: string) => {
+        this.setState({ selectedTab: name });
+      },
+      onError: (msg: string) => {
+        this.print(msg + '\n');
+        // Note: if this was a Rust panic, then the error will never display because
+        // rendering will fail due to the debugger UI accessing the Rust object after a panic.
+        //
+        // Even rendering synchronously as in the following won't work due to rendering
+        // accessing the object in a callback:
+        //   preact.options.debounceRendering = (cb) => { cb(); };
+        //   this.forceUpdate();
+      },
+      onStdOut: (stdout: string) => {
+        this.print(stdout);
+      },
+      onStopped: () => {
+        this.stop();
+      },
+    };
+    this.setState({ stdout: undefined });
+    emulator.emuHost = host;
+    this.setState({ emulator });
+  }
+
+  componentDidMount(): void {
+    this.load().catch((e) => this.print(e.stack ?? e.toString()));
   }
 
   private print(text: string) {
     this.setState((state) => ({ stdout: (state.stdout ?? '') + text }));
   }
 
-  exit(code: number): void {
-    this.print(`\nexited with code ${code}`);
-    this.stop();
-  }
-  onWindowChanged(): void {
-    this.forceUpdate();
-  }
-  showTab(name: string): void {
-    this.setState({ selectedTab: name });
-  }
-  onError(msg: string): void {
-    this.print(msg + '\n');
-    // Note: if this was a Rust panic, then the error will never display because
-    // rendering will fail due to the debugger UI accessing the Rust object after a panic.
-    //
-    // Even rendering synchronously as in the following won't work due to rendering
-    // accessing the object in a callback:
-    //   preact.options.debounceRendering = (cb) => { cb(); };
-    //   this.forceUpdate();
-  }
-
-  onStdOut(msg: string): void {
-    this.print(msg);
-  }
-
-  onStopped(): void {
-    this.stop();
-  }
-
   private step = () => {
     try {
-      this.props.emulator.step();
+      this.state.emulator!.step();
     } finally {
       this.forceUpdate();
     }
@@ -119,18 +126,18 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
         this.forceUpdate();
       }, 500),
     });
-    this.props.emulator.start();
+    this.state.emulator!.start();
   };
 
   private stop = () => {
     if (!this.state.running) return;
-    this.props.emulator.stop();
+    this.state.emulator!.stop();
     clearInterval(this.state.running);
     this.setState({ running: undefined });
   };
 
   private runTo = (addr: number) => {
-    this.props.emulator.breakpoints.addBreak({ addr, oneShot: true });
+    this.state.emulator!.breakpoints.addBreak({ addr, oneShot: true });
     this.start();
   };
 
@@ -140,19 +147,34 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
   };
 
   render() {
+    const { emulator } = this.state;
+
+    const console = (
+      <div>
+        <code>
+          {this.state.stdout}
+          {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
+        </code>
+      </div>
+    );
+
+    if (!emulator) {
+      return console;
+    }
+
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
     let code;
-    const eip = this.props.emulator.emu.eip;
+    const eip = emulator.emu.eip;
     if (eip >= 0xf1a7_0000) {
-      const label = eip == 0xffff_fff0 ? 'async' : this.props.emulator.labels.get(eip) ?? 'shim';
+      const label = eip == 0xffff_fff0 ? 'async' : emulator.labels.get(eip) ?? 'shim';
       code = <section class='code'>(in {label})</section>;
     } else {
-      instrs = this.props.emulator.disassemble(eip);
+      instrs = emulator.disassemble(eip);
       code = (
         <Code
           instrs={instrs}
-          labels={this.props.emulator.labels}
+          labels={emulator.labels}
           {...this.memoryView}
           runTo={this.runTo}
         />
@@ -160,7 +182,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
     }
     return (
       <>
-        <EmulatorComponent emulator={this.props.emulator} />
+        <EmulatorComponent emulator={emulator} />
         <section class='panel' style={{ display: 'flex', alignItems: 'baseline' }}>
           <StartStop
             running={this.state.running != null}
@@ -171,36 +193,29 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
           />
           &nbsp;
           <div>
-            {this.props.emulator.emu.instr_count} instrs executed | {Math.floor(this.props.emulator.instrPerMs)}/ms
+            {emulator.emu.instr_count} instrs executed | {Math.floor(emulator.instrPerMs)}/ms
           </div>
         </section>
         <div style={{ display: 'flex', gap: '8px' }}>
           {code}
           <RegistersComponent
             {...this.memoryView}
-            regs={this.props.emulator.emu.regs()}
+            regs={emulator.emu.regs()}
           />
           <Stack
             {...this.memoryView}
-            labels={this.props.emulator.labels}
-            emu={this.props.emulator.emu}
+            labels={emulator.labels}
+            emu={emulator.emu}
           />
         </div>
         <Tabs
           style={{ width: '80ex', flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
           tabs={{
-            output: () => (
-              <div>
-                <code>
-                  {this.state.stdout}
-                  {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
-                </code>
-              </div>
-            ),
+            output: () => console,
 
             memory: () => (
               <Memory
-                mem={this.props.emulator.emu.memory()}
+                mem={emulator.emu.memory()}
                 base={this.state.memBase}
                 highlight={this.state.memHighlight}
                 jumpTo={(addr) => this.setState({ memBase: addr })}
@@ -208,7 +223,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             ),
             mappings: () => (
               <Mappings
-                mappings={this.props.emulator.mappings()}
+                mappings={emulator.mappings()}
                 highlight={this.state.memHighlight}
               />
             ),
@@ -216,15 +231,15 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
             imports: () => (
               <div>
                 <code>
-                  {this.props.emulator.imports.map(imp => <div>{imp}</div>)}
+                  {emulator.imports.map(imp => <div>{imp}</div>)}
                 </code>
               </div>
             ),
 
             breakpoints: () => (
               <BreakpointsComponent
-                breakpoints={this.props.emulator.breakpoints}
-                labels={this.props.emulator.labels}
+                breakpoints={emulator.breakpoints}
+                labels={emulator.labels}
                 highlight={eip}
                 {...this.memoryView}
               />
@@ -238,8 +253,6 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> i
   }
 }
 
-export async function main() {
-  const emulator = await loadEmulator();
-  emulator.emu.set_tracing_scheme('*');
-  preact.render(<Debugger emulator={emulator} />, document.body);
+export function main() {
+  preact.render(<Debugger />, document.body);
 }
