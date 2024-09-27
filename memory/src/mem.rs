@@ -134,10 +134,6 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn as_slice_todo(&self) -> &'m [u8] {
-        unsafe { std::slice::from_raw_parts(self.ptr, self.len() as usize) }
-    }
-
     pub fn offset_of(&self, ptr: *const u8) -> u32 {
         (ptr as usize - self.ptr as usize) as u32
     }
@@ -147,11 +143,6 @@ impl<'m> Mem<'m> {
     }
 
     pub fn slice(&self, b: impl std::ops::RangeBounds<u32>) -> &'m [u8] {
-        self.subslice_todo(b).as_slice_todo()
-    }
-
-    // TODO: remove this in favor of .slice()
-    pub fn subslice_todo(&self, b: impl std::ops::RangeBounds<u32>) -> Mem<'m> {
         let bstart = match b.start_bound() {
             std::ops::Bound::Included(&n) => n,
             std::ops::Bound::Excluded(&n) => n + 1,
@@ -168,11 +159,7 @@ impl<'m> Mem<'m> {
             if !(self.ptr..self.end).contains(&ptr) || !(self.ptr..self.end.add(1)).contains(&end) {
                 panic!("oob slice: {bstart:x?}..{bend:x?}",);
             }
-            Mem {
-                ptr,
-                end,
-                _marker: std::marker::PhantomData::default(),
-            }
+            std::slice::from_raw_parts(ptr, end.offset_from(ptr) as usize)
         }
     }
 
@@ -219,7 +206,7 @@ fn oob_panic(ofs: u32, size: usize) -> ! {
 
 impl<'m> Extensions<'m> for Mem<'m> {
     fn as_slice(self) -> &'m [u8] {
-        self.as_slice_todo()
+        unimplemented!()
     }
 
     fn get_ptr<T: Pod>(self, ofs: u32) -> *const T {
@@ -237,10 +224,14 @@ impl<'m> Extensions<'m> for Mem<'m> {
     }
 
     fn slicez(self, ofs: u32) -> &'m [u8] {
-        let ofs = ofs as usize;
-        let slice = &self.as_slice_todo()[ofs..];
-        let nul = slice.iter().position(|&c| c == 0).unwrap();
-        &slice[..nul]
+        unsafe {
+            let start = self.ptr.add(ofs as usize);
+            let mut len = 0;
+            while start.add(len) < self.end && *start.add(len) != 0 {
+                len += 1;
+            }
+            std::slice::from_raw_parts(start, len)
+        }
     }
 }
 
