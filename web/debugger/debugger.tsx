@@ -64,7 +64,7 @@ namespace Debugger {
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
-  state: Debugger.State = { error: '', memBase: 0x40_1000, selectedTab: 'output' };
+  state: Debugger.State = { error: '', memBase: 0, selectedTab: 'output' };
 
   private async load() {
     this.print('Loading...\n');
