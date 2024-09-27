@@ -37,6 +37,10 @@ export class Number extends preact.Component<Number.Props> {
   }
 }
 
+function isPrintable(byte: number): boolean {
+  return byte >= 0x20 && byte < 0x7F;
+}
+
 namespace Memory {
   export interface Props {
     mem: DataView;
@@ -68,36 +72,50 @@ export class Memory extends preact.Component<Memory.Props> {
   };
 
   render() {
-    let rows = [];
+    const { mem } = this.props;
+
+    const addrs = [];
+    const hexRows = [];
+    const asciiRows = [];
+
     const base = this.props.base & ~0xf;
     // Somehow the above can go negative on overflow(?).
     if (base >= 0) {
       for (let rowAddr = 0; rowAddr < 0x100; rowAddr += 0x10) {
-        if (base + rowAddr >= this.props.mem.byteLength) break;
-        const row = [];
-        row.push(hex(base + rowAddr, 8));
+        if (base + rowAddr >= mem.byteLength) break;
+        addrs.push(<div>{hex(base + rowAddr, 8)}</div>);
+
+        const hexRow = [];
+        const asciiRow = [];
         for (let offset = 0; offset < 0x10; offset++) {
           const addr = base + rowAddr + offset;
-          if (addr >= this.props.mem.byteLength) break;
-          if (offset % 4 === 0) row.push('  ');
-          else row.push(' ');
-          let value: preact.ComponentChild = hex(this.props.mem.getUint8(addr));
-          if (addr === this.props.highlight) {
-            value = <span class='highlight'>{value}</span>;
-          }
-          row.push(value);
+          if (addr >= mem.byteLength) break;
+
+          const klass = addr === this.props.highlight ? 'highlight' : undefined;
+          const value = mem.getUint8(addr);
+          const hexText = hex(value);
+          hexRow.push(<span class={klass}>{hexText}</span>);
+
+          const asciiText = isPrintable(value) ? String.fromCharCode(value) : '.';
+          asciiRow.push(<span class={klass}>{asciiText}</span>);
         }
-        rows.push(<div>{row}</div>);
+        hexRows.push(<div>{hexRow}</div>);
+        asciiRows.push(<div>{asciiRow}</div>);
       }
     }
+
     return (
-      <section style={{ minHeight: '0', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
+      <section style={{ minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
         <form style={{ display: 'flex', justifyContent: 'center' }} onSubmit={this.onSubmit}>
           <button type='button' onClick={this.onJumpBack}>&lt;</button>
           <input name='addr' size={8} value={hex(this.props.base, 8)} />
           <button type='button' onClick={this.onJumpForward}>&gt;</button>
         </form>
-        <code style={{ minHeight: '0', overflow: 'auto', flex: 1 }}>{rows}</code>
+        <div style={{ display: 'flex', gap: '2ex' }}>
+          <code>{addrs}</code>
+          <code class='grid'>{hexRows}</code>
+          <code>{asciiRows}</code>
+        </div>
       </section>
     );
   }
