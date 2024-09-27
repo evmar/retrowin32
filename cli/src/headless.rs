@@ -1,3 +1,27 @@
+pub struct Window {}
+impl win32::Window for Window {
+    fn set_title(&mut self, _title: &str) {}
+    fn set_size(&mut self, _width: u32, _height: u32) {}
+    fn fullscreen(&mut self) {}
+}
+
+pub struct Surface {}
+impl win32::Surface for Surface {
+    fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {}
+    fn show(&mut self) {}
+    fn bit_blt(
+        &mut self,
+        _dx: u32,
+        _dy: u32,
+        _src: &dyn win32::Surface,
+        _sx: u32,
+        _sy: u32,
+        _w: u32,
+        _h: u32,
+    ) {
+    }
+}
+
 pub struct GUI {
     start: std::time::Instant,
 }
@@ -16,7 +40,7 @@ impl GUI {
     }
 
     pub fn get_message(&mut self) -> Option<win32::Message> {
-        unimplemented!();
+        None
     }
 
     pub fn block(&mut self, wait: Option<u32>) -> bool {
@@ -32,10 +56,10 @@ impl GUI {
     }
 
     pub fn create_window(&mut self, _hwnd: u32) -> Box<dyn win32::Window> {
-        unimplemented!();
+        Box::new(Window {})
     }
 
     pub fn create_surface(&mut self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
-        unimplemented!();
+        Box::new(Surface {})
     }
 }
