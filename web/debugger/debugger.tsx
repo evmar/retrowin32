@@ -230,10 +230,12 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             ),
 
             imports: () => (
-              <div>
-                <code>
-                  {emulator.imports.map(imp => <div>{imp}</div>)}
-                </code>
+              <div style={{ flex: 1, overflow: 'auto' }}>
+                {emulator.imports.map(imp => (
+                  <div>
+                    <code>{imp}</code>
+                  </div>
+                ))}
               </div>
             ),
 
