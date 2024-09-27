@@ -37,28 +37,25 @@ export class Code extends preact.Component<Code.Props> {
         }
       });
       return (
-        <tr>
-          <td style={{ width: '10ch' }}>
-            <span
-              class='clicky'
-              title='run to this address'
-              onClick={(event) => {
-                this.props.runTo(instr.addr);
-              }}
-            >
-              {hex(instr.addr, 8)}
-            </span>
-          </td>
-          <td title={`${instr.bytes} (${instr.ops.join(',')})`}>{code}</td>
-        </tr>
+        <div>
+          <span
+            class='clicky'
+            title='run to this address'
+            onClick={(event) => {
+              this.props.runTo(instr.addr);
+            }}
+          >
+            {hex(instr.addr, 8)}
+          </span>
+          &nbsp;&nbsp;
+          <span title={`${instr.bytes} (${instr.ops.join(',')})`}>{code}</span>
+        </div>
       );
     });
     return (
       <section class='code'>
         <code class='disassembly'>
-          <table>
-            {instrs}
-          </table>
+          {instrs}
         </code>
       </section>
     );
