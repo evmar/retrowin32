@@ -27,7 +27,7 @@ export class Number extends preact.Component<Number.Props> {
     if (text === undefined) text = hex(number, digits);
     return (
       <span
-        class='number'
+        style={{ cursor: 'pointer' }}
         onMouseOver={() => {
           this.props.highlightMemory(number);
         }}

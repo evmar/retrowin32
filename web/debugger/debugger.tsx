@@ -209,7 +209,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           />
         </div>
         <Tabs
-          style={{ width: '80ex', flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+          style={{ width: '80ex', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
           tabs={{
             output: () => console,
 
@@ -225,6 +225,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
               <Mappings
                 mappings={emulator.mappings()}
                 highlight={this.state.memHighlight}
+                {...this.memoryView}
               />
             ),
 

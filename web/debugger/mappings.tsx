@@ -1,10 +1,11 @@
 import * as preact from 'preact';
 import { h } from 'preact';
 import * as wasm from '../glue/pkg/glue';
+import { MemoryView, Number } from './memory';
 import { hex } from './util';
 
 namespace Mappings {
-  export interface Props {
+  export interface Props extends MemoryView {
     mappings: wasm.Mapping[];
     highlight?: number;
   }
@@ -19,26 +20,30 @@ export class Mappings extends preact.Component<Mappings.Props> {
       }
       return (
         <tr class={className}>
-          <td style={{ width: '10ch' }}>{hex(mapping.addr, 8)}</td>
-          <td style={{ width: '8ch' }}>{hex(mapping.size)}</td>
+          <td>
+            <code>
+              <Number digits={8} {...this.props}>{mapping.addr}</Number>
+            </code>
+          </td>
+          <td style={{ textAlign: 'right', padding: '0 2ex' }}>
+            <code>{hex(mapping.size)}</code>
+          </td>
           <td>{mapping.desc}</td>
         </tr>
       );
     });
     return (
-      <section style={{ overflow: 'auto', flex: 1 }}>
-        <code>
-          <table>
-            <thead>
-              <tr>
-                <td>addr</td>
-                <td>size</td>
-                <td>desc</td>
-              </tr>
-            </thead>
-            {rows}
-          </table>
-        </code>
+      <section style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <table style={{ display: 'block', overflow: 'auto', position: 'relative' }}>
+          <thead>
+            <tr>
+              <th>addr</th>
+              <th>size</th>
+              <th>desc</th>
+            </tr>
+          </thead>
+          <tbody>{rows}</tbody>
+        </table>
       </section>
     );
   }

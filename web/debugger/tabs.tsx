@@ -18,7 +18,7 @@ export class Tabs extends preact.Component<Tabs.Props> {
         <div class='tabs-strip'>
           |
           {Object.keys(tabs).map((name) => {
-            let button = <span class='clicky' onClick={() => switchTab(name)}>{name}</span>;
+            let button = <span style={{ cursor: 'pointer' }} onClick={() => switchTab(name)}>{name}</span>;
             if (name === selected) {
               button = <b>{button}</b>;
             }
