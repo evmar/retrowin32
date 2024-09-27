@@ -11,27 +11,31 @@ export interface MemoryView {
   highlightMemory(addr: number): void;
 }
 
+/** Wraps a displayed number such that it can be hovered and clicked to show memory. */
 export namespace Number {
   export interface Props extends MemoryView {
+    /** How many digits to show, 2 by default */
     digits?: number;
+    /** Text to show, hex of the number by default; used for `123h` rendering in disasm. */
     text?: string;
     children: number;
   }
 }
 export class Number extends preact.Component<Number.Props> {
   render() {
+    let { digits, text, children: number } = this.props;
+    if (text === undefined) text = hex(number, digits);
     return (
       <span
-        class='clicky'
-        title='show in memory dump'
+        class='number'
         onMouseOver={() => {
-          this.props.highlightMemory(this.props.children);
+          this.props.highlightMemory(number);
         }}
-        onClick={(event) => {
-          this.props.showMemory(this.props.children);
+        onClick={() => {
+          this.props.showMemory(number);
         }}
       >
-        {this.props.text ? this.props.text : hex(this.props.children, this.props.digits)}
+        {text}
       </span>
     );
   }
