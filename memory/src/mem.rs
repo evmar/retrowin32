@@ -3,7 +3,9 @@ use std::mem::size_of;
 
 #[inline(never)]
 fn aligned_panic(ptr: usize, align: usize) {
-    panic!("pointer {ptr:x} should be aligned to {align}",);
+    // TODO: this should be a panic but anatyda.exe currently uses unaligned access
+    // in the FromStack bits, needs a rethink.
+    log::warn!("pointer {ptr:x} should be aligned to {align}",);
 }
 
 fn check_aligned<T: Pod>(ptr: *const T) {
