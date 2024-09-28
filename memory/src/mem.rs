@@ -134,10 +134,6 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn offset_of(&self, ptr: *const u8) -> u32 {
-        (ptr as usize - self.ptr as usize) as u32
-    }
-
     pub fn len(&self) -> u32 {
         unsafe { self.end.offset_from(self.ptr) as u32 }
     }
