@@ -12,7 +12,7 @@ use crate::{
     Host, Machine, SurfaceOptions,
 };
 use bitflags::bitflags;
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::rc::Rc;
 
 const TRACE_CONTEXT: &'static str = "user32/window";
@@ -688,7 +688,7 @@ async fn def_window_proc(
         }
         WM::WINDOWPOSCHANGED => {
             let Window { width, height, .. } = *machine.state.user32.windows.get_mut(hWnd).unwrap();
-            let WINDOWPOS { flags, .. } = *machine.mem().view::<WINDOWPOS>(lParam);
+            let WINDOWPOS { flags, .. } = machine.mem().get_pod::<WINDOWPOS>(lParam);
 
             if !flags.contains(SWP::NOSIZE) {
                 const SIZE_RESTORED: u32 = 0;
@@ -869,15 +869,18 @@ pub async fn SetWindowPos(
         machine.emu.memory.mem(),
         std::mem::size_of::<WINDOWPOS>() as u32,
     );
-    *machine.mem().view_mut::<WINDOWPOS>(windowpos_addr) = WINDOWPOS {
-        hwnd: hWnd,
-        hwndInsertAfter: hWndInsertAfter,
-        x: X,
-        y: Y,
-        cx,
-        cy,
-        flags: uFlags.unwrap(),
-    };
+    machine.mem().put_pod::<WINDOWPOS>(
+        windowpos_addr,
+        WINDOWPOS {
+            hwnd: hWnd,
+            hwndInsertAfter: hWndInsertAfter,
+            x: X,
+            y: Y,
+            cx,
+            cy,
+            flags: uFlags.unwrap(),
+        },
+    );
 
     // A trace of winstream.exe had this sequence of synchronous messages:
     // WM_WINDOWPOSCHANGING

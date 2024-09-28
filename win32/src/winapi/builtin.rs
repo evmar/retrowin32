@@ -742,31 +742,6 @@ pub mod ddraw {
             winapi::ddraw::IDirectDraw::CreateSurface(machine, this, desc, lplpDDSurface, pUnkOuter)
                 .to_raw()
         }
-        pub unsafe fn IDirectDraw_EnumDisplayModes(
-            machine: &mut Machine,
-            stack_args: u32,
-        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
-            let mem = machine.mem().detach();
-            let this = <u32>::from_stack(mem, stack_args + 0u32);
-            let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
-            let lpSurfaceDesc = <Option<&DDSURFACEDESC>>::from_stack(mem, stack_args + 8u32);
-            let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
-            let lpEnumCallback = <u32>::from_stack(mem, stack_args + 16u32);
-            let machine: *mut Machine = machine;
-            Box::pin(async move {
-                let machine = unsafe { &mut *machine };
-                winapi::ddraw::IDirectDraw::EnumDisplayModes(
-                    machine,
-                    this,
-                    dwFlags,
-                    lpSurfaceDesc,
-                    lpContext,
-                    lpEnumCallback,
-                )
-                .await
-                .to_raw()
-            })
-        }
         pub unsafe fn IDirectDraw_QueryInterface(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -788,7 +763,7 @@ pub mod ddraw {
             winapi::ddraw::IDirectDraw::SetDisplayMode(machine, this, width, height, bpp).to_raw()
         }
     }
-    const SHIMS: [Shim; 53usize] = [
+    const SHIMS: [Shim; 52usize] = [
         Shim {
             name: "DirectDrawCreate",
             func: Handler::Sync(impls::DirectDrawCreate),
@@ -984,10 +959,6 @@ pub mod ddraw {
         Shim {
             name: "IDirectDraw::CreateSurface",
             func: Handler::Sync(impls::IDirectDraw_CreateSurface),
-        },
-        Shim {
-            name: "IDirectDraw::EnumDisplayModes",
-            func: Handler::Async(impls::IDirectDraw_EnumDisplayModes),
         },
         Shim {
             name: "IDirectDraw::QueryInterface",

@@ -13,7 +13,6 @@ use crate::{
     Machine,
 };
 use memory::ExtensionsMut;
-use memory::Pod;
 
 const TRACE_CONTEXT: &'static str = "ddraw/1";
 
@@ -30,7 +29,7 @@ pub mod IDirectDraw {
         CreatePalette: (IDirectDraw7::CreatePalette),
         CreateSurface: ok,
         DuplicateSurface: todo,
-        EnumDisplayModes: ok,
+        EnumDisplayModes: (IDirectDraw2::EnumDisplayModes),
         EnumSurfaces: todo,
         FlipToGDISurface: todo,
         GetCaps: todo,
@@ -99,54 +98,6 @@ pub mod IDirectDraw {
         }
 
         *lplpDDSurface.unwrap() = prev;
-
-        DD_OK
-    }
-
-    #[win32_derive::dllexport]
-    pub async fn EnumDisplayModes(
-        machine: &mut Machine,
-        this: u32,
-        dwFlags: u32,
-        lpSurfaceDesc: Option<&DDSURFACEDESC>,
-        lpContext: u32,
-        lpEnumCallback: u32,
-    ) -> u32 {
-        if lpSurfaceDesc.is_some() {
-            todo!()
-        }
-        let mem = machine.emu.memory.mem();
-        let desc_addr = machine
-            .state
-            .ddraw
-            .heap
-            .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
-        let desc = mem.view_mut::<DDSURFACEDESC>(desc_addr);
-        *desc = DDSURFACEDESC::zeroed();
-        // TODO: offer multiple display modes rather than hardcoding this one.
-        desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
-        desc.dwWidth = 320;
-        desc.dwHeight = 200;
-        desc.ddpfPixelFormat = DDPIXELFORMAT {
-            dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
-            dwFlags: 0,
-            dwFourCC: 0,
-            dwRGBBitCount: 8,
-            dwRBitMask: 0xFF000000,
-            dwGBitMask: 0x00FF0000,
-            dwBBitMask: 0x0000FF00,
-            dwRGBAlphaBitMask: 0x000000FF,
-        };
-
-        machine
-            .call_x86(lpEnumCallback, vec![desc_addr, lpContext])
-            .await;
-
-        machine
-            .state
-            .ddraw
-            .heap
-            .free(machine.emu.memory.mem(), desc_addr);
 
         DD_OK
     }

@@ -5,7 +5,7 @@ use bitflags::bitflags;
 use memory::Pod;
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct DDSCAPS2 {
     pub dwCaps: DDSCAPS,
     dwCaps2: DWORD,
@@ -122,7 +122,7 @@ impl TryFrom<u32> for DDLOCK {
 }
 
 #[repr(C)]
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct DDCOLORKEY {
     dwColorSpaceLowValue: DWORD,
     dwColorSpaceHighValue: DWORD,
@@ -130,6 +130,7 @@ pub struct DDCOLORKEY {
 unsafe impl memory::Pod for DDCOLORKEY {}
 
 #[repr(C)]
+#[derive(Clone, Default)]
 pub struct DDSURFACEDESC {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -244,6 +245,7 @@ impl DDSURFACEDESC {
 }
 
 #[repr(C)]
+#[derive(Clone)]
 pub struct DDSURFACEDESC2 {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,

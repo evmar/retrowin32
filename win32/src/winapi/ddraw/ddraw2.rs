@@ -113,14 +113,8 @@ pub mod IDirectDraw2 {
         if lpSurfaceDesc.is_some() {
             todo!()
         }
-        let mem = machine.emu.memory.mem();
-        let desc_addr = machine
-            .state
-            .ddraw
-            .heap
-            .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
-        let desc = mem.view_mut::<DDSURFACEDESC>(desc_addr);
-        *desc = DDSURFACEDESC::zeroed();
+
+        let mut desc = DDSURFACEDESC::default();
         // TODO: offer multiple display modes rather than hardcoding this one.
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
         desc.dwWidth = 320;
@@ -135,6 +129,14 @@ pub mod IDirectDraw2 {
             dwBBitMask: 0x0000FF00,
             dwRGBAlphaBitMask: 0x000000FF,
         };
+
+        let mem = machine.emu.memory.mem();
+        let desc_addr = machine
+            .state
+            .ddraw
+            .heap
+            .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
+        mem.put_pod::<DDSURFACEDESC>(desc_addr, desc);
 
         machine
             .call_x86(lpEnumCallback, vec![desc_addr, lpContext])

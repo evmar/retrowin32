@@ -6,6 +6,7 @@ use crate::{
     },
     Machine,
 };
+use memory::ExtensionsMut;
 
 const TRACE_CONTEXT: &'static str = "gdi32/object";
 
@@ -113,17 +114,19 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
         Object::Brush(_) => todo!(),
         Object::Bitmap(bitmap) => {
             assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
-            let out = machine.mem().view_mut::<BITMAP>(out);
             let bitmap = bitmap.inner();
-            *out = BITMAP {
-                bmType: 0,
-                bmWidth: bitmap.width(),
-                bmHeight: bitmap.height(),
-                bmWidthBytes: 0,
-                bmPlanes: 0,
-                bmBitsPixel: 0,
-                bmBits: 0,
-            };
+            machine.mem().put_pod::<BITMAP>(
+                out,
+                BITMAP {
+                    bmType: 0,
+                    bmWidth: bitmap.width(),
+                    bmHeight: bitmap.height(),
+                    bmWidthBytes: 0,
+                    bmPlanes: 0,
+                    bmBitsPixel: 0,
+                    bmBits: 0,
+                },
+            );
             bytes
         }
         Object::Pen(_) => todo!(),

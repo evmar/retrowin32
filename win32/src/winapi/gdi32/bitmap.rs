@@ -10,7 +10,7 @@ use std::cmp::min;
 
 const TRACE_CONTEXT: &'static str = "gdi32/bitmap";
 
-#[allow(dead_code)]
+#[derive(Clone)]
 pub struct BITMAP {
     pub bmType: u32,
     pub bmWidth: u32,
