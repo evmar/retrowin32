@@ -2,7 +2,7 @@ use crate::{
     winapi::{com::vtable, kernel32::get_symbol},
     Machine,
 };
-use memory::ExtensionsMut;
+use memory::{Extensions, ExtensionsMut};
 
 const TRACE_CONTEXT: &'static str = "ddraw/palette";
 
@@ -51,8 +51,13 @@ pub mod IDirectDrawPalette {
             .emu
             .memory
             .mem()
-            .view_n::<PALETTEENTRY>(entries, count);
-        palette[start as usize..][..count as usize].clone_from_slice(entries);
+            .iter_pod::<PALETTEENTRY>(entries, count);
+        for (dst, src) in palette[start as usize..][..count as usize]
+            .iter_mut()
+            .zip(entries)
+        {
+            *dst = src;
+        }
         DD_OK
     }
 }

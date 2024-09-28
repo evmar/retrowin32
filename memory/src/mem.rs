@@ -181,18 +181,6 @@ impl<'m> Mem<'m> {
         }
     }
 
-    pub fn view_n<T: Pod>(&self, ofs: u32, count: u32) -> &'m [T] {
-        let ptr = self.get_ptr_unchecked(ofs) as *const T;
-        let count = count as usize;
-        unsafe {
-            let end = ptr.add(count);
-            if end as *const _ > self.end {
-                oob_panic(ofs, count * size_of::<T>());
-            }
-            std::slice::from_raw_parts(ptr, count)
-        }
-    }
-
     /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in stack_args codegen.
     pub unsafe fn detach<'a, 'b>(&'a self) -> Mem<'b> {
         std::mem::transmute(*self)

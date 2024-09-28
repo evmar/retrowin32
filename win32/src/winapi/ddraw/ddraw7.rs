@@ -7,8 +7,8 @@ use crate::{
     Machine,
 };
 use bitflags::bitflags;
-use memory::ExtensionsMut;
 use memory::Pod;
+use memory::{Extensions, ExtensionsMut};
 
 const TRACE_CONTEXT: &'static str = "ddraw/7";
 
@@ -133,9 +133,8 @@ pub mod IDirectDraw7 {
         let palette = IDirectDrawPalette::new(machine);
         let entries = machine
             .mem()
-            .view_n::<PALETTEENTRY>(entries, 256)
-            .to_vec()
-            .into_boxed_slice();
+            .iter_pod::<PALETTEENTRY>(entries, 256)
+            .collect();
         machine.state.ddraw.palettes.insert(palette, entries);
         machine.mem().put_pod::<u32>(lplpPalette, palette);
         DD_OK
@@ -556,23 +555,23 @@ pub mod IDirectDrawSurface7 {
             rect.bottom = surf.height as i32;
         }
         assert!(surf.pixels != 0);
+
+        // We need to copy surf.pixels to convert its format to the RGBA expected by the write_pixels API.
         match machine.state.ddraw.bytes_per_pixel {
             1 => {
                 let pixels = machine
                     .emu
                     .memory
                     .mem()
-                    .view_n::<u8>(surf.pixels, surf.width * surf.height);
+                    .iter_pod::<u8>(surf.pixels, surf.width * surf.height);
                 if let Some(palette) = machine
                     .state
                     .ddraw
                     .palettes
                     .get(&machine.state.ddraw.palette_hack)
                 {
-                    // XXX very inefficient
                     let pixels32: Vec<_> = pixels
-                        .iter()
-                        .map(|&i| {
+                        .map(|i| {
                             let p = &palette[i as usize];
                             [p.peRed, p.peGreen, p.peBlue, 255]
                         })
@@ -585,9 +584,9 @@ pub mod IDirectDrawSurface7 {
                     .emu
                     .memory
                     .mem()
-                    .view_n::<[u8; 4]>(surf.pixels, surf.width * surf.height);
-                // XXX setting alpha channel manually, very inefficient :(
-                let pixels32: Vec<_> = pixels.iter().map(|&[r, g, b, _a]| [r, g, b, 255]).collect();
+                    .iter_pod::<[u8; 4]>(surf.pixels, surf.width * surf.height);
+                // Ignore alpha channel in input; output is always opaque.
+                let pixels32: Vec<_> = pixels.map(|[r, g, b, _a]| [r, g, b, 0xff]).collect();
                 surf.host.write_pixels(&pixels32);
             }
             bpp => todo!("Unlock for {bpp}bpp"),
