@@ -97,20 +97,13 @@ impl<'a, T: TryFrom<u32>> FromArg<'a> for Result<T, T::Error> {
     }
 }
 
-fn check_aligned<T: memory::Pod>(ptr: u32) {
-    let align = std::mem::align_of::<T>();
-    if ptr as usize % align != 0 {
-        log::error!("pointer {ptr:x} should be aligned to {align}");
-    }
-}
-
 impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a T> {
     unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if arg == 0 {
             return None;
         }
-        check_aligned::<T>(arg);
-        Some(mem.view::<T>(arg))
+        // TODO: we cannot guarantee stack args are aligned.
+        Some(mem.get_aligned_ref::<T>(arg))
     }
 }
 
@@ -119,8 +112,8 @@ impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
         if arg == 0 {
             return None;
         }
-        check_aligned::<T>(arg);
-        Some(mem.view_mut::<T>(arg))
+        // TODO: we cannot guarantee stack args are aligned.
+        Some(mem.get_aligned_ref_mut::<T>(arg))
     }
 }
 

@@ -1,12 +1,36 @@
 use crate::Pod;
 use std::mem::size_of;
 
+#[inline(never)]
+fn aligned_panic(ptr: usize, align: usize) {
+    panic!("pointer {ptr:x} should be aligned to {align}",);
+}
+
+fn check_aligned<T: Pod>(ptr: *const T) {
+    let align = std::mem::align_of::<T>();
+    if ptr as usize % align != 0 {
+        aligned_panic(ptr as usize, align);
+    }
+}
+
 pub trait Extensions<'m>: Sized {
     fn as_slice(self) -> &'m [u8];
+
     fn get_ptr<T: Pod>(self, ofs: u32) -> *const T;
     fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
+    fn get_aligned_ref<T: Pod>(self, ofs: u32) -> &'m T {
+        let ptr = self.get_ptr::<T>(ofs);
+        check_aligned(ptr);
+        unsafe { &*(ptr as *const T) }
+    }
+    fn get_aligned_ref_mut<T: Pod>(self, ofs: u32) -> &'m mut T {
+        let ptr = self.get_ptr::<T>(ofs);
+        check_aligned(ptr);
+        unsafe { &mut *(ptr as *mut T) }
+    }
+
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
 
@@ -156,24 +180,6 @@ impl<'m> Mem<'m> {
                 panic!("oob slice: {bstart:x?}..{bend:x?}",);
             }
             std::slice::from_raw_parts(ptr, end.offset_from(ptr) as usize)
-        }
-    }
-
-    // TODO: this fails if addr isn't appropriately aligned.
-    // We need to revisit this whole "view" API...
-    pub fn view<T: Pod>(&self, addr: u32) -> &'m T {
-        unsafe {
-            let ptr = self.get_ptr::<u8>(addr);
-            &*(ptr as *const T)
-        }
-    }
-
-    // TODO: this fails if addr isn't appropriately aligned.
-    // We need to revisit this whole "view" API...
-    pub fn view_mut<T: Pod>(&self, addr: u32) -> &'m mut T {
-        unsafe {
-            let ptr = self.get_ptr::<u8>(addr);
-            &mut *(ptr as *mut T)
         }
     }
 

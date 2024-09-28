@@ -11,7 +11,7 @@ use crate::{
     Machine,
 };
 use ::memory::Mem;
-use memory::ExtensionsMut;
+use memory::{Extensions, ExtensionsMut};
 use std::collections::HashMap;
 
 const TRACE_CONTEXT: &'static str = "kernel32/init";
@@ -150,7 +150,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
         ),
         4,
     );
-    let params = mem.view_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
+    let params = mem.get_aligned_ref_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
     // x86.put::<u32>(params_addr + 0x10, console_handle);
     // x86.put::<u32>(params_addr + 0x14, console_flags);
     // x86.put::<u32>(params_addr + 0x18, stdin);
@@ -161,7 +161,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
 
     // PEB
     let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
-    let peb = mem.view_mut::<PEB>(peb_addr);
+    let peb = mem.get_aligned_ref_mut::<PEB>(peb_addr);
     peb.ProcessParameters = params_addr;
     peb.ProcessHeap = 0; // TODO: we use state.process_heap instead
     peb.TlsCount = 0;
@@ -171,13 +171,13 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
         std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
         4,
     );
-    let seh = mem.view_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
+    let seh = mem.get_aligned_ref_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
     seh.Prev = 0xFFFF_FFFF;
     seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
 
     // TEB
     let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
-    let teb = mem.view_mut::<TEB>(teb_addr);
+    let teb = mem.get_aligned_ref_mut::<TEB>(teb_addr);
     teb.Tib.ExceptionList = seh_addr;
     teb.Tib._Self = teb_addr; // Confusing: it points to itself.
     teb.Peb = peb_addr;
@@ -386,14 +386,18 @@ impl State {
 }
 
 pub fn teb(machine: &Machine) -> &TEB {
-    machine.mem().view::<TEB>(machine.state.kernel32.teb)
+    machine
+        .mem()
+        .get_aligned_ref::<TEB>(machine.state.kernel32.teb)
 }
 pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    machine.mem().view_mut::<TEB>(machine.state.kernel32.teb)
+    machine
+        .mem()
+        .get_aligned_ref_mut::<TEB>(machine.state.kernel32.teb)
 }
 pub fn peb_mut(machine: &mut Machine) -> &mut PEB {
     let peb_addr = teb(machine).Peb;
-    machine.mem().view_mut::<PEB>(peb_addr)
+    machine.mem().get_aligned_ref_mut::<PEB>(peb_addr)
 }
 
 #[repr(C)]
