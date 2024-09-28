@@ -120,10 +120,6 @@ impl Emulator {
         serde_json::to_string(&self.machine.state.kernel32.mappings.vec()).unwrap_throw()
     }
 
-    pub fn poke(&mut self, addr: u32, value: u8) {
-        *self.machine.mem().view_mut::<u8>(addr) = value;
-    }
-
     pub fn set_tracing_scheme(&self, scheme: &str) {
         win32::trace::set_scheme(scheme);
     }

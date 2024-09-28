@@ -33,9 +33,6 @@ export class Emulator extends JsHost {
     this.emu.load_exe(exePath, bytes, relocate);
     this.breakpoints = new Breakpoints(exePath);
 
-    // // Hack: twiddle msvcrt output mode to use console.
-    // this.x86.poke(0x004095a4, 1);
-
     this.channel.port2.onmessage = () => this.loop();
   }
 
