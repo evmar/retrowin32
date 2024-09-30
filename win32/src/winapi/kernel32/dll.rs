@@ -11,8 +11,6 @@ use crate::{
 use std::io::Write;
 use typed_path::WindowsPath;
 
-const TRACE_CONTEXT: &'static str = "kernel32/dll";
-
 // HMODULE is index+0x1000 into kernel32::State::dlls.
 // (BASS.dll calls LoadLibrary and fails if the returned handle value is too low.)
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]

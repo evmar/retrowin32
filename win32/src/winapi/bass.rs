@@ -13,8 +13,6 @@ use crate::machine::Machine;
 /// Hack: time since BASS_Start etc. was called.
 static mut T: u32 = 0;
 
-const TRACE_CONTEXT: &'static str = "bass";
-
 #[win32_derive::dllexport]
 pub fn BASS_Init(_machine: &mut Machine, arg1: u32, arg2: u32, arg3: u32, arg4: u32) -> u32 {
     1

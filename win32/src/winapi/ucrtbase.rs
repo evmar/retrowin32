@@ -6,8 +6,6 @@
 use crate::Machine;
 use memory::Extensions;
 
-const TRACE_CONTEXT: &'static str = "ucrtbase";
-
 #[win32_derive::dllexport(cdecl)]
 pub async fn _initterm(machine: &mut Machine, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {

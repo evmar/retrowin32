@@ -15,8 +15,6 @@ use crate::{
 use memory::Mem;
 use std::ops::Range;
 
-const TRACE_CONTEXT: &'static str = "kernel32/resource";
-
 fn IS_INTRESOURCE(x: u32) -> bool {
     x >> 16 == 0
 }

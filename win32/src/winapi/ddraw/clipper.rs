@@ -5,8 +5,6 @@ use crate::{
 };
 use memory::ExtensionsMut;
 
-const TRACE_CONTEXT: &'static str = "ddraw/clipper";
-
 #[win32_derive::dllexport]
 pub fn DirectDrawCreateClipper(
     machine: &mut Machine,

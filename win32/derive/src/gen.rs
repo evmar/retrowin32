@@ -11,8 +11,11 @@ use quote::quote;
 /// This macro generates shim wrappers of functions, taking their
 /// input args off the stack and forwarding their return values via eax.
 pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, TokenStream) {
-    // Example: IDirectDraw::QueryInterface
     let base_name = &dllexport.func.sig.ident; // QueryInterface
+    let name_str = match dllexport.vtable {
+        Some(vtable) => format!("{}::{}", vtable, base_name), // "IDirectDraw::QueryInterface"
+        None => format!("{}", base_name),                     // "LoadLibrary"
+    };
     let impl_name = match dllexport.vtable {
         Some(vtable) => quote!(#module::#vtable::#base_name), // winapi::ddraw::IDirectDraw::QueryInterface
         None => quote!(#module::#base_name),                  // winapi::kernel32::LoadLibrary
@@ -36,6 +39,40 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
         .iter()
         .map(|arg| arg.name)
         .collect::<Vec<_>>();
+
+    {
+        let trace_module_name = dllexport.trace_module;
+        let trace_args = args
+            .iter()
+            .map(|arg| {
+                let mut name = arg.to_string();
+                if name.starts_with("_") {
+                    name.remove(0);
+                }
+                quote!((#name, &#arg))
+            })
+            .collect::<Vec<_>>();
+        fetch_args.extend(quote! {
+            let __trace_context = if crate::trace::enabled(#trace_module_name) {
+                Some(crate::trace::trace_begin(#trace_module_name, #name_str, &[#(#trace_args),*]))
+            } else {
+                None
+            };
+        });
+    }
+
+    let pos_name = syn::Ident::new(&format!("{}_pos", base_name), base_name.span());
+    let pos_ns_name = match dllexport.vtable {
+        Some(vtable) => quote!(#module::#vtable::#pos_name),
+        None => quote!(#module::#pos_name),
+    };
+    let return_result = quote! {
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(&__trace_context, #pos_ns_name.0, #pos_ns_name.1, &result);
+        }
+        result.to_raw()
+    };
+
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
         (
             quote!(Handler::Async(impls::#sym_name)),
@@ -45,7 +82,8 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
                     let machine: *mut Machine = machine;
                     Box::pin(async move {
                         let machine = unsafe { &mut *machine };
-                        #impl_name(machine, #(#args),*).await.to_raw()
+                        let result = #impl_name(machine, #(#args),*).await;
+                        #return_result
                     })
                 }
             },
@@ -56,15 +94,11 @@ pub fn fn_wrapper(module: TokenStream, dllexport: &DllExport) -> (TokenStream, T
             quote! {
                 pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> u32 {
                     #fetch_args
-                    #impl_name(machine, #(#args),*).to_raw()
+                    let result = #impl_name(machine, #(#args),*);
+                    #return_result
                 }
             },
         )
-    };
-
-    let name_str = match dllexport.vtable {
-        Some(vtable) => format!("{}::{}", vtable, base_name), // "IDirectDraw::QueryInterface"
-        None => format!("{}", base_name),                     // "LoadLibrary"
     };
 
     (

@@ -3,8 +3,6 @@
 
 use crate::Machine;
 
-const TRACE_CONTEXT: &'static str = "ole32";
-
 #[win32_derive::dllexport]
 pub fn OleInitialize(_machine: &mut Machine, _pvReserved: u32) -> u32 {
     0

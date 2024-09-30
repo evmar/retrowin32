@@ -14,8 +14,6 @@ use crate::{
 };
 use memory::ExtensionsMut;
 
-const TRACE_CONTEXT: &'static str = "ddraw/1";
-
 #[win32_derive::dllexport]
 pub mod IDirectDraw {
     use super::*;

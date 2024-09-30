@@ -3,8 +3,6 @@ use crate::{
     Machine,
 };
 
-const TRACE_CONTEXT: &'static str = "user32/dialog";
-
 /*
 pub mod MessageBoxFlags {
     pub const ABORTRETRYIGNORE: u32 = 0x00000002;

@@ -3,8 +3,6 @@
 use crate::{winapi::stack_args::ArrayWithSizeMut, Machine};
 use memory::Extensions;
 
-const TRACE_CONTEXT: &'static str = "kernel32/nls";
-
 /// Code pages
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum CP {

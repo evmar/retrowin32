@@ -1,22 +1,32 @@
-mod trace;
-
-use quote::{quote, ToTokens};
+use quote::quote;
 
 #[proc_macro_attribute]
 pub fn dllexport(
     _attr: proc_macro::TokenStream,
     tokens: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    // dllexport only triggers tracing for functions.
-    // The rest of the dllexport logic happens in a separate a code generator found in main.rs.
-    let item: syn::Item = syn::parse_macro_input!(tokens);
+    // dllexport triggers external code generation, and has no effect otherwise.
+
+    let input = tokens.clone();
+    let item: syn::Item = syn::parse_macro_input!(input);
     match item {
-        syn::Item::Fn(func) => trace::add_trace(func).into(),
-        syn::Item::Mod(_) => item.into_token_stream().into(), // ignore
-        syn::Item::Const(_) => item.into_token_stream().into(), // ignore
-        _ => syn::Error::new_spanned(&item, "expected fn, mod, or const")
-            .to_compile_error()
-            .into(),
+        syn::Item::Fn(func) => {
+            let pos = syn::Ident::new(&format!("{}_pos", &func.sig.ident), func.sig.ident.span());
+
+            // Previously the trace macro caused Rust to believe that all function args were used,
+            // so to preserve that behavior after an unrelated change, we added the allow here.
+            // TODO: remove these.
+            proc_macro::TokenStream::from_iter(vec![
+                quote! {
+                    #[allow(non_upper_case_globals)]
+                    pub const #pos: (&'static str, u32) = (file!(), line!()+1);
+                    #[allow(unused_variables)]
+                }
+                .into(),
+                tokens,
+            ])
+        }
+        _ => tokens,
     }
 }
 

@@ -12,8 +12,6 @@ use crate::{
 use memory::{Extensions, ExtensionsMut};
 use std::ops::Range;
 
-const TRACE_CONTEXT: &'static str = "user32/resource";
-
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
 pub type HICON = u32;

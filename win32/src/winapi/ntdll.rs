@@ -6,8 +6,6 @@ use crate::{
     winapi::{stack_args::ArrayWithSizeMut, types::HFILE},
 };
 
-const TRACE_CONTEXT: &'static str = "ntdll";
-
 const STATUS_SUCCESS: u32 = 0;
 
 #[repr(C)]

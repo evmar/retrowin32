@@ -12,8 +12,6 @@ use crate::{
 use memory::ExtensionsMut;
 use memory::Pod;
 
-const TRACE_CONTEXT: &'static str = "ddraw/2";
-
 pub const IID_IDirectDraw2: GUID = GUID {
     Data1: 0xb3a6f3e0,
     Data2: 0x2b43,

@@ -5,8 +5,6 @@ use crate::{
     Machine,
 };
 
-const TRACE_CONTEXT: &'static str = "kernel32/ini";
-
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(
     _machine: &mut Machine,

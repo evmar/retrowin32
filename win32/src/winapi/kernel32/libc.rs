@@ -3,8 +3,6 @@
 use crate::{winapi::types::Str16, Machine};
 use memory::ExtensionsMut;
 
-const TRACE_CONTEXT: &'static str = "kernel32/libc";
-
 #[win32_derive::dllexport]
 pub fn lstrlenA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
     match lpString {

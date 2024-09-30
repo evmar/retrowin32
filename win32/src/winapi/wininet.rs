@@ -3,8 +3,6 @@
 
 use crate::Machine;
 
-const TRACE_CONTEXT: &'static str = "wininet";
-
 #[win32_derive::dllexport]
 pub fn InternetOpenA(
     _machine: &mut Machine,

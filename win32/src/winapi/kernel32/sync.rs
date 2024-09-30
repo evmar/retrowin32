@@ -2,8 +2,6 @@
 
 use crate::{winapi::types::HEVENT, Machine};
 
-const TRACE_CONTEXT: &'static str = "kernel32/misc";
-
 pub struct EventObject {
     state: bool,
 }

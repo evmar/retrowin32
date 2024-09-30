@@ -2,8 +2,6 @@ use crate::machine::Machine;
 use bitflags::bitflags;
 use memory::Pod;
 
-const TRACE_CONTEXT: &'static str = "winmm/wave";
-
 // This module isn't fully implemented yet.  This toggle lets us tell apps
 // we don't support sound so they don't call into unimplemented code yet.
 const ENABLED: bool = false;

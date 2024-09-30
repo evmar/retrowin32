@@ -6,8 +6,6 @@ use crate::{
 };
 use memory::Pod;
 
-const TRACE_CONTEXT: &'static str = "kernel32/thread";
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
 pub type HTHREAD = HANDLE<HTHREADT>;

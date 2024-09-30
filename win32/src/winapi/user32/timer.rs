@@ -2,8 +2,6 @@ use crate::{winapi::types::*, Machine};
 
 use super::{MSG, WM};
 
-const TRACE_CONTEXT: &'static str = "user32/timer";
-
 #[derive(Debug)]
 pub struct Timer {
     id: u32,

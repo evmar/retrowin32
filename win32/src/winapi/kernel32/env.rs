@@ -1,7 +1,5 @@
 use crate::{str16::Str16, winapi::stack_args::ArrayWithSize, Machine};
 
-const TRACE_CONTEXT: &'static str = "kernel32/env";
-
 #[win32_derive::dllexport]
 pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
     machine.state.kernel32.env

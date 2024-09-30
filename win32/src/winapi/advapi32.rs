@@ -3,8 +3,6 @@
 use super::types::Str16;
 use crate::machine::Machine;
 
-const TRACE_CONTEXT: &'static str = "advapi32";
-
 pub type HKEY = u32;
 
 #[win32_derive::dllexport]

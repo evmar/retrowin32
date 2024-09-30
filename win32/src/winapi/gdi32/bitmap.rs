@@ -8,8 +8,6 @@ use crate::{
 };
 use std::cmp::min;
 
-const TRACE_CONTEXT: &'static str = "gdi32/bitmap";
-
 #[derive(Clone)]
 pub struct BITMAP {
     pub bmType: u32,

@@ -10,8 +10,6 @@ use crate::{
 use memory::ExtensionsMut;
 use std::collections::HashMap;
 
-const TRACE_CONTEXT: &'static str = "dsound";
-
 /// Set to true to make DirectSoundCreate report no sound device available.
 /// Doing this from the beginning would have been a better idea than trying to implement stubs here...
 const DISABLE: bool = true;

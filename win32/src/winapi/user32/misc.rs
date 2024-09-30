@@ -6,8 +6,6 @@ use crate::{
 use memory::{Extensions, ExtensionsMut};
 use std::io::{Cursor, Write};
 
-const TRACE_CONTEXT: &'static str = "user32/misc";
-
 pub type HINSTANCE = u32;
 
 #[derive(Debug, win32_derive::TryFromEnum)]

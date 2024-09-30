@@ -3,8 +3,6 @@ use crate::{winapi::ERROR, Machine};
 use chrono::{Datelike, Timelike};
 use memory::{ExtensionsMut, Pod};
 
-const TRACE_CONTEXT: &'static str = "kernel32/time";
-
 #[win32_derive::dllexport]
 pub fn GetTickCount(machine: &mut Machine) -> u32 {
     machine.host.ticks()

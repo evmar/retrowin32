@@ -2,8 +2,6 @@ use super::WindowType;
 use crate::{host, winapi::types::*, Machine, MouseButton};
 use bitflags::bitflags;
 
-const TRACE_CONTEXT: &'static str = "user32/message";
-
 #[repr(C)]
 #[derive(Clone)]
 pub struct MSG {

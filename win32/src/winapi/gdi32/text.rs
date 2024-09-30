@@ -5,8 +5,6 @@ use crate::{
 };
 use memory::Pod;
 
-const TRACE_CONTEXT: &'static str = "gdi32/text";
-
 pub struct FONT {}
 pub type HFONT = HANDLE<FONT>;
 

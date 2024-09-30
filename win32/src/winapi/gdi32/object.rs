@@ -8,8 +8,6 @@ use crate::{
 };
 use memory::ExtensionsMut;
 
-const TRACE_CONTEXT: &'static str = "gdi32/object";
-
 #[derive(Debug)]
 pub enum BitmapType {
     RGBA32(BitmapRGBA32),

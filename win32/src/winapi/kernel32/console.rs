@@ -5,8 +5,6 @@ use crate::winapi::stack_args::ArrayWithSize;
 use crate::winapi::types::{DWORD, HFILE, WORD};
 use crate::Machine;
 
-const TRACE_CONTEXT: &'static str = "kernel32/console";
-
 #[win32_derive::dllexport]
 pub fn SetConsoleCtrlHandler(_machine: &mut Machine, _handlerRoutine: DWORD, _add: u32) -> bool {
     true // succeed

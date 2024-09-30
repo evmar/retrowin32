@@ -14,8 +14,6 @@ use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
 use std::collections::HashMap;
 
-const TRACE_CONTEXT: &'static str = "kernel32/init";
-
 /// Process command line, as exposed in GetCommandLine() and also TEB.
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.

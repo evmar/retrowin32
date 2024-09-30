@@ -9,8 +9,6 @@ use crate::{
     Machine,
 };
 
-const TRACE_CONTEXT: &'static str = "user32/paint";
-
 #[win32_derive::dllexport]
 pub fn InvalidateRect(
     machine: &mut Machine,

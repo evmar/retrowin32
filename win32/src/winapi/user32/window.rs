@@ -15,8 +15,6 @@ use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::rc::Rc;
 
-const TRACE_CONTEXT: &'static str = "user32/window";
-
 /*
 
 ## Window initalization

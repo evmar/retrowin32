@@ -8,8 +8,6 @@ use crate::{
     },
 };
 
-const TRACE_CONTEXT: &'static str = "gdi32/dc";
-
 pub type HDC = HANDLE<DC>;
 
 /// Target device for a DC.

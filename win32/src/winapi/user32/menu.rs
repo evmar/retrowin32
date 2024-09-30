@@ -3,8 +3,6 @@ use crate::{
     Machine,
 };
 
-const TRACE_CONTEXT: &'static str = "user32/menu";
-
 pub type HMENU = u32;
 
 #[win32_derive::dllexport]

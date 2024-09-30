@@ -10,8 +10,6 @@ use bitflags::bitflags;
 use memory::Pod;
 use memory::{Extensions, ExtensionsMut};
 
-const TRACE_CONTEXT: &'static str = "ddraw/7";
-
 pub const IID_IDirectDraw7: GUID = GUID {
     Data1: 0x15e65ec0,
     Data2: 0x3b9c,

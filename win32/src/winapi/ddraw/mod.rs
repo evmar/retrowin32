@@ -9,8 +9,7 @@ mod palette;
 mod types;
 
 pub use crate::winapi::com::GUID;
-pub use clipper::DirectDrawCreateClipper;
-pub use clipper::IDirectDrawClipper;
+pub use clipper::*;
 pub use ddraw1::*;
 pub use ddraw2::*;
 pub use ddraw7::*;
@@ -20,8 +19,6 @@ use super::{heap::Heap, types::*};
 use crate::{host, machine::Machine, SurfaceOptions};
 use std::collections::HashMap;
 pub use types::*;
-
-const TRACE_CONTEXT: &'static str = "ddraw";
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,

@@ -6,8 +6,6 @@ use crate::{
     winapi::types::{POINT, RECT},
 };
 
-const TRACE_CONTEXT: &'static str = "gdi32/draw";
-
 /// COLORREF is a u32 containing RGB0, modeled specially here because there is the
 /// invalid marker value CLR_INVALID=0xffffffff.
 #[derive(Clone, Copy, PartialEq, Eq)]

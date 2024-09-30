@@ -15,8 +15,6 @@ use bitflags::bitflags;
 use memory::ExtensionsMut;
 use typed_path::WindowsPath;
 
-const TRACE_CONTEXT: &'static str = "kernel32/file";
-
 #[derive(Debug)]
 pub enum STD {
     INPUT_HANDLE = -10,

@@ -4,8 +4,6 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut};
 
-const TRACE_CONTEXT: &'static str = "ddraw/palette";
-
 #[win32_derive::dllexport]
 pub mod IDirectDrawPalette {
     use crate::winapi::ddraw::{DD_OK, PALETTEENTRY};

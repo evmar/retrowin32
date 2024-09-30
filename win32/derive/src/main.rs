@@ -132,7 +132,7 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
 }
 
 /// Parse a single .rs file or a directory's collection of files.
-fn parse_files(path: &Path) -> anyhow::Result<Vec<syn::File>> {
+fn parse_files(path: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
     // path may be a .rs file or a directory (module).
     let mut paths: Vec<std::path::PathBuf> = if path.extension().is_none() {
         std::fs::read_dir(path)?
@@ -147,7 +147,14 @@ fn parse_files(path: &Path) -> anyhow::Result<Vec<syn::File>> {
     for path in paths {
         let buf = std::fs::read_to_string(&path)?;
         let file = syn::parse_file(&buf)?;
-        files.push(file);
+        files.push((
+            path.strip_prefix("src/winapi")
+                .unwrap()
+                .with_extension("")
+                .to_string_lossy()
+                .into_owned(),
+            file,
+        ));
     }
     Ok(files)
 }
@@ -237,8 +244,8 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStrea
 
     let files = parse_files(path)?;
     let mut dllexports = parse::DllExports::default();
-    for file in &files {
-        parse::gather_dllexports(&file.items, &mut dllexports)?;
+    for (name, file) in &files {
+        parse::gather_dllexports(name, &file.items, &mut dllexports)?;
     }
 
     // Sort by name, then assign ordinals satisfying the ordinals that were specified,

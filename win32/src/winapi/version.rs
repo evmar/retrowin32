@@ -2,8 +2,6 @@
 
 use crate::machine::Machine;
 
-const TRACE_CONTEXT: &'static str = "version";
-
 #[win32_derive::dllexport]
 pub fn GetFileVersionInfoSizeA(
     _machine: &mut Machine,

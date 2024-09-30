@@ -9,8 +9,6 @@ use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
 
-const TRACE_CONTEXT: &'static str = "kernel32/misc";
-
 pub fn set_last_error(machine: &mut Machine, err: ERROR) {
     teb_mut(machine).LastErrorValue = err.into();
 }

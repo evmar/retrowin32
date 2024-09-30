@@ -3,8 +3,6 @@ use crate::{
     Machine,
 };
 
-const TRACE_CONTEXT: &'static str = "user32/rect";
-
 #[win32_derive::dllexport]
 pub fn SetRect(
     _machine: &mut Machine,
