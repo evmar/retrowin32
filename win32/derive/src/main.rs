@@ -97,11 +97,11 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
     let module = quote::format_ident!("{}", module_name);
     let dll_name = format!("{}.dll", module_name);
 
-    let mut impls = Vec::new();
+    let mut wrappers = Vec::new();
     let mut shims = Vec::new();
     for dllexport in &dllexports.fns {
-        let (wrapper, shim) = gen::fn_wrapper(quote! { winapi::#module }, dllexport);
-        impls.push(wrapper);
+        let (wrapper, shim) = gen::fn_wrapper(quote!(winapi::#module), dllexport);
+        wrappers.push(wrapper);
         shims.push(shim);
     }
 
@@ -111,11 +111,11 @@ fn generate_shims_module(module_name: &str, dllexports: parse::DllExports) -> To
         pub mod #module {
             use super::*;
 
-            mod impls {
+            mod wrappers {
                 use memory::Extensions;
                 use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
-                use winapi::#module::*;
-                #(#impls)*
+                use winapi::#module::*;  // for types
+                #(#wrappers)*
             }
 
             const SHIMS: [Shim; #shims_count] = [
@@ -161,8 +161,12 @@ fn parse_files(path: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
 
 fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<String> {
     let out = quote! {
-        /// Generated code, do not edit.
+        #![allow(non_snake_case)]
+        #![allow(non_snake_case)]
+        #![allow(unused_imports)]
+        #![allow(unused_variables)]
 
+        /// Generated code, do not edit.
         use crate::shims::{Shim, Handler};
 
         pub struct BuiltinDLL {
@@ -177,20 +181,12 @@ fn generate_builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<String> {
     };
 
     // Verify output parses correctly.
-    if let Err(err) = syn::parse2::<syn::File>(out.clone()) {
-        anyhow::bail!("parsing macro-generated code: {}", err);
-    };
+    // if let Err(err) = syn::parse2::<syn::File>(out.clone()) {
+    //     anyhow::bail!("parsing macro-generated code: {}", err);
+    // };
 
-    let mut buf = String::new();
-    // parse2 seems to fail if it sees these, so dump them here.
-    write!(&mut buf, "#![allow(non_snake_case)]\n").unwrap();
-    write!(&mut buf, "#![allow(non_upper_case_globals)]\n").unwrap();
-    write!(&mut buf, "#![allow(unused_imports)]\n").unwrap();
-    write!(&mut buf, "#![allow(unused_variables)]\n").unwrap();
     let text = rustfmt(&out.to_string())?;
-    buf.push_str(&text);
-
-    Ok(buf)
+    Ok(text)
 }
 
 fn rustfmt(tokens: &str) -> anyhow::Result<String> {

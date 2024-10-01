@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
+#![allow(non_snake_case)]
 #![allow(unused_imports)]
 #![allow(unused_variables)]
 #[doc = r" Generated code, do not edit."]
@@ -13,7 +13,7 @@ pub struct BuiltinDLL {
 }
 pub mod advapi32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -335,35 +335,35 @@ pub mod advapi32 {
     const SHIMS: [Shim; 8usize] = [
         Shim {
             name: "RegCloseKey",
-            func: Handler::Sync(impls::RegCloseKey),
+            func: Handler::Sync(wrappers::RegCloseKey),
         },
         Shim {
             name: "RegCreateKeyA",
-            func: Handler::Sync(impls::RegCreateKeyA),
+            func: Handler::Sync(wrappers::RegCreateKeyA),
         },
         Shim {
             name: "RegCreateKeyExW",
-            func: Handler::Sync(impls::RegCreateKeyExW),
+            func: Handler::Sync(wrappers::RegCreateKeyExW),
         },
         Shim {
             name: "RegOpenKeyExA",
-            func: Handler::Sync(impls::RegOpenKeyExA),
+            func: Handler::Sync(wrappers::RegOpenKeyExA),
         },
         Shim {
             name: "RegQueryValueExA",
-            func: Handler::Sync(impls::RegQueryValueExA),
+            func: Handler::Sync(wrappers::RegQueryValueExA),
         },
         Shim {
             name: "RegQueryValueExW",
-            func: Handler::Sync(impls::RegQueryValueExW),
+            func: Handler::Sync(wrappers::RegQueryValueExW),
         },
         Shim {
             name: "RegSetValueExA",
-            func: Handler::Sync(impls::RegSetValueExA),
+            func: Handler::Sync(wrappers::RegSetValueExA),
         },
         Shim {
             name: "RegSetValueExW",
-            func: Handler::Sync(impls::RegSetValueExW),
+            func: Handler::Sync(wrappers::RegSetValueExW),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -374,7 +374,7 @@ pub mod advapi32 {
 }
 pub mod bass {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -560,31 +560,31 @@ pub mod bass {
     const SHIMS: [Shim; 7usize] = [
         Shim {
             name: "BASS_ChannelGetPosition",
-            func: Handler::Sync(impls::BASS_ChannelGetPosition),
+            func: Handler::Sync(wrappers::BASS_ChannelGetPosition),
         },
         Shim {
             name: "BASS_Free",
-            func: Handler::Sync(impls::BASS_Free),
+            func: Handler::Sync(wrappers::BASS_Free),
         },
         Shim {
             name: "BASS_Init",
-            func: Handler::Sync(impls::BASS_Init),
+            func: Handler::Sync(wrappers::BASS_Init),
         },
         Shim {
             name: "BASS_MusicLoad",
-            func: Handler::Sync(impls::BASS_MusicLoad),
+            func: Handler::Sync(wrappers::BASS_MusicLoad),
         },
         Shim {
             name: "BASS_MusicPlay",
-            func: Handler::Sync(impls::BASS_MusicPlay),
+            func: Handler::Sync(wrappers::BASS_MusicPlay),
         },
         Shim {
             name: "BASS_MusicSetPositionScaler",
-            func: Handler::Sync(impls::BASS_MusicSetPositionScaler),
+            func: Handler::Sync(wrappers::BASS_MusicSetPositionScaler),
         },
         Shim {
             name: "BASS_Start",
-            func: Handler::Sync(impls::BASS_Start),
+            func: Handler::Sync(wrappers::BASS_Start),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -595,7 +595,7 @@ pub mod bass {
 }
 pub mod ddraw {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -2135,211 +2135,211 @@ pub mod ddraw {
     const SHIMS: [Shim; 52usize] = [
         Shim {
             name: "DirectDrawCreate",
-            func: Handler::Sync(impls::DirectDrawCreate),
+            func: Handler::Sync(wrappers::DirectDrawCreate),
         },
         Shim {
             name: "DirectDrawCreateClipper",
-            func: Handler::Sync(impls::DirectDrawCreateClipper),
+            func: Handler::Sync(wrappers::DirectDrawCreateClipper),
         },
         Shim {
             name: "DirectDrawCreateEx",
-            func: Handler::Sync(impls::DirectDrawCreateEx),
+            func: Handler::Sync(wrappers::DirectDrawCreateEx),
         },
         Shim {
             name: "IDirectDraw2::CreateSurface",
-            func: Handler::Sync(impls::IDirectDraw2_CreateSurface),
+            func: Handler::Sync(wrappers::IDirectDraw2_CreateSurface),
         },
         Shim {
             name: "IDirectDraw2::EnumDisplayModes",
-            func: Handler::Async(impls::IDirectDraw2_EnumDisplayModes),
+            func: Handler::Async(wrappers::IDirectDraw2_EnumDisplayModes),
         },
         Shim {
             name: "IDirectDraw2::GetDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw2_GetDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw2_GetDisplayMode),
         },
         Shim {
             name: "IDirectDraw2::QueryInterface",
-            func: Handler::Sync(impls::IDirectDraw2_QueryInterface),
+            func: Handler::Sync(wrappers::IDirectDraw2_QueryInterface),
         },
         Shim {
             name: "IDirectDraw2::Release",
-            func: Handler::Sync(impls::IDirectDraw2_Release),
+            func: Handler::Sync(wrappers::IDirectDraw2_Release),
         },
         Shim {
             name: "IDirectDraw2::SetDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw2_SetDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw2_SetDisplayMode),
         },
         Shim {
             name: "IDirectDraw7::CreatePalette",
-            func: Handler::Sync(impls::IDirectDraw7_CreatePalette),
+            func: Handler::Sync(wrappers::IDirectDraw7_CreatePalette),
         },
         Shim {
             name: "IDirectDraw7::CreateSurface",
-            func: Handler::Sync(impls::IDirectDraw7_CreateSurface),
+            func: Handler::Sync(wrappers::IDirectDraw7_CreateSurface),
         },
         Shim {
             name: "IDirectDraw7::EnumDisplayModes",
-            func: Handler::Async(impls::IDirectDraw7_EnumDisplayModes),
+            func: Handler::Async(wrappers::IDirectDraw7_EnumDisplayModes),
         },
         Shim {
             name: "IDirectDraw7::GetDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw7_GetDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw7_GetDisplayMode),
         },
         Shim {
             name: "IDirectDraw7::Release",
-            func: Handler::Sync(impls::IDirectDraw7_Release),
+            func: Handler::Sync(wrappers::IDirectDraw7_Release),
         },
         Shim {
             name: "IDirectDraw7::RestoreDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw7_RestoreDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw7_RestoreDisplayMode),
         },
         Shim {
             name: "IDirectDraw7::SetCooperativeLevel",
-            func: Handler::Sync(impls::IDirectDraw7_SetCooperativeLevel),
+            func: Handler::Sync(wrappers::IDirectDraw7_SetCooperativeLevel),
         },
         Shim {
             name: "IDirectDraw7::SetDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw7_SetDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw7_SetDisplayMode),
         },
         Shim {
             name: "IDirectDraw7::WaitForVerticalBlank",
-            func: Handler::Sync(impls::IDirectDraw7_WaitForVerticalBlank),
+            func: Handler::Sync(wrappers::IDirectDraw7_WaitForVerticalBlank),
         },
         Shim {
             name: "IDirectDrawClipper::Release",
-            func: Handler::Sync(impls::IDirectDrawClipper_Release),
+            func: Handler::Sync(wrappers::IDirectDrawClipper_Release),
         },
         Shim {
             name: "IDirectDrawClipper::SetHWnd",
-            func: Handler::Sync(impls::IDirectDrawClipper_SetHWnd),
+            func: Handler::Sync(wrappers::IDirectDrawClipper_SetHWnd),
         },
         Shim {
             name: "IDirectDrawPalette::Release",
-            func: Handler::Sync(impls::IDirectDrawPalette_Release),
+            func: Handler::Sync(wrappers::IDirectDrawPalette_Release),
         },
         Shim {
             name: "IDirectDrawPalette::SetEntries",
-            func: Handler::Sync(impls::IDirectDrawPalette_SetEntries),
+            func: Handler::Sync(wrappers::IDirectDrawPalette_SetEntries),
         },
         Shim {
             name: "IDirectDrawSurface2::GetAttachedSurface",
-            func: Handler::Sync(impls::IDirectDrawSurface2_GetAttachedSurface),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_GetAttachedSurface),
         },
         Shim {
             name: "IDirectDrawSurface2::GetCaps",
-            func: Handler::Sync(impls::IDirectDrawSurface2_GetCaps),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_GetCaps),
         },
         Shim {
             name: "IDirectDrawSurface2::GetSurfaceDesc",
-            func: Handler::Sync(impls::IDirectDrawSurface2_GetSurfaceDesc),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_GetSurfaceDesc),
         },
         Shim {
             name: "IDirectDrawSurface2::Lock",
-            func: Handler::Sync(impls::IDirectDrawSurface2_Lock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_Lock),
         },
         Shim {
             name: "IDirectDrawSurface2::Release",
-            func: Handler::Sync(impls::IDirectDrawSurface2_Release),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_Release),
         },
         Shim {
             name: "IDirectDrawSurface2::Unlock",
-            func: Handler::Sync(impls::IDirectDrawSurface2_Unlock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface2_Unlock),
         },
         Shim {
             name: "IDirectDrawSurface7::Blt",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Blt),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Blt),
         },
         Shim {
             name: "IDirectDrawSurface7::BltFast",
-            func: Handler::Sync(impls::IDirectDrawSurface7_BltFast),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_BltFast),
         },
         Shim {
             name: "IDirectDrawSurface7::Flip",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Flip),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Flip),
         },
         Shim {
             name: "IDirectDrawSurface7::GetAttachedSurface",
-            func: Handler::Sync(impls::IDirectDrawSurface7_GetAttachedSurface),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_GetAttachedSurface),
         },
         Shim {
             name: "IDirectDrawSurface7::GetCaps",
-            func: Handler::Sync(impls::IDirectDrawSurface7_GetCaps),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_GetCaps),
         },
         Shim {
             name: "IDirectDrawSurface7::GetDC",
-            func: Handler::Sync(impls::IDirectDrawSurface7_GetDC),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_GetDC),
         },
         Shim {
             name: "IDirectDrawSurface7::GetPixelFormat",
-            func: Handler::Sync(impls::IDirectDrawSurface7_GetPixelFormat),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_GetPixelFormat),
         },
         Shim {
             name: "IDirectDrawSurface7::GetSurfaceDesc",
-            func: Handler::Sync(impls::IDirectDrawSurface7_GetSurfaceDesc),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_GetSurfaceDesc),
         },
         Shim {
             name: "IDirectDrawSurface7::Lock",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Lock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Lock),
         },
         Shim {
             name: "IDirectDrawSurface7::Release",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Release),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Release),
         },
         Shim {
             name: "IDirectDrawSurface7::ReleaseDC",
-            func: Handler::Sync(impls::IDirectDrawSurface7_ReleaseDC),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_ReleaseDC),
         },
         Shim {
             name: "IDirectDrawSurface7::Restore",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Restore),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Restore),
         },
         Shim {
             name: "IDirectDrawSurface7::SetClipper",
-            func: Handler::Sync(impls::IDirectDrawSurface7_SetClipper),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_SetClipper),
         },
         Shim {
             name: "IDirectDrawSurface7::SetPalette",
-            func: Handler::Sync(impls::IDirectDrawSurface7_SetPalette),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_SetPalette),
         },
         Shim {
             name: "IDirectDrawSurface7::Unlock",
-            func: Handler::Sync(impls::IDirectDrawSurface7_Unlock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface7_Unlock),
         },
         Shim {
             name: "IDirectDrawSurface::GetAttachedSurface",
-            func: Handler::Sync(impls::IDirectDrawSurface_GetAttachedSurface),
+            func: Handler::Sync(wrappers::IDirectDrawSurface_GetAttachedSurface),
         },
         Shim {
             name: "IDirectDrawSurface::GetCaps",
-            func: Handler::Sync(impls::IDirectDrawSurface_GetCaps),
+            func: Handler::Sync(wrappers::IDirectDrawSurface_GetCaps),
         },
         Shim {
             name: "IDirectDrawSurface::Lock",
-            func: Handler::Sync(impls::IDirectDrawSurface_Lock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface_Lock),
         },
         Shim {
             name: "IDirectDrawSurface::Release",
-            func: Handler::Sync(impls::IDirectDrawSurface_Release),
+            func: Handler::Sync(wrappers::IDirectDrawSurface_Release),
         },
         Shim {
             name: "IDirectDrawSurface::Unlock",
-            func: Handler::Sync(impls::IDirectDrawSurface_Unlock),
+            func: Handler::Sync(wrappers::IDirectDrawSurface_Unlock),
         },
         Shim {
             name: "IDirectDraw::CreateSurface",
-            func: Handler::Sync(impls::IDirectDraw_CreateSurface),
+            func: Handler::Sync(wrappers::IDirectDraw_CreateSurface),
         },
         Shim {
             name: "IDirectDraw::QueryInterface",
-            func: Handler::Sync(impls::IDirectDraw_QueryInterface),
+            func: Handler::Sync(wrappers::IDirectDraw_QueryInterface),
         },
         Shim {
             name: "IDirectDraw::Release",
-            func: Handler::Sync(impls::IDirectDraw_Release),
+            func: Handler::Sync(wrappers::IDirectDraw_Release),
         },
         Shim {
             name: "IDirectDraw::SetDisplayMode",
-            func: Handler::Sync(impls::IDirectDraw_SetDisplayMode),
+            func: Handler::Sync(wrappers::IDirectDraw_SetDisplayMode),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -2350,7 +2350,7 @@ pub mod ddraw {
 }
 pub mod dsound {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -2744,51 +2744,51 @@ pub mod dsound {
     const SHIMS: [Shim; 12usize] = [
         Shim {
             name: "DirectSoundCreate",
-            func: Handler::Sync(impls::DirectSoundCreate),
+            func: Handler::Sync(wrappers::DirectSoundCreate),
         },
         Shim {
             name: "DirectSoundEnumerateA",
-            func: Handler::Sync(impls::DirectSoundEnumerateA),
+            func: Handler::Sync(wrappers::DirectSoundEnumerateA),
         },
         Shim {
             name: "IDirectSoundBuffer::GetCurrentPosition",
-            func: Handler::Sync(impls::IDirectSoundBuffer_GetCurrentPosition),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_GetCurrentPosition),
         },
         Shim {
             name: "IDirectSoundBuffer::GetStatus",
-            func: Handler::Sync(impls::IDirectSoundBuffer_GetStatus),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_GetStatus),
         },
         Shim {
             name: "IDirectSoundBuffer::Lock",
-            func: Handler::Sync(impls::IDirectSoundBuffer_Lock),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_Lock),
         },
         Shim {
             name: "IDirectSoundBuffer::Play",
-            func: Handler::Sync(impls::IDirectSoundBuffer_Play),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_Play),
         },
         Shim {
             name: "IDirectSoundBuffer::Release",
-            func: Handler::Sync(impls::IDirectSoundBuffer_Release),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_Release),
         },
         Shim {
             name: "IDirectSoundBuffer::SetFormat",
-            func: Handler::Sync(impls::IDirectSoundBuffer_SetFormat),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_SetFormat),
         },
         Shim {
             name: "IDirectSoundBuffer::Unlock",
-            func: Handler::Sync(impls::IDirectSoundBuffer_Unlock),
+            func: Handler::Sync(wrappers::IDirectSoundBuffer_Unlock),
         },
         Shim {
             name: "IDirectSound::CreateSoundBuffer",
-            func: Handler::Sync(impls::IDirectSound_CreateSoundBuffer),
+            func: Handler::Sync(wrappers::IDirectSound_CreateSoundBuffer),
         },
         Shim {
             name: "IDirectSound::Release",
-            func: Handler::Sync(impls::IDirectSound_Release),
+            func: Handler::Sync(wrappers::IDirectSound_Release),
         },
         Shim {
             name: "IDirectSound::SetCooperativeLevel",
-            func: Handler::Sync(impls::IDirectSound_SetCooperativeLevel),
+            func: Handler::Sync(wrappers::IDirectSound_SetCooperativeLevel),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -2799,7 +2799,7 @@ pub mod dsound {
 }
 pub mod gdi32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -3975,163 +3975,163 @@ pub mod gdi32 {
     const SHIMS: [Shim; 40usize] = [
         Shim {
             name: "BitBlt",
-            func: Handler::Sync(impls::BitBlt),
+            func: Handler::Sync(wrappers::BitBlt),
         },
         Shim {
             name: "CreateBitmap",
-            func: Handler::Sync(impls::CreateBitmap),
+            func: Handler::Sync(wrappers::CreateBitmap),
         },
         Shim {
             name: "CreateCompatibleBitmap",
-            func: Handler::Sync(impls::CreateCompatibleBitmap),
+            func: Handler::Sync(wrappers::CreateCompatibleBitmap),
         },
         Shim {
             name: "CreateCompatibleDC",
-            func: Handler::Sync(impls::CreateCompatibleDC),
+            func: Handler::Sync(wrappers::CreateCompatibleDC),
         },
         Shim {
             name: "CreateDIBSection",
-            func: Handler::Sync(impls::CreateDIBSection),
+            func: Handler::Sync(wrappers::CreateDIBSection),
         },
         Shim {
             name: "CreateFontA",
-            func: Handler::Sync(impls::CreateFontA),
+            func: Handler::Sync(wrappers::CreateFontA),
         },
         Shim {
             name: "CreatePalette",
-            func: Handler::Sync(impls::CreatePalette),
+            func: Handler::Sync(wrappers::CreatePalette),
         },
         Shim {
             name: "CreatePen",
-            func: Handler::Sync(impls::CreatePen),
+            func: Handler::Sync(wrappers::CreatePen),
         },
         Shim {
             name: "CreateSolidBrush",
-            func: Handler::Sync(impls::CreateSolidBrush),
+            func: Handler::Sync(wrappers::CreateSolidBrush),
         },
         Shim {
             name: "DeleteDC",
-            func: Handler::Sync(impls::DeleteDC),
+            func: Handler::Sync(wrappers::DeleteDC),
         },
         Shim {
             name: "DeleteObject",
-            func: Handler::Sync(impls::DeleteObject),
+            func: Handler::Sync(wrappers::DeleteObject),
         },
         Shim {
             name: "GetDCOrgEx",
-            func: Handler::Sync(impls::GetDCOrgEx),
+            func: Handler::Sync(wrappers::GetDCOrgEx),
         },
         Shim {
             name: "GetDeviceCaps",
-            func: Handler::Sync(impls::GetDeviceCaps),
+            func: Handler::Sync(wrappers::GetDeviceCaps),
         },
         Shim {
             name: "GetLayout",
-            func: Handler::Sync(impls::GetLayout),
+            func: Handler::Sync(wrappers::GetLayout),
         },
         Shim {
             name: "GetObjectA",
-            func: Handler::Sync(impls::GetObjectA),
+            func: Handler::Sync(wrappers::GetObjectA),
         },
         Shim {
             name: "GetPixel",
-            func: Handler::Sync(impls::GetPixel),
+            func: Handler::Sync(wrappers::GetPixel),
         },
         Shim {
             name: "GetStockObject",
-            func: Handler::Sync(impls::GetStockObject),
+            func: Handler::Sync(wrappers::GetStockObject),
         },
         Shim {
             name: "GetTextExtentPoint32A",
-            func: Handler::Sync(impls::GetTextExtentPoint32A),
+            func: Handler::Sync(wrappers::GetTextExtentPoint32A),
         },
         Shim {
             name: "GetTextExtentPoint32W",
-            func: Handler::Sync(impls::GetTextExtentPoint32W),
+            func: Handler::Sync(wrappers::GetTextExtentPoint32W),
         },
         Shim {
             name: "GetTextMetricsA",
-            func: Handler::Sync(impls::GetTextMetricsA),
+            func: Handler::Sync(wrappers::GetTextMetricsA),
         },
         Shim {
             name: "GetTextMetricsW",
-            func: Handler::Sync(impls::GetTextMetricsW),
+            func: Handler::Sync(wrappers::GetTextMetricsW),
         },
         Shim {
             name: "LineDDA",
-            func: Handler::Sync(impls::LineDDA),
+            func: Handler::Sync(wrappers::LineDDA),
         },
         Shim {
             name: "LineTo",
-            func: Handler::Sync(impls::LineTo),
+            func: Handler::Sync(wrappers::LineTo),
         },
         Shim {
             name: "MoveToEx",
-            func: Handler::Sync(impls::MoveToEx),
+            func: Handler::Sync(wrappers::MoveToEx),
         },
         Shim {
             name: "PatBlt",
-            func: Handler::Sync(impls::PatBlt),
+            func: Handler::Sync(wrappers::PatBlt),
         },
         Shim {
             name: "PtVisible",
-            func: Handler::Sync(impls::PtVisible),
+            func: Handler::Sync(wrappers::PtVisible),
         },
         Shim {
             name: "SelectObject",
-            func: Handler::Sync(impls::SelectObject),
+            func: Handler::Sync(wrappers::SelectObject),
         },
         Shim {
             name: "SetBkColor",
-            func: Handler::Sync(impls::SetBkColor),
+            func: Handler::Sync(wrappers::SetBkColor),
         },
         Shim {
             name: "SetBkMode",
-            func: Handler::Sync(impls::SetBkMode),
+            func: Handler::Sync(wrappers::SetBkMode),
         },
         Shim {
             name: "SetBrushOrgEx",
-            func: Handler::Sync(impls::SetBrushOrgEx),
+            func: Handler::Sync(wrappers::SetBrushOrgEx),
         },
         Shim {
             name: "SetDIBitsToDevice",
-            func: Handler::Sync(impls::SetDIBitsToDevice),
+            func: Handler::Sync(wrappers::SetDIBitsToDevice),
         },
         Shim {
             name: "SetLayout",
-            func: Handler::Sync(impls::SetLayout),
+            func: Handler::Sync(wrappers::SetLayout),
         },
         Shim {
             name: "SetPixel",
-            func: Handler::Sync(impls::SetPixel),
+            func: Handler::Sync(wrappers::SetPixel),
         },
         Shim {
             name: "SetROP2",
-            func: Handler::Sync(impls::SetROP2),
+            func: Handler::Sync(wrappers::SetROP2),
         },
         Shim {
             name: "SetTextAlign",
-            func: Handler::Sync(impls::SetTextAlign),
+            func: Handler::Sync(wrappers::SetTextAlign),
         },
         Shim {
             name: "SetTextColor",
-            func: Handler::Sync(impls::SetTextColor),
+            func: Handler::Sync(wrappers::SetTextColor),
         },
         Shim {
             name: "StretchBlt",
-            func: Handler::Sync(impls::StretchBlt),
+            func: Handler::Sync(wrappers::StretchBlt),
         },
         Shim {
             name: "StretchDIBits",
-            func: Handler::Sync(impls::StretchDIBits),
+            func: Handler::Sync(wrappers::StretchDIBits),
         },
         Shim {
             name: "TextOutA",
-            func: Handler::Sync(impls::TextOutA),
+            func: Handler::Sync(wrappers::TextOutA),
         },
         Shim {
             name: "TextOutW",
-            func: Handler::Sync(impls::TextOutW),
+            func: Handler::Sync(wrappers::TextOutW),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -4142,7 +4142,7 @@ pub mod gdi32 {
 }
 pub mod kernel32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -8681,675 +8681,675 @@ pub mod kernel32 {
     const SHIMS: [Shim; 168usize] = [
         Shim {
             name: "AcquireSRWLockExclusive",
-            func: Handler::Sync(impls::AcquireSRWLockExclusive),
+            func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
         },
         Shim {
             name: "AcquireSRWLockShared",
-            func: Handler::Sync(impls::AcquireSRWLockShared),
+            func: Handler::Sync(wrappers::AcquireSRWLockShared),
         },
         Shim {
             name: "AddVectoredExceptionHandler",
-            func: Handler::Sync(impls::AddVectoredExceptionHandler),
+            func: Handler::Sync(wrappers::AddVectoredExceptionHandler),
         },
         Shim {
             name: "CloseHandle",
-            func: Handler::Sync(impls::CloseHandle),
+            func: Handler::Sync(wrappers::CloseHandle),
         },
         Shim {
             name: "CreateDirectoryA",
-            func: Handler::Sync(impls::CreateDirectoryA),
+            func: Handler::Sync(wrappers::CreateDirectoryA),
         },
         Shim {
             name: "CreateEventA",
-            func: Handler::Sync(impls::CreateEventA),
+            func: Handler::Sync(wrappers::CreateEventA),
         },
         Shim {
             name: "CreateFileA",
-            func: Handler::Sync(impls::CreateFileA),
+            func: Handler::Sync(wrappers::CreateFileA),
         },
         Shim {
             name: "CreateFileW",
-            func: Handler::Sync(impls::CreateFileW),
+            func: Handler::Sync(wrappers::CreateFileW),
         },
         Shim {
             name: "CreateThread",
-            func: Handler::Async(impls::CreateThread),
+            func: Handler::Async(wrappers::CreateThread),
         },
         Shim {
             name: "DebugBreak",
-            func: Handler::Sync(impls::DebugBreak),
+            func: Handler::Sync(wrappers::DebugBreak),
         },
         Shim {
             name: "DeleteCriticalSection",
-            func: Handler::Sync(impls::DeleteCriticalSection),
+            func: Handler::Sync(wrappers::DeleteCriticalSection),
         },
         Shim {
             name: "DeleteFileA",
-            func: Handler::Sync(impls::DeleteFileA),
+            func: Handler::Sync(wrappers::DeleteFileA),
         },
         Shim {
             name: "DisableThreadLibraryCalls",
-            func: Handler::Sync(impls::DisableThreadLibraryCalls),
+            func: Handler::Sync(wrappers::DisableThreadLibraryCalls),
         },
         Shim {
             name: "EnterCriticalSection",
-            func: Handler::Sync(impls::EnterCriticalSection),
+            func: Handler::Sync(wrappers::EnterCriticalSection),
         },
         Shim {
             name: "ExitProcess",
-            func: Handler::Sync(impls::ExitProcess),
+            func: Handler::Sync(wrappers::ExitProcess),
         },
         Shim {
             name: "FileTimeToSystemTime",
-            func: Handler::Sync(impls::FileTimeToSystemTime),
+            func: Handler::Sync(wrappers::FileTimeToSystemTime),
         },
         Shim {
             name: "FindClose",
-            func: Handler::Sync(impls::FindClose),
+            func: Handler::Sync(wrappers::FindClose),
         },
         Shim {
             name: "FindFirstFileA",
-            func: Handler::Sync(impls::FindFirstFileA),
+            func: Handler::Sync(wrappers::FindFirstFileA),
         },
         Shim {
             name: "FindNextFileA",
-            func: Handler::Sync(impls::FindNextFileA),
+            func: Handler::Sync(wrappers::FindNextFileA),
         },
         Shim {
             name: "FindResourceA",
-            func: Handler::Sync(impls::FindResourceA),
+            func: Handler::Sync(wrappers::FindResourceA),
         },
         Shim {
             name: "FindResourceW",
-            func: Handler::Sync(impls::FindResourceW),
+            func: Handler::Sync(wrappers::FindResourceW),
         },
         Shim {
             name: "FlushFileBuffers",
-            func: Handler::Sync(impls::FlushFileBuffers),
+            func: Handler::Sync(wrappers::FlushFileBuffers),
         },
         Shim {
             name: "FormatMessageA",
-            func: Handler::Sync(impls::FormatMessageA),
+            func: Handler::Sync(wrappers::FormatMessageA),
         },
         Shim {
             name: "FormatMessageW",
-            func: Handler::Sync(impls::FormatMessageW),
+            func: Handler::Sync(wrappers::FormatMessageW),
         },
         Shim {
             name: "FreeEnvironmentStringsA",
-            func: Handler::Sync(impls::FreeEnvironmentStringsA),
+            func: Handler::Sync(wrappers::FreeEnvironmentStringsA),
         },
         Shim {
             name: "FreeEnvironmentStringsW",
-            func: Handler::Sync(impls::FreeEnvironmentStringsW),
+            func: Handler::Sync(wrappers::FreeEnvironmentStringsW),
         },
         Shim {
             name: "FreeLibrary",
-            func: Handler::Sync(impls::FreeLibrary),
+            func: Handler::Sync(wrappers::FreeLibrary),
         },
         Shim {
             name: "GetACP",
-            func: Handler::Sync(impls::GetACP),
+            func: Handler::Sync(wrappers::GetACP),
         },
         Shim {
             name: "GetCPInfo",
-            func: Handler::Sync(impls::GetCPInfo),
+            func: Handler::Sync(wrappers::GetCPInfo),
         },
         Shim {
             name: "GetCommandLineA",
-            func: Handler::Sync(impls::GetCommandLineA),
+            func: Handler::Sync(wrappers::GetCommandLineA),
         },
         Shim {
             name: "GetCommandLineW",
-            func: Handler::Sync(impls::GetCommandLineW),
+            func: Handler::Sync(wrappers::GetCommandLineW),
         },
         Shim {
             name: "GetConsoleMode",
-            func: Handler::Sync(impls::GetConsoleMode),
+            func: Handler::Sync(wrappers::GetConsoleMode),
         },
         Shim {
             name: "GetConsoleScreenBufferInfo",
-            func: Handler::Sync(impls::GetConsoleScreenBufferInfo),
+            func: Handler::Sync(wrappers::GetConsoleScreenBufferInfo),
         },
         Shim {
             name: "GetCurrentDirectoryA",
-            func: Handler::Sync(impls::GetCurrentDirectoryA),
+            func: Handler::Sync(wrappers::GetCurrentDirectoryA),
         },
         Shim {
             name: "GetCurrentProcess",
-            func: Handler::Sync(impls::GetCurrentProcess),
+            func: Handler::Sync(wrappers::GetCurrentProcess),
         },
         Shim {
             name: "GetCurrentProcessId",
-            func: Handler::Sync(impls::GetCurrentProcessId),
+            func: Handler::Sync(wrappers::GetCurrentProcessId),
         },
         Shim {
             name: "GetCurrentThread",
-            func: Handler::Sync(impls::GetCurrentThread),
+            func: Handler::Sync(wrappers::GetCurrentThread),
         },
         Shim {
             name: "GetCurrentThreadId",
-            func: Handler::Sync(impls::GetCurrentThreadId),
+            func: Handler::Sync(wrappers::GetCurrentThreadId),
         },
         Shim {
             name: "GetEnvironmentStrings",
-            func: Handler::Sync(impls::GetEnvironmentStrings),
+            func: Handler::Sync(wrappers::GetEnvironmentStrings),
         },
         Shim {
             name: "GetEnvironmentStringsW",
-            func: Handler::Sync(impls::GetEnvironmentStringsW),
+            func: Handler::Sync(wrappers::GetEnvironmentStringsW),
         },
         Shim {
             name: "GetEnvironmentVariableA",
-            func: Handler::Sync(impls::GetEnvironmentVariableA),
+            func: Handler::Sync(wrappers::GetEnvironmentVariableA),
         },
         Shim {
             name: "GetEnvironmentVariableW",
-            func: Handler::Sync(impls::GetEnvironmentVariableW),
+            func: Handler::Sync(wrappers::GetEnvironmentVariableW),
         },
         Shim {
             name: "GetFileAttributesA",
-            func: Handler::Sync(impls::GetFileAttributesA),
+            func: Handler::Sync(wrappers::GetFileAttributesA),
         },
         Shim {
             name: "GetFileInformationByHandle",
-            func: Handler::Sync(impls::GetFileInformationByHandle),
+            func: Handler::Sync(wrappers::GetFileInformationByHandle),
         },
         Shim {
             name: "GetFileSize",
-            func: Handler::Sync(impls::GetFileSize),
+            func: Handler::Sync(wrappers::GetFileSize),
         },
         Shim {
             name: "GetFileTime",
-            func: Handler::Sync(impls::GetFileTime),
+            func: Handler::Sync(wrappers::GetFileTime),
         },
         Shim {
             name: "GetFileType",
-            func: Handler::Sync(impls::GetFileType),
+            func: Handler::Sync(wrappers::GetFileType),
         },
         Shim {
             name: "GetFullPathNameA",
-            func: Handler::Sync(impls::GetFullPathNameA),
+            func: Handler::Sync(wrappers::GetFullPathNameA),
         },
         Shim {
             name: "GetFullPathNameW",
-            func: Handler::Sync(impls::GetFullPathNameW),
+            func: Handler::Sync(wrappers::GetFullPathNameW),
         },
         Shim {
             name: "GetLastError",
-            func: Handler::Sync(impls::GetLastError),
+            func: Handler::Sync(wrappers::GetLastError),
         },
         Shim {
             name: "GetLocalTime",
-            func: Handler::Sync(impls::GetLocalTime),
+            func: Handler::Sync(wrappers::GetLocalTime),
         },
         Shim {
             name: "GetModuleFileNameA",
-            func: Handler::Sync(impls::GetModuleFileNameA),
+            func: Handler::Sync(wrappers::GetModuleFileNameA),
         },
         Shim {
             name: "GetModuleFileNameW",
-            func: Handler::Sync(impls::GetModuleFileNameW),
+            func: Handler::Sync(wrappers::GetModuleFileNameW),
         },
         Shim {
             name: "GetModuleHandleA",
-            func: Handler::Sync(impls::GetModuleHandleA),
+            func: Handler::Sync(wrappers::GetModuleHandleA),
         },
         Shim {
             name: "GetModuleHandleExW",
-            func: Handler::Sync(impls::GetModuleHandleExW),
+            func: Handler::Sync(wrappers::GetModuleHandleExW),
         },
         Shim {
             name: "GetModuleHandleW",
-            func: Handler::Sync(impls::GetModuleHandleW),
+            func: Handler::Sync(wrappers::GetModuleHandleW),
         },
         Shim {
             name: "GetOEMCP",
-            func: Handler::Sync(impls::GetOEMCP),
+            func: Handler::Sync(wrappers::GetOEMCP),
         },
         Shim {
             name: "GetPrivateProfileIntW",
-            func: Handler::Sync(impls::GetPrivateProfileIntW),
+            func: Handler::Sync(wrappers::GetPrivateProfileIntW),
         },
         Shim {
             name: "GetPrivateProfileStringW",
-            func: Handler::Sync(impls::GetPrivateProfileStringW),
+            func: Handler::Sync(wrappers::GetPrivateProfileStringW),
         },
         Shim {
             name: "GetProcAddress",
-            func: Handler::Sync(impls::GetProcAddress),
+            func: Handler::Sync(wrappers::GetProcAddress),
         },
         Shim {
             name: "GetProcessHeap",
-            func: Handler::Sync(impls::GetProcessHeap),
+            func: Handler::Sync(wrappers::GetProcessHeap),
         },
         Shim {
             name: "GetProfileIntW",
-            func: Handler::Sync(impls::GetProfileIntW),
+            func: Handler::Sync(wrappers::GetProfileIntW),
         },
         Shim {
             name: "GetProfileStringW",
-            func: Handler::Sync(impls::GetProfileStringW),
+            func: Handler::Sync(wrappers::GetProfileStringW),
         },
         Shim {
             name: "GetStartupInfoA",
-            func: Handler::Sync(impls::GetStartupInfoA),
+            func: Handler::Sync(wrappers::GetStartupInfoA),
         },
         Shim {
             name: "GetStartupInfoW",
-            func: Handler::Sync(impls::GetStartupInfoW),
+            func: Handler::Sync(wrappers::GetStartupInfoW),
         },
         Shim {
             name: "GetStdHandle",
-            func: Handler::Sync(impls::GetStdHandle),
+            func: Handler::Sync(wrappers::GetStdHandle),
         },
         Shim {
             name: "GetStringTypeA",
-            func: Handler::Sync(impls::GetStringTypeA),
+            func: Handler::Sync(wrappers::GetStringTypeA),
         },
         Shim {
             name: "GetStringTypeW",
-            func: Handler::Sync(impls::GetStringTypeW),
+            func: Handler::Sync(wrappers::GetStringTypeW),
         },
         Shim {
             name: "GetSystemDirectoryA",
-            func: Handler::Sync(impls::GetSystemDirectoryA),
+            func: Handler::Sync(wrappers::GetSystemDirectoryA),
         },
         Shim {
             name: "GetSystemTime",
-            func: Handler::Sync(impls::GetSystemTime),
+            func: Handler::Sync(wrappers::GetSystemTime),
         },
         Shim {
             name: "GetSystemTimeAsFileTime",
-            func: Handler::Sync(impls::GetSystemTimeAsFileTime),
+            func: Handler::Sync(wrappers::GetSystemTimeAsFileTime),
         },
         Shim {
             name: "GetTickCount",
-            func: Handler::Sync(impls::GetTickCount),
+            func: Handler::Sync(wrappers::GetTickCount),
         },
         Shim {
             name: "GetTimeZoneInformation",
-            func: Handler::Sync(impls::GetTimeZoneInformation),
+            func: Handler::Sync(wrappers::GetTimeZoneInformation),
         },
         Shim {
             name: "GetVersion",
-            func: Handler::Sync(impls::GetVersion),
+            func: Handler::Sync(wrappers::GetVersion),
         },
         Shim {
             name: "GetVersionExA",
-            func: Handler::Sync(impls::GetVersionExA),
+            func: Handler::Sync(wrappers::GetVersionExA),
         },
         Shim {
             name: "GetWindowsDirectoryA",
-            func: Handler::Sync(impls::GetWindowsDirectoryA),
+            func: Handler::Sync(wrappers::GetWindowsDirectoryA),
         },
         Shim {
             name: "GlobalAlloc",
-            func: Handler::Sync(impls::GlobalAlloc),
+            func: Handler::Sync(wrappers::GlobalAlloc),
         },
         Shim {
             name: "GlobalFlags",
-            func: Handler::Sync(impls::GlobalFlags),
+            func: Handler::Sync(wrappers::GlobalFlags),
         },
         Shim {
             name: "GlobalFree",
-            func: Handler::Sync(impls::GlobalFree),
+            func: Handler::Sync(wrappers::GlobalFree),
         },
         Shim {
             name: "GlobalReAlloc",
-            func: Handler::Sync(impls::GlobalReAlloc),
+            func: Handler::Sync(wrappers::GlobalReAlloc),
         },
         Shim {
             name: "HeapAlloc",
-            func: Handler::Sync(impls::HeapAlloc),
+            func: Handler::Sync(wrappers::HeapAlloc),
         },
         Shim {
             name: "HeapCreate",
-            func: Handler::Sync(impls::HeapCreate),
+            func: Handler::Sync(wrappers::HeapCreate),
         },
         Shim {
             name: "HeapDestroy",
-            func: Handler::Sync(impls::HeapDestroy),
+            func: Handler::Sync(wrappers::HeapDestroy),
         },
         Shim {
             name: "HeapFree",
-            func: Handler::Sync(impls::HeapFree),
+            func: Handler::Sync(wrappers::HeapFree),
         },
         Shim {
             name: "HeapReAlloc",
-            func: Handler::Sync(impls::HeapReAlloc),
+            func: Handler::Sync(wrappers::HeapReAlloc),
         },
         Shim {
             name: "HeapSetInformation",
-            func: Handler::Sync(impls::HeapSetInformation),
+            func: Handler::Sync(wrappers::HeapSetInformation),
         },
         Shim {
             name: "HeapSize",
-            func: Handler::Sync(impls::HeapSize),
+            func: Handler::Sync(wrappers::HeapSize),
         },
         Shim {
             name: "HeapValidate",
-            func: Handler::Sync(impls::HeapValidate),
+            func: Handler::Sync(wrappers::HeapValidate),
         },
         Shim {
             name: "InitOnceBeginInitialize",
-            func: Handler::Sync(impls::InitOnceBeginInitialize),
+            func: Handler::Sync(wrappers::InitOnceBeginInitialize),
         },
         Shim {
             name: "InitOnceComplete",
-            func: Handler::Sync(impls::InitOnceComplete),
+            func: Handler::Sync(wrappers::InitOnceComplete),
         },
         Shim {
             name: "InitializeCriticalSection",
-            func: Handler::Sync(impls::InitializeCriticalSection),
+            func: Handler::Sync(wrappers::InitializeCriticalSection),
         },
         Shim {
             name: "InitializeCriticalSectionAndSpinCount",
-            func: Handler::Sync(impls::InitializeCriticalSectionAndSpinCount),
+            func: Handler::Sync(wrappers::InitializeCriticalSectionAndSpinCount),
         },
         Shim {
             name: "InitializeCriticalSectionEx",
-            func: Handler::Sync(impls::InitializeCriticalSectionEx),
+            func: Handler::Sync(wrappers::InitializeCriticalSectionEx),
         },
         Shim {
             name: "InitializeSListHead",
-            func: Handler::Sync(impls::InitializeSListHead),
+            func: Handler::Sync(wrappers::InitializeSListHead),
         },
         Shim {
             name: "InterlockedDecrement",
-            func: Handler::Sync(impls::InterlockedDecrement),
+            func: Handler::Sync(wrappers::InterlockedDecrement),
         },
         Shim {
             name: "InterlockedIncrement",
-            func: Handler::Sync(impls::InterlockedIncrement),
+            func: Handler::Sync(wrappers::InterlockedIncrement),
         },
         Shim {
             name: "IsBadCodePtr",
-            func: Handler::Sync(impls::IsBadCodePtr),
+            func: Handler::Sync(wrappers::IsBadCodePtr),
         },
         Shim {
             name: "IsBadReadPtr",
-            func: Handler::Sync(impls::IsBadReadPtr),
+            func: Handler::Sync(wrappers::IsBadReadPtr),
         },
         Shim {
             name: "IsBadWritePtr",
-            func: Handler::Sync(impls::IsBadWritePtr),
+            func: Handler::Sync(wrappers::IsBadWritePtr),
         },
         Shim {
             name: "IsDBCSLeadByte",
-            func: Handler::Sync(impls::IsDBCSLeadByte),
+            func: Handler::Sync(wrappers::IsDBCSLeadByte),
         },
         Shim {
             name: "IsDBCSLeadByteEx",
-            func: Handler::Sync(impls::IsDBCSLeadByteEx),
+            func: Handler::Sync(wrappers::IsDBCSLeadByteEx),
         },
         Shim {
             name: "IsDebuggerPresent",
-            func: Handler::Sync(impls::IsDebuggerPresent),
+            func: Handler::Sync(wrappers::IsDebuggerPresent),
         },
         Shim {
             name: "IsProcessorFeaturePresent",
-            func: Handler::Sync(impls::IsProcessorFeaturePresent),
+            func: Handler::Sync(wrappers::IsProcessorFeaturePresent),
         },
         Shim {
             name: "IsValidCodePage",
-            func: Handler::Sync(impls::IsValidCodePage),
+            func: Handler::Sync(wrappers::IsValidCodePage),
         },
         Shim {
             name: "LCMapStringA",
-            func: Handler::Sync(impls::LCMapStringA),
+            func: Handler::Sync(wrappers::LCMapStringA),
         },
         Shim {
             name: "LCMapStringW",
-            func: Handler::Sync(impls::LCMapStringW),
+            func: Handler::Sync(wrappers::LCMapStringW),
         },
         Shim {
             name: "LeaveCriticalSection",
-            func: Handler::Sync(impls::LeaveCriticalSection),
+            func: Handler::Sync(wrappers::LeaveCriticalSection),
         },
         Shim {
             name: "LoadLibraryA",
-            func: Handler::Sync(impls::LoadLibraryA),
+            func: Handler::Sync(wrappers::LoadLibraryA),
         },
         Shim {
             name: "LoadLibraryExW",
-            func: Handler::Sync(impls::LoadLibraryExW),
+            func: Handler::Sync(wrappers::LoadLibraryExW),
         },
         Shim {
             name: "LoadResource",
-            func: Handler::Sync(impls::LoadResource),
+            func: Handler::Sync(wrappers::LoadResource),
         },
         Shim {
             name: "LocalAlloc",
-            func: Handler::Sync(impls::LocalAlloc),
+            func: Handler::Sync(wrappers::LocalAlloc),
         },
         Shim {
             name: "LocalFree",
-            func: Handler::Sync(impls::LocalFree),
+            func: Handler::Sync(wrappers::LocalFree),
         },
         Shim {
             name: "LockResource",
-            func: Handler::Sync(impls::LockResource),
+            func: Handler::Sync(wrappers::LockResource),
         },
         Shim {
             name: "MulDiv",
-            func: Handler::Sync(impls::MulDiv),
+            func: Handler::Sync(wrappers::MulDiv),
         },
         Shim {
             name: "MultiByteToWideChar",
-            func: Handler::Sync(impls::MultiByteToWideChar),
+            func: Handler::Sync(wrappers::MultiByteToWideChar),
         },
         Shim {
             name: "NtCurrentTeb",
-            func: Handler::Sync(impls::NtCurrentTeb),
+            func: Handler::Sync(wrappers::NtCurrentTeb),
         },
         Shim {
             name: "OutputDebugStringA",
-            func: Handler::Sync(impls::OutputDebugStringA),
+            func: Handler::Sync(wrappers::OutputDebugStringA),
         },
         Shim {
             name: "QueryPerformanceCounter",
-            func: Handler::Sync(impls::QueryPerformanceCounter),
+            func: Handler::Sync(wrappers::QueryPerformanceCounter),
         },
         Shim {
             name: "QueryPerformanceFrequency",
-            func: Handler::Sync(impls::QueryPerformanceFrequency),
+            func: Handler::Sync(wrappers::QueryPerformanceFrequency),
         },
         Shim {
             name: "RaiseException",
-            func: Handler::Sync(impls::RaiseException),
+            func: Handler::Sync(wrappers::RaiseException),
         },
         Shim {
             name: "ReadFile",
-            func: Handler::Sync(impls::ReadFile),
+            func: Handler::Sync(wrappers::ReadFile),
         },
         Shim {
             name: "ReleaseSRWLockExclusive",
-            func: Handler::Sync(impls::ReleaseSRWLockExclusive),
+            func: Handler::Sync(wrappers::ReleaseSRWLockExclusive),
         },
         Shim {
             name: "ReleaseSRWLockShared",
-            func: Handler::Sync(impls::ReleaseSRWLockShared),
+            func: Handler::Sync(wrappers::ReleaseSRWLockShared),
         },
         Shim {
             name: "RemoveDirectoryA",
-            func: Handler::Sync(impls::RemoveDirectoryA),
+            func: Handler::Sync(wrappers::RemoveDirectoryA),
         },
         Shim {
             name: "ResumeThread",
-            func: Handler::Sync(impls::ResumeThread),
+            func: Handler::Sync(wrappers::ResumeThread),
         },
         Shim {
             name: "RtlUnwind",
-            func: Handler::Sync(impls::RtlUnwind),
+            func: Handler::Sync(wrappers::RtlUnwind),
         },
         Shim {
             name: "SetConsoleCtrlHandler",
-            func: Handler::Sync(impls::SetConsoleCtrlHandler),
+            func: Handler::Sync(wrappers::SetConsoleCtrlHandler),
         },
         Shim {
             name: "SetEndOfFile",
-            func: Handler::Sync(impls::SetEndOfFile),
+            func: Handler::Sync(wrappers::SetEndOfFile),
         },
         Shim {
             name: "SetEnvironmentVariableA",
-            func: Handler::Sync(impls::SetEnvironmentVariableA),
+            func: Handler::Sync(wrappers::SetEnvironmentVariableA),
         },
         Shim {
             name: "SetEvent",
-            func: Handler::Sync(impls::SetEvent),
+            func: Handler::Sync(wrappers::SetEvent),
         },
         Shim {
             name: "SetFileAttributesA",
-            func: Handler::Sync(impls::SetFileAttributesA),
+            func: Handler::Sync(wrappers::SetFileAttributesA),
         },
         Shim {
             name: "SetFilePointer",
-            func: Handler::Sync(impls::SetFilePointer),
+            func: Handler::Sync(wrappers::SetFilePointer),
         },
         Shim {
             name: "SetFileTime",
-            func: Handler::Sync(impls::SetFileTime),
+            func: Handler::Sync(wrappers::SetFileTime),
         },
         Shim {
             name: "SetHandleCount",
-            func: Handler::Sync(impls::SetHandleCount),
+            func: Handler::Sync(wrappers::SetHandleCount),
         },
         Shim {
             name: "SetLastError",
-            func: Handler::Sync(impls::SetLastError),
+            func: Handler::Sync(wrappers::SetLastError),
         },
         Shim {
             name: "SetPriorityClass",
-            func: Handler::Sync(impls::SetPriorityClass),
+            func: Handler::Sync(wrappers::SetPriorityClass),
         },
         Shim {
             name: "SetStdHandle",
-            func: Handler::Sync(impls::SetStdHandle),
+            func: Handler::Sync(wrappers::SetStdHandle),
         },
         Shim {
             name: "SetThreadDescription",
-            func: Handler::Sync(impls::SetThreadDescription),
+            func: Handler::Sync(wrappers::SetThreadDescription),
         },
         Shim {
             name: "SetThreadPriority",
-            func: Handler::Sync(impls::SetThreadPriority),
+            func: Handler::Sync(wrappers::SetThreadPriority),
         },
         Shim {
             name: "SetThreadStackGuarantee",
-            func: Handler::Sync(impls::SetThreadStackGuarantee),
+            func: Handler::Sync(wrappers::SetThreadStackGuarantee),
         },
         Shim {
             name: "SetUnhandledExceptionFilter",
-            func: Handler::Sync(impls::SetUnhandledExceptionFilter),
+            func: Handler::Sync(wrappers::SetUnhandledExceptionFilter),
         },
         Shim {
             name: "SizeofResource",
-            func: Handler::Sync(impls::SizeofResource),
+            func: Handler::Sync(wrappers::SizeofResource),
         },
         Shim {
             name: "Sleep",
-            func: Handler::Async(impls::Sleep),
+            func: Handler::Async(wrappers::Sleep),
         },
         Shim {
             name: "SystemTimeToFileTime",
-            func: Handler::Sync(impls::SystemTimeToFileTime),
+            func: Handler::Sync(wrappers::SystemTimeToFileTime),
         },
         Shim {
             name: "TerminateProcess",
-            func: Handler::Sync(impls::TerminateProcess),
+            func: Handler::Sync(wrappers::TerminateProcess),
         },
         Shim {
             name: "TlsAlloc",
-            func: Handler::Sync(impls::TlsAlloc),
+            func: Handler::Sync(wrappers::TlsAlloc),
         },
         Shim {
             name: "TlsFree",
-            func: Handler::Sync(impls::TlsFree),
+            func: Handler::Sync(wrappers::TlsFree),
         },
         Shim {
             name: "TlsGetValue",
-            func: Handler::Sync(impls::TlsGetValue),
+            func: Handler::Sync(wrappers::TlsGetValue),
         },
         Shim {
             name: "TlsSetValue",
-            func: Handler::Sync(impls::TlsSetValue),
+            func: Handler::Sync(wrappers::TlsSetValue),
         },
         Shim {
             name: "TryAcquireSRWLockExclusive",
-            func: Handler::Sync(impls::TryAcquireSRWLockExclusive),
+            func: Handler::Sync(wrappers::TryAcquireSRWLockExclusive),
         },
         Shim {
             name: "UnhandledExceptionFilter",
-            func: Handler::Sync(impls::UnhandledExceptionFilter),
+            func: Handler::Sync(wrappers::UnhandledExceptionFilter),
         },
         Shim {
             name: "VirtualAlloc",
-            func: Handler::Sync(impls::VirtualAlloc),
+            func: Handler::Sync(wrappers::VirtualAlloc),
         },
         Shim {
             name: "VirtualFree",
-            func: Handler::Sync(impls::VirtualFree),
+            func: Handler::Sync(wrappers::VirtualFree),
         },
         Shim {
             name: "VirtualProtect",
-            func: Handler::Sync(impls::VirtualProtect),
+            func: Handler::Sync(wrappers::VirtualProtect),
         },
         Shim {
             name: "VirtualQuery",
-            func: Handler::Sync(impls::VirtualQuery),
+            func: Handler::Sync(wrappers::VirtualQuery),
         },
         Shim {
             name: "WaitForSingleObject",
-            func: Handler::Sync(impls::WaitForSingleObject),
+            func: Handler::Sync(wrappers::WaitForSingleObject),
         },
         Shim {
             name: "WideCharToMultiByte",
-            func: Handler::Sync(impls::WideCharToMultiByte),
+            func: Handler::Sync(wrappers::WideCharToMultiByte),
         },
         Shim {
             name: "WriteConsoleA",
-            func: Handler::Sync(impls::WriteConsoleA),
+            func: Handler::Sync(wrappers::WriteConsoleA),
         },
         Shim {
             name: "WriteConsoleW",
-            func: Handler::Sync(impls::WriteConsoleW),
+            func: Handler::Sync(wrappers::WriteConsoleW),
         },
         Shim {
             name: "WriteFile",
-            func: Handler::Sync(impls::WriteFile),
+            func: Handler::Sync(wrappers::WriteFile),
         },
         Shim {
             name: "WriteProfileStringW",
-            func: Handler::Sync(impls::WriteProfileStringW),
+            func: Handler::Sync(wrappers::WriteProfileStringW),
         },
         Shim {
             name: "lstrcmpiA",
-            func: Handler::Sync(impls::lstrcmpiA),
+            func: Handler::Sync(wrappers::lstrcmpiA),
         },
         Shim {
             name: "lstrcpyA",
-            func: Handler::Sync(impls::lstrcpyA),
+            func: Handler::Sync(wrappers::lstrcpyA),
         },
         Shim {
             name: "lstrcpyW",
-            func: Handler::Sync(impls::lstrcpyW),
+            func: Handler::Sync(wrappers::lstrcpyW),
         },
         Shim {
             name: "lstrlenA",
-            func: Handler::Sync(impls::lstrlenA),
+            func: Handler::Sync(wrappers::lstrlenA),
         },
         Shim {
             name: "lstrlenW",
-            func: Handler::Sync(impls::lstrlenW),
+            func: Handler::Sync(wrappers::lstrlenW),
         },
         Shim {
             name: "retrowin32_main",
-            func: Handler::Async(impls::retrowin32_main),
+            func: Handler::Async(wrappers::retrowin32_main),
         },
         Shim {
             name: "retrowin32_thread_main",
-            func: Handler::Async(impls::retrowin32_thread_main),
+            func: Handler::Async(wrappers::retrowin32_thread_main),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -9360,7 +9360,7 @@ pub mod kernel32 {
 }
 pub mod ntdll {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -9443,11 +9443,11 @@ pub mod ntdll {
     const SHIMS: [Shim; 2usize] = [
         Shim {
             name: "NtReadFile",
-            func: Handler::Sync(impls::NtReadFile),
+            func: Handler::Sync(wrappers::NtReadFile),
         },
         Shim {
             name: "RtlExitUserProcess",
-            func: Handler::Sync(impls::RtlExitUserProcess),
+            func: Handler::Sync(wrappers::RtlExitUserProcess),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -9458,7 +9458,7 @@ pub mod ntdll {
 }
 pub mod ole32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -9491,7 +9491,7 @@ pub mod ole32 {
     }
     const SHIMS: [Shim; 1usize] = [Shim {
         name: "OleInitialize",
-        func: Handler::Sync(impls::OleInitialize),
+        func: Handler::Sync(wrappers::OleInitialize),
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "ole32.dll",
@@ -9501,7 +9501,7 @@ pub mod ole32 {
 }
 pub mod oleaut32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -9518,7 +9518,7 @@ pub mod oleaut32 {
 }
 pub mod retrowin32_test {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -9560,7 +9560,7 @@ pub mod retrowin32_test {
     }
     const SHIMS: [Shim; 1usize] = [Shim {
         name: "retrowin32_test_callback1",
-        func: Handler::Async(impls::retrowin32_test_callback1),
+        func: Handler::Async(wrappers::retrowin32_test_callback1),
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "retrowin32_test.dll",
@@ -9570,7 +9570,7 @@ pub mod retrowin32_test {
 }
 pub mod ucrtbase {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -10348,131 +10348,131 @@ pub mod ucrtbase {
     const SHIMS: [Shim; 32usize] = [
         Shim {
             name: "_XcptFilter",
-            func: Handler::Sync(impls::_XcptFilter),
+            func: Handler::Sync(wrappers::_XcptFilter),
         },
         Shim {
             name: "__dllonexit",
-            func: Handler::Sync(impls::__dllonexit),
+            func: Handler::Sync(wrappers::__dllonexit),
         },
         Shim {
             name: "__getmainargs",
-            func: Handler::Sync(impls::__getmainargs),
+            func: Handler::Sync(wrappers::__getmainargs),
         },
         Shim {
             name: "__p___argc",
-            func: Handler::Sync(impls::__p___argc),
+            func: Handler::Sync(wrappers::__p___argc),
         },
         Shim {
             name: "__p___argv",
-            func: Handler::Sync(impls::__p___argv),
+            func: Handler::Sync(wrappers::__p___argv),
         },
         Shim {
             name: "__p__commode",
-            func: Handler::Sync(impls::__p__commode),
+            func: Handler::Sync(wrappers::__p__commode),
         },
         Shim {
             name: "__p__fmode",
-            func: Handler::Sync(impls::__p__fmode),
+            func: Handler::Sync(wrappers::__p__fmode),
         },
         Shim {
             name: "__set_app_type",
-            func: Handler::Sync(impls::__set_app_type),
+            func: Handler::Sync(wrappers::__set_app_type),
         },
         Shim {
             name: "__setusermatherr",
-            func: Handler::Sync(impls::__setusermatherr),
+            func: Handler::Sync(wrappers::__setusermatherr),
         },
         Shim {
             name: "_configthreadlocale",
-            func: Handler::Sync(impls::_configthreadlocale),
+            func: Handler::Sync(wrappers::_configthreadlocale),
         },
         Shim {
             name: "_configure_narrow_argv",
-            func: Handler::Sync(impls::_configure_narrow_argv),
+            func: Handler::Sync(wrappers::_configure_narrow_argv),
         },
         Shim {
             name: "_controlfp",
-            func: Handler::Sync(impls::_controlfp),
+            func: Handler::Sync(wrappers::_controlfp),
         },
         Shim {
             name: "_controlfp_s",
-            func: Handler::Sync(impls::_controlfp_s),
+            func: Handler::Sync(wrappers::_controlfp_s),
         },
         Shim {
             name: "_crt_atexit",
-            func: Handler::Sync(impls::_crt_atexit),
+            func: Handler::Sync(wrappers::_crt_atexit),
         },
         Shim {
             name: "_except_handler3",
-            func: Handler::Sync(impls::_except_handler3),
+            func: Handler::Sync(wrappers::_except_handler3),
         },
         Shim {
             name: "_exit",
-            func: Handler::Sync(impls::_exit),
+            func: Handler::Sync(wrappers::_exit),
         },
         Shim {
             name: "_get_initial_narrow_environment",
-            func: Handler::Sync(impls::_get_initial_narrow_environment),
+            func: Handler::Sync(wrappers::_get_initial_narrow_environment),
         },
         Shim {
             name: "_initialize_narrow_environment",
-            func: Handler::Sync(impls::_initialize_narrow_environment),
+            func: Handler::Sync(wrappers::_initialize_narrow_environment),
         },
         Shim {
             name: "_initterm",
-            func: Handler::Async(impls::_initterm),
+            func: Handler::Async(wrappers::_initterm),
         },
         Shim {
             name: "_initterm_e",
-            func: Handler::Async(impls::_initterm_e),
+            func: Handler::Async(wrappers::_initterm_e),
         },
         Shim {
             name: "_lock",
-            func: Handler::Sync(impls::_lock),
+            func: Handler::Sync(wrappers::_lock),
         },
         Shim {
             name: "_set_app_type",
-            func: Handler::Sync(impls::_set_app_type),
+            func: Handler::Sync(wrappers::_set_app_type),
         },
         Shim {
             name: "_set_fmode",
-            func: Handler::Sync(impls::_set_fmode),
+            func: Handler::Sync(wrappers::_set_fmode),
         },
         Shim {
             name: "_set_new_mode",
-            func: Handler::Sync(impls::_set_new_mode),
+            func: Handler::Sync(wrappers::_set_new_mode),
         },
         Shim {
             name: "_time64",
-            func: Handler::Sync(impls::_time64),
+            func: Handler::Sync(wrappers::_time64),
         },
         Shim {
             name: "_unlock",
-            func: Handler::Sync(impls::_unlock),
+            func: Handler::Sync(wrappers::_unlock),
         },
         Shim {
             name: "exit",
-            func: Handler::Sync(impls::exit),
+            func: Handler::Sync(wrappers::exit),
         },
         Shim {
             name: "free",
-            func: Handler::Sync(impls::free),
+            func: Handler::Sync(wrappers::free),
         },
         Shim {
             name: "malloc",
-            func: Handler::Sync(impls::malloc),
+            func: Handler::Sync(wrappers::malloc),
         },
         Shim {
             name: "rand",
-            func: Handler::Sync(impls::rand),
+            func: Handler::Sync(wrappers::rand),
         },
         Shim {
             name: "srand",
-            func: Handler::Sync(impls::srand),
+            func: Handler::Sync(wrappers::srand),
         },
         Shim {
             name: "time",
-            func: Handler::Sync(impls::time),
+            func: Handler::Sync(wrappers::time),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -10483,7 +10483,7 @@ pub mod ucrtbase {
 }
 pub mod vcruntime140 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -10597,19 +10597,19 @@ pub mod vcruntime140 {
     const SHIMS: [Shim; 4usize] = [
         Shim {
             name: "_CxxThrowException",
-            func: Handler::Sync(impls::_CxxThrowException),
+            func: Handler::Sync(wrappers::_CxxThrowException),
         },
         Shim {
             name: "memcmp",
-            func: Handler::Sync(impls::memcmp),
+            func: Handler::Sync(wrappers::memcmp),
         },
         Shim {
             name: "memcpy",
-            func: Handler::Sync(impls::memcpy),
+            func: Handler::Sync(wrappers::memcpy),
         },
         Shim {
             name: "memset",
-            func: Handler::Sync(impls::memset),
+            func: Handler::Sync(wrappers::memset),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -10620,7 +10620,7 @@ pub mod vcruntime140 {
 }
 pub mod version {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -10658,7 +10658,7 @@ pub mod version {
     }
     const SHIMS: [Shim; 1usize] = [Shim {
         name: "GetFileVersionInfoSizeA",
-        func: Handler::Sync(impls::GetFileVersionInfoSizeA),
+        func: Handler::Sync(wrappers::GetFileVersionInfoSizeA),
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "version.dll",
@@ -10668,7 +10668,7 @@ pub mod version {
 }
 pub mod user32 {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -14040,475 +14040,475 @@ pub mod user32 {
     const SHIMS: [Shim; 118usize] = [
         Shim {
             name: "AdjustWindowRect",
-            func: Handler::Sync(impls::AdjustWindowRect),
+            func: Handler::Sync(wrappers::AdjustWindowRect),
         },
         Shim {
             name: "AdjustWindowRectEx",
-            func: Handler::Sync(impls::AdjustWindowRectEx),
+            func: Handler::Sync(wrappers::AdjustWindowRectEx),
         },
         Shim {
             name: "AppendMenuA",
-            func: Handler::Sync(impls::AppendMenuA),
+            func: Handler::Sync(wrappers::AppendMenuA),
         },
         Shim {
             name: "BeginPaint",
-            func: Handler::Sync(impls::BeginPaint),
+            func: Handler::Sync(wrappers::BeginPaint),
         },
         Shim {
             name: "CheckDlgButton",
-            func: Handler::Sync(impls::CheckDlgButton),
+            func: Handler::Sync(wrappers::CheckDlgButton),
         },
         Shim {
             name: "CheckMenuItem",
-            func: Handler::Sync(impls::CheckMenuItem),
+            func: Handler::Sync(wrappers::CheckMenuItem),
         },
         Shim {
             name: "CheckRadioButton",
-            func: Handler::Sync(impls::CheckRadioButton),
+            func: Handler::Sync(wrappers::CheckRadioButton),
         },
         Shim {
             name: "ClientToScreen",
-            func: Handler::Sync(impls::ClientToScreen),
+            func: Handler::Sync(wrappers::ClientToScreen),
         },
         Shim {
             name: "CopyRect",
-            func: Handler::Sync(impls::CopyRect),
+            func: Handler::Sync(wrappers::CopyRect),
         },
         Shim {
             name: "CreateCursor",
-            func: Handler::Sync(impls::CreateCursor),
+            func: Handler::Sync(wrappers::CreateCursor),
         },
         Shim {
             name: "CreatePopupMenu",
-            func: Handler::Sync(impls::CreatePopupMenu),
+            func: Handler::Sync(wrappers::CreatePopupMenu),
         },
         Shim {
             name: "CreateWindowExA",
-            func: Handler::Async(impls::CreateWindowExA),
+            func: Handler::Async(wrappers::CreateWindowExA),
         },
         Shim {
             name: "CreateWindowExW",
-            func: Handler::Async(impls::CreateWindowExW),
+            func: Handler::Async(wrappers::CreateWindowExW),
         },
         Shim {
             name: "DefWindowProcA",
-            func: Handler::Async(impls::DefWindowProcA),
+            func: Handler::Async(wrappers::DefWindowProcA),
         },
         Shim {
             name: "DefWindowProcW",
-            func: Handler::Async(impls::DefWindowProcW),
+            func: Handler::Async(wrappers::DefWindowProcW),
         },
         Shim {
             name: "DestroyWindow",
-            func: Handler::Sync(impls::DestroyWindow),
+            func: Handler::Sync(wrappers::DestroyWindow),
         },
         Shim {
             name: "DialogBoxIndirectParamA",
-            func: Handler::Sync(impls::DialogBoxIndirectParamA),
+            func: Handler::Sync(wrappers::DialogBoxIndirectParamA),
         },
         Shim {
             name: "DialogBoxParamA",
-            func: Handler::Sync(impls::DialogBoxParamA),
+            func: Handler::Sync(wrappers::DialogBoxParamA),
         },
         Shim {
             name: "DialogBoxParamW",
-            func: Handler::Sync(impls::DialogBoxParamW),
+            func: Handler::Sync(wrappers::DialogBoxParamW),
         },
         Shim {
             name: "DispatchMessageA",
-            func: Handler::Async(impls::DispatchMessageA),
+            func: Handler::Async(wrappers::DispatchMessageA),
         },
         Shim {
             name: "DispatchMessageW",
-            func: Handler::Async(impls::DispatchMessageW),
+            func: Handler::Async(wrappers::DispatchMessageW),
         },
         Shim {
             name: "DrawTextW",
-            func: Handler::Sync(impls::DrawTextW),
+            func: Handler::Sync(wrappers::DrawTextW),
         },
         Shim {
             name: "EnableMenuItem",
-            func: Handler::Sync(impls::EnableMenuItem),
+            func: Handler::Sync(wrappers::EnableMenuItem),
         },
         Shim {
             name: "EnableWindow",
-            func: Handler::Sync(impls::EnableWindow),
+            func: Handler::Sync(wrappers::EnableWindow),
         },
         Shim {
             name: "EndDialog",
-            func: Handler::Sync(impls::EndDialog),
+            func: Handler::Sync(wrappers::EndDialog),
         },
         Shim {
             name: "EndPaint",
-            func: Handler::Sync(impls::EndPaint),
+            func: Handler::Sync(wrappers::EndPaint),
         },
         Shim {
             name: "FillRect",
-            func: Handler::Sync(impls::FillRect),
+            func: Handler::Sync(wrappers::FillRect),
         },
         Shim {
             name: "FindWindowA",
-            func: Handler::Sync(impls::FindWindowA),
+            func: Handler::Sync(wrappers::FindWindowA),
         },
         Shim {
             name: "FrameRect",
-            func: Handler::Sync(impls::FrameRect),
+            func: Handler::Sync(wrappers::FrameRect),
         },
         Shim {
             name: "GetActiveWindow",
-            func: Handler::Sync(impls::GetActiveWindow),
+            func: Handler::Sync(wrappers::GetActiveWindow),
         },
         Shim {
             name: "GetCapture",
-            func: Handler::Sync(impls::GetCapture),
+            func: Handler::Sync(wrappers::GetCapture),
         },
         Shim {
             name: "GetClientRect",
-            func: Handler::Sync(impls::GetClientRect),
+            func: Handler::Sync(wrappers::GetClientRect),
         },
         Shim {
             name: "GetDC",
-            func: Handler::Sync(impls::GetDC),
+            func: Handler::Sync(wrappers::GetDC),
         },
         Shim {
             name: "GetDesktopWindow",
-            func: Handler::Sync(impls::GetDesktopWindow),
+            func: Handler::Sync(wrappers::GetDesktopWindow),
         },
         Shim {
             name: "GetDlgItem",
-            func: Handler::Sync(impls::GetDlgItem),
+            func: Handler::Sync(wrappers::GetDlgItem),
         },
         Shim {
             name: "GetDlgItemInt",
-            func: Handler::Sync(impls::GetDlgItemInt),
+            func: Handler::Sync(wrappers::GetDlgItemInt),
         },
         Shim {
             name: "GetDlgItemTextW",
-            func: Handler::Sync(impls::GetDlgItemTextW),
+            func: Handler::Sync(wrappers::GetDlgItemTextW),
         },
         Shim {
             name: "GetFocus",
-            func: Handler::Sync(impls::GetFocus),
+            func: Handler::Sync(wrappers::GetFocus),
         },
         Shim {
             name: "GetForegroundWindow",
-            func: Handler::Sync(impls::GetForegroundWindow),
+            func: Handler::Sync(wrappers::GetForegroundWindow),
         },
         Shim {
             name: "GetKeyState",
-            func: Handler::Sync(impls::GetKeyState),
+            func: Handler::Sync(wrappers::GetKeyState),
         },
         Shim {
             name: "GetLastActivePopup",
-            func: Handler::Sync(impls::GetLastActivePopup),
+            func: Handler::Sync(wrappers::GetLastActivePopup),
         },
         Shim {
             name: "GetMenu",
-            func: Handler::Sync(impls::GetMenu),
+            func: Handler::Sync(wrappers::GetMenu),
         },
         Shim {
             name: "GetMenuItemRect",
-            func: Handler::Sync(impls::GetMenuItemRect),
+            func: Handler::Sync(wrappers::GetMenuItemRect),
         },
         Shim {
             name: "GetMessageA",
-            func: Handler::Async(impls::GetMessageA),
+            func: Handler::Async(wrappers::GetMessageA),
         },
         Shim {
             name: "GetMessageW",
-            func: Handler::Async(impls::GetMessageW),
+            func: Handler::Async(wrappers::GetMessageW),
         },
         Shim {
             name: "GetSubMenu",
-            func: Handler::Sync(impls::GetSubMenu),
+            func: Handler::Sync(wrappers::GetSubMenu),
         },
         Shim {
             name: "GetSysColor",
-            func: Handler::Sync(impls::GetSysColor),
+            func: Handler::Sync(wrappers::GetSysColor),
         },
         Shim {
             name: "GetSystemMenu",
-            func: Handler::Sync(impls::GetSystemMenu),
+            func: Handler::Sync(wrappers::GetSystemMenu),
         },
         Shim {
             name: "GetSystemMetrics",
-            func: Handler::Sync(impls::GetSystemMetrics),
+            func: Handler::Sync(wrappers::GetSystemMetrics),
         },
         Shim {
             name: "GetWindowDC",
-            func: Handler::Sync(impls::GetWindowDC),
+            func: Handler::Sync(wrappers::GetWindowDC),
         },
         Shim {
             name: "GetWindowLongA",
-            func: Handler::Sync(impls::GetWindowLongA),
+            func: Handler::Sync(wrappers::GetWindowLongA),
         },
         Shim {
             name: "GetWindowPlacement",
-            func: Handler::Sync(impls::GetWindowPlacement),
+            func: Handler::Sync(wrappers::GetWindowPlacement),
         },
         Shim {
             name: "GetWindowRect",
-            func: Handler::Sync(impls::GetWindowRect),
+            func: Handler::Sync(wrappers::GetWindowRect),
         },
         Shim {
             name: "InflateRect",
-            func: Handler::Sync(impls::InflateRect),
+            func: Handler::Sync(wrappers::InflateRect),
         },
         Shim {
             name: "IntersectRect",
-            func: Handler::Sync(impls::IntersectRect),
+            func: Handler::Sync(wrappers::IntersectRect),
         },
         Shim {
             name: "InvalidateRect",
-            func: Handler::Sync(impls::InvalidateRect),
+            func: Handler::Sync(wrappers::InvalidateRect),
         },
         Shim {
             name: "InvalidateRgn",
-            func: Handler::Sync(impls::InvalidateRgn),
+            func: Handler::Sync(wrappers::InvalidateRgn),
         },
         Shim {
             name: "InvertRect",
-            func: Handler::Sync(impls::InvertRect),
+            func: Handler::Sync(wrappers::InvertRect),
         },
         Shim {
             name: "IsDlgButtonChecked",
-            func: Handler::Sync(impls::IsDlgButtonChecked),
+            func: Handler::Sync(wrappers::IsDlgButtonChecked),
         },
         Shim {
             name: "IsIconic",
-            func: Handler::Sync(impls::IsIconic),
+            func: Handler::Sync(wrappers::IsIconic),
         },
         Shim {
             name: "IsRectEmpty",
-            func: Handler::Sync(impls::IsRectEmpty),
+            func: Handler::Sync(wrappers::IsRectEmpty),
         },
         Shim {
             name: "KillTimer",
-            func: Handler::Sync(impls::KillTimer),
+            func: Handler::Sync(wrappers::KillTimer),
         },
         Shim {
             name: "LoadAcceleratorsW",
-            func: Handler::Sync(impls::LoadAcceleratorsW),
+            func: Handler::Sync(wrappers::LoadAcceleratorsW),
         },
         Shim {
             name: "LoadBitmapA",
-            func: Handler::Sync(impls::LoadBitmapA),
+            func: Handler::Sync(wrappers::LoadBitmapA),
         },
         Shim {
             name: "LoadCursorA",
-            func: Handler::Sync(impls::LoadCursorA),
+            func: Handler::Sync(wrappers::LoadCursorA),
         },
         Shim {
             name: "LoadCursorW",
-            func: Handler::Sync(impls::LoadCursorW),
+            func: Handler::Sync(wrappers::LoadCursorW),
         },
         Shim {
             name: "LoadIconA",
-            func: Handler::Sync(impls::LoadIconA),
+            func: Handler::Sync(wrappers::LoadIconA),
         },
         Shim {
             name: "LoadIconW",
-            func: Handler::Sync(impls::LoadIconW),
+            func: Handler::Sync(wrappers::LoadIconW),
         },
         Shim {
             name: "LoadImageA",
-            func: Handler::Sync(impls::LoadImageA),
+            func: Handler::Sync(wrappers::LoadImageA),
         },
         Shim {
             name: "LoadImageW",
-            func: Handler::Sync(impls::LoadImageW),
+            func: Handler::Sync(wrappers::LoadImageW),
         },
         Shim {
             name: "LoadMenuA",
-            func: Handler::Sync(impls::LoadMenuA),
+            func: Handler::Sync(wrappers::LoadMenuA),
         },
         Shim {
             name: "LoadMenuW",
-            func: Handler::Sync(impls::LoadMenuW),
+            func: Handler::Sync(wrappers::LoadMenuW),
         },
         Shim {
             name: "LoadStringA",
-            func: Handler::Sync(impls::LoadStringA),
+            func: Handler::Sync(wrappers::LoadStringA),
         },
         Shim {
             name: "LoadStringW",
-            func: Handler::Sync(impls::LoadStringW),
+            func: Handler::Sync(wrappers::LoadStringW),
         },
         Shim {
             name: "MapWindowPoints",
-            func: Handler::Sync(impls::MapWindowPoints),
+            func: Handler::Sync(wrappers::MapWindowPoints),
         },
         Shim {
             name: "MessageBoxA",
-            func: Handler::Sync(impls::MessageBoxA),
+            func: Handler::Sync(wrappers::MessageBoxA),
         },
         Shim {
             name: "MessageBoxW",
-            func: Handler::Sync(impls::MessageBoxW),
+            func: Handler::Sync(wrappers::MessageBoxW),
         },
         Shim {
             name: "MoveWindow",
-            func: Handler::Sync(impls::MoveWindow),
+            func: Handler::Sync(wrappers::MoveWindow),
         },
         Shim {
             name: "MsgWaitForMultipleObjects",
-            func: Handler::Sync(impls::MsgWaitForMultipleObjects),
+            func: Handler::Sync(wrappers::MsgWaitForMultipleObjects),
         },
         Shim {
             name: "PeekMessageA",
-            func: Handler::Sync(impls::PeekMessageA),
+            func: Handler::Sync(wrappers::PeekMessageA),
         },
         Shim {
             name: "PeekMessageW",
-            func: Handler::Sync(impls::PeekMessageW),
+            func: Handler::Sync(wrappers::PeekMessageW),
         },
         Shim {
             name: "PostMessageW",
-            func: Handler::Sync(impls::PostMessageW),
+            func: Handler::Sync(wrappers::PostMessageW),
         },
         Shim {
             name: "PostQuitMessage",
-            func: Handler::Sync(impls::PostQuitMessage),
+            func: Handler::Sync(wrappers::PostQuitMessage),
         },
         Shim {
             name: "PtInRect",
-            func: Handler::Sync(impls::PtInRect),
+            func: Handler::Sync(wrappers::PtInRect),
         },
         Shim {
             name: "RegisterClassA",
-            func: Handler::Sync(impls::RegisterClassA),
+            func: Handler::Sync(wrappers::RegisterClassA),
         },
         Shim {
             name: "RegisterClassExA",
-            func: Handler::Sync(impls::RegisterClassExA),
+            func: Handler::Sync(wrappers::RegisterClassExA),
         },
         Shim {
             name: "RegisterClassExW",
-            func: Handler::Sync(impls::RegisterClassExW),
+            func: Handler::Sync(wrappers::RegisterClassExW),
         },
         Shim {
             name: "RegisterClassW",
-            func: Handler::Sync(impls::RegisterClassW),
+            func: Handler::Sync(wrappers::RegisterClassW),
         },
         Shim {
             name: "RegisterWindowMessageW",
-            func: Handler::Sync(impls::RegisterWindowMessageW),
+            func: Handler::Sync(wrappers::RegisterWindowMessageW),
         },
         Shim {
             name: "ReleaseCapture",
-            func: Handler::Sync(impls::ReleaseCapture),
+            func: Handler::Sync(wrappers::ReleaseCapture),
         },
         Shim {
             name: "ReleaseDC",
-            func: Handler::Sync(impls::ReleaseDC),
+            func: Handler::Sync(wrappers::ReleaseDC),
         },
         Shim {
             name: "SendMessageA",
-            func: Handler::Async(impls::SendMessageA),
+            func: Handler::Async(wrappers::SendMessageA),
         },
         Shim {
             name: "SendMessageW",
-            func: Handler::Async(impls::SendMessageW),
+            func: Handler::Async(wrappers::SendMessageW),
         },
         Shim {
             name: "SetCapture",
-            func: Handler::Sync(impls::SetCapture),
+            func: Handler::Sync(wrappers::SetCapture),
         },
         Shim {
             name: "SetCursor",
-            func: Handler::Sync(impls::SetCursor),
+            func: Handler::Sync(wrappers::SetCursor),
         },
         Shim {
             name: "SetCursorPos",
-            func: Handler::Sync(impls::SetCursorPos),
+            func: Handler::Sync(wrappers::SetCursorPos),
         },
         Shim {
             name: "SetDlgItemInt",
-            func: Handler::Sync(impls::SetDlgItemInt),
+            func: Handler::Sync(wrappers::SetDlgItemInt),
         },
         Shim {
             name: "SetDlgItemTextA",
-            func: Handler::Sync(impls::SetDlgItemTextA),
+            func: Handler::Sync(wrappers::SetDlgItemTextA),
         },
         Shim {
             name: "SetDlgItemTextW",
-            func: Handler::Sync(impls::SetDlgItemTextW),
+            func: Handler::Sync(wrappers::SetDlgItemTextW),
         },
         Shim {
             name: "SetFocus",
-            func: Handler::Sync(impls::SetFocus),
+            func: Handler::Sync(wrappers::SetFocus),
         },
         Shim {
             name: "SetForegroundWindow",
-            func: Handler::Sync(impls::SetForegroundWindow),
+            func: Handler::Sync(wrappers::SetForegroundWindow),
         },
         Shim {
             name: "SetMenu",
-            func: Handler::Sync(impls::SetMenu),
+            func: Handler::Sync(wrappers::SetMenu),
         },
         Shim {
             name: "SetMenuItemInfoA",
-            func: Handler::Sync(impls::SetMenuItemInfoA),
+            func: Handler::Sync(wrappers::SetMenuItemInfoA),
         },
         Shim {
             name: "SetRect",
-            func: Handler::Sync(impls::SetRect),
+            func: Handler::Sync(wrappers::SetRect),
         },
         Shim {
             name: "SetRectEmpty",
-            func: Handler::Sync(impls::SetRectEmpty),
+            func: Handler::Sync(wrappers::SetRectEmpty),
         },
         Shim {
             name: "SetTimer",
-            func: Handler::Sync(impls::SetTimer),
+            func: Handler::Sync(wrappers::SetTimer),
         },
         Shim {
             name: "SetWindowPos",
-            func: Handler::Async(impls::SetWindowPos),
+            func: Handler::Async(wrappers::SetWindowPos),
         },
         Shim {
             name: "SetWindowTextA",
-            func: Handler::Sync(impls::SetWindowTextA),
+            func: Handler::Sync(wrappers::SetWindowTextA),
         },
         Shim {
             name: "ShowCursor",
-            func: Handler::Sync(impls::ShowCursor),
+            func: Handler::Sync(wrappers::ShowCursor),
         },
         Shim {
             name: "ShowWindow",
-            func: Handler::Async(impls::ShowWindow),
+            func: Handler::Async(wrappers::ShowWindow),
         },
         Shim {
             name: "TranslateAcceleratorW",
-            func: Handler::Sync(impls::TranslateAcceleratorW),
+            func: Handler::Sync(wrappers::TranslateAcceleratorW),
         },
         Shim {
             name: "TranslateMessage",
-            func: Handler::Sync(impls::TranslateMessage),
+            func: Handler::Sync(wrappers::TranslateMessage),
         },
         Shim {
             name: "UpdateWindow",
-            func: Handler::Async(impls::UpdateWindow),
+            func: Handler::Async(wrappers::UpdateWindow),
         },
         Shim {
             name: "ValidateRect",
-            func: Handler::Sync(impls::ValidateRect),
+            func: Handler::Sync(wrappers::ValidateRect),
         },
         Shim {
             name: "WaitMessage",
-            func: Handler::Async(impls::WaitMessage),
+            func: Handler::Async(wrappers::WaitMessage),
         },
         Shim {
             name: "WinHelpW",
-            func: Handler::Sync(impls::WinHelpW),
+            func: Handler::Sync(wrappers::WinHelpW),
         },
         Shim {
             name: "wsprintfA",
-            func: Handler::Sync(impls::wsprintfA),
+            func: Handler::Sync(wrappers::wsprintfA),
         },
         Shim {
             name: "wsprintfW",
-            func: Handler::Sync(impls::wsprintfW),
+            func: Handler::Sync(wrappers::wsprintfW),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
@@ -14519,7 +14519,7 @@ pub mod user32 {
 }
 pub mod wininet {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -14569,7 +14569,7 @@ pub mod wininet {
     }
     const SHIMS: [Shim; 1usize] = [Shim {
         name: "InternetOpenA",
-        func: Handler::Sync(impls::InternetOpenA),
+        func: Handler::Sync(wrappers::InternetOpenA),
     }];
     pub const DLL: BuiltinDLL = BuiltinDLL {
         file_name: "wininet.dll",
@@ -14579,7 +14579,7 @@ pub mod wininet {
 }
 pub mod winmm {
     use super::*;
-    mod impls {
+    mod wrappers {
         use crate::{
             machine::Machine,
             winapi::{self, stack_args::*, types::*},
@@ -14934,55 +14934,55 @@ pub mod winmm {
     const SHIMS: [Shim; 13usize] = [
         Shim {
             name: "PlaySoundW",
-            func: Handler::Sync(impls::PlaySoundW),
+            func: Handler::Sync(wrappers::PlaySoundW),
         },
         Shim {
             name: "timeBeginPeriod",
-            func: Handler::Sync(impls::timeBeginPeriod),
+            func: Handler::Sync(wrappers::timeBeginPeriod),
         },
         Shim {
             name: "timeGetTime",
-            func: Handler::Sync(impls::timeGetTime),
+            func: Handler::Sync(wrappers::timeGetTime),
         },
         Shim {
             name: "timeSetEvent",
-            func: Handler::Sync(impls::timeSetEvent),
+            func: Handler::Sync(wrappers::timeSetEvent),
         },
         Shim {
             name: "waveOutClose",
-            func: Handler::Sync(impls::waveOutClose),
+            func: Handler::Sync(wrappers::waveOutClose),
         },
         Shim {
             name: "waveOutGetDevCapsA",
-            func: Handler::Sync(impls::waveOutGetDevCapsA),
+            func: Handler::Sync(wrappers::waveOutGetDevCapsA),
         },
         Shim {
             name: "waveOutGetNumDevs",
-            func: Handler::Sync(impls::waveOutGetNumDevs),
+            func: Handler::Sync(wrappers::waveOutGetNumDevs),
         },
         Shim {
             name: "waveOutGetPosition",
-            func: Handler::Sync(impls::waveOutGetPosition),
+            func: Handler::Sync(wrappers::waveOutGetPosition),
         },
         Shim {
             name: "waveOutOpen",
-            func: Handler::Sync(impls::waveOutOpen),
+            func: Handler::Sync(wrappers::waveOutOpen),
         },
         Shim {
             name: "waveOutPrepareHeader",
-            func: Handler::Sync(impls::waveOutPrepareHeader),
+            func: Handler::Sync(wrappers::waveOutPrepareHeader),
         },
         Shim {
             name: "waveOutReset",
-            func: Handler::Sync(impls::waveOutReset),
+            func: Handler::Sync(wrappers::waveOutReset),
         },
         Shim {
             name: "waveOutUnprepareHeader",
-            func: Handler::Sync(impls::waveOutUnprepareHeader),
+            func: Handler::Sync(wrappers::waveOutUnprepareHeader),
         },
         Shim {
             name: "waveOutWrite",
-            func: Handler::Sync(impls::waveOutWrite),
+            func: Handler::Sync(wrappers::waveOutWrite),
         },
     ];
     pub const DLL: BuiltinDLL = BuiltinDLL {
