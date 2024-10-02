@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Dumps assembly of a given function in a Mac binary.
+# See also lldb-dump-fn.sh, possibly better output.
 
 set -e
 
