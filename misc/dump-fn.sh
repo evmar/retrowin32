@@ -23,8 +23,9 @@ fi
 index="$3"
 if [[ ! $index ]]; then
     i=1
-    for sym in $(nm "$path" | grep "$filter" | c++filt); do
-        echo "$i $sym"
+    for sym in $(nm "$path" | grep "$filter"); do
+        demangled=$(c++filt "$sym")
+        echo "$i $sym ($demangled)"
         i=$((i + 1))
         if ((i > 10)); then
             break
