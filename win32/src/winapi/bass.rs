@@ -55,7 +55,7 @@ pub fn BASS_ChannelGetPosition(machine: &mut Machine, mode: u32) -> u32 {
             (dur as f32 * 44.1) as u32 // 44.1khz
         }
         1 => {
-            log::error!("unimpl: BASS_POS_MUSIC_ORDER");
+            // TODO: BASS_POS_MUSIC_ORDER
             0
         }
         _ => 0,
