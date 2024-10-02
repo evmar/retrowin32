@@ -139,6 +139,14 @@ impl CPU {
     // Useful to disassemble this function (see misc/dump-fn.sh):
     // #[inline(never)]
     pub fn execute_block(&mut self, mem: Mem, block: &BasicBlock) -> usize {
+        // Performance note: this function is the central hottest loop in the emulator.
+        // Some things I've tried:
+        // - changing eip to be a usize: worth a few percent when usize!=u32
+        // - unrolling the loop: worth a few percent
+        //   To try it:
+        //   1) make loop iterative: loop { let Some(op) = iter.next() else { break }; ... }
+        //   2) macro paste the block: macro_rules! unroll { ($code:tt) => { $code $code $code $code } }
+
         let mut count = 0;
         for op in block.ops.iter() {
             let prev_ip = self.regs.eip;
