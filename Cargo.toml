@@ -17,6 +17,10 @@ x86 = { path = "x86" }
 tsify = "0.4.1"
 wasm-bindgen = "0.2.83"
 
+[profile.release]
+debug = true
+
 [profile.lto]
 inherits = "release"
+debug = false
 lto = true
