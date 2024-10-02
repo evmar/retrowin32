@@ -11,8 +11,8 @@ use crate::{
 use std::io::Write;
 use typed_path::WindowsPath;
 
-// HMODULE is index+0x1000 into kernel32::State::dlls.
-// (BASS.dll calls LoadLibrary and fails if the returned handle value is too low.)
+// HMODULE must be the address of the loaded DLL image.
+// (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
 pub type HMODULE = HANDLE<HMODULET>;
