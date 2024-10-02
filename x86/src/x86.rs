@@ -2,7 +2,7 @@
 
 use crate::{
     fpu::FPU,
-    icache::InstrCache,
+    icache::{BasicBlock, InstrCache},
     ops,
     registers::{Flags, Registers},
     Register,
@@ -134,6 +134,28 @@ impl CPU {
     pub fn block(&mut self, wait: Option<u32>) -> BlockFuture {
         self.state = CPUState::Blocked(wait);
         BlockFuture { cpu: self }
+    }
+
+    // Useful to disassemble this function (see misc/dump-fn.sh):
+    // #[inline(never)]
+    pub fn execute_block(&mut self, mem: Mem, block: &BasicBlock) -> usize {
+        let mut count = 0;
+        for op in block.ops.iter() {
+            let prev_ip = self.regs.eip;
+            self.regs.eip = op.instr.next_ip() as u32;
+            count += 1;
+            (op.op)(self, mem, &op.instr);
+            match self.state {
+                CPUState::Running => continue,
+                CPUState::Error(_) => {
+                    // Point the debugger at the failed instruction.
+                    self.regs.eip = prev_ip;
+                    break;
+                }
+                _ => break,
+            }
+        }
+        count
     }
 }
 
@@ -274,23 +296,8 @@ impl X86 {
             cpu.async_executor();
             return;
         }
-        let mut prev_ip = cpu.regs.eip;
-        let block = self.icache.get_block(mem, prev_ip);
-        for op in block.ops.iter() {
-            prev_ip = cpu.regs.eip;
-            cpu.regs.eip = op.instr.next_ip() as u32;
-            self.instr_count = self.instr_count.wrapping_add(1);
-            (op.op)(cpu, mem, &op.instr);
-            if !cpu.state.is_running() {
-                break;
-            }
-        }
-        match cpu.state {
-            CPUState::Error(_) => {
-                // Point the debugger at the failed instruction.
-                cpu.regs.eip = prev_ip;
-            }
-            _ => {}
-        }
+        let block = self.icache.get_block(mem, cpu.regs.eip);
+        let count = cpu.execute_block(mem, block);
+        self.instr_count = self.instr_count.wrapping_add(count);
     }
 }
