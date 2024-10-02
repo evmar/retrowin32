@@ -24,7 +24,7 @@ pub enum CPUState {
 
 impl CPUState {
     pub fn is_running(&self) -> bool {
-        matches!(*self, CPUState::Running)
+        matches!(self, CPUState::Running)
     }
 }
 
