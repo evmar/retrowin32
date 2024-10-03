@@ -7,11 +7,10 @@ import { BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Labels, parseCSV } from './labels';
 import { Mappings } from './mappings';
-import { Memory, MemoryView } from './memory';
+import { Memory, MemoryView, Number } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
-import { hex } from './util';
 
 namespace StartStop {
   export interface Props {
@@ -64,11 +63,10 @@ namespace Debugger {
     running?: number;
     selectedTab: string;
     labels: Labels;
-    imports: string[];
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
-  state: Debugger.State = { error: '', memBase: 0, labels: new Labels(), selectedTab: 'output', imports: [] };
+  state: Debugger.State = { error: '', memBase: 0, labels: new Labels(), selectedTab: 'output' };
 
   private async load() {
     this.print('Loading...\n');
@@ -105,13 +103,9 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
     emulator.emuHost = host;
 
     const labels = emulator.labels();
-    const imports = [];
-    for (const [addr, name] of labels) {
-      imports.push(`${hex(addr, 8)}: ${name}`);
-    }
     this.state.labels.load(labels);
 
-    this.setState({ stdout: undefined, emulator, imports });
+    this.setState({ stdout: undefined, emulator });
 
     this.loadLabelsCSV(emulator).catch((e) => this.print(e.stack ?? e.toString()));
   }
@@ -253,15 +247,20 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
               />
             ),
 
-            imports: () => (
-              <div style={{ flex: 1, overflow: 'auto' }}>
-                {this.state.imports.map(imp => (
-                  <div>
-                    <code>{imp}</code>
-                  </div>
-                ))}
-              </div>
-            ),
+            imports: () => {
+              const labels = emulator.labels();
+              return (
+                <div style={{ flex: 1, overflow: 'auto' }}>
+                  {labels.map(([addr, name]) => (
+                    <div>
+                      <code>
+                        <Number digits={8} {...this.memoryView}>{addr}</Number>: {name}
+                      </code>
+                    </div>
+                  ))}
+                </div>
+              );
+            },
 
             breakpoints: () => (
               <BreakpointsComponent

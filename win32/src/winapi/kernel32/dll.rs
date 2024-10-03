@@ -248,13 +248,15 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    if let Some(dll) = machine.state.kernel32.dlls.get_mut(&hModule) {
-        if let Some(addr) = dll.resolve(&lpProcName.0) {
-            return addr;
-        }
-    }
-    log::warn!("GetProcAddress({:x?}, {:?}) failed", hModule, lpProcName);
-    0 // fail
+    let dll = machine.state.kernel32.dlls.get_mut(&hModule).unwrap();
+    let Some(addr) = dll.resolve(&lpProcName.0) else {
+        log::warn!("GetProcAddress({:?}, {:?}) failed", dll.name, lpProcName);
+        return 0; // fail
+    };
+
+    let name = format!("{}!{}", dll.name, lpProcName.0.to_string());
+    machine.labels.insert(addr, name);
+    return addr;
 }
 
 #[repr(C)]
