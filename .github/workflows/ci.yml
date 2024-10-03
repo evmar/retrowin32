@@ -39,16 +39,16 @@ jobs:
       - name: Build
         run: cargo build -F x86-emu -p retrowin32 --release
 
-  # TODO: web build needs wasm-bindgen-cli, but installing it is a bit annoying.
-  # Perhaps we should go back to wasm-pack for builds.
-  # build-web:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Rust Setup
-  #       run: rustup toolchain install stable --profile minimal --no-self-update --target wasm32-unknown-unknown
-  #     - name: Wasm-pack Setup
-  #       run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-  #     - uses: Swatinem/rust-cache@v2
-  #     - name: Build
-  #       run: make -C web profile=lto
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Rust Setup
+        run: rustup toolchain install stable --profile minimal --no-self-update --target wasm32-unknown-unknown
+      - name: Install wasm-bindgen
+        run: cargo install --locked wasm-bindgen-cli --version v0.2.93
+      - name: Install wasm-opt
+        run: cargo install --locked wasm-opt --version 0.116.1
+      - name: Build
+        run: make -C web profile=lto
