@@ -100,6 +100,16 @@ pub fn waveOutClose(_machine: &mut Machine, hwo: HWAVEOUT) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
+pub fn waveOutSetVolume(_machine: &mut Machine, hwo: HWAVEOUT, dwVolume: u32) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn waveOutGetVolume(_machine: &mut Machine, hwo: HWAVEOUT, pdwVolume: u32) -> u32 {
+    todo!()
+}
+
 #[repr(C)]
 pub struct MMTIME {
     wType: u32,

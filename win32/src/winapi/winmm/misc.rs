@@ -10,3 +10,8 @@ pub fn PlaySoundW(
 ) -> bool {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub fn mciSendCommandA(_machine: &mut Machine) {
+    todo!();
+}
