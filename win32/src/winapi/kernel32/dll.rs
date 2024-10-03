@@ -36,7 +36,7 @@ impl DLL {
     }
 }
 
-fn normalize_module_name(name: &str) -> String {
+pub fn normalize_module_name(name: &str) -> String {
     let mut name = name.to_ascii_lowercase();
     if !name.ends_with(".dll") && !name.ends_with(".") {
         name.push_str(".dll");
@@ -144,7 +144,11 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
 
     // Builtin DLLs are special in that we load the DLL from an in-binary buffer,
     // and the symbols in the DLL are mapped to shims.
-    let builtin = winapi::DLLS.iter().find(|&dll| dll.file_name == filename);
+    let builtin = if machine.external_dlls.contains(&filename) {
+        None
+    } else {
+        winapi::DLLS.iter().find(|&dll| dll.file_name == filename)
+    };
     let mut buf = Vec::new();
 
     let contents = {

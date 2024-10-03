@@ -21,6 +21,10 @@ struct Args {
     #[argh(option, short = 'C')]
     chdir: Option<String>,
 
+    /// dlls to load from disk rather than builtin
+    #[argh(option)]
+    external_dll: Vec<String>,
+
     /// winapi systems to trace; see trace.rs for docs
     #[argh(option)]
     win32_trace: Option<String>,
@@ -141,6 +145,11 @@ fn main() -> anyhow::Result<ExitCode> {
         .collect::<Vec<_>>()
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
+    machine.external_dlls = args
+        .external_dll
+        .iter()
+        .map(|dll| win32::winapi::kernel32::normalize_module_name(dll))
+        .collect();
 
     let addrs = machine
         .load_exe(&buf, &exe, None)

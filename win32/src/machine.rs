@@ -20,6 +20,7 @@ pub struct MachineX<Emu> {
     pub state: winapi::State,
     pub labels: HashMap<u32, String>,
     pub exe_path: PathBuf,
+    pub external_dlls: Vec<String>,
     pub status: Status,
 }
 
