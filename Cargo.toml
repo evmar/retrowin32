@@ -15,7 +15,8 @@ memory = { path = "memory" }
 win32 = { path = "win32" }
 x86 = { path = "x86" }
 tsify = "0.4.1"
-wasm-bindgen = "0.2.83"
+# Must match version of wasm-bindgen-cli, with version pinned in CI.
+wasm-bindgen = "=0.2.93"
 
 [profile.release]
 debug = true
