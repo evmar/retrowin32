@@ -16,11 +16,17 @@ debug)
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/debug/glue.wasm"
   ;;
-release|lto)
-  cargo build --target wasm32-unknown-unknown --profile $profile
+release)
+  cargo build --target wasm32-unknown-unknown --profile release
   wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
     "../../target/wasm32-unknown-unknown/$profile/glue.wasm"
-  #wasm-opt -O pkg/glue_bg.wasm 
+  ;;
+lto)
+  cargo build --target wasm32-unknown-unknown --profile lto
+  wasm-bindgen --out-dir pkg --typescript --target web --reference-types \
+    "../../target/wasm32-unknown-unknown/$profile/glue.wasm"
+  wasm-opt -O --enable-reference-types pkg/glue_bg.wasm -o pkg/glue_bg.wasm-opt
+  mv pkg/glue_bg.wasm-opt pkg/glue_bg.wasm
   ;;
 *)
   echo "error: profile=debug or release"
