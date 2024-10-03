@@ -8497,6 +8497,106 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn _lclose(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file16") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file16",
+                    "_lclose",
+                    &[("hFile", &hFile)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::_lclose(machine, hFile);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::_lclose_pos.0,
+                    winapi::kernel32::_lclose_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn _llseek(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+            let lOffset = <i32>::from_stack(mem, stack_args + 4u32);
+            let iOrigin = <i32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file16") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file16",
+                    "_llseek",
+                    &[
+                        ("hFile", &hFile),
+                        ("lOffset", &lOffset),
+                        ("iOrigin", &iOrigin),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::_llseek(machine, hFile, lOffset, iOrigin);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::_llseek_pos.0,
+                    winapi::kernel32::_llseek_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn _lopen(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let iReadWrite = <i32>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file16") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file16",
+                    "_lopen",
+                    &[("lpPathName", &lpPathName), ("iReadWrite", &iReadWrite)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::_lopen(machine, lpPathName, iReadWrite);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::_lopen_pos.0,
+                    winapi::kernel32::_lopen_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn _lread(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+            let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file16") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file16",
+                    "_lread",
+                    &[("hFile", &hFile), ("lpBuffer", &lpBuffer)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::_lread(machine, hFile, lpBuffer);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::_lread_pos.0,
+                    winapi::kernel32::_lread_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn lstrcmpiA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -8678,7 +8778,7 @@ pub mod kernel32 {
             })
         }
     }
-    const SHIMS: [Shim; 168usize] = [
+    const SHIMS: [Shim; 172usize] = [
         Shim {
             name: "AcquireSRWLockExclusive",
             func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -9322,6 +9422,22 @@ pub mod kernel32 {
         Shim {
             name: "WriteProfileStringW",
             func: Handler::Sync(wrappers::WriteProfileStringW),
+        },
+        Shim {
+            name: "_lclose",
+            func: Handler::Sync(wrappers::_lclose),
+        },
+        Shim {
+            name: "_llseek",
+            func: Handler::Sync(wrappers::_llseek),
+        },
+        Shim {
+            name: "_lopen",
+            func: Handler::Sync(wrappers::_lopen),
+        },
+        Shim {
+            name: "_lread",
+            func: Handler::Sync(wrappers::_lread),
         },
         Shim {
             name: "lstrcmpiA",
