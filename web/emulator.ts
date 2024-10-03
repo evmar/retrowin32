@@ -25,11 +25,13 @@ export class Emulator extends JsHost {
     files: FileSet,
     readonly exePath: string,
     cmdLine: string,
+    externalDLLs: string[],
     bytes: Uint8Array,
     relocate: boolean,
   ) {
     super(host, files);
     this.emu = wasm.new_emulator(this, cmdLine);
+    this.emu.set_external_dlls(externalDLLs);
     this.emu.load_exe(exePath, bytes, relocate);
     this.breakpoints = new Breakpoints(exePath);
 

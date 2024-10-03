@@ -86,6 +86,8 @@ interface URLParams {
   dir?: string;
   /** Executable to run. */
   exe: string;
+  /** DLLs to load from files instead of builtin implementations. */
+  externalDLLs: string[];
   /** Other data files to load.  TODO: we should fetch these dynamically instead. */
   files: string[];
   /** If true, relocate the exe on load. */
@@ -99,10 +101,11 @@ function parseURL(): URLParams | undefined {
   const exe = query.get('exe');
   if (!exe) return undefined;
   const dir = query.get('dir') || undefined;
+  const externalDLLs = (query.get('external') || '').split(',');
   const files = query.getAll('file');
   const relocate = query.has('relocate');
   const cmdLine = query.get('cmdline') || undefined;
-  const params: URLParams = { dir, exe, files, relocate, cmdLine };
+  const params: URLParams = { dir, exe, externalDLLs, files, relocate, cmdLine };
   return params;
 }
 
@@ -123,6 +126,7 @@ export async function loadEmulator() {
     fileset,
     exePath,
     cmdLine,
+    params.externalDLLs,
     fileset.get(params.exe)!,
     params.relocate ?? false,
   );

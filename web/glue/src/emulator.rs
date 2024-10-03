@@ -22,6 +22,10 @@ pub enum Status {
 
 #[wasm_bindgen]
 impl Emulator {
+    pub fn set_external_dlls(&mut self, dlls: Vec<String>) {
+        self.machine.set_external_dlls(&dlls);
+    }
+
     pub fn load_exe(&mut self, name: &str, buf: &[u8], relocate: bool) -> JsResult<()> {
         // TODO: maybe we shouldn't be bundling std::path code on web?
         self.machine

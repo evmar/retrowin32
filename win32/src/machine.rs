@@ -24,6 +24,15 @@ pub struct MachineX<Emu> {
     pub status: Status,
 }
 
+impl<Emu> MachineX<Emu> {
+    pub fn set_external_dlls(&mut self, dlls: &[String]) {
+        self.external_dlls = dlls
+            .iter()
+            .map(|dll| winapi::kernel32::normalize_module_name(dll))
+            .collect();
+    }
+}
+
 /// Status of the machine/process.  Separate from CPU state because multiple threads
 /// can be in different states.
 #[derive(Default)]

@@ -145,11 +145,7 @@ fn main() -> anyhow::Result<ExitCode> {
         .collect::<Vec<_>>()
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
-    machine.external_dlls = args
-        .external_dll
-        .iter()
-        .map(|dll| win32::winapi::kernel32::normalize_module_name(dll))
-        .collect();
+    machine.set_external_dlls(&args.external_dll);
 
     let addrs = machine
         .load_exe(&buf, &exe, None)
