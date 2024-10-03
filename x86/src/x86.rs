@@ -51,9 +51,6 @@ pub struct CPU {
 
 impl CPU {
     pub fn new() -> Self {
-        unsafe {
-            ops::init_op_tab();
-        }
         CPU {
             regs: Registers::default(),
             flags: Flags::empty(),
