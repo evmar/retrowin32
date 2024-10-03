@@ -7,6 +7,8 @@ use memory::Extensions;
 pub type WORD = u16;
 pub type DWORD = u32;
 
+pub type HRESULT = u32;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HEVENTT;
 pub type HEVENT = HANDLE<HEVENTT>;
