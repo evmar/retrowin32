@@ -47,7 +47,7 @@ jobs:
       - name: Rust Setup
         run: rustup toolchain install stable --profile minimal --no-self-update --target wasm32-unknown-unknown
       - name: Install wasm-bindgen
-        run: cargo install --locked wasm-bindgen-cli --version v0.2.93
+        run: cargo install --locked wasm-bindgen-cli --version 0.2.93
       - name: Install wasm-opt
         run: cargo install --locked wasm-opt --version 0.116.1
       - name: Build
