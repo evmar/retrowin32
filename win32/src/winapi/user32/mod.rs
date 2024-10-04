@@ -30,6 +30,6 @@ pub struct State {
     wndclasses: Vec<std::rc::Rc<WndClass>>,
     pub user_window_message_count: u32,
     pub windows: Handles<HWND, Window>,
-    messages: std::collections::VecDeque<MSG>,
+    messages: MessageQueue,
     timers: Timers,
 }
