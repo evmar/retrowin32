@@ -70,7 +70,7 @@ impl CPU {
             self.err(format!("jmp to null page addr={addr:x}"));
             return;
         }
-        if mem.is_oob::<u8>(addr) {
+        if mem.is_oob::<u8>(addr) && addr != MAGIC_ADDR {
             self.err(format!("jmp to oob addr={addr:x}"));
             return;
         }
