@@ -261,7 +261,7 @@ impl X86 {
         for i in 0..self.cpus.len() {
             let i = (self.cur_cpu + i + 1) % self.cpus.len();
             match self.cpus[i].state {
-                CPUState::Running | CPUState::SysCall => {
+                CPUState::Running | CPUState::SysCall | CPUState::Error(_) => {
                     self.cur_cpu = i;
                     return;
                 }
