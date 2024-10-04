@@ -46,8 +46,7 @@ class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status 
 
     return (
       <header class='panel'>
-        <a style='font-weight: bold; color: inherit' href='https://evmar.github.io/retrowin32/'>retrowin32</a>: a
-        windows emulator
+        <a style='font-weight: bold; color: inherit' href='./'>retrowin32</a>: a windows emulator
         <div style='width: 2ex'></div>
         <button onClick={this.debugger}>
           view in debugger
