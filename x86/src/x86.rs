@@ -259,10 +259,13 @@ impl X86 {
 
         // Common perf-sensitive case: find next runnable CPU.
         for i in 0..self.cpus.len() {
-            let i = (self.cur_cpu + i) % self.cpus.len();
-            if self.cpus[i].state.is_running() {
-                self.cur_cpu = i;
-                return;
+            let i = (self.cur_cpu + i + 1) % self.cpus.len();
+            match self.cpus[i].state {
+                CPUState::Running | CPUState::SysCall => {
+                    self.cur_cpu = i;
+                    return;
+                }
+                _ => {}
             }
         }
 
