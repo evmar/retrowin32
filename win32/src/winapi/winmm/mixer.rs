@@ -1,7 +1,7 @@
+use super::MMRESULT;
 use crate::Machine;
 
 pub type HMIXEROBJ = u32;
-type MMRESULT = u32;
 
 #[win32_derive::dllexport]
 pub fn mixerOpen(
