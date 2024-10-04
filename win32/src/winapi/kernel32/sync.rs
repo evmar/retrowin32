@@ -3,6 +3,7 @@
 use crate::{winapi::types::HEVENT, Machine};
 
 pub struct EventObject {
+    name: String,
     state: bool,
 }
 
@@ -19,15 +20,26 @@ pub fn CreateEventA(
     bInitialState: bool,
     lpName: Option<&str>,
 ) -> HEVENT {
-    if lpName.is_some() {
-        todo!("CreateEventA: named events not supported");
-    }
+    let name = if let Some(name) = lpName {
+        if let Some(ev) = machine
+            .state
+            .kernel32
+            .event_handles
+            .iter()
+            .find(|ev| ev.name == name)
+        {
+            todo!("CreateEventA: reusing named event");
+        }
+        name.to_string()
+    } else {
+        "".into()
+    };
 
     machine
         .state
         .kernel32
         .event_handles
-        .add(EventObject { state: false })
+        .add(EventObject { name, state: false })
 }
 
 #[win32_derive::dllexport]
