@@ -64,19 +64,18 @@ impl CPU {
         self.state = CPUState::Error(msg);
     }
 
-    // /// Check whether reading a T from mem[addr] would cause OOB, and crash() if so.
-    // fn check_oob<T>(&mut self, addr: u32) -> bool {
-    //     if addr < NULL_POINTER_REGION_SIZE {
-    //         self.crash(format!("crash: null pointer at {addr:#x}"));
-    //         return true;
-    //     }
-    //     let end = addr.wrapping_add(std::mem::size_of::<T>() as u32);
-    //     if end > self.mem.len() as u32 || end < addr {
-    //         self.crash(format!("crash: oob pointer at {addr:#x}"));
-    //         return true;
-    //     }
-    //     false
-    // }
+    /// Jump to an address, verifying it's within valid bounds.
+    pub fn jmp(&mut self, mem: Mem, addr: u32) {
+        if addr < 0x1000 {
+            self.err(format!("jmp to null page addr={addr:x}"));
+            return;
+        }
+        if mem.is_oob::<u8>(addr) {
+            self.err(format!("jmp to oob addr={addr:x}"));
+            return;
+        }
+        self.regs.eip = addr;
+    }
 
     /// Set up the CPU such that we are making a Rust->x86 call, returning a Future
     /// that completes when the x86 call returns.
@@ -88,7 +87,7 @@ impl CPU {
             ops::push(self, mem, arg);
         }
         ops::push(self, mem, MAGIC_ADDR); // return address
-        self.regs.eip = func;
+        self.jmp(mem, func);
 
         // Clear registers to make traces clean.
         // Other registers are callee-saved per ABI.

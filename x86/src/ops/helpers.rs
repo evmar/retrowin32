@@ -194,14 +194,6 @@ pub fn x86_addr(cpu: &CPU, instr: &iced_x86::Instruction) -> u32 {
     addr
 }
 
-pub fn x86_jmp(cpu: &mut CPU, addr: u32) {
-    if addr < 0x1000 {
-        cpu.err(format!("jmp to null page addr={addr:x}"));
-        return;
-    }
-    cpu.regs.eip = addr;
-}
-
 pub fn set_edx_eax(cpu: &mut CPU, value: u64) {
     cpu.regs.set32(Register::EDX, (value >> 32) as u32);
     cpu.regs.set32(Register::EAX, value as u32);
