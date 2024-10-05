@@ -11,6 +11,7 @@ import { Memory, MemoryView, Number } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
+import { hex } from './util';
 
 namespace StartStop {
   export interface Props {
@@ -167,7 +168,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
   render() {
     const { emulator, labels } = this.state;
 
-    const console = (
+    const output = (
       <div>
         <code>
           {this.state.stdout}
@@ -177,16 +178,15 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
     );
 
     if (!emulator) {
-      return console;
+      return output;
     }
 
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
     let code;
     const eip = emulator.emu.eip;
-    if (eip >= 0xf1a7_0000) {
-      const label = eip == 0xffff_fff0 ? 'async' : labels.get(eip) ?? 'shim';
-      code = <section class='code'>(in {label})</section>;
+    if (eip == 0xffff_fff0) {
+      code = <section class='code'>(in async)</section>;
     } else {
       instrs = emulator.disassemble(eip);
       code = (
@@ -229,7 +229,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
         <Tabs
           style={{ width: '80ex', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
           tabs={{
-            output: () => console,
+            output: () => output,
 
             memory: () => (
               <Memory
