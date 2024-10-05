@@ -169,7 +169,6 @@ pub fn waveOutGetPosition(
 }
 
 #[repr(C)]
-#[derive(Debug)]
 pub struct WAVEHDR {
     lpData: u32,
     dwBufferLength: u32,
@@ -181,6 +180,37 @@ pub struct WAVEHDR {
     reserved: u32,
 }
 unsafe impl memory::Pod for WAVEHDR {}
+
+bitflags! {
+    pub struct WHDR: u32 {
+        const DONE      = 0x00000001;
+        const PREPARED  = 0x00000002;
+        const BEGINLOOP = 0x00000004;
+        const ENDLOOP   = 0x00000008;
+        const INQUEUE   = 0x00000010;
+    }
+}
+impl TryFrom<u32> for WHDR {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        WHDR::from_bits(value).ok_or(value)
+    }
+}
+
+impl std::fmt::Debug for WAVEHDR {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // Implemented to specialize dwFlags and omit reserved fields.
+        f.debug_struct("WAVEHDR")
+            .field("lpData", &self.lpData)
+            .field("dwBufferLength", &self.dwBufferLength)
+            .field("dwBytesRecorded", &self.dwBytesRecorded)
+            .field("dwUser", &self.dwUser)
+            .field("dwFlags", &WHDR::try_from(self.dwFlags))
+            .field("dwLoops", &self.dwLoops)
+            .finish()
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn waveOutPrepareHeader(
