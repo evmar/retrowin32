@@ -37,7 +37,7 @@ fn run_thread(params: &ThreadParams) {
         let thread_id = unsafe { GetCurrentThreadId() };
         let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
         print(format!(
-            "thread={thread_id} name={name:?} tls={tls} i={i}\n",
+            "thread_id={thread_id} name={name:?} tls={tls} i={i}\n",
             name = params.name
         ));
         unsafe { Sleep(1000 / params.steps) };
@@ -45,7 +45,7 @@ fn run_thread(params: &ThreadParams) {
     let thread_id = unsafe { GetCurrentThreadId() };
     let tls = unsafe { TlsGetValue(params.tls_key) as u32 };
     print(format!(
-        "thread={thread_id} name={name:?} tls={tls} returning\n",
+        "thread_id={thread_id} name={name:?} tls={tls} returning\n",
         name = params.name,
     ));
 }
@@ -57,8 +57,24 @@ unsafe extern "system" fn thread_proc(param: *mut std::ffi::c_void) -> u32 {
     0
 }
 
+unsafe extern "system" fn short_thread_proc(_param: *mut std::ffi::c_void) -> u32 {
+    let thread_id = GetCurrentThreadId();
+    print(format!("thread_id={thread_id} short_thread_proc exiting\n"));
+    0
+}
+
 fn main() {
     unsafe {
+        // Create a thread that starts and exits quickly, to exercise thread teardown.
+        CreateThread(
+            std::ptr::null(),
+            0x1000,
+            Some(short_thread_proc),
+            std::ptr::null(),
+            0,
+            std::ptr::null_mut(),
+        );
+
         let tls_key = TlsAlloc();
         TlsSetValue(tls_key, 1 as *const _);
         let thread_params = ThreadParams {

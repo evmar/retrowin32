@@ -78,6 +78,7 @@ pub async fn CreateThread(
     {
         let id = 1; // TODO
         let stack_pointer = machine.create_stack(format!("thread{id} stack"), dwStackSize);
+        // TODO: should reuse a CPU from a previous thread that has exited
         let cpu = machine.emu.x86.new_cpu();
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
@@ -105,13 +106,12 @@ pub fn ExitThread(machine: &mut Machine, dwExitCode: u32) {
         panic!("ExitThread called on main thread");
     }
 
-    log::info!(
-        "ExitThread({}) on cpu {}",
-        dwExitCode,
-        machine.emu.x86.cur_cpu
+    log::warn!(
+        "thread on cpu {id} exiting with code {code}",
+        code = dwExitCode,
+        id = machine.emu.x86.cur_cpu
     );
-
-    // TODO: free stack, and other thread cleanup
+    // TODO: free stack, other thread cleanup, set event to signal waiters, etc.
 
     machine.emu.x86.cpu_mut().state = x86::CPUState::Free;
 }
