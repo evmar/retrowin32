@@ -249,6 +249,7 @@ export interface JsHost {
   
   create_window(hwnd: number): JsWindow;
   screen(): CanvasRenderingContext2D;
+  audio(buf: Int16Array): void;
 }"#;
 
 #[wasm_bindgen]
@@ -274,6 +275,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     fn screen(this: &JsHost) -> web_sys::CanvasRenderingContext2d;
+
+    #[wasm_bindgen(method)]
+    fn audio(this: &JsHost, buf: &[i16]);
 }
 
 impl win32::Host for JsHost {
@@ -353,5 +357,9 @@ impl win32::Host for JsHost {
 
     fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR> {
         todo!("remove_dir {path}")
+    }
+
+    fn write_audio(&mut self, _buf: &[i16]) {
+        log::warn!("TODO: write_audio");
     }
 }

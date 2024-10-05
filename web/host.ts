@@ -177,4 +177,8 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
     // but how to plumb that info across JS boundary?
     return this.windows[this.windows.length - 1].canvas.getContext('2d')!;
   }
+
+  audio(buf: Int16Array) {
+    console.warn('TODO: audio');
+  }
 }

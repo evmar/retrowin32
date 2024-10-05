@@ -157,6 +157,10 @@ impl GUI {
     pub fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
+
+    pub fn write_audio(&mut self, _buf: &[i16]) {
+        log::warn!("TODO: write_audio");
+    }
 }
 
 struct Window {
