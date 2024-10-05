@@ -240,12 +240,15 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
 #[wasm_bindgen(typescript_custom_section)]
 const JSHOST_TS: &'static str = r#"
 export interface JsHost {
+  log(level: number, msg: string): void;
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
   open(path: string, access: {}): JsFile|null;
+  stdout(buf: Uint8Array): void;
   
   create_window(hwnd: number): JsWindow;
+  screen(): CanvasRenderingContext2D;
 }"#;
 
 #[wasm_bindgen]
