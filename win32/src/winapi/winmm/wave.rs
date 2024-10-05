@@ -80,7 +80,7 @@ impl TryFrom<u32> for WaveOutOpenFlags {
 
 #[win32_derive::dllexport]
 pub fn waveOutOpen(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     phwo: Option<&mut HWAVEOUT>,
     uDeviceID: u32,
     pwfx: Option<&WAVEFORMATEX>,
@@ -93,6 +93,10 @@ pub fn waveOutOpen(
         log::error!("todo");
     }
     *phwo.unwrap() = 1;
+
+    let fmt = pwfx.unwrap();
+    machine.state.winmm.audio = Some(machine.host.init_audio(fmt.nSamplesPerSec));
+
     MMRESULT::MMSYSERR_NOERROR
 }
 
@@ -250,6 +254,6 @@ pub fn waveOutWrite(
         .memory
         .mem()
         .sub32(hdr.lpData, hdr.dwBufferLength);
-    machine.host.write_audio(buf);
+    machine.state.winmm.audio.as_mut().unwrap().write(buf);
     MMRESULT::MMSYSERR_NOERROR
 }

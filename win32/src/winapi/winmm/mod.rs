@@ -7,6 +7,13 @@ mod mixer;
 mod time;
 mod wave;
 
+pub use misc::*;
+pub use mixer::*;
+pub use time::*;
+pub use wave::*;
+
+use crate::host;
+
 #[derive(Copy, Clone, Debug)]
 pub enum MMRESULT {
     MMSYSERR_NOERROR = 0,
@@ -17,7 +24,7 @@ impl super::stack_args::ToX86 for MMRESULT {
     }
 }
 
-pub use misc::*;
-pub use mixer::*;
-pub use time::*;
-pub use wave::*;
+#[derive(Default)]
+pub struct State {
+    pub audio: Option<Box<dyn host::Audio>>,
+}

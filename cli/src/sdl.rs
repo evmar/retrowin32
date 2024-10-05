@@ -84,7 +84,6 @@ pub struct GUI {
     timer: sdl2::TimerSubsystem,
     win: Option<WindowRef>,
     msg_queue: Option<win32::Message>,
-    audio: Option<Audio>,
 }
 
 impl GUI {
@@ -102,7 +101,6 @@ impl GUI {
             timer,
             win: None,
             msg_queue: None,
-            audio: None,
         })
     }
 
@@ -162,11 +160,8 @@ impl GUI {
         Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
 
-    pub fn write_audio(&mut self, buf: &[u8]) {
-        if self.audio.is_none() {
-            self.audio = Some(Audio::init(&self.sdl));
-        }
-        self.audio.as_mut().unwrap().write_audio(buf);
+    pub fn init_audio(&mut self, sample_rate: u32) -> Box<dyn win32::Audio> {
+        Box::new(Audio::new(&self.sdl, sample_rate))
     }
 }
 
@@ -334,10 +329,10 @@ struct Audio {
 }
 
 impl Audio {
-    fn init(sdl: &sdl2::Sdl) -> Self {
+    fn new(sdl: &sdl2::Sdl, sample_rate: u32) -> Self {
         let audio = sdl.audio().unwrap();
         let spec = sdl2::audio::AudioSpecDesired {
-            freq: Some(11025), // TODO: accept from caller I guess?
+            freq: Some(sample_rate as i32),
             channels: Some(1),
             samples: None,
         };
@@ -347,8 +342,10 @@ impl Audio {
         dev.resume();
         Audio { dev }
     }
+}
 
-    fn write_audio(&mut self, buf: &[u8]) {
+impl win32::Audio for Audio {
+    fn write(&mut self, buf: &[u8]) {
         self.dev.lock().write(buf);
     }
 }

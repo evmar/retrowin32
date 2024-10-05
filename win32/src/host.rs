@@ -126,6 +126,10 @@ pub struct Message {
     pub time: u32, // in units of Host::time()
 }
 
+pub trait Audio {
+    fn write(&mut self, buf: &[u8]);
+}
+
 pub trait Host {
     /// Get an arbitrary time counter, measured in milliseconds.
     fn ticks(&self) -> u32;
@@ -159,5 +163,5 @@ pub trait Host {
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
 
-    fn write_audio(&mut self, buf: &[u8]);
+    fn init_audio(&mut self, sample_rate: u32) -> Box<dyn Audio>;
 }

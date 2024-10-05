@@ -359,7 +359,7 @@ impl win32::Host for JsHost {
         todo!("remove_dir {path}")
     }
 
-    fn write_audio(&mut self, _buf: &[u8]) {
-        log::warn!("TODO: write_audio");
+    fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
+        todo!()
     }
 }

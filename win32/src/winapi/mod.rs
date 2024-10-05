@@ -89,6 +89,7 @@ pub struct State {
     pub gdi32: gdi32::State,
     pub kernel32: kernel32::State,
     pub user32: user32::State,
+    pub winmm: winmm::State,
 }
 
 impl State {
@@ -102,6 +103,7 @@ impl State {
             gdi32: gdi32::State::default(),
             kernel32,
             user32: user32::State::default(),
+            winmm: winmm::State::default(),
         }
     }
 }
