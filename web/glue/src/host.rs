@@ -2,7 +2,7 @@
 
 use anyhow::bail;
 use wasm_bindgen::prelude::*;
-use win32::{ReadDir, Stat, StatKind, WindowsPath, ERROR};
+use win32::{Stat, StatKind, WindowsPath};
 
 struct WebSurface {
     _hwnd: u32,
@@ -145,7 +145,7 @@ extern "C" {
 }
 
 impl win32::File for JsFile {
-    fn stat(&self) -> Result<Stat, ERROR> {
+    fn stat(&self) -> Result<Stat, win32::ERROR> {
         Ok(Stat {
             kind: StatKind::File,
             size: JsFile::info(self),
@@ -155,7 +155,7 @@ impl win32::File for JsFile {
         })
     }
 
-    fn set_len(&self, len: u64) -> Result<(), ERROR> {
+    fn set_len(&self, len: u64) -> Result<(), win32::ERROR> {
         todo!("set_len {len}")
     }
 }
@@ -237,6 +237,14 @@ fn message_from_event(event: web_sys::Event) -> anyhow::Result<win32::Message> {
     Ok(win32::Message { hwnd, detail, time })
 }
 
+struct ReadDir {}
+impl win32::ReadDir for ReadDir {
+    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, win32::ERROR> {
+        log::warn!("TODO: ReadDir");
+        Ok(None)
+    }
+}
+
 #[wasm_bindgen(typescript_custom_section)]
 const JSHOST_TS: &'static str = r#"
 export interface JsHost {
@@ -311,19 +319,19 @@ impl win32::Host for JsHost {
         &self,
         path: &WindowsPath,
         options: win32::FileOptions,
-    ) -> Result<Box<dyn win32::File>, ERROR> {
+    ) -> Result<Box<dyn win32::File>, win32::ERROR> {
         match JsHost::open(self, &path.to_string_lossy(), options) {
             Some(file) => Ok(Box::new(file)),
-            None => Err(ERROR::FILE_NOT_FOUND),
+            None => Err(win32::ERROR::FILE_NOT_FOUND),
         }
     }
 
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, ERROR> {
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, win32::ERROR> {
         todo!("stat {path}")
     }
 
-    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, ERROR> {
-        todo!("read_dir {path}")
+    fn read_dir(&self, _path: &WindowsPath) -> Result<Box<dyn win32::ReadDir>, win32::ERROR> {
+        Ok(Box::new(ReadDir {}))
     }
 
     fn log(&self, buf: &[u8]) {
@@ -343,19 +351,19 @@ impl win32::Host for JsHost {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
     }
 
-    fn current_dir(&self) -> Result<win32::WindowsPathBuf, ERROR> {
-        todo!()
+    fn current_dir(&self) -> Result<win32::WindowsPathBuf, win32::ERROR> {
+        Ok(win32::WindowsPathBuf::from("Z:\\".to_string()))
     }
 
-    fn create_dir(&self, path: &WindowsPath) -> Result<(), ERROR> {
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
         todo!("create_dir {path}")
     }
 
-    fn remove_file(&self, path: &WindowsPath) -> Result<(), ERROR> {
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
         todo!("remove_file {path}")
     }
 
-    fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR> {
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
         todo!("remove_dir {path}")
     }
 
