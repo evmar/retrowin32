@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator } from './emulator';
+import { Emulator, EmulatorHost } from './emulator';
 import * as wasm from './glue/pkg/glue';
 import { fetchFileSet } from './host';
 
@@ -109,7 +109,7 @@ function parseURL(): URLParams | undefined {
   return params;
 }
 
-export async function loadEmulator() {
+export async function loadEmulator(host: EmulatorHost) {
   const params = parseURL();
   if (!params) {
     throw new Error('invalid URL params');
@@ -122,7 +122,7 @@ export async function loadEmulator() {
   const cmdLine = params.cmdLine ?? params.exe;
   const exePath = (params.dir ?? '') + params.exe;
   return new Emulator(
-    null!,
+    host,
     fileset,
     exePath,
     cmdLine,

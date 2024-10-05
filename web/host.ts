@@ -93,16 +93,14 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
 
   decoder = new TextDecoder();
 
-  constructor(public emuHost: EmulatorHost, readonly files: FileSet) {}
+  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) {}
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
     switch (level) {
       case 1:
         console.error(msg);
-        // TODO: this.emuHost is null during init, e.g. before the page DOM is constructed.
-        // Should construct page DOM, then load emu.
-        if (this.emuHost) this.emuHost.onError(msg);
+        this.emuHost.onError(msg);
         break;
       case 2:
         console.warn(msg);

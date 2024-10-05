@@ -67,8 +67,6 @@ namespace Page {
 
 class Page extends preact.Component<{}, Page.State> {
   private async load() {
-    const emulator = await loadEmulator();
-    emulator.emu.set_tracing_scheme('-');
     const host: EmulatorHost = {
       exit: (code) => {
         this.print(`exited with code ${code}\n`);
@@ -89,7 +87,8 @@ class Page extends preact.Component<{}, Page.State> {
         // TODO
       },
     };
-    emulator.emuHost = host;
+    const emulator = await loadEmulator(host);
+    emulator.emu.set_tracing_scheme('-');
     this.setState({ emulator });
     emulator.start();
   }

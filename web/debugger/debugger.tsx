@@ -71,8 +71,6 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
   private async load() {
     this.print('Loading...\n');
-    const emulator = await loadEmulator();
-    emulator.emu.set_tracing_scheme('*');
     const host: EmulatorHost = {
       exit: (code: number) => {
         this.print(`\nexited with code ${code}`);
@@ -101,7 +99,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
         this.stop();
       },
     };
-    emulator.emuHost = host;
+    const emulator = await loadEmulator(host);
+    emulator.emu.set_tracing_scheme('*');
 
     const labels = emulator.labels();
     this.state.labels.load(labels);
