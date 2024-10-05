@@ -1,6 +1,7 @@
 use super::MMRESULT;
 use crate::machine::Machine;
 use bitflags::bitflags;
+use memory::Extensions;
 
 #[win32_derive::dllexport]
 pub fn waveOutGetNumDevs(_machine: &mut Machine) -> u32 {
@@ -237,12 +238,18 @@ pub fn waveOutUnprepareHeader(
 
 #[win32_derive::dllexport]
 pub fn waveOutWrite(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hwo: HWAVEOUT,
     pwh: Option<&WAVEHDR>,
     cbwh: u32,
 ) -> MMRESULT {
-    log::info!("TODO: write audio");
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
+    let hdr = pwh.unwrap();
+    let buf = machine
+        .emu
+        .memory
+        .mem()
+        .sub32(hdr.lpData, hdr.dwBufferLength);
+    machine.host.write_audio(buf);
     MMRESULT::MMSYSERR_NOERROR
 }

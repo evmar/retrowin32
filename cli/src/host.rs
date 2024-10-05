@@ -220,7 +220,7 @@ impl win32::Host for EnvRef {
         gui.create_surface(opts)
     }
 
-    fn write_audio(&mut self, buf: &[i16]) {
+    fn write_audio(&mut self, buf: &[u8]) {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.write_audio(buf);

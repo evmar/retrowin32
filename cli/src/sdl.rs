@@ -78,11 +78,13 @@ fn message_from_events(
 }
 
 pub struct GUI {
+    sdl: sdl2::Sdl,
     video: sdl2::VideoSubsystem,
     pump: sdl2::EventPump,
     timer: sdl2::TimerSubsystem,
     win: Option<WindowRef>,
     msg_queue: Option<win32::Message>,
+    audio: Option<Audio>,
 }
 
 impl GUI {
@@ -94,11 +96,13 @@ impl GUI {
         let timer = sdl.timer().map_err(|err| anyhow::anyhow!(err))?;
 
         Ok(GUI {
+            sdl,
             video,
             pump,
             timer,
             win: None,
             msg_queue: None,
+            audio: None,
         })
     }
 
@@ -158,8 +162,11 @@ impl GUI {
         Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
 
-    pub fn write_audio(&mut self, _buf: &[i16]) {
-        log::warn!("TODO: write_audio");
+    pub fn write_audio(&mut self, buf: &[u8]) {
+        if self.audio.is_none() {
+            self.audio = Some(Audio::init(&self.sdl));
+        }
+        self.audio.as_mut().unwrap().write_audio(buf);
     }
 }
 
@@ -276,5 +283,72 @@ impl win32::Surface for Texture {
                 canvas.copy(src, src_rect, dst_rect).unwrap()
             })
             .unwrap();
+    }
+}
+
+#[derive(Default)]
+struct AudioBuffer {
+    buf: Vec<i16>,
+    ofs: usize,
+}
+impl AudioBuffer {
+    fn write(&mut self, buf: &[u8]) {
+        if self.ofs > 0 {
+            todo!();
+        }
+
+        if self.buf.len() < 44100 {
+            self.buf.resize(44100, 0);
+        }
+
+        assert!(buf.len() % 2 == 0);
+        let write_buf = unsafe {
+            let data = self.buf.as_mut_ptr().add(self.ofs) as *mut u8;
+            let len = (buf.len() - self.ofs) * 2;
+            std::slice::from_raw_parts_mut(data, len)
+        };
+        if write_buf.len() < buf.len() {
+            panic!("audio buffer overflow");
+        }
+        write_buf[..buf.len()].copy_from_slice(buf);
+    }
+}
+
+impl sdl2::audio::AudioCallback for AudioBuffer {
+    type Channel = i16;
+    fn callback(&mut self, buf: &mut [i16]) {
+        let available = &self.buf[self.ofs..];
+        if available.len() > buf.len() {
+            buf.copy_from_slice(&available[..buf.len()]);
+        } else {
+            log::warn!("audiobuf underflow");
+            buf[..available.len()].copy_from_slice(available);
+            buf[available.len()..].fill(0);
+        }
+        self.ofs += buf.len();
+    }
+}
+
+struct Audio {
+    dev: sdl2::audio::AudioDevice<AudioBuffer>,
+}
+
+impl Audio {
+    fn init(sdl: &sdl2::Sdl) -> Self {
+        let audio = sdl.audio().unwrap();
+        let spec = sdl2::audio::AudioSpecDesired {
+            freq: Some(11025), // TODO: accept from caller I guess?
+            channels: Some(1),
+            samples: None,
+        };
+        let dev = audio
+            .open_playback(None, &spec, |_spec| AudioBuffer::default())
+            .unwrap();
+        dev.resume();
+        Audio { dev }
+    }
+
+    fn write_audio(&mut self, buf: &[u8]) {
+        self.dev.lock().write(buf);
     }
 }

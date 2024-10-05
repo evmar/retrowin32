@@ -159,5 +159,5 @@ pub trait Host {
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
 
-    fn write_audio(&mut self, buf: &[i16]);
+    fn write_audio(&mut self, buf: &[u8]);
 }
