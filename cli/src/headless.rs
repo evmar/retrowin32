@@ -22,6 +22,11 @@ impl win32::Surface for Surface {
     }
 }
 
+pub struct Audio {}
+impl win32::Audio for Audio {
+    fn write(&mut self, _buf: &[u8]) {}
+}
+
 pub struct GUI {
     start: std::time::Instant,
 }
@@ -61,5 +66,9 @@ impl GUI {
 
     pub fn create_surface(&mut self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
         Box::new(Surface {})
+    }
+
+    pub fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
+        Box::new(Audio {})
     }
 }
