@@ -143,7 +143,7 @@ impl<'m> Mem<'m> {
     }
 
     pub fn is_oob<T>(&self, addr: u32) -> bool {
-        self.ptr as usize + addr as usize + size_of::<T>() > self.end as usize
+        addr + size_of::<T>() as u32 > self.len()
     }
 
     fn get_ptr_unchecked(&self, ofs: u32) -> *mut u8 {
