@@ -77,8 +77,16 @@ pub fn IsProcessorFeaturePresent(
     _machine: &mut Machine,
     feature: Result<ProcessorFeature, u32>,
 ) -> bool {
-    log::warn!("IsProcessorFeaturePresent({feature:?}) => false");
-    false
+    match feature.unwrap() {
+        ProcessorFeature::FLOATING_POINT_PRECISION_ERRATA => {
+            // We don't emulate floating point errors.
+            false
+        }
+        feature => {
+            log::warn!("IsProcessorFeaturePresent({feature:?}) unhandled, returning false");
+            false
+        }
+    }
 }
 
 #[win32_derive::dllexport]
