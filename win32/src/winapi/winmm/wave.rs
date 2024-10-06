@@ -3,10 +3,16 @@ use crate::machine::Machine;
 use bitflags::bitflags;
 use memory::Extensions;
 
+/// Set this to true to enable the sound code; disabled while it's still in progress.
+const ENABLED: bool = false;
+
 #[win32_derive::dllexport]
 pub fn waveOutGetNumDevs(_machine: &mut Machine) -> u32 {
-    // TODO: set me to 1 to enable sound:
-    0
+    if ENABLED {
+        1
+    } else {
+        0
+    }
 }
 
 #[repr(C)]
@@ -88,6 +94,12 @@ pub fn waveOutOpen(
     dwInstance: u32,
     fdwOpen: Result<WaveOutOpenFlags, u32>,
 ) -> MMRESULT {
+    if !ENABLED {
+        // Note that pocoman doesn't call waveOutGetNumDevs, but just directly calls
+        // waveOutOpen and decides whether to do sound based on whether it succeeds.
+        return MMRESULT::MMSYSERR_NOTENABLED;
+    }
+
     let flags = fdwOpen.unwrap();
     if flags.contains(WaveOutOpenFlags::CALLBACK_FUNCTION) {
         log::error!("todo");

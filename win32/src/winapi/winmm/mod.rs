@@ -17,6 +17,7 @@ use crate::host;
 #[derive(Copy, Clone, Debug)]
 pub enum MMRESULT {
     MMSYSERR_NOERROR = 0,
+    MMSYSERR_NOTENABLED = 3,
 }
 impl super::stack_args::ToX86 for MMRESULT {
     fn to_raw(&self) -> u32 {
