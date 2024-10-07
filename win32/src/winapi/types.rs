@@ -40,7 +40,7 @@ pub struct RECT {
 unsafe impl memory::Pod for RECT {}
 
 #[repr(C, packed)]
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct POINT {
     pub x: i32,
     pub y: i32,

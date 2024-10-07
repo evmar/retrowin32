@@ -93,10 +93,9 @@ pub fn CreatePen(
 pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&mut POINT>) -> bool {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     if let Some(pt) = lppt {
-        *pt = POINT { x: dc.x, y: dc.y };
+        *pt = dc.pos;
     }
-    dc.x = x;
-    dc.y = y;
+    dc.pos = POINT { x, y };
     true
 }
 
@@ -131,20 +130,20 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     }
 
     let (dstX, dstY) = (x, y);
-    if dstX == dc.x {
+    if dstX == dc.pos.x {
         let x = x.max(0) as u32;
-        let (y0, y1) = ascending(dstY, dc.y);
+        let (y0, y1) = ascending(dstY, dc.pos.y);
         for y in y0..=y1 {
             pixels[((y * stride) + x) as usize] = color;
         }
-        dc.y = dstY;
-    } else if dstY == dc.y {
-        let (x0, x1) = ascending(dstX, dc.x);
+        dc.pos.y = dstY;
+    } else if dstY == dc.pos.y {
+        let (x0, x1) = ascending(dstX, dc.pos.x);
         let y = y.max(0) as u32;
         for x in x0..=x1 {
             pixels[((y * stride) + x) as usize] = color;
         }
-        dc.x = dstX;
+        dc.pos.x = dstX;
     } else {
         todo!();
     }

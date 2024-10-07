@@ -27,8 +27,7 @@ pub struct DC {
     pub target: DCTarget,
 
     pub r2: R2,
-    pub x: i32,
-    pub y: i32,
+    pub pos: POINT,
 
     // The SelectObject() API sets a drawing-related field on the DC and returns the
     // previously selected object of a given type, which means we need a storage field
@@ -42,8 +41,7 @@ impl DC {
         DC {
             target,
             r2: R2::default(),
-            x: 0,
-            y: 0,
+            pos: Default::default(),
             brush: Default::default(),
             pen: Default::default(),
         }
@@ -151,8 +149,7 @@ pub fn SetLayout(_machine: &mut Machine, hdc: HDC, l: u32) -> u32 {
 pub fn GetDCOrgEx(machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     if let Some(lpPoint) = lpPoint {
-        lpPoint.x = dc.x;
-        lpPoint.y = dc.y;
+        *lpPoint = dc.pos;
         return true;
     }
     false
