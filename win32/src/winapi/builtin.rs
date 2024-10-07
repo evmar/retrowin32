@@ -2811,8 +2811,8 @@ pub mod gdi32 {
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
             let x = <i32>::from_stack(mem, stack_args + 4u32);
             let y = <i32>::from_stack(mem, stack_args + 8u32);
-            let cx = <u32>::from_stack(mem, stack_args + 12u32);
-            let cy = <u32>::from_stack(mem, stack_args + 16u32);
+            let cx = <i32>::from_stack(mem, stack_args + 12u32);
+            let cy = <i32>::from_stack(mem, stack_args + 16u32);
             let hdcSrc = <HDC>::from_stack(mem, stack_args + 20u32);
             let x1 = <i32>::from_stack(mem, stack_args + 24u32);
             let y1 = <i32>::from_stack(mem, stack_args + 28u32);
@@ -3825,13 +3825,13 @@ pub mod gdi32 {
             let hdcDest = <HDC>::from_stack(mem, stack_args + 0u32);
             let xDest = <i32>::from_stack(mem, stack_args + 4u32);
             let yDest = <i32>::from_stack(mem, stack_args + 8u32);
-            let wDest = <u32>::from_stack(mem, stack_args + 12u32);
-            let hDest = <u32>::from_stack(mem, stack_args + 16u32);
+            let wDest = <i32>::from_stack(mem, stack_args + 12u32);
+            let hDest = <i32>::from_stack(mem, stack_args + 16u32);
             let hdcSrc = <HDC>::from_stack(mem, stack_args + 20u32);
             let xSrc = <i32>::from_stack(mem, stack_args + 24u32);
             let ySrc = <i32>::from_stack(mem, stack_args + 28u32);
-            let wSrc = <u32>::from_stack(mem, stack_args + 32u32);
-            let hSrc = <u32>::from_stack(mem, stack_args + 36u32);
+            let wSrc = <i32>::from_stack(mem, stack_args + 32u32);
+            let hSrc = <i32>::from_stack(mem, stack_args + 36u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 40u32);
             let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
                 Some(crate::trace::trace_begin(

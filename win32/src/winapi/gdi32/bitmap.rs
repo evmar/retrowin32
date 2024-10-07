@@ -4,6 +4,7 @@ use crate::{
     winapi::{
         bitmap::{BitmapMono, BitmapRGBA32, PixelData, BI},
         kernel32,
+        types::{POINT, RECT},
     },
 };
 use std::cmp::min;
@@ -20,8 +21,21 @@ pub struct BITMAP {
 }
 unsafe impl memory::Pod for BITMAP {}
 
+/// For the subset of dst within r, write pixels from op(x, y).
+/// Performs no clipping; caller must have already clipped.
+fn fill_pixels(dst: &mut BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) -> [u8; 4]) {
+    let pixels = dst.pixels.as_slice_mut();
+    let stride = dst.width as i32;
+    for y in r.top..r.bottom {
+        for x in r.left..r.right {
+            pixels[(y * stride + x) as usize] = op(x, y);
+        }
+    }
+}
+
 /// Copy pixels from src to dst.  Asserts that everything has been appropriately clipped.
 /// flush_alpha is true when the output drops alpha channel (e.g. Window backing store).
+/// TODO: use fill_pixels instead, delete this.
 fn bit_blt(
     dst: &mut [[u8; 4]],
     mut dx: isize,
@@ -92,45 +106,6 @@ fn bit_blt(
     }
 }
 
-fn pat_blt(
-    dst: &mut [[u8; 4]],
-    mut x: isize,
-    mut y: isize,
-    stride: usize,
-    mut w: isize,
-    mut h: isize,
-    color: [u8; 4],
-    rop: RasterOp,
-) {
-    if x < 0 {
-        w += x;
-        x = 0;
-    }
-    if y < 0 {
-        h += y;
-        y = 0;
-    }
-    if w <= 0 || h <= 0 {
-        return;
-    }
-    for row in 0..h {
-        let dst_off = ((y + row) * stride as isize) + x;
-        if dst_off + w > dst.len() as isize {
-            break;
-        }
-        let dst_row = &mut dst[dst_off as usize..][..w as usize];
-        match rop {
-            RasterOp::PATCOPY => {
-                dst_row.fill(color);
-            }
-            RasterOp::BLACKNESS => {
-                dst_row.fill([0, 0, 0, 0xFF]);
-            }
-            _ => todo!("unimplemented PatBlt with rop={rop:?}"),
-        }
-    }
-}
-
 #[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
 pub enum RasterOp {
     SRCCOPY = 0xcc0020,
@@ -146,8 +121,8 @@ pub fn BitBlt(
     hdc: HDC,
     x: i32,
     y: i32,
-    cx: u32,
-    cy: u32,
+    cx: i32,
+    cy: i32,
     hdcSrc: HDC,
     x1: i32,
     y1: i32,
@@ -156,15 +131,7 @@ pub fn BitBlt(
     let rop = rop.unwrap();
     if rop == RasterOp::BLACKNESS {
         // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
-        return PatBlt(
-            machine,
-            hdc,
-            x,
-            y,
-            cx as i32,
-            cy as i32,
-            Ok(RasterOp::BLACKNESS),
-        );
+        return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
     }
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
@@ -185,6 +152,22 @@ pub fn BitBlt(
     let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+
+    let copy_rect = RECT {
+        left: 0,
+        top: 0,
+        right: cx,
+        bottom: cy,
+    }; // 0-based rect of copy region
+    let dst_rect = copy_rect.add(POINT { x, y }); // destination rect
+    let src_rect = copy_rect
+        .add(POINT { x: x1, y: y1 })
+        .clip(&src_bitmap.to_rect()); // copy source rect, in source bitmap coordinates
+    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
+        x: x - x1,
+        y: y - y1,
+    })); // clipped copy region
+
     match dst_dc.target {
         DCTarget::Memory(obj) => {
             let dst = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
@@ -192,48 +175,23 @@ pub fn BitBlt(
                 _ => unimplemented!("{:?}", obj),
             };
 
-            bit_blt(
-                dst.pixels.as_slice_mut(),
-                x as isize,
-                y as isize,
-                dst.width as usize,
-                cx as isize,
-                cy as isize,
-                src,
-                x1 as isize,
-                y1 as isize,
-                src_bitmap.width as usize,
-                true,
-                rop,
-            );
+            fill_pixels(dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                let x = x1 + dx - x;
+                let y = y1 + dy - y;
+                src[(y * src_bitmap.width as i32 + x) as usize]
+            });
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let dst = window.bitmap_mut();
 
-            // Clip to src/dst regions.
-            if x >= dst.width as i32
-                || x1 >= src_bitmap.width as i32
-                || y >= dst.height as i32
-                || y1 >= src_bitmap.height as i32
-            {
-                return true;
-            }
-
-            bit_blt(
-                dst.pixels.as_slice_mut(),
-                x as isize,
-                y as isize,
-                dst.width as usize,
-                cx as isize,
-                cy as isize,
-                src,
-                x1 as isize,
-                y1 as isize,
-                src_bitmap.width as usize,
-                true,
-                rop,
-            );
+            fill_pixels(dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                let x = x1 + dx - x;
+                let y = y1 + dy - y;
+                let mut px = src[(y * src_bitmap.width as i32 + x) as usize];
+                px[3] = 0xFF; // clear alpha
+                px
+            });
 
             window
                 .expect_toplevel_mut()
@@ -243,7 +201,7 @@ pub fn BitBlt(
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
 
             assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
-            assert!(cx == surface.width && cy == surface.height);
+            assert!(cx as u32 == surface.width && cy as u32 == surface.height);
             assert!(surface.width == src_bitmap.width && surface.height == src_bitmap.height);
 
             surface.host.write_pixels(src);
@@ -258,13 +216,13 @@ pub fn StretchBlt(
     hdcDest: HDC,
     xDest: i32,
     yDest: i32,
-    wDest: u32,
-    hDest: u32,
+    wDest: i32,
+    hDest: i32,
     hdcSrc: HDC,
     xSrc: i32,
     ySrc: i32,
-    wSrc: u32,
-    hSrc: u32,
+    wSrc: i32,
+    hSrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
     if wDest != wSrc || hDest != hSrc {
@@ -292,13 +250,27 @@ pub fn PatBlt(
     };
 
     const DEFAULT_COLOR: [u8; 4] = [255, 255, 255, 255];
-    // get brush color
-    let color = match machine.state.gdi32.objects.get(dc.brush) {
-        Some(Object::Brush(brush)) => match brush.color {
-            Some(color) => color.to_pixel(),
-            None => DEFAULT_COLOR,
-        },
-        _ => DEFAULT_COLOR,
+
+    let color = match rop {
+        RasterOp::PATCOPY => {
+            // get brush color
+            match machine.state.gdi32.objects.get(dc.brush) {
+                Some(Object::Brush(brush)) => match brush.color {
+                    Some(color) => color.to_pixel(),
+                    None => DEFAULT_COLOR,
+                },
+                _ => DEFAULT_COLOR,
+            }
+        }
+        RasterOp::BLACKNESS => [0, 0, 0, 0xFF],
+        _ => todo!("unimplemented PatBlt with rop={rop:?}"),
+    };
+
+    let dst_rect = RECT {
+        left: x,
+        top: y,
+        right: x + w,
+        bottom: y + h,
     };
 
     match dc.target {
@@ -307,16 +279,8 @@ pub fn PatBlt(
                 Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
                 _ => unimplemented!(),
             };
-            pat_blt(
-                bitmap.pixels.as_slice_mut(),
-                x as isize,
-                y as isize,
-                bitmap.width as usize,
-                w as isize,
-                h as isize,
-                color,
-                rop,
-            );
+
+            fill_pixels(bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
         }
         DCTarget::Window(hwnd) => {
             if hwnd.to_raw() != 1 {
@@ -325,16 +289,8 @@ pub fn PatBlt(
             }
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let bitmap = window.bitmap_mut();
-            pat_blt(
-                bitmap.pixels.as_slice_mut(),
-                x as isize,
-                y as isize,
-                bitmap.width as usize,
-                w as isize,
-                h as isize,
-                color,
-                rop,
-            );
+            fill_pixels(bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
+
             window
                 .expect_toplevel_mut()
                 .flush_pixels(machine.emu.memory.mem());

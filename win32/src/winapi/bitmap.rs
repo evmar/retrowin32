@@ -195,6 +195,15 @@ pub struct BitmapRGBA32 {
 }
 
 impl BitmapRGBA32 {
+    pub fn to_rect(&self) -> RECT {
+        RECT {
+            left: 0,
+            right: self.width as i32,
+            top: 0,
+            bottom: self.height as i32,
+        }
+    }
+
     pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
         self.pixels.as_slice(mem)
     }
