@@ -149,11 +149,6 @@ impl<'a> BitmapInfo<'a> {
     }
 }
 
-pub trait Bitmap {
-    fn width(&self) -> u32;
-    fn height(&self) -> u32;
-}
-
 pub enum PixelData<T> {
     Owned(Box<[T]>),
     Ptr(u32, u32),
@@ -315,16 +310,6 @@ impl std::fmt::Debug for BitmapRGBA32 {
     }
 }
 
-impl Bitmap for BitmapRGBA32 {
-    fn width(&self) -> u32 {
-        self.width
-    }
-
-    fn height(&self) -> u32 {
-        self.height
-    }
-}
-
 pub struct BitmapMono {
     pub width: u32,
     pub height: u32,
@@ -344,15 +329,5 @@ impl std::fmt::Debug for BitmapMono {
             .field("height", &self.height)
             //.field("pixels", &&self.pixels[0..16])
             .finish()
-    }
-}
-
-impl Bitmap for BitmapMono {
-    fn width(&self) -> u32 {
-        self.width
-    }
-
-    fn height(&self) -> u32 {
-        self.height
     }
 }

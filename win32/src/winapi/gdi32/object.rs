@@ -1,7 +1,7 @@
 use super::{Brush, DCTarget, Pen, BITMAP, COLORREF, HDC};
 use crate::{
     winapi::{
-        bitmap::{Bitmap, BitmapMono, BitmapRGBA32},
+        bitmap::{BitmapMono, BitmapRGBA32},
         types::HANDLE,
     },
     Machine,
@@ -12,15 +12,6 @@ use memory::ExtensionsMut;
 pub enum BitmapType {
     RGBA32(BitmapRGBA32),
     Mono(BitmapMono),
-}
-
-impl BitmapType {
-    pub fn inner(&self) -> &dyn Bitmap {
-        match self {
-            BitmapType::RGBA32(b) => b,
-            BitmapType::Mono(b) => b,
-        }
-    }
 }
 
 /// GDI Object, as identified by HANDLEs.
@@ -112,17 +103,27 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
         Object::Brush(_) => todo!(),
         Object::Bitmap(bitmap) => {
             assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
-            let bitmap = bitmap.inner();
             machine.mem().put_pod::<BITMAP>(
                 out,
-                BITMAP {
-                    bmType: 0,
-                    bmWidth: bitmap.width(),
-                    bmHeight: bitmap.height(),
-                    bmWidthBytes: 0,
-                    bmPlanes: 0,
-                    bmBitsPixel: 0,
-                    bmBits: 0,
+                match bitmap {
+                    BitmapType::RGBA32(bitmap) => BITMAP {
+                        bmType: 0,
+                        bmWidth: bitmap.width,
+                        bmHeight: bitmap.height,
+                        bmWidthBytes: 0,
+                        bmPlanes: 0,
+                        bmBitsPixel: 32,
+                        bmBits: 0,
+                    },
+                    BitmapType::Mono(bitmap) => BITMAP {
+                        bmType: 0,
+                        bmWidth: bitmap.width,
+                        bmHeight: bitmap.height,
+                        bmWidthBytes: 0,
+                        bmPlanes: 0,
+                        bmBitsPixel: 1,
+                        bmBits: 0,
+                    },
                 },
             );
             bytes
