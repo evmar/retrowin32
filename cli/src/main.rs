@@ -47,6 +47,10 @@ struct Args {
     #[argh(switch)]
     debug: bool,
 
+    /// enable audio output
+    #[argh(switch)]
+    audio: bool,
+
     /// command line to run
     #[argh(positional, greedy)]
     cmdline: Vec<String>,
@@ -146,6 +150,7 @@ fn main() -> anyhow::Result<ExitCode> {
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
     machine.set_external_dlls(&args.external_dll);
+    machine.state.winmm.audio_enabled = args.audio;
 
     let addrs = machine
         .load_exe(&buf, &exe, None)

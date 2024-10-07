@@ -27,5 +27,6 @@ impl super::stack_args::ToX86 for MMRESULT {
 
 #[derive(Default)]
 pub struct State {
+    pub audio_enabled: bool,
     pub audio: Option<Box<dyn host::Audio>>,
 }
