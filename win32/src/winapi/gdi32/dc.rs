@@ -27,8 +27,8 @@ pub struct DC {
     pub target: DCTarget,
 
     pub r2: R2,
-    pub x: u32,
-    pub y: u32,
+    pub x: i32,
+    pub y: i32,
 
     // The SelectObject() API sets a drawing-related field on the DC and returns the
     // previously selected object of a given type, which means we need a storage field

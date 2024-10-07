@@ -90,7 +90,7 @@ pub fn CreatePen(
 }
 
 #[win32_derive::dllexport]
-pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: u32, y: u32, lppt: Option<&mut POINT>) -> bool {
+pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&mut POINT>) -> bool {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     if let Some(pt) = lppt {
         *pt = POINT { x: dc.x, y: dc.y };
@@ -100,16 +100,8 @@ pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: u32, y: u32, lppt: Option<&m
     true
 }
 
-fn ascending(a: u32, b: u32) -> (u32, u32) {
-    if a > b {
-        (b, a)
-    } else {
-        (a, b)
-    }
-}
-
 #[win32_derive::dllexport]
-pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
+pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     let hwnd = match dc.target {
         DCTarget::Memory(_) => todo!(),
@@ -128,8 +120,19 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
         R2::WHITE => COLORREF::white().to_pixel(),
     };
 
+    fn ascending(a: i32, b: i32) -> (u32, u32) {
+        let a = a.max(0) as u32;
+        let b = b.max(0) as u32;
+        if a > b {
+            (b, a)
+        } else {
+            (a, b)
+        }
+    }
+
     let (dstX, dstY) = (x, y);
     if dstX == dc.x {
+        let x = x.max(0) as u32;
         let (y0, y1) = ascending(dstY, dc.y);
         for y in y0..=y1 {
             pixels[((y * stride) + x) as usize] = color;
@@ -137,6 +140,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> bool {
         dc.y = dstY;
     } else if dstY == dc.y {
         let (x0, x1) = ascending(dstX, dc.x);
+        let y = y.max(0) as u32;
         for x in x0..=x1 {
             pixels[((y * stride) + x) as usize] = color;
         }

@@ -3442,8 +3442,8 @@ pub mod gdi32 {
         pub unsafe fn LineTo(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let x = <u32>::from_stack(mem, stack_args + 4u32);
-            let y = <u32>::from_stack(mem, stack_args + 8u32);
+            let x = <i32>::from_stack(mem, stack_args + 4u32);
+            let y = <i32>::from_stack(mem, stack_args + 8u32);
             let __trace_context = if crate::trace::enabled("gdi32/draw") {
                 Some(crate::trace::trace_begin(
                     "gdi32/draw",
@@ -3467,8 +3467,8 @@ pub mod gdi32 {
         pub unsafe fn MoveToEx(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let x = <u32>::from_stack(mem, stack_args + 4u32);
-            let y = <u32>::from_stack(mem, stack_args + 8u32);
+            let x = <i32>::from_stack(mem, stack_args + 4u32);
+            let y = <i32>::from_stack(mem, stack_args + 8u32);
             let lppt = <Option<&mut POINT>>::from_stack(mem, stack_args + 12u32);
             let __trace_context = if crate::trace::enabled("gdi32/draw") {
                 Some(crate::trace::trace_begin(

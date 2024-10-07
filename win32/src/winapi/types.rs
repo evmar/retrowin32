@@ -42,15 +42,15 @@ unsafe impl memory::Pod for RECT {}
 #[repr(C, packed)]
 #[derive(Debug)]
 pub struct POINT {
-    pub x: DWORD,
-    pub y: DWORD,
+    pub x: i32,
+    pub y: i32,
 }
 unsafe impl memory::Pod for POINT {}
 
 impl<'a> super::stack_args::FromStack<'a> for POINT {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
-        let x = mem.get_pod::<u32>(sp);
-        let y = mem.get_pod::<u32>(sp + 4);
+        let x = mem.get_pod::<i32>(sp);
+        let y = mem.get_pod::<i32>(sp + 4);
         POINT { x, y }
     }
 }
