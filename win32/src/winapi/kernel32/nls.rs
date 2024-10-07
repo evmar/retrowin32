@@ -1,6 +1,7 @@
 //! "National Language Support", e.g. code page conversions.
 
 use crate::{winapi::stack_args::ArrayWithSizeMut, Machine};
+use bitflags::bitflags;
 use memory::Extensions;
 
 /// Code pages
@@ -33,11 +34,27 @@ pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 
     0 // fail
 }
 
+bitflags! {
+    pub struct MB: u32 {
+        const PRECOMPOSED = 0x00000001;
+        const COMPOSITE = 0x00000002;
+        const USEGLYPHCHARS = 0x00000004;
+        const ERR_INVALID_CHARS = 0x00000008;
+    }
+}
+impl TryFrom<u32> for MB {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        MB::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn MultiByteToWideChar(
     machine: &mut Machine,
     CodePage: Result<CP, u32>,
-    dwFlags: u32,
+    dwFlags: Result<MB, u32>,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
     lpWideCharStr: ArrayWithSizeMut<u16>,
@@ -46,7 +63,8 @@ pub fn MultiByteToWideChar(
         Err(value) => unimplemented!("MultiByteToWideChar code page {value}"),
         _ => {} // treat all others as ansi for now
     }
-    // TODO: dwFlags
+    // TODO: obey dwFlags
+    dwFlags.unwrap();
 
     let input_len = match cbMultiByte {
         0 => return 0,                                               // TODO: invalid param
@@ -77,18 +95,42 @@ pub fn MultiByteToWideChar(
     }
 }
 
+bitflags! {
+    pub struct WC: u32 {
+        const COMPOSITECHECK = 0x00000200;
+        const DISCARDNS = 0x00000010;
+        const SEPCHARS = 0x00000020;
+        const DEFAULTCHAR = 0x00000040;
+        const ERR_INVALID_CHARS = 0x00000080;
+        const NO_BEST_FIT_CHARS = 0x00000400;
+    }
+}
+impl TryFrom<u32> for WC {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        WC::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn WideCharToMultiByte(
     machine: &mut Machine,
     CodePage: Result<CP, u32>,
-    dwFlags: u32,
+    dwFlags: Result<WC, u32>,
     lpWideCharStr: u32,
     cchWideChar: i32,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
     lpUsedDefaultChar: Option<&mut u32>,
 ) -> u32 {
-    todo!()
+    match CodePage {
+        Err(value) => unimplemented!("WideCharToMultiByte code page {value}"),
+        _ => {} // treat all others as ansi for now
+    }
+    dwFlags.unwrap();
+
+    0
 }
 
 #[win32_derive::dllexport]

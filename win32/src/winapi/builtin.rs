@@ -7212,7 +7212,7 @@ pub mod kernel32 {
         pub unsafe fn MultiByteToWideChar(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
-            let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwFlags = <Result<MB, u32>>::from_stack(mem, stack_args + 4u32);
             let lpMultiByteStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cbMultiByte = <i32>::from_stack(mem, stack_args + 12u32);
             let lpWideCharStr = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 16u32);
@@ -8336,7 +8336,7 @@ pub mod kernel32 {
         pub unsafe fn WideCharToMultiByte(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
-            let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwFlags = <Result<WC, u32>>::from_stack(mem, stack_args + 4u32);
             let lpWideCharStr = <u32>::from_stack(mem, stack_args + 8u32);
             let cchWideChar = <i32>::from_stack(mem, stack_args + 12u32);
             let lpMultiByteStr = <u32>::from_stack(mem, stack_args + 16u32);
