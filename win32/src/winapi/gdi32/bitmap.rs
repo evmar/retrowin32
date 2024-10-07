@@ -31,29 +31,6 @@ fn fill_pixels(dst: &mut BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) ->
         }
     }
 }
-/*
-match rop {
-    RasterOp::SRCCOPY => {
-        dst_row.copy_from_slice(src_row);
-    }
-    RasterOp::NOTSRCCOPY => {
-        for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
-            d[0] = !s[0];
-            d[1] = !s[1];
-            d[2] = !s[2];
-            d[3] = s[3];
-        }
-    }
-    RasterOp::SRCAND => {
-        for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
-            d[0] &= s[0];
-            d[1] &= s[1];
-            d[2] &= s[2];
-            d[3] &= s[3];
-        }
-    }
-    _ => todo!("unimplemented BitBlt with rop={rop:?}"),
-}*/
 
 #[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
 pub enum RasterOp {
@@ -77,10 +54,13 @@ pub fn BitBlt(
     y1: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
-    let rop = rop.unwrap();
-    if rop == RasterOp::BLACKNESS {
-        // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
-        return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
+    match rop.unwrap() {
+        RasterOp::BLACKNESS => {
+            // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
+            return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
+        }
+        RasterOp::SRCCOPY => {}
+        _ => todo!(),
     }
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
@@ -478,6 +458,11 @@ pub fn StretchDIBits(
 ) -> u32 {
     if SrcWidth != DestWidth || SrcHeight != DestHeight {
         log::warn!("TODO: StretchDIBits doesn't stretch");
+    }
+
+    match rop.unwrap() {
+        RasterOp::SRCCOPY => {}
+        _ => todo!(),
     }
 
     SetDIBitsToDevice(
