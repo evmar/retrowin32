@@ -7,7 +7,6 @@ use crate::{
         types::{POINT, RECT},
     },
 };
-use std::cmp::min;
 
 #[derive(Clone)]
 pub struct BITMAP {
@@ -32,79 +31,29 @@ fn fill_pixels(dst: &mut BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) ->
         }
     }
 }
-
-/// Copy pixels from src to dst.  Asserts that everything has been appropriately clipped.
-/// flush_alpha is true when the output drops alpha channel (e.g. Window backing store).
-/// TODO: use fill_pixels instead, delete this.
-fn bit_blt(
-    dst: &mut [[u8; 4]],
-    mut dx: isize,
-    mut dy: isize,
-    dstride: usize,
-    mut w: isize,
-    mut h: isize,
-    src: &[[u8; 4]],
-    mut sx: isize,
-    mut sy: isize,
-    sstride: usize,
-    flush_alpha: bool,
-    rop: RasterOp,
-) {
-    let min_x = min(dx, sx);
-    let min_y = min(dy, sy);
-    if min_x < 0 {
-        dx -= min_x;
-        sx -= min_x;
-        w += min_x;
+/*
+match rop {
+    RasterOp::SRCCOPY => {
+        dst_row.copy_from_slice(src_row);
     }
-    if min_y < 0 {
-        dy -= min_y;
-        sy -= min_y;
-        h += min_y;
-    }
-    w = min(w, dstride as isize - dx);
-    w = min(w, sstride as isize - sx);
-    if w <= 0 || h <= 0 {
-        return;
-    }
-
-    for row in 0..h {
-        let dst_off = ((dy + row) * dstride as isize) + dx;
-        let src_off = ((sy + row) * sstride as isize) + sx;
-        if dst_off + w > dst.len() as isize || src_off + w > src.len() as isize {
-            break;
-        }
-        let dst_row = &mut dst[dst_off as usize..][..w as usize];
-        let src_row = &src[src_off as usize..][..w as usize];
-        match rop {
-            RasterOp::SRCCOPY => {
-                dst_row.copy_from_slice(src_row);
-            }
-            RasterOp::NOTSRCCOPY => {
-                for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
-                    d[0] = !s[0];
-                    d[1] = !s[1];
-                    d[2] = !s[2];
-                    d[3] = s[3];
-                }
-            }
-            RasterOp::SRCAND => {
-                for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
-                    d[0] &= s[0];
-                    d[1] &= s[1];
-                    d[2] &= s[2];
-                    d[3] &= s[3];
-                }
-            }
-            _ => todo!("unimplemented BitBlt with rop={rop:?}"),
-        }
-        if flush_alpha {
-            for p in dst_row {
-                p[3] = 0xFF;
-            }
+    RasterOp::NOTSRCCOPY => {
+        for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
+            d[0] = !s[0];
+            d[1] = !s[1];
+            d[2] = !s[2];
+            d[3] = s[3];
         }
     }
-}
+    RasterOp::SRCAND => {
+        for (d, s) in dst_row.iter_mut().zip(src_row.iter()) {
+            d[0] &= s[0];
+            d[1] &= s[1];
+            d[2] &= s[2];
+            d[3] &= s[3];
+        }
+    }
+    _ => todo!("unimplemented BitBlt with rop={rop:?}"),
+}*/
 
 #[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
 pub enum RasterOp {
@@ -427,19 +376,19 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
 pub fn SetDIBitsToDevice(
     machine: &mut Machine,
     hdc: HDC,
-    xDest: u32,
-    yDest: u32,
-    w: u32,
-    h: u32,
-    xSrc: u32,
-    ySrc: u32,
+    xDest: i32,
+    yDest: i32,
+    w: i32,
+    h: i32,
+    xSrc: i32,
+    ySrc: i32,
     StartScan: u32,
     cLines: u32,
     lpvBits: u32,
     lpbmi: u32,
     ColorUse: u32,
 ) -> u32 {
-    if StartScan != ySrc || cLines != h {
+    if StartScan as i32 != ySrc || cLines as i32 != h {
         todo!()
     }
     if ColorUse != DIB_RGB_COLORS {
@@ -464,20 +413,34 @@ pub fn SetDIBitsToDevice(
         _ => todo!(),
     };
 
-    bit_blt(
-        &mut dst.pixels.as_slice_mut(),
-        xDest as isize,
-        yDest as isize,
-        dst.width as usize,
-        w as isize,
-        std::cmp::min(h, dst.height - yDest) as isize,
-        src,
-        xSrc as isize,
-        ySrc as isize,
-        src_bitmap.width as usize,
-        flush_alpha,
-        RasterOp::SRCCOPY,
-    );
+    let src_rect = RECT {
+        left: xSrc,
+        top: ySrc,
+        right: xSrc + w,
+        bottom: ySrc + h,
+    }
+    .clip(&src_bitmap.to_rect());
+
+    let dst_rect = RECT {
+        left: xDest,
+        top: yDest,
+        right: xDest + w,
+        bottom: yDest + h,
+    }
+    .clip(&dst.to_rect());
+
+    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
+        x: xDest - xSrc,
+        y: yDest - ySrc,
+    }));
+
+    fill_pixels(dst, &copy_rect, |dx, dy| {
+        let x = dx - xDest + xSrc;
+        let y = dy - yDest + ySrc;
+        let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
+        pixel[3] = 0xFF;
+        pixel
+    });
 
     match dc.target {
         DCTarget::Window(hwnd) => {
@@ -500,15 +463,14 @@ pub fn SetDIBitsToDevice(
 pub fn StretchDIBits(
     machine: &mut Machine,
     hdc: HDC,
-    // XXX these are signed ints in the MSDN docs
-    xDest: u32,
-    yDest: u32,
-    DestWidth: u32,
-    DestHeight: u32,
-    xSrc: u32,
-    ySrc: u32,
-    SrcWidth: u32,
-    SrcHeight: u32,
+    xDest: i32,
+    yDest: i32,
+    DestWidth: i32,
+    DestHeight: i32,
+    xSrc: i32,
+    ySrc: i32,
+    SrcWidth: i32,
+    SrcHeight: i32,
     lpBits: u32,
     lpbmi: u32,
     iUsage: u32,
@@ -519,7 +481,18 @@ pub fn StretchDIBits(
     }
 
     SetDIBitsToDevice(
-        machine, hdc, xDest, yDest, SrcWidth, SrcHeight, xSrc, ySrc, 0, SrcHeight, lpBits, lpbmi,
+        machine,
+        hdc,
+        xDest,
+        yDest,
+        SrcWidth,
+        SrcHeight,
+        xSrc,
+        ySrc,
+        0,
+        SrcHeight as u32,
+        lpBits,
+        lpbmi,
         iUsage,
     )
 }

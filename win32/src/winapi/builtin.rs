@@ -3651,12 +3651,12 @@ pub mod gdi32 {
         pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let xDest = <u32>::from_stack(mem, stack_args + 4u32);
-            let yDest = <u32>::from_stack(mem, stack_args + 8u32);
-            let w = <u32>::from_stack(mem, stack_args + 12u32);
-            let h = <u32>::from_stack(mem, stack_args + 16u32);
-            let xSrc = <u32>::from_stack(mem, stack_args + 20u32);
-            let ySrc = <u32>::from_stack(mem, stack_args + 24u32);
+            let xDest = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDest = <i32>::from_stack(mem, stack_args + 8u32);
+            let w = <i32>::from_stack(mem, stack_args + 12u32);
+            let h = <i32>::from_stack(mem, stack_args + 16u32);
+            let xSrc = <i32>::from_stack(mem, stack_args + 20u32);
+            let ySrc = <i32>::from_stack(mem, stack_args + 24u32);
             let StartScan = <u32>::from_stack(mem, stack_args + 28u32);
             let cLines = <u32>::from_stack(mem, stack_args + 32u32);
             let lpvBits = <u32>::from_stack(mem, stack_args + 36u32);
@@ -3870,14 +3870,14 @@ pub mod gdi32 {
         pub unsafe fn StretchDIBits(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let xDest = <u32>::from_stack(mem, stack_args + 4u32);
-            let yDest = <u32>::from_stack(mem, stack_args + 8u32);
-            let DestWidth = <u32>::from_stack(mem, stack_args + 12u32);
-            let DestHeight = <u32>::from_stack(mem, stack_args + 16u32);
-            let xSrc = <u32>::from_stack(mem, stack_args + 20u32);
-            let ySrc = <u32>::from_stack(mem, stack_args + 24u32);
-            let SrcWidth = <u32>::from_stack(mem, stack_args + 28u32);
-            let SrcHeight = <u32>::from_stack(mem, stack_args + 32u32);
+            let xDest = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDest = <i32>::from_stack(mem, stack_args + 8u32);
+            let DestWidth = <i32>::from_stack(mem, stack_args + 12u32);
+            let DestHeight = <i32>::from_stack(mem, stack_args + 16u32);
+            let xSrc = <i32>::from_stack(mem, stack_args + 20u32);
+            let ySrc = <i32>::from_stack(mem, stack_args + 24u32);
+            let SrcWidth = <i32>::from_stack(mem, stack_args + 28u32);
+            let SrcHeight = <i32>::from_stack(mem, stack_args + 32u32);
             let lpBits = <u32>::from_stack(mem, stack_args + 36u32);
             let lpbmi = <u32>::from_stack(mem, stack_args + 40u32);
             let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
