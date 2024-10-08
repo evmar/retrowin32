@@ -4,7 +4,8 @@
 #![allow(non_snake_case)]
 
 use super::types::*;
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
+use std::cell::RefCell;
 
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
 pub enum BI {
@@ -150,7 +151,7 @@ impl<'a> BitmapInfo<'a> {
 }
 
 pub enum PixelData<T> {
-    Owned(Box<[T]>),
+    Owned(RefCell<Box<[T]>>),
     Ptr(u32, u32),
 }
 
@@ -164,21 +165,39 @@ pub fn transmute_pixels<T: memory::Pod>(bytes: &[u8]) -> &[T] {
     }
 }
 
-impl<T: memory::Pod> PixelData<T> {
-    pub fn as_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [T] {
-        match self {
-            PixelData::Owned(b) => &*b,
-            &PixelData::Ptr(addr, len) => {
-                let bytes = mem.sub32(addr, len);
-                transmute_pixels::<T>(bytes)
-            }
-        }
+pub fn transmute_pixels_mut<T: memory::Pod>(bytes: &mut [u8]) -> &mut [T] {
+    assert!(bytes.len() % std::mem::size_of::<T>() == 0);
+    unsafe {
+        std::slice::from_raw_parts_mut(
+            bytes.as_mut_ptr() as *mut _,
+            bytes.len() / std::mem::size_of::<T>(),
+        )
+    }
+}
+
+impl<T: memory::Pod + Clone + Default> PixelData<T> {
+    pub fn new_owned(size: usize) -> Self {
+        let buf = {
+            let mut p = Vec::with_capacity(size);
+            p.resize(size, Default::default());
+            p.into_boxed_slice()
+        };
+        PixelData::new_with_owned(buf)
     }
 
-    pub fn as_slice_mut(&mut self) -> &mut [T] {
+    pub fn new_with_owned(buf: Box<[T]>) -> Self {
+        PixelData::Owned(RefCell::new(buf))
+    }
+
+    // It would be nice to be able to get a slice without involving a callback,
+    // but the lifetimes with the RefCell mean we cannot return a slice directly.
+    pub fn with_slice<'a>(&self, mem: Mem, f: impl FnOnce(&mut [T])) {
         match self {
-            PixelData::Owned(b) => &mut *b,
-            _ => unimplemented!(),
+            PixelData::Owned(b) => f(&mut *b.borrow_mut()),
+            &PixelData::Ptr(addr, len) => {
+                let bytes = mem.sub32_mut(addr, len);
+                f(transmute_pixels_mut::<T>(bytes))
+            }
         }
     }
 }
@@ -199,12 +218,8 @@ impl BitmapRGBA32 {
         }
     }
 
-    pub fn pixels_slice<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
-        self.pixels.as_slice(mem)
-    }
-
     pub fn clone(&self) -> BitmapRGBA32 {
-        let pixels = match &self.pixels {
+        let pixels: PixelData<[u8; 4]> = match &self.pixels {
             PixelData::Owned(b) => PixelData::Owned(b.clone()),
             PixelData::Ptr(addr, len) => PixelData::Ptr(*addr, *len),
         };
@@ -295,7 +310,7 @@ impl BitmapRGBA32 {
         BitmapRGBA32 {
             width: header.width as u32,
             height: height as u32,
-            pixels: PixelData::Owned(dst.into_boxed_slice()),
+            pixels: PixelData::new_with_owned(dst.into_boxed_slice()),
         }
     }
 }

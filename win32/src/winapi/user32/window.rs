@@ -4,7 +4,7 @@ use crate::{
     str16::expect_ascii,
     winapi::{
         self,
-        bitmap::{self, BitmapRGBA32},
+        bitmap::{BitmapRGBA32, PixelData},
         gdi32::HDC,
         stack_args::{ArrayWithSize, FromArg},
         types::{Str16, String16, HWND, POINT, RECT},
@@ -43,27 +43,6 @@ ShowWindow() {
 
 */
 
-pub struct WindowPixels {
-    pub bitmap: BitmapRGBA32,
-}
-impl WindowPixels {
-    pub fn new(width: u32, height: u32) -> Self {
-        let size = (width * height) as usize;
-        let raw = {
-            let mut p = Vec::with_capacity(size);
-            p.resize(size, [0u8; 4]);
-            p.into_boxed_slice()
-        };
-        Self {
-            bitmap: BitmapRGBA32 {
-                width,
-                height,
-                pixels: bitmap::PixelData::Owned(raw),
-            },
-        }
-    }
-}
-
 pub struct UpdateRegion {
     /// Whether to erase background in BeginPaint.
     pub erase_background: bool,
@@ -94,7 +73,9 @@ pub struct WindowTopLevel {
     pub surface: Box<dyn host::Surface>,
     // TODO: CS_OWNDC windows do own a DC, but otherwise they don't.
     // pub hdc: HDC,
-    pub pixels: Option<WindowPixels>,
+    /// Backing store, lazily created.
+    /// Rc so it can be shared within drawing functions.
+    pub pixels: Option<Rc<BitmapRGBA32>>,
     pub dirty: Option<UpdateRegion>,
 }
 
@@ -114,12 +95,9 @@ impl Window {
         }
     }
 
-    pub fn bitmap_mut<'a>(&mut self) -> &mut BitmapRGBA32 {
+    pub fn bitmap(&mut self) -> &Rc<BitmapRGBA32> {
         let Window { width, height, .. } = *self;
-        &mut self
-            .expect_toplevel_mut()
-            .ensure_pixels(width, height)
-            .bitmap
+        self.expect_toplevel_mut().ensure_pixels(width, height)
     }
 
     pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
@@ -144,11 +122,15 @@ impl Window {
 }
 
 impl WindowTopLevel {
-    fn ensure_pixels(&mut self, width: u32, height: u32) -> &mut WindowPixels {
+    fn ensure_pixels(&mut self, width: u32, height: u32) -> &Rc<BitmapRGBA32> {
         match self.pixels {
             Some(ref mut px) => px,
             None => {
-                self.pixels = Some(WindowPixels::new(width, height));
+                self.pixels = Some(Rc::new(BitmapRGBA32 {
+                    width,
+                    height,
+                    pixels: PixelData::new_owned((width * height) as usize),
+                }));
                 self.pixels.as_mut().unwrap()
             }
         }
@@ -156,8 +138,9 @@ impl WindowTopLevel {
 
     pub fn flush_pixels(&mut self, mem: Mem) {
         if let Some(pixels) = &mut self.pixels {
-            self.surface
-                .write_pixels(&pixels.bitmap.pixels.as_slice(mem));
+            pixels.pixels.with_slice(mem, |pixels| {
+                self.surface.write_pixels(pixels);
+            });
             self.surface.show();
         }
     }

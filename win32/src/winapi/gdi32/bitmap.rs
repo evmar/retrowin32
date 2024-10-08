@@ -7,6 +7,8 @@ use crate::{
         types::{POINT, RECT},
     },
 };
+use memory::Mem;
+use std::rc::Rc;
 
 #[derive(Clone)]
 pub struct BITMAP {
@@ -22,14 +24,15 @@ unsafe impl memory::Pod for BITMAP {}
 
 /// For the subset of dst within r, write pixels from op(x, y).
 /// Performs no clipping; caller must have already clipped.
-fn fill_pixels(dst: &mut BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) -> [u8; 4]) {
-    let pixels = dst.pixels.as_slice_mut();
-    let stride = dst.width as i32;
-    for y in r.top..r.bottom {
-        for x in r.left..r.right {
-            pixels[(y * stride + x) as usize] = op(x, y);
+fn fill_pixels(mem: Mem, dst: &BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) -> [u8; 4]) {
+    dst.pixels.with_slice(mem, |pixels| {
+        let stride = dst.width as i32;
+        for y in r.top..r.bottom {
+            for x in r.left..r.right {
+                pixels[(y * stride + x) as usize] = op(x, y);
+            }
         }
-    }
+    });
 }
 
 #[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
@@ -67,7 +70,7 @@ pub fn BitBlt(
     }
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
-    let src_bitmap = match src_dc.target {
+    let src_bitmap = &*match src_dc.target {
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
@@ -77,11 +80,10 @@ pub fn BitBlt(
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.bitmap_mut().clone()
+            window.bitmap().clone()
         }
         _ => todo!(),
     };
-    let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
 
@@ -107,22 +109,28 @@ pub fn BitBlt(
                 _ => unimplemented!("{:?}", obj),
             };
 
-            fill_pixels(dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
-                let x = x1 + dx - x;
-                let y = y1 + dy - y;
-                src[(y * src_bitmap.width as i32 + x) as usize]
+            let mem = machine.emu.memory.mem();
+            src_bitmap.pixels.with_slice(mem, |src| {
+                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                    let x = x1 + dx - x;
+                    let y = y1 + dy - y;
+                    src[(y * src_bitmap.width as i32 + x) as usize]
+                });
             });
         }
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let dst = window.bitmap_mut();
+            let dst = window.bitmap();
 
-            fill_pixels(dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
-                let x = x1 + dx - x;
-                let y = y1 + dy - y;
-                let mut px = src[(y * src_bitmap.width as i32 + x) as usize];
-                px[3] = 0xFF; // clear alpha
-                px
+            let mem = machine.emu.memory.mem();
+            src_bitmap.pixels.with_slice(mem, |src| {
+                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                    let x = x1 + dx - x;
+                    let y = y1 + dy - y;
+                    let mut px = src[(y * src_bitmap.width as i32 + x) as usize];
+                    px[3] = 0xFF; // clear alpha
+                    px
+                });
             });
 
             window
@@ -136,7 +144,11 @@ pub fn BitBlt(
             assert!(cx as u32 == surface.width && cy as u32 == surface.height);
             assert!(surface.width == src_bitmap.width && surface.height == src_bitmap.height);
 
-            surface.host.write_pixels(src);
+            src_bitmap
+                .pixels
+                .with_slice(machine.emu.memory.mem(), |src| {
+                    surface.host.write_pixels(src)
+                });
         }
     }
     true
@@ -212,7 +224,8 @@ pub fn PatBlt(
                 _ => unimplemented!(),
             };
 
-            fill_pixels(bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
+            let mem = machine.emu.memory.mem();
+            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
         }
         DCTarget::Window(hwnd) => {
             if hwnd.to_raw() != 1 {
@@ -220,8 +233,9 @@ pub fn PatBlt(
                 return false;
             }
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let bitmap = window.bitmap_mut();
-            fill_pixels(bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
+            let bitmap = window.bitmap();
+            let mem = machine.emu.memory.mem();
+            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
 
             window
                 .expect_toplevel_mut()
@@ -251,7 +265,7 @@ pub fn CreateBitmap(
             let bitmap = BitmapMono {
                 width: nWidth,
                 height: nHeight,
-                pixels: PixelData::Owned(pixels.into_boxed_slice()),
+                pixels: PixelData::new_with_owned(pixels.into_boxed_slice()),
             };
             Bitmap::Mono(bitmap)
         }
@@ -318,7 +332,7 @@ pub fn CreateDIBSection(
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
+        .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
 }
 
 #[win32_derive::dllexport]
@@ -341,18 +355,16 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
         _ => todo!(),
     };
 
-    let mut pixels = Vec::new();
-    pixels.resize((cx * cy) as usize, [0; 4]);
     let bitmap = BitmapRGBA32 {
         width: cx,
         height: cy,
-        pixels: PixelData::Owned(pixels.into_boxed_slice()),
+        pixels: PixelData::new_owned(cx as usize * cy as usize),
     };
     machine
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
+        .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
 }
 
 #[win32_derive::dllexport]
@@ -381,17 +393,16 @@ pub fn SetDIBitsToDevice(
         machine.mem().slice(lpbmi..),
         Some((machine.mem().slice(lpvBits..), cLines as usize)),
     );
-    let src = src_bitmap.pixels_slice(machine.emu.memory.mem());
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let (dst, flush_alpha) = match dc.target {
-        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
+        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get(hbitmap).unwrap() {
             Object::Bitmap(Bitmap::RGBA32(b)) => (b, false),
             _ => todo!(),
         },
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            (window.bitmap_mut(), true)
+            (window.bitmap(), true)
         }
         _ => todo!(),
     };
@@ -417,12 +428,15 @@ pub fn SetDIBitsToDevice(
         y: yDest - ySrc,
     }));
 
-    fill_pixels(dst, &copy_rect, |dx, dy| {
-        let x = dx - xDest + xSrc;
-        let y = dy - yDest + ySrc;
-        let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
-        pixel[3] = 0xFF;
-        pixel
+    let mem = machine.emu.memory.mem();
+    src_bitmap.pixels.with_slice(mem, |src| {
+        fill_pixels(mem, dst, &copy_rect, |dx, dy| {
+            let x = dx - xDest + xSrc;
+            let y = dy - yDest + ySrc;
+            let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
+            pixel[3] = 0xFF;
+            pixel
+        });
     });
 
     match dc.target {

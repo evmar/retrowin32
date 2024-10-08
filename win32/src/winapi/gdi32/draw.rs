@@ -109,7 +109,6 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     };
     let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
     let stride = window.width;
-    let pixels = window.bitmap_mut().pixels.as_slice_mut();
 
     let color = match dc.rop2 {
         R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
@@ -129,24 +128,27 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         }
     }
 
-    let (dstX, dstY) = (x, y);
-    if dstX == dc.pos.x {
-        let x = x.max(0) as u32;
-        let (y0, y1) = ascending(dstY, dc.pos.y);
-        for y in y0..=y1 {
-            pixels[((y * stride) + x) as usize] = color;
+    let mem = machine.emu.memory.mem();
+    window.bitmap().pixels.with_slice(mem, |pixels| {
+        let (dstX, dstY) = (x, y);
+        if dstX == dc.pos.x {
+            let x = x.max(0) as u32;
+            let (y0, y1) = ascending(dstY, dc.pos.y);
+            for y in y0..=y1 {
+                pixels[((y * stride) + x) as usize] = color;
+            }
+            dc.pos.y = dstY;
+        } else if dstY == dc.pos.y {
+            let (x0, x1) = ascending(dstX, dc.pos.x);
+            let y = y.max(0) as u32;
+            for x in x0..=x1 {
+                pixels[((y * stride) + x) as usize] = color;
+            }
+            dc.pos.x = dstX;
+        } else {
+            todo!();
         }
-        dc.pos.y = dstY;
-    } else if dstY == dc.pos.y {
-        let (x0, x1) = ascending(dstX, dc.pos.x);
-        let y = y.max(0) as u32;
-        for x in x0..=x1 {
-            pixels[((y * stride) + x) as usize] = color;
-        }
-        dc.pos.x = dstX;
-    } else {
-        todo!();
-    }
+    });
     false // fail
 }
 
@@ -171,14 +173,12 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             // TODO: obey rect
+            let mem = machine.emu.memory.mem();
             window
-                .bitmap_mut()
+                .bitmap()
                 .pixels
-                .as_slice_mut()
-                .fill(color.to_pixel());
-            window
-                .expect_toplevel_mut()
-                .flush_pixels(machine.emu.memory.mem());
+                .with_slice(mem, |pixels| pixels.fill(color.to_pixel()));
+            window.expect_toplevel_mut().flush_pixels(mem);
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
@@ -194,12 +194,12 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
                 return CLR_INVALID;
             }
             let stride = window.width;
-            let pixels = window.bitmap_mut().pixels.as_slice_mut();
-            pixels[((y * stride) + x) as usize] = color.to_pixel();
+            let mem = machine.emu.memory.mem();
+            window.bitmap().pixels.with_slice(mem, |pixels| {
+                pixels[((y * stride) + x) as usize] = color.to_pixel();
+            });
             // TODO: don't need to flush whole window for just one pixel
-            window
-                .expect_toplevel_mut()
-                .flush_pixels(machine.emu.memory.mem());
+            window.expect_toplevel_mut().flush_pixels(mem);
         }
         DCTarget::Memory(_) => {
             log::warn!("SetPixel for Memory DC is not implemented");
@@ -218,8 +218,11 @@ pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let stride = window.width;
-            let pixels = window.bitmap_mut().pixels.as_slice_mut();
-            let color = pixels[((y * stride) + x) as usize];
+            let mut color: [u8; 4] = [0; 4];
+            let mem = machine.emu.memory.mem();
+            window.bitmap().pixels.with_slice(mem, |pixels| {
+                color = pixels[((y * stride) + x) as usize];
+            });
             COLORREF::from_rgb(color[0], color[1], color[2])
         }
         _ => {

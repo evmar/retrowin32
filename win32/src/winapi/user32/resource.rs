@@ -10,7 +10,7 @@ use crate::{
     Machine,
 };
 use memory::{Extensions, ExtensionsMut};
-use std::ops::Range;
+use std::{ops::Range, rc::Rc};
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
@@ -81,7 +81,7 @@ fn load_bitmap(
             .state
             .gdi32
             .objects
-            .add(gdi32::Object::Bitmap(gdi32::Bitmap::RGBA32(bmp))),
+            .add(gdi32::Object::Bitmap(gdi32::Bitmap::RGBA32(Rc::new(bmp)))),
     )
 }
 

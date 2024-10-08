@@ -7,10 +7,11 @@ use crate::{
     Machine,
 };
 use memory::ExtensionsMut;
+use std::rc::Rc;
 
 #[derive(Debug)]
 pub enum Bitmap {
-    RGBA32(BitmapRGBA32),
+    RGBA32(Rc<BitmapRGBA32>),
     Mono(BitmapMono),
 }
 
