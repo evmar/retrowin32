@@ -60,6 +60,9 @@ pub fn BitBlt(
             return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
         }
         RasterOp::SRCCOPY => {}
+        rop @ RasterOp::SRCAND => {
+            log::warn!("unimplemented BitBlt with rop={rop:?}");
+        }
         _ => todo!(),
     }
 
