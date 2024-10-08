@@ -126,7 +126,7 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     match &mut window.typ {
         WindowType::TopLevel(toplevel) => {
-            toplevel.flush_pixels(machine.emu.memory.mem());
+            toplevel.flush_backing_store(machine.emu.memory.mem());
             toplevel.dirty = None;
         }
         _ => {

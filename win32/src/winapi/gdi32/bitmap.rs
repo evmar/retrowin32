@@ -135,7 +135,7 @@ pub fn BitBlt(
 
             window
                 .expect_toplevel_mut()
-                .flush_pixels(machine.emu.memory.mem());
+                .flush_backing_store(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
@@ -239,7 +239,7 @@ pub fn PatBlt(
 
             window
                 .expect_toplevel_mut()
-                .flush_pixels(machine.emu.memory.mem());
+                .flush_backing_store(machine.emu.memory.mem());
         }
         _ => todo!(),
     };
@@ -448,7 +448,7 @@ pub fn SetDIBitsToDevice(
                 .get_mut(hwnd)
                 .unwrap()
                 .expect_toplevel_mut();
-            window.flush_pixels(machine.emu.memory.mem());
+            window.flush_backing_store(machine.emu.memory.mem());
         }
         _ => {}
     }

@@ -75,7 +75,7 @@ pub struct WindowTopLevel {
     // pub hdc: HDC,
     /// Backing store, lazily created.
     /// Rc so it can be shared within drawing functions.
-    pub pixels: Option<Rc<BitmapRGBA32>>,
+    pub backing_store: Option<Rc<BitmapRGBA32>>,
     pub dirty: Option<UpdateRegion>,
 }
 
@@ -97,7 +97,8 @@ impl Window {
 
     pub fn bitmap(&mut self) -> &Rc<BitmapRGBA32> {
         let Window { width, height, .. } = *self;
-        self.expect_toplevel_mut().ensure_pixels(width, height)
+        self.expect_toplevel_mut()
+            .ensure_backing_store(width, height)
     }
 
     pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
@@ -114,7 +115,7 @@ impl Window {
                         primary: true,
                     },
                 );
-                w.pixels = None; // recreate lazily
+                w.backing_store = None; // recreate lazily
             }
             _ => {}
         }
@@ -122,23 +123,23 @@ impl Window {
 }
 
 impl WindowTopLevel {
-    fn ensure_pixels(&mut self, width: u32, height: u32) -> &Rc<BitmapRGBA32> {
-        match self.pixels {
+    fn ensure_backing_store(&mut self, width: u32, height: u32) -> &Rc<BitmapRGBA32> {
+        match self.backing_store {
             Some(ref mut px) => px,
             None => {
-                self.pixels = Some(Rc::new(BitmapRGBA32 {
+                self.backing_store = Some(Rc::new(BitmapRGBA32 {
                     width,
                     height,
                     pixels: PixelData::new_owned((width * height) as usize),
                 }));
-                self.pixels.as_mut().unwrap()
+                self.backing_store.as_mut().unwrap()
             }
         }
     }
 
-    pub fn flush_pixels(&mut self, mem: Mem) {
-        if let Some(pixels) = &mut self.pixels {
-            pixels.pixels.with_slice(mem, |pixels| {
+    pub fn flush_backing_store(&mut self, mem: Mem) {
+        if let Some(backing_store) = &mut self.backing_store {
+            backing_store.pixels.with_slice(mem, |pixels| {
                 self.surface.write_pixels(pixels);
             });
             self.surface.show();
@@ -456,7 +457,7 @@ pub async fn CreateWindowExW(
         WindowType::TopLevel(WindowTopLevel {
             host: host_win,
             surface,
-            pixels: None,
+            backing_store: None,
             dirty: Some(UpdateRegion {
                 erase_background: true,
             }),
