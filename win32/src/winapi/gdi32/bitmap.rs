@@ -1,4 +1,4 @@
-use super::{BitmapType, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
+use super::{Bitmap, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
     winapi::{
@@ -68,7 +68,7 @@ pub fn BitBlt(
         DCTarget::Memory(bitmap) => {
             let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
             match obj {
-                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp.clone(),
+                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp.clone(),
                 _ => unimplemented!("{:?}", obj),
             }
         }
@@ -100,7 +100,7 @@ pub fn BitBlt(
     match dst_dc.target {
         DCTarget::Memory(obj) => {
             let dst = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
-                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
+                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
                 _ => unimplemented!("{:?}", obj),
             };
 
@@ -205,7 +205,7 @@ pub fn PatBlt(
     match dc.target {
         DCTarget::Memory(hbitmap) => {
             let bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-                Object::Bitmap(BitmapType::RGBA32(bmp)) => bmp,
+                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
                 _ => unimplemented!(),
             };
 
@@ -250,7 +250,7 @@ pub fn CreateBitmap(
                 height: nHeight,
                 pixels: PixelData::Owned(pixels.into_boxed_slice()),
             };
-            BitmapType::Mono(bitmap)
+            Bitmap::Mono(bitmap)
         }
         _ => unimplemented!(),
     };
@@ -315,7 +315,7 @@ pub fn CreateDIBSection(
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(BitmapType::RGBA32(bitmap)))
+        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
@@ -323,7 +323,7 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dc.target {
         DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-            Object::Bitmap(BitmapType::RGBA32(_)) => {}
+            Object::Bitmap(Bitmap::RGBA32(_)) => {}
             Object::Bitmap(_) => {
                 // Cryogoat does a series of:
                 //   let dc1 = GetDC(0); // desktop dc
@@ -349,7 +349,7 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
         .state
         .gdi32
         .objects
-        .add(Object::Bitmap(BitmapType::RGBA32(bitmap)))
+        .add(Object::Bitmap(Bitmap::RGBA32(bitmap)))
 }
 
 #[win32_derive::dllexport]
@@ -383,7 +383,7 @@ pub fn SetDIBitsToDevice(
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let (dst, flush_alpha) = match dc.target {
         DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-            Object::Bitmap(BitmapType::RGBA32(b)) => (b, false),
+            Object::Bitmap(Bitmap::RGBA32(b)) => (b, false),
             _ => todo!(),
         },
         DCTarget::Window(hwnd) => {

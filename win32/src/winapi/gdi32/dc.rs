@@ -1,4 +1,4 @@
-use super::{BitmapType, Object, HGDIOBJ, R2};
+use super::{Bitmap, Object, HGDIOBJ, R2};
 use crate::winapi::types::POINT;
 use crate::{
     machine::Machine,
@@ -59,7 +59,7 @@ impl DC {
             .state
             .gdi32
             .objects
-            .add(Object::Bitmap(BitmapType::Mono(bitmap)));
+            .add(Object::Bitmap(Bitmap::Mono(bitmap)));
         Self::new(DCTarget::Memory(hobj))
     }
 }

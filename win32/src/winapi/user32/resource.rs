@@ -81,7 +81,7 @@ fn load_bitmap(
             .state
             .gdi32
             .objects
-            .add(gdi32::Object::Bitmap(gdi32::BitmapType::RGBA32(bmp))),
+            .add(gdi32::Object::Bitmap(gdi32::Bitmap::RGBA32(bmp))),
     )
 }
 

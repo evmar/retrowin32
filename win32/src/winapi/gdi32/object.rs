@@ -9,7 +9,7 @@ use crate::{
 use memory::ExtensionsMut;
 
 #[derive(Debug)]
-pub enum BitmapType {
+pub enum Bitmap {
     RGBA32(BitmapRGBA32),
     Mono(BitmapMono),
 }
@@ -18,7 +18,7 @@ pub enum BitmapType {
 #[derive(Debug)]
 pub enum Object {
     Brush(Brush),
-    Bitmap(BitmapType),
+    Bitmap(Bitmap),
     Pen(Pen),
 }
 
@@ -106,7 +106,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
             machine.mem().put_pod::<BITMAP>(
                 out,
                 match bitmap {
-                    BitmapType::RGBA32(bitmap) => BITMAP {
+                    Bitmap::RGBA32(bitmap) => BITMAP {
                         bmType: 0,
                         bmWidth: bitmap.width,
                         bmHeight: bitmap.height,
@@ -115,7 +115,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
                         bmBitsPixel: 32,
                         bmBits: 0,
                     },
-                    BitmapType::Mono(bitmap) => BITMAP {
+                    Bitmap::Mono(bitmap) => BITMAP {
                         bmType: 0,
                         bmWidth: bitmap.width,
                         bmHeight: bitmap.height,
