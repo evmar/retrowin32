@@ -111,7 +111,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     let stride = window.width;
     let pixels = window.bitmap_mut().pixels.as_slice_mut();
 
-    let color = match dc.r2 {
+    let color = match dc.rop2 {
         R2::COPYPEN => match machine.state.gdi32.objects.get(dc.pen).unwrap() {
             Object::Pen(pen) => pen.color.to_pixel(),
             _ => todo!(),
@@ -150,6 +150,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     false // fail
 }
 
+/// R2_* describe raster ops, as found in SetROP2.
 #[derive(Debug, Default, win32_derive::TryFromEnum)]
 pub enum R2 {
     #[default]
@@ -160,7 +161,7 @@ pub enum R2 {
 #[win32_derive::dllexport]
 pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
-    std::mem::replace(&mut dc.r2, rop2.unwrap()) as u32
+    std::mem::replace(&mut dc.rop2, rop2.unwrap()) as u32
 }
 
 pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF) {

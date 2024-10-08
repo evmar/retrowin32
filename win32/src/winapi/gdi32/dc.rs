@@ -26,7 +26,7 @@ pub struct DC {
     // Wine appears to use a vtable (for generic behavior).
     pub target: DCTarget,
 
-    pub r2: R2,
+    pub rop2: R2,
     pub pos: POINT,
 
     // The SelectObject() API sets a drawing-related field on the DC and returns the
@@ -40,7 +40,7 @@ impl DC {
     pub fn new(target: DCTarget) -> Self {
         DC {
             target,
-            r2: R2::default(),
+            rop2: R2::default(),
             pos: Default::default(),
             brush: Default::default(),
             pen: Default::default(),
