@@ -204,7 +204,7 @@ pub fn PatBlt(
         return false;
     };
 
-    const DEFAULT_COLOR: [u8; 4] = [255, 255, 255, 255];
+    const DEFAULT_COLOR: [u8; 4] = [0xFF, 0xFF, 0xFF, 0xFF];
 
     let color = match rop {
         RasterOp::PATCOPY => {

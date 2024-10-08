@@ -247,7 +247,7 @@ impl BitmapRGBA32 {
             // BMP palette is BGRx
             let offset = val as usize * header.palette_entry_size as usize;
             let slice = &header.palette[offset..][..3];
-            [slice[2], slice[1], slice[0], 255]
+            [slice[2], slice[1], slice[0], 0xFF]
         }
 
         let src = pixels;

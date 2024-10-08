@@ -572,7 +572,7 @@ pub mod IDirectDrawSurface7 {
                     let pixels32: Vec<_> = pixels
                         .map(|i| {
                             let p = &palette[i as usize];
-                            [p.peRed, p.peGreen, p.peBlue, 255]
+                            [p.peRed, p.peGreen, p.peBlue, 0xFF]
                         })
                         .collect();
                     surf.host.write_pixels(&pixels32);
