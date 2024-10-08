@@ -24,12 +24,18 @@ unsafe impl memory::Pod for BITMAP {}
 
 /// For the subset of dst within r, write pixels from op(x, y).
 /// Performs no clipping; caller must have already clipped.
-fn fill_pixels(mem: Mem, dst: &BitmapRGBA32, r: &RECT, mut op: impl FnMut(i32, i32) -> [u8; 4]) {
+fn fill_pixels(
+    mem: Mem,
+    dst: &BitmapRGBA32,
+    r: &RECT,
+    mut op: impl FnMut(i32, i32, [u8; 4]) -> [u8; 4],
+) {
     dst.pixels.with_slice(mem, |pixels| {
         let stride = dst.width as i32;
         for y in r.top..r.bottom {
             for x in r.left..r.right {
-                pixels[(y * stride + x) as usize] = op(x, y);
+                let p = &mut pixels[(y * stride + x) as usize];
+                *p = op(x, y, *p);
             }
         }
     });
@@ -57,17 +63,22 @@ pub fn BitBlt(
     y1: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
-    match rop.unwrap() {
+    let op = match rop.unwrap() {
         RasterOp::BLACKNESS => {
             // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
             return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
         }
-        RasterOp::SRCCOPY => {}
-        rop @ RasterOp::SRCAND => {
-            log::warn!("unimplemented BitBlt with rop={rop:?}");
-        }
+        RasterOp::SRCCOPY => |dst: [u8; 4], src: [u8; 4]| src,
+        RasterOp::SRCAND => |dst: [u8; 4], src: [u8; 4]| {
+            [
+                dst[0] & src[0],
+                dst[1] & src[1],
+                dst[2] & src[2],
+                dst[3] & src[3],
+            ]
+        },
         _ => todo!(),
-    }
+    };
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let src_bitmap = &*match src_dc.target {
@@ -111,10 +122,10 @@ pub fn BitBlt(
 
             let mem = machine.emu.memory.mem();
             src_bitmap.pixels.with_slice(mem, |src| {
-                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy, p| {
                     let x = x1 + dx - x;
                     let y = y1 + dy - y;
-                    src[(y * src_bitmap.width as i32 + x) as usize]
+                    op(p, src[(y * src_bitmap.width as i32 + x) as usize])
                 });
             });
         }
@@ -124,10 +135,10 @@ pub fn BitBlt(
 
             let mem = machine.emu.memory.mem();
             src_bitmap.pixels.with_slice(mem, |src| {
-                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy| {
+                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy, p| {
                     let x = x1 + dx - x;
                     let y = y1 + dy - y;
-                    let mut px = src[(y * src_bitmap.width as i32 + x) as usize];
+                    let mut px = op(p, src[(y * src_bitmap.width as i32 + x) as usize]);
                     px[3] = 0xFF; // clear alpha
                     px
                 });
@@ -225,7 +236,9 @@ pub fn PatBlt(
             };
 
             let mem = machine.emu.memory.mem();
-            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
+            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _, _| {
+                color
+            });
         }
         DCTarget::Window(hwnd) => {
             if hwnd.to_raw() != 1 {
@@ -235,7 +248,9 @@ pub fn PatBlt(
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let bitmap = window.bitmap();
             let mem = machine.emu.memory.mem();
-            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _| color);
+            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _, _| {
+                color
+            });
 
             window
                 .expect_toplevel_mut()
@@ -430,7 +445,7 @@ pub fn SetDIBitsToDevice(
 
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, dst, &copy_rect, |dx, dy| {
+        fill_pixels(mem, dst, &copy_rect, |dx, dy, _| {
             let x = dx - xDest + xSrc;
             let y = dy - yDest + ySrc;
             let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
