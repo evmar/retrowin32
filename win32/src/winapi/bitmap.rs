@@ -218,18 +218,6 @@ impl BitmapRGBA32 {
         }
     }
 
-    pub fn clone(&self) -> BitmapRGBA32 {
-        let pixels: PixelData<[u8; 4]> = match &self.pixels {
-            PixelData::Owned(b) => PixelData::Owned(b.clone()),
-            PixelData::Ptr(addr, len) => PixelData::Ptr(*addr, *len),
-        };
-        BitmapRGBA32 {
-            width: self.width,
-            height: self.height,
-            pixels,
-        }
-    }
-
     /// If pixels is not None, only parse the given number of lines from the given pixels.
     /// Otherwise pixels are expected to immediately follow the header in memory.
     pub fn parse(buf: &[u8], pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
