@@ -85,53 +85,10 @@ pub fn BitBlt(
     let src_bitmap = target.get_bitmap(machine).unwrap();
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let target = dst_dc.target;
 
-    let copy_rect = RECT {
-        left: 0,
-        top: 0,
-        right: cx,
-        bottom: cy,
-    }; // 0-based rect of copy region
-    let dst_rect = copy_rect.add(POINT { x, y }); // destination rect
-    let src_rect = copy_rect
-        .add(POINT { x: x1, y: y1 })
-        .clip(&src_bitmap.to_rect()); // copy source rect, in source bitmap coordinates
-    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
-        x: x - x1,
-        y: y - y1,
-    })); // clipped copy region
-
+    // Special case: BitBlt to a DirectDrawSurface does a full copy, and the rest is unimplemented.
     match dst_dc.target {
-        DCTarget::Memory(obj) => {
-            let dst = match machine.state.gdi32.objects.get_mut(obj).unwrap() {
-                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
-                _ => unimplemented!("{:?}", obj),
-            };
-
-            let mem = machine.emu.memory.mem();
-            src_bitmap.pixels.with_slice(mem, |src| {
-                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy, p| {
-                    let x = x1 + dx - x;
-                    let y = y1 + dy - y;
-                    op(p, src[(y * src_bitmap.width as i32 + x) as usize])
-                });
-            });
-        }
-        DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let dst = window.bitmap();
-
-            let mem = machine.emu.memory.mem();
-            src_bitmap.pixels.with_slice(mem, |src| {
-                fill_pixels(mem, dst, &copy_rect.clip(&dst.to_rect()), |dx, dy, p| {
-                    let x = x1 + dx - x;
-                    let y = y1 + dy - y;
-                    let mut px = op(p, src[(y * src_bitmap.width as i32 + x) as usize]);
-                    px[3] = 0xFF; // clear alpha
-                    px
-                });
-            });
-        }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
 
@@ -144,10 +101,46 @@ pub fn BitBlt(
                 .with_slice(machine.emu.memory.mem(), |src| {
                     surface.host.write_pixels(src)
                 });
+            return true;
         }
+        _ => {}
     }
 
-    dst_dc.target.flush(machine);
+    let dst_bitmap = target.get_bitmap(machine).unwrap();
+
+    let src_rect = RECT {
+        left: x1,
+        top: y1,
+        right: x1 + cx,
+        bottom: y1 + cy,
+    }
+    .clip(&src_bitmap.to_rect());
+
+    let dst_rect = RECT {
+        left: x,
+        top: y,
+        right: x + cx,
+        bottom: y + cy,
+    }
+    .clip(&dst_bitmap.to_rect());
+
+    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
+        x: x - x1,
+        y: y - y1,
+    })); // clipped copy region
+
+    let mem = machine.emu.memory.mem();
+    src_bitmap.pixels.with_slice(mem, |src| {
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, p| {
+            let x = x1 + dx - x;
+            let y = y1 + dy - y;
+            let mut px = op(p, src[(y * src_bitmap.width as i32 + x) as usize]);
+            px[3] = 0xFF; // clear alpha
+            px
+        });
+    });
+
+    target.flush(machine);
     true
 }
 
