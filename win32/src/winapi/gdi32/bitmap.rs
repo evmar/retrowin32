@@ -51,36 +51,49 @@ pub enum RasterOp {
 }
 
 #[win32_derive::dllexport]
-pub fn BitBlt(
+pub fn StretchBlt(
     machine: &mut Machine,
-    hdc: HDC,
-    x: i32,
-    y: i32,
-    cx: i32,
-    cy: i32,
+    hdcDst: HDC,
+    xDst: i32,
+    yDst: i32,
+    wDst: i32,
+    hDst: i32,
     hdcSrc: HDC,
-    x1: i32,
-    y1: i32,
+    xSrc: i32,
+    ySrc: i32,
+    wSrc: i32,
+    hSrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
+    if wDst != wSrc || hDst != hSrc {
+        todo!("unimp: StretchBlt with actual stretching");
+    }
     let dst_rect = RECT {
-        left: x,
-        top: y,
-        right: x + cx,
-        bottom: y + cy,
+        left: xDst,
+        top: yDst,
+        right: xDst + wDst,
+        bottom: yDst + hDst,
     };
 
     let src_rect = RECT {
-        left: x1,
-        top: y1,
-        right: x1 + cx,
-        bottom: y1 + cy,
+        left: xSrc,
+        top: ySrc,
+        right: xSrc + wSrc,
+        bottom: ySrc + hSrc,
     };
 
     let op = match rop.unwrap() {
         RasterOp::BLACKNESS => {
             // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
-            return PatBlt(machine, hdc, x, y, cx, cy, Ok(RasterOp::BLACKNESS));
+            return PatBlt(
+                machine,
+                hdcDst,
+                xDst,
+                yDst,
+                wDst,
+                hDst,
+                Ok(RasterOp::BLACKNESS),
+            );
         }
         RasterOp::SRCCOPY => |dst: [u8; 4], src: [u8; 4]| src,
         RasterOp::SRCAND => |dst: [u8; 4], src: [u8; 4]| {
@@ -98,7 +111,7 @@ pub fn BitBlt(
     let target = src_dc.target;
     let src_bitmap = target.get_bitmap(machine).unwrap();
 
-    let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap();
     let target = dst_dc.target;
 
     // Special case: BitBlt to a DirectDrawSurface does a full copy, and the rest is unimplemented.
@@ -132,8 +145,8 @@ pub fn BitBlt(
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
         fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, p| {
-            let x = x1 + dx - x;
-            let y = y1 + dy - y;
+            let x = xSrc + dx - xDst;
+            let y = ySrc + dy - yDst;
             let mut px = op(p, src[(y * src_bitmap.width as i32 + x) as usize]);
             px[3] = 0xFF; // clear alpha
             px
@@ -145,25 +158,20 @@ pub fn BitBlt(
 }
 
 #[win32_derive::dllexport]
-pub fn StretchBlt(
+pub fn BitBlt(
     machine: &mut Machine,
-    hdcDest: HDC,
-    xDest: i32,
-    yDest: i32,
-    wDest: i32,
-    hDest: i32,
+    hdcDst: HDC,
+    xDst: i32,
+    yDst: i32,
+    w: i32,
+    h: i32,
     hdcSrc: HDC,
     xSrc: i32,
     ySrc: i32,
-    wSrc: i32,
-    hSrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
-    if wDest != wSrc || hDest != hSrc {
-        todo!("unimp: StretchBlt with actual stretching");
-    }
-    BitBlt(
-        machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, rop,
+    StretchBlt(
+        machine, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, w, h, rop,
     )
 }
 
