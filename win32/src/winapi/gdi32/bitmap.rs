@@ -348,8 +348,8 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
 pub fn SetDIBitsToDevice(
     machine: &mut Machine,
     hdc: HDC,
-    xDest: i32,
-    yDest: i32,
+    xDst: i32,
+    yDst: i32,
     w: i32,
     h: i32,
     xSrc: i32,
@@ -384,10 +384,10 @@ pub fn SetDIBitsToDevice(
     .clip(&src_bitmap.to_rect());
 
     let dst_rect = RECT {
-        left: xDest,
-        top: yDest,
-        right: xDest + w,
-        bottom: yDest + h,
+        left: xDst,
+        top: yDst,
+        right: xDst + w,
+        bottom: yDst + h,
     }
     .clip(&dst_bitmap.to_rect());
 
@@ -396,8 +396,8 @@ pub fn SetDIBitsToDevice(
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
         fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, _| {
-            let x = dx - xDest + xSrc;
-            let y = dy - yDest + ySrc;
+            let x = dx - xDst + xSrc;
+            let y = dy - yDst + ySrc;
             let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
             pixel[3] = 0xFF;
             pixel
@@ -413,20 +413,20 @@ pub fn SetDIBitsToDevice(
 pub fn StretchDIBits(
     machine: &mut Machine,
     hdc: HDC,
-    xDest: i32,
-    yDest: i32,
-    DestWidth: i32,
-    DestHeight: i32,
+    xDst: i32,
+    yDst: i32,
+    wDst: i32,
+    hDst: i32,
     xSrc: i32,
     ySrc: i32,
-    SrcWidth: i32,
-    SrcHeight: i32,
+    wSrc: i32,
+    hSrc: i32,
     lpBits: u32,
     lpbmi: u32,
     iUsage: u32,
     rop: Result<RasterOp, u32>,
 ) -> u32 {
-    if SrcWidth != DestWidth || SrcHeight != DestHeight {
+    if wSrc != wDst || hSrc != hDst {
         log::warn!("TODO: StretchDIBits doesn't stretch");
     }
 
@@ -438,14 +438,14 @@ pub fn StretchDIBits(
     SetDIBitsToDevice(
         machine,
         hdc,
-        xDest,
-        yDest,
-        SrcWidth,
-        SrcHeight,
+        xDst,
+        yDst,
+        wSrc,
+        hSrc,
         xSrc,
         ySrc,
         0,
-        SrcHeight as u32,
+        hSrc as u32,
         lpBits,
         lpbmi,
         iUsage,
