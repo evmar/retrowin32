@@ -10,7 +10,7 @@ pub trait Surface {
     fn write_pixels(&mut self, pixels: &[[u8; 4]]);
 
     /// Show the this surface as the foreground.  Called by ::Flip().
-    fn show(&mut self);
+    fn show(&self);
 
     // TODO: the trait object here means we end up needing to cast, but the alternative
     // isn't object safe, bleh.

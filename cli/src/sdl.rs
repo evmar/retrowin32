@@ -248,7 +248,7 @@ impl win32::Surface for Texture {
             .unwrap();
     }
 
-    fn show(&mut self) {
+    fn show(&self) {
         let canvas = &mut self.window.0.borrow_mut().canvas;
         // Passing None/None for the src/dst rects means to do a scaling full copy,
         // which is what we want for the fullscreen case in particular.

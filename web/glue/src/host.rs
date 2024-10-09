@@ -56,7 +56,7 @@ impl win32::Surface for WebSurface {
         self.ctx.put_image_data(&image_data, 0.0, 0.0).unwrap();
     }
 
-    fn show(&mut self) {
+    fn show(&self) {
         self.screen
             .draw_image_with_html_canvas_element(&self.canvas, 0.0, 0.0)
             .unwrap();
