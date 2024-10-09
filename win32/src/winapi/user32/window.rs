@@ -138,7 +138,7 @@ impl WindowTopLevel {
     }
 
     pub fn flush_backing_store(&mut self, mem: Mem) {
-        if let Some(backing_store) = &mut self.backing_store {
+        if let Some(backing_store) = &self.backing_store {
             backing_store.pixels.with_slice(mem, |pixels| {
                 self.surface.write_pixels(pixels);
             });
