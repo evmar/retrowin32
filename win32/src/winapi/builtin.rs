@@ -2808,35 +2808,36 @@ pub mod gdi32 {
         use winapi::gdi32::*;
         pub unsafe fn BitBlt(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let x = <i32>::from_stack(mem, stack_args + 4u32);
-            let y = <i32>::from_stack(mem, stack_args + 8u32);
-            let cx = <i32>::from_stack(mem, stack_args + 12u32);
-            let cy = <i32>::from_stack(mem, stack_args + 16u32);
+            let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
+            let xDst = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDst = <i32>::from_stack(mem, stack_args + 8u32);
+            let w = <i32>::from_stack(mem, stack_args + 12u32);
+            let h = <i32>::from_stack(mem, stack_args + 16u32);
             let hdcSrc = <HDC>::from_stack(mem, stack_args + 20u32);
-            let x1 = <i32>::from_stack(mem, stack_args + 24u32);
-            let y1 = <i32>::from_stack(mem, stack_args + 28u32);
+            let xSrc = <i32>::from_stack(mem, stack_args + 24u32);
+            let ySrc = <i32>::from_stack(mem, stack_args + 28u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 32u32);
             let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
                 Some(crate::trace::trace_begin(
                     "gdi32/bitmap",
                     "BitBlt",
                     &[
-                        ("hdc", &hdc),
-                        ("x", &x),
-                        ("y", &y),
-                        ("cx", &cx),
-                        ("cy", &cy),
+                        ("hdcDst", &hdcDst),
+                        ("xDst", &xDst),
+                        ("yDst", &yDst),
+                        ("w", &w),
+                        ("h", &h),
                         ("hdcSrc", &hdcSrc),
-                        ("x1", &x1),
-                        ("y1", &y1),
+                        ("xSrc", &xSrc),
+                        ("ySrc", &ySrc),
                         ("rop", &rop),
                     ],
                 ))
             } else {
                 None
             };
-            let result = winapi::gdi32::BitBlt(machine, hdc, x, y, cx, cy, hdcSrc, x1, y1, rop);
+            let result =
+                winapi::gdi32::BitBlt(machine, hdcDst, xDst, yDst, w, h, hdcSrc, xSrc, ySrc, rop);
             if let Some(__trace_context) = __trace_context {
                 crate::trace::trace_return(
                     &__trace_context,
@@ -3651,42 +3652,42 @@ pub mod gdi32 {
         pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let xDest = <i32>::from_stack(mem, stack_args + 4u32);
-            let yDest = <i32>::from_stack(mem, stack_args + 8u32);
+            let xDst = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDst = <i32>::from_stack(mem, stack_args + 8u32);
             let w = <i32>::from_stack(mem, stack_args + 12u32);
             let h = <i32>::from_stack(mem, stack_args + 16u32);
             let xSrc = <i32>::from_stack(mem, stack_args + 20u32);
             let ySrc = <i32>::from_stack(mem, stack_args + 24u32);
             let StartScan = <u32>::from_stack(mem, stack_args + 28u32);
             let cLines = <u32>::from_stack(mem, stack_args + 32u32);
-            let lpvBits = <u32>::from_stack(mem, stack_args + 36u32);
-            let lpbmi = <u32>::from_stack(mem, stack_args + 40u32);
-            let ColorUse = <u32>::from_stack(mem, stack_args + 44u32);
+            let lpBits = <u32>::from_stack(mem, stack_args + 36u32);
+            let lpBmi = <u32>::from_stack(mem, stack_args + 40u32);
+            let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
             let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
                 Some(crate::trace::trace_begin(
                     "gdi32/bitmap",
                     "SetDIBitsToDevice",
                     &[
                         ("hdc", &hdc),
-                        ("xDest", &xDest),
-                        ("yDest", &yDest),
+                        ("xDst", &xDst),
+                        ("yDst", &yDst),
                         ("w", &w),
                         ("h", &h),
                         ("xSrc", &xSrc),
                         ("ySrc", &ySrc),
                         ("StartScan", &StartScan),
                         ("cLines", &cLines),
-                        ("lpvBits", &lpvBits),
-                        ("lpbmi", &lpbmi),
-                        ("ColorUse", &ColorUse),
+                        ("lpBits", &lpBits),
+                        ("lpBmi", &lpBmi),
+                        ("iUsage", &iUsage),
                     ],
                 ))
             } else {
                 None
             };
             let result = winapi::gdi32::SetDIBitsToDevice(
-                machine, hdc, xDest, yDest, w, h, xSrc, ySrc, StartScan, cLines, lpvBits, lpbmi,
-                ColorUse,
+                machine, hdc, xDst, yDst, w, h, xSrc, ySrc, StartScan, cLines, lpBits, lpBmi,
+                iUsage,
             );
             if let Some(__trace_context) = __trace_context {
                 crate::trace::trace_return(
@@ -3822,11 +3823,11 @@ pub mod gdi32 {
         }
         pub unsafe fn StretchBlt(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hdcDest = <HDC>::from_stack(mem, stack_args + 0u32);
-            let xDest = <i32>::from_stack(mem, stack_args + 4u32);
-            let yDest = <i32>::from_stack(mem, stack_args + 8u32);
-            let wDest = <i32>::from_stack(mem, stack_args + 12u32);
-            let hDest = <i32>::from_stack(mem, stack_args + 16u32);
+            let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
+            let xDst = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDst = <i32>::from_stack(mem, stack_args + 8u32);
+            let wDst = <i32>::from_stack(mem, stack_args + 12u32);
+            let hDst = <i32>::from_stack(mem, stack_args + 16u32);
             let hdcSrc = <HDC>::from_stack(mem, stack_args + 20u32);
             let xSrc = <i32>::from_stack(mem, stack_args + 24u32);
             let ySrc = <i32>::from_stack(mem, stack_args + 28u32);
@@ -3838,11 +3839,11 @@ pub mod gdi32 {
                     "gdi32/bitmap",
                     "StretchBlt",
                     &[
-                        ("hdcDest", &hdcDest),
-                        ("xDest", &xDest),
-                        ("yDest", &yDest),
-                        ("wDest", &wDest),
-                        ("hDest", &hDest),
+                        ("hdcDst", &hdcDst),
+                        ("xDst", &xDst),
+                        ("yDst", &yDst),
+                        ("wDst", &wDst),
+                        ("hDst", &hDst),
                         ("hdcSrc", &hdcSrc),
                         ("xSrc", &xSrc),
                         ("ySrc", &ySrc),
@@ -3855,7 +3856,7 @@ pub mod gdi32 {
                 None
             };
             let result = winapi::gdi32::StretchBlt(
-                machine, hdcDest, xDest, yDest, wDest, hDest, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
+                machine, hdcDst, xDst, yDst, wDst, hDst, hdcSrc, xSrc, ySrc, wSrc, hSrc, rop,
             );
             if let Some(__trace_context) = __trace_context {
                 crate::trace::trace_return(
@@ -3870,16 +3871,16 @@ pub mod gdi32 {
         pub unsafe fn StretchDIBits(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
-            let xDest = <i32>::from_stack(mem, stack_args + 4u32);
-            let yDest = <i32>::from_stack(mem, stack_args + 8u32);
-            let DestWidth = <i32>::from_stack(mem, stack_args + 12u32);
-            let DestHeight = <i32>::from_stack(mem, stack_args + 16u32);
+            let xDst = <i32>::from_stack(mem, stack_args + 4u32);
+            let yDst = <i32>::from_stack(mem, stack_args + 8u32);
+            let wDst = <i32>::from_stack(mem, stack_args + 12u32);
+            let hDst = <i32>::from_stack(mem, stack_args + 16u32);
             let xSrc = <i32>::from_stack(mem, stack_args + 20u32);
             let ySrc = <i32>::from_stack(mem, stack_args + 24u32);
-            let SrcWidth = <i32>::from_stack(mem, stack_args + 28u32);
-            let SrcHeight = <i32>::from_stack(mem, stack_args + 32u32);
+            let wSrc = <i32>::from_stack(mem, stack_args + 28u32);
+            let hSrc = <i32>::from_stack(mem, stack_args + 32u32);
             let lpBits = <u32>::from_stack(mem, stack_args + 36u32);
-            let lpbmi = <u32>::from_stack(mem, stack_args + 40u32);
+            let lpBmi = <u32>::from_stack(mem, stack_args + 40u32);
             let iUsage = <u32>::from_stack(mem, stack_args + 44u32);
             let rop = <Result<RasterOp, u32>>::from_stack(mem, stack_args + 48u32);
             let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
@@ -3888,16 +3889,16 @@ pub mod gdi32 {
                     "StretchDIBits",
                     &[
                         ("hdc", &hdc),
-                        ("xDest", &xDest),
-                        ("yDest", &yDest),
-                        ("DestWidth", &DestWidth),
-                        ("DestHeight", &DestHeight),
+                        ("xDst", &xDst),
+                        ("yDst", &yDst),
+                        ("wDst", &wDst),
+                        ("hDst", &hDst),
                         ("xSrc", &xSrc),
                         ("ySrc", &ySrc),
-                        ("SrcWidth", &SrcWidth),
-                        ("SrcHeight", &SrcHeight),
+                        ("wSrc", &wSrc),
+                        ("hSrc", &hSrc),
                         ("lpBits", &lpBits),
-                        ("lpbmi", &lpbmi),
+                        ("lpBmi", &lpBmi),
                         ("iUsage", &iUsage),
                         ("rop", &rop),
                     ],
@@ -3906,8 +3907,8 @@ pub mod gdi32 {
                 None
             };
             let result = winapi::gdi32::StretchDIBits(
-                machine, hdc, xDest, yDest, DestWidth, DestHeight, xSrc, ySrc, SrcWidth, SrcHeight,
-                lpBits, lpbmi, iUsage, rop,
+                machine, hdc, xDst, yDst, wDst, hDst, xSrc, ySrc, wSrc, hSrc, lpBits, lpBmi,
+                iUsage, rop,
             );
             if let Some(__trace_context) = __trace_context {
                 crate::trace::trace_return(

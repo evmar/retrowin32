@@ -344,6 +344,30 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
         .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
 }
 
+fn copy_bitmap(
+    mem: Mem,
+    dst_bitmap: &BitmapRGBA32,
+    dst_rect: &RECT,
+    src_bitmap: &BitmapRGBA32,
+    src_rect: &RECT,
+) {
+    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
+    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
+
+    let copy_rect =
+        dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
+
+    src_bitmap.pixels.with_slice(mem, |src| {
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, _| {
+            let x = dx - dst_rect.left + src_rect.left;
+            let y = dy - dst_rect.top + src_rect.top;
+            let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
+            pixel[3] = 0xFF;
+            pixel
+        });
+    });
+}
+
 #[win32_derive::dllexport]
 pub fn SetDIBitsToDevice(
     machine: &mut Machine,
@@ -356,19 +380,19 @@ pub fn SetDIBitsToDevice(
     ySrc: i32,
     StartScan: u32,
     cLines: u32,
-    lpvBits: u32,
-    lpbmi: u32,
-    ColorUse: u32,
+    lpBits: u32,
+    lpBmi: u32,
+    iUsage: u32,
 ) -> u32 {
     if StartScan as i32 != ySrc || cLines as i32 != h {
         todo!()
     }
-    if ColorUse != DIB_RGB_COLORS {
+    if iUsage != DIB_RGB_COLORS {
         todo!();
     }
     let src_bitmap = BitmapRGBA32::parse(
-        machine.mem().slice(lpbmi..),
-        Some((machine.mem().slice(lpvBits..), cLines as usize)),
+        machine.mem().slice(lpBmi..),
+        Some((machine.mem().slice(lpBits..), cLines as usize)),
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
@@ -380,29 +404,22 @@ pub fn SetDIBitsToDevice(
         top: ySrc,
         right: xSrc + w,
         bottom: ySrc + h,
-    }
-    .clip(&src_bitmap.to_rect());
+    };
 
     let dst_rect = RECT {
         left: xDst,
         top: yDst,
         right: xDst + w,
         bottom: yDst + h,
-    }
-    .clip(&dst_bitmap.to_rect());
+    };
 
-    let copy_rect = dst_rect.clip(&src_rect.add(dst_rect.origin().sub(src_rect.origin())));
-
-    let mem = machine.emu.memory.mem();
-    src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, _| {
-            let x = dx - xDst + xSrc;
-            let y = dy - yDst + ySrc;
-            let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
-            pixel[3] = 0xFF;
-            pixel
-        });
-    });
+    copy_bitmap(
+        machine.emu.memory.mem(),
+        &*dst_bitmap,
+        &dst_rect,
+        &src_bitmap,
+        &src_rect,
+    );
 
     target.flush(machine);
 
@@ -422,10 +439,10 @@ pub fn StretchDIBits(
     wSrc: i32,
     hSrc: i32,
     lpBits: u32,
-    lpbmi: u32,
+    lpBmi: u32,
     iUsage: u32,
     rop: Result<RasterOp, u32>,
-) -> u32 {
+) -> i32 {
     if wSrc != wDst || hSrc != hDst {
         log::warn!("TODO: StretchDIBits doesn't stretch");
     }
@@ -435,19 +452,38 @@ pub fn StretchDIBits(
         _ => todo!(),
     }
 
-    SetDIBitsToDevice(
-        machine,
-        hdc,
-        xDst,
-        yDst,
-        wSrc,
-        hSrc,
-        xSrc,
-        ySrc,
-        0,
-        hSrc as u32,
-        lpBits,
-        lpbmi,
-        iUsage,
-    )
+    let src_bitmap = BitmapRGBA32::parse(
+        machine.mem().slice(lpBmi..),
+        Some((machine.mem().slice(lpBits..), hSrc as usize)),
+    );
+
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let target = dc.target;
+    let dst_bitmap = target.get_bitmap(machine).unwrap();
+
+    let src_rect = RECT {
+        left: xSrc,
+        top: ySrc,
+        right: xSrc + wSrc,
+        bottom: ySrc + hSrc,
+    };
+
+    let dst_rect = RECT {
+        left: xDst,
+        top: yDst,
+        right: xDst + wDst,
+        bottom: yDst + hDst,
+    };
+
+    copy_bitmap(
+        machine.emu.memory.mem(),
+        &*dst_bitmap,
+        &dst_rect,
+        &src_bitmap,
+        &src_rect,
+    );
+
+    target.flush(machine);
+
+    hSrc
 }
