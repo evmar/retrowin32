@@ -31,9 +31,7 @@ class Window implements glue.JsWindow {
   private reset_canvas() {
     const [w, h] = this.size;
     let scale = 1;
-    if (w < 640) scale *= 2;
-
-    console.log('reset_canvas', w, h, scale);
+    if (this.is_fullscreen && w < 640) scale *= 2;
 
     // Note: the canvas must be sized to the size of physical pixels,
     // or else it will be scaled up with smoothing and pixels will be blurry.
