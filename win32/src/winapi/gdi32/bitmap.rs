@@ -143,8 +143,6 @@ pub fn BitBlt(
                     px
                 });
             });
-
-            window.flush_backing_store(machine.emu.memory.mem());
         }
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
@@ -160,6 +158,8 @@ pub fn BitBlt(
                 });
         }
     }
+
+    dst_dc.target.flush(machine);
     true
 }
 
@@ -249,11 +249,10 @@ pub fn PatBlt(
             fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _, _| {
                 color
             });
-
-            window.flush_backing_store(machine.emu.memory.mem());
         }
         _ => todo!(),
     };
+    dc.target.flush(machine);
     true
 }
 
@@ -450,13 +449,7 @@ pub fn SetDIBitsToDevice(
         });
     });
 
-    match dc.target {
-        DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.flush_backing_store(machine.emu.memory.mem());
-        }
-        _ => {}
-    }
+    dc.target.flush(machine);
 
     cLines
 }

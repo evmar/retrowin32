@@ -178,10 +178,10 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
                 .bitmap()
                 .pixels
                 .with_slice(mem, |pixels| pixels.fill(color.to_pixel()));
-            window.flush_backing_store(mem);
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
+    dc.target.flush(machine);
 }
 
 #[win32_derive::dllexport]
@@ -198,8 +198,6 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
             window.bitmap().pixels.with_slice(mem, |pixels| {
                 pixels[((y * stride) + x) as usize] = color.to_pixel();
             });
-            // TODO: don't need to flush whole window for just one pixel
-            window.flush_backing_store(mem);
         }
         DCTarget::Memory(_) => {
             log::warn!("SetPixel for Memory DC is not implemented");
@@ -208,6 +206,10 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
             todo!("unimplemented SetPixel for {:?}", dc.target);
         }
     }
+
+    // TODO: don't need to flush whole window for just one pixel
+    dc.target.flush(machine);
+
     color
 }
 

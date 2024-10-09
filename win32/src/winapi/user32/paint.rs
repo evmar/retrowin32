@@ -117,6 +117,7 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
             log::warn!("TODO: EndPaint for child windows");
         }
     }
+
     true
 }
 

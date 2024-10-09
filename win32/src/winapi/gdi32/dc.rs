@@ -11,11 +11,24 @@ use crate::{
 pub type HDC = HANDLE<DC>;
 
 /// Target device for a DC.
-#[derive(Debug)]
+/// TODO: remove Copy/Clone and make targeted objects refcounted.
+#[derive(Copy, Clone, Debug)]
 pub enum DCTarget {
     Memory(HGDIOBJ), // aka Bitmap
     Window(HWND),
     DirectDrawSurface(u32),
+}
+
+impl DCTarget {
+    pub fn flush(self, machine: &mut Machine) {
+        match self {
+            DCTarget::Window(hwnd) => {
+                let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+                window.flush_backing_store(machine.emu.memory.mem());
+            }
+            _ => {}
+        }
+    }
 }
 
 #[derive(Debug)]
