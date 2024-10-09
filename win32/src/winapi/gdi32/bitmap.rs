@@ -4,7 +4,7 @@ use crate::{
     winapi::{
         bitmap::{BitmapMono, BitmapRGBA32, PixelData, BI},
         kernel32,
-        types::RECT,
+        types::{POINT, RECT},
     },
 };
 use memory::Mem;
@@ -28,14 +28,14 @@ fn fill_pixels(
     mem: Mem,
     dst: &BitmapRGBA32,
     r: &RECT,
-    mut op: impl FnMut(i32, i32, [u8; 4]) -> [u8; 4],
+    mut op: impl FnMut(POINT, [u8; 4]) -> [u8; 4],
 ) {
     dst.pixels.with_slice(mem, |pixels| {
         let stride = dst.width as i32;
         for y in r.top..r.bottom {
             for x in r.left..r.right {
                 let p = &mut pixels[(y * stride + x) as usize];
-                *p = op(x, y, *p);
+                *p = op(POINT { x, y }, *p);
             }
         }
     });
@@ -142,12 +142,14 @@ pub fn StretchBlt(
         &src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())),
     );
 
+    // Translation from dst coord to src coord.
+    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
+
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, p| {
-            let x = xSrc + dx - xDst;
-            let y = ySrc + dy - yDst;
-            let mut px = op(p, src[(y * src_bitmap.width as i32 + x) as usize]);
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, dpx| {
+            let p = p.add(dst_to_src);
+            let mut px = op(dpx, src[(p.y * src_bitmap.width as i32 + p.x) as usize]);
             px[3] = 0xFF; // clear alpha
             px
         });
@@ -218,7 +220,7 @@ pub fn PatBlt(
     }
     .clip(&dst_bitmap.to_rect());
 
-    fill_pixels(machine.mem(), &*dst_bitmap, &dst_rect, |_, _, _| color);
+    fill_pixels(machine.mem(), &*dst_bitmap, &dst_rect, |_, _| color);
     target.flush(machine);
     true
 }
@@ -357,11 +359,12 @@ fn copy_bitmap(
     let copy_rect =
         dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
 
+    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
+
     src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, _| {
-            let x = dx - dst_rect.left + src_rect.left;
-            let y = dy - dst_rect.top + src_rect.top;
-            let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, _| {
+            let p = p.add(dst_to_src);
+            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
             pixel[3] = 0xFF;
             pixel
         });
