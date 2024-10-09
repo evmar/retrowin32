@@ -81,20 +81,8 @@ pub fn BitBlt(
     };
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
-    let src_bitmap = &*match src_dc.target {
-        DCTarget::Memory(bitmap) => {
-            let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
-            match obj {
-                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp.clone(),
-                _ => unimplemented!("{:?}", obj),
-            }
-        }
-        DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            window.bitmap().clone()
-        }
-        _ => todo!(),
-    };
+    let target = src_dc.target;
+    let src_bitmap = target.get_bitmap(machine).unwrap();
 
     let dst_dc = machine.state.gdi32.dcs.get(hdc).unwrap();
 
@@ -219,40 +207,18 @@ pub fn PatBlt(
         _ => todo!("unimplemented PatBlt with rop={rop:?}"),
     };
 
+    let target = dc.target;
+    let dst_bitmap = target.get_bitmap(machine).unwrap();
     let dst_rect = RECT {
         left: x,
         top: y,
         right: x + w,
         bottom: y + h,
-    };
+    }
+    .clip(&dst_bitmap.to_rect());
 
-    match dc.target {
-        DCTarget::Memory(hbitmap) => {
-            let bitmap = match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-                Object::Bitmap(Bitmap::RGBA32(bmp)) => bmp,
-                _ => unimplemented!(),
-            };
-
-            let mem = machine.emu.memory.mem();
-            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _, _| {
-                color
-            });
-        }
-        DCTarget::Window(hwnd) => {
-            if hwnd.to_raw() != 1 {
-                log::warn!("PatBlt to sub window");
-                return false;
-            }
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            let bitmap = window.bitmap();
-            let mem = machine.emu.memory.mem();
-            fill_pixels(mem, bitmap, &dst_rect.clip(&bitmap.to_rect()), |_, _, _| {
-                color
-            });
-        }
-        _ => todo!(),
-    };
-    dc.target.flush(machine);
+    fill_pixels(machine.mem(), &*dst_bitmap, &dst_rect, |_, _, _| color);
+    target.flush(machine);
     true
 }
 

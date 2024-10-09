@@ -1,12 +1,12 @@
 use super::{Bitmap, Object, HGDIOBJ, R2};
-use crate::winapi::types::POINT;
 use crate::{
     machine::Machine,
     winapi::{
-        bitmap::{BitmapMono, PixelData},
-        types::{HANDLE, HWND},
+        bitmap::{BitmapMono, BitmapRGBA32, PixelData},
+        types::{HANDLE, HWND, POINT},
     },
 };
+use std::rc::Rc;
 
 pub type HDC = HANDLE<DC>;
 
@@ -20,6 +20,25 @@ pub enum DCTarget {
 }
 
 impl DCTarget {
+    /// If this target is backed by a bitmap, return it.
+    pub fn get_bitmap(&self, machine: &mut Machine) -> Option<Rc<BitmapRGBA32>> {
+        match *self {
+            DCTarget::Memory(bitmap) => {
+                let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
+                match obj {
+                    Object::Bitmap(Bitmap::RGBA32(bmp)) => return Some(bmp.clone()),
+                    _ => {}
+                }
+            }
+            DCTarget::Window(hwnd) => {
+                let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+                return Some(window.bitmap().clone());
+            }
+            _ => {}
+        }
+        None
+    }
+
     pub fn flush(self, machine: &mut Machine) {
         match self {
             DCTarget::Window(hwnd) => {
