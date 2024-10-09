@@ -8,7 +8,7 @@ impl win32::Window for Window {
 pub struct Surface {}
 impl win32::Surface for Surface {
     fn write_pixels(&mut self, _pixels: &[[u8; 4]]) {}
-    fn show(&mut self) {}
+    fn show(&self) {}
     fn bit_blt(
         &mut self,
         _dx: u32,
