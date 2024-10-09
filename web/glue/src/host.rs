@@ -106,6 +106,8 @@ extern "C" {
     fn set_title(this: &JsWindow, title: &str);
     #[wasm_bindgen(method)]
     fn set_size(this: &JsWindow, width: u32, height: u32);
+    #[wasm_bindgen(method)]
+    fn fullscreen(this: &JsWindow);
 }
 
 impl win32::Window for JsWindow {
@@ -118,7 +120,7 @@ impl win32::Window for JsWindow {
     }
 
     fn fullscreen(&mut self) {
-        log::warn!("todo: fullscreen");
+        JsWindow::fullscreen(self);
     }
 }
 
