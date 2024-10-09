@@ -364,17 +364,8 @@ pub fn SetDIBitsToDevice(
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let (dst, flush_alpha) = match dc.target {
-        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get(hbitmap).unwrap() {
-            Object::Bitmap(Bitmap::RGBA32(b)) => (b, false),
-            _ => todo!(),
-        },
-        DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-            (window.bitmap(), true)
-        }
-        _ => todo!(),
-    };
+    let target = dc.target;
+    let dst_bitmap = target.get_bitmap(machine).unwrap();
 
     let src_rect = RECT {
         left: xSrc,
@@ -390,7 +381,7 @@ pub fn SetDIBitsToDevice(
         right: xDest + w,
         bottom: yDest + h,
     }
-    .clip(&dst.to_rect());
+    .clip(&dst_bitmap.to_rect());
 
     let copy_rect = dst_rect.clip(&src_rect.add(POINT {
         x: xDest - xSrc,
@@ -399,7 +390,7 @@ pub fn SetDIBitsToDevice(
 
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, dst, &copy_rect, |dx, dy, _| {
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |dx, dy, _| {
             let x = dx - xDest + xSrc;
             let y = dy - yDest + ySrc;
             let mut pixel = src[(y * src_bitmap.width as i32 + x) as usize];
@@ -408,7 +399,7 @@ pub fn SetDIBitsToDevice(
         });
     });
 
-    dc.target.flush(machine);
+    target.flush(machine);
 
     cLines
 }
