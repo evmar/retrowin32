@@ -346,31 +346,6 @@ pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32)
         .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
 }
 
-fn copy_bitmap(
-    mem: Mem,
-    dst_bitmap: &BitmapRGBA32,
-    dst_rect: &RECT,
-    src_bitmap: &BitmapRGBA32,
-    src_rect: &RECT,
-) {
-    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
-    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
-
-    let copy_rect =
-        dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
-
-    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
-
-    src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, _| {
-            let p = p.add(dst_to_src);
-            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
-            pixel[3] = 0xFF;
-            pixel
-        });
-    });
-}
-
 #[win32_derive::dllexport]
 pub fn SetDIBitsToDevice(
     machine: &mut Machine,
@@ -416,14 +391,22 @@ pub fn SetDIBitsToDevice(
         bottom: yDst + h,
     };
 
-    copy_bitmap(
-        machine.emu.memory.mem(),
-        &*dst_bitmap,
-        &dst_rect,
-        &src_bitmap,
-        &src_rect,
-    );
+    // Clip copy region to the relevant bitmap bounds.
+    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
+    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
+    let copy_rect =
+        dst_copy_rect.clip(&src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())));
+    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
 
+    let mem = machine.mem();
+    src_bitmap.pixels.with_slice(mem, |src| {
+        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, _| {
+            let p = p.add(dst_to_src);
+            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
+            pixel[3] = 0xFF;
+            pixel
+        });
+    });
     target.flush(machine);
 
     cLines
@@ -446,10 +429,6 @@ pub fn StretchDIBits(
     iUsage: u32,
     rop: Result<RasterOp, u32>,
 ) -> i32 {
-    if wSrc != wDst || hSrc != hDst {
-        log::warn!("TODO: StretchDIBits doesn't stretch");
-    }
-
     match rop.unwrap() {
         RasterOp::SRCCOPY => {}
         _ => todo!(),
@@ -478,13 +457,25 @@ pub fn StretchDIBits(
         bottom: yDst + hDst,
     };
 
-    copy_bitmap(
-        machine.emu.memory.mem(),
-        &*dst_bitmap,
-        &dst_rect,
-        &src_bitmap,
-        &src_rect,
-    );
+    // TODO: do we need to clip src or dst rect?
+
+    let copy_rect = dst_rect;
+
+    let mem = machine.mem();
+    src_bitmap.pixels.with_slice(mem, |src| {
+        fill_pixels(mem, &*dst_bitmap, &dst_rect, |p, _| {
+            // Translate p from dst to src space.
+            // Because we're stretching, we scale to src space rather than clipping.
+            let p = p
+                .sub(dst_rect.origin())
+                .mul(src_rect.size())
+                .div(dst_rect.size())
+                .add(src_rect.origin());
+            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
+            pixel[3] = 0xFF;
+            pixel
+        });
+    });
 
     target.flush(machine);
 

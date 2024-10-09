@@ -56,6 +56,13 @@ impl RECT {
         }
     }
 
+    pub fn size(&self) -> POINT {
+        POINT {
+            x: self.right - self.left,
+            y: self.bottom - self.top,
+        }
+    }
+
     pub fn contains(&self, point: POINT) -> bool {
         point.x >= self.left && point.x < self.right && point.y >= self.top && point.y < self.bottom
     }
@@ -85,10 +92,25 @@ impl POINT {
             y: self.y + delta.y,
         }
     }
+
     pub fn sub(&self, delta: POINT) -> POINT {
         POINT {
             x: self.x - delta.x,
             y: self.y - delta.y,
+        }
+    }
+
+    pub fn mul(&self, o: POINT) -> POINT {
+        POINT {
+            x: self.x * o.x,
+            y: self.y * o.y,
+        }
+    }
+
+    pub fn div(&self, o: POINT) -> POINT {
+        POINT {
+            x: self.x / o.x,
+            y: self.y / o.y,
         }
     }
 }
