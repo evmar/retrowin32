@@ -178,7 +178,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
                 .bitmap()
                 .pixels
                 .with_slice(mem, |pixels| pixels.fill(color.to_pixel()));
-            window.expect_toplevel_mut().flush_backing_store(mem);
+            window.flush_backing_store(mem);
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
@@ -199,7 +199,7 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
                 pixels[((y * stride) + x) as usize] = color.to_pixel();
             });
             // TODO: don't need to flush whole window for just one pixel
-            window.expect_toplevel_mut().flush_backing_store(mem);
+            window.flush_backing_store(mem);
         }
         DCTarget::Memory(_) => {
             log::warn!("SetPixel for Memory DC is not implemented");

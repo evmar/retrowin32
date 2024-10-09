@@ -1,6 +1,6 @@
 use std::ops::RangeInclusive;
 
-use super::{Timers, Window, WindowType};
+use super::{Timers, Window};
 use crate::{
     host,
     winapi::{handle::Handles, types::*},
@@ -151,15 +151,9 @@ impl MessageQueue {
         // Note: remove is intentionally ignored because we never enqueue a WM_PAINT.
         // This just accepts the flag to match the other get_* fns.
         let hwnd = if hwnd.is_null() {
-            windows
-                .iter()
-                .find(|w| match &w.typ {
-                    WindowType::TopLevel(w) => w.dirty.is_some(),
-                    _ => false,
-                })?
-                .hwnd
+            windows.iter().find(|w| w.is_dirty())?.hwnd
         } else {
-            if !windows.get(hwnd).unwrap().expect_toplevel().dirty.is_some() {
+            if !windows.get(hwnd).unwrap().is_dirty() {
                 return None;
             }
             hwnd

@@ -1,4 +1,4 @@
-use super::{UpdateRegion, WindowType, HBRUSH, HDC};
+use super::{WindowType, HBRUSH, HDC};
 use crate::str16::Str16;
 use crate::{
     winapi::{
@@ -16,16 +16,8 @@ pub fn InvalidateRect(
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
-    let window = machine
-        .state
-        .user32
-        .windows
-        .get_mut(hWnd)
-        .unwrap()
-        .expect_toplevel_mut();
-    window.dirty = Some(UpdateRegion {
-        erase_background: bErase,
-    });
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    window.add_dirty(bErase);
     true // success
 }
 
@@ -54,16 +46,8 @@ pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool
     if hRgn != 0 {
         todo!("invalidate specific region");
     }
-    let window = machine
-        .state
-        .user32
-        .windows
-        .get_mut(hWnd)
-        .unwrap()
-        .expect_toplevel_mut();
-    window.dirty = Some(UpdateRegion {
-        erase_background: bErase,
-    });
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    window.add_dirty(bErase);
     true // success
 }
 
@@ -126,8 +110,8 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
     let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
     match &mut window.typ {
         WindowType::TopLevel(toplevel) => {
-            toplevel.flush_backing_store(machine.emu.memory.mem());
             toplevel.dirty = None;
+            window.flush_backing_store(machine.emu.memory.mem());
         }
         _ => {
             log::warn!("TODO: EndPaint for child windows");

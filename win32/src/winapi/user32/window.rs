@@ -43,12 +43,6 @@ ShowWindow() {
 
 */
 
-pub struct UpdateRegion {
-    /// Whether to erase background in BeginPaint.
-    pub erase_background: bool,
-    // TODO: rect
-}
-
 pub struct Window {
     pub hwnd: HWND,
     pub typ: WindowType,
@@ -70,24 +64,18 @@ pub enum WindowType {
 /// Properties of only top-level windows.
 pub struct WindowTopLevel {
     pub host: Box<dyn host::Window>,
-    pub surface: Box<dyn host::Surface>,
+    surface: Box<dyn host::Surface>,
     // TODO: CS_OWNDC windows do own a DC, but otherwise they don't.
     // pub hdc: HDC,
     /// Backing store, lazily created.
     /// Rc so it can be shared within drawing functions.
-    pub backing_store: Option<Rc<BitmapRGBA32>>,
-    pub dirty: Option<UpdateRegion>,
+    backing_store: Option<Rc<BitmapRGBA32>>,
+    pub dirty: Option<Dirty>,
 }
 
 impl Window {
     // TODO: expect_toplevel was added to introduce child windows,
     // but many callers just need to handle child windows instead of calling these.
-    pub fn expect_toplevel(&self) -> &WindowTopLevel {
-        match &self.typ {
-            WindowType::TopLevel(win) => win,
-            _ => panic!("expected top-level window, see TODO"),
-        }
-    }
     pub fn expect_toplevel_mut(&mut self) -> &mut WindowTopLevel {
         match &mut self.typ {
             WindowType::TopLevel(win) => win,
@@ -120,6 +108,44 @@ impl Window {
             _ => {}
         }
     }
+
+    pub fn is_dirty(&self) -> bool {
+        match &self.typ {
+            WindowType::TopLevel(top) => top.dirty.is_some(),
+            _ => false, // TODO
+        }
+    }
+
+    // TODO: update region
+    pub fn add_dirty(&mut self, erase: bool) {
+        match &mut self.typ {
+            WindowType::TopLevel(top) => {
+                let prev = top
+                    .dirty
+                    .as_ref()
+                    .map(|d| d.erase_background)
+                    .unwrap_or(false);
+                top.dirty = Some(Dirty {
+                    erase_background: prev || erase,
+                });
+            }
+            _ => todo!(),
+        }
+    }
+
+    pub fn flush_backing_store(&mut self, mem: Mem) {
+        match self.typ {
+            WindowType::TopLevel(ref mut top) => {
+                top.flush_backing_store(mem);
+            }
+            _ => {}
+        }
+    }
+}
+
+pub struct Dirty {
+    pub erase_background: bool,
+    // TODO: region
 }
 
 impl WindowTopLevel {
@@ -137,7 +163,7 @@ impl WindowTopLevel {
         }
     }
 
-    pub fn flush_backing_store(&mut self, mem: Mem) {
+    fn flush_backing_store(&mut self, mem: Mem) {
         if let Some(backing_store) = &self.backing_store {
             backing_store.pixels.with_slice(mem, |pixels| {
                 self.surface.write_pixels(pixels);
@@ -458,7 +484,7 @@ pub async fn CreateWindowExW(
             host: host_win,
             surface,
             backing_store: None,
-            dirty: Some(UpdateRegion {
+            dirty: Some(Dirty {
                 erase_background: true,
             }),
         })
