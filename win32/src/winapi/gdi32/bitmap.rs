@@ -4,7 +4,7 @@ use crate::{
     winapi::{
         bitmap::{BitmapMono, BitmapRGBA32, PixelData, BI},
         kernel32,
-        types::{POINT, RECT},
+        types::RECT,
     },
 };
 use memory::Mem;
@@ -63,6 +63,20 @@ pub fn BitBlt(
     y1: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
+    let dst_rect = RECT {
+        left: x,
+        top: y,
+        right: x + cx,
+        bottom: y + cy,
+    };
+
+    let src_rect = RECT {
+        left: x1,
+        top: y1,
+        right: x1 + cx,
+        bottom: y1 + cy,
+    };
+
     let op = match rop.unwrap() {
         RasterOp::BLACKNESS => {
             // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
@@ -92,9 +106,8 @@ pub fn BitBlt(
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
 
-            assert!(x == 0 && y == 0 && x1 == 0 && y1 == 0);
-            assert!(cx as u32 == surface.width && cy as u32 == surface.height);
-            assert!(surface.width == src_bitmap.width && surface.height == src_bitmap.height);
+            assert!(src_rect == dst_rect);
+            assert!(surface.to_rect() == dst_rect);
 
             src_bitmap
                 .pixels
@@ -108,26 +121,13 @@ pub fn BitBlt(
 
     let dst_bitmap = target.get_bitmap(machine).unwrap();
 
-    let src_rect = RECT {
-        left: x1,
-        top: y1,
-        right: x1 + cx,
-        bottom: y1 + cy,
-    }
-    .clip(&src_bitmap.to_rect());
-
-    let dst_rect = RECT {
-        left: x,
-        top: y,
-        right: x + cx,
-        bottom: y + cy,
-    }
-    .clip(&dst_bitmap.to_rect());
-
-    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
-        x: x - x1,
-        y: y - y1,
-    })); // clipped copy region
+    // Copy region is the intersection of the two rectangles, which both also need to be clipped to their bitmaps.
+    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
+    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
+    let copy_rect = dst_copy_rect.clip(
+        // translate src_rect into dst_rect space
+        &src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())),
+    );
 
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
@@ -383,10 +383,7 @@ pub fn SetDIBitsToDevice(
     }
     .clip(&dst_bitmap.to_rect());
 
-    let copy_rect = dst_rect.clip(&src_rect.add(POINT {
-        x: xDest - xSrc,
-        y: yDest - ySrc,
-    }));
+    let copy_rect = dst_rect.clip(&src_rect.add(dst_rect.origin().sub(src_rect.origin())));
 
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {

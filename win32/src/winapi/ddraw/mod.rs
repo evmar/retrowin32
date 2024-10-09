@@ -84,6 +84,15 @@ impl Surface {
 
         surfaces
     }
+
+    pub fn to_rect(&self) -> RECT {
+        RECT {
+            left: 0,
+            top: 0,
+            right: self.width as i32,
+            bottom: self.height as i32,
+        }
+    }
 }
 
 pub struct State {

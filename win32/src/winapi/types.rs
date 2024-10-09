@@ -49,6 +49,13 @@ impl RECT {
         }
     }
 
+    pub fn origin(&self) -> POINT {
+        POINT {
+            x: self.left,
+            y: self.top,
+        }
+    }
+
     pub fn contains(&self, point: POINT) -> bool {
         point.x >= self.left && point.x < self.right && point.y >= self.top && point.y < self.bottom
     }
@@ -70,6 +77,21 @@ pub struct POINT {
     pub y: i32,
 }
 unsafe impl memory::Pod for POINT {}
+
+impl POINT {
+    pub fn add(&self, delta: POINT) -> POINT {
+        POINT {
+            x: self.x + delta.x,
+            y: self.y + delta.y,
+        }
+    }
+    pub fn sub(&self, delta: POINT) -> POINT {
+        POINT {
+            x: self.x - delta.x,
+            y: self.y - delta.y,
+        }
+    }
+}
 
 impl<'a> super::stack_args::FromStack<'a> for POINT {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
