@@ -36,6 +36,7 @@ impl DCTarget {
             }
             _ => {}
         }
+        log::warn!("no bitmap found in {:?}", self);
         None
     }
 
