@@ -126,6 +126,7 @@ impl<'a> BitmapInfo<'a> {
     /// buf is the bytes following the header.
     fn parseBMPv3(header: &BITMAPINFOHEADER, buf: &'a [u8]) -> Self {
         let palette_len = match header.biBitCount {
+            32 => 0,
             8 => 256,
             4 => 16,
             1 => 2,

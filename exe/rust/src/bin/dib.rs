@@ -63,30 +63,22 @@ fn arrow_rgba() -> Vec<u32> {
 #[allow(unused)]
 unsafe fn create_dib(hdc: HDC) -> HBITMAP {
     let mut bits: *mut u32 = std::ptr::null_mut();
-    let info = BITMAPINFO {
-        bmiHeader: BITMAPINFOHEADER {
-            biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-            biWidth: 16,
-            biHeight: 16,
-            biPlanes: 1,
-            biBitCount: 32,
-            biCompression: BI_RGB,
-            biSizeImage: 0,
-            biXPelsPerMeter: 0,
-            biYPelsPerMeter: 0,
-            biClrUsed: 0,
-            biClrImportant: 0,
-        },
-        bmiColors: [RGBQUAD {
-            rgbBlue: 0,
-            rgbGreen: 0,
-            rgbRed: 0,
-            rgbReserved: 0,
-        }; 1],
+    let info = BITMAPINFOHEADER {
+        biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+        biWidth: 16,
+        biHeight: -16,
+        biPlanes: 1,
+        biBitCount: 32,
+        biCompression: BI_RGB,
+        biSizeImage: 0,
+        biXPelsPerMeter: 0,
+        biYPelsPerMeter: 0,
+        biClrUsed: 0,
+        biClrImportant: 0,
     };
     let bitmap = CreateDIBSection(
         hdc,
-        &info,
+        &info as *const _ as *const _,
         DIB_RGB_COLORS,
         &mut bits as *mut *mut u32 as *mut *mut _,
         0,
@@ -98,22 +90,36 @@ unsafe fn create_dib(hdc: HDC) -> HBITMAP {
     bitmap
 }
 
-unsafe fn paint(hdc: HDC) {
-    if STATE.bitmap == 0 {
-        STATE.bitmap = create_dib(hdc);
+#[allow(non_snake_case)]
+unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
+    struct Cfg {
+        startScan: u32,
+        invertY: bool,
     }
+    let cfgs = [
+        Cfg {
+            startScan: 0,
+            invertY: false,
+        },
+        Cfg {
+            startScan: 6,
+            invertY: false,
+        },
+        Cfg {
+            startScan: 0,
+            invertY: true,
+        },
+        Cfg {
+            startScan: 6,
+            invertY: true,
+        },
+    ];
 
-    let hdc_bitmap = CreateCompatibleDC(hdc);
-    SelectObject(hdc_bitmap, STATE.bitmap);
-
-    BitBlt(hdc, 16, 16, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
-
-    let rgba = arrow_rgba();
-    let info = BITMAPINFO {
-        bmiHeader: BITMAPINFOHEADER {
+    for (i, cfg) in cfgs.iter().enumerate() {
+        let info = BITMAPINFOHEADER {
             biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
             biWidth: 16,
-            biHeight: 16,
+            biHeight: if cfg.invertY { -16 } else { 16 },
             biPlanes: 1,
             biBitCount: 32,
             biCompression: BI_RGB,
@@ -122,33 +128,46 @@ unsafe fn paint(hdc: HDC) {
             biYPelsPerMeter: 0,
             biClrUsed: 0,
             biClrImportant: 0,
-        },
-        bmiColors: [RGBQUAD {
-            rgbBlue: 0,
-            rgbGreen: 0,
-            rgbRed: 0,
-            rgbReserved: 0,
-        }; 1],
+        };
+        let x = 32 + (i as i32 * 32);
+        SetDIBitsToDevice(
+            hdc,
+            x,
+            y,
+            16,
+            16,
+            0,
+            // TODO: we don't support ySrc != startScan yet
+            cfg.startScan as i32,
+            cfg.startScan,
+            16,
+            rgba.as_ptr() as *const _,
+            &info as *const _ as *const BITMAPINFO,
+            DIB_RGB_COLORS,
+        );
+    }
+}
+
+#[allow(non_snake_case)]
+unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
+    let info = BITMAPINFOHEADER {
+        biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+        biWidth: 16,
+        biHeight: 16,
+        biPlanes: 1,
+        biBitCount: 32,
+        biCompression: BI_RGB,
+        biSizeImage: 0,
+        biXPelsPerMeter: 0,
+        biYPelsPerMeter: 0,
+        biClrUsed: 0,
+        biClrImportant: 0,
     };
-    SetDIBitsToDevice(
-        hdc,
-        48,
-        16,
-        16,
-        16,
-        0,
-        0,
-        0,
-        16,
-        rgba.as_ptr() as *const _,
-        &info,
-        DIB_RGB_COLORS,
-    );
 
     StretchDIBits(
         hdc,
-        16,
-        48,
+        32,
+        y,
         32,
         32,
         0,
@@ -156,10 +175,29 @@ unsafe fn paint(hdc: HDC) {
         16,
         16,
         rgba.as_ptr() as *const _,
-        &info,
+        &info as *const _ as *const BITMAPINFO,
         DIB_RGB_COLORS,
         SRCCOPY,
     );
+}
+
+unsafe fn paint(hdc: HDC) {
+    if STATE.bitmap == 0 {
+        STATE.bitmap = create_dib(hdc);
+    }
+
+    let hdc_bitmap = CreateCompatibleDC(hdc);
+    SelectObject(hdc_bitmap, STATE.bitmap);
+
+    let mut row = 1;
+    BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
+    row += 1;
+
+    let rgba = arrow_rgba();
+    paint_SetDIBitsToDevice(hdc, row * 32, &rgba);
+    row += 1;
+
+    paint_StretchDIBits(hdc, row * 32, &rgba);
 
     DeleteDC(hdc_bitmap);
 }
