@@ -277,8 +277,8 @@ pub fn CreateDIBSection(
     if bi.biSize != std::mem::size_of::<BITMAPINFOHEADER>() as u32 {
         todo!()
     }
-    if !bi.is_top_down() {
-        log::warn!("CreateDIBSection: bitmap may need flipping");
+    if bi.is_bottom_up() {
+        log::warn!("CreateDIBSection: bottom-up bitmap will need flipping");
     }
     if bi.biBitCount != 32 {
         todo!()

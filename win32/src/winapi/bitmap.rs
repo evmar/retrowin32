@@ -62,8 +62,8 @@ impl BITMAPINFOHEADER {
         // Height is negative if top-down DIB.
         (self.biHeight as i32).abs() as u32
     }
-    pub fn is_top_down(&self) -> bool {
-        (self.biHeight as i32) < 0
+    pub fn is_bottom_up(&self) -> bool {
+        (self.biHeight as i32) > 0
     }
     pub fn compression(&self) -> Result<BI, u32> {
         BI::try_from(self.biCompression)
@@ -75,7 +75,7 @@ struct BitmapInfo<'a> {
     pub width: usize,
     pub height: usize,
     pub stride: usize,
-    pub is_top_down: bool,
+    pub is_bottom_up: bool,
     pub bit_count: u8,
     pub compression: BI,
     pub palette_entry_size: usize,
@@ -114,7 +114,7 @@ impl<'a> BitmapInfo<'a> {
             width: header.bcWidth as usize,
             height: header.bcHeight as usize,
             stride: header.stride(),
-            is_top_down: false,
+            is_bottom_up: true, // MSDN: "BITMAPCOREHEADER bitmaps cannot be top-down bitmaps"
             bit_count: header.bcBitCount as u8,
             compression: BI::RGB,
             palette_entry_size,
@@ -141,7 +141,7 @@ impl<'a> BitmapInfo<'a> {
             width: header.biWidth as usize,
             height: header.height() as usize,
             stride: header.stride(),
-            is_top_down: false,
+            is_bottom_up: header.is_bottom_up(),
             bit_count: header.biBitCount as u8,
             compression: BI::RGB,
             palette_entry_size,
@@ -258,10 +258,10 @@ impl BitmapRGBA32 {
 
         let mut dst: Vec<[u8; 4]> = Vec::with_capacity(width * height);
         for y in 0..height {
-            let y_src = if header.is_top_down {
-                y
-            } else {
+            let y_src = if header.is_bottom_up {
                 height - y - 1
+            } else {
+                y
             };
             let row = &src[y_src * stride..][..stride];
             match header.bit_count {
