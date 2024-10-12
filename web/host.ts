@@ -71,9 +71,22 @@ class File implements glue.JsFile {
     return this.bytes.length;
   }
 
-  seek(ofs: number): boolean {
+  seek(from: number, ofs: number): number {
+    switch (from) {
+      case 0: // start
+        break;
+      case 1: // end
+        ofs = this.bytes.length + ofs;
+        break;
+      case 2: // cur
+        ofs = this.ofs + ofs;
+        break;
+    }
+    if (ofs < 0 || ofs > this.bytes.length) {
+      throw new Error(`seek out of bounds: ${from}:${ofs}`);
+    }
     this.ofs = ofs;
-    return true;
+    return ofs;
   }
 
   read(buf: Uint8Array): number {

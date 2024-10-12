@@ -127,10 +127,10 @@ impl win32::Window for JsWindow {
 #[wasm_bindgen(typescript_custom_section)]
 const JSFILE_TS: &'static str = r#"
 export interface JsFile {
-  info(): number;
-  seek(ofs: number): boolean;
-  read(buf: Uint8Array): number;
-  write(buf: Uint8Array): number;
+    info(): number;
+    seek(from: number, ofs: number): number;
+    read(buf: Uint8Array): number;
+    write(buf: Uint8Array): number;
 }"#;
 
 #[wasm_bindgen]
@@ -138,8 +138,8 @@ extern "C" {
     pub type JsFile;
     #[wasm_bindgen(method)]
     fn info(this: &JsFile) -> u64;
-    #[wasm_bindgen(method)]
-    fn seek(this: &JsFile, ofs: u32) -> bool;
+    #[wasm_bindgen(method, catch)]
+    fn seek(this: &JsFile, from: u32, ofs: i32) -> Result<u32, JsValue>;
     #[wasm_bindgen(method)]
     fn read(this: &JsFile, buf: &mut [u8]) -> u32;
     #[wasm_bindgen(method)]
@@ -182,17 +182,21 @@ impl std::io::Write for JsFile {
 
 impl std::io::Seek for JsFile {
     fn seek(&mut self, pos: std::io::SeekFrom) -> std::io::Result<u64> {
-        match pos {
-            std::io::SeekFrom::Start(ofs) => {
-                if JsFile::seek(self, ofs as u32) {
-                    Ok(ofs)
-                } else {
-                    todo!();
-                }
-            }
-            std::io::SeekFrom::End(_) => todo!(),
-            std::io::SeekFrom::Current(_) => todo!(),
-        }
+        let (from, ofs) = match pos {
+            std::io::SeekFrom::Start(ofs) => (0, ofs as i32),
+            std::io::SeekFrom::End(ofs) => (1, ofs as i32),
+            std::io::SeekFrom::Current(ofs) => (2, ofs as i32),
+        };
+        let ofs = JsFile::seek(self, from, ofs)
+            .map(|ofs| ofs as u64)
+            .map_err(|err| {
+                let err = err.dyn_into::<js_sys::Error>().unwrap();
+                std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    err.to_string().as_string().unwrap(),
+                )
+            })?;
+        Ok(ofs as u64)
     }
 }
 
