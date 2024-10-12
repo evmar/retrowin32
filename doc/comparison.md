@@ -3,7 +3,7 @@
 To begin with, retrowin32 is relatively immature and cannot execute most
 programs.
 
-If you are just looking to Windows software, I recommend instead using:
+If you are just looking to run Windows software, I recommend instead using:
 
 - on x86 hardware: [Wine](https://www.winehq.org/)
 - on non-x86 hardware: [qemu](https://www.qemu.org/)
