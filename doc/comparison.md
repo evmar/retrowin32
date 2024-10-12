@@ -48,6 +48,6 @@ this drawing is visually shorter, it still encompasses most of the same
 complexity. The primary differences are:
 
 - the bulk of retrowin32's win32 implementation happens outside of the x86
-  emulator
-- by not using Wine, retrowin32's win32 implementation doesn't depend on any
-  Linux emulation, and can target the browser directly instead of SDL
+  emulator;
+- retrowin32's win32 implementation doesn't depend on any Linux emulation, and
+  can target the browser directly instead of SDL.
