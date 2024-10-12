@@ -8,11 +8,6 @@ use windows_sys::Win32::{
     UI::WindowsAndMessaging::*,
 };
 
-struct State {
-    bitmap: HBITMAP,
-}
-static mut STATE: State = State { bitmap: 0 };
-
 /// Upward-pointing arrow, 16x16 monochrome.
 const ARROW: [u16; 16] = [
     0b0000_0000_0000_0000,
@@ -36,6 +31,45 @@ const ARROW: [u16; 16] = [
     0b0000_0000_0000_0000,
 ];
 
+struct State {
+    bitmap: HBITMAP,
+    /// Owned by bitmap.
+    pixels: &'static mut [u32; 16 * 16],
+}
+
+impl State {
+    unsafe fn new(hdc: HDC) -> Self {
+        let mut bits: *mut [u32; 16 * 16] = std::ptr::null_mut();
+        let info = BITMAPINFOHEADER {
+            biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+            biWidth: 16,
+            biHeight: 16,
+            biPlanes: 1,
+            biBitCount: 32,
+            biCompression: BI_RGB,
+            biSizeImage: 0,
+            biXPelsPerMeter: 0,
+            biYPelsPerMeter: 0,
+            biClrUsed: 0,
+            biClrImportant: 0,
+        };
+        let bitmap = CreateDIBSection(
+            hdc,
+            &info as *const _ as *const _,
+            DIB_RGB_COLORS,
+            &mut bits as *mut *mut _ as *mut *mut _,
+            0,
+            0,
+        );
+        let pixels = &mut *bits;
+        pixels.copy_from_slice(&arrow_rgba());
+
+        State { bitmap, pixels }
+    }
+}
+
+static mut STATE: Option<State> = None;
+
 /// CreateBitmap from mono pixels.
 // TODO: we don't support mono bitmaps yet.
 #[allow(unused)]
@@ -57,37 +91,6 @@ fn arrow_rgba() -> Vec<u32> {
         }
     }
     pixels
-}
-
-/// CreateDIBSection from ARGB pixels.
-#[allow(unused)]
-unsafe fn create_dib(hdc: HDC) -> HBITMAP {
-    let mut bits: *mut u32 = std::ptr::null_mut();
-    let info = BITMAPINFOHEADER {
-        biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-        biWidth: 16,
-        biHeight: -16,
-        biPlanes: 1,
-        biBitCount: 32,
-        biCompression: BI_RGB,
-        biSizeImage: 0,
-        biXPelsPerMeter: 0,
-        biYPelsPerMeter: 0,
-        biClrUsed: 0,
-        biClrImportant: 0,
-    };
-    let bitmap = CreateDIBSection(
-        hdc,
-        &info as *const _ as *const _,
-        DIB_RGB_COLORS,
-        &mut bits as *mut *mut u32 as *mut *mut _,
-        0,
-        0,
-    );
-    let bits = std::slice::from_raw_parts_mut(bits, 16 * 16);
-    bits.copy_from_slice(&arrow_rgba());
-
-    bitmap
 }
 
 #[allow(non_snake_case)]
@@ -182,12 +185,16 @@ unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
 }
 
 unsafe fn paint(hdc: HDC) {
-    if STATE.bitmap == 0 {
-        STATE.bitmap = create_dib(hdc);
-    }
+    let state = match STATE {
+        Some(ref state) => state,
+        None => {
+            STATE = Some(State::new(hdc));
+            STATE.as_ref().unwrap()
+        }
+    };
 
     let hdc_bitmap = CreateCompatibleDC(hdc);
-    SelectObject(hdc_bitmap, STATE.bitmap);
+    SelectObject(hdc_bitmap, state.bitmap);
 
     let mut row = 1;
     BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
@@ -209,6 +216,10 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
             0
         }
         WM_LBUTTONDOWN => {
+            let s = STATE.as_mut().unwrap();
+            for i in 0..32 * 2 {
+                s.pixels[i] = 0xff00_00ff;
+            }
             InvalidateRect(hwnd, std::ptr::null(), 0);
             0
         }
