@@ -5213,6 +5213,46 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetDiskFreeSpaceA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpSectorsPerCluster = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+            let lpBytesPerSector = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
+            let lpNumberOfFreeClusters = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+            let lpTotalNumberOfClusters = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file",
+                    "GetDiskFreeSpaceA",
+                    &[
+                        ("lpRootPathName", &lpRootPathName),
+                        ("lpSectorsPerCluster", &lpSectorsPerCluster),
+                        ("lpBytesPerSector", &lpBytesPerSector),
+                        ("lpNumberOfFreeClusters", &lpNumberOfFreeClusters),
+                        ("lpTotalNumberOfClusters", &lpTotalNumberOfClusters),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetDiskFreeSpaceA(
+                machine,
+                lpRootPathName,
+                lpSectorsPerCluster,
+                lpBytesPerSector,
+                lpNumberOfFreeClusters,
+                lpTotalNumberOfClusters,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetDiskFreeSpaceA_pos.0,
+                    winapi::kernel32::GetDiskFreeSpaceA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let __trace_context = if crate::trace::enabled("kernel32/env") {
@@ -7181,6 +7221,33 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn MoveFileA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpExistingFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpNewFileName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file",
+                    "MoveFileA",
+                    &[
+                        ("lpExistingFileName", &lpExistingFileName),
+                        ("lpNewFileName", &lpNewFileName),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::MoveFileA(machine, lpExistingFileName, lpNewFileName);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::MoveFileA_pos.0,
+                    winapi::kernel32::MoveFileA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn MulDiv(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let nNumber = <i32>::from_stack(mem, stack_args + 0u32);
@@ -8802,7 +8869,7 @@ pub mod kernel32 {
             })
         }
     }
-    const SHIMS: [Shim; 173usize] = [
+    const SHIMS: [Shim; 175usize] = [
         Shim {
             name: "AcquireSRWLockExclusive",
             func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -8958,6 +9025,10 @@ pub mod kernel32 {
         Shim {
             name: "GetCurrentThreadId",
             func: Handler::Sync(wrappers::GetCurrentThreadId),
+        },
+        Shim {
+            name: "GetDiskFreeSpaceA",
+            func: Handler::Sync(wrappers::GetDiskFreeSpaceA),
         },
         Shim {
             name: "GetEnvironmentStrings",
@@ -9258,6 +9329,10 @@ pub mod kernel32 {
         Shim {
             name: "LockResource",
             func: Handler::Sync(wrappers::LockResource),
+        },
+        Shim {
+            name: "MoveFileA",
+            func: Handler::Sync(wrappers::MoveFileA),
         },
         Shim {
             name: "MulDiv",

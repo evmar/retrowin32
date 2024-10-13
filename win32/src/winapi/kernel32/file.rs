@@ -1140,6 +1140,27 @@ fn glob_match(input: &str, pattern: &str) -> bool {
     }
 }
 
+#[win32_derive::dllexport]
+pub fn MoveFileA(
+    _machine: &mut Machine,
+    lpExistingFileName: Option<&str>,
+    lpNewFileName: Option<&str>,
+) -> bool {
+    todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetDiskFreeSpaceA(
+    _machine: &mut Machine,
+    lpRootPathName: Option<&str>,
+    lpSectorsPerCluster: Option<&mut u32>,
+    lpBytesPerSector: Option<&mut u32>,
+    lpNumberOfFreeClusters: Option<&mut u32>,
+    lpTotalNumberOfClusters: Option<&mut u32>,
+) -> i32 {
+    todo!();
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
