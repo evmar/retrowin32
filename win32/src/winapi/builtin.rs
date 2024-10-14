@@ -1452,6 +1452,29 @@ pub mod ddraw {
             }
             result.to_raw()
         }
+        pub unsafe fn IDirectDrawSurface3_Release(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("ddraw/ddraw3") {
+                Some(crate::trace::trace_begin(
+                    "ddraw/ddraw3",
+                    "IDirectDrawSurface3::Release",
+                    &[("this", &this)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::ddraw::IDirectDrawSurface3::Release(machine, this);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::ddraw::IDirectDrawSurface3::Release_pos.0,
+                    winapi::ddraw::IDirectDrawSurface3::Release_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn IDirectDrawSurface7_Blt(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2161,7 +2184,7 @@ pub mod ddraw {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 53usize] = [
+    const SHIMS: [Shim; 54usize] = [
         Shim {
             name: "DirectDrawCreate",
             func: Handler::Sync(wrappers::DirectDrawCreate),
@@ -2273,6 +2296,10 @@ pub mod ddraw {
         Shim {
             name: "IDirectDrawSurface2::Unlock",
             func: Handler::Sync(wrappers::IDirectDrawSurface2_Unlock),
+        },
+        Shim {
+            name: "IDirectDrawSurface3::Release",
+            func: Handler::Sync(wrappers::IDirectDrawSurface3_Release),
         },
         Shim {
             name: "IDirectDrawSurface7::Blt",
@@ -9154,18 +9181,18 @@ pub mod kernel32 {
         }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+            let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_context = if crate::trace::enabled("kernel32/sync") {
                 Some(crate::trace::trace_begin(
                     "kernel32/sync",
                     "WaitForSingleObject",
-                    &[("hHandle", &hHandle), ("dwMilliseconds", &dwMilliseconds)],
+                    &[("handle", &handle), ("dwMilliseconds", &dwMilliseconds)],
                 ))
             } else {
                 None
             };
-            let result = winapi::kernel32::WaitForSingleObject(machine, hHandle, dwMilliseconds);
+            let result = winapi::kernel32::WaitForSingleObject(machine, handle, dwMilliseconds);
             if let Some(__trace_context) = __trace_context {
                 crate::trace::trace_return(
                     &__trace_context,

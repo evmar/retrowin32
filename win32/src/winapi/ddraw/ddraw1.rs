@@ -190,8 +190,11 @@ pub mod IDirectDrawSurface {
     ) -> u32 {
         match riid.unwrap() {
             &ddraw3::IID_IDirectDraw3 => {
-                // TODO
-                E_NOINTERFACE
+                let ptr = ddraw3::IDirectDrawSurface3::new(machine);
+                // TODO: register ptr as a surface, but we need to share the same surface
+                // between multiple ptrs then?
+                *ppvObject.unwrap() = ptr;
+                DD_OK
             }
             _ => E_NOINTERFACE,
         }

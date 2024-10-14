@@ -13,6 +13,7 @@ pub use crate::winapi::com::GUID;
 pub use clipper::*;
 pub use ddraw1::*;
 pub use ddraw2::*;
+pub use ddraw3::*;
 pub use ddraw7::*;
 pub use palette::IDirectDrawPalette;
 
