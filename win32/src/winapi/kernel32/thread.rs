@@ -19,7 +19,7 @@ pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
 pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
     #[cfg(feature = "x86-emu")]
     {
-        machine.emu.x86.cur_cpu as u32
+        machine.emu.x86.cur_cpu as u32 + 1
     }
 
     #[cfg(not(feature = "x86-emu"))]
