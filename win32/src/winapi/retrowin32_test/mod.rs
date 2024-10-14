@@ -1,6 +1,10 @@
 //! Definition of a "retrowin32_test" builtin dll, used for testing retrowin32.
 //! See win32/lib/README.md.
 
+mod builtin;
+
+pub use builtin::DLL;
+
 use crate::Machine;
 
 #[win32_derive::dllexport]

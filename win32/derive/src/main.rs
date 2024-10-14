@@ -5,7 +5,6 @@ mod dll;
 mod gen;
 mod parse;
 
-use proc_macro2::TokenStream;
 use std::path::Path;
 
 fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
@@ -84,7 +83,7 @@ fn assign_ordinals(fns: &mut [parse::DllExport]) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStream> {
+fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
     let module_name = path.file_stem().unwrap().to_string_lossy();
     eprintln!("{}.dll", module_name);
 
@@ -104,16 +103,16 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<TokenStrea
         write_if_changed(&dll_dir.join(name), &content)
     })?;
 
-    Ok(gen::shims_module(&module_name, dllexports))
+    let builtins_module = gen::shims_module(&module_name, dllexports);
+    let text = rustfmt(&builtins_module.to_string())?;
+    write_if_changed(&path.join("builtin.rs"), text.as_bytes())?;
+
+    Ok(())
 }
 
 #[derive(argh::FromArgs)]
 /// dllexport generator
 struct Args {
-    /// output path
-    #[argh(option)]
-    builtins: String,
-
     /// dir to write asm files
     #[argh(option)]
     dll_dir: String,
@@ -126,18 +125,12 @@ struct Args {
 fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
 
-    let mut mods = Vec::new();
     for path in &args.inputs {
-        let gen = match process_builtin_dll(path.as_ref(), args.dll_dir.as_ref()) {
+        match process_builtin_dll(path.as_ref(), args.dll_dir.as_ref()) {
             Ok(gen) => gen,
             Err(err) => anyhow::bail!("processing module: {}", err),
         };
-        mods.push(gen);
     }
-
-    let builtins_module = gen::builtins_module(mods)?;
-    let text = rustfmt(&builtins_module.to_string())?;
-    write_if_changed(Path::new(&args.builtins), text.as_bytes())?;
 
     Ok(())
 }

@@ -43,46 +43,6 @@ impl<'a> std::fmt::Display for ImportSymbol<'a> {
     }
 }
 
-pub const DLLS: [builtin::BuiltinDLL; 17] = [
-    builtin::advapi32::DLL,
-    builtin::bass::DLL,
-    builtin::ddraw::DLL,
-    builtin::dinput::DLL,
-    builtin::dsound::DLL,
-    builtin::gdi32::DLL,
-    builtin::kernel32::DLL,
-    builtin::ntdll::DLL,
-    builtin::ole32::DLL,
-    builtin::oleaut32::DLL,
-    builtin::ucrtbase::DLL,
-    builtin::user32::DLL,
-    builtin::vcruntime140::DLL,
-    builtin::version::DLL,
-    builtin::wininet::DLL,
-    builtin::winmm::DLL,
-    builtin::retrowin32_test::DLL,
-];
-
-pub fn dll_alias(name: &str) -> Option<&'static str> {
-    Some(match name {
-        "msvcrt.dll" => "ucrtbase.dll",
-        _ => return None,
-    })
-}
-
-/// Maps a DLL "api set" alias to the underlying dll.
-/// https://learn.microsoft.com/en-us/windows/win32/apiindex/api-set-loader-operation
-pub fn apiset(name: &str) -> Option<&'static str> {
-    Some(match name {
-        "api-ms-win-crt-heap-l1-1-0.dll" => "ucrtbase.dll",
-        "api-ms-win-crt-locale-l1-1-0.dll" => "ucrtbase.dll",
-        "api-ms-win-crt-runtime-l1-1-0.dll" => "ucrtbase.dll",
-        "api-ms-win-crt-stdio-l1-1-0.dll" => "ucrtbase.dll",
-        "api-ms-win-crt-string-l1-1-0.dll" => "ucrtbase.dll",
-        _ => return None,
-    })
-}
-
 pub struct State {
     scratch: heap::Heap,
 

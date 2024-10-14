@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod builtin;
 mod console;
 mod dll;
 mod env;
@@ -17,6 +18,8 @@ mod resource;
 mod sync;
 mod thread;
 mod time;
+
+pub use builtin::DLL;
 
 pub use self::memory::*;
 pub use console::*;

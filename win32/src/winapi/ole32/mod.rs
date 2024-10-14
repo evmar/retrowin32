@@ -1,6 +1,10 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod builtin;
+
+pub use builtin::DLL;
+
 use super::types::HRESULT;
 use crate::Machine;
 

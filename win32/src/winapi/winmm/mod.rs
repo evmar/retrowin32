@@ -2,6 +2,7 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 
+mod builtin;
 mod joy;
 mod mci;
 mod midi;
@@ -9,6 +10,8 @@ mod misc;
 mod mixer;
 mod time;
 mod wave;
+
+pub use builtin::DLL;
 
 pub use joy::*;
 pub use mci::*;

@@ -122,56 +122,30 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
     }
 
     let shims_count = shims.len();
-    let raw_dll_path = format!("../../dll/{}", dll_name);
+    let raw_dll_path = format!("../../../dll/{}", dll_name);
     quote! {
-        pub mod #module {
-            use super::*;
+        //! Generated code, do not edit.  See winapi/builtin.rs for an overview.
 
-            mod wrappers {
-                use memory::Extensions;
-                use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
-                use winapi::#module::*;  // for types
-                #(#wrappers)*
-            }
-
-            const SHIMS: [Shim; #shims_count] = [
-                #(#shims),*
-            ];
-
-            pub const DLL: BuiltinDLL = BuiltinDLL {
-                file_name: #dll_name,
-                shims: &SHIMS,
-                raw: std::include_bytes!(#raw_dll_path),
-            };
-        }
-    }
-}
-
-pub fn builtins_module(mods: Vec<TokenStream>) -> anyhow::Result<TokenStream> {
-    let out = quote! {
-        #![allow(non_snake_case)]
-        #![allow(non_snake_case)]
         #![allow(unused_imports)]
         #![allow(unused_variables)]
 
-        /// Generated code, do not edit.
-        use crate::shims::{Shim, Handler};
+        use crate::{shims::{Shim, Handler}, winapi::builtin::BuiltinDLL};
 
-        pub struct BuiltinDLL {
-            pub file_name: &'static str,
-            /// The xth function in the DLL represents a call to shims[x].
-            pub shims: &'static [Shim],
-            /// Raw bytes of generated .dll.
-            pub raw: &'static [u8],
+        mod wrappers {
+            use ::memory::Extensions;
+            use crate::{machine::Machine, winapi::{self, stack_args::*, types::*}};
+            use winapi::#module::*;  // for types
+            #(#wrappers)*
         }
 
-        #(#mods)*
-    };
+        const SHIMS: [Shim; #shims_count] = [
+            #(#shims),*
+        ];
 
-    // Verify output parses correctly.
-    // if let Err(err) = syn::parse2::<syn::File>(out.clone()) {
-    //     anyhow::bail!("parsing macro-generated code: {}", err);
-    // };
-
-    Ok(out)
+        pub const DLL: BuiltinDLL = BuiltinDLL {
+            file_name: #dll_name,
+            shims: &SHIMS,
+            raw: std::include_bytes!(#raw_dll_path),
+        };
+    }
 }

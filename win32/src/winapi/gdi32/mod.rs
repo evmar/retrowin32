@@ -1,6 +1,10 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+mod builtin;
+
+pub use builtin::DLL;
+
 mod bitmap;
 mod dc;
 mod draw;

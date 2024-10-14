@@ -6,7 +6,7 @@ use crate::{
     machine::Machine,
     pe,
     str16::expect_ascii,
-    winapi::{self, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
+    winapi::{self, builtin, stack_args::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::io::Write;
 use typed_path::WindowsPath;
@@ -134,11 +134,11 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     }
 
     if filename.starts_with("api-") {
-        match winapi::apiset(&filename) {
+        match builtin::apiset(&filename) {
             Some(name) => filename = name.to_string(),
             None => return HMODULE::null(),
         }
-    } else if let Some(alias) = winapi::dll_alias(&filename) {
+    } else if let Some(alias) = builtin::dll_alias(&filename) {
         filename = alias.to_string();
     }
 
@@ -147,7 +147,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     let builtin = if machine.external_dlls.contains(&filename) {
         None
     } else {
-        winapi::DLLS.iter().find(|&dll| dll.file_name == filename)
+        builtin::DLLS.iter().find(|&dll| dll.file_name == filename)
     };
     let mut buf = Vec::new();
 

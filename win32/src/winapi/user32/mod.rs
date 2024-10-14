@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+mod builtin;
 mod dialog;
 mod menu;
 mod message;
@@ -9,6 +10,8 @@ mod rect;
 mod resource;
 mod timer;
 mod window;
+
+pub use builtin::DLL;
 
 use super::handle::Handles;
 use super::types::HWND;

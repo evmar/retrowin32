@@ -1,5 +1,9 @@
 #![allow(non_snake_case)]
 
+mod builtin;
+
+pub use builtin::DLL;
+
 use super::types::Str16;
 use crate::machine::Machine;
 

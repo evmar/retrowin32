@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
 
+mod builtin;
 mod clipper;
 mod ddraw1;
 mod ddraw2;
@@ -8,6 +9,8 @@ mod ddraw3;
 mod ddraw7;
 mod palette;
 mod types;
+
+pub use builtin::DLL;
 
 pub use crate::winapi::com::GUID;
 pub use clipper::*;
