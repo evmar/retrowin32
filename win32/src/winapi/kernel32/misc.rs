@@ -412,5 +412,6 @@ pub fn DuplicateHandle(
     assert_eq!(hSourceProcessHandle, hTargetProcessHandle);
     assert_eq!(hSourceProcessHandle, CURRENT_PROCESS_HANDLE);
     log::warn!("DuplicateHandle: stub");
+    *lpTargetHandle.unwrap() = hSourceHandle;
     true
 }
