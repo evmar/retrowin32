@@ -140,9 +140,6 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
             };
 
             let addr = resolved_addr.unwrap_or(0);
-            if addr != 0 {
-                machine.labels.insert(addr, name);
-            }
             patches.push((iat_addr, addr));
         }
     }
@@ -250,7 +247,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
     let file = pe::parse(&buf)?;
 
     let base = load_pe(machine, filename, buf, &file, Some(None))?;
-    let image = machine.mem().slice(base..);
+    let image = machine.emu.memory.mem().slice(base..);
 
     let entry_point = if file.opt_header.AddressOfEntryPoint != 0 {
         Some(base + file.opt_header.AddressOfEntryPoint)
@@ -270,7 +267,9 @@ pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Re
             fns.push(base + addr);
         }
         for (name, i) in dir.names(image) {
-            names.insert(name.to_string(), fns[i as usize]);
+            let addr = fns[i as usize];
+            names.insert(name.to_string(), addr);
+            machine.labels.insert(addr, format!("{filename}!{name}"));
         }
     }
 

@@ -257,10 +257,7 @@ pub fn GetProcAddress(
         log::warn!("GetProcAddress({:?}, {:?}) failed", dll.name, lpProcName);
         return 0; // fail
     };
-
-    let name = format!("{}!{}", dll.name, lpProcName.0.to_string());
-    machine.labels.insert(addr, name);
-    return addr;
+    addr
 }
 
 #[repr(C)]
