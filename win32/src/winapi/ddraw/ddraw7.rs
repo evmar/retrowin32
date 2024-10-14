@@ -247,7 +247,7 @@ pub mod IDirectDraw7 {
         // TODO: this triggers behaviors like fullscreen.
         machine.state.ddraw.hwnd = hwnd;
         let flags = flags.unwrap();
-        if flags.contains(DDSCL::EXCLUSIVE) {
+        if flags.contains(DDSCL::FULLSCREEN) {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             window.expect_toplevel_mut().host.fullscreen();
         }
