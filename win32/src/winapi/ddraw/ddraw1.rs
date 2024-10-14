@@ -80,6 +80,16 @@ pub mod IDirectDraw {
         lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> u32 {
+        if machine.state.ddraw.hwnd.is_null() {
+            // This can happen if the app never called SetCooperativeLevel, but it
+            // can also happen if it called SetCooperativeLevel with DDSCL_NORMAL and
+            // passed a null hwnd.  In that case it appears at least in 5days it is
+            // just probing for DirectDraw capability and doesn't even have a window(?).
+            *lplpDDSurface.unwrap() = IDirectDrawSurface::new(machine);
+            // TODO: register surface in surfaces list?
+            return DD_OK;
+        }
+
         let surfaces = ddraw::Surface::create(
             machine,
             machine.state.ddraw.hwnd,
