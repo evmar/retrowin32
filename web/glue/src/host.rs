@@ -258,7 +258,7 @@ export interface JsHost {
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
-  open(path: string, access: {}): JsFile|null;
+  open(path: string, access: FileOptions): JsFile|null;
   stdout(buf: Uint8Array): void;
   
   create_window(hwnd: number): JsWindow;
