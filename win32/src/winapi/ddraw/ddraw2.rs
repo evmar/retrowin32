@@ -6,7 +6,12 @@ use super::{
     DD_OK, GUID,
 };
 use crate::{
-    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
+    winapi::{
+        com::{vtable, E_NOINTERFACE},
+        ddraw,
+        kernel32::get_symbol,
+        types::*,
+    },
     Machine,
 };
 use memory::ExtensionsMut;
@@ -66,7 +71,7 @@ pub mod IDirectDraw2 {
         riid: Option<&GUID>,
         ppvObject: u32,
     ) -> u32 {
-        0x80004002 // E_NOINTERFACE
+        E_NOINTERFACE
     }
 
     #[win32_derive::dllexport]

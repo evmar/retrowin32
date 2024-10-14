@@ -1967,6 +1967,35 @@ pub mod ddraw {
             }
             result.to_raw()
         }
+        pub unsafe fn IDirectDrawSurface_QueryInterface(
+            machine: &mut Machine,
+            stack_args: u32,
+        ) -> u32 {
+            let mem = machine.mem().detach();
+            let this = <u32>::from_stack(mem, stack_args + 0u32);
+            let riid = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
+            let ppvObject = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("ddraw/ddraw1") {
+                Some(crate::trace::trace_begin(
+                    "ddraw/ddraw1",
+                    "IDirectDrawSurface::QueryInterface",
+                    &[("this", &this), ("riid", &riid), ("ppvObject", &ppvObject)],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::ddraw::IDirectDrawSurface::QueryInterface(machine, this, riid, ppvObject);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::ddraw::IDirectDrawSurface::QueryInterface_pos.0,
+                    winapi::ddraw::IDirectDrawSurface::QueryInterface_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn IDirectDrawSurface_Release(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2132,7 +2161,7 @@ pub mod ddraw {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 52usize] = [
+    const SHIMS: [Shim; 53usize] = [
         Shim {
             name: "DirectDrawCreate",
             func: Handler::Sync(wrappers::DirectDrawCreate),
@@ -2316,6 +2345,10 @@ pub mod ddraw {
         Shim {
             name: "IDirectDrawSurface::Lock",
             func: Handler::Sync(wrappers::IDirectDrawSurface_Lock),
+        },
+        Shim {
+            name: "IDirectDrawSurface::QueryInterface",
+            func: Handler::Sync(wrappers::IDirectDrawSurface_QueryInterface),
         },
         Shim {
             name: "IDirectDrawSurface::Release",

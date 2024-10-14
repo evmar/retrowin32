@@ -4,6 +4,7 @@
 mod clipper;
 mod ddraw1;
 mod ddraw2;
+mod ddraw3;
 mod ddraw7;
 mod palette;
 mod types;

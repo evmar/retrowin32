@@ -1,3 +1,5 @@
+pub const E_NOINTERFACE: u32 = 0x80004002;
+
 #[allow(non_snake_case)]
 #[repr(C)]
 #[derive(PartialEq)]

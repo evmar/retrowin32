@@ -2,14 +2,18 @@
 //! a "1" suffix but contrast with intefaces with names like IDirectDraw7.
 
 use super::{
-    ddraw2,
+    ddraw2, ddraw3,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
     DD_OK,
 };
-use crate::winapi::com::GUID;
 use crate::{
-    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
+    winapi::{
+        com::{vtable, E_NOINTERFACE, GUID},
+        ddraw,
+        kernel32::get_symbol,
+        types::*,
+    },
     Machine,
 };
 use memory::ExtensionsMut;
@@ -64,9 +68,7 @@ pub mod IDirectDraw {
                 *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(machine);
                 DD_OK
             }
-            _ => {
-                0x80004002 // E_NOINTERFACE
-            }
+            _ => E_NOINTERFACE,
         }
     }
 
@@ -123,7 +125,7 @@ pub mod IDirectDrawSurface {
     use super::*;
 
     vtable![
-        QueryInterface: todo,
+        QueryInterface: ok,
         AddRef: todo,
         Release: ok,
         AddAttachedSurface: todo,
@@ -167,6 +169,22 @@ pub mod IDirectDrawSurface {
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface
+    }
+
+    #[win32_derive::dllexport]
+    pub fn QueryInterface(
+        machine: &mut Machine,
+        this: u32,
+        riid: Option<&GUID>,
+        ppvObject: Option<&mut u32>,
+    ) -> u32 {
+        match riid.unwrap() {
+            &ddraw3::IID_IDirectDraw3 => {
+                // TODO
+                E_NOINTERFACE
+            }
+            _ => E_NOINTERFACE,
+        }
     }
 
     #[win32_derive::dllexport]
