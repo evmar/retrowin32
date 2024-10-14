@@ -10582,6 +10582,30 @@ pub mod ole32 {
             }
             result.to_raw()
         }
+        pub unsafe fn CoInitializeEx(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let pvReserved = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
+            let dwCoInit = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("ole32") {
+                Some(crate::trace::trace_begin(
+                    "ole32",
+                    "CoInitializeEx",
+                    &[("pvReserved", &pvReserved), ("dwCoInit", &dwCoInit)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::ole32::CoInitializeEx(machine, pvReserved, dwCoInit);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::ole32::CoInitializeEx_pos.0,
+                    winapi::ole32::CoInitializeEx_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn CoUninitialize(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let __trace_context = if crate::trace::enabled("ole32") {
@@ -10624,7 +10648,7 @@ pub mod ole32 {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 4usize] = [
+    const SHIMS: [Shim; 5usize] = [
         Shim {
             name: "CoCreateInstance",
             func: Handler::Sync(wrappers::CoCreateInstance),
@@ -10632,6 +10656,10 @@ pub mod ole32 {
         Shim {
             name: "CoInitialize",
             func: Handler::Sync(wrappers::CoInitialize),
+        },
+        Shim {
+            name: "CoInitializeEx",
+            func: Handler::Sync(wrappers::CoInitializeEx),
         },
         Shim {
             name: "CoUninitialize",

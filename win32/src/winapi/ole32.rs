@@ -15,6 +15,11 @@ pub fn CoInitialize(_machine: &mut Machine, pvReserved: u32) -> HRESULT {
 }
 
 #[win32_derive::dllexport]
+pub fn CoInitializeEx(_machine: &mut Machine, pvReserved: Option<&mut u32>, dwCoInit: u32) -> u32 {
+    0 // ok
+}
+
+#[win32_derive::dllexport]
 pub fn CoUninitialize(_machine: &mut Machine) {
     todo!();
 }
