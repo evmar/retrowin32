@@ -66,6 +66,13 @@ fn generate_def(module_name: &str, dllexports: &parse::DllExports) -> anyhow::Re
     }
     for vtable in &dllexports.vtables {
         writeln!(f, "  {} DATA", vtable.name)?;
+        // Even when the vtable fns are no-op int3s, we still want to export them
+        // so the machinery that gathers labels of addresses knows what they are.
+        for (name, imp) in &vtable.fns {
+            if imp.is_none() {
+                writeln!(f, "  {}_{}", vtable.name, name)?;
+            }
+        }
     }
     for data in &dllexports.data {
         writeln!(f, "  {} DATA", data.name)?;
