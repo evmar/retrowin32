@@ -729,6 +729,11 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
     out_bytes.len() as u32
 }
 
+#[win32_derive::dllexport]
+pub fn SetCurrentDirectoryA(_machine: &mut Machine, lpPathName: Option<&str>) -> bool {
+    todo!()
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct WIN32_FIND_DATAA {
@@ -1159,6 +1164,16 @@ pub fn GetDiskFreeSpaceA(
     lpTotalNumberOfClusters: Option<&mut u32>,
 ) -> i32 {
     todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetDriveTypeA(_machine: &mut Machine, lpRootPathName: Option<&str>) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetLogicalDrives(_machine: &mut Machine) -> u32 {
+    todo!()
 }
 
 #[cfg(test)]

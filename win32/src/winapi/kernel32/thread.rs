@@ -136,6 +136,11 @@ pub fn SetThreadPriority(_machine: &mut Machine, hThread: HTHREAD, nPriority: u3
 }
 
 #[win32_derive::dllexport]
+pub fn GetThreadPriority(_machine: &mut Machine, hThread: HTHREAD) -> i32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn SetThreadStackGuarantee(_machine: &mut Machine, StackSizeInBytes: Option<&mut u32>) -> bool {
     // ignore
     true // success

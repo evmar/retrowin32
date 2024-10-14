@@ -376,3 +376,43 @@ pub fn RtlUnwind(
 ) {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub fn CompareStringA(
+    _machine: &mut Machine,
+    Locale: u32,
+    dwCmpFlags: u32,
+    lpString1: u32,
+    cchCount1: i32,
+    lpString2: u32,
+    cchCount2: i32,
+) -> u32 /* COMPARESTRING_RESULT */ {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn CompareStringW(
+    _machine: &mut Machine,
+    Locale: u32,
+    dwCmpFlags: u32,
+    lpString1: u32,
+    cchCount1: i32,
+    lpString2: u32,
+    cchCount2: i32,
+) -> u32 /* COMPARESTRING_RESULT */ {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn DuplicateHandle(
+    _machine: &mut Machine,
+    hSourceProcessHandle: HANDLE<()>,
+    hSourceHandle: HANDLE<()>,
+    hTargetProcessHandle: HANDLE<()>,
+    lpTargetHandle: Option<&mut HANDLE<()>>,
+    dwDesiredAccess: u32,
+    bInheritHandle: bool,
+    dwOptions: u32, /* DUPLICATE_HANDLE_OPTIONS */
+) -> bool {
+    todo!()
+}

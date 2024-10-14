@@ -1,6 +1,9 @@
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
-use crate::{winapi::types::HEVENT, Machine};
+use crate::{
+    winapi::types::{HANDLE, HEVENT},
+    Machine,
+};
 
 pub struct EventObject {
     name: String,
@@ -9,6 +12,17 @@ pub struct EventObject {
 
 #[win32_derive::dllexport]
 pub fn WaitForSingleObject(_machine: &mut Machine, hHandle: HEVENT, dwMilliseconds: u32) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn WaitForMultipleObjects(
+    _machine: &mut Machine,
+    nCount: u32,
+    lpHandles: Option<&mut HANDLE<()>>,
+    bWaitAll: bool,
+    dwMilliseconds: u32,
+) -> u32 /* WAIT_EVENT */ {
     todo!()
 }
 
@@ -54,4 +68,14 @@ pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
             false
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn ResetEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn PulseEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
+    todo!()
 }

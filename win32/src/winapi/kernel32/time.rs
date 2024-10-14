@@ -218,3 +218,12 @@ pub fn GetTimeZoneInformation(
     *lpTimeZoneInformation.unwrap() = TIME_ZONE_INFORMATION::zeroed();
     TIME_ZONE_ID_UNKNOWN
 }
+
+#[win32_derive::dllexport]
+pub fn FileTimeToLocalFileTime(
+    _machine: &mut Machine,
+    lpFileTime: Option<&mut FILETIME>,
+    lpLocalFileTime: Option<&mut FILETIME>,
+) -> bool {
+    todo!()
+}

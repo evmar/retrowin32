@@ -4243,6 +4243,80 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn CompareStringA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let Locale = <u32>::from_stack(mem, stack_args + 0u32);
+            let dwCmpFlags = <u32>::from_stack(mem, stack_args + 4u32);
+            let lpString1 = <u32>::from_stack(mem, stack_args + 8u32);
+            let cchCount1 = <i32>::from_stack(mem, stack_args + 12u32);
+            let lpString2 = <u32>::from_stack(mem, stack_args + 16u32);
+            let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
+            let __trace_context = if crate::trace::enabled("kernel32/misc") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/misc",
+                    "CompareStringA",
+                    &[
+                        ("Locale", &Locale),
+                        ("dwCmpFlags", &dwCmpFlags),
+                        ("lpString1", &lpString1),
+                        ("cchCount1", &cchCount1),
+                        ("lpString2", &lpString2),
+                        ("cchCount2", &cchCount2),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::CompareStringA(
+                machine, Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::CompareStringA_pos.0,
+                    winapi::kernel32::CompareStringA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn CompareStringW(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let Locale = <u32>::from_stack(mem, stack_args + 0u32);
+            let dwCmpFlags = <u32>::from_stack(mem, stack_args + 4u32);
+            let lpString1 = <u32>::from_stack(mem, stack_args + 8u32);
+            let cchCount1 = <i32>::from_stack(mem, stack_args + 12u32);
+            let lpString2 = <u32>::from_stack(mem, stack_args + 16u32);
+            let cchCount2 = <i32>::from_stack(mem, stack_args + 20u32);
+            let __trace_context = if crate::trace::enabled("kernel32/misc") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/misc",
+                    "CompareStringW",
+                    &[
+                        ("Locale", &Locale),
+                        ("dwCmpFlags", &dwCmpFlags),
+                        ("lpString1", &lpString1),
+                        ("cchCount1", &cchCount1),
+                        ("lpString2", &lpString2),
+                        ("cchCount2", &cchCount2),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::CompareStringW(
+                machine, Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::CompareStringW_pos.0,
+                    winapi::kernel32::CompareStringW_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn CreateDirectoryA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -4404,6 +4478,64 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn CreateProcessA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpApplicationName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpCommandLine = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let lpProcessAttributes =
+                <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 8u32);
+            let lpThreadAttributes =
+                <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 12u32);
+            let bInheritHandles = <bool>::from_stack(mem, stack_args + 16u32);
+            let dwCreationFlags = <u32>::from_stack(mem, stack_args + 20u32);
+            let lpEnvironment = <Option<&mut u8>>::from_stack(mem, stack_args + 24u32);
+            let lpCurrentDirectory = <Option<&str>>::from_stack(mem, stack_args + 28u32);
+            let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 32u32);
+            let lpProcessInformation =
+                <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
+            let __trace_context = if crate::trace::enabled("kernel32/process") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/process",
+                    "CreateProcessA",
+                    &[
+                        ("lpApplicationName", &lpApplicationName),
+                        ("lpCommandLine", &lpCommandLine),
+                        ("lpProcessAttributes", &lpProcessAttributes),
+                        ("lpThreadAttributes", &lpThreadAttributes),
+                        ("bInheritHandles", &bInheritHandles),
+                        ("dwCreationFlags", &dwCreationFlags),
+                        ("lpEnvironment", &lpEnvironment),
+                        ("lpCurrentDirectory", &lpCurrentDirectory),
+                        ("lpStartupInfo", &lpStartupInfo),
+                        ("lpProcessInformation", &lpProcessInformation),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::CreateProcessA(
+                machine,
+                lpApplicationName,
+                lpCommandLine,
+                lpProcessAttributes,
+                lpThreadAttributes,
+                bInheritHandles,
+                dwCreationFlags,
+                lpEnvironment,
+                lpCurrentDirectory,
+                lpStartupInfo,
+                lpProcessInformation,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::CreateProcessA_pos.0,
+                    winapi::kernel32::CreateProcessA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn CreateThread(
             machine: &mut Machine,
             stack_args: u32,
@@ -4546,6 +4678,52 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn DuplicateHandle(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hSourceProcessHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+            let hSourceHandle = <HANDLE<()>>::from_stack(mem, stack_args + 4u32);
+            let hTargetProcessHandle = <HANDLE<()>>::from_stack(mem, stack_args + 8u32);
+            let lpTargetHandle = <Option<&mut HANDLE<()>>>::from_stack(mem, stack_args + 12u32);
+            let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 16u32);
+            let bInheritHandle = <bool>::from_stack(mem, stack_args + 20u32);
+            let dwOptions = <u32>::from_stack(mem, stack_args + 24u32);
+            let __trace_context = if crate::trace::enabled("kernel32/misc") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/misc",
+                    "DuplicateHandle",
+                    &[
+                        ("hSourceProcessHandle", &hSourceProcessHandle),
+                        ("hSourceHandle", &hSourceHandle),
+                        ("hTargetProcessHandle", &hTargetProcessHandle),
+                        ("lpTargetHandle", &lpTargetHandle),
+                        ("dwDesiredAccess", &dwDesiredAccess),
+                        ("bInheritHandle", &bInheritHandle),
+                        ("dwOptions", &dwOptions),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::DuplicateHandle(
+                machine,
+                hSourceProcessHandle,
+                hSourceHandle,
+                hTargetProcessHandle,
+                lpTargetHandle,
+                dwDesiredAccess,
+                bInheritHandle,
+                dwOptions,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::DuplicateHandle_pos.0,
+                    winapi::kernel32::DuplicateHandle_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn EnterCriticalSection(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4610,6 +4788,34 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::ExitThread_pos.0,
                     winapi::kernel32::ExitThread_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn FileTimeToLocalFileTime(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
+            let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("kernel32/time") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/time",
+                    "FileTimeToLocalFileTime",
+                    &[
+                        ("lpFileTime", &lpFileTime),
+                        ("lpLocalFileTime", &lpLocalFileTime),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::kernel32::FileTimeToLocalFileTime(machine, lpFileTime, lpLocalFileTime);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::FileTimeToLocalFileTime_pos.0,
+                    winapi::kernel32::FileTimeToLocalFileTime_pos.1,
                     &result,
                 );
             }
@@ -5253,6 +5459,29 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetDriveTypeA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file",
+                    "GetDriveTypeA",
+                    &[("lpRootPathName", &lpRootPathName)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetDriveTypeA(machine, lpRootPathName);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetDriveTypeA_pos.0,
+                    winapi::kernel32::GetDriveTypeA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let __trace_context = if crate::trace::enabled("kernel32/env") {
@@ -5340,6 +5569,30 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::GetEnvironmentVariableW_pos.0,
                     winapi::kernel32::GetEnvironmentVariableW_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetExitCodeProcess(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hProcess = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+            let lpExitCode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("kernel32/process") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/process",
+                    "GetExitCodeProcess",
+                    &[("hProcess", &hProcess), ("lpExitCode", &lpExitCode)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetExitCodeProcess(machine, hProcess, lpExitCode);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetExitCodeProcess_pos.0,
+                    winapi::kernel32::GetExitCodeProcess_pos.1,
                     &result,
                 );
             }
@@ -5597,6 +5850,28 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetLogicalDrives(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let __trace_context = if crate::trace::enabled("kernel32/file") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file",
+                    "GetLogicalDrives",
+                    &[],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetLogicalDrives(machine);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetLogicalDrives_pos.0,
+                    winapi::kernel32::GetLogicalDrives_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetModuleFileNameA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -5773,6 +6048,49 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::GetPrivateProfileIntW_pos.0,
                     winapi::kernel32::GetPrivateProfileIntW_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetPrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let lpDefault = <Option<&str>>::from_stack(mem, stack_args + 8u32);
+            let lpReturnedString = <Option<&str>>::from_stack(mem, stack_args + 12u32);
+            let nSize = <u32>::from_stack(mem, stack_args + 16u32);
+            let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
+            let __trace_context = if crate::trace::enabled("kernel32/ini") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/ini",
+                    "GetPrivateProfileStringA",
+                    &[
+                        ("lpAppName", &lpAppName),
+                        ("lpKeyName", &lpKeyName),
+                        ("lpDefault", &lpDefault),
+                        ("lpReturnedString", &lpReturnedString),
+                        ("nSize", &nSize),
+                        ("lpFileName", &lpFileName),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetPrivateProfileStringA(
+                machine,
+                lpAppName,
+                lpKeyName,
+                lpDefault,
+                lpReturnedString,
+                nSize,
+                lpFileName,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetPrivateProfileStringA_pos.0,
+                    winapi::kernel32::GetPrivateProfileStringA_pos.1,
                     &result,
                 );
             }
@@ -6132,6 +6450,29 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::GetSystemTimeAsFileTime_pos.0,
                     winapi::kernel32::GetSystemTimeAsFileTime_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetThreadPriority(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/thread") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/thread",
+                    "GetThreadPriority",
+                    &[("hThread", &hThread)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::GetThreadPriority(machine, hThread);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::GetThreadPriority_pos.0,
+                    winapi::kernel32::GetThreadPriority_pos.1,
                     &result,
                 );
             }
@@ -7362,6 +7703,29 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn PulseEvent(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/sync") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/sync",
+                    "PulseEvent",
+                    &[("hEvent", &hEvent)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::PulseEvent(machine, hEvent);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::PulseEvent_pos.0,
+                    winapi::kernel32::PulseEvent_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn QueryPerformanceCounter(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpPerformanceCount =
@@ -7552,6 +7916,29 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn ResetEvent(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/sync") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/sync",
+                    "ResetEvent",
+                    &[("hEvent", &hEvent)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::ResetEvent(machine, hEvent);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::ResetEvent_pos.0,
+                    winapi::kernel32::ResetEvent_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn ResumeThread(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
@@ -7631,6 +8018,29 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::SetConsoleCtrlHandler_pos.0,
                     winapi::kernel32::SetConsoleCtrlHandler_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn SetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("kernel32/file") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/file",
+                    "SetCurrentDirectoryA",
+                    &[("lpPathName", &lpPathName)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::SetCurrentDirectoryA(machine, lpPathName);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::SetCurrentDirectoryA_pos.0,
+                    winapi::kernel32::SetCurrentDirectoryA_pos.1,
                     &result,
                 );
             }
@@ -8377,6 +8787,43 @@ pub mod kernel32 {
             }
             result.to_raw()
         }
+        pub unsafe fn WaitForMultipleObjects(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let nCount = <u32>::from_stack(mem, stack_args + 0u32);
+            let lpHandles = <Option<&mut HANDLE<()>>>::from_stack(mem, stack_args + 4u32);
+            let bWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
+            let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("kernel32/sync") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/sync",
+                    "WaitForMultipleObjects",
+                    &[
+                        ("nCount", &nCount),
+                        ("lpHandles", &lpHandles),
+                        ("bWaitAll", &bWaitAll),
+                        ("dwMilliseconds", &dwMilliseconds),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::WaitForMultipleObjects(
+                machine,
+                nCount,
+                lpHandles,
+                bWaitAll,
+                dwMilliseconds,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::WaitForMultipleObjects_pos.0,
+                    winapi::kernel32::WaitForMultipleObjects_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hHandle = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -8553,6 +9000,39 @@ pub mod kernel32 {
                     &__trace_context,
                     winapi::kernel32::WriteFile_pos.0,
                     winapi::kernel32::WriteFile_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn WritePrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let lpString = <Option<&str>>::from_stack(mem, stack_args + 8u32);
+            let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("kernel32/ini") {
+                Some(crate::trace::trace_begin(
+                    "kernel32/ini",
+                    "WritePrivateProfileStringA",
+                    &[
+                        ("lpAppName", &lpAppName),
+                        ("lpKeyName", &lpKeyName),
+                        ("lpString", &lpString),
+                        ("lpFileName", &lpFileName),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::kernel32::WritePrivateProfileStringA(
+                machine, lpAppName, lpKeyName, lpString, lpFileName,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::WritePrivateProfileStringA_pos.0,
+                    winapi::kernel32::WritePrivateProfileStringA_pos.1,
                     &result,
                 );
             }
@@ -8869,7 +9349,7 @@ pub mod kernel32 {
             })
         }
     }
-    const SHIMS: [Shim; 175usize] = [
+    const SHIMS: [Shim; 190usize] = [
         Shim {
             name: "AcquireSRWLockExclusive",
             func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -8887,6 +9367,14 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::CloseHandle),
         },
         Shim {
+            name: "CompareStringA",
+            func: Handler::Sync(wrappers::CompareStringA),
+        },
+        Shim {
+            name: "CompareStringW",
+            func: Handler::Sync(wrappers::CompareStringW),
+        },
+        Shim {
             name: "CreateDirectoryA",
             func: Handler::Sync(wrappers::CreateDirectoryA),
         },
@@ -8901,6 +9389,10 @@ pub mod kernel32 {
         Shim {
             name: "CreateFileW",
             func: Handler::Sync(wrappers::CreateFileW),
+        },
+        Shim {
+            name: "CreateProcessA",
+            func: Handler::Sync(wrappers::CreateProcessA),
         },
         Shim {
             name: "CreateThread",
@@ -8923,6 +9415,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::DisableThreadLibraryCalls),
         },
         Shim {
+            name: "DuplicateHandle",
+            func: Handler::Sync(wrappers::DuplicateHandle),
+        },
+        Shim {
             name: "EnterCriticalSection",
             func: Handler::Sync(wrappers::EnterCriticalSection),
         },
@@ -8933,6 +9429,10 @@ pub mod kernel32 {
         Shim {
             name: "ExitThread",
             func: Handler::Sync(wrappers::ExitThread),
+        },
+        Shim {
+            name: "FileTimeToLocalFileTime",
+            func: Handler::Sync(wrappers::FileTimeToLocalFileTime),
         },
         Shim {
             name: "FileTimeToSystemTime",
@@ -9031,6 +9531,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::GetDiskFreeSpaceA),
         },
         Shim {
+            name: "GetDriveTypeA",
+            func: Handler::Sync(wrappers::GetDriveTypeA),
+        },
+        Shim {
             name: "GetEnvironmentStrings",
             func: Handler::Sync(wrappers::GetEnvironmentStrings),
         },
@@ -9045,6 +9549,10 @@ pub mod kernel32 {
         Shim {
             name: "GetEnvironmentVariableW",
             func: Handler::Sync(wrappers::GetEnvironmentVariableW),
+        },
+        Shim {
+            name: "GetExitCodeProcess",
+            func: Handler::Sync(wrappers::GetExitCodeProcess),
         },
         Shim {
             name: "GetFileAttributesA",
@@ -9083,6 +9591,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::GetLocalTime),
         },
         Shim {
+            name: "GetLogicalDrives",
+            func: Handler::Sync(wrappers::GetLogicalDrives),
+        },
+        Shim {
             name: "GetModuleFileNameA",
             func: Handler::Sync(wrappers::GetModuleFileNameA),
         },
@@ -9109,6 +9621,10 @@ pub mod kernel32 {
         Shim {
             name: "GetPrivateProfileIntW",
             func: Handler::Sync(wrappers::GetPrivateProfileIntW),
+        },
+        Shim {
+            name: "GetPrivateProfileStringA",
+            func: Handler::Sync(wrappers::GetPrivateProfileStringA),
         },
         Shim {
             name: "GetPrivateProfileStringW",
@@ -9161,6 +9677,10 @@ pub mod kernel32 {
         Shim {
             name: "GetSystemTimeAsFileTime",
             func: Handler::Sync(wrappers::GetSystemTimeAsFileTime),
+        },
+        Shim {
+            name: "GetThreadPriority",
+            func: Handler::Sync(wrappers::GetThreadPriority),
         },
         Shim {
             name: "GetTickCount",
@@ -9351,6 +9871,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::OutputDebugStringA),
         },
         Shim {
+            name: "PulseEvent",
+            func: Handler::Sync(wrappers::PulseEvent),
+        },
+        Shim {
             name: "QueryPerformanceCounter",
             func: Handler::Sync(wrappers::QueryPerformanceCounter),
         },
@@ -9379,6 +9903,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::RemoveDirectoryA),
         },
         Shim {
+            name: "ResetEvent",
+            func: Handler::Sync(wrappers::ResetEvent),
+        },
+        Shim {
             name: "ResumeThread",
             func: Handler::Sync(wrappers::ResumeThread),
         },
@@ -9389,6 +9917,10 @@ pub mod kernel32 {
         Shim {
             name: "SetConsoleCtrlHandler",
             func: Handler::Sync(wrappers::SetConsoleCtrlHandler),
+        },
+        Shim {
+            name: "SetCurrentDirectoryA",
+            func: Handler::Sync(wrappers::SetCurrentDirectoryA),
         },
         Shim {
             name: "SetEndOfFile",
@@ -9503,6 +10035,10 @@ pub mod kernel32 {
             func: Handler::Sync(wrappers::VirtualQuery),
         },
         Shim {
+            name: "WaitForMultipleObjects",
+            func: Handler::Sync(wrappers::WaitForMultipleObjects),
+        },
+        Shim {
             name: "WaitForSingleObject",
             func: Handler::Sync(wrappers::WaitForSingleObject),
         },
@@ -9521,6 +10057,10 @@ pub mod kernel32 {
         Shim {
             name: "WriteFile",
             func: Handler::Sync(wrappers::WriteFile),
+        },
+        Shim {
+            name: "WritePrivateProfileStringA",
+            func: Handler::Sync(wrappers::WritePrivateProfileStringA),
         },
         Shim {
             name: "WriteProfileStringW",

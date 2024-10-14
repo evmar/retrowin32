@@ -17,6 +17,19 @@ pub fn GetPrivateProfileIntW(
 }
 
 #[win32_derive::dllexport]
+pub fn GetPrivateProfileStringA(
+    _machine: &mut Machine,
+    lpAppName: Option<&str>,
+    lpKeyName: Option<&str>,
+    lpDefault: Option<&str>,
+    lpReturnedString: Option<&str>,
+    nSize: u32,
+    lpFileName: Option<&str>,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn GetPrivateProfileStringW(
     _machine: &mut Machine,
     lpAppName: Option<&Str16>,
@@ -67,4 +80,15 @@ pub fn WriteProfileStringW(
     lpString: Option<&Str16>,
 ) -> bool {
     todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn WritePrivateProfileStringA(
+    _machine: &mut Machine,
+    lpAppName: Option<&str>,
+    lpKeyName: Option<&str>,
+    lpString: Option<&str>,
+    lpFileName: Option<&str>,
+) -> bool {
+    todo!()
 }
