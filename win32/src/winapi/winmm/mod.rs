@@ -2,11 +2,17 @@
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 
+mod joy;
+mod mci;
+mod midi;
 mod misc;
 mod mixer;
 mod time;
 mod wave;
 
+pub use joy::*;
+pub use mci::*;
+pub use midi::*;
 pub use misc::*;
 pub use mixer::*;
 pub use time::*;

@@ -16156,6 +16156,102 @@ pub mod winmm {
             }
             result.to_raw()
         }
+        pub unsafe fn joyGetDevCapsA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
+            let pjc = <Option<&mut JOYCAPSA>>::from_stack(mem, stack_args + 4u32);
+            let cbjc = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("winmm/joy") {
+                Some(crate::trace::trace_begin(
+                    "winmm/joy",
+                    "joyGetDevCapsA",
+                    &[("uJoyID", &uJoyID), ("pjc", &pjc), ("cbjc", &cbjc)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::joyGetDevCapsA(machine, uJoyID, pjc, cbjc);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::joyGetDevCapsA_pos.0,
+                    winapi::winmm::joyGetDevCapsA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn joyGetNumDevs(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let __trace_context = if crate::trace::enabled("winmm/joy") {
+                Some(crate::trace::trace_begin("winmm/joy", "joyGetNumDevs", &[]))
+            } else {
+                None
+            };
+            let result = winapi::winmm::joyGetNumDevs(machine);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::joyGetNumDevs_pos.0,
+                    winapi::winmm::joyGetNumDevs_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn joyGetPosEx(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
+            let pji = <Option<&mut JOYINFOEX>>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("winmm/joy") {
+                Some(crate::trace::trace_begin(
+                    "winmm/joy",
+                    "joyGetPosEx",
+                    &[("uJoyID", &uJoyID), ("pji", &pji)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::joyGetPosEx(machine, uJoyID, pji);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::joyGetPosEx_pos.0,
+                    winapi::winmm::joyGetPosEx_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn mciGetErrorStringA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let mcierr = <u32>::from_stack(mem, stack_args + 0u32);
+            let pszText = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let cchText = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("winmm/mci") {
+                Some(crate::trace::trace_begin(
+                    "winmm/mci",
+                    "mciGetErrorStringA",
+                    &[
+                        ("mcierr", &mcierr),
+                        ("pszText", &pszText),
+                        ("cchText", &cchText),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::mciGetErrorStringA(machine, mcierr, pszText, cchText);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::mciGetErrorStringA_pos.0,
+                    winapi::winmm::mciGetErrorStringA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn mciSendCommandA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let __trace_context = if crate::trace::enabled("winmm/misc") {
@@ -16173,6 +16269,223 @@ pub mod winmm {
                     &__trace_context,
                     winapi::winmm::mciSendCommandA_pos.0,
                     winapi::winmm::mciSendCommandA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn mciSendStringA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpstrCommand = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let lpstrReturnString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let uReturnLength = <u32>::from_stack(mem, stack_args + 8u32);
+            let hwndCallback = <HWND>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("winmm/mci") {
+                Some(crate::trace::trace_begin(
+                    "winmm/mci",
+                    "mciSendStringA",
+                    &[
+                        ("lpstrCommand", &lpstrCommand),
+                        ("lpstrReturnString", &lpstrReturnString),
+                        ("uReturnLength", &uReturnLength),
+                        ("hwndCallback", &hwndCallback),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::mciSendStringA(
+                machine,
+                lpstrCommand,
+                lpstrReturnString,
+                uReturnLength,
+                hwndCallback,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::mciSendStringA_pos.0,
+                    winapi::winmm::mciSendStringA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutClose(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutClose",
+                    &[("hmo", &hmo)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutClose(machine, hmo);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutClose_pos.0,
+                    winapi::winmm::midiOutClose_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutGetDevCapsA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uDeviceID = <u32>::from_stack(mem, stack_args + 0u32);
+            let pmoc = <Option<&mut MIDIOUTCAPSA>>::from_stack(mem, stack_args + 4u32);
+            let cbmoc = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutGetDevCapsA",
+                    &[
+                        ("uDeviceID", &uDeviceID),
+                        ("pmoc", &pmoc),
+                        ("cbmoc", &cbmoc),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutGetDevCapsA(machine, uDeviceID, pmoc, cbmoc);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutGetDevCapsA_pos.0,
+                    winapi::winmm::midiOutGetDevCapsA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutGetNumDevs(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutGetNumDevs",
+                    &[],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutGetNumDevs(machine);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutGetNumDevs_pos.0,
+                    winapi::winmm::midiOutGetNumDevs_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutOpen(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let phmo = <Option<&mut HMIDIOUT>>::from_stack(mem, stack_args + 0u32);
+            let uDeviceID = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwCallback = <u32>::from_stack(mem, stack_args + 8u32);
+            let dwInstance = <u32>::from_stack(mem, stack_args + 12u32);
+            let fdwOpen = <u32>::from_stack(mem, stack_args + 16u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutOpen",
+                    &[
+                        ("phmo", &phmo),
+                        ("uDeviceID", &uDeviceID),
+                        ("dwCallback", &dwCallback),
+                        ("dwInstance", &dwInstance),
+                        ("fdwOpen", &fdwOpen),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutOpen(
+                machine, phmo, uDeviceID, dwCallback, dwInstance, fdwOpen,
+            );
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutOpen_pos.0,
+                    winapi::winmm::midiOutOpen_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutReset(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutReset",
+                    &[("hmo", &hmo)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutReset(machine, hmo);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutReset_pos.0,
+                    winapi::winmm::midiOutReset_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutSetVolume(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
+            let dwVolume = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutSetVolume",
+                    &[("hmo", &hmo), ("dwVolume", &dwVolume)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutSetVolume(machine, hmo, dwVolume);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutSetVolume_pos.0,
+                    winapi::winmm::midiOutSetVolume_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn midiOutShortMsg(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
+            let dwMsg = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("winmm/midi") {
+                Some(crate::trace::trace_begin(
+                    "winmm/midi",
+                    "midiOutShortMsg",
+                    &[("hmo", &hmo), ("dwMsg", &dwMsg)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::midiOutShortMsg(machine, hmo, dwMsg);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::midiOutShortMsg_pos.0,
+                    winapi::winmm::midiOutShortMsg_pos.1,
                     &result,
                 );
             }
@@ -16627,6 +16940,29 @@ pub mod winmm {
             }
             result.to_raw()
         }
+        pub unsafe fn waveOutPause(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("winmm/wave") {
+                Some(crate::trace::trace_begin(
+                    "winmm/wave",
+                    "waveOutPause",
+                    &[("hwo", &hwo)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::waveOutPause(machine, hwo);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::waveOutPause_pos.0,
+                    winapi::winmm::waveOutPause_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn waveOutPrepareHeader(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
@@ -16670,6 +17006,29 @@ pub mod winmm {
                     &__trace_context,
                     winapi::winmm::waveOutReset_pos.0,
                     winapi::winmm::waveOutReset_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn waveOutRestart(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("winmm/wave") {
+                Some(crate::trace::trace_begin(
+                    "winmm/wave",
+                    "waveOutRestart",
+                    &[("hwo", &hwo)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::winmm::waveOutRestart(machine, hwo);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::winmm::waveOutRestart_pos.0,
+                    winapi::winmm::waveOutRestart_pos.1,
                     &result,
                 );
             }
@@ -16750,14 +17109,62 @@ pub mod winmm {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 24usize] = [
+    const SHIMS: [Shim; 38usize] = [
         Shim {
             name: "PlaySoundW",
             func: Handler::Sync(wrappers::PlaySoundW),
         },
         Shim {
+            name: "joyGetDevCapsA",
+            func: Handler::Sync(wrappers::joyGetDevCapsA),
+        },
+        Shim {
+            name: "joyGetNumDevs",
+            func: Handler::Sync(wrappers::joyGetNumDevs),
+        },
+        Shim {
+            name: "joyGetPosEx",
+            func: Handler::Sync(wrappers::joyGetPosEx),
+        },
+        Shim {
+            name: "mciGetErrorStringA",
+            func: Handler::Sync(wrappers::mciGetErrorStringA),
+        },
+        Shim {
             name: "mciSendCommandA",
             func: Handler::Sync(wrappers::mciSendCommandA),
+        },
+        Shim {
+            name: "mciSendStringA",
+            func: Handler::Sync(wrappers::mciSendStringA),
+        },
+        Shim {
+            name: "midiOutClose",
+            func: Handler::Sync(wrappers::midiOutClose),
+        },
+        Shim {
+            name: "midiOutGetDevCapsA",
+            func: Handler::Sync(wrappers::midiOutGetDevCapsA),
+        },
+        Shim {
+            name: "midiOutGetNumDevs",
+            func: Handler::Sync(wrappers::midiOutGetNumDevs),
+        },
+        Shim {
+            name: "midiOutOpen",
+            func: Handler::Sync(wrappers::midiOutOpen),
+        },
+        Shim {
+            name: "midiOutReset",
+            func: Handler::Sync(wrappers::midiOutReset),
+        },
+        Shim {
+            name: "midiOutSetVolume",
+            func: Handler::Sync(wrappers::midiOutSetVolume),
+        },
+        Shim {
+            name: "midiOutShortMsg",
+            func: Handler::Sync(wrappers::midiOutShortMsg),
         },
         Shim {
             name: "mixerClose",
@@ -16828,12 +17235,20 @@ pub mod winmm {
             func: Handler::Sync(wrappers::waveOutOpen),
         },
         Shim {
+            name: "waveOutPause",
+            func: Handler::Sync(wrappers::waveOutPause),
+        },
+        Shim {
             name: "waveOutPrepareHeader",
             func: Handler::Sync(wrappers::waveOutPrepareHeader),
         },
         Shim {
             name: "waveOutReset",
             func: Handler::Sync(wrappers::waveOutReset),
+        },
+        Shim {
+            name: "waveOutRestart",
+            func: Handler::Sync(wrappers::waveOutRestart),
         },
         Shim {
             name: "waveOutSetVolume",

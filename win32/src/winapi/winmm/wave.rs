@@ -266,3 +266,13 @@ pub fn waveOutWrite(
     machine.state.winmm.audio.as_mut().unwrap().write(buf);
     MMRESULT::MMSYSERR_NOERROR
 }
+
+#[win32_derive::dllexport]
+pub fn waveOutPause(_machine: &mut Machine, hwo: HWAVEOUT) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn waveOutRestart(_machine: &mut Machine, hwo: HWAVEOUT) -> u32 {
+    todo!()
+}
