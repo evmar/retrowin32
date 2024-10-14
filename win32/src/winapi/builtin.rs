@@ -5628,9 +5628,9 @@ pub mod kernel32 {
         }
         pub unsafe fn GetCurrentProcess(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let __trace_context = if crate::trace::enabled("kernel32/misc") {
+            let __trace_context = if crate::trace::enabled("kernel32/process") {
                 Some(crate::trace::trace_begin(
-                    "kernel32/misc",
+                    "kernel32/process",
                     "GetCurrentProcess",
                     &[],
                 ))
@@ -5871,7 +5871,7 @@ pub mod kernel32 {
         }
         pub unsafe fn GetExitCodeProcess(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hProcess = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+            let hProcess = <HPROCESS>::from_stack(mem, stack_args + 0u32);
             let lpExitCode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_context = if crate::trace::enabled("kernel32/process") {
                 Some(crate::trace::trace_begin(

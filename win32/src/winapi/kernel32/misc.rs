@@ -2,7 +2,7 @@
 
 use super::teb_mut;
 use crate::{
-    winapi::{types::*, ERROR},
+    winapi::{kernel32::CURRENT_PROCESS_HANDLE, types::*, ERROR},
     Machine,
 };
 use ::memory::Pod;
@@ -96,11 +96,6 @@ pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
 
 #[win32_derive::dllexport]
 pub fn DebugBreak(_machine: &mut Machine) {
-    todo!()
-}
-
-#[win32_derive::dllexport]
-pub fn GetCurrentProcess(_machine: &mut Machine) -> u32 {
     todo!()
 }
 
@@ -414,5 +409,8 @@ pub fn DuplicateHandle(
     bInheritHandle: bool,
     dwOptions: u32, /* DUPLICATE_HANDLE_OPTIONS */
 ) -> bool {
-    todo!()
+    assert_eq!(hSourceProcessHandle, hTargetProcessHandle);
+    assert_eq!(hSourceProcessHandle, CURRENT_PROCESS_HANDLE);
+    log::warn!("DuplicateHandle: stub");
+    true
 }
