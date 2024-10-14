@@ -1145,11 +1145,21 @@ pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>)
     }
 }
 
+/// RegisterWindowMessage returns a unique message ID starting at this value.
+const USER_WINDOW_MESSAGE_BASE: u32 = 0xC000;
+
+#[win32_derive::dllexport]
+pub fn RegisterWindowMessageA(machine: &mut Machine, lpString: Option<&str>) -> u32 {
+    let name = lpString.unwrap().to_string();
+    machine.state.user32.user_window_message_count += 1;
+    USER_WINDOW_MESSAGE_BASE + machine.state.user32.user_window_message_count
+}
+
 #[win32_derive::dllexport]
 pub fn RegisterWindowMessageW(machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
     let name = lpString.unwrap().to_string();
     machine.state.user32.user_window_message_count += 1;
-    WM::USER as u32 + machine.state.user32.user_window_message_count
+    USER_WINDOW_MESSAGE_BASE + machine.state.user32.user_window_message_count
 }
 
 #[win32_derive::dllexport]

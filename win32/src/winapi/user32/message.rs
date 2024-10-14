@@ -533,11 +533,6 @@ pub fn CallWindowProcA(
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterWindowMessageA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
-    todo!()
-}
-
-#[win32_derive::dllexport]
 pub fn PostMessageA(
     _machine: &mut Machine,
     hWnd: HWND,
