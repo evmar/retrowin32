@@ -18,30 +18,23 @@ fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Parse a single .rs file or a directory's collection of files.
+/// Parse a directory's collection of files.
 fn parse_files(path: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
     // path may be a .rs file or a directory (module).
-    let mut paths: Vec<std::path::PathBuf> = if path.extension().is_none() {
-        std::fs::read_dir(path)?
-            .map(|e| e.unwrap().path())
-            .collect()
-    } else {
-        vec![path.to_path_buf()]
-    };
+    let mut paths: Vec<std::path::PathBuf> = std::fs::read_dir(path)?
+        .map(|e| e.unwrap().path())
+        .collect();
     paths.sort();
 
     let mut files = Vec::new();
     for path in paths {
         let buf = std::fs::read_to_string(&path)?;
         let file = syn::parse_file(&buf)?;
-        files.push((
-            path.strip_prefix("src/winapi")
-                .unwrap()
-                .with_extension("")
-                .to_string_lossy()
-                .into_owned(),
-            file,
-        ));
+        let mut trace_name_path = path.strip_prefix("src/winapi").unwrap().with_extension("");
+        if trace_name_path.ends_with("mod") {
+            trace_name_path.pop();
+        }
+        files.push((trace_name_path.to_string_lossy().into_owned(), file));
     }
     Ok(files)
 }

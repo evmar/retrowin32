@@ -1,5 +1,4 @@
 //! Code dealing with pixel buffers, as found in both gdi32 and user32.
-//! This module does not become its own DLL.
 
 #![allow(non_snake_case)]
 
