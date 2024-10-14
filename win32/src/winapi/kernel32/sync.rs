@@ -12,7 +12,7 @@ pub struct EventObject {
     state: bool,
 }
 
-const WAIT_OBJECT_0: u32 = 0;
+pub const WAIT_OBJECT_0: u32 = 0;
 //const WAIT_ABANDONED_0: u32 = 0x80;
 
 #[win32_derive::dllexport]

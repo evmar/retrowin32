@@ -381,6 +381,37 @@ pub async fn WaitMessage(machine: &mut Machine) -> bool {
     true
 }
 
+bitflags::bitflags! {
+    /// GetQueueStatus flags, also used in MsgWaitForMultipleObjects.
+    pub struct QS: u32 {
+        const KEY = 0x0001;
+        const MOUSEMOVE = 0x0002;
+        const MOUSEBUTTON = 0x0004;
+        const POSTMESSAGE = 0x0008;
+        const TIMER = 0x0010;
+        const PAINT = 0x0020;
+        const SENDMESSAGE = 0x0040;
+        const HOTKEY = 0x0080;
+        const ALLPOSTMESSAGE = 0x0100;
+
+        // const RAWINPUT = 0x0400;
+        // const TOUCH = 0x0800;
+        // const POINTER = 0x1000;
+    }
+}
+impl TryFrom<u32> for QS {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        QS::from_bits(value).ok_or(value)
+    }
+}
+
+#[win32_derive::dllexport]
+pub fn GetQueueStatus(_machine: &mut Machine, flags: Result<QS, u32>) -> u32 {
+    todo!()
+}
+
 #[win32_derive::dllexport]
 pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
     // TODO: translate key-related messages into enqueuing a WM_CHAR.
@@ -508,16 +539,23 @@ pub async fn SendMessageW(
 }
 
 #[win32_derive::dllexport]
-pub fn MsgWaitForMultipleObjects(
-    _machine: &mut Machine,
+pub async fn MsgWaitForMultipleObjects(
+    machine: &mut Machine,
     nCount: u32,
     pHandles: u32,
     fWaitAll: bool,
     dwMilliseconds: u32,
-    dwWakeMask: u32,
+    dwWakeMask: Result<QS, u32>,
 ) -> u32 {
-    // TODO: implement me
-    258 // WAIT_TIMEOUT
+    if nCount == 0 {
+        let mask = dwWakeMask.unwrap();
+        todo!();
+        // TODO: wait for a msg without removing it from the queue.
+        // get_message(machine, None, HWND::null(), 0, 0).await;
+        // WAIT_OBJECT_0 + nCount
+    } else {
+        todo!()
+    }
 }
 
 #[win32_derive::dllexport]

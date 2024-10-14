@@ -13384,6 +13384,29 @@ pub mod user32 {
                 result.to_raw()
             })
         }
+        pub unsafe fn GetQueueStatus(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "GetQueueStatus",
+                    &[("flags", &flags)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::GetQueueStatus(machine, flags);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::GetQueueStatus_pos.0,
+                    winapi::user32::GetQueueStatus_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetSubMenu(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
@@ -14247,13 +14270,16 @@ pub mod user32 {
             }
             result.to_raw()
         }
-        pub unsafe fn MsgWaitForMultipleObjects(machine: &mut Machine, stack_args: u32) -> u32 {
+        pub unsafe fn MsgWaitForMultipleObjects(
+            machine: &mut Machine,
+            stack_args: u32,
+        ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
             let mem = machine.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
             let pHandles = <u32>::from_stack(mem, stack_args + 4u32);
             let fWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
-            let dwWakeMask = <u32>::from_stack(mem, stack_args + 16u32);
+            let dwWakeMask = <Result<QS, u32>>::from_stack(mem, stack_args + 16u32);
             let __trace_context = if crate::trace::enabled("user32/message") {
                 Some(crate::trace::trace_begin(
                     "user32/message",
@@ -14269,23 +14295,28 @@ pub mod user32 {
             } else {
                 None
             };
-            let result = winapi::user32::MsgWaitForMultipleObjects(
-                machine,
-                nCount,
-                pHandles,
-                fWaitAll,
-                dwMilliseconds,
-                dwWakeMask,
-            );
-            if let Some(__trace_context) = __trace_context {
-                crate::trace::trace_return(
-                    &__trace_context,
-                    winapi::user32::MsgWaitForMultipleObjects_pos.0,
-                    winapi::user32::MsgWaitForMultipleObjects_pos.1,
-                    &result,
-                );
-            }
-            result.to_raw()
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = unsafe { &mut *machine };
+                let result = winapi::user32::MsgWaitForMultipleObjects(
+                    machine,
+                    nCount,
+                    pHandles,
+                    fWaitAll,
+                    dwMilliseconds,
+                    dwWakeMask,
+                )
+                .await;
+                if let Some(__trace_context) = __trace_context {
+                    crate::trace::trace_return(
+                        &__trace_context,
+                        winapi::user32::MsgWaitForMultipleObjects_pos.0,
+                        winapi::user32::MsgWaitForMultipleObjects_pos.1,
+                        &result,
+                    );
+                }
+                result.to_raw()
+            })
         }
         pub unsafe fn PeekMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -15649,7 +15680,7 @@ pub mod user32 {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 131usize] = [
+    const SHIMS: [Shim; 132usize] = [
         Shim {
             name: "AdjustWindowRect",
             func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -15847,6 +15878,10 @@ pub mod user32 {
             func: Handler::Async(wrappers::GetMessageW),
         },
         Shim {
+            name: "GetQueueStatus",
+            func: Handler::Sync(wrappers::GetQueueStatus),
+        },
+        Shim {
             name: "GetSubMenu",
             func: Handler::Sync(wrappers::GetSubMenu),
         },
@@ -15980,7 +16015,7 @@ pub mod user32 {
         },
         Shim {
             name: "MsgWaitForMultipleObjects",
-            func: Handler::Sync(wrappers::MsgWaitForMultipleObjects),
+            func: Handler::Async(wrappers::MsgWaitForMultipleObjects),
         },
         Shim {
             name: "PeekMessageA",
