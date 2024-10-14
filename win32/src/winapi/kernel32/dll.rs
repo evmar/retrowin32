@@ -92,11 +92,11 @@ pub fn GetModuleHandleExW(
 
 #[win32_derive::dllexport]
 pub fn GetModuleFileNameA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hModule: HMODULE,
     filename: ArrayWithSizeMut<u8>,
 ) -> u32 {
-    assert!(hModule.is_null());
+    assert!(hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base);
     match filename.unwrap().write(b"TODO.exe\0") {
         Ok(n) => n as u32,
         Err(err) => {
