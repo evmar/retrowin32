@@ -11940,6 +11940,40 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn CallWindowProcA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPrevWndFunc = <u32>::from_stack(mem, stack_args + 0u32);
+            let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
+            let Msg = <u32>::from_stack(mem, stack_args + 8u32);
+            let wParam = <u32>::from_stack(mem, stack_args + 12u32);
+            let lParam = <u32>::from_stack(mem, stack_args + 16u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "CallWindowProcA",
+                    &[
+                        ("lpPrevWndFunc", &lpPrevWndFunc),
+                        ("hWnd", &hWnd),
+                        ("Msg", &Msg),
+                        ("wParam", &wParam),
+                        ("lParam", &lParam),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::user32::CallWindowProcA(machine, lpPrevWndFunc, hWnd, Msg, wParam, lParam);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::CallWindowProcA_pos.0,
+                    winapi::user32::CallWindowProcA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn CheckDlgButton(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -12819,6 +12853,30 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetClassLongA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+            let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "GetClassLongA",
+                    &[("hWnd", &hWnd), ("nIndex", &nIndex)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::GetClassLongA(machine, hWnd, nIndex);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::GetClassLongA_pos.0,
+                    winapi::user32::GetClassLongA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetClientRect(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -12838,6 +12896,29 @@ pub mod user32 {
                     &__trace_context,
                     winapi::user32::GetClientRect_pos.0,
                     winapi::user32::GetClientRect_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetCursorPos(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "GetCursorPos",
+                    &[("lpPoint", &lpPoint)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::GetCursorPos(machine, lpPoint);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::GetCursorPos_pos.0,
+                    winapi::user32::GetCursorPos_pos.1,
                     &result,
                 );
             }
@@ -13031,6 +13112,29 @@ pub mod user32 {
                     &__trace_context,
                     winapi::user32::GetKeyState_pos.0,
                     winapi::user32::GetKeyState_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetKeyboardState(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "GetKeyboardState",
+                    &[("lpKeyState", &lpKeyState)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::GetKeyboardState(machine, lpKeyState);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::GetKeyboardState_pos.0,
+                    winapi::user32::GetKeyboardState_pos.1,
                     &result,
                 );
             }
@@ -14175,6 +14279,37 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn PostMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+            let Msg = <u32>::from_stack(mem, stack_args + 4u32);
+            let wParam = <u32>::from_stack(mem, stack_args + 8u32);
+            let lParam = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "PostMessageA",
+                    &[
+                        ("hWnd", &hWnd),
+                        ("Msg", &Msg),
+                        ("wParam", &wParam),
+                        ("lParam", &lParam),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::PostMessageA(machine, hWnd, Msg, wParam, lParam);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::PostMessageA_pos.0,
+                    winapi::user32::PostMessageA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn PostMessageW(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -14248,6 +14383,37 @@ pub mod user32 {
                     &__trace_context,
                     winapi::user32::PtInRect_pos.0,
                     winapi::user32::PtInRect_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn RedrawWindow(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+            let lprcUpdate = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
+            let hrgnUpdate = <HRGN>::from_stack(mem, stack_args + 8u32);
+            let flags = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("user32/window") {
+                Some(crate::trace::trace_begin(
+                    "user32/window",
+                    "RedrawWindow",
+                    &[
+                        ("hWnd", &hWnd),
+                        ("lprcUpdate", &lprcUpdate),
+                        ("hrgnUpdate", &hrgnUpdate),
+                        ("flags", &flags),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::RedrawWindow(machine, hWnd, lprcUpdate, hrgnUpdate, flags);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::RedrawWindow_pos.0,
+                    winapi::user32::RedrawWindow_pos.1,
                     &result,
                 );
             }
@@ -14345,6 +14511,29 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn RegisterWindowMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "RegisterWindowMessageA",
+                    &[("lpString", &lpString)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::RegisterWindowMessageA(machine, lpString);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::RegisterWindowMessageA_pos.0,
+                    winapi::user32::RegisterWindowMessageA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn RegisterWindowMessageW(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -14409,6 +14598,40 @@ pub mod user32 {
                     &__trace_context,
                     winapi::user32::ReleaseDC_pos.0,
                     winapi::user32::ReleaseDC_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn SendDlgItemMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
+            let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
+            let Msg = <u32>::from_stack(mem, stack_args + 8u32);
+            let wParam = <u32>::from_stack(mem, stack_args + 12u32);
+            let lParam = <u32>::from_stack(mem, stack_args + 16u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "SendDlgItemMessageA",
+                    &[
+                        ("hDlg", &hDlg),
+                        ("nIDDlgItem", &nIDDlgItem),
+                        ("Msg", &Msg),
+                        ("wParam", &wParam),
+                        ("lParam", &lParam),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::user32::SendDlgItemMessageA(machine, hDlg, nIDDlgItem, Msg, wParam, lParam);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::SendDlgItemMessageA_pos.0,
+                    winapi::user32::SendDlgItemMessageA_pos.1,
                     &result,
                 );
             }
@@ -14508,6 +14731,35 @@ pub mod user32 {
                     &__trace_context,
                     winapi::user32::SetCapture_pos.0,
                     winapi::user32::SetCapture_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn SetClassLongA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+            let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "SetClassLongA",
+                    &[
+                        ("hWnd", &hWnd),
+                        ("nIndex", &nIndex),
+                        ("dwNewLong", &dwNewLong),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::SetClassLongA(machine, hWnd, nIndex, dwNewLong);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::SetClassLongA_pos.0,
+                    winapi::user32::SetClassLongA_pos.1,
                     &result,
                 );
             }
@@ -14837,6 +15089,35 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn SetWindowLongA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+            let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+            let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("user32/window") {
+                Some(crate::trace::trace_begin(
+                    "user32/window",
+                    "SetWindowLongA",
+                    &[
+                        ("hWnd", &hWnd),
+                        ("nIndex", &nIndex),
+                        ("dwNewLong", &dwNewLong),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::SetWindowLongA(machine, hWnd, nIndex, dwNewLong);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::SetWindowLongA_pos.0,
+                    winapi::user32::SetWindowLongA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn SetWindowPos(
             machine: &mut Machine,
             stack_args: u32,
@@ -14968,6 +15249,38 @@ pub mod user32 {
                 }
                 result.to_raw()
             })
+        }
+        pub unsafe fn SystemParametersInfoA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let uiAction = <u32>::from_stack(mem, stack_args + 0u32);
+            let uiParam = <u32>::from_stack(mem, stack_args + 4u32);
+            let pvParam = <Option<&mut u8>>::from_stack(mem, stack_args + 8u32);
+            let fWinIni = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "SystemParametersInfoA",
+                    &[
+                        ("uiAction", &uiAction),
+                        ("uiParam", &uiParam),
+                        ("pvParam", &pvParam),
+                        ("fWinIni", &fWinIni),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::user32::SystemParametersInfoA(machine, uiAction, uiParam, pvParam, fWinIni);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::SystemParametersInfoA_pos.0,
+                    winapi::user32::SystemParametersInfoA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
         }
         pub unsafe fn TranslateAcceleratorW(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
@@ -15135,6 +15448,37 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn keybd_event(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let bVk = <u8>::from_stack(mem, stack_args + 0u32);
+            let bScan = <u8>::from_stack(mem, stack_args + 4u32);
+            let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
+            let dwExtraInfo = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("user32/misc") {
+                Some(crate::trace::trace_begin(
+                    "user32/misc",
+                    "keybd_event",
+                    &[
+                        ("bVk", &bVk),
+                        ("bScan", &bScan),
+                        ("dwFlags", &dwFlags),
+                        ("dwExtraInfo", &dwExtraInfo),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::keybd_event(machine, bVk, bScan, dwFlags, dwExtraInfo);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::keybd_event_pos.0,
+                    winapi::user32::keybd_event_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn wsprintfA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);
@@ -15186,7 +15530,7 @@ pub mod user32 {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 118usize] = [
+    const SHIMS: [Shim; 130usize] = [
         Shim {
             name: "AdjustWindowRect",
             func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -15202,6 +15546,10 @@ pub mod user32 {
         Shim {
             name: "BeginPaint",
             func: Handler::Sync(wrappers::BeginPaint),
+        },
+        Shim {
+            name: "CallWindowProcA",
+            func: Handler::Sync(wrappers::CallWindowProcA),
         },
         Shim {
             name: "CheckDlgButton",
@@ -15312,8 +15660,16 @@ pub mod user32 {
             func: Handler::Sync(wrappers::GetCapture),
         },
         Shim {
+            name: "GetClassLongA",
+            func: Handler::Sync(wrappers::GetClassLongA),
+        },
+        Shim {
             name: "GetClientRect",
             func: Handler::Sync(wrappers::GetClientRect),
+        },
+        Shim {
+            name: "GetCursorPos",
+            func: Handler::Sync(wrappers::GetCursorPos),
         },
         Shim {
             name: "GetDC",
@@ -15346,6 +15702,10 @@ pub mod user32 {
         Shim {
             name: "GetKeyState",
             func: Handler::Sync(wrappers::GetKeyState),
+        },
+        Shim {
+            name: "GetKeyboardState",
+            func: Handler::Sync(wrappers::GetKeyboardState),
         },
         Shim {
             name: "GetLastActivePopup",
@@ -15512,6 +15872,10 @@ pub mod user32 {
             func: Handler::Sync(wrappers::PeekMessageW),
         },
         Shim {
+            name: "PostMessageA",
+            func: Handler::Sync(wrappers::PostMessageA),
+        },
+        Shim {
             name: "PostMessageW",
             func: Handler::Sync(wrappers::PostMessageW),
         },
@@ -15522,6 +15886,10 @@ pub mod user32 {
         Shim {
             name: "PtInRect",
             func: Handler::Sync(wrappers::PtInRect),
+        },
+        Shim {
+            name: "RedrawWindow",
+            func: Handler::Sync(wrappers::RedrawWindow),
         },
         Shim {
             name: "RegisterClassA",
@@ -15540,6 +15908,10 @@ pub mod user32 {
             func: Handler::Sync(wrappers::RegisterClassW),
         },
         Shim {
+            name: "RegisterWindowMessageA",
+            func: Handler::Sync(wrappers::RegisterWindowMessageA),
+        },
+        Shim {
             name: "RegisterWindowMessageW",
             func: Handler::Sync(wrappers::RegisterWindowMessageW),
         },
@@ -15552,6 +15924,10 @@ pub mod user32 {
             func: Handler::Sync(wrappers::ReleaseDC),
         },
         Shim {
+            name: "SendDlgItemMessageA",
+            func: Handler::Sync(wrappers::SendDlgItemMessageA),
+        },
+        Shim {
             name: "SendMessageA",
             func: Handler::Async(wrappers::SendMessageA),
         },
@@ -15562,6 +15938,10 @@ pub mod user32 {
         Shim {
             name: "SetCapture",
             func: Handler::Sync(wrappers::SetCapture),
+        },
+        Shim {
+            name: "SetClassLongA",
+            func: Handler::Sync(wrappers::SetClassLongA),
         },
         Shim {
             name: "SetCursor",
@@ -15612,6 +15992,10 @@ pub mod user32 {
             func: Handler::Sync(wrappers::SetTimer),
         },
         Shim {
+            name: "SetWindowLongA",
+            func: Handler::Sync(wrappers::SetWindowLongA),
+        },
+        Shim {
             name: "SetWindowPos",
             func: Handler::Async(wrappers::SetWindowPos),
         },
@@ -15626,6 +16010,10 @@ pub mod user32 {
         Shim {
             name: "ShowWindow",
             func: Handler::Async(wrappers::ShowWindow),
+        },
+        Shim {
+            name: "SystemParametersInfoA",
+            func: Handler::Sync(wrappers::SystemParametersInfoA),
         },
         Shim {
             name: "TranslateAcceleratorW",
@@ -15650,6 +16038,10 @@ pub mod user32 {
         Shim {
             name: "WinHelpW",
             func: Handler::Sync(wrappers::WinHelpW),
+        },
+        Shim {
+            name: "keybd_event",
+            func: Handler::Sync(wrappers::keybd_event),
         },
         Shim {
             name: "wsprintfA",

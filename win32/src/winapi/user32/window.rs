@@ -595,6 +595,17 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
     true // success
 }
 
+#[win32_derive::dllexport]
+pub fn RedrawWindow(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    lprcUpdate: Option<&mut RECT>,
+    hrgnUpdate: HRGN,
+    flags: u32, /* REDRAW_WINDOW_FLAGS */
+) -> bool {
+    todo!()
+}
+
 /// nCmdShow passed to ShowWindow().
 #[derive(Copy, Clone, Debug, win32_derive::TryFromEnum)]
 pub enum SW {
@@ -1062,6 +1073,16 @@ pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
 
         _ => todo!("GetWindowLong({nIndex})"),
     }
+}
+
+#[win32_derive::dllexport]
+pub fn SetWindowLongA(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    nIndex: u32, /* WINDOW_LONG_PTR_INDEX */
+    dwNewLong: i32,
+) -> i32 {
+    todo!()
 }
 
 #[win32_derive::dllexport]

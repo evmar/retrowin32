@@ -1,6 +1,9 @@
 use crate::{
     str16::Str16,
-    winapi::{stack_args::VarArgs, types::HWND},
+    winapi::{
+        stack_args::VarArgs,
+        types::{HWND, POINT},
+    },
     Machine,
 };
 use memory::{Extensions, ExtensionsMut};
@@ -149,6 +152,57 @@ pub fn WinHelpW(
 }
 
 #[win32_derive::dllexport]
+pub fn GetCursorPos(_machine: &mut Machine, lpPoint: Option<&mut POINT>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
     todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn GetClassLongA(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    nIndex: u32, /* GET_CLASS_LONG_INDEX */
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SetClassLongA(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    nIndex: u32, /* GET_CLASS_LONG_INDEX */
+    dwNewLong: i32,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetKeyboardState(_machine: &mut Machine, lpKeyState: Option<&mut u8>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn keybd_event(
+    _machine: &mut Machine,
+    bVk: u8,
+    bScan: u8,
+    dwFlags: u32, /* KEYBD_EVENT_FLAGS */
+    dwExtraInfo: u32,
+) {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SystemParametersInfoA(
+    _machine: &mut Machine,
+    uiAction: u32, /* SYSTEM_PARAMETERS_INFO_ACTION */
+    uiParam: u32,
+    pvParam: Option<&mut u8>,
+    fWinIni: u32, /* SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS */
+) -> bool {
+    todo!()
 }

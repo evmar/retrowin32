@@ -519,3 +519,43 @@ pub fn MsgWaitForMultipleObjects(
     // TODO: implement me
     258 // WAIT_TIMEOUT
 }
+
+#[win32_derive::dllexport]
+pub fn CallWindowProcA(
+    _machine: &mut Machine,
+    lpPrevWndFunc: u32, /* WNDPROC */
+    hWnd: HWND,
+    Msg: u32,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn RegisterWindowMessageA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn PostMessageA(
+    _machine: &mut Machine,
+    hWnd: HWND,
+    Msg: u32,
+    wParam: u32,
+    lParam: u32,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SendDlgItemMessageA(
+    _machine: &mut Machine,
+    hDlg: HWND,
+    nIDDlgItem: i32,
+    Msg: u32,
+    wParam: u32,
+    lParam: u32,
+) -> u32 {
+    todo!()
+}
