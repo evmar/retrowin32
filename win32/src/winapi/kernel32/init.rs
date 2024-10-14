@@ -211,7 +211,10 @@ pub struct State {
     pub resources: pe::IMAGE_DATA_DIRECTORY,
     pub resource_handles: Handles<HRSRC, ResourceHandle>,
 
-    pub event_handles: Handles<HEVENT, EventObject>,
+    // There is a collection of handle types that are all from the same key space,
+    // because they can be passed to the various Wait functions.  This map should
+    // eventually hold all of these rather than just EventObjects.
+    pub handles: Handles<HANDLE<()>, EventObject>,
 
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
@@ -268,7 +271,7 @@ impl State {
             mappings,
             heaps: HashMap::new(),
             dlls,
-            event_handles: Default::default(),
+            handles: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
             env: env_addr,

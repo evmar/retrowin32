@@ -11,10 +11,10 @@ use crate::{
 use std::io::Write;
 use typed_path::WindowsPath;
 
-// HMODULE must be the address of the loaded DLL image.
-// (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
+/// HMODULE is the address of the loaded DLL image.
+// (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
 pub type HMODULE = HANDLE<HMODULET>;
 
 pub struct DLL {

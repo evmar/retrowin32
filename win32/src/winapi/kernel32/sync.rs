@@ -1,5 +1,7 @@
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
+use memory::Extensions;
+
 use crate::{
     winapi::types::{HANDLE, HEVENT},
     Machine,
@@ -11,18 +13,36 @@ pub struct EventObject {
 }
 
 #[win32_derive::dllexport]
-pub fn WaitForSingleObject(_machine: &mut Machine, hHandle: HEVENT, dwMilliseconds: u32) -> u32 {
+pub fn WaitForSingleObject(
+    _machine: &mut Machine,
+    hHandle: HANDLE<()>,
+    dwMilliseconds: u32,
+) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn WaitForMultipleObjects(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     nCount: u32,
-    lpHandles: Option<&mut HANDLE<()>>,
+    lpHandles: u32,
     bWaitAll: bool,
     dwMilliseconds: u32,
 ) -> u32 /* WAIT_EVENT */ {
+    const WAIT_OBJECT_0: u32 = 0;
+    //const WAIT_ABANDONED_0: u32 = 0x80;
+
+    let handles = machine.mem().iter_pod::<HANDLE<()>>(lpHandles, nCount);
+
+    if bWaitAll {
+        todo!("WaitForMultipleObjects: bWaitAll");
+    }
+    for (i, handle) in handles.enumerate() {
+        let handle = machine.state.kernel32.handles.get(handle).unwrap();
+        if handle.state {
+            return WAIT_OBJECT_0 + i as u32;
+        }
+    }
     todo!()
 }
 
@@ -38,7 +58,7 @@ pub fn CreateEventA(
         if let Some(ev) = machine
             .state
             .kernel32
-            .event_handles
+            .handles
             .iter()
             .find(|ev| ev.name == name)
         {
@@ -49,25 +69,26 @@ pub fn CreateEventA(
         "".into()
     };
 
-    machine
-        .state
-        .kernel32
-        .event_handles
-        .add(EventObject { name, state: false })
+    HEVENT::from_raw(
+        machine
+            .state
+            .kernel32
+            .handles
+            .add(EventObject { name, state: false })
+            .to_raw(),
+    )
 }
 
 #[win32_derive::dllexport]
 pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
-    match machine.state.kernel32.event_handles.get_mut(hEvent) {
-        Some(handle) => {
-            handle.state = true;
-            true
-        }
-        None => {
-            log::warn!("SetEvent: invalid handle");
-            false
-        }
-    }
+    machine
+        .state
+        .kernel32
+        .handles
+        .get_raw_mut(hEvent.to_raw())
+        .unwrap()
+        .state = true;
+    true
 }
 
 #[win32_derive::dllexport]

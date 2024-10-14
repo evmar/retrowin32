@@ -9118,7 +9118,7 @@ pub mod kernel32 {
         pub unsafe fn WaitForMultipleObjects(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
-            let lpHandles = <Option<&mut HANDLE<()>>>::from_stack(mem, stack_args + 4u32);
+            let lpHandles = <u32>::from_stack(mem, stack_args + 4u32);
             let bWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
             let __trace_context = if crate::trace::enabled("kernel32/sync") {
@@ -9154,7 +9154,7 @@ pub mod kernel32 {
         }
         pub unsafe fn WaitForSingleObject(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
-            let hHandle = <HEVENT>::from_stack(mem, stack_args + 0u32);
+            let hHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
             let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_context = if crate::trace::enabled("kernel32/sync") {
                 Some(crate::trace::trace_begin(
@@ -14575,9 +14575,9 @@ pub mod user32 {
         pub unsafe fn RegisterWindowMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-            let __trace_context = if crate::trace::enabled("user32/message") {
+            let __trace_context = if crate::trace::enabled("user32/window") {
                 Some(crate::trace::trace_begin(
-                    "user32/message",
+                    "user32/window",
                     "RegisterWindowMessageA",
                     &[("lpString", &lpString)],
                 ))

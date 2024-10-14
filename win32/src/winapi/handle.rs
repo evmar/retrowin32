@@ -145,12 +145,18 @@ impl<H: Handle, V> Handles<H, V> {
         handle
     }
 
+    pub fn get_raw(&self, raw: u32) -> Option<&V> {
+        self.map.get(&raw)
+    }
     pub fn get(&self, handle: H) -> Option<&V> {
-        self.map.get(&handle.to_raw())
+        self.get_raw(handle.to_raw())
     }
 
+    pub fn get_raw_mut(&mut self, raw: u32) -> Option<&mut V> {
+        self.map.get_mut(&raw)
+    }
     pub fn get_mut(&mut self, handle: H) -> Option<&mut V> {
-        self.map.get_mut(&handle.to_raw())
+        self.get_raw_mut(handle.to_raw())
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &V> {
