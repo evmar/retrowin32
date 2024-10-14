@@ -2967,6 +2967,42 @@ pub mod gdi32 {
             }
             result.to_raw()
         }
+        pub unsafe fn CreateDIBitmap(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let pbmih = <Option<&mut BITMAPINFOHEADER>>::from_stack(mem, stack_args + 4u32);
+            let flInit = <u32>::from_stack(mem, stack_args + 8u32);
+            let pjBits = <Option<&mut u8>>::from_stack(mem, stack_args + 12u32);
+            let pbmi = <Option<&mut BITMAPINFO>>::from_stack(mem, stack_args + 16u32);
+            let iUsage = <u32>::from_stack(mem, stack_args + 20u32);
+            let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/bitmap",
+                    "CreateDIBitmap",
+                    &[
+                        ("hdc", &hdc),
+                        ("pbmih", &pbmih),
+                        ("flInit", &flInit),
+                        ("pjBits", &pjBits),
+                        ("pbmi", &pbmi),
+                        ("iUsage", &iUsage),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::gdi32::CreateDIBitmap(machine, hdc, pbmih, flInit, pjBits, pbmi, iUsage);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::CreateDIBitmap_pos.0,
+                    winapi::gdi32::CreateDIBitmap_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn CreateFontA(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let cHeight = <i32>::from_stack(mem, stack_args + 0u32);
@@ -3175,6 +3211,44 @@ pub mod gdi32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetDIBits(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let hbm = <HBITMAP>::from_stack(mem, stack_args + 4u32);
+            let start = <u32>::from_stack(mem, stack_args + 8u32);
+            let cLines = <u32>::from_stack(mem, stack_args + 12u32);
+            let lpvBits = <Option<&mut u8>>::from_stack(mem, stack_args + 16u32);
+            let lpbmi = <Option<&mut BITMAPINFO>>::from_stack(mem, stack_args + 20u32);
+            let usage = <u32>::from_stack(mem, stack_args + 24u32);
+            let __trace_context = if crate::trace::enabled("gdi32/bitmap") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/bitmap",
+                    "GetDIBits",
+                    &[
+                        ("hdc", &hdc),
+                        ("hbm", &hbm),
+                        ("start", &start),
+                        ("cLines", &cLines),
+                        ("lpvBits", &lpvBits),
+                        ("lpbmi", &lpbmi),
+                        ("usage", &usage),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::gdi32::GetDIBits(machine, hdc, hbm, start, cLines, lpvBits, lpbmi, usage);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::GetDIBits_pos.0,
+                    winapi::gdi32::GetDIBits_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetDeviceCaps(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -3247,6 +3321,38 @@ pub mod gdi32 {
             }
             result.to_raw()
         }
+        pub unsafe fn GetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
+            let iStart = <u32>::from_stack(mem, stack_args + 4u32);
+            let cEntries = <u32>::from_stack(mem, stack_args + 8u32);
+            let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("gdi32/palette") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/palette",
+                    "GetPaletteEntries",
+                    &[
+                        ("hpal", &hpal),
+                        ("iStart", &iStart),
+                        ("cEntries", &cEntries),
+                        ("pPalEntries", &pPalEntries),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::gdi32::GetPaletteEntries(machine, hpal, iStart, cEntries, pPalEntries);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::GetPaletteEntries_pos.0,
+                    winapi::gdi32::GetPaletteEntries_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn GetPixel(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -3290,6 +3396,38 @@ pub mod gdi32 {
                     &__trace_context,
                     winapi::gdi32::GetStockObject_pos.0,
                     winapi::gdi32::GetStockObject_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn GetSystemPaletteEntries(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let iStart = <u32>::from_stack(mem, stack_args + 4u32);
+            let cEntries = <u32>::from_stack(mem, stack_args + 8u32);
+            let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("gdi32/palette") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/palette",
+                    "GetSystemPaletteEntries",
+                    &[
+                        ("hdc", &hdc),
+                        ("iStart", &iStart),
+                        ("cEntries", &cEntries),
+                        ("pPalEntries", &pPalEntries),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::gdi32::GetSystemPaletteEntries(machine, hdc, iStart, cEntries, pPalEntries);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::GetSystemPaletteEntries_pos.0,
+                    winapi::gdi32::GetSystemPaletteEntries_pos.1,
                     &result,
                 );
             }
@@ -3551,6 +3689,29 @@ pub mod gdi32 {
             }
             result.to_raw()
         }
+        pub unsafe fn RealizePalette(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let __trace_context = if crate::trace::enabled("gdi32/palette") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/palette",
+                    "RealizePalette",
+                    &[("hdc", &hdc)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::gdi32::RealizePalette(machine, hdc);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::RealizePalette_pos.0,
+                    winapi::gdi32::RealizePalette_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn SelectObject(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -3570,6 +3731,31 @@ pub mod gdi32 {
                     &__trace_context,
                     winapi::gdi32::SelectObject_pos.0,
                     winapi::gdi32::SelectObject_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn SelectPalette(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+            let hPal = <HPALETTE>::from_stack(mem, stack_args + 4u32);
+            let bForceBkgd = <bool>::from_stack(mem, stack_args + 8u32);
+            let __trace_context = if crate::trace::enabled("gdi32/palette") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/palette",
+                    "SelectPalette",
+                    &[("hdc", &hdc), ("hPal", &hPal), ("bForceBkgd", &bForceBkgd)],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::gdi32::SelectPalette(machine, hdc, hPal, bForceBkgd);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::SelectPalette_pos.0,
+                    winapi::gdi32::SelectPalette_pos.1,
                     &result,
                 );
             }
@@ -3718,6 +3904,38 @@ pub mod gdi32 {
                     &__trace_context,
                     winapi::gdi32::SetLayout_pos.0,
                     winapi::gdi32::SetLayout_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
+        pub unsafe fn SetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
+            let iStart = <u32>::from_stack(mem, stack_args + 4u32);
+            let cEntries = <u32>::from_stack(mem, stack_args + 8u32);
+            let pPalEntries = <Option<&mut PALETTEENTRY>>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("gdi32/palette") {
+                Some(crate::trace::trace_begin(
+                    "gdi32/palette",
+                    "SetPaletteEntries",
+                    &[
+                        ("hpal", &hpal),
+                        ("iStart", &iStart),
+                        ("cEntries", &cEntries),
+                        ("pPalEntries", &pPalEntries),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result =
+                winapi::gdi32::SetPaletteEntries(machine, hpal, iStart, cEntries, pPalEntries);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::gdi32::SetPaletteEntries_pos.0,
+                    winapi::gdi32::SetPaletteEntries_pos.1,
                     &result,
                 );
             }
@@ -3973,7 +4191,7 @@ pub mod gdi32 {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 40usize] = [
+    const SHIMS: [Shim; 47usize] = [
         Shim {
             name: "BitBlt",
             func: Handler::Sync(wrappers::BitBlt),
@@ -3993,6 +4211,10 @@ pub mod gdi32 {
         Shim {
             name: "CreateDIBSection",
             func: Handler::Sync(wrappers::CreateDIBSection),
+        },
+        Shim {
+            name: "CreateDIBitmap",
+            func: Handler::Sync(wrappers::CreateDIBitmap),
         },
         Shim {
             name: "CreateFontA",
@@ -4023,6 +4245,10 @@ pub mod gdi32 {
             func: Handler::Sync(wrappers::GetDCOrgEx),
         },
         Shim {
+            name: "GetDIBits",
+            func: Handler::Sync(wrappers::GetDIBits),
+        },
+        Shim {
             name: "GetDeviceCaps",
             func: Handler::Sync(wrappers::GetDeviceCaps),
         },
@@ -4035,12 +4261,20 @@ pub mod gdi32 {
             func: Handler::Sync(wrappers::GetObjectA),
         },
         Shim {
+            name: "GetPaletteEntries",
+            func: Handler::Sync(wrappers::GetPaletteEntries),
+        },
+        Shim {
             name: "GetPixel",
             func: Handler::Sync(wrappers::GetPixel),
         },
         Shim {
             name: "GetStockObject",
             func: Handler::Sync(wrappers::GetStockObject),
+        },
+        Shim {
+            name: "GetSystemPaletteEntries",
+            func: Handler::Sync(wrappers::GetSystemPaletteEntries),
         },
         Shim {
             name: "GetTextExtentPoint32A",
@@ -4079,8 +4313,16 @@ pub mod gdi32 {
             func: Handler::Sync(wrappers::PtVisible),
         },
         Shim {
+            name: "RealizePalette",
+            func: Handler::Sync(wrappers::RealizePalette),
+        },
+        Shim {
             name: "SelectObject",
             func: Handler::Sync(wrappers::SelectObject),
+        },
+        Shim {
+            name: "SelectPalette",
+            func: Handler::Sync(wrappers::SelectPalette),
         },
         Shim {
             name: "SetBkColor",
@@ -4101,6 +4343,10 @@ pub mod gdi32 {
         Shim {
             name: "SetLayout",
             func: Handler::Sync(wrappers::SetLayout),
+        },
+        Shim {
+            name: "SetPaletteEntries",
+            func: Handler::Sync(wrappers::SetPaletteEntries),
         },
         Shim {
             name: "SetPixel",

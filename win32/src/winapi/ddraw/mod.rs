@@ -15,7 +15,7 @@ pub use ddraw2::*;
 pub use ddraw7::*;
 pub use palette::IDirectDrawPalette;
 
-use super::{heap::Heap, types::*};
+use super::{gdi32::PALETTEENTRY, heap::Heap, types::*};
 use crate::{host, machine::Machine, SurfaceOptions};
 use std::collections::HashMap;
 pub use types::*;

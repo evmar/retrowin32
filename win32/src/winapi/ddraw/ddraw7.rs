@@ -1,9 +1,13 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use super::{palette::IDirectDrawPalette, types::*, DD_OK};
-pub use crate::winapi::com::GUID;
 use crate::{
-    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
+    winapi::{
+        com::{vtable, GUID},
+        ddraw,
+        kernel32::get_symbol,
+        types::*,
+    },
     Machine,
 };
 use bitflags::bitflags;
@@ -64,6 +68,8 @@ impl TryFrom<u32> for DDFLIP {
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
+    use crate::winapi::gdi32::PALETTEENTRY;
+
     use super::*;
 
     vtable![

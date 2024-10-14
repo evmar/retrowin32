@@ -393,16 +393,6 @@ pub struct DDPIXELFORMAT {
 }
 unsafe impl memory::Pod for DDPIXELFORMAT {}
 
-#[repr(C)]
-#[derive(Clone, Debug)]
-pub struct PALETTEENTRY {
-    pub peRed: u8,
-    pub peGreen: u8,
-    pub peBlue: u8,
-    pub peFlags: u8,
-}
-unsafe impl memory::Pod for PALETTEENTRY {}
-
 bitflags! {
     pub struct DDBLT: u32 {
         const ALPHADEST                = 0x00000001;

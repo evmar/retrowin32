@@ -10,6 +10,8 @@ use crate::{
 use memory::Mem;
 use std::rc::Rc;
 
+pub type HBITMAP = HGDIOBJ;
+
 #[derive(Clone)]
 pub struct BITMAP {
     pub bmType: u32,
@@ -480,4 +482,33 @@ pub fn StretchDIBits(
     target.flush(machine);
 
     hSrc
+}
+
+pub type BITMAPINFO = u32; // TODO
+
+#[win32_derive::dllexport]
+pub fn GetDIBits(
+    _machine: &mut Machine,
+    hdc: HDC,
+    hbm: HBITMAP,
+    start: u32,
+    cLines: u32,
+    lpvBits: Option<&mut u8>,
+    lpbmi: Option<&mut BITMAPINFO>,
+    usage: u32, /* DIB_USAGE */
+) -> i32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn CreateDIBitmap(
+    _machine: &mut Machine,
+    hdc: HDC,
+    pbmih: Option<&mut BITMAPINFOHEADER>,
+    flInit: u32,
+    pjBits: Option<&mut u8>,
+    pbmi: Option<&mut BITMAPINFO>,
+    iUsage: u32, /* DIB_USAGE */
+) -> HBITMAP {
+    todo!()
 }
