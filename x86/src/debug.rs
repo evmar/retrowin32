@@ -104,6 +104,9 @@ pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip
                 }
             }
         }
+        if let Some(label) = labels.get(&instr.addr) {
+            print!(" ; {}", label);
+        }
         println!();
     }
 }
