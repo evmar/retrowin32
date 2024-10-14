@@ -12,12 +12,15 @@ pub struct EventObject {
     state: bool,
 }
 
+const WAIT_OBJECT_0: u32 = 0;
+//const WAIT_ABANDONED_0: u32 = 0x80;
+
 #[win32_derive::dllexport]
-pub fn WaitForSingleObject(
-    _machine: &mut Machine,
-    hHandle: HANDLE<()>,
-    dwMilliseconds: u32,
-) -> u32 {
+pub fn WaitForSingleObject(machine: &mut Machine, handle: HANDLE<()>, dwMilliseconds: u32) -> u32 {
+    let handle = machine.state.kernel32.handles.get(handle).unwrap();
+    if handle.state {
+        return WAIT_OBJECT_0;
+    }
     todo!()
 }
 
@@ -29,9 +32,6 @@ pub fn WaitForMultipleObjects(
     bWaitAll: bool,
     dwMilliseconds: u32,
 ) -> u32 /* WAIT_EVENT */ {
-    const WAIT_OBJECT_0: u32 = 0;
-    //const WAIT_ABANDONED_0: u32 = 0x80;
-
     let handles = machine.mem().iter_pod::<HANDLE<()>>(lpHandles, nCount);
 
     if bWaitAll {
