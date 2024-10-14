@@ -20,9 +20,7 @@ pub fn CoInitializeEx(_machine: &mut Machine, pvReserved: Option<&mut u32>, dwCo
 }
 
 #[win32_derive::dllexport]
-pub fn CoUninitialize(_machine: &mut Machine) {
-    todo!();
-}
+pub fn CoUninitialize(_machine: &mut Machine) {}
 
 #[win32_derive::dllexport]
 pub fn CoCreateInstance(
