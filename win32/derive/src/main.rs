@@ -9,9 +9,10 @@ use proc_macro2::TokenStream;
 use std::path::Path;
 
 fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
-    let old_contents = std::fs::read(path)?;
-    if old_contents == contents {
-        return Ok(());
+    if let Ok(old_contents) = std::fs::read(path) {
+        if old_contents == contents {
+            return Ok(());
+        }
     }
     std::fs::write(path, contents)?;
     Ok(())
