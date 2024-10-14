@@ -3,7 +3,7 @@ use std::ops::RangeInclusive;
 use super::{Timers, Window};
 use crate::{
     host,
-    winapi::{handle::Handles, types::*},
+    winapi::{handle::Handles, kernel32::GetCurrentThreadId, types::*},
     Host, Machine, MouseButton,
 };
 use bitflags::bitflags;
@@ -533,14 +533,38 @@ pub fn CallWindowProcA(
 }
 
 #[win32_derive::dllexport]
-pub fn PostMessageA(
-    _machine: &mut Machine,
-    hWnd: HWND,
+pub fn PostMessageA(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
+    if hWnd.is_null() {
+        let thread_id = GetCurrentThreadId(machine);
+        return PostThreadMessageA(machine, thread_id, Msg, wParam, lParam);
+    }
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn PostThreadMessageA(
+    machine: &mut Machine,
+    idThread: u32,
     Msg: u32,
     wParam: u32,
     lParam: u32,
 ) -> bool {
-    todo!()
+    let thread_id = GetCurrentThreadId(machine);
+    if idThread != thread_id {
+        // TODO: per-thread queues
+        todo!();
+    }
+
+    machine.state.user32.messages.push(MSG {
+        hwnd: HWND::null(),
+        message: Msg,
+        wParam,
+        lParam,
+        time: 0,
+        pt_x: 0,
+        pt_y: 0,
+    });
+    true
 }
 
 #[win32_derive::dllexport]

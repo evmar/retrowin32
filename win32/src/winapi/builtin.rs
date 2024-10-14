@@ -14425,6 +14425,37 @@ pub mod user32 {
             }
             result.to_raw()
         }
+        pub unsafe fn PostThreadMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
+            let mem = machine.mem().detach();
+            let idThread = <u32>::from_stack(mem, stack_args + 0u32);
+            let Msg = <u32>::from_stack(mem, stack_args + 4u32);
+            let wParam = <u32>::from_stack(mem, stack_args + 8u32);
+            let lParam = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_context = if crate::trace::enabled("user32/message") {
+                Some(crate::trace::trace_begin(
+                    "user32/message",
+                    "PostThreadMessageA",
+                    &[
+                        ("idThread", &idThread),
+                        ("Msg", &Msg),
+                        ("wParam", &wParam),
+                        ("lParam", &lParam),
+                    ],
+                ))
+            } else {
+                None
+            };
+            let result = winapi::user32::PostThreadMessageA(machine, idThread, Msg, wParam, lParam);
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::PostThreadMessageA_pos.0,
+                    winapi::user32::PostThreadMessageA_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        }
         pub unsafe fn PtInRect(machine: &mut Machine, stack_args: u32) -> u32 {
             let mem = machine.mem().detach();
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
@@ -15591,7 +15622,7 @@ pub mod user32 {
             result.to_raw()
         }
     }
-    const SHIMS: [Shim; 130usize] = [
+    const SHIMS: [Shim; 131usize] = [
         Shim {
             name: "AdjustWindowRect",
             func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -15943,6 +15974,10 @@ pub mod user32 {
         Shim {
             name: "PostQuitMessage",
             func: Handler::Sync(wrappers::PostQuitMessage),
+        },
+        Shim {
+            name: "PostThreadMessageA",
+            func: Handler::Sync(wrappers::PostThreadMessageA),
         },
         Shim {
             name: "PtInRect",
