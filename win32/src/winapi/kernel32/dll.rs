@@ -155,7 +155,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
         if let Some(builtin) = builtin {
             builtin.raw
         } else {
-            let exe = machine.state.kernel32.cmdline.args.first().unwrap();
+            let exe = machine.state.kernel32.cmdline.exe_name();
             let exe_dir = exe.rsplitn(2, '\\').last().unwrap();
             let dll_paths = [format!("{exe_dir}\\{filename}"), filename.to_string()];
             for path in &dll_paths {

@@ -63,7 +63,7 @@ unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
+fn init_teb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     // RTL_USER_PROCESS_PARAMETERS
     let params_addr = arena.alloc(
         std::cmp::max(
@@ -79,7 +79,7 @@ fn init_teb(cmdline: &CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     params.hStdOutput = STDOUT_HFILE;
     params.hStdError = STDERR_HFILE;
     params.ImagePathName.clear();
-    params.CommandLine = cmdline.as_unicode_string();
+    params.CommandLine = cmdline.as_unicode_string(arena, mem);
 
     // PEB
     let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
@@ -136,7 +136,7 @@ impl KernelObjects {
 
 pub struct State {
     /// Memory for kernel32 data structures.
-    arena: Arena,
+    pub arena: Arena,
     /// Address image was loaded at.
     pub image_base: u32,
     /// Address of TEB (what FS register-relative addresses refer to).
@@ -198,9 +198,9 @@ impl State {
             .sub32_mut(env_addr, env.len() as u32)
             .copy_from_slice(env);
 
-        let cmdline = CommandLine::new(cmdline, &mut arena, mem.mem());
+        let mut cmdline = CommandLine::new(cmdline);
 
-        let teb = init_teb(&cmdline, &mut arena, mem.mem());
+        let teb = init_teb(&mut cmdline, &mut arena, mem.mem());
 
         State {
             arena,

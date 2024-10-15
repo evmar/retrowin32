@@ -8,47 +8,66 @@ use memory::{ExtensionsMut, Mem};
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
 pub struct CommandLine {
-    /// Command line, split args.
-    pub args: Vec<String>,
-    /// Command line, ASCII.
-    pub cmdline: u32,
-    /// Command line, UTF16.
-    pub cmdline16: u32,
-    /// Length without trailing nul.
-    pub len: usize,
+    /// Command line as understood by retrowin32.
+    string: String,
+    /// Command line in process memory, ASCII.
+    cmdline8: u32,
+    /// Command line in process memory, UTF16.
+    cmdline16: u32,
 }
 
 impl CommandLine {
-    pub fn new(mut cmdline: String, arena: &mut Arena, mem: Mem) -> Self {
-        let args = split_cmdline(&cmdline);
-
-        log::debug!("CommandLine: {}", cmdline);
-        let len = cmdline.len();
-        cmdline.push(0 as char); // nul terminator
-
-        let cmdline8_ptr = arena.alloc(cmdline.len() as u32, 1);
-        mem.sub32_mut(cmdline8_ptr, cmdline.len() as u32)
-            .copy_from_slice(cmdline.as_bytes());
-
-        let cmdline16 = String16::from(&cmdline);
-        let cmdline16_ptr = arena.alloc(cmdline16.byte_size() as u32, 2);
-        let mem16: &mut [u16] =
-            unsafe { std::mem::transmute(mem.sub32_mut(cmdline16_ptr, cmdline16.0.len() as u32)) };
-        mem16.copy_from_slice(&cmdline16.0);
-
+    pub fn new(cmdline: String) -> Self {
         CommandLine {
-            args,
-            cmdline: cmdline8_ptr,
-            cmdline16: cmdline16_ptr,
-            len,
+            string: cmdline,
+            cmdline8: 0,
+            cmdline16: 0,
         }
     }
 
-    pub fn as_unicode_string(&self) -> UNICODE_STRING {
+    fn cmdline8(&mut self, arena: &mut Arena, mem: Mem) -> u32 {
+        if self.cmdline8 == 0 {
+            let mut cmdline = self.string.clone();
+            cmdline.push(0 as char); // nul terminator
+
+            let ptr = arena.alloc(cmdline.len() as u32, 1);
+            mem.sub32_mut(ptr, cmdline.len() as u32)
+                .copy_from_slice(cmdline.as_bytes());
+            self.cmdline8 = ptr;
+        }
+        self.cmdline8
+    }
+
+    fn cmdline16(&mut self, arena: &mut Arena, mem: Mem) -> u32 {
+        if self.cmdline16 == 0 {
+            let mut cmdline16 = String16::from(&self.string);
+            cmdline16.0.push(0); // nul terminator
+
+            let ptr = arena.alloc(cmdline16.byte_size() as u32, 2);
+            mem.sub32_mut(ptr, cmdline16.byte_size() as u32)
+                .copy_from_slice(unsafe {
+                    std::slice::from_raw_parts::<u8>(
+                        cmdline16.0.as_ptr() as *const _,
+                        cmdline16.byte_size(),
+                    )
+                });
+            self.cmdline16 = ptr;
+        }
+        self.cmdline16
+    }
+
+    pub fn exe_name(&self) -> String {
+        // TODO: we only need to parse the exe name, not the arguments
+        split_cmdline(&self.string).swap_remove(0)
+    }
+
+    pub fn as_unicode_string(&mut self, arena: &mut Arena, mem: Mem) -> UNICODE_STRING {
+        let cmdline16 = self.cmdline16(arena, mem);
+        let len = self.string.len();
         UNICODE_STRING {
-            Length: self.len as u16,
-            MaximumLength: self.len as u16,
-            Buffer: self.cmdline16,
+            Length: len as u16,
+            MaximumLength: len as u16,
+            Buffer: cmdline16,
         }
     }
 }
@@ -83,10 +102,18 @@ fn split_cmdline(cmdline: &str) -> Vec<String> {
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline.cmdline
+    machine
+        .state
+        .kernel32
+        .cmdline
+        .cmdline8(&mut machine.state.kernel32.arena, machine.emu.memory.mem())
 }
 
 #[win32_derive::dllexport]
 pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.cmdline.cmdline16
+    machine
+        .state
+        .kernel32
+        .cmdline
+        .cmdline16(&mut machine.state.kernel32.arena, machine.emu.memory.mem())
 }
