@@ -4665,7 +4665,7 @@ mod wrappers {
     }
     pub unsafe fn WaitForSingleObject(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let handle = <HEVENT>::from_stack(mem, stack_args + 0u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
         let __trace_context = if crate::trace::enabled("kernel32/sync") {
             Some(crate::trace::trace_begin(

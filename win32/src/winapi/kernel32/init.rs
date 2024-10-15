@@ -1,7 +1,8 @@
 //! Process initialization and startup.
 
 use super::{
-    EventObject, FindHandle, Mappings, ResourceHandle, DLL, HMODULE, STDERR_HFILE, STDOUT_HFILE,
+    EventObject, FindHandle, Mappings, ResourceHandle, Thread, DLL, HMODULE, STDERR_HFILE,
+    STDOUT_HFILE,
 };
 use crate::{
     machine::MemImpl,
@@ -194,6 +195,22 @@ pub struct GDTEntries {
     pub ss: u16,
 }
 
+/// Objects identified by kernel handles, all of which can be passed to Wait* functions.
+pub enum KernelObject {
+    Event(EventObject),
+    Thread(Thread),
+}
+
+type KernelObjects = Handles<HANDLE<()>, KernelObject>;
+impl KernelObjects {
+    pub fn get_event(&self, handle: HEVENT) -> Option<&EventObject> {
+        match self.get_raw(handle.to_raw()) {
+            Some(KernelObject::Event(ev)) => Some(ev),
+            _ => None,
+        }
+    }
+}
+
 pub struct State {
     /// Memory for kernel32 data structures.
     arena: Arena,
@@ -212,9 +229,8 @@ pub struct State {
     pub resource_handles: Handles<HRSRC, ResourceHandle>,
 
     // There is a collection of handle types that are all from the same key space,
-    // because they can be passed to the various Wait functions.  This map should
-    // eventually hold all of these rather than just EventObjects.
-    pub handles: Handles<HANDLE<()>, EventObject>,
+    // because they can be passed to the various Wait functions.
+    pub objects: Handles<HANDLE<()>, KernelObject>,
 
     pub files: Handles<HFILE, Box<dyn crate::host::File>>,
 
@@ -271,7 +287,7 @@ impl State {
             mappings,
             heaps: HashMap::new(),
             dlls,
-            handles: Default::default(),
+            objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
             env: env_addr,

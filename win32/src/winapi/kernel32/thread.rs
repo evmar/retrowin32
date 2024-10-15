@@ -8,7 +8,10 @@ use memory::Pod;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
+/// state.objects[HTHREAD] maps to a Thread object.
 pub type HTHREAD = HANDLE<HTHREADT>;
+
+pub struct Thread {}
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {

@@ -7,6 +7,8 @@ use crate::{
 use memory::Extensions;
 use std::cell::Cell;
 
+use super::KernelObject;
+
 pub struct EventObject {
     name: Option<String>,
     manual_reset: bool,
@@ -17,9 +19,9 @@ pub const WAIT_OBJECT_0: u32 = 0;
 //const WAIT_ABANDONED_0: u32 = 0x80;
 
 #[win32_derive::dllexport]
-pub fn WaitForSingleObject(machine: &mut Machine, handle: HANDLE<()>, dwMilliseconds: u32) -> u32 {
-    let handle = machine.state.kernel32.handles.get(handle).unwrap();
-    if handle.signaled.get() {
+pub fn WaitForSingleObject(machine: &mut Machine, handle: HEVENT, dwMilliseconds: u32) -> u32 {
+    let event = machine.state.kernel32.objects.get_event(handle).unwrap();
+    if event.signaled.get() {
         return WAIT_OBJECT_0;
     }
     todo!()
@@ -39,12 +41,16 @@ pub fn WaitForMultipleObjects(
         todo!("WaitForMultipleObjects: bWaitAll");
     }
     for (i, handle) in handles.enumerate() {
-        let handle = machine.state.kernel32.handles.get(handle).unwrap();
-        if handle.signaled.get() {
-            if handle.manual_reset {
-                handle.signaled.set(false);
+        match machine.state.kernel32.objects.get(handle).as_ref().unwrap() {
+            KernelObject::Event(event) => {
+                if event.signaled.get() {
+                    if event.manual_reset {
+                        event.signaled.set(false);
+                    }
+                    return WAIT_OBJECT_0 + i as u32;
+                }
             }
-            return WAIT_OBJECT_0 + i as u32;
+            KernelObject::Thread(thread) => todo!(),
         }
     }
     todo!()
@@ -59,12 +65,13 @@ pub fn CreateEventA(
     lpName: Option<&str>,
 ) -> HEVENT {
     let name = if let Some(name) = lpName {
-        if let Some(ev) = machine.state.kernel32.handles.iter().find(|ev| {
-            if let Some(n) = &ev.name {
-                n == name
-            } else {
-                false
+        if let Some(ev) = machine.state.kernel32.objects.iter().find(|ev| {
+            if let KernelObject::Event(EventObject { name: Some(n), .. }) = ev {
+                if *n == name {
+                    return true;
+                }
             }
+            false
         }) {
             todo!("CreateEventA: reusing named event");
         }
@@ -77,12 +84,12 @@ pub fn CreateEventA(
         machine
             .state
             .kernel32
-            .handles
-            .add(EventObject {
+            .objects
+            .add(KernelObject::Event(EventObject {
                 name,
                 manual_reset: bManualReset,
                 signaled: Cell::new(bInitialState),
-            })
+            }))
             .to_raw(),
     )
 }
@@ -92,8 +99,8 @@ pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
     machine
         .state
         .kernel32
-        .handles
-        .get_raw(hEvent.to_raw())
+        .objects
+        .get_event(hEvent)
         .unwrap()
         .signaled
         .set(true);

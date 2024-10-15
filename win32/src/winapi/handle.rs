@@ -48,6 +48,10 @@ impl<T> HANDLE<T> {
         self.raw
     }
 
+    pub fn untyped(&self) -> HANDLE<()> {
+        HANDLE::<()>::from_raw(self.raw)
+    }
+
     // Handles have both null and invalid states, whoopsie.
     // https://devblogs.microsoft.com/oldnewthing/20040302-00/?p=40443
     pub fn null() -> Self {
