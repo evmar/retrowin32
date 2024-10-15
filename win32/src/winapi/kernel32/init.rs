@@ -61,9 +61,7 @@ struct _EXCEPTION_REGISTRATION_RECORD {
 }
 unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
 
-/// Set up TEB, PEB, and other process info.
-/// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
+fn init_peb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     // RTL_USER_PROCESS_PARAMETERS
     let params_addr = arena.alloc(
         std::cmp::max(
@@ -88,6 +86,12 @@ fn init_teb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     peb.ProcessHeap = 0; // TODO: we use state.process_heap instead
     peb.TlsCount = 0;
 
+    peb_addr
+}
+
+/// Set up TEB, PEB, and other process info.
+/// The FS register points at the TEB (thread info), which points at the PEB (process info).
+fn init_teb(peb_addr: u32, arena: &mut Arena, mem: Mem) -> u32 {
     // SEH chain
     let seh_addr = arena.alloc(
         std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
@@ -199,8 +203,8 @@ impl State {
             .copy_from_slice(env);
 
         let mut cmdline = CommandLine::new(cmdline);
-
-        let teb = init_teb(&mut cmdline, &mut arena, mem.mem());
+        let peb = init_peb(&mut cmdline, &mut arena, mem.mem());
+        let teb = init_teb(peb, &mut arena, mem.mem());
 
         State {
             arena,
