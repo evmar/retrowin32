@@ -499,10 +499,11 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
         .kernel32
         .dlls
         .iter()
-        .filter(|(_, dll)| dll.dll.entry_point.is_some())
-        .map(|(_, dll)| DllData {
-            base: dll.dll.base,
-            entry_point: dll.dll.entry_point.unwrap(),
+        .filter_map(|(_, dll)| {
+            Some(DllData {
+                base: dll.dll.base,
+                entry_point: dll.dll.entry_point?,
+            })
         })
         .collect::<Vec<_>>();
     // TODO: invoking dllmains can load more dlls.
