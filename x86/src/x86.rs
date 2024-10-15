@@ -35,6 +35,7 @@ const MAGIC_ADDR: u32 = 0xFFFF_FFF0;
 // Similar to futures::future::BoxFuture, but 'static + !Send.
 pub type BoxFuture<T> = Pin<Box<dyn Future<Output = T>>>;
 
+#[derive(Default)]
 pub struct CPU {
     pub regs: Registers,
     // Flags are in principle a register but we moved it outside of regs for lifetime reasons,
@@ -51,16 +52,6 @@ pub struct CPU {
 }
 
 impl CPU {
-    pub fn new() -> Self {
-        CPU {
-            regs: Registers::default(),
-            flags: Flags::empty(),
-            fpu: FPU::default(),
-            state: Default::default(),
-            futures: Default::default(),
-        }
-    }
-
     pub fn err(&mut self, msg: String) {
         self.state = CPUState::Error(msg);
     }
@@ -219,7 +210,7 @@ pub struct X86 {
 impl X86 {
     pub fn new() -> Self {
         X86 {
-            cpus: vec![Box::pin(CPU::new())],
+            cpus: vec![Box::pin(CPU::default())],
             cur_cpu: 0,
             instr_count: 0,
             icache: InstrCache::default(),
@@ -235,7 +226,7 @@ impl X86 {
     }
 
     pub fn new_cpu(&mut self) -> &mut CPU {
-        self.cpus.push(Box::pin(CPU::new()));
+        self.cpus.push(Box::pin(CPU::default()));
         self.cpus.last_mut().unwrap()
     }
 

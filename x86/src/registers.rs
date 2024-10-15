@@ -2,6 +2,7 @@ use bitflags::bitflags;
 use iced_x86::Register::{self, *};
 
 bitflags! {
+    #[derive(Default)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;
