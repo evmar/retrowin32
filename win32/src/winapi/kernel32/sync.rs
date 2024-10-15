@@ -1,15 +1,16 @@
 //! Synchronization.  Currently all no-ops as we don't support threads.
 
-use memory::Extensions;
-
 use crate::{
     winapi::types::{HANDLE, HEVENT},
     Machine,
 };
+use memory::Extensions;
+use std::cell::Cell;
 
 pub struct EventObject {
-    name: String,
-    state: bool,
+    name: Option<String>,
+    manual_reset: bool,
+    signaled: Cell<bool>,
 }
 
 pub const WAIT_OBJECT_0: u32 = 0;
@@ -18,7 +19,7 @@ pub const WAIT_OBJECT_0: u32 = 0;
 #[win32_derive::dllexport]
 pub fn WaitForSingleObject(machine: &mut Machine, handle: HANDLE<()>, dwMilliseconds: u32) -> u32 {
     let handle = machine.state.kernel32.handles.get(handle).unwrap();
-    if handle.state {
+    if handle.signaled.get() {
         return WAIT_OBJECT_0;
     }
     todo!()
@@ -39,7 +40,10 @@ pub fn WaitForMultipleObjects(
     }
     for (i, handle) in handles.enumerate() {
         let handle = machine.state.kernel32.handles.get(handle).unwrap();
-        if handle.state {
+        if handle.signaled.get() {
+            if handle.manual_reset {
+                handle.signaled.set(false);
+            }
             return WAIT_OBJECT_0 + i as u32;
         }
     }
@@ -55,18 +59,18 @@ pub fn CreateEventA(
     lpName: Option<&str>,
 ) -> HEVENT {
     let name = if let Some(name) = lpName {
-        if let Some(ev) = machine
-            .state
-            .kernel32
-            .handles
-            .iter()
-            .find(|ev| ev.name == name)
-        {
+        if let Some(ev) = machine.state.kernel32.handles.iter().find(|ev| {
+            if let Some(n) = &ev.name {
+                n == name
+            } else {
+                false
+            }
+        }) {
             todo!("CreateEventA: reusing named event");
         }
-        name.to_string()
+        Some(name.to_string())
     } else {
-        "".into()
+        None
     };
 
     HEVENT::from_raw(
@@ -74,7 +78,11 @@ pub fn CreateEventA(
             .state
             .kernel32
             .handles
-            .add(EventObject { name, state: false })
+            .add(EventObject {
+                name,
+                manual_reset: bManualReset,
+                signaled: Cell::new(bInitialState),
+            })
             .to_raw(),
     )
 }
@@ -85,9 +93,10 @@ pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
         .state
         .kernel32
         .handles
-        .get_raw_mut(hEvent.to_raw())
+        .get_raw(hEvent.to_raw())
         .unwrap()
-        .state = true;
+        .signaled
+        .set(true);
     true
 }
 
