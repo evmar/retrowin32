@@ -1068,9 +1068,9 @@ mod wrappers {
     }
     pub unsafe fn GetCommandLineA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let __trace_context = if crate::trace::enabled("kernel32/init") {
+        let __trace_context = if crate::trace::enabled("kernel32/command_line") {
             Some(crate::trace::trace_begin(
-                "kernel32/init",
+                "kernel32/command_line",
                 "GetCommandLineA",
                 &[],
             ))
@@ -1090,9 +1090,9 @@ mod wrappers {
     }
     pub unsafe fn GetCommandLineW(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let __trace_context = if crate::trace::enabled("kernel32/init") {
+        let __trace_context = if crate::trace::enabled("kernel32/command_line") {
             Some(crate::trace::trace_begin(
-                "kernel32/init",
+                "kernel32/command_line",
                 "GetCommandLineW",
                 &[],
             ))

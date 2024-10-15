@@ -2,6 +2,7 @@
 #![allow(non_camel_case_types)]
 
 mod builtin;
+mod command_line;
 mod console;
 mod dll;
 mod env;
@@ -22,6 +23,7 @@ mod time;
 pub use builtin::DLL;
 
 pub use self::memory::*;
+pub use command_line::*;
 pub use console::*;
 pub use dll::*;
 pub use env::*;
