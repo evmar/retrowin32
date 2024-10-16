@@ -1,12 +1,16 @@
-use std::ops::RangeInclusive;
-
 use super::{Timers, Window};
 use crate::{
     host,
-    winapi::{handle::Handles, kernel32::GetCurrentThreadId, types::*},
+    winapi::{
+        handle::Handles,
+        kernel32::{self, GetCurrentThreadId},
+        types::*,
+    },
     Host, Machine, MouseButton,
 };
 use bitflags::bitflags;
+use memory::Extensions;
+use std::ops::RangeInclusive;
 
 #[repr(C)]
 #[derive(Clone)]
@@ -547,15 +551,17 @@ pub async fn MsgWaitForMultipleObjects(
     dwMilliseconds: u32,
     dwWakeMask: Result<QS, u32>,
 ) -> u32 {
-    if nCount == 0 {
-        let mask = dwWakeMask.unwrap();
-        todo!();
-        // TODO: wait for a msg without removing it from the queue.
-        // get_message(machine, None, HWND::null(), 0, 0).await;
-        // WAIT_OBJECT_0 + nCount
-    } else {
-        todo!()
+    let handles = machine
+        .mem()
+        .iter_pod::<HANDLE<()>>(pHandles, nCount)
+        .collect::<Vec<_>>();
+    let mask = dwWakeMask.unwrap();
+    if !mask.is_empty() {
+        log::warn!("MsgWaitForMultipleObjects: ignoring dwWakeMask");
+        // TODO: e.g. handles.push(msgqueueevent)
     }
+
+    kernel32::wait_for_objects(machine, &handles, fWaitAll, dwMilliseconds).await
 }
 
 #[win32_derive::dllexport]

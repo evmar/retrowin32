@@ -35,7 +35,8 @@ fn wait_from_milliseconds(machine: &mut Machine, dwMilliseconds: u32) -> Option<
     }
 }
 
-async fn wait_for_objects(
+/// The primitive beneath WaitForMultipleObjects etc.
+pub async fn wait_for_objects(
     machine: &mut Machine,
     handles: &[HANDLE<()>],
     bWaitAll: bool,
@@ -72,6 +73,7 @@ async fn wait_for_objects(
                 return WAIT_TIMEOUT;
             }
         }
+        // log::info!("{:?}: waiting for {:?}", kernel32::current_thread(machine), handles);
         machine.emu.x86.cpu_mut().block(until).await;
     }
 }
