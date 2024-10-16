@@ -54,13 +54,6 @@ struct RTL_USER_PROCESS_PARAMETERS {
 }
 unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
-#[repr(C)]
-struct _EXCEPTION_REGISTRATION_RECORD {
-    Prev: DWORD,
-    Handler: DWORD,
-}
-unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
-
 fn init_peb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     // RTL_USER_PROCESS_PARAMETERS
     let params_addr = arena.alloc(
@@ -87,29 +80,6 @@ fn init_peb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     peb.TlsCount = 0;
 
     peb_addr
-}
-
-/// Set up TEB, PEB, and other process info.
-/// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(peb_addr: u32, arena: &mut Arena, mem: Mem) -> u32 {
-    // SEH chain
-    let seh_addr = arena.alloc(
-        std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
-        4,
-    );
-    let seh = mem.get_aligned_ref_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
-    seh.Prev = 0xFFFF_FFFF;
-    seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
-
-    // TEB
-    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
-    let teb = mem.get_aligned_ref_mut::<TEB>(teb_addr);
-    teb.Tib.ExceptionList = seh_addr;
-    teb.Tib._Self = teb_addr; // Confusing: it points to itself.
-    teb.Peb = peb_addr;
-
-    teb_addr
-    // log::info!("params {params_addr:x} peb {peb_addr:x} teb {teb_addr:x}");
 }
 
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
@@ -143,8 +113,8 @@ pub struct State {
     pub arena: Arena,
     /// Address image was loaded at.
     pub image_base: u32,
-    /// Address of TEB (what FS register-relative addresses refer to).
-    pub teb: u32,
+    /// Address of PEB (process information exposed to executable).
+    pub peb: u32,
     pub mappings: Mappings,
     /// Heaps created by HeapAlloc().
     heaps: HashMap<u32, Heap>,
@@ -204,12 +174,11 @@ impl State {
 
         let mut cmdline = CommandLine::new(cmdline);
         let peb = init_peb(&mut cmdline, &mut arena, mem.mem());
-        let teb = init_teb(peb, &mut arena, mem.mem());
 
         State {
             arena,
             image_base: 0,
-            teb,
+            peb,
             process_heap: 0,
             mappings,
             heaps: HashMap::new(),
@@ -288,7 +257,7 @@ impl State {
 
         let fs = (3 << 3) | 0b011;
         gdt[3] = SegmentDescriptor {
-            base: self.teb,
+            base: 0, // TODO: get teb into here
             limit: 0x1000,
             granularity: false,
             db: true, // 32 bit
@@ -329,19 +298,10 @@ impl State {
     }
 }
 
-pub fn teb(machine: &Machine) -> &TEB {
-    machine
-        .mem()
-        .get_aligned_ref::<TEB>(machine.state.kernel32.teb)
-}
-pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    machine
-        .mem()
-        .get_aligned_ref_mut::<TEB>(machine.state.kernel32.teb)
-}
 pub fn peb_mut(machine: &mut Machine) -> &mut PEB {
-    let peb_addr = teb(machine).Peb;
-    machine.mem().get_aligned_ref_mut::<PEB>(peb_addr)
+    machine
+        .mem()
+        .get_aligned_ref_mut::<PEB>(machine.state.kernel32.peb)
 }
 
 #[repr(C)]
@@ -364,42 +324,6 @@ pub struct PEB {
     pub TlsCount: DWORD,
 }
 unsafe impl ::memory::Pod for PEB {}
-
-#[repr(C)]
-pub struct NT_TIB {
-    ExceptionList: DWORD,
-    StackBase: DWORD,
-    StackLimit: DWORD,
-    SubSystemTib: DWORD,
-    FiberData: DWORD,
-    ArbitraryUserPointer: DWORD,
-    _Self: DWORD,
-}
-unsafe impl ::memory::Pod for NT_TIB {}
-
-#[repr(C)]
-pub struct TEB {
-    pub Tib: NT_TIB,
-    pub EnvironmentPointer: DWORD,
-    pub ClientId_UniqueProcess: DWORD,
-    pub ClientId_UniqueThread: DWORD,
-    pub ActiveRpcHandle: DWORD,
-    pub ThreadLocalStoragePointer: DWORD,
-    pub Peb: DWORD,
-    pub LastErrorValue: DWORD,
-    pub CountOfOwnedCriticalSections: DWORD,
-    pub CsrClientThread: DWORD,
-    pub Win32ThreadInfo: DWORD,
-    pub User32Reserved: [DWORD; 26],
-    pub UserReserved: [DWORD; 5],
-    pub WOW32Reserved: DWORD,
-    pub CurrentLocale: DWORD,
-    // TODO: ... there are many more fields here
-
-    // This is at the wrong offset, but it shouldn't matter.
-    pub TlsSlots: [DWORD; 64],
-}
-unsafe impl ::memory::Pod for TEB {}
 
 /// This function is not part of the Windows API, but is rather just the entry
 /// point for when retrowin32 starts/stops a process, initializing DLLs and calling main.

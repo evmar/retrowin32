@@ -210,7 +210,7 @@ pub struct X86 {
 impl X86 {
     pub fn new() -> Self {
         X86 {
-            cpus: vec![Box::pin(CPU::default())],
+            cpus: Default::default(),
             cur_cpu: 0,
             instr_count: 0,
             icache: InstrCache::default(),
@@ -225,9 +225,9 @@ impl X86 {
         &mut *self.cpus[self.cur_cpu]
     }
 
-    pub fn new_cpu(&mut self) -> &mut CPU {
+    pub fn new_cpu(&mut self) -> usize {
         self.cpus.push(Box::pin(CPU::default()));
-        self.cpus.last_mut().unwrap()
+        self.cpus.len() - 1
     }
 
     pub fn single_step_next_block(&mut self, mem: Mem) {

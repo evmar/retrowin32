@@ -174,11 +174,6 @@ pub fn RaiseException(
     todo!();
 }
 
-#[win32_derive::dllexport]
-pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.teb
-}
-
 // TODO: this has a bunch of synchronization magic that I haven't implemented,
 // but I did at least make this struct the right size (128 bits).
 #[repr(C)]

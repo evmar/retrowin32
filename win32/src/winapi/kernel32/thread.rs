@@ -1,17 +1,121 @@
-use super::{peb_mut, teb_mut};
+use super::peb_mut;
 use crate::{
     machine::Machine,
-    winapi,
-    winapi::types::{Str16, HANDLE},
+    winapi::{
+        self,
+        alloc::Arena,
+        types::{Str16, HANDLE},
+    },
 };
-use memory::Pod;
+use memory::{Extensions, Mem, Pod};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
 /// state.objects[HTHREAD] maps to a Thread object.
 pub type HTHREAD = HANDLE<HTHREADT>;
 
-pub struct Thread {}
+#[repr(C)]
+struct _EXCEPTION_REGISTRATION_RECORD {
+    Prev: u32,
+    Handler: u32,
+}
+unsafe impl ::memory::Pod for _EXCEPTION_REGISTRATION_RECORD {}
+
+#[repr(C)]
+pub struct NT_TIB {
+    ExceptionList: u32,
+    StackBase: u32,
+    StackLimit: u32,
+    SubSystemTib: u32,
+    FiberData: u32,
+    ArbitraryUserPointer: u32,
+    _Self: u32,
+}
+unsafe impl ::memory::Pod for NT_TIB {}
+
+#[repr(C)]
+pub struct TEB {
+    pub Tib: NT_TIB,
+    pub EnvironmentPointer: u32,
+    pub ClientId_UniqueProcess: u32,
+    pub ClientId_UniqueThread: u32,
+    pub ActiveRpcHandle: u32,
+    pub ThreadLocalStoragePointer: u32,
+    pub Peb: u32,
+    pub LastErrorValue: u32,
+    pub CountOfOwnedCriticalSections: u32,
+    pub CsrClientThread: u32,
+    pub Win32ThreadInfo: u32,
+    pub User32Reserved: [u32; 26],
+    pub UserReserved: [u32; 5],
+    pub WOW32Reserved: u32,
+    pub CurrentLocale: u32,
+    // TODO: ... there are many more fields here
+
+    // This is at the wrong offset, but it shouldn't matter.
+    pub TlsSlots: [u32; 64],
+}
+unsafe impl ::memory::Pod for TEB {}
+
+pub struct Thread {
+    pub index: usize,
+
+    /// address of TEB
+    pub teb: u32,
+}
+
+/// Set up TEB, PEB, and other process info.
+/// The FS register points at the TEB (thread info), which points at the PEB (process info).
+fn init_teb(peb_addr: u32, arena: &mut Arena, mem: Mem) -> u32 {
+    // SEH chain
+    let seh_addr = arena.alloc(
+        std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
+        4,
+    );
+    let seh = mem.get_aligned_ref_mut::<_EXCEPTION_REGISTRATION_RECORD>(seh_addr);
+    seh.Prev = 0xFFFF_FFFF;
+    seh.Handler = 0xFF5E_5EFF; // Hopefully easier to spot.
+
+    // TEB
+    let teb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<TEB>() as u32, 0x100), 4);
+    let teb = mem.get_aligned_ref_mut::<TEB>(teb_addr);
+    teb.Tib.ExceptionList = seh_addr;
+    teb.Tib._Self = teb_addr; // Confusing: it points to itself.
+    teb.Peb = peb_addr;
+
+    teb_addr
+}
+
+/// Information about a newly-created thread; info that persists after the thread is created
+/// is kept in Thread.
+pub struct NewThread {
+    pub thread: Thread,
+    /// initial esp
+    pub stack_pointer: u32,
+}
+
+pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
+    let index = machine.emu.x86.new_cpu();
+
+    let stack = machine.state.kernel32.mappings.alloc(
+        stack_size,
+        format!("thread {index} stack"),
+        &mut machine.emu.memory,
+    );
+    let stack_pointer = stack.addr + stack.size - 4;
+
+    let mem = machine.emu.memory.mem();
+    let teb = init_teb(
+        machine.state.kernel32.peb,
+        &mut machine.state.kernel32.arena,
+        mem,
+    );
+
+    NewThread {
+        thread: Thread { index, teb },
+        stack_pointer,
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
@@ -30,6 +134,17 @@ pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
         _ = machine;
         1
     }
+}
+
+#[win32_derive::dllexport]
+pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
+    machine.emu.x86.cpu().regs.fs_addr
+}
+
+pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
+    // TODO: read directly from local Thread, don't believe exe's fs address.
+    let fs = machine.emu.x86.cpu().regs.fs_addr;
+    machine.emu.memory.mem().get_aligned_ref_mut::<TEB>(fs)
 }
 
 #[win32_derive::dllexport]
@@ -79,19 +194,22 @@ pub async fn CreateThread(
 
     #[cfg(feature = "x86-emu")]
     {
-        let id = 1; // TODO
-        let stack_pointer = machine.create_stack(format!("thread{id} stack"), dwStackSize);
         // TODO: should reuse a CPU from a previous thread that has exited
-        let cpu = machine.emu.x86.new_cpu();
+        let NewThread {
+            thread,
+            stack_pointer,
+        } = create_thread(machine, dwStackSize);
+        let cpu = &mut machine.emu.x86.cpus[thread.index];
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
+        cpu.regs.fs_addr = thread.teb;
         let mem = machine.emu.memory.mem();
         x86::ops::push(cpu, mem, lpParameter);
         x86::ops::push(cpu, mem, lpStartAddress);
         x86::ops::push(cpu, mem, 0);
         cpu.regs.eip = retrowin32_thread_main;
 
-        HTHREAD::from_raw(id)
+        HTHREAD::from_raw(thread.index as u32 + 1)
     }
 
     #[cfg(not(feature = "x86-emu"))]
