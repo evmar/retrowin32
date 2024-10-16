@@ -15,9 +15,9 @@ mod wrappers {
     pub unsafe fn AcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/srw_lock") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/srw_lock",
                 "AcquireSRWLockExclusive",
                 &[("SRWLock", &SRWLock)],
             ))
@@ -38,9 +38,9 @@ mod wrappers {
     pub unsafe fn AcquireSRWLockShared(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/srw_lock") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/srw_lock",
                 "AcquireSRWLockShared",
                 &[("SRWLock", &SRWLock)],
             ))
@@ -212,9 +212,9 @@ mod wrappers {
         let bManualReset = <bool>::from_stack(mem, stack_args + 4u32);
         let bInitialState = <bool>::from_stack(mem, stack_args + 8u32);
         let lpName = <Option<&str>>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/event") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/event",
                 "CreateEventA",
                 &[
                     ("lpEventAttributes", &lpEventAttributes),
@@ -473,9 +473,9 @@ mod wrappers {
     pub unsafe fn DeleteCriticalSection(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "DeleteCriticalSection",
                 &[("lpCriticalSection", &lpCriticalSection)],
             ))
@@ -588,9 +588,9 @@ mod wrappers {
     pub unsafe fn EnterCriticalSection(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "EnterCriticalSection",
                 &[("lpCriticalSection", &lpCriticalSection)],
             ))
@@ -2774,9 +2774,9 @@ mod wrappers {
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
         let fPending = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let lpContext = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/once") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/once",
                 "InitOnceBeginInitialize",
                 &[
                     ("lpInitOnce", &lpInitOnce),
@@ -2806,9 +2806,9 @@ mod wrappers {
         let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
         let lpContext = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/once") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/once",
                 "InitOnceComplete",
                 &[
                     ("lpInitOnce", &lpInitOnce),
@@ -2833,9 +2833,9 @@ mod wrappers {
     pub unsafe fn InitializeCriticalSection(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "InitializeCriticalSection",
                 &[("lpCriticalSection", &lpCriticalSection)],
             ))
@@ -2860,9 +2860,9 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "InitializeCriticalSectionAndSpinCount",
                 &[
                     ("lpCriticalSection", &lpCriticalSection),
@@ -2892,9 +2892,9 @@ mod wrappers {
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
         let flags = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "InitializeCriticalSectionEx",
                 &[
                     ("lpCriticalSection", &lpCriticalSection),
@@ -2947,9 +2947,9 @@ mod wrappers {
     pub unsafe fn InterlockedDecrement(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/interlocked") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/interlocked",
                 "InterlockedDecrement",
                 &[("addend", &addend)],
             ))
@@ -2970,9 +2970,9 @@ mod wrappers {
     pub unsafe fn InterlockedIncrement(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/interlocked") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/interlocked",
                 "InterlockedIncrement",
                 &[("addend", &addend)],
             ))
@@ -3249,9 +3249,9 @@ mod wrappers {
     pub unsafe fn LeaveCriticalSection(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/critical_section") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/critical_section",
                 "LeaveCriticalSection",
                 &[("lpCriticalSection", &lpCriticalSection)],
             ))
@@ -3513,9 +3513,9 @@ mod wrappers {
     }
     pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let __trace_context = if crate::trace::enabled("kernel32/misc") {
+        let __trace_context = if crate::trace::enabled("kernel32/thread") {
             Some(crate::trace::trace_begin(
-                "kernel32/misc",
+                "kernel32/thread",
                 "NtCurrentTeb",
                 &[],
             ))
@@ -3559,9 +3559,9 @@ mod wrappers {
     pub unsafe fn PulseEvent(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/event") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/event",
                 "PulseEvent",
                 &[("hEvent", &hEvent)],
             ))
@@ -3697,9 +3697,9 @@ mod wrappers {
     pub unsafe fn ReleaseSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/srw_lock") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/srw_lock",
                 "ReleaseSRWLockExclusive",
                 &[("SRWLock", &SRWLock)],
             ))
@@ -3720,9 +3720,9 @@ mod wrappers {
     pub unsafe fn ReleaseSRWLockShared(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/srw_lock") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/srw_lock",
                 "ReleaseSRWLockShared",
                 &[("SRWLock", &SRWLock)],
             ))
@@ -3766,9 +3766,9 @@ mod wrappers {
     pub unsafe fn ResetEvent(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/event") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/event",
                 "ResetEvent",
                 &[("hEvent", &hEvent)],
             ))
@@ -3943,9 +3943,9 @@ mod wrappers {
     pub unsafe fn SetEvent(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/event") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/event",
                 "SetEvent",
                 &[("hEvent", &hEvent)],
             ))
@@ -4456,9 +4456,9 @@ mod wrappers {
     pub unsafe fn TryAcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("kernel32/thread") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/srw_lock") {
             Some(crate::trace::trace_begin(
-                "kernel32/thread",
+                "kernel32/sync/srw_lock",
                 "TryAcquireSRWLockExclusive",
                 &[("SRWLock", &SRWLock)],
             ))
@@ -4632,9 +4632,9 @@ mod wrappers {
         let lpHandles = <u32>::from_stack(mem, stack_args + 4u32);
         let bWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/wait") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/wait",
                 "WaitForMultipleObjects",
                 &[
                     ("nCount", &nCount),
@@ -4667,9 +4667,9 @@ mod wrappers {
         let mem = machine.mem().detach();
         let handle = <HEVENT>::from_stack(mem, stack_args + 0u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("kernel32/sync") {
+        let __trace_context = if crate::trace::enabled("kernel32/sync/wait") {
             Some(crate::trace::trace_begin(
-                "kernel32/sync",
+                "kernel32/sync/wait",
                 "WaitForSingleObject",
                 &[("handle", &handle), ("dwMilliseconds", &dwMilliseconds)],
             ))

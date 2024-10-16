@@ -2,7 +2,7 @@
 
 use super::{
     command_line::CommandLine, EventObject, FindHandle, Mappings, ResourceHandle, Thread, DLL,
-    HMODULE, STDERR_HFILE, STDOUT_HFILE,
+    HEVENT, HMODULE, STDERR_HFILE, STDOUT_HFILE,
 };
 use crate::{
     machine::MemImpl,

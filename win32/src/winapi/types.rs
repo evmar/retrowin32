@@ -10,10 +10,6 @@ pub type DWORD = u32;
 pub type HRESULT = u32;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct HEVENTT;
-pub type HEVENT = HANDLE<HEVENTT>;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFILET;
 pub type HFILE = HANDLE<HFILET>;
 
