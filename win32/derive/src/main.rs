@@ -7,6 +7,8 @@ mod parse;
 
 use std::path::Path;
 
+use walkdir::WalkDir;
+
 fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
     if let Ok(old_contents) = std::fs::read(path) {
         if old_contents == contents {
@@ -19,15 +21,14 @@ fn write_if_changed(path: &Path, contents: &[u8]) -> anyhow::Result<()> {
 
 /// Parse a directory's collection of files.
 fn parse_files(path: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
-    // path may be a .rs file or a directory (module).
-    let mut paths: Vec<std::path::PathBuf> = std::fs::read_dir(path)?
-        .map(|e| e.unwrap().path())
-        .collect();
-    paths.sort();
-
     let mut files = Vec::new();
-    for path in paths {
-        let buf = std::fs::read_to_string(&path)?;
+    for entry in WalkDir::new(path).sort_by_file_name() {
+        let entry = entry?;
+        if entry.file_type().is_dir() {
+            continue;
+        }
+        let path = entry.path();
+        let buf = std::fs::read_to_string(path)?;
         let file = syn::parse_file(&buf)?;
         let mut trace_name_path = path.strip_prefix("src/winapi").unwrap().with_extension("");
         if trace_name_path.ends_with("mod") {
