@@ -14,6 +14,16 @@ pub struct EventObject {
     pub signaled: Cell<bool>,
 }
 
+impl EventObject {
+    pub fn new(name: Option<String>, manual_reset: bool, signaled: bool) -> Self {
+        Self {
+            name,
+            manual_reset,
+            signaled: Cell::new(signaled),
+        }
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn CreateEventA(
     machine: &mut Machine,
@@ -43,11 +53,11 @@ pub fn CreateEventA(
             .state
             .kernel32
             .objects
-            .add(KernelObject::Event(EventObject {
+            .add(KernelObject::Event(EventObject::new(
                 name,
-                manual_reset: bManualReset,
-                signaled: Cell::new(bInitialState),
-            }))
+                bManualReset,
+                bInitialState,
+            )))
             .to_raw(),
     )
 }

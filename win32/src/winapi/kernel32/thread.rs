@@ -1,4 +1,4 @@
-use super::{peb_mut, KernelObject};
+use super::{peb_mut, EventObject, KernelObject};
 use crate::{
     machine::Machine,
     winapi::{
@@ -64,6 +64,8 @@ pub struct Thread {
 
     /// address of TEB
     pub teb: u32,
+
+    pub terminated: EventObject,
 }
 
 /// Set up TEB, PEB, and other process info.
@@ -118,6 +120,7 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     let thread = Rc::new(Thread {
         handle: HTHREAD::from_raw(handle.to_raw()),
         teb,
+        terminated: EventObject::new(None, false, false),
     });
     machine
         .state
@@ -131,19 +134,28 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     }
 }
 
+pub fn current_thread(machine: &Machine) -> HTHREAD {
+    HTHREAD::from_raw(teb(machine).ClientId_UniqueThread)
+}
+
 #[win32_derive::dllexport]
 pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
-    HTHREAD::from_raw(GetCurrentThreadId(machine))
+    current_thread(machine)
 }
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
-    teb_mut(machine).ClientId_UniqueThread
+    current_thread(machine).to_raw()
 }
 
 #[win32_derive::dllexport]
 pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
     machine.emu.x86.cpu().regs.fs_addr
+}
+
+pub fn teb(machine: &Machine) -> &TEB {
+    let fs = machine.emu.x86.cpu().regs.fs_addr;
+    machine.emu.memory.mem().get_aligned_ref::<TEB>(fs)
 }
 
 pub fn teb_mut(machine: &mut Machine) -> &mut TEB {

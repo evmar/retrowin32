@@ -4626,7 +4626,10 @@ mod wrappers {
         }
         result.to_raw()
     }
-    pub unsafe fn WaitForMultipleObjects(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn WaitForMultipleObjects(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
         let mem = machine.mem().detach();
         let nCount = <u32>::from_stack(mem, stack_args + 0u32);
         let lpHandles = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4646,26 +4649,34 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::kernel32::WaitForMultipleObjects(
-            machine,
-            nCount,
-            lpHandles,
-            bWaitAll,
-            dwMilliseconds,
-        );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::kernel32::WaitForMultipleObjects_pos.0,
-                winapi::kernel32::WaitForMultipleObjects_pos.1,
-                &result,
-            );
-        }
-        result.to_raw()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::kernel32::WaitForMultipleObjects(
+                machine,
+                nCount,
+                lpHandles,
+                bWaitAll,
+                dwMilliseconds,
+            )
+            .await;
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::WaitForMultipleObjects_pos.0,
+                    winapi::kernel32::WaitForMultipleObjects_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        })
     }
-    pub unsafe fn WaitForSingleObject(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn WaitForSingleObject(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
         let mem = machine.mem().detach();
-        let handle = <HEVENT>::from_stack(mem, stack_args + 0u32);
+        let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
         let __trace_context = if crate::trace::enabled("kernel32/sync/wait") {
             Some(crate::trace::trace_begin(
@@ -4676,16 +4687,21 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::kernel32::WaitForSingleObject(machine, handle, dwMilliseconds);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::kernel32::WaitForSingleObject_pos.0,
-                winapi::kernel32::WaitForSingleObject_pos.1,
-                &result,
-            );
-        }
-        result.to_raw()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result =
+                winapi::kernel32::WaitForSingleObject(machine, handle, dwMilliseconds).await;
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::kernel32::WaitForSingleObject_pos.0,
+                    winapi::kernel32::WaitForSingleObject_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        })
     }
     pub unsafe fn WideCharToMultiByte(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
@@ -5874,11 +5890,11 @@ const SHIMS: [Shim; 190usize] = [
     },
     Shim {
         name: "WaitForMultipleObjects",
-        func: Handler::Sync(wrappers::WaitForMultipleObjects),
+        func: Handler::Async(wrappers::WaitForMultipleObjects),
     },
     Shim {
         name: "WaitForSingleObject",
-        func: Handler::Sync(wrappers::WaitForSingleObject),
+        func: Handler::Async(wrappers::WaitForSingleObject),
     },
     Shim {
         name: "WideCharToMultiByte",
