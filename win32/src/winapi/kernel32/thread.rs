@@ -1,4 +1,4 @@
-use super::peb_mut;
+use super::{peb_mut, KernelObject};
 use crate::{
     machine::Machine,
     winapi::{
@@ -8,6 +8,7 @@ use crate::{
     },
 };
 use memory::{Extensions, Mem, Pod};
+use std::rc::Rc;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
@@ -58,7 +59,8 @@ pub struct TEB {
 unsafe impl ::memory::Pod for TEB {}
 
 pub struct Thread {
-    pub index: usize,
+    /// Entry in kernel32.objects.
+    handle: HTHREAD,
 
     /// address of TEB
     pub teb: u32,
@@ -66,7 +68,7 @@ pub struct Thread {
 
 /// Set up TEB, PEB, and other process info.
 /// The FS register points at the TEB (thread info), which points at the PEB (process info).
-fn init_teb(peb_addr: u32, arena: &mut Arena, mem: Mem) -> u32 {
+fn init_teb(peb_addr: u32, thread_id: u32, arena: &mut Arena, mem: Mem) -> u32 {
     // SEH chain
     let seh_addr = arena.alloc(
         std::mem::size_of::<_EXCEPTION_REGISTRATION_RECORD>() as u32,
@@ -82,24 +84,25 @@ fn init_teb(peb_addr: u32, arena: &mut Arena, mem: Mem) -> u32 {
     teb.Tib.ExceptionList = seh_addr;
     teb.Tib._Self = teb_addr; // Confusing: it points to itself.
     teb.Peb = peb_addr;
+    teb.ClientId_UniqueThread = thread_id;
 
     teb_addr
 }
 
-/// Information about a newly-created thread; info that persists after the thread is created
-/// is kept in Thread.
+/// Information about a newly-created thread.
+/// Info that persists after the thread is created is kept in Thread.
 pub struct NewThread {
-    pub thread: Thread,
+    pub thread: Rc<Thread>,
     /// initial esp
     pub stack_pointer: u32,
 }
 
 pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
-    let index = machine.emu.x86.new_cpu();
+    let handle = machine.state.kernel32.objects.reserve();
 
     let stack = machine.state.kernel32.mappings.alloc(
         stack_size,
-        format!("thread {index} stack"),
+        format!("thread {handle:x} stack", handle = handle.to_raw()),
         &mut machine.emu.memory,
     );
     let stack_pointer = stack.addr + stack.size - 4;
@@ -107,12 +110,23 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     let mem = machine.emu.memory.mem();
     let teb = init_teb(
         machine.state.kernel32.peb,
+        handle.to_raw(),
         &mut machine.state.kernel32.arena,
         mem,
     );
 
+    let thread = Rc::new(Thread {
+        handle: HTHREAD::from_raw(handle.to_raw()),
+        teb,
+    });
+    machine
+        .state
+        .kernel32
+        .objects
+        .set(handle, KernelObject::Thread(thread.clone()));
+
     NewThread {
-        thread: Thread { index, teb },
+        thread,
         stack_pointer,
     }
 }
@@ -124,16 +138,7 @@ pub fn GetCurrentThread(machine: &mut Machine) -> HTHREAD {
 
 #[win32_derive::dllexport]
 pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
-    #[cfg(feature = "x86-emu")]
-    {
-        machine.emu.x86.cur_cpu as u32 + 1
-    }
-
-    #[cfg(not(feature = "x86-emu"))]
-    {
-        _ = machine;
-        1
-    }
+    teb_mut(machine).ClientId_UniqueThread
 }
 
 #[win32_derive::dllexport]
@@ -142,7 +147,6 @@ pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
 }
 
 pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    // TODO: read directly from local Thread, don't believe exe's fs address.
     let fs = machine.emu.x86.cpu().regs.fs_addr;
     machine.emu.memory.mem().get_aligned_ref_mut::<TEB>(fs)
 }
@@ -199,7 +203,7 @@ pub async fn CreateThread(
             thread,
             stack_pointer,
         } = create_thread(machine, dwStackSize);
-        let cpu = &mut machine.emu.x86.cpus[thread.index];
+        let cpu = machine.emu.x86.new_cpu();
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
         cpu.regs.fs_addr = thread.teb;
@@ -209,7 +213,7 @@ pub async fn CreateThread(
         x86::ops::push(cpu, mem, 0);
         cpu.regs.eip = retrowin32_thread_main;
 
-        HTHREAD::from_raw(thread.index as u32 + 1)
+        thread.handle
     }
 
     #[cfg(not(feature = "x86-emu"))]

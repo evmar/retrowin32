@@ -225,9 +225,9 @@ impl X86 {
         &mut *self.cpus[self.cur_cpu]
     }
 
-    pub fn new_cpu(&mut self) -> usize {
+    pub fn new_cpu(&mut self) -> &mut CPU {
         self.cpus.push(Box::pin(CPU::default()));
-        self.cpus.len() - 1
+        self.cpus.last_mut().unwrap()
     }
 
     pub fn single_step_next_block(&mut self, mem: Mem) {

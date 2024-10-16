@@ -96,7 +96,7 @@ impl MachineX<Emulator> {
             stack_pointer,
         } = create_thread(self, exe.stack_size);
 
-        let cpu = &mut self.emu.x86.cpus[thread.index];
+        let cpu = self.emu.x86.new_cpu();
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
         cpu.regs.fs_addr = thread.teb;

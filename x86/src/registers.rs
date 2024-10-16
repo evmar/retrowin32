@@ -41,6 +41,8 @@ pub struct Registers {
     // TODO: segment registers are actually 16-bit indexes into the GDT/LDT,
     // but for our purposes all we ever care about is making FS-relative accesses point
     // at the Windows TEB.
+    // NOTE: we rely on fs_addr to look up what the currrent thread is; if we eventually let
+    // exes mutate this, then audit the places that read it.
     /// Address that FS-relative accesses point to.
     pub fs_addr: u32,
 

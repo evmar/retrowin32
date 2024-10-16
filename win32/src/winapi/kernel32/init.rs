@@ -13,7 +13,7 @@ use crate::{
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 #[repr(C)]
 pub struct UNICODE_STRING {
@@ -95,7 +95,7 @@ pub struct GDTEntries {
 /// Objects identified by kernel handles, all of which can be passed to Wait* functions.
 pub enum KernelObject {
     Event(EventObject),
-    Thread(Thread),
+    Thread(Rc<Thread>),
 }
 
 type KernelObjects = Handles<HANDLE<()>, KernelObject>;
