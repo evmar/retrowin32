@@ -1040,7 +1040,7 @@ mod wrappers {
     pub unsafe fn GetClassLongA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+        let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
         let __trace_context = if crate::trace::enabled("user32/misc") {
             Some(crate::trace::trace_begin(
                 "user32/misc",
@@ -2983,7 +2983,7 @@ mod wrappers {
     pub unsafe fn SetClassLongA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+        let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
         let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
         let __trace_context = if crate::trace::enabled("user32/misc") {
             Some(crate::trace::trace_begin(

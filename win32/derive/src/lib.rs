@@ -35,6 +35,18 @@ pub fn try_from_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let enum_: syn::ItemEnum = syn::parse_macro_input!(item);
 
     let name = &enum_.ident;
+    // If one of the values is negative, match using i32 instead of u32.
+    let has_negative = enum_.variants.iter().any(|variant| {
+        let num = &variant.discriminant.as_ref().unwrap().1;
+        match num {
+            syn::Expr::Unary(syn::ExprUnary {
+                op: syn::UnOp::Neg(_),
+                ..
+            }) => true,
+            _ => false,
+        }
+    });
+
     let matches = enum_.variants.iter().map(|variant| {
         let num = &variant.discriminant.as_ref().unwrap().1;
         let sym = &variant.ident;
@@ -42,12 +54,19 @@ pub fn try_from_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
             #num => #name::#sym,
         }
     });
+
+    let value_match = if has_negative {
+        quote!(value as i32)
+    } else {
+        quote!(value)
+    };
+
     quote! {
         impl TryFrom<u32> for #name {
             type Error = u32;
 
             fn try_from(value: u32) -> Result<Self, Self::Error> {
-                Ok(match value {
+                Ok(match #value_match {
                     #(#matches)*
                     _ => return Err(value),
                 })

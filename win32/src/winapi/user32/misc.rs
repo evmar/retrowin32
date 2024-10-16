@@ -161,12 +161,22 @@ pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
     todo!();
 }
 
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum GCL {
+    CBCLSEXTRA = -20,
+    CBWNDEXTRA = -18,
+    HBRBACKGROUND = -10,
+    HCURSOR = -12,
+    HICON = -14,
+    HICONSM = -34,
+    HMODULE = -16,
+    MENUNAME = -8,
+    STYLE = -26,
+    WNDPROC = -24,
+}
+
 #[win32_derive::dllexport]
-pub fn GetClassLongA(
-    _machine: &mut Machine,
-    hWnd: HWND,
-    nIndex: u32, /* GET_CLASS_LONG_INDEX */
-) -> u32 {
+pub fn GetClassLongA(_machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
     todo!()
 }
 
@@ -174,7 +184,7 @@ pub fn GetClassLongA(
 pub fn SetClassLongA(
     _machine: &mut Machine,
     hWnd: HWND,
-    nIndex: u32, /* GET_CLASS_LONG_INDEX */
+    nIndex: Result<GCL, u32>,
     dwNewLong: i32,
 ) -> u32 {
     todo!()
