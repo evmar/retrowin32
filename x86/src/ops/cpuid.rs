@@ -26,6 +26,10 @@ pub fn cpuid(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
             cpu.regs.set32(Register::ECX, 0);
             cpu.regs.set32(Register::EDX, EDXFeatures::MMX.bits());
         }
-        mode => todo!("cpuid {mode}"),
+        0x8000_0000 => {
+            // maximum extended function
+            cpu.regs.set32(Register::EAX, 0);
+        }
+        mode => todo!("cpuid {mode:x}"),
     }
 }
