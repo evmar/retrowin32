@@ -176,8 +176,12 @@ pub enum GCL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetClassLongA(_machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
-    todo!()
+pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
+    let class = &machine.state.user32.windows.get(hWnd).unwrap().wndclass;
+    match nIndex.unwrap() {
+        GCL::STYLE => class.style.bits(),
+        f => todo!("GetClassLongA({f:?})"),
+    }
 }
 
 #[win32_derive::dllexport]

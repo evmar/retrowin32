@@ -175,6 +175,7 @@ impl WindowTopLevel {
 
 pub struct WndClass {
     pub name: String,
+    pub style: WindowStyle,
     pub wndproc: u32,
     pub background: HBRUSH,
 }
@@ -230,6 +231,7 @@ pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     let background = unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground) };
     let wndclass = WndClass {
         name: name.to_string(),
+        style: WindowStyle::from_bits(lpWndClass.style).unwrap(),
         wndproc: lpWndClass.lpfnWndProc,
         background: background.to_brush(machine),
     };
@@ -278,6 +280,7 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
     let name = expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
     let wndclass = WndClass {
         name,
+        style: WindowStyle::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
@@ -293,6 +296,7 @@ pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW
         .to_string();
     let wndclass = WndClass {
         name,
+        style: WindowStyle::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
@@ -442,6 +446,7 @@ pub async fn CreateWindowExW(
             log::warn!("unknown wndclass {class_name:?}, using empty");
             Rc::new(WndClass {
                 name: class_name,
+                style: WindowStyle::empty(),
                 wndproc: 0,
                 background: HBRUSH::null(),
             })
