@@ -1,7 +1,8 @@
 use crate::winapi::{com::vtable, kernel32, stack_args};
+use crate::Machine;
 use memory::ExtensionsMut;
 
-use crate::Machine;
+pub use crate::winapi::com::GUID;
 
 #[derive(Debug, Copy, Clone)]
 pub enum DI {
@@ -45,6 +46,7 @@ pub mod IDirectInput {
     pub fn CreateDevice(
         machine: &mut Machine,
         this: u32,
+        lpGUID: Option<&GUID>,
         lplpDirectInputDevice: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> DI {

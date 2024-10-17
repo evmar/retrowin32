@@ -46,14 +46,16 @@ mod wrappers {
     pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
-        let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-        let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpGUID = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
+        let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
+        let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
         let __trace_context = if crate::trace::enabled("dinput/dinput") {
             Some(crate::trace::trace_begin(
                 "dinput/dinput",
                 "IDirectInput::CreateDevice",
                 &[
                     ("this", &this),
+                    ("lpGUID", &lpGUID),
                     ("lplpDirectInputDevice", &lplpDirectInputDevice),
                     ("pUnkOuter", &pUnkOuter),
                 ],
@@ -64,6 +66,7 @@ mod wrappers {
         let result = winapi::dinput::IDirectInput::CreateDevice(
             machine,
             this,
+            lpGUID,
             lplpDirectInputDevice,
             pUnkOuter,
         );
