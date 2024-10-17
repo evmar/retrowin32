@@ -164,16 +164,16 @@ pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum GCL {
-    CBCLSEXTRA = -20,
-    CBWNDEXTRA = -18,
-    HBRBACKGROUND = -10,
-    HCURSOR = -12,
-    HICON = -14,
     HICONSM = -34,
-    HMODULE = -16,
-    MENUNAME = -8,
     STYLE = -26,
     WNDPROC = -24,
+    CBCLSEXTRA = -20,
+    CBWNDEXTRA = -18,
+    HMODULE = -16,
+    HICON = -14,
+    HCURSOR = -12,
+    HBRBACKGROUND = -10,
+    MENUNAME = -8,
 }
 
 #[win32_derive::dllexport]
@@ -206,6 +206,10 @@ pub fn SetClassLongA(
             CS::try_from(dwNewLong as u32).unwrap(),
         )
         .bits(),
+        f @ GCL::HICON => {
+            log::warn!("TODO: SetClassLongA({f:?})");
+            0
+        }
         f => todo!("SetClassLongA({f:?})"),
     }
 }
