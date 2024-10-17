@@ -1,4 +1,7 @@
-use crate::{winapi::types::HWND, Machine};
+use crate::{
+    winapi::{stack_args::ArrayWithSizeMut, types::HWND},
+    Machine,
+};
 
 #[win32_derive::dllexport]
 pub fn mciGetErrorStringA(
@@ -14,9 +17,13 @@ pub fn mciGetErrorStringA(
 pub fn mciSendStringA(
     _machine: &mut Machine,
     lpstrCommand: Option<&str>,
-    lpstrReturnString: Option<&str>,
-    uReturnLength: u32,
+    lpstrReturnString: ArrayWithSizeMut<u8>,
     hwndCallback: HWND,
 ) -> u32 {
-    todo!()
+    let cmd = lpstrCommand.unwrap();
+    log::info!("mci: {:?}", cmd);
+    if cmd.find("notify").is_some() {
+        todo!("mci notify not implemented");
+    }
+    0 // success
 }

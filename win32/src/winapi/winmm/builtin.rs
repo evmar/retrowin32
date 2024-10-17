@@ -162,8 +162,7 @@ mod wrappers {
     pub unsafe fn mciSendStringA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpstrCommand = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let lpstrReturnString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let uReturnLength = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpstrReturnString = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
         let hwndCallback = <HWND>::from_stack(mem, stack_args + 12u32);
         let __trace_context = if crate::trace::enabled("winmm/mci") {
             Some(crate::trace::trace_begin(
@@ -172,20 +171,14 @@ mod wrappers {
                 &[
                     ("lpstrCommand", &lpstrCommand),
                     ("lpstrReturnString", &lpstrReturnString),
-                    ("uReturnLength", &uReturnLength),
                     ("hwndCallback", &hwndCallback),
                 ],
             ))
         } else {
             None
         };
-        let result = winapi::winmm::mciSendStringA(
-            machine,
-            lpstrCommand,
-            lpstrReturnString,
-            uReturnLength,
-            hwndCallback,
-        );
+        let result =
+            winapi::winmm::mciSendStringA(machine, lpstrCommand, lpstrReturnString, hwndCallback);
         if let Some(__trace_context) = __trace_context {
             crate::trace::trace_return(
                 &__trace_context,
