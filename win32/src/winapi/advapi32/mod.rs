@@ -4,7 +4,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::types::Str16;
+use super::{types::Str16, ERROR};
 use crate::machine::Machine;
 
 pub type HKEY = u32;
@@ -43,8 +43,8 @@ pub fn RegOpenKeyExA(
     ulOptions: u32,
     samDesired: u32,
     phkResult: Option<&mut HKEY>,
-) -> u32 {
-    todo!();
+) -> ERROR {
+    ERROR::FILE_NOT_FOUND
 }
 
 #[win32_derive::dllexport]

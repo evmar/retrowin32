@@ -1,8 +1,10 @@
 // https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
 
+use super::stack_args;
+
 /// Windows error codes.
 #[allow(non_camel_case_types)]
-#[derive(Debug, win32_derive::TryFromEnum)]
+#[derive(Debug, Copy, Clone, win32_derive::TryFromEnum)]
 pub enum ERROR {
     SUCCESS = 0,
     FILE_NOT_FOUND = 2,
@@ -33,5 +35,11 @@ impl From<std::io::Error> for ERROR {
 impl From<ERROR> for u32 {
     fn from(err: ERROR) -> u32 {
         err as u32
+    }
+}
+
+impl stack_args::ToX86 for ERROR {
+    fn to_raw(&self) -> u32 {
+        *self as u32
     }
 }
