@@ -17,9 +17,9 @@ mod wrappers {
         let version = <u32>::from_stack(mem, stack_args + 0u32);
         let ppDI = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
         let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("dinput") {
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
             Some(crate::trace::trace_begin(
-                "dinput",
+                "dinput/dinput",
                 "DirectInputCreateA",
                 &[
                     ("version", &version),
