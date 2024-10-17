@@ -29,7 +29,7 @@ fn generate_asm(dllexports: &parse::DllExports) -> anyhow::Result<String> {
             if imp.is_none() {
                 writeln!(f, ".globl _{}_{}", vtable.name, name)?;
                 writeln!(f, "_{}_{}:", vtable.name, name)?;
-                writeln!(f, "  int3")?;
+                writeln!(f, "  .byte 0x0f,0x0b")?; // ud2
             }
         }
         writeln!(f, ".globl _{}", vtable.name)?;

@@ -459,6 +459,11 @@ pub fn int3(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.regs.eip -= 1;
 }
 
+pub fn ud2(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.err("ud: undefined instruction".into());
+    cpu.regs.eip -= 2;
+}
+
 pub fn sysenter(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.state = CPUState::SysCall;
 }

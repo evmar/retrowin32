@@ -490,6 +490,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Nop_rm32 as usize] = Some(nop);
 
     tab[iced_x86::Code::Int3 as usize] = Some(int3);
+    tab[iced_x86::Code::Ud2 as usize] = Some(ud2);
     tab[iced_x86::Code::Sysenter as usize] = Some(sysenter);
 
     tab[iced_x86::Code::Bswap_r32 as usize] = Some(bswap_r32);
