@@ -61,6 +61,7 @@ struct Lock {
 }
 
 bitflags::bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DSBCAPS: u32 {
         const PRIMARYBUFFER       = 0x00000001;
         const STATIC              = 0x00000002;
@@ -79,25 +80,12 @@ bitflags::bitflags! {
         const LOCDEFER            = 0x00040000;
     }
 }
-impl TryFrom<u32> for DSBCAPS {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DSBCAPS::from_bits(value).ok_or(value)
-    }
-}
 
 bitflags::bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DSBLOCK: u32 {
         const FROMWRITECURSOR = 0x00000001;
         const ENTIREBUFFER    = 0x00000002;
-    }
-}
-impl TryFrom<u32> for DSBLOCK {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DSBLOCK::from_bits(value).ok_or(value)
     }
 }
 

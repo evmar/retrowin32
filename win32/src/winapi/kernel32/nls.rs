@@ -35,18 +35,12 @@ pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct MB: u32 {
         const PRECOMPOSED = 0x00000001;
         const COMPOSITE = 0x00000002;
         const USEGLYPHCHARS = 0x00000004;
         const ERR_INVALID_CHARS = 0x00000008;
-    }
-}
-impl TryFrom<u32> for MB {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        MB::from_bits(value).ok_or(value)
     }
 }
 
@@ -96,6 +90,7 @@ pub fn MultiByteToWideChar(
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct WC: u32 {
         const COMPOSITECHECK = 0x00000200;
         const DISCARDNS = 0x00000010;
@@ -103,13 +98,6 @@ bitflags! {
         const DEFAULTCHAR = 0x00000040;
         const ERR_INVALID_CHARS = 0x00000080;
         const NO_BEST_FIT_CHARS = 0x00000400;
-    }
-}
-impl TryFrom<u32> for WC {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WC::from_bits(value).ok_or(value)
     }
 }
 

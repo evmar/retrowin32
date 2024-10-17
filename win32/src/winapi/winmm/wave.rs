@@ -69,15 +69,9 @@ pub struct WAVEFORMATEX {
 unsafe impl memory::Pod for WAVEFORMATEX {}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct WaveOutOpenFlags: u32 {
         const CALLBACK_FUNCTION = 0x0003_0000;
-    }
-}
-impl TryFrom<u32> for WaveOutOpenFlags {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WaveOutOpenFlags::from_bits(value).ok_or(value)
     }
 }
 
@@ -196,19 +190,13 @@ pub struct WAVEHDR {
 unsafe impl memory::Pod for WAVEHDR {}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct WHDR: u32 {
         const DONE      = 0x00000001;
         const PREPARED  = 0x00000002;
         const BEGINLOOP = 0x00000004;
         const ENDLOOP   = 0x00000008;
         const INQUEUE   = 0x00000010;
-    }
-}
-impl TryFrom<u32> for WHDR {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WHDR::from_bits(value).ok_or(value)
     }
 }
 

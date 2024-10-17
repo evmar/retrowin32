@@ -17,19 +17,13 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct MF: u32 {
         const BYCOMMAND = 0x00000000;
         const BYPOSITION = 0x00000400;
         const DISABLED = 0x00000002;
         const ENABLED = 0x00000000;
         const GRAYED = 0x00000001;
-    }
-}
-impl TryFrom<u32> for MF {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        MF::from_bits(value).ok_or(value)
     }
 }
 

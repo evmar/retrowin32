@@ -152,18 +152,11 @@ impl Mappings {
 }
 
 bitflags! {
-    #[derive(Default)]
+    #[derive(Default, win32_derive::TryFromBitflags)]
     pub struct HeapAllocFlags: u32 {
         const HEAP_GENERATE_EXCEPTIONS = 0x4;
         const HEAP_NO_SERIALIZE = 0x1;
         const HEAP_ZERO_MEMORY = 0x8;
-    }
-}
-impl TryFrom<u32> for HeapAllocFlags {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        HeapAllocFlags::from_bits(value).ok_or(value)
     }
 }
 
@@ -268,17 +261,11 @@ pub fn HeapReAlloc(
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct HeapCreateFlags: u32 {
         const HEAP_CREATE_ENABLE_EXECUTE = 0x00040000;
         const HEAP_GENERATE_EXCEPTIONS = 0x00000004;
         const HEAP_NO_SERIALIZE = 0x00000001;
-    }
-}
-impl TryFrom<u32> for HeapCreateFlags {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        HeapCreateFlags::from_bits(value).ok_or(value)
     }
 }
 
@@ -311,6 +298,7 @@ pub fn HeapValidate(_machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct MEM: u32 {
         const COMMIT = 0x00001000;
         const RESERVE = 0x00002000;
@@ -322,15 +310,9 @@ bitflags! {
         const WRITE_WATCH = 0x00200000;
     }
 }
-impl TryFrom<u32> for MEM {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        MEM::from_bits(value).ok_or(value)
-    }
-}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct PAGE: u32 {
         const EXECUTE = 0x10;
         const EXECUTE_READ = 0x20;
@@ -345,13 +327,6 @@ bitflags! {
         const GUARD = 0x100;
         const NOCACHE = 0x200;
         const WRITECOMBINE = 0x400;
-    }
-}
-impl TryFrom<u32> for PAGE {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        PAGE::from_bits(value).ok_or(value)
     }
 }
 

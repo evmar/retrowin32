@@ -205,6 +205,7 @@ pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: 
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct FormatMessageFlags: u32 {
         const FROM_STRING    = 0x00000400;
         const IGNORE_INSERTS = 0x00000200;
@@ -213,13 +214,6 @@ bitflags! {
         // Low 8 bits can be used for line breaking width (!?).
         // Not sure if this makes bitflags do the right thing...
         const MAX_WIDTH_MASK = 0xFF;
-    }
-}
-impl TryFrom<u32> for FormatMessageFlags {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        FormatMessageFlags::from_bits(value).ok_or(value)
     }
 }
 

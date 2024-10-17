@@ -75,6 +75,7 @@ bitflags! {
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DDPCAPS: u32 {
         const _4BIT = 0x00000001;
         const _8BITENTRIES = 0x00000002;
@@ -89,15 +90,9 @@ bitflags! {
         const ALPHA =  0x00000400;
     }
 }
-impl TryFrom<u32> for DDPCAPS {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DDPCAPS::from_bits(value).ok_or(value)
-    }
-}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DDLOCK: u32 {
         const SURFACEMEMORYPTR= 0x00000000;
         const WAIT = 0x00000001;
@@ -111,13 +106,6 @@ bitflags! {
         const DONOTWAIT = 0x00004000;
         const HASVOLUMETEXTUREBOXRECT = 0x00008000;
         const NODIRTYUPDATE = 0x00010000;
-    }
-}
-impl TryFrom<u32> for DDLOCK {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DDLOCK::from_bits(value).ok_or(value)
     }
 }
 
@@ -394,6 +382,7 @@ pub struct DDPIXELFORMAT {
 unsafe impl memory::Pod for DDPIXELFORMAT {}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DDBLT: u32 {
         const ALPHADEST                = 0x00000001;
         const ALPHADESTCONSTOVERRIDE   = 0x00000002;
@@ -423,13 +412,6 @@ bitflags! {
         const DEPTHFILL                = 0x02000000;
         const DONOTWAIT                = 0x08000000;
   }
-}
-impl TryFrom<u32> for DDBLT {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DDBLT::from_bits(value).ok_or(value)
-    }
 }
 
 #[repr(C)]

@@ -22,6 +22,7 @@ pub const IID_IDirectDraw7: GUID = GUID {
 };
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DDSCL: u32 {
         const FULLSCREEN = 0x0001;
         const ALLOWREBOOT = 0x0002;
@@ -37,15 +38,9 @@ bitflags! {
         const FPUPRESERVE =  0x1000;
     }
 }
-impl TryFrom<u32> for DDSCL {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DDSCL::from_bits(value).ok_or(value)
-    }
-}
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct DDFLIP: u32 {
         const DDFLIP_WAIT = 0x00000001;
         const DDFLIP_EVEN = 0x00000002;
@@ -56,13 +51,6 @@ bitflags! {
         const DDFLIP_INTERVAL2= 0x02000000;
         const DDFLIP_INTERVAL3= 0x03000000;
         const DDFLIP_INTERVAL4= 0x04000000;
-    }
-}
-impl TryFrom<u32> for DDFLIP {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        DDFLIP::from_bits(value).ok_or(value)
     }
 }
 

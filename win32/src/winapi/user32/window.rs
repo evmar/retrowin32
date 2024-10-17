@@ -174,6 +174,7 @@ impl WindowTopLevel {
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct CS: u32 {
         const VREDRAW         = 0x0001;
         const HREDRAW         = 0x0002;
@@ -187,13 +188,6 @@ bitflags! {
         const BYTEALIGNWINDOW = 0x2000;
         const GLOBALCLASS     = 0x4000;
         const DROPSHADOW  = 0x00020000;
-    }
-}
-impl TryFrom<u32> for CS {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        CS::from_bits(value).ok_or(value)
     }
 }
 
@@ -334,6 +328,7 @@ pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW
 
 bitflags! {
     /// Window styles.
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct WS: u32 {
         const POPUP           = 0x80000000;
         const CHILD           = 0x40000000;
@@ -355,25 +350,12 @@ bitflags! {
         const VREDRAW         = 0x00000001; // CS_VREDRAW
     }
 }
-impl TryFrom<u32> for WS {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WS::from_bits(value).ok_or(value)
-    }
-}
 
 bitflags! {
     /// Extended window styles.
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct WS_EX: u32 {
         // todo
-    }
-}
-impl TryFrom<u32> for WS_EX {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WS_EX::from_bits(value).ok_or(value)
     }
 }
 
@@ -908,6 +890,7 @@ pub fn AdjustWindowRectEx(
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct SWP: u32 {
         const ASYNCWINDOWPOS = 0x4000;
         const DEFERERASE = 0x2000;
@@ -924,13 +907,6 @@ bitflags! {
         const NOSIZE = 0x0001;
         const NOZORDER = 0x0004;
         const SHOWWINDOW = 0x0040;
-    }
-}
-impl TryFrom<u32> for SWP {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        SWP::from_bits(value).ok_or(value)
     }
 }
 

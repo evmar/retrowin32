@@ -15,23 +15,11 @@ use bitflags::bitflags;
 use memory::ExtensionsMut;
 use typed_path::WindowsPath;
 
-#[derive(Debug)]
+#[derive(Debug, win32_derive::TryFromEnum)]
 pub enum STD {
     INPUT_HANDLE = -10,
     OUTPUT_HANDLE = -11,
     ERROR_HANDLE = -12,
-}
-impl TryFrom<u32> for STD {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        Ok(match value as i32 {
-            -10 => STD::INPUT_HANDLE,
-            -11 => STD::OUTPUT_HANDLE,
-            -12 => STD::ERROR_HANDLE,
-            _ => return Err(value),
-        })
-    }
 }
 
 // For now, a magic variable  that makes it easier to spot.
@@ -66,6 +54,7 @@ pub enum CreationDisposition {
 
 // https://learn.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct FileAttribute: u32 {
         const INVALID = u32::MAX;
         const READONLY = 0x1;
@@ -92,6 +81,7 @@ bitflags! {
         const RECALL_ON_DATA_ACCESS = 0x400000;
     }
 }
+
 impl From<&Stat> for FileAttribute {
     fn from(stat: &Stat) -> Self {
         let mut attr = FileAttribute::empty();
@@ -109,13 +99,7 @@ impl From<&Stat> for FileAttribute {
         attr
     }
 }
-impl TryFrom<u32> for FileAttribute {
-    type Error = u32;
 
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        FileAttribute::from_bits(value).ok_or(value)
-    }
-}
 impl ToX86 for FileAttribute {
     fn to_raw(&self) -> u32 {
         self.bits()
@@ -123,18 +107,12 @@ impl ToX86 for FileAttribute {
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct GENERIC: u32 {
         const ALL = 0x10000000;
         const EXECUTE = 0x20000000;
         const WRITE = 0x40000000;
         const READ = 0x80000000;
-    }
-}
-impl TryFrom<u32> for GENERIC {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        GENERIC::from_bits(value).ok_or(value)
     }
 }
 

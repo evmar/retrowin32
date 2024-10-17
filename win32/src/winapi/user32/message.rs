@@ -261,17 +261,11 @@ async fn await_message(machine: &mut Machine, wait: Option<u32>) {
 }
 
 bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct RemoveMsg: u32 {
         const PM_NOREMOVE = 0x0000;
         const PM_REMOVE = 0x0001;
         const PM_NOYIELD = 0x0002;
-    }
-}
-impl TryFrom<u32> for RemoveMsg {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        RemoveMsg::from_bits(value).ok_or(value)
     }
 }
 
@@ -387,6 +381,7 @@ pub async fn WaitMessage(machine: &mut Machine) -> bool {
 
 bitflags::bitflags! {
     /// GetQueueStatus flags, also used in MsgWaitForMultipleObjects.
+    #[derive(win32_derive::TryFromBitflags)]
     pub struct QS: u32 {
         const KEY = 0x0001;
         const MOUSEMOVE = 0x0002;
@@ -401,13 +396,6 @@ bitflags::bitflags! {
         // const RAWINPUT = 0x0400;
         // const TOUCH = 0x0800;
         // const POINTER = 0x1000;
-    }
-}
-impl TryFrom<u32> for QS {
-    type Error = u32;
-
-    fn try_from(value: u32) -> Result<Self, Self::Error> {
-        QS::from_bits(value).ok_or(value)
     }
 }
 
