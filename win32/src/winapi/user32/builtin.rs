@@ -1576,7 +1576,7 @@ mod wrappers {
     }
     pub unsafe fn GetSystemMetrics(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let nIndex = <Result<SystemMetric, u32>>::from_stack(mem, stack_args + 0u32);
+        let nIndex = <Result<SM, u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_context = if crate::trace::enabled("user32/misc") {
             Some(crate::trace::trace_begin(
                 "user32/misc",
