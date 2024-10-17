@@ -1134,14 +1134,31 @@ pub fn MoveFileA(
 
 #[win32_derive::dllexport]
 pub fn GetDiskFreeSpaceA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     lpRootPathName: Option<&str>,
     lpSectorsPerCluster: Option<&mut u32>,
     lpBytesPerSector: Option<&mut u32>,
     lpNumberOfFreeClusters: Option<&mut u32>,
     lpTotalNumberOfClusters: Option<&mut u32>,
-) -> i32 {
-    todo!();
+) -> bool {
+    let sector_size = 512;
+    let cluster_size = 4 << 10; // 4kb
+    let free_space = 4 << 20; // 4mb
+    let total_space = 64 << 20; // 64mb
+
+    if let Some(sectors_per_cluster) = lpSectorsPerCluster {
+        *sectors_per_cluster = cluster_size / sector_size;
+    }
+    if let Some(bytes_per_sector) = lpBytesPerSector {
+        *bytes_per_sector = sector_size;
+    }
+    if let Some(number_of_free_clusters) = lpNumberOfFreeClusters {
+        *number_of_free_clusters = free_space / cluster_size;
+    }
+    if let Some(total_number_of_clusters) = lpTotalNumberOfClusters {
+        *total_number_of_clusters = total_space / cluster_size;
+    }
+    true
 }
 
 #[win32_derive::dllexport]
