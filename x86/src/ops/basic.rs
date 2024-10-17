@@ -404,6 +404,10 @@ pub fn sahf(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.flags = Flags::from_bits((cpu.flags.bits() & 0xFFFF_FF00) | ah as u32).unwrap();
 }
 
+pub fn lahf(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.regs.set8(Register::AH, cpu.flags.bits() as u8);
+}
+
 pub fn salc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.regs.set8(
         iced_x86::Register::AL,

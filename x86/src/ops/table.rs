@@ -447,6 +447,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Popfd as usize] = Some(popfd);
     tab[iced_x86::Code::Popfw as usize] = Some(popfw);
     tab[iced_x86::Code::Sahf as usize] = Some(sahf);
+    tab[iced_x86::Code::Lahf as usize] = Some(lahf);
 
     tab[iced_x86::Code::Salc as usize] = Some(salc);
     tab[iced_x86::Code::Std as usize] = Some(std);
