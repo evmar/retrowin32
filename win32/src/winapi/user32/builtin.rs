@@ -819,7 +819,7 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
         let uIDEnableItem = <u32>::from_stack(mem, stack_args + 4u32);
-        let uEnable = <u32>::from_stack(mem, stack_args + 8u32);
+        let uEnable = <Result<MF, u32>>::from_stack(mem, stack_args + 8u32);
         let __trace_context = if crate::trace::enabled("user32/menu") {
             Some(crate::trace::trace_begin(
                 "user32/menu",

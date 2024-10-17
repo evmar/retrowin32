@@ -2,6 +2,7 @@ use crate::{
     winapi::types::{HWND, RECT},
     Machine,
 };
+use bitflags::bitflags;
 
 pub type HMENU = u32;
 
@@ -15,14 +16,32 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
     0 // previous state: unchecked
 }
 
+bitflags! {
+    pub struct MF: u32 {
+        const BYCOMMAND = 0x00000000;
+        const BYPOSITION = 0x00000400;
+        const DISABLED = 0x00000002;
+        const ENABLED = 0x00000000;
+        const GRAYED = 0x00000001;
+    }
+}
+impl TryFrom<u32> for MF {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        MF::from_bits(value).ok_or(value)
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn EnableMenuItem(
     _machine: &mut Machine,
     hMenu: HMENU,
     uIDEnableItem: u32,
-    uEnable: u32,
-) -> bool {
-    todo!()
+    uEnable: Result<MF, u32>,
+) -> i32 {
+    let previous_state = MF::ENABLED;
+    previous_state.bits() as i32
 }
 
 #[win32_derive::dllexport]
