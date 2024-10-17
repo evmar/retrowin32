@@ -48,7 +48,7 @@ fn load_image(
             addr,
             size: first_page_size as u32,
             desc: filename.into(),
-            flags: pe::ImageSectionFlags::MEM_READ,
+            flags: pe::IMAGE_SCN::MEM_READ,
         },
         Some(&buf[..first_page_size]),
     );
@@ -83,8 +83,8 @@ fn load_section(
     // Note: kkrunchy-packed files have a single section marked
     // CODE | INITIALIZED_DATA | UNINITIALIZED_DATA | MEM_EXECUTE | MEM_READ | MEM_WRITE
     // so we ignore the UNINITIALIZED_DATA flag.
-    let load_data = flags.contains(pe::ImageSectionFlags::CODE)
-        || flags.contains(pe::ImageSectionFlags::INITIALIZED_DATA);
+    let load_data =
+        flags.contains(pe::IMAGE_SCN::CODE) || flags.contains(pe::IMAGE_SCN::INITIALIZED_DATA);
 
     let mapping = winapi::kernel32::Mapping {
         addr: dst as u32,

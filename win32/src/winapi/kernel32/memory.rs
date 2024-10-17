@@ -1,6 +1,6 @@
 use crate::{
     machine::{Machine, MemImpl},
-    pe::ImageSectionFlags,
+    pe::IMAGE_SCN,
     winapi::stack_args,
 };
 use bitflags::bitflags;
@@ -18,7 +18,7 @@ pub struct Mapping {
     pub addr: u32,
     pub size: u32,
     pub desc: String,
-    pub flags: ImageSectionFlags,
+    pub flags: IMAGE_SCN,
 }
 
 impl Mapping {
@@ -37,7 +37,7 @@ impl Mappings {
             addr: 0,
             size: 0x1000,
             desc: "avoid null pointers".into(),
-            flags: ImageSectionFlags::empty(),
+            flags: IMAGE_SCN::empty(),
         }])
     }
 
@@ -92,7 +92,7 @@ impl Mappings {
             addr,
             size,
             desc,
-            flags: ImageSectionFlags::empty(),
+            flags: IMAGE_SCN::empty(),
         })
     }
 

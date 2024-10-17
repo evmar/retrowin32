@@ -150,36 +150,38 @@ impl IMAGE_SECTION_HEADER {
             .unwrap_or(self.Name.len());
         std::str::from_utf8(&self.Name[..end])
     }
-    pub fn characteristics(&self) -> anyhow::Result<ImageSectionFlags> {
-        ImageSectionFlags::from_bits(self.Characteristics)
+
+    pub fn characteristics(&self) -> anyhow::Result<IMAGE_SCN> {
+        IMAGE_SCN::from_bits(self.Characteristics)
             .ok_or_else(|| anyhow!("unhandled PE flags {:#x}", self.Characteristics))
     }
 }
 
 bitflags! {
     #[derive(serde::Serialize)]
-    pub struct ImageSectionFlags: u32 {
+    pub struct IMAGE_SCN: u32 {
         const CODE = 0x20;
         const INITIALIZED_DATA = 0x40;
         const UNINITIALIZED_DATA = 0x80;
-        const ALIGN_1BYTES = 0x100000;
-        const ALIGN_2BYTES = 0x200000;
-        const ALIGN_4BYTES = 0x300000;
-        const ALIGN_8BYTES = 0x400000;
-        const ALIGN_16BYTES = 0x500000;
-        const ALIGN_32BYTES = 0x600000;
-        const ALIGN_64BYTES = 0x700000;
-        const ALIGN_128BYTES = 0x800000;
-        const ALIGN_256BYTES = 0x900000;
-        const ALIGN_512BYTES = 0xA00000;
-        const ALIGN_1024BYTES = 0xB00000;
-        const ALIGN_2048BYTES = 0xC00000;
-        const ALIGN_4096BYTES = 0xD00000;
-        const ALIGN_8192BYTES = 0xE00000;
         const MEM_DISCARDABLE = 0x2000000;
+        const MEM_SHARED = 0x10000000;
         const MEM_EXECUTE = 0x20000000;
         const MEM_READ = 0x40000000;
         const MEM_WRITE = 0x80000000;
+
+        // Alignment is found in this nybble:
+        const ALIGN = 0x00F0_0000;
+    }
+}
+
+impl IMAGE_SCN {
+    pub fn align(&self) -> u32 {
+        let value = (self.bits() & IMAGE_SCN::ALIGN.bits()) >> 20;
+        // IMG_SCN_ALIGN_1BYTES = 1
+        // IMG_SCN_ALIGN_2BYTES = 2
+        // IMG_SCN_ALIGN_4BYTES = 4
+        // etc.
+        1 << (value - 1)
     }
 }
 
