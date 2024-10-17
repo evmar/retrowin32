@@ -15,7 +15,7 @@ impl stack_args::ToX86 for DI {
 }
 
 #[win32_derive::dllexport]
-mod IDirectInput {
+pub mod IDirectInput {
     use super::*;
 
     pub fn new(machine: &mut Machine) -> u32 {
@@ -34,9 +34,58 @@ mod IDirectInput {
         AddRef: todo,
         Release: todo,
 
-        CreateDevice: todo,
+        CreateDevice: ok,
         EnumDevices: todo,
         GetDeviceStatus: todo,
+        RunControlPanel: todo,
+        Initialize: todo,
+    ];
+
+    #[win32_derive::dllexport]
+    pub fn CreateDevice(
+        machine: &mut Machine,
+        this: u32,
+        lplpDirectInputDevice: Option<&mut u32>,
+        pUnkOuter: u32,
+    ) -> DI {
+        *lplpDirectInputDevice.unwrap() = IDirectInputDevice::new(machine);
+        DI::OK
+    }
+}
+
+#[win32_derive::dllexport]
+pub mod IDirectInputDevice {
+    use super::*;
+
+    pub fn new(machine: &mut Machine) -> u32 {
+        let lpDirectInputDevice = machine
+            .state
+            .kernel32
+            .get_process_heap(&mut machine.emu.memory)
+            .alloc(machine.emu.memory.mem(), 4);
+        let vtable = kernel32::get_symbol(machine, "dinput.dll", "IDirectInputDevice");
+        machine.mem().put_pod::<u32>(lpDirectInputDevice, vtable);
+        lpDirectInputDevice
+    }
+
+    vtable![
+        QueryInterface: todo,
+        AddRef: todo,
+        Release: todo,
+
+        GetCapabilities: todo,
+        EnumObjects: todo,
+        GetProperty: todo,
+        SetProperty: todo,
+        Acquire: todo,
+        Unacquire: todo,
+        GetDeviceState: todo,
+        GetDeviceData: todo,
+        SetDataFormat: todo,
+        SetEventNotification: todo,
+        SetCooperativeLevel: todo,
+        GetObjectInfo: todo,
+        GetDeviceInfo: todo,
         RunControlPanel: todo,
         Initialize: todo,
     ];

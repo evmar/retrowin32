@@ -43,11 +43,51 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+        let pUnkOuter = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
+            Some(crate::trace::trace_begin(
+                "dinput/dinput",
+                "IDirectInput::CreateDevice",
+                &[
+                    ("this", &this),
+                    ("lplpDirectInputDevice", &lplpDirectInputDevice),
+                    ("pUnkOuter", &pUnkOuter),
+                ],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInput::CreateDevice(
+            machine,
+            this,
+            lplpDirectInputDevice,
+            pUnkOuter,
+        );
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::dinput::IDirectInput::CreateDevice_pos.0,
+                winapi::dinput::IDirectInput::CreateDevice_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
 }
-const SHIMS: [Shim; 1usize] = [Shim {
-    name: "DirectInputCreateA",
-    func: Handler::Sync(wrappers::DirectInputCreateA),
-}];
+const SHIMS: [Shim; 2usize] = [
+    Shim {
+        name: "DirectInputCreateA",
+        func: Handler::Sync(wrappers::DirectInputCreateA),
+    },
+    Shim {
+        name: "IDirectInput::CreateDevice",
+        func: Handler::Sync(wrappers::IDirectInput_CreateDevice),
+    },
+];
 pub const DLL: BuiltinDLL = BuiltinDLL {
     file_name: "dinput.dll",
     shims: &SHIMS,
