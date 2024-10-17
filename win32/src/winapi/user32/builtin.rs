@@ -15,7 +15,7 @@ mod wrappers {
     pub unsafe fn AdjustWindowRect(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
-        let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, stack_args + 4u32);
+        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
         let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
         let __trace_context = if crate::trace::enabled("user32/window") {
             Some(crate::trace::trace_begin(
@@ -44,9 +44,9 @@ mod wrappers {
     pub unsafe fn AdjustWindowRectEx(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
-        let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, stack_args + 4u32);
+        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
         let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
-        let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, stack_args + 12u32);
+        let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 12u32);
         let __trace_context = if crate::trace::enabled("user32/window") {
             Some(crate::trace::trace_begin(
                 "user32/window",
@@ -370,10 +370,10 @@ mod wrappers {
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
         let mem = machine.mem().detach();
-        let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, stack_args + 0u32);
+        let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
         let lpClassName = <CreateWindowClassName<'_, str>>::from_stack(mem, stack_args + 4u32);
         let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
-        let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, stack_args + 12u32);
+        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 12u32);
         let X = <u32>::from_stack(mem, stack_args + 16u32);
         let Y = <u32>::from_stack(mem, stack_args + 20u32);
         let nWidth = <u32>::from_stack(mem, stack_args + 24u32);
@@ -439,10 +439,10 @@ mod wrappers {
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
         let mem = machine.mem().detach();
-        let dwExStyle = <Result<WindowStyleEx, u32>>::from_stack(mem, stack_args + 0u32);
+        let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
         let lpClassName = <CreateWindowClassName<'_, Str16>>::from_stack(mem, stack_args + 4u32);
         let lpWindowName = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-        let dwStyle = <Result<WindowStyle, u32>>::from_stack(mem, stack_args + 12u32);
+        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 12u32);
         let X = <u32>::from_stack(mem, stack_args + 16u32);
         let Y = <u32>::from_stack(mem, stack_args + 20u32);
         let nWidth = <u32>::from_stack(mem, stack_args + 24u32);

@@ -84,7 +84,8 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
     let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {
-        if let Some(hbrush) = window.wndclass.background.to_option() {
+        let background = window.wndclass.borrow().background;
+        if let Some(hbrush) = background.clone().to_option() {
             if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
                 if let Some(color) = brush.color {
                     gdi32::fill_rect(machine, hdc, &dirty_rect, color);

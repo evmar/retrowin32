@@ -1,3 +1,4 @@
+use super::CS;
 use crate::{
     str16::Str16,
     winapi::{
@@ -177,7 +178,14 @@ pub enum GCL {
 
 #[win32_derive::dllexport]
 pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
-    let class = &machine.state.user32.windows.get(hWnd).unwrap().wndclass;
+    let class = machine
+        .state
+        .user32
+        .windows
+        .get(hWnd)
+        .unwrap()
+        .wndclass
+        .borrow();
     match nIndex.unwrap() {
         GCL::STYLE => class.style.bits(),
         f => todo!("GetClassLongA({f:?})"),
@@ -186,12 +194,20 @@ pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>
 
 #[win32_derive::dllexport]
 pub fn SetClassLongA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
     nIndex: Result<GCL, u32>,
     dwNewLong: i32,
 ) -> u32 {
-    todo!()
+    let class = &machine.state.user32.windows.get(hWnd).unwrap().wndclass;
+    match nIndex.unwrap() {
+        GCL::STYLE => std::mem::replace(
+            &mut class.borrow_mut().style,
+            CS::try_from(dwNewLong as u32).unwrap(),
+        )
+        .bits(),
+        f => todo!("SetClassLongA({f:?})"),
+    }
 }
 
 #[win32_derive::dllexport]

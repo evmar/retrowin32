@@ -431,6 +431,7 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) -> u32 {
         .get(msg.hwnd)
         .unwrap()
         .wndclass
+        .borrow()
         .wndproc;
     if wndproc == 0 {
         log::error!("window has no wndproc, skipping message dispatch");

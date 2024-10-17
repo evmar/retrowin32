@@ -13,7 +13,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 /*
 
@@ -50,8 +50,8 @@ pub struct Window {
     pub width: u32,
     /// Client area height (not total window height).
     pub height: u32,
-    pub wndclass: Rc<WndClass>,
-    pub style: WindowStyle,
+    pub wndclass: Rc<RefCell<WndClass>>,
+    pub style: WS,
     /// The current show state of the window.
     pub show_cmd: SW,
 }
@@ -173,16 +173,44 @@ impl WindowTopLevel {
     }
 }
 
+bitflags! {
+    pub struct CS: u32 {
+        const VREDRAW         = 0x0001;
+        const HREDRAW         = 0x0002;
+        const DBLCLKS         = 0x0008;
+        const OWNDC           = 0x0020;
+        const CLASSDC         = 0x0040;
+        const PARENTDC        = 0x0080;
+        const NOCLOSE         = 0x0200;
+        const SAVEBITS        = 0x0800;
+        const BYTEALIGNCLIENT = 0x1000;
+        const BYTEALIGNWINDOW = 0x2000;
+        const GLOBALCLASS     = 0x4000;
+        const DROPSHADOW  = 0x00020000;
+    }
+}
+impl TryFrom<u32> for CS {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        CS::from_bits(value).ok_or(value)
+    }
+}
+
 pub struct WndClass {
     pub name: String,
-    pub style: WindowStyle,
+    pub style: CS,
     pub wndproc: u32,
     pub background: HBRUSH,
 }
 
 fn register_class(machine: &mut Machine, wndclass: WndClass) -> u32 {
     let atom = machine.state.user32.wndclasses.len() as u32 + 1;
-    machine.state.user32.wndclasses.push(Rc::new(wndclass));
+    machine
+        .state
+        .user32
+        .wndclasses
+        .push(Rc::new(RefCell::new(wndclass)));
     atom
 }
 
@@ -231,7 +259,7 @@ pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
     let background = unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground) };
     let wndclass = WndClass {
         name: name.to_string(),
-        style: WindowStyle::from_bits(lpWndClass.style).unwrap(),
+        style: CS::from_bits(lpWndClass.style).unwrap(),
         wndproc: lpWndClass.lpfnWndProc,
         background: background.to_brush(machine),
     };
@@ -280,7 +308,7 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
     let name = expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
     let wndclass = WndClass {
         name,
-        style: WindowStyle::from_bits(lpWndClassEx.style).unwrap(),
+        style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
@@ -296,7 +324,7 @@ pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW
         .to_string();
     let wndclass = WndClass {
         name,
-        style: WindowStyle::from_bits(lpWndClassEx.style).unwrap(),
+        style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
@@ -305,7 +333,8 @@ pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW
 }
 
 bitflags! {
-    pub struct WindowStyle: u32 {
+    /// Window styles.
+    pub struct WS: u32 {
         const POPUP           = 0x80000000;
         const CHILD           = 0x40000000;
         const MINIMIZE        = 0x20000000;
@@ -326,24 +355,25 @@ bitflags! {
         const VREDRAW         = 0x00000001; // CS_VREDRAW
     }
 }
-impl TryFrom<u32> for WindowStyle {
+impl TryFrom<u32> for WS {
     type Error = u32;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WindowStyle::from_bits(value).ok_or(value)
+        WS::from_bits(value).ok_or(value)
     }
 }
 
 bitflags! {
-    pub struct WindowStyleEx: u32 {
+    /// Extended window styles.
+    pub struct WS_EX: u32 {
         // todo
     }
 }
-impl TryFrom<u32> for WindowStyleEx {
+impl TryFrom<u32> for WS_EX {
     type Error = u32;
 
     fn try_from(value: u32) -> Result<Self, Self::Error> {
-        WindowStyleEx::from_bits(value).ok_or(value)
+        WS_EX::from_bits(value).ok_or(value)
     }
 }
 
@@ -374,10 +404,10 @@ impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, St
 #[win32_derive::dllexport]
 pub async fn CreateWindowExA(
     machine: &mut Machine,
-    dwExStyle: Result<WindowStyleEx, u32>,
+    dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, str>,
     lpWindowName: Option<&str>,
-    dwStyle: Result<WindowStyle, u32>,
+    dwStyle: Result<WS, u32>,
     X: u32,
     Y: u32,
     nWidth: u32,
@@ -417,10 +447,10 @@ pub async fn CreateWindowExA(
 #[win32_derive::dllexport]
 pub async fn CreateWindowExW(
     machine: &mut Machine,
-    dwExStyle: Result<WindowStyleEx, u32>,
+    dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, Str16>,
     lpWindowName: Option<&Str16>,
-    dwStyle: Result<WindowStyle, u32>,
+    dwStyle: Result<WS, u32>,
     X: u32,
     Y: u32,
     nWidth: u32,
@@ -434,24 +464,14 @@ pub async fn CreateWindowExW(
         CreateWindowClassName::Atom(_) => unimplemented!(),
         CreateWindowClassName::Name(name) => name.to_string(),
     };
-    let wndclass = match machine
+    let wndclass = machine
         .state
         .user32
         .wndclasses
         .iter()
-        .find(|c| c.name == class_name)
-    {
-        Some(wndclass) => wndclass.clone(),
-        None => {
-            log::warn!("unknown wndclass {class_name:?}, using empty");
-            Rc::new(WndClass {
-                name: class_name,
-                style: WindowStyle::empty(),
-                wndproc: 0,
-                background: HBRUSH::null(),
-            })
-        }
-    };
+        .find(|c| c.borrow().name == class_name)
+        .unwrap()
+        .clone();
 
     let style = dwStyle.unwrap();
     const CW_USEDEFAULT: u32 = 0x8000_0000;
@@ -471,7 +491,7 @@ pub async fn CreateWindowExW(
     let menu = false; // TODO
     let (width, height) = client_size_from_window_size(style, menu, width, height);
 
-    let typ = if style.contains(WindowStyle::CHILD) {
+    let typ = if style.contains(WS::CHILD) {
         WindowType::Child
     } else {
         let mut host_win = machine.host.create_window(hwnd.to_raw());
@@ -777,7 +797,7 @@ pub async fn DefWindowProcW(
 }
 
 /// Compute window rectangle from client rectangle.
-fn window_rect(rect: &mut RECT, style: WindowStyle, menu: bool) {
+fn window_rect(rect: &mut RECT, style: WS, menu: bool) {
     const CAPTION: i32 = 19;
     rect.top = rect.top - CAPTION;
     rect.left = rect.left;
@@ -786,14 +806,14 @@ fn window_rect(rect: &mut RECT, style: WindowStyle, menu: bool) {
     if menu {
         rect.top -= 19;
     }
-    if style.contains(WindowStyle::BORDER) {
+    if style.contains(WS::BORDER) {
         const BORDER: i32 = 1;
         rect.top -= BORDER;
         rect.left -= BORDER;
         rect.right += BORDER;
         rect.bottom += BORDER;
     }
-    if style.contains(WindowStyle::THICKFRAME) {
+    if style.contains(WS::THICKFRAME) {
         const FRAME: i32 = 4;
         rect.top -= FRAME;
         rect.left -= FRAME;
@@ -802,12 +822,7 @@ fn window_rect(rect: &mut RECT, style: WindowStyle, menu: bool) {
     }
 }
 
-fn client_size_from_window_size(
-    style: WindowStyle,
-    menu: bool,
-    width: u32,
-    height: u32,
-) -> (u32, u32) {
+fn client_size_from_window_size(style: WS, menu: bool, width: u32, height: u32) -> (u32, u32) {
     let mut r = RECT::default();
     window_rect(&mut r, style, menu);
     (
@@ -820,25 +835,19 @@ fn client_size_from_window_size(
 pub fn AdjustWindowRect(
     machine: &mut Machine,
     lpRect: Option<&mut RECT>,
-    dwStyle: Result<WindowStyle, u32>,
+    dwStyle: Result<WS, u32>,
     bMenu: bool,
 ) -> bool {
-    AdjustWindowRectEx(
-        machine,
-        lpRect,
-        dwStyle,
-        bMenu,
-        Result::Ok(WindowStyleEx::empty()),
-    )
+    AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, Result::Ok(WS_EX::empty()))
 }
 
 #[win32_derive::dllexport]
 pub fn AdjustWindowRectEx(
     _machine: &mut Machine,
     lpRect: Option<&mut RECT>,
-    dwStyle: Result<WindowStyle, u32>,
+    dwStyle: Result<WS, u32>,
     bMenu: bool,
-    dwExStyle: Result<WindowStyleEx, u32>,
+    dwExStyle: Result<WS_EX, u32>,
 ) -> bool {
     window_rect(lpRect.unwrap(), dwStyle.unwrap(), bMenu);
     true
@@ -1071,10 +1080,10 @@ pub fn ReleaseDC(machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
 pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
     match nIndex {
         // GWL_STYLE
-        -16 => WindowStyle::empty().bits() as i32,
+        -16 => WS::empty().bits() as i32,
 
         // GWL_EXSTYLE
-        -20 => WindowStyleEx::empty().bits() as i32,
+        -20 => WS_EX::empty().bits() as i32,
 
         _ => todo!("GetWindowLong({nIndex})"),
     }

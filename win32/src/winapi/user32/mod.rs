@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(non_camel_case_types)]
 
 mod builtin;
 mod dialog;
@@ -10,6 +11,8 @@ mod rect;
 mod resource;
 mod timer;
 mod window;
+
+use std::{cell::RefCell, rc::Rc};
 
 pub use builtin::DLL;
 
@@ -30,7 +33,10 @@ pub use window::*;
 
 #[derive(Default)]
 pub struct State {
-    wndclasses: Vec<std::rc::Rc<WndClass>>,
+    /// Window classes, kept in an array so we can look them up by name.
+    // These generally don't change, but SetWindowLong lets you poke at most of their fields,
+    // so RefCell it is.
+    wndclasses: Vec<Rc<RefCell<WndClass>>>,
     pub user_window_message_count: u32,
     pub windows: Handles<HWND, Window>,
     messages: MessageQueue,
