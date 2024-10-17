@@ -75,3 +75,20 @@ pub fn try_from_enum(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     }
     .into()
 }
+
+#[proc_macro_derive(TryFromBitflags)]
+pub fn try_from_bitflags(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let struct_: syn::ItemStruct = syn::parse_macro_input!(item);
+    let name = &struct_.ident;
+
+    quote! {
+        impl TryFrom<u32> for #name {
+            type Error = u32;
+
+            fn try_from(value: u32) -> Result<Self, Self::Error> {
+                #name::from_bits(value).ok_or(value)
+            }
+        }
+    }
+    .into()
+}
