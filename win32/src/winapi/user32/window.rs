@@ -620,15 +620,69 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
     true // success
 }
 
+bitflags! {
+    /// RedrawWindow behavior flags.
+    #[derive(win32_derive::TryFromBitflags)]
+    pub struct RDW: u32 {
+        const INVALIDATE      = 0x0001;
+        const INTERNALPAINT   = 0x0002;
+        const ERASE           = 0x0004;
+
+        const VALIDATE        = 0x0008;
+        const NOINTERNALPAINT = 0x0010;
+        const NOERASE         = 0x0020;
+
+        const NOCHILDREN      = 0x0040;
+        const ALLCHILDREN     = 0x0080;
+
+        const UPDATENOW       = 0x0100;
+        const ERASENOW        = 0x0200;
+
+        const FRAME           = 0x0400;
+        const NOFRAME         = 0x0800;
+    }
+}
+
 #[win32_derive::dllexport]
-pub fn RedrawWindow(
-    _machine: &mut Machine,
+pub async fn RedrawWindow(
+    machine: &mut Machine,
     hWnd: HWND,
     lprcUpdate: Option<&mut RECT>,
     hrgnUpdate: HRGN,
-    flags: u32, /* REDRAW_WINDOW_FLAGS */
+    flags: Result<RDW, u32>,
 ) -> bool {
-    todo!()
+    if lprcUpdate.is_some() || !hrgnUpdate.is_null() {
+        todo!();
+    }
+
+    // TODO: this function has a million flags, ugh.
+    // Seems like it's three steps: invalidate/validate, update.
+
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let flags = flags.unwrap();
+
+    if flags.contains(RDW::INVALIDATE) {
+        window.add_dirty(flags.contains(RDW::ERASE));
+    } else if flags.contains(RDW::VALIDATE) {
+        todo!();
+    }
+
+    if flags.contains(RDW::ERASENOW) {
+        todo!();
+    } else if flags.contains(RDW::UPDATENOW) {
+        let msg = MSG {
+            hwnd: hWnd,
+            message: WM::PAINT as u32,
+            wParam: 0,
+            lParam: 0,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+        };
+        dispatch_message(machine, &msg).await;
+    }
+
+    true
 }
 
 /// nCmdShow passed to ShowWindow().

@@ -2632,12 +2632,15 @@ mod wrappers {
         }
         result.to_raw()
     }
-    pub unsafe fn RedrawWindow(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RedrawWindow(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lprcUpdate = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
         let hrgnUpdate = <HRGN>::from_stack(mem, stack_args + 8u32);
-        let flags = <u32>::from_stack(mem, stack_args + 12u32);
+        let flags = <Result<RDW, u32>>::from_stack(mem, stack_args + 12u32);
         let __trace_context = if crate::trace::enabled("user32/window") {
             Some(crate::trace::trace_begin(
                 "user32/window",
@@ -2652,16 +2655,21 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::user32::RedrawWindow(machine, hWnd, lprcUpdate, hrgnUpdate, flags);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::user32::RedrawWindow_pos.0,
-                winapi::user32::RedrawWindow_pos.1,
-                &result,
-            );
-        }
-        result.to_raw()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result =
+                winapi::user32::RedrawWindow(machine, hWnd, lprcUpdate, hrgnUpdate, flags).await;
+            if let Some(__trace_context) = __trace_context {
+                crate::trace::trace_return(
+                    &__trace_context,
+                    winapi::user32::RedrawWindow_pos.0,
+                    winapi::user32::RedrawWindow_pos.1,
+                    &result,
+                );
+            }
+            result.to_raw()
+        })
     }
     pub unsafe fn RegisterClassA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
@@ -4133,7 +4141,7 @@ const SHIMS: [Shim; 132usize] = [
     },
     Shim {
         name: "RedrawWindow",
-        func: Handler::Sync(wrappers::RedrawWindow),
+        func: Handler::Async(wrappers::RedrawWindow),
     },
     Shim {
         name: "RegisterClassA",
