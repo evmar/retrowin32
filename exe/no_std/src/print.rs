@@ -1,13 +1,18 @@
 use windows_sys::Win32::{
+    Foundation::HANDLE,
     Storage::FileSystem::WriteFile,
     System::Console::{GetStdHandle, STD_OUTPUT_HANDLE},
 };
 
+static mut STDOUT: HANDLE = 0;
+
 pub fn print(buf: &[u8]) {
     unsafe {
-        let stdout = GetStdHandle(STD_OUTPUT_HANDLE);
+        if STDOUT == 0 {
+            STDOUT = GetStdHandle(STD_OUTPUT_HANDLE);
+        }
         WriteFile(
-            stdout,
+            STDOUT,
             buf.as_ptr(),
             buf.len() as u32,
             core::ptr::null_mut(),

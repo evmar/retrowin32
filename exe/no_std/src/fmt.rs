@@ -62,6 +62,13 @@ impl Fmt {
         self
     }
 
+    pub fn dec(&mut self, val: u32) -> &mut Self {
+        if val >= 10 {
+            self.dec(val / 10);
+        }
+        self.char(dec((val % 10) as u8))
+    }
+
     pub fn f64(&mut self, valf: f64) -> &mut Self {
         // `val as u32` generates 40 lines of asm in Rust, I think due to handling
         // corner cases.  This dumb impl is simpler.
