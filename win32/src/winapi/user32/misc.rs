@@ -38,10 +38,10 @@ pub enum SM {
     CXHSCROLL = 21,
     DEBUG = 22,
     SWAPBUTTON = 23,
-    RESERVED1 = 24,
-    RESERVED2 = 25,
-    RESERVED3 = 26,
-    RESERVED4 = 27,
+    // RESERVED1 = 24,
+    // RESERVED2 = 25,
+    // RESERVED3 = 26,
+    // RESERVED4 = 27,
     CXMIN = 28,
     CYMIN = 29,
     CXSIZE = 30,
@@ -108,21 +108,15 @@ pub enum SM {
 
 #[win32_derive::dllexport]
 pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SM, u32>) -> u32 {
-    match nIndex.unwrap() {
-        SM::CXSCREEN => 640,
-        SM::CYSCREEN => 480,
-        SM::CYCAPTION => 19,
-        SM::CXBORDER => 1,
-        SM::CYBORDER => 1,
-        SM::CYMENU => 19,
-        SM::CXFRAME => 4,
-        SM::CYFRAME => 4,
-        SM::DBCSENABLED => 0,
-        SM::MIDEASTENABLED => 0,
-        SM::CXVIRTUALSCREEN => 640,
-        SM::CYVIRTUALSCREEN => 480,
-        metric => todo!("GetSystemMetrics({metric:?})"),
-    }
+    // These were dumped from a win2k VM running at 640x480.
+    // See exe/no_std/bin/metrics.rs.
+    const METRICS: [u32; 100] = [
+        640, 480, 16, 16, 19, 1, 1, 3, 3, 16, 16, 32, 32, 32, 32, 19, 640, 433, 0, 1, 16, 16, 0, 0,
+        0, 0, 0, 0, 112, 27, 18, 18, 4, 4, 112, 27, 4, 4, 75, 75, 0, 0, 0, 5, 0, 2, 2, 160, 24, 16,
+        16, 16, 12, 15, 18, 18, 8, 160, 24, 652, 492, 648, 460, 3, 0, 0, 0, 0, 4, 4, 0, 13, 13, 0,
+        0, 1, 0, 0, 640, 480, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    ];
+    METRICS[nIndex.unwrap() as usize]
 }
 
 #[win32_derive::dllexport]

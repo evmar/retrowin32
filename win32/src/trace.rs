@@ -93,7 +93,7 @@ pub fn trace_begin(context: &str, func: &str, args: &[(&str, &dyn std::fmt::Debu
         write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
     }
     msg.push_str(")");
-    // log::info!("{}", msg);
+    log::info!("{}", msg);
     msg
 }
 
