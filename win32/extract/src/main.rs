@@ -50,7 +50,7 @@ fn convert_type(ty: &windows_metadata::Type) -> String {
         I8 => format!("i8"),
         U8 => format!("u8"),
         I16 => todo!(),
-        U16 => todo!(),
+        U16 => format!("u16"),
         I32 => format!("i32"),
         U32 => format!("u32"),
         I64 => todo!(),
