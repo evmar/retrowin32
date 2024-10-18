@@ -159,12 +159,16 @@ pub fn GetDeviceCaps(
     hdc: HDC,
     index: Result<GetDeviceCapsArg, u32>,
 ) -> u32 {
+    use GetDeviceCapsArg::*;
     match index.unwrap() {
-        GetDeviceCapsArg::NUMCOLORS => -1i32 as u32, // true color
-        GetDeviceCapsArg::HORZRES => 640,
-        GetDeviceCapsArg::VERTRES => 480,
-        GetDeviceCapsArg::RASTERCAPS => 0, // none
-        _ => unimplemented!(),
+        HORZRES => 640,
+        VERTRES => 480,
+        NUMCOLORS => -1i32 as u32, // true color
+        RASTERCAPS => 0,           // none
+        LOGPIXELSX => 96,
+        LOGPIXELSY => 96,
+        SIZEPALETTE => 0,
+        i => unimplemented!("{i:?}"),
     }
 }
 
