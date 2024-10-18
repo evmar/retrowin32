@@ -2502,6 +2502,29 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GlobalAddAtomA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let __trace_context = if crate::trace::enabled("kernel32/misc") {
+            Some(crate::trace::trace_begin(
+                "kernel32/misc",
+                "GlobalAddAtomA",
+                &[("lpString", &lpString)],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GlobalAddAtomA(machine, lpString);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::kernel32::GlobalAddAtomA_pos.0,
+                winapi::kernel32::GlobalAddAtomA_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
     pub unsafe fn GlobalAlloc(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
@@ -5256,7 +5279,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 192usize] = [
+const SHIMS: [Shim; 193usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5616,6 +5639,10 @@ const SHIMS: [Shim; 192usize] = [
     Shim {
         name: "GetWindowsDirectoryA",
         func: Handler::Sync(wrappers::GetWindowsDirectoryA),
+    },
+    Shim {
+        name: "GlobalAddAtomA",
+        func: Handler::Sync(wrappers::GlobalAddAtomA),
     },
     Shim {
         name: "GlobalAlloc",

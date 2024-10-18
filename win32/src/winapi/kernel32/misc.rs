@@ -404,3 +404,10 @@ pub fn DuplicateHandle(
     *lpTargetHandle.unwrap() = hSourceHandle;
     true
 }
+
+type ATOM = u32;
+
+#[win32_derive::dllexport]
+pub fn GlobalAddAtomA(_machine: &mut Machine, lpString: Option<&str>) -> ATOM {
+    todo!()
+}
