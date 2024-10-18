@@ -150,7 +150,7 @@ pub fn GetLocaleInfoA(
     lpLCData: Option<&str>,
     cchData: i32,
 ) -> i32 {
-    todo!()
+    0 // fail
 }
 
 #[win32_derive::dllexport]
