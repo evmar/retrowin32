@@ -353,15 +353,15 @@ pub fn shrd_rm32_r32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     shrd(x, y, count, &mut cpu.flags);
 }
 
-fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
-    if y.is_zero() {
+fn sar<I: Int>(x: I, y: u8, flags: &mut Flags) -> I {
+    if y == 0 {
         return x;
     }
-    flags.set(Flags::CF, x.shr(y.as_usize() - 1).bitand(I::one()).is_one());
+    flags.set(Flags::CF, x.shr(y as usize - 1).bitand(I::one()).is_one());
     // Note: OF only defined for 1-bit rotates.
     flags.set(Flags::OF, false);
     // There's a random "u32" type in the num-traits signed_shr signature, so cast here.
-    let result = x.signed_shr(y.as_usize() as u32);
+    let result = x.signed_shr(y as u32);
 
     flags.set(Flags::SF, result.shr(I::bits() - 1).is_one());
     flags.set(Flags::ZF, result.is_zero());
@@ -369,19 +369,19 @@ fn sar<I: Int>(x: I, y: I, flags: &mut Flags) -> I {
 }
 
 pub fn sar_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = instr.immediate8() as u32;
+    let y = instr.immediate8();
     let x = rm32(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
 
 pub fn sar_rm32_cl(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.get8(Register::CL) as u32;
+    let y = cpu.regs.get8(Register::CL);
     let x = rm32(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
 
 pub fn sar_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = instr.immediate8() as u8;
+    let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
     x.set(sar(x.get(), y, &mut cpu.flags));
 }
