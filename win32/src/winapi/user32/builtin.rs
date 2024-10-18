@@ -1324,6 +1324,29 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetKeyboardType(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
+        let __trace_context = if crate::trace::enabled("user32/misc") {
+            Some(crate::trace::trace_begin(
+                "user32/misc",
+                "GetKeyboardType",
+                &[("nTypeFlag", &nTypeFlag)],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::user32::GetKeyboardType(machine, nTypeFlag);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::user32::GetKeyboardType_pos.0,
+                winapi::user32::GetKeyboardType_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetLastActivePopup(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_context = if crate::trace::enabled("user32/window") {
@@ -3774,7 +3797,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 132usize] = [
+const SHIMS: [Shim; 133usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3950,6 +3973,10 @@ const SHIMS: [Shim; 132usize] = [
     Shim {
         name: "GetKeyboardState",
         func: Handler::Sync(wrappers::GetKeyboardState),
+    },
+    Shim {
+        name: "GetKeyboardType",
+        func: Handler::Sync(wrappers::GetKeyboardType),
     },
     Shim {
         name: "GetLastActivePopup",

@@ -262,3 +262,8 @@ pub fn SystemParametersInfoA(
 ) -> bool {
     todo!()
 }
+
+#[win32_derive::dllexport]
+pub fn GetKeyboardType(_machine: &mut Machine, nTypeFlag: i32) -> i32 {
+    0 // fail
+}
