@@ -40,32 +40,55 @@ pub enum GetStockObjectArg {
     DKGRAY_BRUSH = 3,
     BLACK_BRUSH = 4,
     NULL_BRUSH = 5,
+    WHITE_PEN = 6,
+    BLACK_PEN = 7,
+    NULL_PEN = 8,
     OEM_FIXED_FONT = 10,
+    ANSI_FIXED_FONT = 11,
+    ANSI_VAR_FONT = 12,
+    SYSTEM_FONT = 13,
+    DEVICE_DEFAULT_FONT = 14,
+    DEFAULT_PALETTE = 15,
+    SYSTEM_FIXED_FONT = 16,
+    DEFAULT_GUI_FONT = 17,
+    DC_BRUSH = 18,
+    DC_PEN = 19,
 }
 
 #[win32_derive::dllexport]
 pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) -> HGDIOBJ {
-    match i.unwrap() {
-        GetStockObjectArg::WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+    use GetStockObjectArg::*;
+    let obj = match i.unwrap() {
+        WHITE_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::white()),
         })),
-        GetStockObjectArg::LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        LTGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
         })),
-        GetStockObjectArg::BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+        GRAY_BRUSH => todo!(),
+        DKGRAY_BRUSH => todo!(),
+        BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0x00, 0x00, 0x00)),
         })),
-        GetStockObjectArg::NULL_BRUSH => machine
+        NULL_BRUSH => machine
             .state
             .gdi32
             .objects
             .add(Object::Brush(Brush { color: None })),
-        GetStockObjectArg::OEM_FIXED_FONT => {
-            log::error!("returning null stock object");
-            HGDIOBJ::null()
-        }
-        _ => todo!(),
+        DC_BRUSH => todo!(),
+
+        WHITE_PEN | BLACK_PEN | NULL_PEN | DC_PEN => HGDIOBJ::null(),
+
+        OEM_FIXED_FONT | ANSI_FIXED_FONT | ANSI_VAR_FONT | SYSTEM_FONT | DEVICE_DEFAULT_FONT
+        | SYSTEM_FIXED_FONT | DEFAULT_GUI_FONT => HGDIOBJ::null(),
+
+        DEFAULT_PALETTE => todo!(),
+    };
+    if obj.is_null() {
+        // TODO: once all of these are implemented, null is not a possible return.
+        log::warn!("GetStockObject: TODO: returning null stock object");
     }
+    obj
 }
 
 #[win32_derive::dllexport]
