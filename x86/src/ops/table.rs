@@ -245,6 +245,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Sub_rm16_r16 as usize] = Some(sub_rm16_rm16);
     tab[iced_x86::Code::Sub_rm16_imm16 as usize] = Some(sub_rm16_imm16);
     tab[iced_x86::Code::Sub_AX_imm16 as usize] = Some(sub_rm16_imm16);
+    tab[iced_x86::Code::Sub_rm16_imm8 as usize] = Some(sub_rm16_imm8);
     tab[iced_x86::Code::Sub_r8_rm8 as usize] = Some(sub_rm8_rm8);
     tab[iced_x86::Code::Sub_rm8_r8 as usize] = Some(sub_rm8_rm8);
     tab[iced_x86::Code::Sub_rm8_imm8 as usize] = Some(sub_rm8_imm8);

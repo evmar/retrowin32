@@ -702,6 +702,12 @@ pub fn sub_rm16_imm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(sub(x.get(), y, &mut cpu.flags));
 }
 
+pub fn sub_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8to16() as u16;
+    let x = rm16(cpu, mem, instr);
+    x.set(sub(x.get(), y, &mut cpu.flags));
+}
+
 pub fn sub_rm8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm8(cpu, mem, instr);
     let x = rm8(cpu, mem, instr);
