@@ -1709,6 +1709,37 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetLocaleInfoA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let Locale = <u32>::from_stack(mem, stack_args + 0u32);
+        let LCType = <u32>::from_stack(mem, stack_args + 4u32);
+        let lpLCData = <Option<&str>>::from_stack(mem, stack_args + 8u32);
+        let cchData = <i32>::from_stack(mem, stack_args + 12u32);
+        let __trace_context = if crate::trace::enabled("kernel32/nls") {
+            Some(crate::trace::trace_begin(
+                "kernel32/nls",
+                "GetLocaleInfoA",
+                &[
+                    ("Locale", &Locale),
+                    ("LCType", &LCType),
+                    ("lpLCData", &lpLCData),
+                    ("cchData", &cchData),
+                ],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetLocaleInfoA(machine, Locale, LCType, lpLCData, cchData);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::kernel32::GetLocaleInfoA_pos.0,
+                winapi::kernel32::GetLocaleInfoA_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetLogicalDrives(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_context = if crate::trace::enabled("kernel32/file") {
@@ -2306,6 +2337,28 @@ mod wrappers {
                 &__trace_context,
                 winapi::kernel32::GetSystemTimeAsFileTime_pos.0,
                 winapi::kernel32::GetSystemTimeAsFileTime_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
+    pub unsafe fn GetThreadLocale(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let __trace_context = if crate::trace::enabled("kernel32/nls") {
+            Some(crate::trace::trace_begin(
+                "kernel32/nls",
+                "GetThreadLocale",
+                &[],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetThreadLocale(machine);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::kernel32::GetThreadLocale_pos.0,
+                winapi::kernel32::GetThreadLocale_pos.1,
                 &result,
             );
         }
@@ -5203,7 +5256,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 190usize] = [
+const SHIMS: [Shim; 192usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5445,6 +5498,10 @@ const SHIMS: [Shim; 190usize] = [
         func: Handler::Sync(wrappers::GetLocalTime),
     },
     Shim {
+        name: "GetLocaleInfoA",
+        func: Handler::Sync(wrappers::GetLocaleInfoA),
+    },
+    Shim {
         name: "GetLogicalDrives",
         func: Handler::Sync(wrappers::GetLogicalDrives),
     },
@@ -5531,6 +5588,10 @@ const SHIMS: [Shim; 190usize] = [
     Shim {
         name: "GetSystemTimeAsFileTime",
         func: Handler::Sync(wrappers::GetSystemTimeAsFileTime),
+    },
+    Shim {
+        name: "GetThreadLocale",
+        func: Handler::Sync(wrappers::GetThreadLocale),
     },
     Shim {
         name: "GetThreadPriority",

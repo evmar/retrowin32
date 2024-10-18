@@ -134,6 +134,25 @@ pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
 
 pub type LCID = u32;
 
+/// en-US locale identifier.
+pub const LCID_EN_US: u32 = 0x409;
+
+#[win32_derive::dllexport]
+pub fn GetThreadLocale(_machine: &mut Machine) -> LCID {
+    LCID_EN_US
+}
+
+#[win32_derive::dllexport]
+pub fn GetLocaleInfoA(
+    _machine: &mut Machine,
+    Locale: u32,
+    LCType: u32,
+    lpLCData: Option<&str>,
+    cchData: i32,
+) -> i32 {
+    todo!()
+}
+
 #[win32_derive::dllexport]
 pub fn LCMapStringA(
     _machine: &mut Machine,
