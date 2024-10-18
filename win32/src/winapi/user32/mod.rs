@@ -11,6 +11,7 @@ mod rect;
 mod resource;
 mod timer;
 mod window;
+mod wndclass;
 
 use std::{cell::RefCell, rc::Rc};
 
@@ -30,6 +31,7 @@ pub use rect::*;
 pub use resource::*;
 pub use timer::*;
 pub use window::*;
+pub use wndclass::*;
 
 #[derive(Default)]
 pub struct State {

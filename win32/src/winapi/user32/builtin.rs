@@ -1041,9 +1041,9 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("user32/misc") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/misc",
+                "user32/wndclass",
                 "GetClassLongA",
                 &[("hWnd", &hWnd), ("nIndex", &nIndex)],
             ))
@@ -2674,9 +2674,9 @@ mod wrappers {
     pub unsafe fn RegisterClassA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("user32/window") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/window",
+                "user32/wndclass",
                 "RegisterClassA",
                 &[("lpWndClass", &lpWndClass)],
             ))
@@ -2697,9 +2697,9 @@ mod wrappers {
     pub unsafe fn RegisterClassExA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("user32/window") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/window",
+                "user32/wndclass",
                 "RegisterClassExA",
                 &[("lpWndClassEx", &lpWndClassEx)],
             ))
@@ -2720,9 +2720,9 @@ mod wrappers {
     pub unsafe fn RegisterClassExW(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpWndClassEx = <Option<&WNDCLASSEXW>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("user32/window") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/window",
+                "user32/wndclass",
                 "RegisterClassExW",
                 &[("lpWndClassEx", &lpWndClassEx)],
             ))
@@ -2743,9 +2743,9 @@ mod wrappers {
     pub unsafe fn RegisterClassW(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("user32/window") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/window",
+                "user32/wndclass",
                 "RegisterClassW",
                 &[("lpWndClass", &lpWndClass)],
             ))
@@ -2993,9 +2993,9 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
         let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("user32/misc") {
+        let __trace_context = if crate::trace::enabled("user32/wndclass") {
             Some(crate::trace::trace_begin(
-                "user32/misc",
+                "user32/wndclass",
                 "SetClassLongA",
                 &[
                     ("hWnd", &hWnd),

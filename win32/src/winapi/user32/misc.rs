@@ -1,4 +1,3 @@
-use super::CS;
 use crate::{
     str16::Str16,
     winapi::{
@@ -235,58 +234,6 @@ pub fn GetCursorPos(_machine: &mut Machine, lpPoint: Option<&mut POINT>) -> bool
 #[win32_derive::dllexport]
 pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
     todo!();
-}
-
-#[derive(Debug, win32_derive::TryFromEnum)]
-pub enum GCL {
-    HICONSM = -34,
-    STYLE = -26,
-    WNDPROC = -24,
-    CBCLSEXTRA = -20,
-    CBWNDEXTRA = -18,
-    HMODULE = -16,
-    HICON = -14,
-    HCURSOR = -12,
-    HBRBACKGROUND = -10,
-    MENUNAME = -8,
-}
-
-#[win32_derive::dllexport]
-pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
-    let class = machine
-        .state
-        .user32
-        .windows
-        .get(hWnd)
-        .unwrap()
-        .wndclass
-        .borrow();
-    match nIndex.unwrap() {
-        GCL::STYLE => class.style.bits(),
-        f => todo!("GetClassLongA({f:?})"),
-    }
-}
-
-#[win32_derive::dllexport]
-pub fn SetClassLongA(
-    machine: &mut Machine,
-    hWnd: HWND,
-    nIndex: Result<GCL, u32>,
-    dwNewLong: i32,
-) -> u32 {
-    let class = &machine.state.user32.windows.get(hWnd).unwrap().wndclass;
-    match nIndex.unwrap() {
-        GCL::STYLE => std::mem::replace(
-            &mut class.borrow_mut().style,
-            CS::try_from(dwNewLong as u32).unwrap(),
-        )
-        .bits(),
-        f @ GCL::HICON => {
-            log::warn!("TODO: SetClassLongA({f:?})");
-            0
-        }
-        f => todo!("SetClassLongA({f:?})"),
-    }
 }
 
 #[win32_derive::dllexport]
