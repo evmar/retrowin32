@@ -117,6 +117,8 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SM, u32>) -> u32 
         SM::CYMENU => 19,
         SM::CXFRAME => 4,
         SM::CYFRAME => 4,
+        SM::DBCSENABLED => 0,
+        SM::MIDEASTENABLED => 0,
         SM::CXVIRTUALSCREEN => 640,
         SM::CYVIRTUALSCREEN => 480,
         metric => todo!("GetSystemMetrics({metric:?})"),
