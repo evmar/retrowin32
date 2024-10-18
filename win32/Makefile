@@ -9,9 +9,11 @@ all: $(foreach dll,$(DLLS),dll/$(dll).dll)
 # out the builtin.rs only after expanding the % variable.
 # This requires Makefile's "second expansion".
 .SECONDEXPANSION:
-src/winapi/%/builtin.rs dll/%.s dll/%.def: Makefile derive/src/*.rs src/*.rs src/winapi/* $$(filter-out %builtin.rs,$$(wildcard src/winapi/$*/*))
+percent_builtin:=%builtin.rs
+.PRECIOUS: src/winapi/%/builtin.rs dll/%.s dll/%.def
+src/winapi/%/builtin.rs dll/%.s dll/%.def: Makefile derive/src/*.rs src/*.rs src/winapi/* $$(filter-out $$(percent_builtin),$$(wildcard src/winapi/$$*/*))
 	cargo run --quiet --release -p win32-derive -- --dll-dir dll src/winapi/$* && \
-	touch src/winapi/$*/builtin.rs
+	touch src/winapi/$*/builtin.rs dll/$*.s dll/$*.def
 
 dll/%.dll: dll/%.s dll/%.def
 	clang-cl -fuse-ld=lld -target i586-pc-windows-msvc \
