@@ -256,10 +256,16 @@ pub fn SystemParametersInfoA(
     pvParam: Option<&mut u8>,
     fWinIni: u32, /* SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS */
 ) -> bool {
-    todo!()
+    false // fail
 }
 
 #[win32_derive::dllexport]
 pub fn GetKeyboardType(_machine: &mut Machine, nTypeFlag: i32) -> i32 {
     0 // fail
+}
+
+#[win32_derive::dllexport]
+pub fn GetKeyboardLayout(_machine: &mut Machine, idThread: u32) -> u32 {
+    log::warn!("GetKeyboardLayout: stub");
+    0 // garbage value, unclear if callers care
 }

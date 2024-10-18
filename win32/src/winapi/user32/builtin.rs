@@ -1301,6 +1301,29 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetKeyboardLayout(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let idThread = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_context = if crate::trace::enabled("user32/misc") {
+            Some(crate::trace::trace_begin(
+                "user32/misc",
+                "GetKeyboardLayout",
+                &[("idThread", &idThread)],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::user32::GetKeyboardLayout(machine, idThread);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::user32::GetKeyboardLayout_pos.0,
+                winapi::user32::GetKeyboardLayout_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetKeyboardState(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
@@ -3797,7 +3820,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 133usize] = [
+const SHIMS: [Shim; 134usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3969,6 +3992,10 @@ const SHIMS: [Shim; 133usize] = [
     Shim {
         name: "GetKeyState",
         func: Handler::Sync(wrappers::GetKeyState),
+    },
+    Shim {
+        name: "GetKeyboardLayout",
+        func: Handler::Sync(wrappers::GetKeyboardLayout),
     },
     Shim {
         name: "GetKeyboardState",
