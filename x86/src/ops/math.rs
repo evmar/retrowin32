@@ -604,14 +604,14 @@ pub fn adc_rm32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 pub fn adc_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = instr.immediate8() as u32;
+    let y = instr.immediate8to32() as u32;
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm32(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u32, &mut cpu.flags));
 }
 
 pub fn adc_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = instr.immediate8() as u16;
+    let y = instr.immediate8to16() as u16;
     let carry = cpu.flags.contains(Flags::CF);
     let x = rm16(cpu, mem, instr);
     x.set(addc(x.get(), y, carry as u16, &mut cpu.flags));
