@@ -416,6 +416,12 @@ pub fn rol_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(rol(x.get(), y, &mut cpu.flags));
 }
 
+pub fn rol_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    let x = rm16(cpu, mem, instr);
+    x.set(rol(x.get(), y, &mut cpu.flags));
+}
+
 pub fn rol_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
