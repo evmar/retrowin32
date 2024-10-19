@@ -241,6 +241,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "minibuild"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+]
+
+[[package]]
 name = "miniz_oxide"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

@@ -5,6 +5,7 @@ members = [
   "exe/no_std",
   "exe/rust",
   "exe/zip",
+  "minibuild",
   "web/glue",
   "win32/derive",
   "win32/extract",
