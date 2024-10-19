@@ -1,13 +1,28 @@
-use minibuild::B;
-use std::path::PathBuf;
+use minibuild::*;
 
 fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
-    let asm_path = PathBuf::from(format!("dll/{}.s", dll));
-    let def_path = PathBuf::from(format!("dll/{}.def", dll));
-    let dll_path = PathBuf::from(format!("dll/{}.dll", dll));
+    let asm_path = format!("win32/dll/{}.s", dll);
+    let def_path = format!("win32/dll/{}.def", dll);
+    let dll_path = format!("win32/dll/{}.dll", dll);
 
     b.task("generate source", |b| {
-        b.files(&[], &[&asm_path, &def_path], |b| {
+        let mut ins = Vec::new();
+
+        // win32-derive program sources
+        // TODO: get this from cargo .d files?
+        for f in glob("win32/derive/src/*.rs")? {
+            ins.push(f?);
+        }
+        // processed source files
+        for f in glob(&format!("win32/src/winapi/{dll}/*.rs"))? {
+            let f = f?;
+            if f.file_name().unwrap() == "builtin.rs" {
+                continue;
+            }
+            ins.push(f);
+        }
+
+        b.files(&ins, &[&asm_path, &def_path], |b| {
             b.cmd(&[
                 "cargo",
                 "run",
@@ -17,8 +32,8 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
                 "win32-derive",
                 "--",
                 "--dll-dir",
-                "dll",
-                &format!("src/winapi/{}", dll),
+                "win32/dll",
+                &format!("win32/src/winapi/{}", dll),
             ])
         })
     })?;
@@ -30,17 +45,17 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
                 "-fuse-ld=lld",
                 "-target",
                 "i586-pc-windows-msvc",
-                &format!("dll/{dll}.s"),
+                &asm_path,
                 "/link",
                 "/dll",
-                &format!("/def:dll/{dll}.def"),
-                &format!("/out:dll/{dll}.dll"),
+                &format!("/def:{def_path}"),
+                &format!("/out:{dll_path}"),
                 "/Brepro",
                 "/safeseh:no",
                 "/noentry",
                 "/nodefaultlib",
                 "/subsystem:console",
-                "../lib/retrowin32.lib",
+                "win32/lib/retrowin32.lib",
             ])
         })
     })?;
@@ -71,7 +86,6 @@ fn main() -> anyhow::Result<()> {
 
     let mut b = B::default();
     b.task("dlls", |b| {
-        b.chdir("win32")?;
         for dll in dlls {
             b.task(format!("{dll}.dll"), |b| build_dll(b, dll))?;
         }

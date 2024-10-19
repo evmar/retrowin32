@@ -1,9 +1,9 @@
-use std::{
-    fs::File,
-    io::ErrorKind,
-    path::{Path, PathBuf},
-    time::SystemTime,
-};
+use std::{fs::File, io::ErrorKind, path::Path, time::SystemTime};
+
+pub use glob::glob;
+
+const EXPLAIN: bool = false;
+const VERBOSE: bool = false;
 
 pub fn overprint(msg: &str) {
     use std::io::Write;
@@ -17,46 +17,46 @@ fn is_not_found(err: &std::io::Error) -> bool {
 
 enum OutOfDate<'a> {
     MissingOutput(&'a Path),
-    OldInput(&'a Path),
+    OldInput(&'a Path, &'a Path),
 }
 
 impl<'a> std::fmt::Display for OutOfDate<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             OutOfDate::MissingOutput(path) => write!(f, "missing output {:?}", path),
-            OutOfDate::OldInput(path) => write!(f, "input {:?} is newer than output", path),
+            OutOfDate::OldInput(in_, out) => {
+                write!(f, "input {:?} is newer than output {:?}", in_, out)
+            }
         }
     }
 }
 
-fn out_of_date<'a>(
-    ins: &'a [PathBuf],
-    outs: &'a [PathBuf],
-) -> anyhow::Result<Option<OutOfDate<'a>>> {
-    let mut oldest_out: Option<SystemTime> = None;
+fn out_of_date<'a>(ins: &'a [&Path], outs: &'a [&Path]) -> anyhow::Result<Option<OutOfDate<'a>>> {
+    let mut oldest_out: Option<(&Path, SystemTime)> = None;
     for out in outs {
         let mtime = match out.metadata() {
             Err(err) if is_not_found(&err) => return Ok(Some(OutOfDate::MissingOutput(out))),
             m => m?.modified()?,
         };
         oldest_out = Some(match oldest_out {
-            None => mtime,
-            Some(t) => t.min(mtime),
+            None => (out, mtime),
+            Some((_, t)) if mtime < t => (out, mtime),
+            Some(oldest) => oldest,
         });
     }
-    let oldest_out = oldest_out.unwrap();
+    let (oldest_out_name, oldest_out) = oldest_out.unwrap();
 
     for in_ in ins {
         let mtime = in_.metadata()?.modified()?;
         if mtime > oldest_out {
-            return Ok(Some(OutOfDate::OldInput(in_)));
+            return Ok(Some(OutOfDate::OldInput(in_, oldest_out_name)));
         }
     }
 
     Ok(None)
 }
 
-fn mark_up_to_date(outs: &[PathBuf]) -> anyhow::Result<()> {
+fn mark_up_to_date(outs: &[&Path]) -> anyhow::Result<()> {
     let now = SystemTime::now();
     for out in outs {
         let f = match File::open(out) {
@@ -74,15 +74,9 @@ fn mark_up_to_date(outs: &[PathBuf]) -> anyhow::Result<()> {
 pub struct B {
     desc: String,
     indent: usize,
-    cwd: PathBuf,
 }
 
 impl B {
-    pub fn chdir(&mut self, path: impl AsRef<std::path::Path>) -> anyhow::Result<()> {
-        self.cwd = path.as_ref().to_path_buf();
-        Ok(())
-    }
-
     pub fn task(
         &mut self,
         desc: impl Into<String>,
@@ -97,7 +91,6 @@ impl B {
         let mut b = B {
             desc,
             indent: self.indent + 1,
-            cwd: self.cwd.clone(),
         };
         overprint(&b.desc);
         f(&mut b)?;
@@ -107,16 +100,18 @@ impl B {
         Ok(())
     }
 
-    pub fn files(
+    pub fn files<I: AsRef<Path>, O: AsRef<Path>>(
         &mut self,
-        ins: &[&Path],
-        outs: &[&Path],
+        ins: &[I],
+        outs: &[O],
         f: impl FnOnce(&mut B) -> anyhow::Result<()>,
     ) -> anyhow::Result<()> {
-        let ins = ins.iter().map(|p| self.cwd.join(p)).collect::<Vec<_>>();
-        let outs = outs.iter().map(|p| self.cwd.join(p)).collect::<Vec<_>>();
+        let ins = ins.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
+        let outs = outs.iter().map(|p| p.as_ref()).collect::<Vec<_>>();
         if let Some(reason) = out_of_date(&ins, &outs)? {
-            overprint(&format!("{}\n", reason));
+            if EXPLAIN {
+                overprint(&format!("{}\n", reason));
+            }
             f(self)?;
             mark_up_to_date(&outs)?;
         }
@@ -124,17 +119,23 @@ impl B {
     }
 
     pub fn cmd(&mut self, argv: &[&str]) -> anyhow::Result<()> {
-        self.task(argv[0], |b| {
-            overprint(&format!("$ {}\n", argv.join(" ")));
+        self.task(argv[0], |_| {
+            if VERBOSE {
+                overprint(&format!("$ {}\n", argv.join(" ")));
+            } else {
+                println!(); // Show task
+            }
             let mut cmd = std::process::Command::new(argv[0]);
             cmd.args(&argv[1..]);
-            if !b.cwd.as_os_str().is_empty() {
-                cmd.current_dir(&b.cwd);
-            }
             let output = cmd.output()?;
             if !output.status.success() {
                 println!();
-                println!("{}", std::str::from_utf8(&output.stdout).unwrap());
+                if !output.stdout.is_empty() {
+                    println!("{}", std::str::from_utf8(&output.stdout).unwrap());
+                }
+                if !output.stderr.is_empty() {
+                    println!("{}", std::str::from_utf8(&output.stderr).unwrap());
+                }
                 anyhow::bail!("command failed");
             }
             Ok(())

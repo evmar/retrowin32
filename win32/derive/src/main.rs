@@ -30,7 +30,10 @@ fn parse_files(path: &Path) -> anyhow::Result<Vec<(String, syn::File)>> {
         let path = entry.path();
         let buf = std::fs::read_to_string(path)?;
         let file = syn::parse_file(&buf)?;
-        let mut trace_name_path = path.strip_prefix("src/winapi").unwrap().with_extension("");
+        let mut trace_name_path = path
+            .strip_prefix("win32/src/winapi")
+            .unwrap()
+            .with_extension("");
         if trace_name_path.ends_with("mod") {
             trace_name_path.pop();
         }
