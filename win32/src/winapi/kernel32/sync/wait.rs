@@ -73,7 +73,11 @@ pub async fn wait_for_objects(
                 return WAIT_TIMEOUT;
             }
         }
-        // log::info!("{:?}: waiting for {:?}", kernel32::current_thread(machine), handles);
+        // log::info!(
+        //     "{:?}: waiting for {:?}",
+        //     crate::winapi::kernel32::current_thread(machine),
+        //     handles
+        // );
         machine.emu.x86.cpu_mut().block(until).await;
     }
 }
