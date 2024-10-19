@@ -43,6 +43,121 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectInputDevice_EnumObjects(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let lpCallback = <u32>::from_stack(mem, stack_args + 4u32);
+        let pvRef = <u32>::from_stack(mem, stack_args + 8u32);
+        let dwFlag = <u32>::from_stack(mem, stack_args + 12u32);
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
+            Some(crate::trace::trace_begin(
+                "dinput/dinput",
+                "IDirectInputDevice::EnumObjects",
+                &[
+                    ("this", &this),
+                    ("lpCallback", &lpCallback),
+                    ("pvRef", &pvRef),
+                    ("dwFlag", &dwFlag),
+                ],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInputDevice::EnumObjects(
+            machine, this, lpCallback, pvRef, dwFlag,
+        );
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::dinput::IDirectInputDevice::EnumObjects_pos.0,
+                winapi::dinput::IDirectInputDevice::EnumObjects_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInputDevice_SetDataFormat(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let lpdf = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
+            Some(crate::trace::trace_begin(
+                "dinput/dinput",
+                "IDirectInputDevice::SetDataFormat",
+                &[("this", &this), ("lpdf", &lpdf)],
+            ))
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInputDevice::SetDataFormat(machine, this, lpdf);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::dinput::IDirectInputDevice::SetDataFormat_pos.0,
+                winapi::dinput::IDirectInputDevice::SetDataFormat_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInputDevice_SetEventNotification(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let hEvent = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
+            Some(crate::trace::trace_begin(
+                "dinput/dinput",
+                "IDirectInputDevice::SetEventNotification",
+                &[("this", &this), ("hEvent", &hEvent)],
+            ))
+        } else {
+            None
+        };
+        let result =
+            winapi::dinput::IDirectInputDevice::SetEventNotification(machine, this, hEvent);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::dinput::IDirectInputDevice::SetEventNotification_pos.0,
+                winapi::dinput::IDirectInputDevice::SetEventNotification_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInputDevice_SetProperty(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let rguidProp = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
+        let pdiph = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_context = if crate::trace::enabled("dinput/dinput") {
+            Some(crate::trace::trace_begin(
+                "dinput/dinput",
+                "IDirectInputDevice::SetProperty",
+                &[
+                    ("this", &this),
+                    ("rguidProp", &rguidProp),
+                    ("pdiph", &pdiph),
+                ],
+            ))
+        } else {
+            None
+        };
+        let result =
+            winapi::dinput::IDirectInputDevice::SetProperty(machine, this, rguidProp, pdiph);
+        if let Some(__trace_context) = __trace_context {
+            crate::trace::trace_return(
+                &__trace_context,
+                winapi::dinput::IDirectInputDevice::SetProperty_pos.0,
+                winapi::dinput::IDirectInputDevice::SetProperty_pos.1,
+                &result,
+            );
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -81,10 +196,26 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 2usize] = [
+const SHIMS: [Shim; 6usize] = [
     Shim {
         name: "DirectInputCreateA",
         func: Handler::Sync(wrappers::DirectInputCreateA),
+    },
+    Shim {
+        name: "IDirectInputDevice::EnumObjects",
+        func: Handler::Sync(wrappers::IDirectInputDevice_EnumObjects),
+    },
+    Shim {
+        name: "IDirectInputDevice::SetDataFormat",
+        func: Handler::Sync(wrappers::IDirectInputDevice_SetDataFormat),
+    },
+    Shim {
+        name: "IDirectInputDevice::SetEventNotification",
+        func: Handler::Sync(wrappers::IDirectInputDevice_SetEventNotification),
+    },
+    Shim {
+        name: "IDirectInputDevice::SetProperty",
+        func: Handler::Sync(wrappers::IDirectInputDevice_SetProperty),
     },
     Shim {
         name: "IDirectInput::CreateDevice",

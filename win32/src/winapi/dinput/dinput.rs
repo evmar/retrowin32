@@ -76,21 +76,52 @@ pub mod IDirectInputDevice {
         Release: todo,
 
         GetCapabilities: todo,
-        EnumObjects: todo,
+        EnumObjects: ok,
         GetProperty: todo,
-        SetProperty: todo,
+        SetProperty: ok,
         Acquire: todo,
         Unacquire: todo,
         GetDeviceState: todo,
         GetDeviceData: todo,
-        SetDataFormat: todo,
-        SetEventNotification: todo,
+        SetDataFormat: ok,
+        SetEventNotification: ok,
         SetCooperativeLevel: todo,
         GetObjectInfo: todo,
         GetDeviceInfo: todo,
         RunControlPanel: todo,
         Initialize: todo,
     ];
+
+    #[win32_derive::dllexport]
+    pub fn EnumObjects(
+        machine: &mut Machine,
+        this: u32,
+        lpCallback: u32,
+        pvRef: u32,
+        dwFlag: u32,
+    ) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetDataFormat(machine: &mut Machine, this: u32, lpdf: u32) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetProperty(
+        machine: &mut Machine,
+        this: u32,
+        rguidProp: Option<&GUID>,
+        pdiph: u32,
+    ) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetEventNotification(machine: &mut Machine, this: u32, hEvent: u32) -> DI {
+        DI::OK
+    }
 }
 
 #[win32_derive::dllexport]
