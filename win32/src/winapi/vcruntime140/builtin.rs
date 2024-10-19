@@ -16,27 +16,24 @@ mod wrappers {
         let mem = machine.mem().detach();
         let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
         let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("vcruntime140") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("vcruntime140") {
+            crate::trace::Record::new(
+                winapi::vcruntime140::_CxxThrowException_pos,
                 "vcruntime140",
                 "_CxxThrowException",
                 &[
                     ("pExceptionObject", &pExceptionObject),
                     ("pThrowInfo", &pThrowInfo),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result =
             winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::vcruntime140::_CxxThrowException_pos.0,
-                winapi::vcruntime140::_CxxThrowException_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -45,23 +42,20 @@ mod wrappers {
         let lhs = <u32>::from_stack(mem, stack_args + 0u32);
         let rhs = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("vcruntime140") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("vcruntime140") {
+            crate::trace::Record::new(
+                winapi::vcruntime140::memcmp_pos,
                 "vcruntime140",
                 "memcmp",
                 &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::vcruntime140::memcmp(machine, lhs, rhs, len);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::vcruntime140::memcmp_pos.0,
-                winapi::vcruntime140::memcmp_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -70,23 +64,20 @@ mod wrappers {
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let src = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("vcruntime140") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("vcruntime140") {
+            crate::trace::Record::new(
+                winapi::vcruntime140::memcpy_pos,
                 "vcruntime140",
                 "memcpy",
                 &[("dst", &dst), ("src", &src), ("len", &len)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::vcruntime140::memcpy(machine, dst, src, len);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::vcruntime140::memcpy_pos.0,
-                winapi::vcruntime140::memcpy_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -95,23 +86,20 @@ mod wrappers {
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let val = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("vcruntime140") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("vcruntime140") {
+            crate::trace::Record::new(
+                winapi::vcruntime140::memset_pos,
                 "vcruntime140",
                 "memset",
                 &[("dst", &dst), ("val", &val), ("len", &len)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::vcruntime140::memset(machine, dst, val, len);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::vcruntime140::memset_pos.0,
-                winapi::vcruntime140::memset_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

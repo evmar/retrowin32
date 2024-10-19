@@ -42,6 +42,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         .map(|arg| arg.name)
         .collect::<Vec<_>>();
 
+    let pos_name = syn::Ident::new(&format!("{}_pos", base_name), base_name.span());
+
     {
         let trace_module_name = dllexport.trace_module;
         let trace_args = args
@@ -55,18 +57,17 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             })
             .collect::<Vec<_>>();
         fetch_args.extend(quote! {
-            let __trace_context = if crate::trace::enabled(#trace_module_name) {
-                Some(crate::trace::trace_begin(#trace_module_name, #name_str, &[#(#trace_args),*]))
+            let __trace_record = if crate::trace::enabled(#trace_module_name) {
+                crate::trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
             } else {
                 None
             };
         });
     }
 
-    let pos_name = syn::Ident::new(&format!("{}_pos", base_name), base_name.span());
     let return_result = quote! {
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(&__trace_context, #impls_mod::#pos_name.0, #impls_mod::#pos_name.1, &result);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     };

@@ -15,23 +15,20 @@ mod wrappers {
     pub unsafe fn RegCloseKey(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegCloseKey_pos,
                 "advapi32",
                 "RegCloseKey",
                 &[("hKey", &hKey)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::advapi32::RegCloseKey(machine, hKey);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegCloseKey_pos.0,
-                winapi::advapi32::RegCloseKey_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -40,8 +37,9 @@ mod wrappers {
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
         let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegCreateKeyA_pos,
                 "advapi32",
                 "RegCreateKeyA",
                 &[
@@ -49,18 +47,14 @@ mod wrappers {
                     ("lpSubKey", &lpSubKey),
                     ("phkResult", &phkResult),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::advapi32::RegCreateKeyA(machine, hKey, lpSubKey, phkResult);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegCreateKeyA_pos.0,
-                winapi::advapi32::RegCreateKeyA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -75,8 +69,9 @@ mod wrappers {
         let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 24u32);
         let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
         let lpdwDisposition = <Option<&mut u32>>::from_stack(mem, stack_args + 32u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegCreateKeyExW_pos,
                 "advapi32",
                 "RegCreateKeyExW",
                 &[
@@ -90,7 +85,8 @@ mod wrappers {
                     ("phkResult", &phkResult),
                     ("lpdwDisposition", &lpdwDisposition),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -106,13 +102,8 @@ mod wrappers {
             phkResult,
             lpdwDisposition,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegCreateKeyExW_pos.0,
-                winapi::advapi32::RegCreateKeyExW_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -123,8 +114,9 @@ mod wrappers {
         let ulOptions = <u32>::from_stack(mem, stack_args + 8u32);
         let samDesired = <u32>::from_stack(mem, stack_args + 12u32);
         let phkResult = <Option<&mut HKEY>>::from_stack(mem, stack_args + 16u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegOpenKeyExA_pos,
                 "advapi32",
                 "RegOpenKeyExA",
                 &[
@@ -134,20 +126,16 @@ mod wrappers {
                     ("samDesired", &samDesired),
                     ("phkResult", &phkResult),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::advapi32::RegOpenKeyExA(
             machine, hKey, lpSubKey, ulOptions, samDesired, phkResult,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegOpenKeyExA_pos.0,
-                winapi::advapi32::RegOpenKeyExA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -159,8 +147,9 @@ mod wrappers {
         let lpType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
         let lpData = <u32>::from_stack(mem, stack_args + 16u32);
         let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegQueryValueExA_pos,
                 "advapi32",
                 "RegQueryValueExA",
                 &[
@@ -171,7 +160,8 @@ mod wrappers {
                     ("lpData", &lpData),
                     ("lpcbData", &lpcbData),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -184,13 +174,8 @@ mod wrappers {
             lpData,
             lpcbData,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegQueryValueExA_pos.0,
-                winapi::advapi32::RegQueryValueExA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -202,8 +187,9 @@ mod wrappers {
         let lpType = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
         let lpData = <u32>::from_stack(mem, stack_args + 16u32);
         let lpcbData = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegQueryValueExW_pos,
                 "advapi32",
                 "RegQueryValueExW",
                 &[
@@ -214,7 +200,8 @@ mod wrappers {
                     ("lpData", &lpData),
                     ("lpcbData", &lpcbData),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -227,13 +214,8 @@ mod wrappers {
             lpData,
             lpcbData,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegQueryValueExW_pos.0,
-                winapi::advapi32::RegQueryValueExW_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -245,8 +227,9 @@ mod wrappers {
         let dwType = <u32>::from_stack(mem, stack_args + 12u32);
         let lpData = <u32>::from_stack(mem, stack_args + 16u32);
         let cbData = <u32>::from_stack(mem, stack_args + 20u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegSetValueExA_pos,
                 "advapi32",
                 "RegSetValueExA",
                 &[
@@ -257,7 +240,8 @@ mod wrappers {
                     ("lpData", &lpData),
                     ("cbData", &cbData),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -270,13 +254,8 @@ mod wrappers {
             lpData,
             cbData,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegSetValueExA_pos.0,
-                winapi::advapi32::RegSetValueExA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -288,8 +267,9 @@ mod wrappers {
         let dwType = <u32>::from_stack(mem, stack_args + 12u32);
         let lpData = <u32>::from_stack(mem, stack_args + 16u32);
         let cbData = <u32>::from_stack(mem, stack_args + 20u32);
-        let __trace_context = if crate::trace::enabled("advapi32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("advapi32") {
+            crate::trace::Record::new(
+                winapi::advapi32::RegSetValueExW_pos,
                 "advapi32",
                 "RegSetValueExW",
                 &[
@@ -300,7 +280,8 @@ mod wrappers {
                     ("lpData", &lpData),
                     ("cbData", &cbData),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -313,13 +294,8 @@ mod wrappers {
             lpData,
             cbData,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::advapi32::RegSetValueExW_pos.0,
-                winapi::advapi32::RegSetValueExW_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

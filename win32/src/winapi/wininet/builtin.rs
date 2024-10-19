@@ -19,8 +19,9 @@ mod wrappers {
         let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
         let lpszProxyBypass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_context = if crate::trace::enabled("wininet") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("wininet") {
+            crate::trace::Record::new(
+                winapi::wininet::InternetOpenA_pos,
                 "wininet",
                 "InternetOpenA",
                 &[
@@ -30,7 +31,8 @@ mod wrappers {
                     ("lpszProxyBypass", &lpszProxyBypass),
                     ("dwFlags", &dwFlags),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -42,13 +44,8 @@ mod wrappers {
             lpszProxyBypass,
             dwFlags,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::wininet::InternetOpenA_pos.0,
-                winapi::wininet::InternetOpenA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

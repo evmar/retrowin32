@@ -15,46 +15,40 @@ mod wrappers {
     pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let mode = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_ChannelGetPosition_pos,
                 "bass",
                 "BASS_ChannelGetPosition",
                 &[("mode", &mode)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_ChannelGetPosition(machine, mode);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_ChannelGetPosition_pos.0,
-                winapi::bass::BASS_ChannelGetPosition_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn BASS_Free(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_Free_pos,
                 "bass",
                 "BASS_Free",
                 &[("arg1", &arg1)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_Free(machine, arg1);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_Free_pos.0,
-                winapi::bass::BASS_Free_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -64,8 +58,9 @@ mod wrappers {
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
         let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
         let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_Init_pos,
                 "bass",
                 "BASS_Init",
                 &[
@@ -74,18 +69,14 @@ mod wrappers {
                     ("arg3", &arg3),
                     ("arg4", &arg4),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_Init(machine, arg1, arg2, arg3, arg4);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_Init_pos.0,
-                winapi::bass::BASS_Init_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -96,8 +87,9 @@ mod wrappers {
         let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
         let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
         let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_MusicLoad_pos,
                 "bass",
                 "BASS_MusicLoad",
                 &[
@@ -107,41 +99,34 @@ mod wrappers {
                     ("arg4", &arg4),
                     ("arg5", &arg5),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_MusicLoad(machine, arg1, arg2, arg3, arg4, arg5);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_MusicLoad_pos.0,
-                winapi::bass::BASS_MusicLoad_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn BASS_MusicPlay(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_MusicPlay_pos,
                 "bass",
                 "BASS_MusicPlay",
                 &[("arg1", &arg1)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_MusicPlay(machine, arg1);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_MusicPlay_pos.0,
-                winapi::bass::BASS_MusicPlay_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -149,41 +134,34 @@ mod wrappers {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(
+                winapi::bass::BASS_MusicSetPositionScaler_pos,
                 "bass",
                 "BASS_MusicSetPositionScaler",
                 &[("arg1", &arg1), ("arg2", &arg2)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_MusicSetPositionScaler(machine, arg1, arg2);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_MusicSetPositionScaler_pos.0,
-                winapi::bass::BASS_MusicSetPositionScaler_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn BASS_Start(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let __trace_context = if crate::trace::enabled("bass") {
-            Some(crate::trace::trace_begin("bass", "BASS_Start", &[]))
+        let __trace_record = if crate::trace::enabled("bass") {
+            crate::trace::Record::new(winapi::bass::BASS_Start_pos, "bass", "BASS_Start", &[])
+                .enter()
         } else {
             None
         };
         let result = winapi::bass::BASS_Start(machine);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::bass::BASS_Start_pos.0,
-                winapi::bass::BASS_Start_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

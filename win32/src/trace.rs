@@ -18,11 +18,19 @@ struct Rule {
 struct State {
     rules: Vec<Rule>,
     enabled: HashMap<*const u8, bool>,
+    include_return: bool,
 }
 
 impl State {
     fn new(scheme: &str) -> Self {
         let mut rules = Vec::new();
+        let mut include_return = true;
+        let scheme = if let Some(s) = scheme.strip_prefix("^") {
+            include_return = false;
+            s
+        } else {
+            scheme
+        };
         for mut part in scheme.split(',') {
             if part.len() == 0 {
                 continue;
@@ -44,6 +52,7 @@ impl State {
         State {
             rules,
             enabled: HashMap::new(),
+            include_return,
         }
     }
 
@@ -83,28 +92,52 @@ pub fn enabled(context: &'static str) -> bool {
     }
 }
 
-#[inline(never)]
-pub fn trace_begin(context: &str, func: &str, args: &[(&str, &dyn std::fmt::Debug)]) -> String {
-    let mut msg = format!("{}/{}(", context, func);
-    for (i, arg) in args.iter().enumerate() {
-        if i > 0 {
-            msg.push_str(", ");
-        }
-        write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
-    }
-    msg.push_str(")");
-    log::info!("{}", msg);
-    msg
+fn include_return() -> bool {
+    unsafe { STATE.get_mut().as_mut().unwrap().include_return }
 }
 
-#[inline(never)]
-pub fn trace_return(context: &str, file: &'static str, line: u32, ret: &dyn std::fmt::Debug) {
-    log::logger().log(
-        &log::Record::builder()
-            .level(log::Level::Info)
-            .file(Some(file))
-            .line(Some(line))
-            .args(format_args!("{context} -> {ret:x?}"))
-            .build(),
-    );
+pub struct Record {
+    file: &'static str,
+    line: u32,
+    msg: String,
+}
+
+impl Record {
+    pub fn new(
+        pos: (&'static str, u32),
+        context: &str,
+        func: &str,
+        args: &[(&str, &dyn std::fmt::Debug)],
+    ) -> Record {
+        let mut msg = format!("{}/{}(", context, func);
+        for (i, arg) in args.iter().enumerate() {
+            if i > 0 {
+                msg.push_str(", ");
+            }
+            write!(&mut msg, "{}:{:x?}", arg.0, arg.1).unwrap();
+        }
+        msg.push_str(")");
+
+        let (file, line) = pos;
+        Record { file, line, msg }
+    }
+
+    pub fn enter(self) -> Option<Record> {
+        if !include_return() {
+            self.exit(&None::<u32>);
+            return None;
+        }
+        Some(self)
+    }
+
+    pub fn exit(&self, result: &dyn std::fmt::Debug) {
+        log::logger().log(
+            &log::Record::builder()
+                .level(log::Level::Info)
+                .file(Some(self.file))
+                .line(Some(self.line))
+                .args(format_args!("{} -> {:x?}", self.msg, result))
+                .build(),
+        );
+    }
 }

@@ -18,8 +18,9 @@ mod wrappers {
         let version = <u32>::from_stack(mem, stack_args + 4u32);
         let ppDI = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::DirectInputCreateA_pos,
                 "dinput/dinput",
                 "DirectInputCreateA",
                 &[
@@ -28,18 +29,14 @@ mod wrappers {
                     ("ppDI", &ppDI),
                     ("pUnkOuter", &pUnkOuter),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::dinput::DirectInputCreateA(machine, hinst, version, ppDI, pUnkOuter);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::DirectInputCreateA_pos.0,
-                winapi::dinput::DirectInputCreateA_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -49,8 +46,9 @@ mod wrappers {
         let lpCallback = <u32>::from_stack(mem, stack_args + 4u32);
         let pvRef = <u32>::from_stack(mem, stack_args + 8u32);
         let dwFlag = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::EnumObjects_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::EnumObjects",
                 &[
@@ -59,20 +57,16 @@ mod wrappers {
                     ("pvRef", &pvRef),
                     ("dwFlag", &dwFlag),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::dinput::IDirectInputDevice::EnumObjects(
             machine, this, lpCallback, pvRef, dwFlag,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::IDirectInputDevice::EnumObjects_pos.0,
-                winapi::dinput::IDirectInputDevice::EnumObjects_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -80,23 +74,20 @@ mod wrappers {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpdf = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::SetDataFormat_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetDataFormat",
                 &[("this", &this), ("lpdf", &lpdf)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::dinput::IDirectInputDevice::SetDataFormat(machine, this, lpdf);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::IDirectInputDevice::SetDataFormat_pos.0,
-                winapi::dinput::IDirectInputDevice::SetDataFormat_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -107,24 +98,21 @@ mod wrappers {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hEvent = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::SetEventNotification_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetEventNotification",
                 &[("this", &this), ("hEvent", &hEvent)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result =
             winapi::dinput::IDirectInputDevice::SetEventNotification(machine, this, hEvent);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::IDirectInputDevice::SetEventNotification_pos.0,
-                winapi::dinput::IDirectInputDevice::SetEventNotification_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -133,8 +121,9 @@ mod wrappers {
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let rguidProp = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
         let pdiph = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::SetProperty_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetProperty",
                 &[
@@ -142,19 +131,15 @@ mod wrappers {
                     ("rguidProp", &rguidProp),
                     ("pdiph", &pdiph),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result =
             winapi::dinput::IDirectInputDevice::SetProperty(machine, this, rguidProp, pdiph);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::IDirectInputDevice::SetProperty_pos.0,
-                winapi::dinput::IDirectInputDevice::SetProperty_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -164,8 +149,9 @@ mod wrappers {
         let lpGUID = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
         let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_context = if crate::trace::enabled("dinput/dinput") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInput::CreateDevice_pos,
                 "dinput/dinput",
                 "IDirectInput::CreateDevice",
                 &[
@@ -174,7 +160,8 @@ mod wrappers {
                     ("lplpDirectInputDevice", &lplpDirectInputDevice),
                     ("pUnkOuter", &pUnkOuter),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -185,13 +172,8 @@ mod wrappers {
             lplpDirectInputDevice,
             pUnkOuter,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::dinput::IDirectInput::CreateDevice_pos.0,
-                winapi::dinput::IDirectInput::CreateDevice_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

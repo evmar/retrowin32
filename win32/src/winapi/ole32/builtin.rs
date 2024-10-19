@@ -19,8 +19,9 @@ mod wrappers {
         let dwClsContext = <u32>::from_stack(mem, stack_args + 8u32);
         let riid = <u32>::from_stack(mem, stack_args + 12u32);
         let ppv = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_context = if crate::trace::enabled("ole32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ole32") {
+            crate::trace::Record::new(
+                winapi::ole32::CoCreateInstance_pos,
                 "ole32",
                 "CoCreateInstance",
                 &[
@@ -30,42 +31,35 @@ mod wrappers {
                     ("riid", &riid),
                     ("ppv", &ppv),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result =
             winapi::ole32::CoCreateInstance(machine, rclsid, pUnkOuter, dwClsContext, riid, ppv);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ole32::CoCreateInstance_pos.0,
-                winapi::ole32::CoCreateInstance_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn CoInitialize(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("ole32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ole32") {
+            crate::trace::Record::new(
+                winapi::ole32::CoInitialize_pos,
                 "ole32",
                 "CoInitialize",
                 &[("pvReserved", &pvReserved)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::ole32::CoInitialize(machine, pvReserved);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ole32::CoInitialize_pos.0,
-                winapi::ole32::CoInitialize_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
@@ -73,64 +67,59 @@ mod wrappers {
         let mem = machine.mem().detach();
         let pvReserved = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let dwCoInit = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("ole32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ole32") {
+            crate::trace::Record::new(
+                winapi::ole32::CoInitializeEx_pos,
                 "ole32",
                 "CoInitializeEx",
                 &[("pvReserved", &pvReserved), ("dwCoInit", &dwCoInit)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::ole32::CoInitializeEx(machine, pvReserved, dwCoInit);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ole32::CoInitializeEx_pos.0,
-                winapi::ole32::CoInitializeEx_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn CoUninitialize(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let __trace_context = if crate::trace::enabled("ole32") {
-            Some(crate::trace::trace_begin("ole32", "CoUninitialize", &[]))
+        let __trace_record = if crate::trace::enabled("ole32") {
+            crate::trace::Record::new(
+                winapi::ole32::CoUninitialize_pos,
+                "ole32",
+                "CoUninitialize",
+                &[],
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::ole32::CoUninitialize(machine);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ole32::CoUninitialize_pos.0,
-                winapi::ole32::CoUninitialize_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn OleInitialize(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let _pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("ole32") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ole32") {
+            crate::trace::Record::new(
+                winapi::ole32::OleInitialize_pos,
                 "ole32",
                 "OleInitialize",
                 &[("pvReserved", &_pvReserved)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::ole32::OleInitialize(machine, _pvReserved);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ole32::OleInitialize_pos.0,
-                winapi::ole32::OleInitialize_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

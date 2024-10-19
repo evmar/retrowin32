@@ -19,8 +19,30 @@ The command line as seen by the program is an optional third argument:
 $ ./target/lto/retrowin32 path/to/some.exe "c:\\some.exe arg1 arg2"
 ```
 
-The `--win32-trace` flag controls tracing of win32 API calls. Passing `*` (which
-must be quoted from the shell) makes retrowin32 trace all win32 calls.
+### Tracing
+
+The `--win32-trace` flag controls tracing of win32 API calls. It accepts a
+comma-separated list of:
+
+- `*` (which must be quoted from the shell) makes retrowin32 trace all win32
+  calls.
+- module prefixes like `kernel32/init`, which enables tracing for matching
+  modules
+- modules can be hidden by prefixing with minus, e.g. `-kernel32/init`
+- tracing can log on entry by prefixing the whole string with `^`
+
+Some common variations I use are:
+
+```
+--win32-trace '*'
+--win32-trace '*,-kernel32/memory'
+```
+
+On `todo()` it's useful to see which function we were in:
+
+```
+--win32-trace '^*,-kernel32/memory'
+```
 
 ### Rosetta
 

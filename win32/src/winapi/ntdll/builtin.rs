@@ -22,8 +22,9 @@ mod wrappers {
         let Buffer = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 20u32);
         let ByteOffset = <Option<&mut u64>>::from_stack(mem, stack_args + 28u32);
         let Key = <u32>::from_stack(mem, stack_args + 32u32);
-        let __trace_context = if crate::trace::enabled("ntdll") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ntdll") {
+            crate::trace::Record::new(
+                winapi::ntdll::NtReadFile_pos,
                 "ntdll",
                 "NtReadFile",
                 &[
@@ -36,7 +37,8 @@ mod wrappers {
                     ("ByteOffset", &ByteOffset),
                     ("Key", &Key),
                 ],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -51,36 +53,28 @@ mod wrappers {
             ByteOffset,
             Key,
         );
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ntdll::NtReadFile_pos.0,
-                winapi::ntdll::NtReadFile_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }
     pub unsafe fn RtlExitUserProcess(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_context = if crate::trace::enabled("ntdll") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("ntdll") {
+            crate::trace::Record::new(
+                winapi::ntdll::RtlExitUserProcess_pos,
                 "ntdll",
                 "RtlExitUserProcess",
                 &[("exit_code", &exit_code)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
         let result = winapi::ntdll::RtlExitUserProcess(machine, exit_code);
-        if let Some(__trace_context) = __trace_context {
-            crate::trace::trace_return(
-                &__trace_context,
-                winapi::ntdll::RtlExitUserProcess_pos.0,
-                winapi::ntdll::RtlExitUserProcess_pos.1,
-                &result,
-            );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
         }
         result.to_raw()
     }

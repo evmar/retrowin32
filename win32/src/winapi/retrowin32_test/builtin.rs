@@ -19,12 +19,14 @@ mod wrappers {
         let mem = machine.mem().detach();
         let func = <u32>::from_stack(mem, stack_args + 0u32);
         let data = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_context = if crate::trace::enabled("retrowin32_test") {
-            Some(crate::trace::trace_begin(
+        let __trace_record = if crate::trace::enabled("retrowin32_test") {
+            crate::trace::Record::new(
+                winapi::retrowin32_test::retrowin32_test_callback1_pos,
                 "retrowin32_test",
                 "retrowin32_test_callback1",
                 &[("func", &func), ("data", &data)],
-            ))
+            )
+            .enter()
         } else {
             None
         };
@@ -33,13 +35,8 @@ mod wrappers {
             let machine = unsafe { &mut *machine };
             let result =
                 winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
-            if let Some(__trace_context) = __trace_context {
-                crate::trace::trace_return(
-                    &__trace_context,
-                    winapi::retrowin32_test::retrowin32_test_callback1_pos.0,
-                    winapi::retrowin32_test::retrowin32_test_callback1_pos.1,
-                    &result,
-                );
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
             }
             result.to_raw()
         })
