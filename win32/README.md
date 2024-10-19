@@ -18,11 +18,11 @@ The code generator traverses the `dllexport` attributes and generates a Rust
 glue module as well as the code for special `.dll` files that end up inlined
 into the final binaries.
 
-To rerun the code generator after an API change, run `make` in this directory. I
-typically `make -j -C win32` from the project root.
+To rerun the code generator after an API change, run `cargo minibuild` from the
+project root.
 
-The `Makefile` also compiles these `.dll` files, which requires `clang-cl` from
-LLVM in your `$PATH`. I just unpack a pre-built
+The build also compiles these `.dll` files, which requires `clang-cl` from LLVM
+in your `$PATH`. I just unpack a pre-built
 [binary release of theirs](https://releases.llvm.org/download.html).
 
 ## The `Host` trait
