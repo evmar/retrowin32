@@ -2,4 +2,4 @@
 linker = "rust-lld"
 
 [alias]
-minibuild = "run -q -p minibuild"
+minibuild = "run -q -p minibuild --"
