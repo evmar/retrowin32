@@ -14,7 +14,7 @@ fn build_dll(b: &mut B, dll: &str) -> anyhow::Result<()> {
             ins.push(f?);
         }
         // processed source files
-        for f in glob(&format!("win32/src/winapi/{dll}/*.rs"))? {
+        for f in glob(&format!("win32/src/winapi/{dll}/**/*.rs"))? {
             let f = f?;
             if f.file_name().unwrap() == "builtin.rs" {
                 continue;
