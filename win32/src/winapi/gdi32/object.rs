@@ -66,7 +66,9 @@ pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) 
             color: Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
         })),
         GRAY_BRUSH => todo!(),
-        DKGRAY_BRUSH => todo!(),
+        DKGRAY_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
+            color: Some(COLORREF::from_rgb(0x40, 0x40, 0x40)),
+        })),
         BLACK_BRUSH => machine.state.gdi32.objects.add(Object::Brush(Brush {
             color: Some(COLORREF::from_rgb(0x00, 0x00, 0x00)),
         })),
