@@ -1525,6 +1525,28 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetUpdateRect(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+        let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
+        let bErase = <bool>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("user32/paint") {
+            crate::trace::Record::new(
+                winapi::user32::GetUpdateRect_pos,
+                "user32/paint",
+                "GetUpdateRect",
+                &[("hWnd", &hWnd), ("lpRect", &lpRect), ("bErase", &bErase)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::GetUpdateRect(machine, hWnd, lpRect, bErase);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetWindowDC(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3468,7 +3490,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 136usize] = [
+const SHIMS: [Shim; 137usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3700,6 +3722,10 @@ const SHIMS: [Shim; 136usize] = [
     Shim {
         name: "GetSystemMetrics",
         func: Handler::Sync(wrappers::GetSystemMetrics),
+    },
+    Shim {
+        name: "GetUpdateRect",
+        func: Handler::Sync(wrappers::GetUpdateRect),
     },
     Shim {
         name: "GetWindowDC",

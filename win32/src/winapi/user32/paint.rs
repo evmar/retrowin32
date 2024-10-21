@@ -39,6 +39,34 @@ pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) ->
     false // fail
 }
 
+#[win32_derive::dllexport]
+pub fn GetUpdateRect(
+    machine: &mut Machine,
+    hWnd: HWND,
+    lpRect: Option<&mut RECT>,
+    bErase: bool,
+) -> bool {
+    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let top = window.expect_toplevel_mut();
+
+    if let Some(dirty) = &top.dirty {
+        if let Some(rect) = lpRect {
+            *rect = RECT {
+                left: 0,
+                top: 0,
+                right: window.width as i32,
+                bottom: window.height as i32,
+            };
+        }
+        if bErase {
+            todo!(); // need to erase background(?!)
+        }
+        true
+    } else {
+        false
+    }
+}
+
 /// Handle to a region.
 pub type HRGN = HGDIOBJ;
 
