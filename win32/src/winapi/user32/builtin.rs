@@ -3192,6 +3192,34 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn SetWindowsHookExA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let idHook = <u32>::from_stack(mem, stack_args + 0u32);
+        let lpfn = <u32>::from_stack(mem, stack_args + 4u32);
+        let hmod = <HINSTANCE>::from_stack(mem, stack_args + 8u32);
+        let dwThreadId = <u32>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::SetWindowsHookExA_pos,
+                "user32/misc",
+                "SetWindowsHookExA",
+                &[
+                    ("idHook", &idHook),
+                    ("lpfn", &lpfn),
+                    ("hmod", &hmod),
+                    ("dwThreadId", &dwThreadId),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::SetWindowsHookExA(machine, idHook, lpfn, hmod, dwThreadId);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn ShowCursor(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let bShow = <bool>::from_stack(mem, stack_args + 0u32);
@@ -3490,7 +3518,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 137usize] = [
+const SHIMS: [Shim; 138usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3990,6 +4018,10 @@ const SHIMS: [Shim; 137usize] = [
     Shim {
         name: "SetWindowTextA",
         func: Handler::Sync(wrappers::SetWindowTextA),
+    },
+    Shim {
+        name: "SetWindowsHookExA",
+        func: Handler::Sync(wrappers::SetWindowsHookExA),
     },
     Shim {
         name: "ShowCursor",

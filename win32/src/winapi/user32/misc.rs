@@ -269,3 +269,14 @@ pub fn GetKeyboardLayout(_machine: &mut Machine, idThread: u32) -> u32 {
     log::warn!("GetKeyboardLayout: stub");
     0 // garbage value, unclear if callers care
 }
+
+#[win32_derive::dllexport]
+pub fn SetWindowsHookExA(
+    _machine: &mut Machine,
+    idHook: u32, /* WINDOWS_HOOK_ID */
+    lpfn: u32,   /* HOOKPROC */
+    hmod: HINSTANCE,
+    dwThreadId: u32,
+) -> u32 {
+    0
+}
