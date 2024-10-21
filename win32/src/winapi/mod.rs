@@ -18,6 +18,7 @@ mod ntdll;
 mod ole32;
 mod oleaut32;
 mod retrowin32_test;
+mod shlwapi;
 mod stack_args;
 pub mod types;
 mod ucrtbase;

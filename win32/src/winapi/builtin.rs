@@ -12,7 +12,7 @@ pub struct BuiltinDLL {
     pub raw: &'static [u8],
 }
 
-pub const DLLS: [BuiltinDLL; 17] = [
+pub const DLLS: [BuiltinDLL; 18] = [
     crate::winapi::advapi32::DLL,
     crate::winapi::bass::DLL,
     crate::winapi::ddraw::DLL,
@@ -23,6 +23,7 @@ pub const DLLS: [BuiltinDLL; 17] = [
     crate::winapi::ntdll::DLL,
     crate::winapi::ole32::DLL,
     crate::winapi::oleaut32::DLL,
+    crate::winapi::shlwapi::DLL,
     crate::winapi::ucrtbase::DLL,
     crate::winapi::user32::DLL,
     crate::winapi::vcruntime140::DLL,

@@ -76,6 +76,7 @@ fn main() -> anyhow::Result<()> {
         "ole32",
         "oleaut32",
         "retrowin32_test",
+        "shlwapi",
         "ucrtbase",
         "vcruntime140",
         "version",
