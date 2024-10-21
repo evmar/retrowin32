@@ -32,11 +32,11 @@ pub mod IDirectInput {
 
     vtable![
         QueryInterface: todo,
-        AddRef: todo,
-        Release: todo,
+        AddRef: ok,
+        Release: ok,
 
         CreateDevice: ok,
-        EnumDevices: todo,
+        EnumDevices: ok,
         GetDeviceStatus: todo,
         RunControlPanel: todo,
         Initialize: todo,
@@ -51,6 +51,28 @@ pub mod IDirectInput {
         pUnkOuter: u32,
     ) -> DI {
         *lplpDirectInputDevice.unwrap() = IDirectInputDevice::new(machine);
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn AddRef(machine: &mut Machine, this: u32) -> u32 {
+        1
+    }
+
+    #[win32_derive::dllexport]
+    pub fn Release(machine: &mut Machine, this: u32) -> u32 {
+        1
+    }
+
+    #[win32_derive::dllexport]
+    pub fn EnumDevices(
+        machine: &mut Machine,
+        this: u32,
+        dwDevType: u32,
+        callback: u32,
+        pvRef: u32,
+        dwFlags: u32,
+    ) -> DI {
         DI::OK
     }
 }

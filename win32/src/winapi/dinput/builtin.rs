@@ -143,6 +143,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectInput_AddRef(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInput::AddRef_pos,
+                "dinput/dinput",
+                "IDirectInput::AddRef",
+                &[("this", &this)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInput::AddRef(machine, this);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -177,8 +197,60 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectInput_EnumDevices(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwDevType = <u32>::from_stack(mem, stack_args + 4u32);
+        let callback = <u32>::from_stack(mem, stack_args + 8u32);
+        let pvRef = <u32>::from_stack(mem, stack_args + 12u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInput::EnumDevices_pos,
+                "dinput/dinput",
+                "IDirectInput::EnumDevices",
+                &[
+                    ("this", &this),
+                    ("dwDevType", &dwDevType),
+                    ("callback", &callback),
+                    ("pvRef", &pvRef),
+                    ("dwFlags", &dwFlags),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInput::EnumDevices(
+            machine, this, dwDevType, callback, pvRef, dwFlags,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInput_Release(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInput::Release_pos,
+                "dinput/dinput",
+                "IDirectInput::Release",
+                &[("this", &this)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInput::Release(machine, this);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
 }
-const SHIMS: [Shim; 6usize] = [
+const SHIMS: [Shim; 9usize] = [
     Shim {
         name: "DirectInputCreateA",
         func: Handler::Sync(wrappers::DirectInputCreateA),
@@ -200,8 +272,20 @@ const SHIMS: [Shim; 6usize] = [
         func: Handler::Sync(wrappers::IDirectInputDevice_SetProperty),
     },
     Shim {
+        name: "IDirectInput::AddRef",
+        func: Handler::Sync(wrappers::IDirectInput_AddRef),
+    },
+    Shim {
         name: "IDirectInput::CreateDevice",
         func: Handler::Sync(wrappers::IDirectInput_CreateDevice),
+    },
+    Shim {
+        name: "IDirectInput::EnumDevices",
+        func: Handler::Sync(wrappers::IDirectInput_EnumDevices),
+    },
+    Shim {
+        name: "IDirectInput::Release",
+        func: Handler::Sync(wrappers::IDirectInput_Release),
     },
 ];
 pub const DLL: BuiltinDLL = BuiltinDLL {
