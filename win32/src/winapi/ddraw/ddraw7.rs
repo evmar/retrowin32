@@ -380,6 +380,10 @@ pub mod IDirectDrawSurface7 {
             log::warn!("todo: DDBLT::COLORFILL");
             return DD_OK;
         }
+        if lpSrc == 0 {
+            log::error!("Blt from null surface");
+            return DD_OK;
+        }
         log::warn!("Blt: ignoring behavioral flags");
         BltFast(machine, this, 0, 0, lpSrc, None, 0)
     }
