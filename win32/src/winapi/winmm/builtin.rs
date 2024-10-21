@@ -514,6 +514,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn timeGetDevCaps(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let ptc = <Option<&mut TIMECAPS>>::from_stack(mem, stack_args + 0u32);
+        let cbtc = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("winmm/time") {
+            crate::trace::Record::new(
+                winapi::winmm::timeGetDevCaps_pos,
+                "winmm/time",
+                "timeGetDevCaps",
+                &[("ptc", &ptc), ("cbtc", &cbtc)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::winmm::timeGetDevCaps(machine, ptc, cbtc);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn timeGetTime(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("winmm/time") {
@@ -874,7 +895,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 38usize] = [
+const SHIMS: [Shim; 39usize] = [
     Shim {
         name: "PlaySoundW",
         func: Handler::Sync(wrappers::PlaySoundW),
@@ -962,6 +983,10 @@ const SHIMS: [Shim; 38usize] = [
     Shim {
         name: "timeEndPeriod",
         func: Handler::Sync(wrappers::timeEndPeriod),
+    },
+    Shim {
+        name: "timeGetDevCaps",
+        func: Handler::Sync(wrappers::timeGetDevCaps),
     },
     Shim {
         name: "timeGetTime",
