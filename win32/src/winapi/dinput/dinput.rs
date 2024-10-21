@@ -4,9 +4,12 @@ use memory::ExtensionsMut;
 
 pub use crate::winapi::com::GUID;
 
+const ENABLE: bool = true;
+
 #[derive(Debug, Copy, Clone)]
 pub enum DI {
     OK = 0,
+    ERR_DEVICENOTREG = 0x80040154,
 }
 
 impl stack_args::ToX86 for DI {
@@ -50,6 +53,9 @@ pub mod IDirectInput {
         lplpDirectInputDevice: Option<&mut u32>,
         pUnkOuter: u32,
     ) -> DI {
+        if !ENABLE {
+            return DI::ERR_DEVICENOTREG;
+        }
         *lplpDirectInputDevice.unwrap() = IDirectInputDevice::new(machine);
         DI::OK
     }
