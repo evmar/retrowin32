@@ -1,3 +1,4 @@
+use super::FILETIME;
 use crate::str16::String16;
 use crate::winapi::kernel32::set_last_error;
 use crate::winapi::stack_args::ToX86;
@@ -222,48 +223,6 @@ pub fn GetFileType(machine: &mut Machine, hFile: HFILE) -> u32 {
 
     log::error!("GetFileType({hFile:?}) unknown handle");
     FILE_TYPE_UNKNOWN
-}
-
-/// Contains a 64-bit value representing the number of 100-nanosecond intervals since
-/// January 1, 1601 (UTC).
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-pub struct FILETIME {
-    pub dwLowDateTime: u32,
-    pub dwHighDateTime: u32,
-}
-unsafe impl memory::Pod for FILETIME {}
-
-/// Number of 100ns intervals between 1601-01-01 and 1970-01-01.
-/// Used to convert between Win32 FILETIME and Unix time.
-const HNSEC_UNIX_OFFSET: i64 = 116_444_736_000_000_000;
-
-impl FILETIME {
-    #[inline]
-    pub fn from_u64(value: u64) -> Self {
-        FILETIME {
-            dwLowDateTime: value as u32,
-            dwHighDateTime: (value >> 32) as u32,
-        }
-    }
-
-    #[inline]
-    pub fn to_u64(self) -> u64 {
-        (self.dwHighDateTime as u64) << 32 | self.dwLowDateTime as u64
-    }
-
-    pub fn from_unix_nanos(nanos: i64) -> Self {
-        let hnsecs = nanos.div_euclid(100).saturating_add(HNSEC_UNIX_OFFSET);
-        Self::from_u64(if hnsecs < 0 { 0 } else { hnsecs as u64 })
-    }
-
-    pub fn to_unix_nanos(self) -> i64 {
-        let hnsecs = self.to_u64();
-        if hnsecs > i64::MAX as u64 {
-            return i64::MAX;
-        }
-        (hnsecs as i64).saturating_sub(HNSEC_UNIX_OFFSET) * 100
-    }
 }
 
 #[repr(C)]

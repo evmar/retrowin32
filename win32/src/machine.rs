@@ -25,6 +25,15 @@ pub struct MachineX<Emu> {
 }
 
 impl<Emu> MachineX<Emu> {
+    /// Hackily make a null pointer, for use in tests when we know the pointer isn't needed.
+    #[cfg(test)]
+    pub fn null() -> &'static mut MachineX<Emu> {
+        #[allow(invalid_value)]
+        unsafe {
+            std::mem::transmute(0usize)
+        }
+    }
+
     pub fn set_external_dlls(&mut self, dlls: &[String]) {
         self.external_dlls = dlls
             .iter()

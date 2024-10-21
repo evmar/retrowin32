@@ -1,6 +1,5 @@
-use super::{set_last_error, FILETIME};
-use crate::{winapi::ERROR, Machine};
-use chrono::{Datelike, Timelike};
+use crate::Machine;
+use chrono::{Datelike, Timelike, Utc};
 use memory::{ExtensionsMut, Pod};
 
 #[win32_derive::dllexport]
@@ -13,9 +12,7 @@ pub fn GetTickCount(machine: &mut Machine) -> u32 {
 // is to say a count is 0.1us.
 const QUERY_PERFORMANCE_FREQ: u32 = 10_000_000;
 
-// In principle we could just use an i64 here, but when Windows passes one of these via
-// the stack it may align it on a 4-byte address when Rust requires 8-byte alignment for
-// 64-bit addresses.  So instead we more closely match the Windows behavior.
+// This is effectively a 64-bit integer but defined as two u32s for alignment reasons.
 #[repr(C)]
 #[derive(Debug)]
 pub struct LARGE_INTEGER {
@@ -47,39 +44,77 @@ pub fn QueryPerformanceFrequency(machine: &mut Machine, lpFrequency: u32) -> boo
     true
 }
 
+/// Contains a 64-bit value representing the number of 100-nanosecond intervals since
+/// January 1, 1601 (UTC).
+/// However, functions like FileTimeToLocalFileTime stuff local time into it anyway, ugh.
+// This is effectively a 64-bit integer but defined as two u32s for alignment reasons.
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct FILETIME {
+    pub dwLowDateTime: u32,
+    pub dwHighDateTime: u32,
+}
+unsafe impl memory::Pod for FILETIME {}
+
+/// Number of 100ns intervals between 1601-01-01 and 1970-01-01.
+/// Used to convert between Win32 FILETIME and Unix time.
+const HNSEC_UNIX_OFFSET: i64 = 116_444_736_000_000_000;
+
+impl FILETIME {
+    pub fn from_chrono(time: chrono::DateTime<Utc>) -> Self {
+        let nanos = time.timestamp_nanos_opt().unwrap();
+        Self::from_unix_nanos(nanos)
+    }
+
+    pub fn to_chrono(self) -> chrono::DateTime<Utc> {
+        let nanos = self.to_unix_nanos();
+        chrono::DateTime::from_timestamp_nanos(nanos)
+    }
+
+    pub fn from_u64(value: u64) -> Self {
+        FILETIME {
+            dwLowDateTime: value as u32,
+            dwHighDateTime: (value >> 32) as u32,
+        }
+    }
+
+    pub fn to_u64(self) -> u64 {
+        (self.dwHighDateTime as u64) << 32 | self.dwLowDateTime as u64
+    }
+
+    pub fn from_unix_nanos(nanos: i64) -> Self {
+        let hnsecs = nanos.div_euclid(100).saturating_add(HNSEC_UNIX_OFFSET);
+        Self::from_u64(if hnsecs < 0 { 0 } else { hnsecs as u64 })
+    }
+
+    pub fn to_unix_nanos(self) -> i64 {
+        let hnsecs = self.to_u64();
+        if hnsecs > i64::MAX as u64 {
+            return i64::MAX;
+        }
+        (hnsecs as i64).saturating_sub(HNSEC_UNIX_OFFSET) * 100
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn GetSystemTimeAsFileTime(
     machine: &mut Machine,
     lpSystemTimeAsFileTime: Option<&mut FILETIME>,
-) -> u32 {
+) {
     let date_time = machine.host.system_time().to_utc();
-    if let Some(time) = lpSystemTimeAsFileTime {
-        let Some(nanos) = date_time.timestamp_nanos_opt() else {
-            log::warn!("GetSystemTimeAsFileTime: timestamp_nanos_opt failed");
-            *time = FILETIME::zeroed();
-            return 0;
-        };
-        *time = FILETIME::from_unix_nanos(nanos);
-    }
-    0
+    *lpSystemTimeAsFileTime.unwrap() = FILETIME::from_chrono(date_time);
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
-    let date_time = machine.host.system_time().naive_utc();
-    if let Some(time) = lpSystemTime {
-        *time = SYSTEMTIME::from_chrono(&date_time);
-    }
-    0
+pub fn GetSystemTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) {
+    let date_time = machine.host.system_time().to_utc();
+    *lpSystemTime.unwrap() = SYSTEMTIME::from_chrono(&date_time);
 }
 
 #[win32_derive::dllexport]
-pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> u32 {
+pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) {
     let date_time = machine.host.system_time();
-    if let Some(time) = lpSystemTime {
-        *time = SYSTEMTIME::from_chrono(&date_time);
-    }
-    0
+    *lpSystemTime.unwrap() = SYSTEMTIME::from_chrono(&date_time);
 }
 
 #[win32_derive::dllexport]
@@ -88,39 +123,8 @@ pub fn SystemTimeToFileTime(
     lpSystemTime: Option<&SYSTEMTIME>,
     lpFileTime: Option<&mut FILETIME>,
 ) -> bool {
-    let Some(lpSystemTime) = lpSystemTime else {
-        log::warn!("SystemTimeToFileTime: lpSystemTime is null");
-        set_last_error(machine, ERROR::INVALID_DATA);
-        return false;
-    };
-    let date_time = match chrono::NaiveDate::from_ymd_opt(
-        lpSystemTime.wYear as i32,
-        lpSystemTime.wMonth as u32,
-        lpSystemTime.wDay as u32,
-    )
-    .and_then(|dt| {
-        dt.and_hms_milli_opt(
-            lpSystemTime.wHour as u32,
-            lpSystemTime.wMinute as u32,
-            lpSystemTime.wSecond as u32,
-            lpSystemTime.wMilliseconds as u32,
-        )
-    }) {
-        Some(dt) => dt.and_utc(),
-        None => {
-            log::warn!("SystemTimeToFileTime: invalid SYSTEMTIME");
-            set_last_error(machine, ERROR::INVALID_DATA);
-            return false;
-        }
-    };
-    if let Some(time) = lpFileTime {
-        let Some(nanos) = date_time.timestamp_nanos_opt() else {
-            log::warn!("SystemTimeToFileTime: timestamp_nanos_opt failed");
-            *time = FILETIME::zeroed();
-            return false;
-        };
-        *time = FILETIME::from_unix_nanos(nanos);
-    }
+    let date_time = lpSystemTime.unwrap().to_chrono().unwrap();
+    *lpFileTime.unwrap() = FILETIME::from_chrono(date_time.and_utc());
     true
 }
 
@@ -130,16 +134,8 @@ pub fn FileTimeToSystemTime(
     lpFileTime: Option<&FILETIME>,
     lpSystemTime: Option<&mut SYSTEMTIME>,
 ) -> bool {
-    let Some(lpFileTime) = lpFileTime else {
-        log::warn!("FileTimeToSystemTime: lpFileTime is null");
-        set_last_error(machine, ERROR::INVALID_DATA);
-        return false;
-    };
-    let nanos = lpFileTime.to_unix_nanos();
-    let date_time = chrono::DateTime::from_timestamp_nanos(nanos);
-    if let Some(time) = lpSystemTime {
-        *time = SYSTEMTIME::from_chrono(&date_time);
-    }
+    let date_time = lpFileTime.unwrap().to_chrono();
+    *lpSystemTime.unwrap() = SYSTEMTIME::from_chrono(&date_time);
     true
 }
 
@@ -191,6 +187,20 @@ impl SYSTEMTIME {
             wMilliseconds: (dt.nanosecond() / 1_000_000) as u16,
         }
     }
+
+    pub fn to_chrono(&self) -> Option<chrono::NaiveDateTime> {
+        let date = chrono::NaiveDate::from_ymd_opt(
+            self.wYear as i32,
+            self.wMonth as u32,
+            self.wDay as u32,
+        )?;
+        date.and_hms_milli_opt(
+            self.wHour as u32,
+            self.wMinute as u32,
+            self.wSecond as u32,
+            self.wMilliseconds as u32,
+        )
+    }
 }
 unsafe impl memory::Pod for SYSTEMTIME {}
 
@@ -222,8 +232,59 @@ pub fn GetTimeZoneInformation(
 #[win32_derive::dllexport]
 pub fn FileTimeToLocalFileTime(
     _machine: &mut Machine,
-    lpFileTime: Option<&mut FILETIME>,
+    lpFileTime: Option<&FILETIME>,
     lpLocalFileTime: Option<&mut FILETIME>,
 ) -> bool {
-    todo!()
+    // FILETIME is officially UTC, but this function wants it converted to local time and
+    // stuffed back in to a FILETIME.
+    // TODO: I might have this backwards.
+    let time = lpFileTime
+        .unwrap()
+        .to_chrono()
+        .with_timezone(&chrono::Local);
+    *lpLocalFileTime.unwrap() = FILETIME::from_chrono(
+        time.naive_local() // strip timezone
+            .and_utc(),
+    );
+    true
 }
+
+#[win32_derive::dllexport]
+pub fn FileTimeToDosDateTime(
+    _machine: &mut Machine,
+    lpFileTime: Option<&FILETIME>,
+    lpFatDate: Option<&mut u16>,
+    lpFatTime: Option<&mut u16>,
+) -> bool {
+    let time = lpFileTime.unwrap().to_chrono();
+    *lpFatDate.unwrap() =
+        (time.year() as u16 - 1980) << 9 | (time.month() as u16) << 5 | time.day() as u16;
+    *lpFatTime.unwrap() =
+        (time.hour() as u16) << 11 | (time.minute() as u16) << 5 | (time.second() as u16 / 2);
+    true
+}
+
+/*
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // This test is tz-dependent:
+    #[test]
+    fn FileTimeToLocalFileTime() {
+        use chrono::TimeZone;
+
+        let utc = chrono::Utc.ymd(2021, 1, 1).and_hms(0, 0, 0);
+        let file_time = FILETIME::from_chrono(utc);
+        let mut out_file_time = FILETIME::from_chrono(utc);
+        assert!(super::FileTimeToLocalFileTime(
+            Machine::null(),
+            Some(&file_time),
+            Some(&mut out_file_time),
+        ));
+        eprintln!("file_time: {:?}", file_time.to_chrono());
+        eprintln!("file_time: {:?}", out_file_time.to_chrono());
+        assert!(file_time != out_file_time);
+    }
+}
+*/

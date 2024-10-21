@@ -622,9 +622,36 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn FileTimeToDosDateTime(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
+        let lpFatDate = <Option<&mut u16>>::from_stack(mem, stack_args + 4u32);
+        let lpFatTime = <Option<&mut u16>>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("kernel32/time") {
+            crate::trace::Record::new(
+                winapi::kernel32::FileTimeToDosDateTime_pos,
+                "kernel32/time",
+                "FileTimeToDosDateTime",
+                &[
+                    ("lpFileTime", &lpFileTime),
+                    ("lpFatDate", &lpFatDate),
+                    ("lpFatTime", &lpFatTime),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result =
+            winapi::kernel32::FileTimeToDosDateTime(machine, lpFileTime, lpFatDate, lpFatTime);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn FileTimeToLocalFileTime(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
+        let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
         let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
         let __trace_record = if crate::trace::enabled("kernel32/time") {
             crate::trace::Record::new(
@@ -4757,7 +4784,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 195usize] = [
+const SHIMS: [Shim; 196usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -4841,6 +4868,10 @@ const SHIMS: [Shim; 195usize] = [
     Shim {
         name: "ExitThread",
         func: Handler::Sync(wrappers::ExitThread),
+    },
+    Shim {
+        name: "FileTimeToDosDateTime",
+        func: Handler::Sync(wrappers::FileTimeToDosDateTime),
     },
     Shim {
         name: "FileTimeToLocalFileTime",
