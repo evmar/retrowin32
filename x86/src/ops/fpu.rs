@@ -431,6 +431,12 @@ pub fn fnstsw_ax(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.regs.set32(Register::EAX, cpu.fpu.status.bits() as u32);
 }
 
+pub fn fnstsw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    // TODO: does this need stack top in it?
+    let addr = x86_addr(cpu, instr);
+    mem.put_pod::<u16>(addr, cpu.fpu.status.bits() as u16);
+}
+
 pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // TODO: control word
     let cw = 0x37u16; // default value
