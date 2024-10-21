@@ -263,6 +263,40 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectDraw7_CreateClipper(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let unused = <u32>::from_stack(mem, stack_args + 4u32);
+        let lplpClipper = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
+        let reserved = <u32>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("ddraw/ddraw7") {
+            crate::trace::Record::new(
+                winapi::ddraw::IDirectDraw7::CreateClipper_pos,
+                "ddraw/ddraw7",
+                "IDirectDraw7::CreateClipper",
+                &[
+                    ("this", &this),
+                    ("unused", &unused),
+                    ("lplpClipper", &lplpClipper),
+                    ("reserved", &reserved),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ddraw::IDirectDraw7::CreateClipper(
+            machine,
+            this,
+            unused,
+            lplpClipper,
+            reserved,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectDraw7_CreatePalette(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1407,7 +1441,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 54usize] = [
+const SHIMS: [Shim; 55usize] = [
     Shim {
         name: "DirectDrawCreate",
         func: Handler::Sync(wrappers::DirectDrawCreate),
@@ -1443,6 +1477,10 @@ const SHIMS: [Shim; 54usize] = [
     Shim {
         name: "IDirectDraw2::SetDisplayMode",
         func: Handler::Sync(wrappers::IDirectDraw2_SetDisplayMode),
+    },
+    Shim {
+        name: "IDirectDraw7::CreateClipper",
+        func: Handler::Sync(wrappers::IDirectDraw7_CreateClipper),
     },
     Shim {
         name: "IDirectDraw7::CreatePalette",

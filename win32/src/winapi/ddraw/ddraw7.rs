@@ -56,6 +56,8 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
+    use ddraw::IDirectDrawClipper;
+
     use crate::winapi::gdi32::PALETTEENTRY;
 
     use super::*;
@@ -65,7 +67,7 @@ pub mod IDirectDraw7 {
         AddRef: todo,
         Release: ok,
         Compact: todo,
-        CreateClipper: todo,
+        CreateClipper: ok,
         CreatePalette: ok,
         CreateSurface: ok,
         DuplicateSurface: todo,
@@ -105,6 +107,18 @@ pub mod IDirectDraw7 {
     pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
+    }
+
+    #[win32_derive::dllexport]
+    pub fn CreateClipper(
+        machine: &mut Machine,
+        this: u32,
+        unused: u32,
+        lplpClipper: Option<&mut u32>,
+        reserved: u32,
+    ) -> u32 {
+        *lplpClipper.unwrap() = IDirectDrawClipper::new(machine);
+        DD_OK
     }
 
     #[win32_derive::dllexport]
