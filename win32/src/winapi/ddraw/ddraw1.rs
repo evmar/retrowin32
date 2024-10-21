@@ -159,7 +159,7 @@ pub mod IDirectDrawSurface {
         GetPixelFormat: (IDirectDrawSurface7::GetPixelFormat),
         GetSurfaceDesc: (IDirectDrawSurface2::GetSurfaceDesc),
         Initialize: todo,
-        IsLost: todo,
+        IsLost: (IDirectDrawSurface7::IsLost),
         Lock: ok,
         ReleaseDC: (IDirectDrawSurface7::ReleaseDC),
         Restore: todo,

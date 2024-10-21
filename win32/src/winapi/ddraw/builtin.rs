@@ -1031,6 +1031,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectDrawSurface7_IsLost(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("ddraw/ddraw7") {
+            crate::trace::Record::new(
+                winapi::ddraw::IDirectDrawSurface7::IsLost_pos,
+                "ddraw/ddraw7",
+                "IDirectDrawSurface7::IsLost",
+                &[("this", &this)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ddraw::IDirectDrawSurface7::IsLost(machine, this);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectDrawSurface7_Lock(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1441,7 +1461,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 55usize] = [
+const SHIMS: [Shim; 56usize] = [
     Shim {
         name: "DirectDrawCreate",
         func: Handler::Sync(wrappers::DirectDrawCreate),
@@ -1593,6 +1613,10 @@ const SHIMS: [Shim; 55usize] = [
     Shim {
         name: "IDirectDrawSurface7::GetSurfaceDesc",
         func: Handler::Sync(wrappers::IDirectDrawSurface7_GetSurfaceDesc),
+    },
+    Shim {
+        name: "IDirectDrawSurface7::IsLost",
+        func: Handler::Sync(wrappers::IDirectDrawSurface7_IsLost),
     },
     Shim {
         name: "IDirectDrawSurface7::Lock",

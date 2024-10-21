@@ -321,7 +321,7 @@ pub mod IDirectDrawSurface7 {
         GetPixelFormat: ok,
         GetSurfaceDesc: ok,
         Initialize: todo,
-        IsLost: todo,
+        IsLost: ok,
         Lock: ok,
         ReleaseDC: ok,
         Restore: ok,
@@ -496,6 +496,11 @@ pub mod IDirectDrawSurface7 {
         desc.ddpfPixelFormat.dwRGBBitCount = 32;
         desc.dwFlags.insert(DDSD::PIXELFORMAT);
         DD_OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn IsLost(machine: &mut Machine, this: u32) -> u32 {
+        0
     }
 
     #[win32_derive::dllexport]
