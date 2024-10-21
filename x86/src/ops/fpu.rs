@@ -353,6 +353,11 @@ pub fn fxch_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.fpu.swap(instr.op0_register(), instr.op1_register());
 }
 
+pub fn ftst(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    fcom(cpu, x, 0.0);
+}
+
 pub fn fcom_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.st0();
     let y = mem.get_pod::<f64>(x86_addr(cpu, instr));
