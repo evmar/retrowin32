@@ -531,6 +531,32 @@ mod wrappers {
             result.to_raw()
         })
     }
+    pub unsafe fn DeleteMenu(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
+        let uPosition = <u32>::from_stack(mem, stack_args + 4u32);
+        let uFlags = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("user32/menu") {
+            crate::trace::Record::new(
+                winapi::user32::DeleteMenu_pos,
+                "user32/menu",
+                "DeleteMenu",
+                &[
+                    ("hMenu", &hMenu),
+                    ("uPosition", &uPosition),
+                    ("uFlags", &uFlags),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::DeleteMenu(machine, hMenu, uPosition, uFlags);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn DestroyWindow(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -715,6 +741,26 @@ mod wrappers {
             }
             result.to_raw()
         })
+    }
+    pub unsafe fn DrawMenuBar(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("user32/menu") {
+            crate::trace::Record::new(
+                winapi::user32::DrawMenuBar_pos,
+                "user32/menu",
+                "DrawMenuBar",
+                &[("hWnd", &hWnd)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::DrawMenuBar(machine, hWnd);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
     }
     pub unsafe fn DrawTextW(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
@@ -3422,7 +3468,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 134usize] = [
+const SHIMS: [Shim; 136usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3488,6 +3534,10 @@ const SHIMS: [Shim; 134usize] = [
         func: Handler::Async(wrappers::DefWindowProcW),
     },
     Shim {
+        name: "DeleteMenu",
+        func: Handler::Sync(wrappers::DeleteMenu),
+    },
+    Shim {
         name: "DestroyWindow",
         func: Handler::Sync(wrappers::DestroyWindow),
     },
@@ -3510,6 +3560,10 @@ const SHIMS: [Shim; 134usize] = [
     Shim {
         name: "DispatchMessageW",
         func: Handler::Async(wrappers::DispatchMessageW),
+    },
+    Shim {
+        name: "DrawMenuBar",
+        func: Handler::Sync(wrappers::DrawMenuBar),
     },
     Shim {
         name: "DrawTextW",

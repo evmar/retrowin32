@@ -95,3 +95,18 @@ pub fn GetMenuItemRect(
 ) -> bool {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub fn DeleteMenu(
+    _machine: &mut Machine,
+    hMenu: HMENU,
+    uPosition: u32,
+    uFlags: u32, /* MENU_ITEM_FLAGS */
+) -> bool {
+    false // fail
+}
+
+#[win32_derive::dllexport]
+pub fn DrawMenuBar(_machine: &mut Machine, hWnd: HWND) -> bool {
+    false // fail
+}
