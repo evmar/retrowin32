@@ -74,8 +74,10 @@ fn load_section(
     // sec.SizeOfRawData is the amount of data in the file that should be copied to memory.
     // sec.VirtualSize is the in-memory size of the resulting section, which can be:
     // - greater than SizeOfRawData for sections that should be zero-filled (like uninitialized data),
-    // - less than SizeOfRawData because SizeOfRawData is padded up to FileAlignment(!).
+    // - less than SizeOfRawData because SizeOfRawData is padded up to FileAlignment(!),
+    // - and also seems to sometimes be zero, I guess in favor of SizeOfRawData.
 
+    let mapping_size = sec.VirtualSize.max(sec.SizeOfRawData);
     let data_size = sec.SizeOfRawData;
     let flags = sec.characteristics().unwrap();
 
@@ -83,12 +85,14 @@ fn load_section(
     // Note: kkrunchy-packed files have a single section marked
     // CODE | INITIALIZED_DATA | UNINITIALIZED_DATA | MEM_EXECUTE | MEM_READ | MEM_WRITE
     // so we ignore the UNINITIALIZED_DATA flag.
+    // Another executable has its .bss section with non-zero SizeOfRawData, so we can't trust that
+    // either.
     let load_data =
         flags.contains(pe::IMAGE_SCN::CODE) || flags.contains(pe::IMAGE_SCN::INITIALIZED_DATA);
 
     let mapping = winapi::kernel32::Mapping {
-        addr: dst as u32,
-        size: sec.VirtualSize as u32,
+        addr: dst,
+        size: mapping_size,
         desc: format!(
             "{filename} {:?} ({:?})",
             sec.name().unwrap_or("[invalid]"),

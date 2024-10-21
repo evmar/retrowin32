@@ -68,7 +68,7 @@ impl Mappings {
         let mut prev_end = 0;
         for mapping in &self.0 {
             let space = mapping.addr - prev_end;
-            if space > size {
+            if space >= size {
                 break;
             }
             prev_end = mapping.addr + mapping.size;
