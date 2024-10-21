@@ -79,6 +79,8 @@ pub mod IDirectInput {
 
 #[win32_derive::dllexport]
 pub mod IDirectInputDevice {
+    use crate::winapi::types::HWND;
+
     use super::*;
 
     pub fn new(machine: &mut Machine) -> u32 {
@@ -101,13 +103,13 @@ pub mod IDirectInputDevice {
         EnumObjects: ok,
         GetProperty: todo,
         SetProperty: ok,
-        Acquire: todo,
+        Acquire: ok,
         Unacquire: todo,
         GetDeviceState: todo,
-        GetDeviceData: todo,
+        GetDeviceData: ok,
         SetDataFormat: ok,
         SetEventNotification: ok,
-        SetCooperativeLevel: todo,
+        SetCooperativeLevel: ok,
         GetObjectInfo: todo,
         GetDeviceInfo: todo,
         RunControlPanel: todo,
@@ -126,11 +128,6 @@ pub mod IDirectInputDevice {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetDataFormat(machine: &mut Machine, this: u32, lpdf: u32) -> DI {
-        DI::OK
-    }
-
-    #[win32_derive::dllexport]
     pub fn SetProperty(
         machine: &mut Machine,
         this: u32,
@@ -141,7 +138,34 @@ pub mod IDirectInputDevice {
     }
 
     #[win32_derive::dllexport]
+    pub fn Acquire(machine: &mut Machine, this: u32) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn GetDeviceData(
+        machine: &mut Machine,
+        this: u32,
+        cbObjectData: u32,
+        rgdod: u32,
+        pdwInOut: Option<&mut u32>,
+        dwFlags: u32,
+    ) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetDataFormat(machine: &mut Machine, this: u32, lpdf: u32) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
     pub fn SetEventNotification(machine: &mut Machine, this: u32, hEvent: u32) -> DI {
+        DI::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetCooperativeLevel(machine: &mut Machine, this: u32, hwnd: HWND, dwFlags: u32) -> DI {
         DI::OK
     }
 }

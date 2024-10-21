@@ -40,6 +40,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectInputDevice_Acquire(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::Acquire_pos,
+                "dinput/dinput",
+                "IDirectInputDevice::Acquire",
+                &[("this", &this)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInputDevice::Acquire(machine, this);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectInputDevice_EnumObjects(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -65,6 +85,69 @@ mod wrappers {
         let result = winapi::dinput::IDirectInputDevice::EnumObjects(
             machine, this, lpCallback, pvRef, dwFlag,
         );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInputDevice_GetDeviceData(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let cbObjectData = <u32>::from_stack(mem, stack_args + 4u32);
+        let rgdod = <u32>::from_stack(mem, stack_args + 8u32);
+        let pdwInOut = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::GetDeviceData_pos,
+                "dinput/dinput",
+                "IDirectInputDevice::GetDeviceData",
+                &[
+                    ("this", &this),
+                    ("cbObjectData", &cbObjectData),
+                    ("rgdod", &rgdod),
+                    ("pdwInOut", &pdwInOut),
+                    ("dwFlags", &dwFlags),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::dinput::IDirectInputDevice::GetDeviceData(
+            machine,
+            this,
+            cbObjectData,
+            rgdod,
+            pdwInOut,
+            dwFlags,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn IDirectInputDevice_SetCooperativeLevel(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("dinput/dinput") {
+            crate::trace::Record::new(
+                winapi::dinput::IDirectInputDevice::SetCooperativeLevel_pos,
+                "dinput/dinput",
+                "IDirectInputDevice::SetCooperativeLevel",
+                &[("this", &this), ("hwnd", &hwnd), ("dwFlags", &dwFlags)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result =
+            winapi::dinput::IDirectInputDevice::SetCooperativeLevel(machine, this, hwnd, dwFlags);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -250,14 +333,26 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 9usize] = [
+const SHIMS: [Shim; 12usize] = [
     Shim {
         name: "DirectInputCreateA",
         func: Handler::Sync(wrappers::DirectInputCreateA),
     },
     Shim {
+        name: "IDirectInputDevice::Acquire",
+        func: Handler::Sync(wrappers::IDirectInputDevice_Acquire),
+    },
+    Shim {
         name: "IDirectInputDevice::EnumObjects",
         func: Handler::Sync(wrappers::IDirectInputDevice_EnumObjects),
+    },
+    Shim {
+        name: "IDirectInputDevice::GetDeviceData",
+        func: Handler::Sync(wrappers::IDirectInputDevice_GetDeviceData),
+    },
+    Shim {
+        name: "IDirectInputDevice::SetCooperativeLevel",
+        func: Handler::Sync(wrappers::IDirectInputDevice_SetCooperativeLevel),
     },
     Shim {
         name: "IDirectInputDevice::SetDataFormat",
