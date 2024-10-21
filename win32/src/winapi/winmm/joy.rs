@@ -5,7 +5,7 @@ pub type JOYINFOEX = u32;
 
 #[win32_derive::dllexport]
 pub fn joyGetNumDevs(_machine: &mut Machine) -> u32 {
-    todo!()
+    0
 }
 
 #[win32_derive::dllexport]
