@@ -389,7 +389,7 @@ pub fn pushfw(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
 }
 
 pub fn popfd(cpu: &mut CPU, mem: Mem, _instr: &Instruction) {
-    let value = pop(cpu, mem);
+    let value = pop(cpu, mem) & 0x0000_FFFF;
     cpu.flags = Flags::from_bits(value).unwrap_or_else(|| panic!("invalid flags {:#x}", value));
 }
 
