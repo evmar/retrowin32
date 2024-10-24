@@ -4,6 +4,21 @@ use crate::winapi::types::*;
 use bitflags::bitflags;
 use memory::Pod;
 
+// TODO: maybe make some shared const fn for errors that sets high bit?
+// TODO: share constants with winapi ERROR type?
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum DD {
+    OK = 0,
+    E_NOINTERFACE = 0x80004002,
+    ERR_GENERIC = 0x80004005,
+}
+
+impl crate::winapi::stack_args::ToX86 for DD {
+    fn to_raw(&self) -> u32 {
+        *self as u32
+    }
+}
+
 #[repr(C)]
 #[derive(Clone, Debug, Default)]
 pub struct DDSCAPS2 {

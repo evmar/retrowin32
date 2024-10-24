@@ -6,7 +6,7 @@ use memory::{Extensions, ExtensionsMut};
 
 #[win32_derive::dllexport]
 pub mod IDirectDrawPalette {
-    use crate::winapi::ddraw::{DD_OK, PALETTEENTRY};
+    use crate::winapi::ddraw::{DD, PALETTEENTRY};
 
     use super::*;
 
@@ -42,7 +42,7 @@ pub mod IDirectDrawPalette {
         start: u32,
         count: u32,
         entries: u32,
-    ) -> u32 {
+    ) -> DD {
         let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
         let entries = machine
@@ -56,6 +56,6 @@ pub mod IDirectDrawPalette {
         {
             *dst = src;
         }
-        DD_OK
+        DD::OK
     }
 }

@@ -5,11 +5,10 @@ use super::{
     ddraw2, ddraw3,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
-    DD_OK,
 };
 use crate::{
     winapi::{
-        com::{vtable, E_NOINTERFACE, GUID},
+        com::{vtable, GUID},
         ddraw,
         kernel32::get_symbol,
         types::*,
@@ -62,13 +61,13 @@ pub mod IDirectDraw {
         this: u32,
         riid: Option<&GUID>,
         ppvObject: Option<&mut u32>,
-    ) -> u32 {
+    ) -> DD {
         match riid.unwrap() {
             &ddraw2::IID_IDirectDraw2 => {
                 *ppvObject.unwrap() = ddraw2::IDirectDraw2::new(machine);
-                DD_OK
+                DD::OK
             }
-            _ => E_NOINTERFACE,
+            _ => DD::E_NOINTERFACE,
         }
     }
 
@@ -79,7 +78,7 @@ pub mod IDirectDraw {
         desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
-    ) -> u32 {
+    ) -> DD {
         if machine.state.ddraw.hwnd.is_null() {
             // This can happen if the app never called SetCooperativeLevel, but it
             // can also happen if it called SetCooperativeLevel with DDSCL_NORMAL and
@@ -87,7 +86,7 @@ pub mod IDirectDraw {
             // just probing for DirectDraw capability and doesn't even have a window(?).
             *lplpDDSurface.unwrap() = IDirectDrawSurface::new(machine);
             // TODO: register surface in surfaces list?
-            return DD_OK;
+            return DD::OK;
         }
 
         let surfaces = ddraw::Surface::create(
@@ -109,7 +108,7 @@ pub mod IDirectDraw {
 
         *lplpDDSurface.unwrap() = prev;
 
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -125,7 +124,7 @@ pub mod IDirectDraw {
         width: u32,
         height: u32,
         bpp: u32,
-    ) -> u32 {
+    ) -> DD {
         IDirectDraw7::SetDisplayMode(machine, 0, width, height, bpp, 0, 0)
     }
 }
@@ -187,16 +186,16 @@ pub mod IDirectDrawSurface {
         this: u32,
         riid: Option<&GUID>,
         ppvObject: Option<&mut u32>,
-    ) -> u32 {
+    ) -> DD {
         match riid.unwrap() {
             &ddraw3::IID_IDirectDraw3 => {
                 let ptr = ddraw3::IDirectDrawSurface3::new(machine);
                 // TODO: register ptr as a surface, but we need to share the same surface
                 // between multiple ptrs then?
                 *ppvObject.unwrap() = ptr;
-                DD_OK
+                DD::OK
             }
-            _ => E_NOINTERFACE,
+            _ => DD::E_NOINTERFACE,
         }
     }
 
@@ -211,16 +210,16 @@ pub mod IDirectDrawSurface {
         this: u32,
         lpDDSCaps: Option<&DDSCAPS>,
         lpDirectDrawSurface: Option<&mut u32>,
-    ) -> u32 {
+    ) -> DD {
         // TODO: consider caps.
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface.unwrap() = surface.attached;
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
-        DD_OK
+    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -231,7 +230,7 @@ pub mod IDirectDrawSurface {
         desc: Option<&mut DDSURFACEDESC>,
         flags: Result<DDLOCK, u32>,
         event: u32,
-    ) -> u32 {
+    ) -> DD {
         if event != 0 {
             todo!()
         }
@@ -239,7 +238,7 @@ pub mod IDirectDrawSurface {
         let mut desc2 = DDSURFACEDESC2::from_desc(desc);
         desc2.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         let ret = IDirectDrawSurface7::Lock(machine, this, rect, Some(&mut desc2), flags, 0);
-        if ret != DD_OK {
+        if ret != DD::OK {
             return ret;
         }
 
@@ -249,7 +248,7 @@ pub mod IDirectDrawSurface {
     }
 
     #[win32_derive::dllexport]
-    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> u32 {
+    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> DD {
         IDirectDrawSurface7::Unlock(machine, this, None)
     }
 }

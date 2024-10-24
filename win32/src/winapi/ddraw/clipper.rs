@@ -1,6 +1,5 @@
-use super::DD_OK;
 use crate::{
-    winapi::{com::vtable, kernel32::get_symbol, types::HWND},
+    winapi::{com::vtable, ddraw::DD, kernel32::get_symbol, types::HWND},
     Machine,
 };
 use memory::ExtensionsMut;
@@ -11,10 +10,10 @@ pub fn DirectDrawCreateClipper(
     dwFlags: u32,
     lplpDDClipper: Option<&mut u32>,
     pUnkOuter: u32,
-) -> u32 {
+) -> DD {
     assert!(dwFlags == 0);
     *lplpDDClipper.unwrap() = IDirectDrawClipper::new(machine);
-    DD_OK
+    DD::OK
 }
 
 #[win32_derive::dllexport]
@@ -48,7 +47,7 @@ pub mod IDirectDrawClipper {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> u32 {
-        DD_OK
+    pub fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> DD {
+        DD::OK
     }
 }

@@ -3,15 +3,10 @@
 use super::{
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
-    DD_OK, GUID,
+    GUID,
 };
 use crate::{
-    winapi::{
-        com::{vtable, E_NOINTERFACE},
-        ddraw,
-        kernel32::get_symbol,
-        types::*,
-    },
+    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
     Machine,
 };
 use memory::ExtensionsMut;
@@ -70,8 +65,8 @@ pub mod IDirectDraw2 {
         this: u32,
         riid: Option<&GUID>,
         ppvObject: u32,
-    ) -> u32 {
-        E_NOINTERFACE
+    ) -> DD {
+        DD::E_NOINTERFACE
     }
 
     #[win32_derive::dllexport]
@@ -81,7 +76,7 @@ pub mod IDirectDraw2 {
         desc: Option<&DDSURFACEDESC>,
         lplpDDSurface: Option<&mut u32>,
         pUnkOuter: u32,
-    ) -> u32 {
+    ) -> DD {
         let surfaces = ddraw::Surface::create(
             machine,
             machine.state.ddraw.hwnd,
@@ -101,7 +96,7 @@ pub mod IDirectDraw2 {
 
         *lplpDDSurface.unwrap() = prev;
 
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -112,7 +107,7 @@ pub mod IDirectDraw2 {
         lpSurfaceDesc: Option<&DDSURFACEDESC>,
         lpContext: u32,
         lpEnumCallback: u32,
-    ) -> u32 {
+    ) -> DD {
         if lpSurfaceDesc.is_some() {
             todo!()
         }
@@ -151,7 +146,7 @@ pub mod IDirectDraw2 {
             .heap
             .free(machine.emu.memory.mem(), desc_addr);
 
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -159,7 +154,7 @@ pub mod IDirectDraw2 {
         _machine: &mut Machine,
         this: u32,
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC>,
-    ) -> u32 {
+    ) -> DD {
         let desc = lpDDSurfaceDesc.unwrap();
         *desc = DDSURFACEDESC::zeroed();
         desc.dwSize = std::mem::size_of::<DDSURFACEDESC>() as u32;
@@ -172,7 +167,7 @@ pub mod IDirectDraw2 {
         // desc.ddpfPixelFormat.dwFlags = ...;
         desc.ddpfPixelFormat.dwRGBBitCount = 32;
 
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -188,7 +183,7 @@ pub mod IDirectDraw2 {
         width: u32,
         height: u32,
         bpp: u32,
-    ) -> u32 {
+    ) -> DD {
         IDirectDraw7::SetDisplayMode(machine, 0, width, height, bpp, 0, 0)
     }
 }
@@ -259,16 +254,16 @@ pub mod IDirectDrawSurface2 {
         this: u32,
         lpDDSCaps: Option<&DDSCAPS>,
         lpDirectDrawSurface: Option<&mut u32>,
-    ) -> u32 {
+    ) -> DD {
         // TODO: consider caps.
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         *lpDirectDrawSurface.unwrap() = surface.attached;
-        DD_OK
+        DD::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> u32 {
-        DD_OK
+    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -276,10 +271,10 @@ pub mod IDirectDrawSurface2 {
         machine: &mut Machine,
         this: u32,
         desc: Option<&mut DDSURFACEDESC>,
-    ) -> u32 {
+    ) -> DD {
         let mut desc2 = DDSURFACEDESC2::default();
         let ret = IDirectDrawSurface7::GetSurfaceDesc(machine, this, Some(&mut desc2));
-        if ret == DD_OK {
+        if ret == DD::OK {
             *desc.unwrap() = DDSURFACEDESC::from_desc2(&desc2);
         }
         ret
@@ -293,7 +288,7 @@ pub mod IDirectDrawSurface2 {
         desc: Option<&mut DDSURFACEDESC>,
         flags: Result<DDLOCK, u32>,
         event: u32,
-    ) -> u32 {
+    ) -> DD {
         if event != 0 {
             todo!()
         }
@@ -301,7 +296,7 @@ pub mod IDirectDrawSurface2 {
         let mut desc2 = DDSURFACEDESC2::from_desc(desc);
         desc2.dwSize = std::mem::size_of::<DDSURFACEDESC2>() as u32;
         let ret = IDirectDrawSurface7::Lock(machine, this, rect, Some(&mut desc2), flags, 0);
-        if ret != DD_OK {
+        if ret != DD::OK {
             return ret;
         }
 
@@ -311,7 +306,7 @@ pub mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> u32 {
+    pub fn Unlock(machine: &mut Machine, this: u32, ptr: u32) -> DD {
         IDirectDrawSurface7::Unlock(machine, this, None)
     }
 }

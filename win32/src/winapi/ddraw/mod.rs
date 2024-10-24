@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
 
 mod builtin;
 mod clipper;
@@ -140,17 +141,13 @@ impl Default for State {
     }
 }
 
-const DD_OK: u32 = 0;
-// DD error codes are generated with this MAKE_HRESULT macro, maybe it doesn't matter too much.
-const DDERR_GENERIC: u32 = 0x80004005;
-
 #[win32_derive::dllexport]
 pub fn DirectDrawCreate(
     machine: &mut Machine,
     lpGuid: Option<&GUID>,
     lplpDD: Option<&mut u32>,
     pUnkOuter: u32,
-) -> u32 {
+) -> DD {
     DirectDrawCreateEx(machine, lpGuid, lplpDD, None, pUnkOuter)
 }
 
@@ -161,7 +158,7 @@ pub fn DirectDrawCreateEx(
     lplpDD: Option<&mut u32>,
     iid: Option<&GUID>,
     pUnkOuter: u32,
-) -> u32 {
+) -> DD {
     assert!(lpGuid.is_none());
     assert!(pUnkOuter == 0);
 
@@ -173,15 +170,15 @@ pub fn DirectDrawCreateEx(
         None => {
             // DirectDrawCreate
             *lplpDD.unwrap() = ddraw1::IDirectDraw::new(machine);
-            return DD_OK;
+            return DD::OK;
         }
         Some(&ddraw7::IID_IDirectDraw7) => {
             *lplpDD.unwrap() = ddraw7::IDirectDraw7::new(machine);
-            DD_OK
+            DD::OK
         }
         _ => {
             log::error!("DirectDrawCreateEx: unknown IID {iid:x?}");
-            DDERR_GENERIC
+            DD::ERR_GENERIC
         }
     }
 }
