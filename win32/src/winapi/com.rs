@@ -1,12 +1,7 @@
 #[allow(non_snake_case)]
 #[repr(C)]
 #[derive(PartialEq)]
-pub struct GUID {
-    pub Data1: u32,
-    pub Data2: u16,
-    pub Data3: u16,
-    pub Data4: [u8; 8],
-}
+pub struct GUID(pub (u32, u16, u16, [u8; 8]));
 unsafe impl memory::Pod for GUID {}
 
 impl std::fmt::Debug for GUID {
@@ -14,12 +9,12 @@ impl std::fmt::Debug for GUID {
         write!(
             f,
             "{:08x}-{:04x}-{:04x}-{:04x}-",
-            self.Data1,
-            self.Data2,
-            self.Data3,
-            u16::from_le_bytes(self.Data4[..2].try_into().unwrap())
+            self.0 .0,
+            self.0 .1,
+            self.0 .2,
+            u16::from_le_bytes(self.0 .3[..2].try_into().unwrap())
         )?;
-        for b in &self.Data4[2..] {
+        for b in &self.0 .3[2..] {
             write!(f, "{:02x}", b)?;
         }
         Ok(())

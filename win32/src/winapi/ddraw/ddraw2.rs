@@ -12,12 +12,12 @@ use crate::{
 use memory::ExtensionsMut;
 use memory::Pod;
 
-pub const IID_IDirectDraw2: GUID = GUID {
-    Data1: 0xb3a6f3e0,
-    Data2: 0x2b43,
-    Data3: 0x11cf,
-    Data4: [0xa2, 0xde, 0x00, 0xaa, 0x00, 0xb9, 0x33, 0x56],
-};
+pub const IID_IDirectDraw2: GUID = GUID((
+    0xb3a6f3e0,
+    0x2b43,
+    0x11cf,
+    [0xa2, 0xde, 0x00, 0xaa, 0x00, 0xb9, 0x33, 0x56],
+));
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw2 {

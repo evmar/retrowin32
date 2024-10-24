@@ -14,12 +14,12 @@ use bitflags::bitflags;
 use memory::Pod;
 use memory::{Extensions, ExtensionsMut};
 
-pub const IID_IDirectDraw7: GUID = GUID {
-    Data1: 0x15e65ec0,
-    Data2: 0x3b9c,
-    Data3: 0x11d2,
-    Data4: [0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b],
-};
+pub const IID_IDirectDraw7: GUID = GUID((
+    0x15e65ec0,
+    0x3b9c,
+    0x11d2,
+    [0xb9, 0x2f, 0x00, 0x60, 0x97, 0x97, 0xea, 0x5b],
+));
 
 bitflags! {
     #[derive(win32_derive::TryFromBitflags)]
