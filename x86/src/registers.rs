@@ -16,6 +16,9 @@ bitflags! {
         const OF = 1 << 11;
         /// cpuid
         const ID = 1 << 21;
+
+        // any flag may be set by operations like SAHF
+        const ALL = !0;
     }
 }
 

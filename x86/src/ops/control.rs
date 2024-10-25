@@ -84,6 +84,15 @@ pub fn jns(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+pub fn jp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    // Note: the decoder ensures we only see a jp directly after a sahf,
+    // so we know the PF flag directly depends on ax.
+    let pf = ((cpu.regs.get32(Register::EAX) >> 10) & 1) == 1;
+    if pf {
+        cpu.jmp(mem, instr.near_branch32());
+    }
+}
+
 pub fn jg(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     if !cpu.flags.contains(Flags::ZF)
         && (cpu.flags.contains(Flags::SF) == cpu.flags.contains(Flags::OF))

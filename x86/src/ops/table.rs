@@ -43,6 +43,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Jne_rel8_32 as usize] = Some(jne);
     tab[iced_x86::Code::Jns_rel32_32 as usize] = Some(jns);
     tab[iced_x86::Code::Jns_rel8_32 as usize] = Some(jns);
+    tab[iced_x86::Code::Jp_rel8_32 as usize] = Some(jp);
     tab[iced_x86::Code::Jg_rel32_32 as usize] = Some(jg);
     tab[iced_x86::Code::Jg_rel8_32 as usize] = Some(jg);
     tab[iced_x86::Code::Jge_rel32_32 as usize] = Some(jge);
@@ -511,6 +512,15 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab
 };
 
-pub fn decode(instr: &Instruction) -> Option<Op> {
+/// Decode a single instruction, returning the function that implements it.
+/// ops is the list of operations that precede this instruction.
+pub fn decode(instr: &Instruction, ops: &[crate::icache::Op]) -> Option<Op> {
+    // The implementation of 'jp' requires a specific instruction to precede it.
+    match instr.mnemonic() {
+        iced_x86::Mnemonic::Jp => {
+            assert!(ops.last().unwrap().instr.code() == iced_x86::Code::Sahf);
+        }
+        _ => {}
+    }
     OP_TAB[instr.code() as usize]
 }
