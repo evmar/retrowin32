@@ -162,8 +162,7 @@ impl<'a> FromArg<'a> for Option<&'a CStr> {
         if arg == 0 {
             return None;
         }
-        let strz = mem.slicez(arg);
-        Some(CStr::from_bytes_with_nul_unchecked(strz))
+        Some(CStr::from_ptr(mem.get_ptr::<u8>(arg) as *const _))
     }
 }
 

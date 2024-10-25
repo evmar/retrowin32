@@ -5,6 +5,8 @@
 
 mod builtin;
 
+use std::ffi::CStr;
+
 pub use builtin::DLL;
 
 use crate::Machine;
@@ -255,3 +257,9 @@ pub const _adjust_fdiv: &'static str = "_adjust_fdiv";
 
 #[win32_derive::dllexport]
 pub const _acmdln: &'static str = "_acmdln";
+
+#[win32_derive::dllexport(cdecl)]
+pub fn strlen(_machine: &mut Machine, lpString: Option<&CStr>) -> u32 {
+    // The mapping to str already computes the string length.
+    lpString.unwrap().count_bytes() as u32
+}

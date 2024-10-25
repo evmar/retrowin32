@@ -670,6 +670,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn strlen(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("ucrtbase") {
+            crate::trace::Record::new(
+                winapi::ucrtbase::strlen_pos,
+                "ucrtbase",
+                "strlen",
+                &[("lpString", &lpString)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::strlen(machine, lpString);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn time(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
@@ -691,7 +711,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 32usize] = [
+const SHIMS: [Shim; 33usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -815,6 +835,10 @@ const SHIMS: [Shim; 32usize] = [
     Shim {
         name: "srand",
         func: Handler::Sync(wrappers::srand),
+    },
+    Shim {
+        name: "strlen",
+        func: Handler::Sync(wrappers::strlen),
     },
     Shim {
         name: "time",
