@@ -16,7 +16,7 @@ pub struct FPU {
     pub st: [f64; 8],
     /// Index of top of FPU stack; 8 when stack empty.
     pub st_top: usize,
-    /// FPU status word (TODO fold st_top in here?)
+    /// FPU status word, without st_top included.
     pub status: Status,
 }
 
@@ -92,5 +92,12 @@ impl FPU {
 
     pub fn get(&mut self, reg: iced_x86::Register) -> &mut f64 {
         &mut self.st[self.st_offset(reg)]
+    }
+
+    pub fn status(&self) -> u16 {
+        // Our status register impl doesn't include st_top so include it here.
+        let mut status = self.status.bits();
+        status |= (self.st_top as u16 & 0b111) << 11;
+        status
     }
 }

@@ -427,14 +427,12 @@ pub fn frndint(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 }
 
 pub fn fnstsw_ax(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
-    // TODO: does this need stack top in it?
-    cpu.regs.set32(Register::EAX, cpu.fpu.status.bits() as u32);
+    cpu.regs.set32(Register::EAX, cpu.fpu.status() as u32);
 }
 
 pub fn fnstsw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    // TODO: does this need stack top in it?
     let addr = x86_addr(cpu, instr);
-    mem.put_pod::<u16>(addr, cpu.fpu.status.bits() as u16);
+    mem.put_pod::<u16>(addr, cpu.fpu.status() as u16);
 }
 
 pub fn fnstcw_m2byte(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
