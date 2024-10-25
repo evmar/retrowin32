@@ -67,9 +67,6 @@ pub fn StretchBlt(
     hSrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
-    if wDst != wSrc || hDst != hSrc {
-        todo!("unimp: StretchBlt with actual stretching {wSrc}x{hSrc} -> {wDst}x{hDst}");
-    }
     let dst_rect = RECT {
         left: xDst,
         top: yDst,
@@ -136,21 +133,23 @@ pub fn StretchBlt(
 
     let dst_bitmap = target.get_bitmap(machine).unwrap();
 
-    // Copy region is the intersection of the two rectangles, which both also need to be clipped to their bitmaps.
-    let dst_copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
-    let src_copy_rect = src_rect.clip(&src_bitmap.to_rect());
-    let copy_rect = dst_copy_rect.clip(
-        // translate src_rect into dst_rect space
-        &src_copy_rect.add(dst_rect.origin().sub(src_rect.origin())),
-    );
+    // What does it mean when the src_rect isn't within the src bitmap?
+    // sol.exe does this when you drag a card off screen.
+    // Clipping here means the xform below will stretch slightly, hrmm.
+    let src_rect = src_rect.clip(&src_bitmap.to_rect());
 
-    // Translation from dst coord to src coord.
-    let dst_to_src = src_rect.origin().sub(dst_rect.origin());
+    let copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
 
     let mem = machine.emu.memory.mem();
     src_bitmap.pixels.with_slice(mem, |src| {
         fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, dpx| {
-            let p = p.add(dst_to_src);
+            // Translate p from dst to src space.
+            // Because we're stretching, we scale to src space rather than clipping.
+            let p = p
+                .sub(dst_rect.origin())
+                .mul(src_rect.size())
+                .div(dst_rect.size())
+                .add(src_rect.origin());
             let mut px = op(dpx, src[(p.y * src_bitmap.width as i32 + p.x) as usize]);
             px[3] = 0xFF; // clear alpha
             px
