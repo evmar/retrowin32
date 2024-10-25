@@ -96,13 +96,14 @@ pub fn GetModuleFileNameA(
     hModule: HMODULE,
     filename: ArrayWithSizeMut<u8>,
 ) -> u32 {
-    assert!(hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base);
-    match filename.unwrap().write(b"TODO.exe\0") {
-        Ok(n) => n as u32,
-        Err(err) => {
-            log::warn!("GetModuleFileNameA(): {}", err);
-            0
-        }
+    let mut filename = filename.unwrap();
+    if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
+        let mut exe = machine.state.kernel32.cmdline.exe_name();
+        exe.push(0 as char);
+        let n = filename.write(exe.as_bytes()).unwrap();
+        n as u32 - 1 // exclude nul
+    } else {
+        todo!();
     }
 }
 

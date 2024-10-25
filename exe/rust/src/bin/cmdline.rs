@@ -11,9 +11,9 @@ fn main() {
 
         let ret = GetModuleFileNameA(0, buf.as_mut_ptr(), buf.len() as u32);
         let filename = CStr::from_bytes_until_nul(&buf).unwrap();
-        println!("GetModuleFileNameA: {ret} {}", filename.to_string_lossy());
+        println!("GetModuleFileNameA: {ret} {:?}", filename.to_string_lossy());
 
         let cmdline = CStr::from_ptr(GetCommandLineA() as *const _);
-        println!("GetCommandLineA: {}", cmdline.to_string_lossy());
+        println!("GetCommandLineA: {:?}", cmdline.to_string_lossy());
     }
 }
