@@ -68,7 +68,7 @@ pub fn StretchBlt(
     rop: Result<RasterOp, u32>,
 ) -> bool {
     if wDst != wSrc || hDst != hSrc {
-        todo!("unimp: StretchBlt with actual stretching");
+        todo!("unimp: StretchBlt with actual stretching {wSrc}x{hSrc} -> {wDst}x{hDst}");
     }
     let dst_rect = RECT {
         left: xDst,
