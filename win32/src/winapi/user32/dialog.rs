@@ -44,18 +44,17 @@ pub mod MessageBoxFlags {
 pub fn MessageBoxA(
     machine: &mut Machine,
     hWnd: HWND,
-    lpText: Option<&str>,
-    lpCaption: Option<&str>,
+    lpText: Option<&CStr>,
+    lpCaption: Option<&CStr>,
     uType: u32,
 ) -> u32 {
-    machine.host.log(
-        format!(
-            "MessageBox: {}\n{}",
-            lpCaption.unwrap_or("Error"),
-            lpText.unwrap_or("")
-        )
-        .as_bytes(),
-    );
+    let caption = lpCaption.unwrap();
+    let caption = caption.to_str_or_warn();
+    let text = lpText.unwrap();
+    let text = text.to_str_or_warn();
+    machine
+        .host
+        .log(format!("MessageBox: {caption}\n{text}",).as_bytes());
     1 // IDOK
 }
 

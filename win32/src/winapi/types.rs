@@ -3,6 +3,25 @@
 pub use super::handle::HANDLE;
 pub use crate::str16::{Str16, String16};
 use memory::Extensions;
+use std::borrow::Cow;
+
+pub use std::ffi::CStr;
+
+pub trait StrExt<'a> {
+    fn to_str_or_warn(&'a self) -> Cow<'a, str>;
+}
+
+impl<'a> StrExt<'a> for &'a CStr {
+    fn to_str_or_warn(&'a self) -> Cow<'a, str> {
+        match self.to_str() {
+            Ok(str) => Cow::Borrowed(str),
+            Err(_err) => {
+                log::warn!("[TODO: {:?}]", self);
+                Cow::Owned(format!("TODO: convert {:?} using code page", self))
+            }
+        }
+    }
+}
 
 pub type WORD = u16;
 pub type DWORD = u32;

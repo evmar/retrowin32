@@ -1,6 +1,6 @@
 //! Functions to unsafely grab winapi function arguments from an x86 stack.
 
-use super::types::Str16;
+use super::types::{CStr, Str16};
 use crate::str16::expect_ascii;
 use memory::{Extensions, ExtensionsMut, Mem};
 
@@ -154,6 +154,16 @@ impl<'a> FromArg<'a> for Option<&'a str> {
         }
         let strz = expect_ascii(mem.slicez(arg));
         Some(strz)
+    }
+}
+
+impl<'a> FromArg<'a> for Option<&'a CStr> {
+    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+        if arg == 0 {
+            return None;
+        }
+        let strz = mem.slicez(arg);
+        Some(CStr::from_bytes_with_nul_unchecked(strz))
     }
 }
 

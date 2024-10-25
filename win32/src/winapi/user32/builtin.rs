@@ -2142,8 +2142,8 @@ mod wrappers {
     pub unsafe fn MessageBoxA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let lpText = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let lpCaption = <Option<&str>>::from_stack(mem, stack_args + 8u32);
+        let lpText = <Option<&CStr>>::from_stack(mem, stack_args + 4u32);
+        let lpCaption = <Option<&CStr>>::from_stack(mem, stack_args + 8u32);
         let uType = <u32>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::trace::enabled("user32/dialog") {
             crate::trace::Record::new(
