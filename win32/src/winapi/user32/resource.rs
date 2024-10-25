@@ -9,6 +9,7 @@ use crate::{
     },
     Machine,
 };
+use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{ops::Range, rc::Rc};
 
@@ -85,33 +86,77 @@ fn load_bitmap(
     )
 }
 
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum IMAGE {
+    BITMAP = 0,
+    ICON = 1,
+    CURSOR = 2,
+}
+
+bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
+    pub struct LR: u32 {
+        // const DEFAULTCOLOR = 0x00000000;
+        const MONOCHROME       = 0x00000001;
+        const LOADFROMFILE     = 0x00000010;
+        const LOADTRANSPARENT  = 0x00000020;
+        const VGACOLOR         = 0x00000080;
+        const DEFAULTSIZE      = 0x00000040;
+        const LOADMAP3DCOLORS  = 0x00001000;
+        const CREATEDIBSECTION = 0x00002000;
+        const SHARED = 0x00008000;
+    }
+}
+
+fn load_image(
+    machine: &mut Machine,
+    hInstance: u32,
+    name: ResourceKey<&Str16>,
+    typ: IMAGE,
+    cx: u32,
+    cy: u32,
+    fuLoad: LR,
+) -> HGDIOBJ {
+    if cx != 0 || cy != 0 {
+        // TODO: it's unclear whether the width/height is obeyed when loading an image.
+        log::warn!("LoadImage: ignoring cx/cy");
+    }
+
+    let mut flags = fuLoad;
+    flags.remove(LR::CREATEDIBSECTION); // TODO: we always load rgba32
+    if !flags.is_empty() {
+        log::error!("LoadImage: unimplemented fuLoad {:?}", fuLoad);
+        return HGDIOBJ::null();
+    }
+
+    match typ {
+        IMAGE::BITMAP => load_bitmap(machine, hInstance, name).unwrap(),
+        typ => {
+            log::error!("LoadImage: unimplemented image type {:?}", typ);
+            return HGDIOBJ::null();
+        }
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn LoadImageA(
     machine: &mut Machine,
     hInstance: u32,
     name: ResourceKey<&str>,
-    typ: u32,
+    typ: Result<IMAGE, u32>,
     cx: u32,
     cy: u32,
-    fuLoad: u32,
+    fuLoad: Result<LR, u32>,
 ) -> HGDIOBJ {
-    if fuLoad != 0 {
-        log::error!("unimplemented fuLoad {:x}", fuLoad);
-        return HGDIOBJ::null();
-    }
-
-    let name = name.to_string16();
-
-    // TODO: it's unclear whether the width/height is obeyed when loading an image.
-
-    const IMAGE_BITMAP: u32 = 0;
-    match typ {
-        IMAGE_BITMAP => load_bitmap(machine, hInstance, name.as_ref()).unwrap(),
-        _ => {
-            log::error!("unimplemented image type {:x}", typ);
-            return HGDIOBJ::null();
-        }
-    }
+    load_image(
+        machine,
+        hInstance,
+        name.to_string16().as_ref(),
+        typ.unwrap(),
+        cx,
+        cy,
+        fuLoad.unwrap(),
+    )
 }
 
 #[win32_derive::dllexport]
@@ -119,30 +164,20 @@ pub fn LoadImageW(
     machine: &mut Machine,
     hInstance: u32,
     name: ResourceKey<&Str16>,
-    typ: u32,
+    typ: Result<IMAGE, u32>,
     cx: u32,
     cy: u32,
-    fuLoad: u32,
+    fuLoad: Result<LR, u32>,
 ) -> HGDIOBJ {
-    if fuLoad != 0 {
-        log::error!("unimplemented fuLoad {:x}", fuLoad);
-        return HGDIOBJ::null();
-    }
-
-    // TODO: it's unclear whether the width/height is obeyed when loading an image.
-
-    const IMAGE_BITMAP: u32 = 0;
-    const IMAGE_ICON: u32 = 1;
-    match typ {
-        IMAGE_BITMAP => load_bitmap(machine, hInstance, name).unwrap(),
-        IMAGE_ICON => {
-            return HGDIOBJ::null();
-        }
-        _ => {
-            log::error!("unimplemented image type {:x}", typ);
-            return HGDIOBJ::null();
-        }
-    }
+    load_image(
+        machine,
+        hInstance,
+        name,
+        typ.unwrap(),
+        cx,
+        cy,
+        fuLoad.unwrap(),
+    )
 }
 
 #[win32_derive::dllexport]

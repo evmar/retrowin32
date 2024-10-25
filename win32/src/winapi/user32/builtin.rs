@@ -1955,10 +1955,10 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let name = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
-        let typ = <u32>::from_stack(mem, stack_args + 8u32);
+        let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
         let cx = <u32>::from_stack(mem, stack_args + 12u32);
         let cy = <u32>::from_stack(mem, stack_args + 16u32);
-        let fuLoad = <u32>::from_stack(mem, stack_args + 20u32);
+        let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
         let __trace_record = if crate::trace::enabled("user32/resource") {
             crate::trace::Record::new(
                 winapi::user32::LoadImageA_pos,
@@ -1987,10 +1987,10 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let name = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 4u32);
-        let typ = <u32>::from_stack(mem, stack_args + 8u32);
+        let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
         let cx = <u32>::from_stack(mem, stack_args + 12u32);
         let cy = <u32>::from_stack(mem, stack_args + 16u32);
-        let fuLoad = <u32>::from_stack(mem, stack_args + 20u32);
+        let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
         let __trace_record = if crate::trace::enabled("user32/resource") {
             crate::trace::Record::new(
                 winapi::user32::LoadImageW_pos,
