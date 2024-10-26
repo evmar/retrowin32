@@ -179,14 +179,8 @@ pub enum GCL {
 
 #[win32_derive::dllexport]
 pub fn GetClassLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GCL, u32>) -> u32 {
-    let class = machine
-        .state
-        .user32
-        .windows
-        .get(hWnd)
-        .unwrap()
-        .wndclass
-        .borrow();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+    let class = window.wndclass.borrow();
     match nIndex.unwrap() {
         GCL::STYLE => class.style.bits(),
         f => todo!("GetClassLongA({f:?})"),
@@ -200,7 +194,8 @@ pub fn SetClassLongA(
     nIndex: Result<GCL, u32>,
     dwNewLong: i32,
 ) -> u32 {
-    let class = &machine.state.user32.windows.get(hWnd).unwrap().wndclass;
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+    let class = &window.wndclass;
     match nIndex.unwrap() {
         GCL::STYLE => std::mem::replace(
             &mut class.borrow_mut().style,

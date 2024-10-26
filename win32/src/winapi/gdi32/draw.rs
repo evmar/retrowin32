@@ -107,7 +107,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         DCTarget::Window(hwnd) => hwnd,
         _ => todo!(),
     };
-    let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+    let window = machine.state.user32.windows.get_mut(hwnd).unwrap().borrow();
     let stride = window.width;
 
     let color = match dc.rop2 {
@@ -170,7 +170,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
     match dc.target {
         DCTarget::Memory(_) => todo!(),
         DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine.state.user32.windows.get(hwnd).unwrap().borrow();
             // TODO: obey rect
             let mut bitmap = window.bitmap().borrow_mut();
             let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
@@ -186,7 +186,7 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine.state.user32.windows.get(hwnd).unwrap().borrow();
             if x >= window.width || y >= window.height {
                 return CLR_INVALID;
             }
@@ -211,7 +211,7 @@ pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
     let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
     match dc.target {
         DCTarget::Window(hwnd) => {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let window = machine.state.user32.windows.get(hwnd).unwrap().borrow();
             let stride = window.width;
             let bitmap = window.bitmap().borrow();
             let pixels = bitmap.as_rgba(machine.emu.memory.mem());

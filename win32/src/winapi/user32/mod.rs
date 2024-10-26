@@ -40,7 +40,7 @@ pub struct State {
     // so RefCell it is.
     wndclasses: Vec<Rc<RefCell<WndClass>>>,
     pub user_window_message_count: u32,
-    pub windows: Handles<HWND, Window>,
+    pub windows: Handles<HWND, Rc<RefCell<Window>>>,
     messages: MessageQueue,
     timers: Timers,
 }

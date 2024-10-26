@@ -366,7 +366,11 @@ pub async fn CreateWindowExW(
         style,
         show_cmd: SW::HIDE,
     };
-    machine.state.user32.windows.set(hwnd, window);
+    machine
+        .state
+        .user32
+        .windows
+        .set(hwnd, Rc::new(RefCell::new(window)));
 
     // Synchronously dispatch WM_CREATE.
     let msg = MSG {
@@ -436,7 +440,7 @@ pub fn FindWindowA(
 
 #[win32_derive::dllexport]
 pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
     match &window.typ {
         WindowType::TopLevel(top) => {
             if top.dirty.is_none() {
@@ -447,6 +451,7 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
             log::warn!("TODO: UpdateWindow for child windows");
         }
     }
+    drop(window);
 
     let msg = MSG {
         hwnd: hWnd,
@@ -500,7 +505,7 @@ pub async fn RedrawWindow(
     // TODO: this function has a million flags, ugh.
     // Seems like it's three steps: invalidate/validate, update.
 
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let flags = flags.unwrap();
 
     if flags.contains(RDW::INVALIDATE) {
@@ -508,6 +513,7 @@ pub async fn RedrawWindow(
     } else if flags.contains(RDW::VALIDATE) {
         todo!();
     }
+    drop(window);
 
     if flags.contains(RDW::ERASENOW) {
         todo!();
@@ -547,7 +553,14 @@ pub enum SW {
 #[win32_derive::dllexport]
 pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
     // Store the show command for returning from GetWindowPlacement.
-    machine.state.user32.windows.get_mut(hWnd).unwrap().show_cmd = nCmdShow.unwrap();
+    machine
+        .state
+        .user32
+        .windows
+        .get(hWnd)
+        .unwrap()
+        .borrow_mut()
+        .show_cmd = nCmdShow.unwrap();
 
     dispatch_message(
         machine,
@@ -623,17 +636,13 @@ async fn def_window_proc(
     };
     match msg {
         WM::PAINT => {
-            let window = machine
-                .state
-                .user32
-                .windows
-                .get_mut(hWnd)
-                .unwrap()
-                .expect_toplevel_mut();
+            let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+            let window = window.expect_toplevel_mut();
             window.dirty = None;
         }
         WM::WINDOWPOSCHANGED => {
-            let Window { width, height, .. } = *machine.state.user32.windows.get_mut(hWnd).unwrap();
+            let Window { width, height, .. } =
+                *machine.state.user32.windows.get(hWnd).unwrap().borrow();
             let WINDOWPOS { flags, .. } = machine.mem().get_pod::<WINDOWPOS>(lParam);
 
             if !flags.contains(SWP::NOSIZE) {
@@ -827,7 +836,7 @@ pub async fn SetWindowPos(
     };
     dispatch_message(machine, &msg).await;
 
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(window.style, menu, cx as u32, cy as u32);
     window.set_client_size(&mut *machine.host, width, height);
@@ -845,7 +854,7 @@ pub fn MoveWindow(
     nHeight: u32,
     bRepaint: bool,
 ) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
     let (width, height) = client_size_from_window_size(window.style, menu, nWidth, nHeight);
     window.set_client_size(&mut *machine.host, width, height);
@@ -854,7 +863,7 @@ pub fn MoveWindow(
 
 #[win32_derive::dllexport]
 pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
     let rect = lpRect.unwrap();
     *rect = RECT {
         left: 0,
@@ -867,7 +876,7 @@ pub fn GetClientRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
 
 #[win32_derive::dllexport]
 pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT>) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
 
     let mut result = RECT {
         left: 0,
@@ -912,7 +921,7 @@ pub fn GetWindowPlacement(
     hWnd: HWND,
     lpwndpl: Option<&mut WINDOWPLACEMENT>,
 ) -> bool {
-    let window = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
     let wndpl = lpwndpl.unwrap();
 
     *wndpl = WINDOWPLACEMENT {
@@ -993,7 +1002,7 @@ pub fn SetWindowLongA(
 pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
     match hWnd.to_option() {
         Some(hwnd) => {
-            let window = machine.state.user32.windows.get(hwnd).unwrap();
+            let window = machine.state.user32.windows.get(hwnd).unwrap().borrow();
             match &window.typ {
                 WindowType::TopLevel(_) => machine.state.gdi32.new_window_dc(hwnd),
                 _ => {
@@ -1036,6 +1045,7 @@ pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
 pub fn SetWindowTextA(machine: &mut Machine, hWnd: HWND, lpString: Option<&str>) -> bool {
     match machine.state.user32.windows.get_mut(hWnd) {
         Some(window) => {
+            let mut window = window.borrow_mut();
             window
                 .expect_toplevel_mut()
                 .host

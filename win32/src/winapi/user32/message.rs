@@ -10,7 +10,7 @@ use crate::{
 };
 use bitflags::bitflags;
 use memory::Extensions;
-use std::ops::RangeInclusive;
+use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
 
 #[repr(C)]
 #[derive(Clone)]
@@ -149,15 +149,15 @@ impl MessageQueue {
     fn get_paint(
         &mut self,
         hwnd: HWND,
-        windows: &Handles<HWND, Window>,
+        windows: &Handles<HWND, Rc<RefCell<Window>>>,
         _remove: bool,
     ) -> Option<MSG> {
         // Note: remove is intentionally ignored because we never enqueue a WM_PAINT.
         // This just accepts the flag to match the other get_* fns.
         let hwnd = if hwnd.is_null() {
-            windows.iter().find(|(_, w)| w.is_dirty())?.0
+            windows.iter().find(|(_, w)| w.borrow().is_dirty())?.0
         } else {
-            if !windows.get(hwnd).unwrap().is_dirty() {
+            if !windows.get(hwnd).unwrap().borrow().is_dirty() {
                 return None;
             }
             hwnd
@@ -418,6 +418,7 @@ pub async fn dispatch_message(machine: &mut Machine, msg: &MSG) -> u32 {
         .windows
         .get(msg.hwnd)
         .unwrap()
+        .borrow()
         .wndclass
         .borrow()
         .wndproc;

@@ -251,7 +251,7 @@ pub mod IDirectDraw7 {
         machine.state.ddraw.hwnd = hwnd;
         let flags = flags.unwrap();
         if flags.contains(DDSCL::FULLSCREEN) {
-            let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+            let mut window = machine.state.user32.windows.get(hwnd).unwrap().borrow_mut();
             window.expect_toplevel_mut().host.fullscreen();
         }
         DD::OK
@@ -267,13 +267,9 @@ pub mod IDirectDraw7 {
         refresh: u32,
         flags: u32,
     ) -> DD {
-        if let Some(wnd) = machine
-            .state
-            .user32
-            .windows
-            .get_mut(machine.state.ddraw.hwnd)
-        {
-            wnd.set_client_size(&mut *machine.host, width, height);
+        if let Some(wnd) = machine.state.user32.windows.get(machine.state.ddraw.hwnd) {
+            wnd.borrow_mut()
+                .set_client_size(&mut *machine.host, width, height);
         }
         machine.state.ddraw.bytes_per_pixel = bpp / 8;
         DD::OK

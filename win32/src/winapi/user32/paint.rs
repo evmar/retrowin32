@@ -16,20 +16,15 @@ pub fn InvalidateRect(
     lpRect: Option<&RECT>,
     bErase: bool,
 ) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     window.add_dirty(bErase);
     true // success
 }
 
 #[win32_derive::dllexport]
 pub fn ValidateRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&RECT>) -> bool {
-    let window = machine
-        .state
-        .user32
-        .windows
-        .get_mut(hWnd)
-        .unwrap()
-        .expect_toplevel_mut();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    let window = window.expect_toplevel_mut();
     match lpRect {
         Some(_rect) => {
             // TODO: ignored.
@@ -46,7 +41,7 @@ pub fn GetUpdateRect(
     lpRect: Option<&mut RECT>,
     bErase: bool,
 ) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let top = window.expect_toplevel_mut();
 
     if let Some(dirty) = &top.dirty {
@@ -75,7 +70,7 @@ pub fn InvalidateRgn(machine: &mut Machine, hWnd: HWND, hRgn: HRGN, bErase: bool
     if !hRgn.is_null() {
         todo!("invalidate specific region");
     }
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     window.add_dirty(bErase);
     true // success
 }
@@ -94,7 +89,7 @@ unsafe impl memory::Pod for PAINTSTRUCT {}
 
 #[win32_derive::dllexport]
 pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
     // TODO: take from update region
     let dirty_rect = RECT {
         left: 0,
@@ -117,6 +112,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         if let Some(hbrush) = background.clone().to_option() {
             if let gdi32::Object::Brush(brush) = machine.state.gdi32.objects.get(hbrush).unwrap() {
                 if let Some(color) = brush.color {
+                    drop(window);
                     gdi32::fill_rect(machine, hdc, &dirty_rect, color);
                     background_drawn = true;
                 }
@@ -137,7 +133,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
 
 #[win32_derive::dllexport]
 pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>) -> bool {
-    let window = machine.state.user32.windows.get_mut(hWnd).unwrap();
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     match &mut window.typ {
         WindowType::TopLevel(toplevel) => {
             toplevel.dirty = None;
