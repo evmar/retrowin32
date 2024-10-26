@@ -21,11 +21,11 @@ pub enum DCTarget {
 
 impl DCTarget {
     /// If this target is backed by a bitmap, return it.
-    pub fn get_bitmap<'a>(&self, machine: &'a mut Machine) -> Option<&'a Rc<RefCell<Bitmap>>> {
+    pub fn get_bitmap<'a>(&self, machine: &'a Machine) -> Option<&'a Rc<RefCell<Bitmap>>> {
         match *self {
             DCTarget::Memory(bitmap) => machine.state.gdi32.objects.get_bitmap(bitmap),
             DCTarget::Window(hwnd) => {
-                let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
+                let window = machine.state.user32.windows.get(hwnd).unwrap();
                 return Some(window.bitmap());
             }
             _ => {
