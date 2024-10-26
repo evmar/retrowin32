@@ -199,11 +199,8 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
                 pixels[((y * stride) + x) as usize] = color.to_pixel();
             });
         }
-        DCTarget::Memory(_) => {
-            log::warn!("SetPixel for Memory DC is not implemented");
-        }
         _ => {
-            todo!("unimplemented SetPixel for {:?}", dc.target);
+            log::warn!("TODO: SetPixel unimplemented");
         }
     }
 
