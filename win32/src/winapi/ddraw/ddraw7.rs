@@ -597,6 +597,24 @@ pub mod IDirectDrawSurface7 {
                     surf.host.write_pixels(&pixels32);
                 }
             }
+            2 => {
+                let pixels = machine
+                    .emu
+                    .memory
+                    .mem()
+                    .iter_pod::<u16>(surf.pixels, surf.width * surf.height);
+
+                let pixels32: Vec<_> = pixels
+                    .map(|i| {
+                        // TODO: this depends on whether 16bpp is 555 or 565 etc.
+                        let r = ((i & 0b0111_1100_0000_0000) >> 7) as u8;
+                        let g = ((i & 0b0000_0011_1110_0000) >> 2) as u8;
+                        let b = ((i & 0b0000_0000_0001_1111) << 3) as u8;
+                        [r, g, b, 0xFF]
+                    })
+                    .collect();
+                surf.host.write_pixels(&pixels32);
+            }
             4 => {
                 let pixels = machine
                     .emu
