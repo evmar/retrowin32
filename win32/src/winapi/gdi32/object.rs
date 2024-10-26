@@ -1,25 +1,16 @@
 use super::{Brush, DCTarget, Pen, BITMAP, COLORREF, HDC};
 use crate::{
-    winapi::{
-        bitmap::{BitmapMono, BitmapRGBA32},
-        types::HANDLE,
-    },
+    winapi::{bitmap::Bitmap, types::HANDLE},
     Machine,
 };
 use memory::ExtensionsMut;
-use std::rc::Rc;
-
-#[derive(Debug)]
-pub enum Bitmap {
-    RGBA32(Rc<BitmapRGBA32>),
-    Mono(BitmapMono),
-}
+use std::{cell::RefCell, rc::Rc};
 
 /// GDI Object, as identified by HANDLEs.
 #[derive(Debug)]
 pub enum Object {
     Brush(Brush),
-    Bitmap(Bitmap),
+    Bitmap(Rc<RefCell<Bitmap>>),
     Pen(Pen),
 }
 
@@ -129,27 +120,17 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
         Object::Brush(_) => todo!(),
         Object::Bitmap(bitmap) => {
             assert_eq!(bytes as usize, std::mem::size_of::<BITMAP>());
+            let bitmap = bitmap.borrow();
             machine.mem().put_pod::<BITMAP>(
                 out,
-                match bitmap {
-                    Bitmap::RGBA32(bitmap) => BITMAP {
-                        bmType: 0,
-                        bmWidth: bitmap.width,
-                        bmHeight: bitmap.height,
-                        bmWidthBytes: 0,
-                        bmPlanes: 0,
-                        bmBitsPixel: 32,
-                        bmBits: 0,
-                    },
-                    Bitmap::Mono(bitmap) => BITMAP {
-                        bmType: 0,
-                        bmWidth: bitmap.width,
-                        bmHeight: bitmap.height,
-                        bmWidthBytes: 0,
-                        bmPlanes: 0,
-                        bmBitsPixel: 1,
-                        bmBits: 0,
-                    },
+                BITMAP {
+                    bmType: 0,
+                    bmWidth: bitmap.width,
+                    bmHeight: bitmap.height,
+                    bmWidthBytes: 0,
+                    bmPlanes: 0,
+                    bmBitsPixel: bitmap.format.bits_per_pixel() as u16,
+                    bmBits: 0,
                 },
             );
             bytes

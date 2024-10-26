@@ -3,7 +3,7 @@ use crate::{
     host,
     winapi::{
         self,
-        bitmap::{transmute_pixels, BitmapRGBA32, PixelData},
+        bitmap::{Bitmap, PixelData, PixelFormat},
         gdi32::HDC,
         stack_args::ArrayWithSize,
         types::{Str16, String16, HWND, POINT, RECT},
@@ -101,7 +101,7 @@ pub struct WindowTopLevel {
     // pub hdc: HDC,
     /// Backing store, lazily created.
     /// Rc so it can be shared within drawing functions.
-    backing_store: Option<Rc<BitmapRGBA32>>,
+    backing_store: Option<Rc<RefCell<Bitmap>>>,
     pub dirty: Option<Dirty>,
 }
 
@@ -115,7 +115,7 @@ impl Window {
         }
     }
 
-    pub fn bitmap(&mut self) -> &Rc<BitmapRGBA32> {
+    pub fn bitmap(&mut self) -> &Rc<RefCell<Bitmap>> {
         let Window { width, height, .. } = *self;
         self.expect_toplevel_mut()
             .ensure_backing_store(width, height)
@@ -182,15 +182,16 @@ pub struct Dirty {
 }
 
 impl WindowTopLevel {
-    fn ensure_backing_store(&mut self, width: u32, height: u32) -> &Rc<BitmapRGBA32> {
+    fn ensure_backing_store(&mut self, width: u32, height: u32) -> &Rc<RefCell<Bitmap>> {
         match self.backing_store {
             Some(ref mut px) => px,
             None => {
-                self.backing_store = Some(Rc::new(BitmapRGBA32 {
+                self.backing_store = Some(Rc::new(RefCell::new(Bitmap {
                     width,
                     height,
-                    pixels: PixelData::new_owned((width * height) as usize),
-                }));
+                    format: PixelFormat::RGBA32,
+                    pixels: PixelData::new_owned((width * height * 4) as usize),
+                })));
                 self.backing_store.as_mut().unwrap()
             }
         }
@@ -198,9 +199,10 @@ impl WindowTopLevel {
 
     fn flush_backing_store(&mut self, mem: Mem) {
         if let Some(backing_store) = &self.backing_store {
-            backing_store.pixels.with_slice(mem, |pixels| {
-                self.surface.write_pixels(transmute_pixels(pixels));
-            });
+            let backing_store = backing_store.borrow();
+            let bytes = backing_store.pixels.bytes(mem);
+            self.surface.write_pixels(bytes);
+
             self.surface.show();
         }
     }

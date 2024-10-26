@@ -1,14 +1,13 @@
-use super::{Bitmap, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
+use super::{DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
     winapi::{
-        bitmap::{transmute_pixels, BitmapMono, BitmapRGBA32, PixelData, BI},
+        bitmap::{Bitmap, PixelData, PixelFormat, BI},
         kernel32,
         types::{POINT, RECT},
     },
 };
 use memory::Mem;
-use std::rc::Rc;
 
 pub type HBITMAP = HGDIOBJ;
 
@@ -28,19 +27,18 @@ unsafe impl memory::Pod for BITMAP {}
 /// Performs no clipping; caller must have already clipped.
 fn fill_pixels(
     mem: Mem,
-    dst: &BitmapRGBA32,
+    dst: &mut Bitmap,
     r: &RECT,
     mut op: impl FnMut(POINT, [u8; 4]) -> [u8; 4],
 ) {
-    dst.pixels.with_slice(mem, |pixels| {
-        let stride = dst.width as i32;
-        for y in r.top..r.bottom {
-            for x in r.left..r.right {
-                let p = &mut pixels[(y * stride + x) as usize];
-                *p = op(POINT { x, y }, *p);
-            }
+    let stride = dst.width as i32;
+    let pixels = dst.as_rgba_mut(mem);
+    for y in r.top..r.bottom {
+        for x in r.left..r.right {
+            let p = &mut pixels[(y * stride + x) as usize];
+            *p = op(POINT { x, y }, *p);
         }
-    });
+    }
 }
 
 #[derive(Debug, win32_derive::TryFromEnum, PartialEq, Eq)]
@@ -111,7 +109,9 @@ pub fn StretchBlt(
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
     let target = src_dc.target;
-    let src_bitmap = target.get_bitmap(machine).unwrap();
+    let src_bitmap = target.get_bitmap(machine).unwrap().clone();
+    let src_bitmap = src_bitmap.borrow();
+    src_bitmap.format.expect_rgba32();
 
     let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap();
     let target = dst_dc.target;
@@ -126,17 +126,16 @@ pub fn StretchBlt(
             }
             assert!(surface.to_rect() == dst_rect);
 
-            src_bitmap
-                .pixels
-                .with_slice(machine.emu.memory.mem(), |src| {
-                    surface.host.write_pixels(transmute_pixels(src))
-                });
+            let bytes = src_bitmap.pixels.bytes(machine.emu.memory.mem());
+            surface.host.write_pixels(bytes);
             return true;
         }
         _ => {}
     }
 
-    let dst_bitmap = target.get_bitmap(machine).unwrap();
+    let dst_bitmap = target.get_bitmap(machine).unwrap().clone();
+    let mut dst_bitmap = dst_bitmap.borrow_mut();
+    dst_bitmap.format.expect_rgba32();
 
     // What does it mean when the src_rect isn't within the src bitmap?
     // sol.exe does this when you drag a card off screen.
@@ -146,20 +145,20 @@ pub fn StretchBlt(
     let copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
 
     let mem = machine.emu.memory.mem();
-    src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, dpx| {
-            // Translate p from dst to src space.
-            // Because we're stretching, we scale to src space rather than clipping.
-            let p = p
-                .sub(dst_rect.origin())
-                .mul(src_rect.size())
-                .div(dst_rect.size())
-                .add(src_rect.origin());
-            let mut px = op(dpx, src[(p.y * src_bitmap.width as i32 + p.x) as usize]);
-            px[3] = 0xFF; // clear alpha
-            px
-        });
+    let src = src_bitmap.as_rgba(mem);
+    fill_pixels(mem, &mut *dst_bitmap, &copy_rect, |p, dpx| {
+        // Translate p from dst to src space.
+        // Because we're stretching, we scale to src space rather than clipping.
+        let p = p
+            .sub(dst_rect.origin())
+            .mul(src_rect.size())
+            .div(dst_rect.size())
+            .add(src_rect.origin());
+        let mut px = op(dpx, src[(p.y * src_bitmap.width as i32 + p.x) as usize]);
+        px[3] = 0xFF; // clear alpha
+        px
     });
+    drop(dst_bitmap);
 
     target.flush(machine);
     true
@@ -217,7 +216,9 @@ pub fn PatBlt(
     };
 
     let target = dc.target;
-    let dst_bitmap = target.get_bitmap(machine).unwrap();
+    let dst_bitmap = target.get_bitmap(machine).unwrap().clone();
+    let mut dst_bitmap = dst_bitmap.borrow_mut();
+    dst_bitmap.format.expect_rgba32();
     let dst_rect = RECT {
         left: x,
         top: y,
@@ -226,7 +227,8 @@ pub fn PatBlt(
     }
     .clip(&dst_bitmap.to_rect());
 
-    fill_pixels(machine.mem(), &*dst_bitmap, &dst_rect, |_, _| color);
+    fill_pixels(machine.mem(), &mut *dst_bitmap, &dst_rect, |_, _| color);
+    drop(dst_bitmap);
     target.flush(machine);
     true
 }
@@ -243,20 +245,21 @@ pub fn CreateBitmap(
     assert_eq!(nPlanes, 1);
     let bitmap = match nBitCount {
         1 => {
-            let stride = BitmapMono::stride(nWidth);
+            let format = PixelFormat::Mono;
+            let stride = format.stride(nWidth);
             let len = (nHeight * stride) as usize;
             let mut pixels = Vec::with_capacity(len);
             pixels.resize(len, 0);
-            let bitmap = BitmapMono {
+            Bitmap {
                 width: nWidth,
                 height: nHeight,
+                format,
                 pixels: PixelData::new_with_owned(pixels.into_boxed_slice()),
-            };
-            Bitmap::Mono(bitmap)
+            }
         }
         _ => unimplemented!(),
     };
-    machine.state.gdi32.objects.add(Object::Bitmap(bitmap))
+    machine.state.gdi32.objects.add_bitmap(bitmap)
 }
 
 const DIB_RGB_COLORS: u32 = 0;
@@ -308,48 +311,39 @@ pub fn CreateDIBSection(
 
     *ppvBits.unwrap() = pixels;
 
-    let bitmap = BitmapRGBA32 {
+    let bitmap = Bitmap {
         width: bi.width(),
         height: bi.height(),
+        format: PixelFormat::RGBA32,
         pixels: PixelData::Ptr(pixels, byte_count),
     };
-    machine
-        .state
-        .gdi32
-        .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
+    machine.state.gdi32.objects.add_bitmap(bitmap)
 }
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     match dc.target {
-        DCTarget::Memory(hbitmap) => match machine.state.gdi32.objects.get_mut(hbitmap).unwrap() {
-            Object::Bitmap(Bitmap::RGBA32(_)) => {}
-            Object::Bitmap(_) => {
-                // Cryogoat does a series of:
-                //   let dc1 = GetDC(0); // desktop dc
-                //   let dc2 = CreateCompatibleDc(dc1); // memory dc
-                //   CreateCompatibleBitmap(dc2);
-                // The MSDN docs say this sequence should produce a 1bpp bitmap because
-                // the initial state of dc1 is monochrome, but I think cryogoat doesn't expect this (?)
-            }
-            _ => todo!(),
-        },
+        DCTarget::Memory(hbitmap) => {
+            machine.state.gdi32.objects.get_bitmap(hbitmap).unwrap();
+            // Cryogoat does a series of:
+            //   let dc1 = GetDC(0); // desktop dc
+            //   let dc2 = CreateCompatibleDc(dc1); // memory dc
+            //   CreateCompatibleBitmap(dc2);
+            // The MSDN docs say this sequence should produce a 1bpp bitmap because
+            // the initial state of dc1 is monochrome, but I think cryogoat doesn't expect this (?)
+        }
         DCTarget::Window(_) => {} // screen has known format
         _ => todo!(),
     };
 
-    let bitmap = BitmapRGBA32 {
+    let bitmap = Bitmap {
         width: cx,
         height: cy,
-        pixels: PixelData::new_owned(cx as usize * cy as usize),
+        format: PixelFormat::RGBA32,
+        pixels: PixelData::new_owned((cx * cy * 4) as usize),
     };
-    machine
-        .state
-        .gdi32
-        .objects
-        .add(Object::Bitmap(Bitmap::RGBA32(Rc::new(bitmap))))
+    machine.state.gdi32.objects.add_bitmap(bitmap)
 }
 
 #[win32_derive::dllexport]
@@ -374,14 +368,16 @@ pub fn SetDIBitsToDevice(
     if iUsage != DIB_RGB_COLORS {
         todo!();
     }
-    let src_bitmap = BitmapRGBA32::parse(
+    let src_bitmap = Bitmap::parse(
         machine.mem().slice(lpBmi..),
         Some((machine.mem().slice(lpBits..), cLines as usize)),
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let target = dc.target;
-    let dst_bitmap = target.get_bitmap(machine).unwrap();
+    let dst_bitmap = target.get_bitmap(machine).unwrap().clone();
+    let mut dst_bitmap = dst_bitmap.borrow_mut();
+    dst_bitmap.format.expect_rgba32();
 
     let src_rect = RECT {
         left: xSrc,
@@ -405,14 +401,14 @@ pub fn SetDIBitsToDevice(
     let dst_to_src = src_rect.origin().sub(dst_rect.origin());
 
     let mem = machine.mem();
-    src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &copy_rect, |p, _| {
-            let p = p.add(dst_to_src);
-            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
-            pixel[3] = 0xFF;
-            pixel
-        });
+    let src = src_bitmap.as_rgba(mem);
+    fill_pixels(mem, &mut *dst_bitmap, &copy_rect, |p, _| {
+        let p = p.add(dst_to_src);
+        let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
+        pixel[3] = 0xFF;
+        pixel
     });
+    drop(dst_bitmap);
     target.flush(machine);
 
     cLines
@@ -440,14 +436,16 @@ pub fn StretchDIBits(
         _ => todo!(),
     }
 
-    let src_bitmap = BitmapRGBA32::parse(
+    let src_bitmap = Bitmap::parse(
         machine.mem().slice(lpBmi..),
         Some((machine.mem().slice(lpBits..), hSrc as usize)),
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
     let target = dc.target;
-    let dst_bitmap = target.get_bitmap(machine).unwrap();
+    let dst_bitmap = target.get_bitmap(machine).unwrap().clone();
+    let mut dst_bitmap = dst_bitmap.borrow_mut();
+    dst_bitmap.format.expect_rgba32();
 
     let src_rect = RECT {
         left: xSrc,
@@ -468,20 +466,20 @@ pub fn StretchDIBits(
     let copy_rect = dst_rect;
 
     let mem = machine.mem();
-    src_bitmap.pixels.with_slice(mem, |src| {
-        fill_pixels(mem, &*dst_bitmap, &dst_rect, |p, _| {
-            // Translate p from dst to src space.
-            // Because we're stretching, we scale to src space rather than clipping.
-            let p = p
-                .sub(dst_rect.origin())
-                .mul(src_rect.size())
-                .div(dst_rect.size())
-                .add(src_rect.origin());
-            let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
-            pixel[3] = 0xFF;
-            pixel
-        });
+    let src = src_bitmap.as_rgba(mem);
+    fill_pixels(mem, &mut *dst_bitmap, &dst_rect, |p, _| {
+        // Translate p from dst to src space.
+        // Because we're stretching, we scale to src space rather than clipping.
+        let p = p
+            .sub(dst_rect.origin())
+            .mul(src_rect.size())
+            .div(dst_rect.size())
+            .add(src_rect.origin());
+        let mut pixel = src[(p.y * src_bitmap.width as i32 + p.x) as usize];
+        pixel[3] = 0xFF;
+        pixel
     });
+    drop(dst_bitmap);
 
     target.flush(machine);
 

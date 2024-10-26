@@ -128,27 +128,26 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         }
     }
 
-    let mem = machine.emu.memory.mem();
-    window.bitmap().pixels.with_slice(mem, |pixels| {
-        let (dstX, dstY) = (x, y);
-        if dstX == dc.pos.x {
-            let x = x.max(0) as u32;
-            let (y0, y1) = ascending(dstY, dc.pos.y);
-            for y in y0..=y1 {
-                pixels[((y * stride) + x) as usize] = color;
-            }
-            dc.pos.y = dstY;
-        } else if dstY == dc.pos.y {
-            let (x0, x1) = ascending(dstX, dc.pos.x);
-            let y = y.max(0) as u32;
-            for x in x0..=x1 {
-                pixels[((y * stride) + x) as usize] = color;
-            }
-            dc.pos.x = dstX;
-        } else {
-            todo!();
+    let mut bitmap = window.bitmap().borrow_mut();
+    let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+    let (dstX, dstY) = (x, y);
+    if dstX == dc.pos.x {
+        let x = x.max(0) as u32;
+        let (y0, y1) = ascending(dstY, dc.pos.y);
+        for y in y0..=y1 {
+            pixels[((y * stride) + x) as usize] = color;
         }
-    });
+        dc.pos.y = dstY;
+    } else if dstY == dc.pos.y {
+        let (x0, x1) = ascending(dstX, dc.pos.x);
+        let y = y.max(0) as u32;
+        for x in x0..=x1 {
+            pixels[((y * stride) + x) as usize] = color;
+        }
+        dc.pos.x = dstX;
+    } else {
+        todo!();
+    }
     false // fail
 }
 
@@ -173,11 +172,9 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             // TODO: obey rect
-            let mem = machine.emu.memory.mem();
-            window
-                .bitmap()
-                .pixels
-                .with_slice(mem, |pixels| pixels.fill(color.to_pixel()));
+            let mut bitmap = window.bitmap().borrow_mut();
+            let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+            pixels.fill(color.to_pixel());
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
@@ -194,10 +191,9 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
                 return CLR_INVALID;
             }
             let stride = window.width;
-            let mem = machine.emu.memory.mem();
-            window.bitmap().pixels.with_slice(mem, |pixels| {
-                pixels[((y * stride) + x) as usize] = color.to_pixel();
-            });
+            let mut bitmap = window.bitmap().borrow_mut();
+            let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+            pixels[((y * stride) + x) as usize] = color.to_pixel();
         }
         _ => {
             log::warn!("TODO: SetPixel unimplemented");
@@ -217,12 +213,10 @@ pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
         DCTarget::Window(hwnd) => {
             let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
             let stride = window.width;
-            let mut color: [u8; 4] = [0; 4];
-            let mem = machine.emu.memory.mem();
-            window.bitmap().pixels.with_slice(mem, |pixels| {
-                color = pixels[((y * stride) + x) as usize];
-            });
-            COLORREF::from_rgb(color[0], color[1], color[2])
+            let bitmap = window.bitmap().borrow();
+            let pixels = bitmap.as_rgba(machine.emu.memory.mem());
+            let pixel = pixels[((y * stride) + x) as usize];
+            COLORREF::from_rgb(pixel[0], pixel[1], pixel[2])
         }
         _ => {
             // TODO: actually read

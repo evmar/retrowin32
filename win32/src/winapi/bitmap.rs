@@ -4,7 +4,6 @@
 
 use super::types::*;
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::cell::RefCell;
 
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
 pub enum BI {
@@ -161,8 +160,8 @@ impl<'a> BitmapInfo<'a> {
     }
 }
 
-pub enum PixelData<T> {
-    Owned(RefCell<Box<[T]>>),
+pub enum PixelData {
+    Owned(Box<[u8]>),
     Ptr(u32, u32),
 }
 
@@ -170,7 +169,7 @@ pub fn transmute_pixels<Tin: memory::Pod, Tout: memory::Pod>(px: &[Tin]) -> &[To
     unsafe {
         std::slice::from_raw_parts(
             px.as_ptr() as *const _,
-            px.len() / std::mem::size_of::<Tin>(),
+            px.len() * std::mem::size_of::<Tin>() / std::mem::size_of::<Tout>(),
         )
     }
 }
@@ -179,12 +178,12 @@ pub fn transmute_pixels_mut<Tin: memory::Pod, Tout: memory::Pod>(px: &mut [Tin])
     unsafe {
         std::slice::from_raw_parts_mut(
             px.as_mut_ptr() as *mut _,
-            px.len() / std::mem::size_of::<Tin>(),
+            px.len() * std::mem::size_of::<Tin>() / std::mem::size_of::<Tout>(),
         )
     }
 }
 
-impl<T: memory::Pod + Clone + Default> PixelData<T> {
+impl PixelData {
     pub fn new_owned(size: usize) -> Self {
         let buf = {
             let mut p = Vec::with_capacity(size);
@@ -194,30 +193,62 @@ impl<T: memory::Pod + Clone + Default> PixelData<T> {
         PixelData::new_with_owned(buf)
     }
 
-    pub fn new_with_owned(buf: Box<[T]>) -> Self {
-        PixelData::Owned(RefCell::new(buf))
+    pub fn new_with_owned(buf: Box<[u8]>) -> Self {
+        PixelData::Owned(buf)
     }
 
-    // It would be nice to be able to get a slice without involving a callback,
-    // but the lifetimes with the RefCell mean we cannot return a slice directly.
-    pub fn with_slice<'a>(&self, mem: Mem, f: impl FnOnce(&mut [T])) {
-        match self {
-            PixelData::Owned(b) => f(&mut *b.borrow_mut()),
-            &PixelData::Ptr(addr, len) => {
-                let bytes = mem.sub32_mut(addr, len);
-                f(transmute_pixels_mut(bytes))
-            }
+    pub fn bytes<'a>(&'a self, mem: Mem<'a>) -> &'a [u8] {
+        match *self {
+            PixelData::Owned(ref b) => &*b,
+            PixelData::Ptr(addr, len) => mem.sub32(addr, len),
+        }
+    }
+
+    pub fn bytes_mut<'a>(&'a mut self, mem: Mem<'a>) -> &'a mut [u8] {
+        match *self {
+            PixelData::Owned(ref mut b) => &mut *b,
+            PixelData::Ptr(addr, len) => mem.sub32_mut(addr, len),
         }
     }
 }
 
-pub struct BitmapRGBA32 {
-    pub width: u32,
-    pub height: u32,
-    pub pixels: PixelData<[u8; 4]>,
+#[derive(Debug)]
+pub enum PixelFormat {
+    RGBA32,
+    Mono,
 }
 
-impl BitmapRGBA32 {
+impl PixelFormat {
+    pub fn expect_rgba32(&self) {
+        match self {
+            PixelFormat::RGBA32 => {}
+            _ => panic!("expected RGBA32 bitmap"),
+        }
+    }
+
+    pub fn stride(&self, width: u32) -> u32 {
+        match self {
+            PixelFormat::RGBA32 => width,
+            PixelFormat::Mono => ((width + 31) & !31) >> 3,
+        }
+    }
+
+    pub fn bits_per_pixel(&self) -> u32 {
+        match self {
+            PixelFormat::RGBA32 => 32,
+            PixelFormat::Mono => 1,
+        }
+    }
+}
+
+pub struct Bitmap {
+    pub width: u32,
+    pub height: u32,
+    pub format: PixelFormat,
+    pub pixels: PixelData,
+}
+
+impl Bitmap {
     pub fn to_rect(&self) -> RECT {
         RECT {
             left: 0,
@@ -229,7 +260,7 @@ impl BitmapRGBA32 {
 
     /// If pixels is not None, only parse the given number of lines from the given pixels.
     /// Otherwise pixels are expected to immediately follow the header in memory.
-    pub fn parse(buf: &[u8], pixels: Option<(&[u8], usize)>) -> BitmapRGBA32 {
+    pub fn parse(buf: &[u8], pixels: Option<(&[u8], usize)>) -> Bitmap {
         let header = BitmapInfo::parse(buf);
         let (pixels, lines) = match pixels {
             Some((pixels, lines)) => (pixels, Some(lines)),
@@ -242,7 +273,7 @@ impl BitmapRGBA32 {
     }
 
     /// Parse a BITMAPINFO/HEADER and pixel data.
-    fn parse_pixels(header: &BitmapInfo, pixels: &[u8], lines: Option<usize>) -> BitmapRGBA32 {
+    fn parse_pixels(header: &BitmapInfo, pixels: &[u8], lines: Option<usize>) -> Bitmap {
         match header.compression {
             BI::RGB => {}
             BI::RLE8 => todo!(),
@@ -304,41 +335,37 @@ impl BitmapRGBA32 {
             }
         }
 
-        BitmapRGBA32 {
+        let mut buf: Vec<u8> = Vec::with_capacity(dst.len() * 4);
+        unsafe { buf.set_len(buf.capacity()) };
+        buf.copy_from_slice(transmute_pixels(&dst));
+
+        Bitmap {
             width: header.width as u32,
             height: height as u32,
-            pixels: PixelData::new_with_owned(dst.into_boxed_slice()),
+            format: PixelFormat::RGBA32,
+            pixels: PixelData::new_with_owned(buf.into_boxed_slice()),
         }
     }
+
+    pub fn as_rgba<'a>(&'a self, mem: Mem<'a>) -> &'a [[u8; 4]] {
+        self.format.expect_rgba32();
+        let bytes = self.pixels.bytes(mem);
+        transmute_pixels(bytes)
+    }
+
+    pub fn as_rgba_mut<'a>(&'a mut self, mem: Mem<'a>) -> &'a mut [[u8; 4]] {
+        self.format.expect_rgba32();
+        let bytes = self.pixels.bytes_mut(mem);
+        transmute_pixels_mut(bytes)
+    }
 }
 
-impl std::fmt::Debug for BitmapRGBA32 {
+impl std::fmt::Debug for Bitmap {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Bitmap")
             .field("width", &self.width)
             .field("height", &self.height)
-            //.field("pixels", &&self.pixels[0..16])
-            .finish()
-    }
-}
-
-pub struct BitmapMono {
-    pub width: u32,
-    pub height: u32,
-    pub pixels: PixelData<u8>,
-}
-
-impl BitmapMono {
-    pub fn stride(width: u32) -> u32 {
-        ((width + 31) & !31) >> 3
-    }
-}
-
-impl std::fmt::Debug for BitmapMono {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Bitmap")
-            .field("width", &self.width)
-            .field("height", &self.height)
+            .field("format", &self.format)
             //.field("pixels", &&self.pixels[0..16])
             .finish()
     }

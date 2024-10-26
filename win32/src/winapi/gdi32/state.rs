@@ -1,5 +1,6 @@
 use super::{DCTarget, Object, DC, HDC, HGDIOBJ};
-use crate::winapi::{self, handle::Handles, types::HWND};
+use crate::winapi::{bitmap::Bitmap, handle::Handles, types::HWND};
+use std::{cell::RefCell, rc::Rc};
 
 pub struct State {
     pub dcs: Handles<HDC, DC>,
@@ -8,10 +9,16 @@ pub struct State {
 }
 
 impl Handles<HGDIOBJ, Object> {
-    pub fn new_bitmap_rgba32(&mut self, bmp: winapi::bitmap::BitmapRGBA32) -> HGDIOBJ {
-        self.add(super::Object::Bitmap(super::Bitmap::RGBA32(
-            std::rc::Rc::new(bmp),
-        )))
+    pub fn add_bitmap(&mut self, bmp: Bitmap) -> HGDIOBJ {
+        self.add(Object::Bitmap(Rc::new(RefCell::new(bmp))))
+    }
+
+    pub fn get_bitmap(&self, handle: HGDIOBJ) -> Option<&Rc<RefCell<Bitmap>>> {
+        let object = self.get(handle)?;
+        let Object::Bitmap(bmp) = object else {
+            return None;
+        };
+        Some(bmp)
     }
 }
 

@@ -1,12 +1,12 @@
-use super::{Bitmap, Object, HGDIOBJ, R2};
+use super::{HGDIOBJ, R2};
 use crate::{
     machine::Machine,
     winapi::{
-        bitmap::{BitmapMono, BitmapRGBA32, PixelData},
+        bitmap::{Bitmap, PixelData, PixelFormat},
         types::{HANDLE, HWND, POINT},
     },
 };
-use std::rc::Rc;
+use std::{cell::RefCell, rc::Rc};
 
 pub type HDC = HANDLE<DC>;
 
@@ -21,23 +21,18 @@ pub enum DCTarget {
 
 impl DCTarget {
     /// If this target is backed by a bitmap, return it.
-    pub fn get_bitmap(&self, machine: &mut Machine) -> Option<Rc<BitmapRGBA32>> {
+    pub fn get_bitmap<'a>(&self, machine: &'a mut Machine) -> Option<&'a Rc<RefCell<Bitmap>>> {
         match *self {
-            DCTarget::Memory(bitmap) => {
-                let obj = machine.state.gdi32.objects.get(bitmap).unwrap();
-                match obj {
-                    Object::Bitmap(Bitmap::RGBA32(bmp)) => return Some(bmp.clone()),
-                    _ => {}
-                }
-            }
+            DCTarget::Memory(bitmap) => machine.state.gdi32.objects.get_bitmap(bitmap),
             DCTarget::Window(hwnd) => {
                 let window = machine.state.user32.windows.get_mut(hwnd).unwrap();
-                return Some(window.bitmap().clone());
+                return Some(window.bitmap());
             }
-            _ => {}
+            _ => {
+                log::warn!("no bitmap found in {:?}", self);
+                None
+            }
         }
-        log::warn!("no bitmap found in {:?}", self);
-        None
     }
 
     pub fn flush(self, machine: &mut Machine) {
@@ -83,16 +78,13 @@ impl DC {
     pub fn new_memory(machine: &mut Machine) -> Self {
         // MSDN says: "When a memory device context is created, it initially has a 1-by-1 monochrome bitmap selected into it."
         // SkiFree depends on this!
-        let bitmap = BitmapMono {
+        let bitmap = Bitmap {
             width: 1,
             height: 1,
+            format: PixelFormat::Mono,
             pixels: PixelData::Ptr(0, 0),
         };
-        let hobj = machine
-            .state
-            .gdi32
-            .objects
-            .add(Object::Bitmap(Bitmap::Mono(bitmap)));
+        let hobj = machine.state.gdi32.objects.add_bitmap(bitmap);
         Self::new(DCTarget::Memory(hobj))
     }
 }

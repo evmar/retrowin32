@@ -2,7 +2,7 @@ use super::{HINSTANCE, HMENU};
 use crate::{
     pe,
     winapi::{
-        bitmap::{BitmapRGBA32, BITMAPFILEHEADER},
+        bitmap::{Bitmap, BITMAPFILEHEADER},
         gdi32::HGDIOBJ,
         kernel32::ResourceKey,
         types::*,
@@ -151,8 +151,8 @@ fn load_image(
             } else {
                 buf
             };
-            let bmp = BitmapRGBA32::parse(buf, None);
-            machine.state.gdi32.objects.new_bitmap_rgba32(bmp)
+            let bmp = Bitmap::parse(buf, None);
+            machine.state.gdi32.objects.add_bitmap(bmp)
         }
         typ => {
             log::error!("LoadImage: unimplemented image type {:?}", typ);
@@ -216,8 +216,8 @@ fn load_bitmap(
         &name,
     )?;
     let buf = machine.mem().slice(buf);
-    let bmp = BitmapRGBA32::parse(buf, None);
-    Some(machine.state.gdi32.objects.new_bitmap_rgba32(bmp))
+    let bmp = Bitmap::parse(buf, None);
+    Some(machine.state.gdi32.objects.add_bitmap(bmp))
 }
 
 #[win32_derive::dllexport]
