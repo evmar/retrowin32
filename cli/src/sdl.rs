@@ -239,12 +239,10 @@ impl Texture {
 }
 
 impl win32::Surface for Texture {
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        let pixels_u8 =
-            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const u8, pixels.len() * 4) };
+    fn write_pixels(&mut self, pixels: &[u8]) {
         let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
         self.texture
-            .update(rect, pixels_u8, self.width as usize * 4)
+            .update(rect, pixels, self.width as usize * 4)
             .unwrap();
     }
 

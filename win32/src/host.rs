@@ -3,11 +3,13 @@
 pub use crate::winapi::ERROR;
 pub use typed_path::{WindowsPath, WindowsPathBuf};
 
-/// DirectDraw surface.
+/// Drawing surface, corresponding to window contents or DirectDraw surfaces.
+
 pub trait Surface {
-    /// Write RGBA pixel data directly.
-    /// Used for copying an image to the surface via GDI calls, and for Lock/Unlock pixel writes.
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]);
+    /// Write pixel data.
+    /// TODO: currently data is rgba32, but non-web implementation could handle other formats
+    /// in principle.
+    fn write_pixels(&mut self, pixels: &[u8]);
 
     /// Show the this surface as the foreground.  Called by ::Flip().
     fn show(&self);

@@ -2,7 +2,7 @@ use super::{Bitmap, DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
     winapi::{
-        bitmap::{BitmapMono, BitmapRGBA32, PixelData, BI},
+        bitmap::{transmute_pixels, BitmapMono, BitmapRGBA32, PixelData, BI},
         kernel32,
         types::{POINT, RECT},
     },
@@ -137,7 +137,7 @@ pub fn StretchBlt(
             src_bitmap
                 .pixels
                 .with_slice(machine.emu.memory.mem(), |src| {
-                    surface.host.write_pixels(src)
+                    surface.host.write_pixels(transmute_pixels(src))
                 });
             return true;
         }

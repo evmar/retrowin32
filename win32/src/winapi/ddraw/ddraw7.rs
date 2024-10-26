@@ -3,6 +3,7 @@
 use super::{palette::IDirectDrawPalette, types::*};
 use crate::{
     winapi::{
+        bitmap::transmute_pixels_mut,
         com::{vtable, GUID},
         ddraw,
         kernel32::get_symbol,
@@ -575,6 +576,9 @@ pub mod IDirectDrawSurface7 {
         assert!(surf.pixels != 0);
 
         // We need to copy surf.pixels to convert its format to the RGBA expected by the write_pixels API.
+        let mut pixels_bytes = Vec::with_capacity((surf.width * surf.height * 4) as usize);
+        unsafe { pixels_bytes.set_len(pixels_bytes.capacity()) };
+        let pixels_quads: &mut [[u8; 4]] = transmute_pixels_mut(&mut pixels_bytes);
         match machine.state.ddraw.bytes_per_pixel {
             1 => {
                 let pixels = machine
@@ -588,13 +592,10 @@ pub mod IDirectDrawSurface7 {
                     .palettes
                     .get(&machine.state.ddraw.palette_hack)
                 {
-                    let pixels32: Vec<_> = pixels
-                        .map(|i| {
-                            let p = &palette[i as usize];
-                            [p.peRed, p.peGreen, p.peBlue, 0xFF]
-                        })
-                        .collect();
-                    surf.host.write_pixels(&pixels32);
+                    for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                        let p = &palette[pSrc as usize];
+                        *pDst = [p.peRed, p.peGreen, p.peBlue, 0xFF];
+                    }
                 }
             }
             2 => {
@@ -604,16 +605,13 @@ pub mod IDirectDrawSurface7 {
                     .mem()
                     .iter_pod::<u16>(surf.pixels, surf.width * surf.height);
 
-                let pixels32: Vec<_> = pixels
-                    .map(|i| {
-                        // TODO: this depends on whether 16bpp is 555 or 565 etc.
-                        let r = ((i & 0b0111_1100_0000_0000) >> 7) as u8;
-                        let g = ((i & 0b0000_0011_1110_0000) >> 2) as u8;
-                        let b = ((i & 0b0000_0000_0001_1111) << 3) as u8;
-                        [r, g, b, 0xFF]
-                    })
-                    .collect();
-                surf.host.write_pixels(&pixels32);
+                for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                    // TODO: this depends on whether 16bpp is 555 or 565 etc.
+                    let r = ((pSrc & 0b0111_1100_0000_0000) >> 7) as u8;
+                    let g = ((pSrc & 0b0000_0011_1110_0000) >> 2) as u8;
+                    let b = ((pSrc & 0b0000_0000_0001_1111) << 3) as u8;
+                    *pDst = [r, g, b, 0xFF];
+                }
             }
             4 => {
                 let pixels = machine
@@ -622,11 +620,13 @@ pub mod IDirectDrawSurface7 {
                     .mem()
                     .iter_pod::<[u8; 4]>(surf.pixels, surf.width * surf.height);
                 // Ignore alpha channel in input; output is always opaque.
-                let pixels32: Vec<_> = pixels.map(|[r, g, b, _a]| [r, g, b, 0xff]).collect();
-                surf.host.write_pixels(&pixels32);
+                for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                    *pDst = [pSrc[0], pSrc[1], pSrc[2], 0xFF];
+                }
             }
             bpp => todo!("Unlock for {bpp}bpp"),
         }
+        surf.host.write_pixels(&pixels_bytes);
 
         // If surface is primary then updates should show immediately.
         // XXX probably need something other than attached here

@@ -166,22 +166,20 @@ pub enum PixelData<T> {
     Ptr(u32, u32),
 }
 
-pub fn transmute_pixels<T: memory::Pod>(bytes: &[u8]) -> &[T] {
-    assert!(bytes.len() % std::mem::size_of::<T>() == 0);
+pub fn transmute_pixels<Tin: memory::Pod, Tout: memory::Pod>(px: &[Tin]) -> &[Tout] {
     unsafe {
         std::slice::from_raw_parts(
-            bytes.as_ptr() as *const _,
-            bytes.len() / std::mem::size_of::<T>(),
+            px.as_ptr() as *const _,
+            px.len() / std::mem::size_of::<Tin>(),
         )
     }
 }
 
-pub fn transmute_pixels_mut<T: memory::Pod>(bytes: &mut [u8]) -> &mut [T] {
-    assert!(bytes.len() % std::mem::size_of::<T>() == 0);
+pub fn transmute_pixels_mut<Tin: memory::Pod, Tout: memory::Pod>(px: &mut [Tin]) -> &mut [Tout] {
     unsafe {
         std::slice::from_raw_parts_mut(
-            bytes.as_mut_ptr() as *mut _,
-            bytes.len() / std::mem::size_of::<T>(),
+            px.as_mut_ptr() as *mut _,
+            px.len() / std::mem::size_of::<Tin>(),
         )
     }
 }
@@ -207,7 +205,7 @@ impl<T: memory::Pod + Clone + Default> PixelData<T> {
             PixelData::Owned(b) => f(&mut *b.borrow_mut()),
             &PixelData::Ptr(addr, len) => {
                 let bytes = mem.sub32_mut(addr, len);
-                f(transmute_pixels_mut::<T>(bytes))
+                f(transmute_pixels_mut(bytes))
             }
         }
     }

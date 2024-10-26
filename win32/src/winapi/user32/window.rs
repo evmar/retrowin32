@@ -3,7 +3,7 @@ use crate::{
     host,
     winapi::{
         self,
-        bitmap::{BitmapRGBA32, PixelData},
+        bitmap::{transmute_pixels, BitmapRGBA32, PixelData},
         gdi32::HDC,
         stack_args::ArrayWithSize,
         types::{Str16, String16, HWND, POINT, RECT},
@@ -198,7 +198,7 @@ impl WindowTopLevel {
     fn flush_backing_store(&mut self, mem: Mem) {
         if let Some(backing_store) = &self.backing_store {
             backing_store.pixels.with_slice(mem, |pixels| {
-                self.surface.write_pixels(pixels);
+                self.surface.write_pixels(transmute_pixels(pixels));
             });
             self.surface.show();
         }

@@ -47,12 +47,12 @@ impl WebSurface {
 }
 
 impl win32::Surface for WebSurface {
-    fn write_pixels(&mut self, pixels: &[[u8; 4]]) {
-        let slice =
-            unsafe { std::slice::from_raw_parts(pixels.as_ptr() as *const _, pixels.len() * 4) };
-        let image_data =
-            web_sys::ImageData::new_with_u8_clamped_array(wasm_bindgen::Clamped(slice), self.width)
-                .unwrap();
+    fn write_pixels(&mut self, pixels: &[u8]) {
+        let image_data = web_sys::ImageData::new_with_u8_clamped_array(
+            wasm_bindgen::Clamped(pixels),
+            self.width,
+        )
+        .unwrap();
         self.ctx.put_image_data(&image_data, 0.0, 0.0).unwrap();
     }
 
