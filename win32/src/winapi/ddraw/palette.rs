@@ -1,13 +1,11 @@
 use crate::{
-    winapi::{com::vtable, kernel32::get_symbol},
+    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
     Machine,
 };
 use memory::{Extensions, ExtensionsMut};
 
 #[win32_derive::dllexport]
 pub mod IDirectDrawPalette {
-    use crate::winapi::ddraw::{DD, PALETTEENTRY};
-
     use super::*;
 
     vtable![
