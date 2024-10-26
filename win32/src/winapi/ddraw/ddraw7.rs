@@ -527,15 +527,10 @@ pub mod IDirectDrawSurface7 {
         }
         let desc = desc.unwrap();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        if surf.pixels == 0 {
-            surf.pixels = machine.state.ddraw.heap.alloc(
-                machine.emu.memory.mem(),
-                surf.width * surf.height * surf.bytes_per_pixel,
-            );
-        }
+        let pixels = surf.lock(machine.emu.memory.mem(), &mut machine.state.ddraw.heap);
         // It seems callers (effect, monolife) don't provide flags for what they want,
         // and instead expect all fields to be included.
-        desc.lpSurface = surf.pixels;
+        desc.lpSurface = pixels;
         desc.lPitch_dwLinearSize = surf.width * surf.bytes_per_pixel;
         DD::OK
     }
@@ -581,10 +576,7 @@ pub mod IDirectDrawSurface7 {
             rect.right = surf.width as i32;
             rect.bottom = surf.height as i32;
         }
-
-        if surf.primary {
-            surf.flush(machine.emu.memory.mem(), None);
-        }
+        surf.unlock(machine.emu.memory.mem());
 
         DD::OK
     }

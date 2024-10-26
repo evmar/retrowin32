@@ -24,7 +24,7 @@ pub struct Surface {
     pub height: u32,
     pub palette: Option<Palette>,
     /// x86 address to pixel buffer, or 0 if unused.
-    pub pixels: u32,
+    pixels: u32,
     pub bytes_per_pixel: u32,
     pub primary: bool,
     /// Address of attached surface, e.g. back buffer.
@@ -97,6 +97,19 @@ impl Surface {
             top: 0,
             right: self.width as i32,
             bottom: self.height as i32,
+        }
+    }
+
+    pub fn lock(&mut self, mem: Mem, heap: &mut Heap) -> u32 {
+        if self.pixels == 0 {
+            self.pixels = heap.alloc(mem, self.width * self.height * self.bytes_per_pixel);
+        }
+        self.pixels
+    }
+
+    pub fn unlock(&mut self, mem: Mem) {
+        if self.primary {
+            self.flush(mem, None);
         }
     }
 
