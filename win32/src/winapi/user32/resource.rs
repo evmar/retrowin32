@@ -2,16 +2,17 @@ use super::{HINSTANCE, HMENU};
 use crate::{
     pe,
     winapi::{
-        bitmap::BitmapRGBA32,
-        gdi32::{self, HGDIOBJ},
+        bitmap::{BitmapRGBA32, BITMAPFILEHEADER},
+        gdi32::HGDIOBJ,
         kernel32::ResourceKey,
         types::*,
     },
-    Machine,
+    FileOptions, Machine,
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
-use std::{ops::Range, rc::Rc};
+use std::{borrow::Cow, ops::Range};
+use typed_path::WindowsPath;
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;
@@ -63,29 +64,6 @@ pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
-fn load_bitmap(
-    machine: &mut Machine,
-    hInstance: HINSTANCE,
-    name: ResourceKey<&Str16>,
-) -> Option<HGDIOBJ> {
-    let buf = crate::winapi::kernel32::find_resource(
-        &machine.state.kernel32,
-        machine.mem(),
-        hInstance,
-        ResourceKey::Id(pe::RT::BITMAP as u32),
-        name,
-    )?;
-    let buf = machine.mem().slice(buf);
-    let bmp = BitmapRGBA32::parse(buf, None);
-    Some(
-        machine
-            .state
-            .gdi32
-            .objects
-            .add(gdi32::Object::Bitmap(gdi32::Bitmap::RGBA32(Rc::new(bmp)))),
-    )
-}
-
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum IMAGE {
     BITMAP = 0,
@@ -123,14 +101,57 @@ fn load_image(
     }
 
     let mut flags = fuLoad;
-    flags.remove(LR::CREATEDIBSECTION); // TODO: we always load rgba32
+    flags.remove(LR::CREATEDIBSECTION); // TODO: we always assume DIBs
+    let load_from_file = flags.contains(LR::LOADFROMFILE);
+    flags.remove(LR::LOADFROMFILE);
     if !flags.is_empty() {
         log::error!("LoadImage: unimplemented fuLoad {:?}", fuLoad);
         return HGDIOBJ::null();
     }
 
+    let buf = if load_from_file {
+        let ResourceKey::Name(name) = name else {
+            panic!();
+        };
+        let path = name.to_string();
+        let mut file = machine
+            .host
+            .open(WindowsPath::new(&path), FileOptions::read())
+            .unwrap();
+        let mut buf = Vec::new();
+        file.read_to_end(&mut buf).unwrap();
+        Cow::Owned(buf)
+    } else {
+        let typ = ResourceKey::Id(match typ {
+            IMAGE::BITMAP => pe::RT::BITMAP,
+            _ => todo!(),
+        } as u32);
+        let slice = crate::winapi::kernel32::find_resource(
+            &machine.state.kernel32,
+            machine.mem(),
+            hInstance,
+            typ,
+            &name,
+        )
+        .unwrap();
+        Cow::Borrowed(machine.mem().slice(slice))
+    };
+    let buf = &*buf;
+
     match typ {
-        IMAGE::BITMAP => load_bitmap(machine, hInstance, name).unwrap(),
+        IMAGE::BITMAP => {
+            let buf = if load_from_file {
+                let file_header = buf.get_pod::<BITMAPFILEHEADER>(0);
+                assert!(file_header.bfType == 0x4D42); // "BM"
+
+                // Rest of the header doesn't seem useful (?).
+                &buf[14..]
+            } else {
+                buf
+            };
+            let bmp = BitmapRGBA32::parse(buf, None);
+            machine.state.gdi32.objects.new_bitmap_rgba32(bmp)
+        }
         typ => {
             log::error!("LoadImage: unimplemented image type {:?}", typ);
             return HGDIOBJ::null();
@@ -180,14 +201,30 @@ pub fn LoadImageW(
     )
 }
 
+fn load_bitmap(
+    machine: &mut Machine,
+    hInstance: HINSTANCE,
+    name: ResourceKey<&Str16>,
+) -> Option<HGDIOBJ> {
+    let buf = crate::winapi::kernel32::find_resource(
+        &machine.state.kernel32,
+        machine.mem(),
+        hInstance,
+        ResourceKey::Id(pe::RT::BITMAP as u32),
+        &name,
+    )?;
+    let buf = machine.mem().slice(buf);
+    let bmp = BitmapRGBA32::parse(buf, None);
+    Some(machine.state.gdi32.objects.new_bitmap_rgba32(bmp))
+}
+
 #[win32_derive::dllexport]
 pub fn LoadBitmapA(
     machine: &mut Machine,
     hInstance: HINSTANCE,
     lpBitmapName: ResourceKey<&str>,
 ) -> HGDIOBJ {
-    let name = lpBitmapName.to_string16();
-    load_bitmap(machine, hInstance, name.as_ref()).unwrap()
+    load_bitmap(machine, hInstance, lpBitmapName.to_string16().as_ref()).unwrap()
 }
 
 fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Range<u32>> {
@@ -199,7 +236,7 @@ fn find_string(machine: &Machine, hInstance: HINSTANCE, uID: u32) -> Option<Rang
         machine.mem(),
         hInstance,
         ResourceKey::Id(pe::RT::STRING as u32),
-        ResourceKey::Id(resource_id),
+        &ResourceKey::Id(resource_id),
     )?;
     let block_ofs = block.start;
     let block = machine.mem().slice(block);

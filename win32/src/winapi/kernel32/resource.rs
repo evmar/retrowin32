@@ -78,7 +78,7 @@ pub fn find_resource<'a>(
     mem: Mem<'a>,
     hInstance: HINSTANCE,
     typ: ResourceKey<&Str16>,
-    name: ResourceKey<&Str16>,
+    name: &ResourceKey<&Str16>,
 ) -> Option<Range<u32>> {
     let image = mem.slice(hInstance..);
     if hInstance == kernel32.image_base {
@@ -122,7 +122,7 @@ pub fn FindResourceW(
         machine.mem(),
         hModule.to_raw(),
         lpType,
-        lpName,
+        &lpName,
     ) {
         None => HRSRC::null(),
         Some(mem) => machine

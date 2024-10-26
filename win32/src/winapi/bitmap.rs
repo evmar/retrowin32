@@ -18,6 +18,17 @@ pub enum BI {
 
 #[repr(C)]
 #[derive(Debug, Clone)]
+pub struct BITMAPFILEHEADER {
+    pub bfType: u16,
+    pub bfSize: u32,
+    pub bfReserved1: u16,
+    pub bfReserved2: u16,
+    pub bfOffBits: u32,
+}
+unsafe impl memory::Pod for BITMAPFILEHEADER {}
+
+#[repr(C)]
+#[derive(Debug, Clone)]
 pub struct BITMAPCOREHEADER {
     pub bcSize: DWORD,
     pub bcWidth: WORD,
