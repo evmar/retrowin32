@@ -135,7 +135,7 @@ pub fn CreateFileA(
     };
 
     // If this from_bits fails, it's due to more complex access bits; see ACCESS_MASK in MSDN docs.
-    let generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
+    let mut generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
     let creation_disposition = match dwCreationDisposition {
         Ok(value) => value,
         Err(value) => {
@@ -144,6 +144,12 @@ pub fn CreateFileA(
             return HFILE::invalid();
         }
     };
+
+    if generic_access.is_empty() {
+        // Windows can create a file with no access rights, for querying metadata;
+        // model that as read access for now.
+        generic_access |= GENERIC::READ;
+    }
 
     // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
     let file_options = FileOptions {
