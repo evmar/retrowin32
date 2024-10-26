@@ -155,7 +155,7 @@ impl MessageQueue {
         // Note: remove is intentionally ignored because we never enqueue a WM_PAINT.
         // This just accepts the flag to match the other get_* fns.
         let hwnd = if hwnd.is_null() {
-            windows.iter().find(|w| w.is_dirty())?.hwnd
+            windows.iter().find(|(_, w)| w.is_dirty())?.0
         } else {
             if !windows.get(hwnd).unwrap().is_dirty() {
                 return None;

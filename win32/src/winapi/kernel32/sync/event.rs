@@ -33,7 +33,7 @@ pub fn CreateEventA(
     lpName: Option<&str>,
 ) -> HEVENT {
     let name = if let Some(name) = lpName {
-        if let Some(ev) = machine.state.kernel32.objects.iter().find(|ev| {
+        if let Some(ev) = machine.state.kernel32.objects.iter().find(|(_, ev)| {
             if let KernelObject::Event(EventObject { name: Some(n), .. }) = ev {
                 if *n == name {
                     return true;

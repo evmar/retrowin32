@@ -168,8 +168,8 @@ impl<H: Handle, V> Handles<H, V> {
         self.get_raw_mut(handle.to_raw())
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = &V> {
-        self.map.values()
+    pub fn iter(&self) -> impl Iterator<Item = (H, &V)> {
+        self.map.iter().map(|(k, v)| (H::from_raw(*k), v))
     }
 
     pub fn remove(&mut self, handle: H) -> Option<V> {

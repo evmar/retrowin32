@@ -76,7 +76,9 @@ bitflags! {
 }
 
 pub struct Window {
-    pub hwnd: HWND,
+    /// Identity for tying to Surfaces in the host.
+    // TODO: make create_surface a method on Window and remove this.
+    pub id: u32,
     pub typ: WindowType,
     /// Client area width (not total window width).
     pub width: u32,
@@ -127,7 +129,7 @@ impl Window {
         self.height = height;
         match &mut self.typ {
             WindowType::TopLevel(w) => {
-                w.set_size(host, self.hwnd, width, height);
+                w.set_size(host, self.id, width, height);
             }
             _ => {}
         }
@@ -197,10 +199,10 @@ impl WindowTopLevel {
         }
     }
 
-    fn set_size(&mut self, host: &mut dyn Host, hwnd: HWND, width: u32, height: u32) {
+    fn set_size(&mut self, host: &mut dyn Host, id: u32, width: u32, height: u32) {
         self.host.set_size(width, height);
         self.surface = host.create_surface(
-            hwnd.to_raw(),
+            id,
             &host::SurfaceOptions {
                 width,
                 height,
@@ -356,7 +358,7 @@ pub async fn CreateWindowExW(
     };
 
     let window = Window {
-        hwnd,
+        id: hwnd.to_raw(),
         typ,
         width,
         height,
@@ -393,8 +395,8 @@ pub fn GetDesktopWindow(_machine: &mut Machine) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
-    if let Some(window) = machine.state.user32.windows.iter().next() {
-        return window.hwnd;
+    if let Some((hwnd, _)) = machine.state.user32.windows.iter().next() {
+        return hwnd;
     }
     GetDesktopWindow(machine)
 }
@@ -407,14 +409,14 @@ pub fn SetForegroundWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
 #[win32_derive::dllexport]
 pub fn GetActiveWindow(machine: &mut Machine) -> HWND {
     match machine.state.user32.windows.iter().next() {
-        Some(w) => w.hwnd,
+        Some((hwnd, _)) => hwnd,
         None => HWND::null(),
     }
 }
 
 #[win32_derive::dllexport]
 pub fn GetLastActivePopup(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().hwnd
+    machine.state.user32.windows.iter().next().unwrap().0
 }
 
 #[win32_derive::dllexport]
@@ -427,7 +429,7 @@ pub fn FindWindowA(
         // TODO: obey class/window name
         true
     }) {
-        Some(window) => window.hwnd,
+        Some((hwnd, _)) => hwnd,
         None => HWND::null(),
     }
 }
@@ -605,7 +607,7 @@ pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
 
 #[win32_derive::dllexport]
 pub fn GetFocus(machine: &mut Machine) -> HWND {
-    machine.state.user32.windows.iter().next().unwrap().hwnd
+    machine.state.user32.windows.iter().next().unwrap().0
 }
 
 async fn def_window_proc(
