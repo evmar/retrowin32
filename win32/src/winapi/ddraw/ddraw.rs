@@ -7,6 +7,7 @@ use crate::{
     host,
     machine::Machine,
     winapi::{
+        bitmap::transmute_pixels_mut,
         ddraw::{ddraw1, ddraw7},
         gdi32::PALETTEENTRY,
         heap::Heap,
@@ -14,6 +15,7 @@ use crate::{
     },
     SurfaceOptions,
 };
+use memory::{Extensions, Mem};
 use std::collections::HashMap;
 
 pub struct Surface {
@@ -93,6 +95,54 @@ impl Surface {
             top: 0,
             right: self.width as i32,
             bottom: self.height as i32,
+        }
+    }
+
+    pub fn flush(&mut self, mem: Mem, palette: Option<&[PALETTEENTRY]>) {
+        assert!(self.pixels != 0);
+
+        // We need to copy self.pixels to convert its format to the RGBA expected by the write_pixels API.
+        let mut pixels_bytes = Vec::with_capacity((self.width * self.height * 4) as usize);
+        unsafe { pixels_bytes.set_len(pixels_bytes.capacity()) };
+        let pixels_quads: &mut [[u8; 4]] = transmute_pixels_mut(&mut pixels_bytes);
+        match self.bytes_per_pixel {
+            1 => {
+                let pixels = mem.iter_pod::<u8>(self.pixels, self.width * self.height);
+                let Some(palette) = palette else {
+                    // On startup possibly no palette, which means leave black (?).
+                    return;
+                };
+                for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                    let p = &palette[pSrc as usize];
+                    *pDst = [p.peRed, p.peGreen, p.peBlue, 0xFF];
+                }
+            }
+            2 => {
+                let pixels = mem.iter_pod::<u16>(self.pixels, self.width * self.height);
+
+                for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                    // TODO: this depends on whether 16bpp is 555 or 565 etc.
+                    let r = ((pSrc & 0b0111_1100_0000_0000) >> 7) as u8;
+                    let g = ((pSrc & 0b0000_0011_1110_0000) >> 2) as u8;
+                    let b = ((pSrc & 0b0000_0000_0001_1111) << 3) as u8;
+                    *pDst = [r, g, b, 0xFF];
+                }
+            }
+            4 => {
+                let pixels = mem.iter_pod::<[u8; 4]>(self.pixels, self.width * self.height);
+                // Ignore alpha channel in input; output is always opaque.
+                for (pSrc, pDst) in pixels.zip(pixels_quads) {
+                    *pDst = [pSrc[0], pSrc[1], pSrc[2], 0xFF];
+                }
+            }
+            bpp => todo!("Unlock for {bpp}bpp"),
+        }
+        self.host.write_pixels(&pixels_bytes);
+
+        // If surface is primary then updates should show immediately.
+        // XXX probably need something other than attached here
+        if self.attached == 0 {
+            self.host.show();
         }
     }
 }

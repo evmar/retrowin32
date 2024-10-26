@@ -3,7 +3,6 @@
 use super::{palette::IDirectDrawPalette, types::*};
 use crate::{
     winapi::{
-        bitmap::transmute_pixels_mut,
         com::{vtable, GUID},
         ddraw,
         kernel32::get_symbol,
@@ -565,7 +564,6 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> DD {
-        let mem = machine.emu.memory.mem();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         if let Some(rect) = rect {
             // TODO: needs to match the rect passed in Lock.
@@ -574,54 +572,15 @@ pub mod IDirectDrawSurface7 {
             rect.right = surf.width as i32;
             rect.bottom = surf.height as i32;
         }
-        assert!(surf.pixels != 0);
 
-        // We need to copy surf.pixels to convert its format to the RGBA expected by the write_pixels API.
-        let mut pixels_bytes = Vec::with_capacity((surf.width * surf.height * 4) as usize);
-        unsafe { pixels_bytes.set_len(pixels_bytes.capacity()) };
-        let pixels_quads: &mut [[u8; 4]] = transmute_pixels_mut(&mut pixels_bytes);
-        match surf.bytes_per_pixel {
-            1 => {
-                let pixels = mem.iter_pod::<u8>(surf.pixels, surf.width * surf.height);
-                if let Some(palette) = machine
-                    .state
-                    .ddraw
-                    .palettes
-                    .get(&machine.state.ddraw.palette_hack)
-                {
-                    for (pSrc, pDst) in pixels.zip(pixels_quads) {
-                        let p = &palette[pSrc as usize];
-                        *pDst = [p.peRed, p.peGreen, p.peBlue, 0xFF];
-                    }
-                }
-            }
-            2 => {
-                let pixels = mem.iter_pod::<u16>(surf.pixels, surf.width * surf.height);
+        let palette = machine.state.ddraw.palette_hack; // TODO: surf.palette
+        let palette = if palette != 0 {
+            Some(&**machine.state.ddraw.palettes.get(&palette).unwrap())
+        } else {
+            None
+        };
 
-                for (pSrc, pDst) in pixels.zip(pixels_quads) {
-                    // TODO: this depends on whether 16bpp is 555 or 565 etc.
-                    let r = ((pSrc & 0b0111_1100_0000_0000) >> 7) as u8;
-                    let g = ((pSrc & 0b0000_0011_1110_0000) >> 2) as u8;
-                    let b = ((pSrc & 0b0000_0000_0001_1111) << 3) as u8;
-                    *pDst = [r, g, b, 0xFF];
-                }
-            }
-            4 => {
-                let pixels = mem.iter_pod::<[u8; 4]>(surf.pixels, surf.width * surf.height);
-                // Ignore alpha channel in input; output is always opaque.
-                for (pSrc, pDst) in pixels.zip(pixels_quads) {
-                    *pDst = [pSrc[0], pSrc[1], pSrc[2], 0xFF];
-                }
-            }
-            bpp => todo!("Unlock for {bpp}bpp"),
-        }
-        surf.host.write_pixels(&pixels_bytes);
-
-        // If surface is primary then updates should show immediately.
-        // XXX probably need something other than attached here
-        if surf.attached == 0 {
-            surf.host.show();
-        }
+        surf.flush(machine.emu.memory.mem(), palette);
 
         DD::OK
     }
