@@ -47,7 +47,7 @@ impl WebSurface {
 }
 
 impl win32::Surface for WebSurface {
-    fn write_pixels(&mut self, pixels: &[u8]) {
+    fn write_pixels(&self, pixels: &[u8]) {
         let image_data = web_sys::ImageData::new_with_u8_clamped_array(
             wasm_bindgen::Clamped(pixels),
             self.width,
@@ -63,7 +63,7 @@ impl win32::Surface for WebSurface {
     }
 
     fn bit_blt(
-        &mut self,
+        &self,
         dx: u32,
         dy: u32,
         src: &dyn win32::Surface,

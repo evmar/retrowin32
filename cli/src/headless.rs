@@ -7,10 +7,10 @@ impl win32::Window for Window {
 
 pub struct Surface {}
 impl win32::Surface for Surface {
-    fn write_pixels(&mut self, _pixels: &[u8]) {}
+    fn write_pixels(&self, _pixels: &[u8]) {}
     fn show(&self) {}
     fn bit_blt(
-        &mut self,
+        &self,
         _dx: u32,
         _dy: u32,
         _src: &dyn win32::Surface,

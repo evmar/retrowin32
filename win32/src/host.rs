@@ -9,14 +9,14 @@ pub trait Surface {
     /// Write pixel data.
     /// TODO: currently data is rgba32, but non-web implementation could handle other formats
     /// in principle.
-    fn write_pixels(&mut self, pixels: &[u8]);
+    fn write_pixels(&self, pixels: &[u8]);
 
     /// Show the this surface as the foreground.  Called by ::Flip().
     fn show(&self);
 
     // TODO: the trait object here means we end up needing to cast, but the alternative
     // isn't object safe, bleh.
-    fn bit_blt(&mut self, dx: u32, dy: u32, src: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
+    fn bit_blt(&self, dx: u32, dy: u32, src: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]

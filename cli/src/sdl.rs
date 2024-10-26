@@ -211,7 +211,7 @@ impl win32::Window for WindowRef {
 
 struct Texture {
     window: WindowRef,
-    texture: sdl2::render::Texture,
+    texture: RefCell<sdl2::render::Texture>,
     width: u32,
     height: u32,
 }
@@ -231,7 +231,7 @@ impl Texture {
             .unwrap();
         Texture {
             window: win.clone(),
-            texture,
+            texture: RefCell::new(texture),
             width: opts.width,
             height: opts.height,
         }
@@ -239,9 +239,10 @@ impl Texture {
 }
 
 impl win32::Surface for Texture {
-    fn write_pixels(&mut self, pixels: &[u8]) {
+    fn write_pixels(&self, pixels: &[u8]) {
         let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
         self.texture
+            .borrow_mut()
             .update(rect, pixels, self.width as usize * 4)
             .unwrap();
     }
@@ -250,12 +251,12 @@ impl win32::Surface for Texture {
         let canvas = &mut self.window.0.borrow_mut().canvas;
         // Passing None/None for the src/dst rects means to do a scaling full copy,
         // which is what we want for the fullscreen case in particular.
-        canvas.copy(&self.texture, None, None).unwrap();
+        canvas.copy(&self.texture.borrow_mut(), None, None).unwrap();
         canvas.present();
     }
 
     fn bit_blt(
-        &mut self,
+        &self,
         dx: u32,
         dy: u32,
         src: &dyn win32::Surface,
@@ -265,14 +266,16 @@ impl win32::Surface for Texture {
         h: u32,
     ) {
         let src_rect = sdl2::rect::Rect::new(sx as i32, sy as i32, w, h);
-        let src = &unsafe { &*(src as *const dyn win32::Surface as *const Texture) }.texture;
+        let src = &unsafe { &*(src as *const dyn win32::Surface as *const Texture) }
+            .texture
+            .borrow();
         let dst_rect = sdl2::rect::Rect::new(dx as i32, dy as i32, w, h);
 
         self.window
             .0
             .borrow_mut()
             .canvas
-            .with_texture_canvas(&mut self.texture, |canvas| {
+            .with_texture_canvas(&mut self.texture.borrow_mut(), |canvas| {
                 canvas.copy(src, src_rect, dst_rect).unwrap()
             })
             .unwrap();
