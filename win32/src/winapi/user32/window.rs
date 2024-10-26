@@ -99,9 +99,9 @@ pub struct WindowTopLevel {
     surface: Box<dyn host::Surface>,
     // TODO: CS_OWNDC windows do own a DC, but otherwise they don't.
     // pub hdc: HDC,
-    /// Backing store, lazily created.
+    /// Backing store.
     /// Rc so it can be shared within drawing functions.
-    backing_store: Option<Rc<RefCell<Bitmap>>>,
+    backing_store: Rc<RefCell<Bitmap>>,
     pub dirty: Option<Dirty>,
 }
 
@@ -115,10 +115,11 @@ impl Window {
         }
     }
 
-    pub fn bitmap(&mut self) -> &Rc<RefCell<Bitmap>> {
-        let Window { width, height, .. } = *self;
-        self.expect_toplevel_mut()
-            .ensure_backing_store(width, height)
+    pub fn bitmap(&self) -> &Rc<RefCell<Bitmap>> {
+        match &self.typ {
+            WindowType::TopLevel(win) => &win.backing_store,
+            _ => panic!("expected top-level window, see TODO"),
+        }
     }
 
     pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
@@ -126,17 +127,7 @@ impl Window {
         self.height = height;
         match &mut self.typ {
             WindowType::TopLevel(w) => {
-                w.host.set_size(width, height);
-                w.surface = host.create_surface(
-                    self.hwnd.to_raw(),
-                    &host::SurfaceOptions {
-                        width,
-                        height,
-                        bytes_per_pixel: 4,
-                        primary: true,
-                    },
-                );
-                w.backing_store = None; // recreate lazily
+                w.set_size(host, self.hwnd, width, height);
             }
             _ => {}
         }
@@ -182,29 +173,59 @@ pub struct Dirty {
 }
 
 impl WindowTopLevel {
-    fn ensure_backing_store(&mut self, width: u32, height: u32) -> &Rc<RefCell<Bitmap>> {
-        match self.backing_store {
-            Some(ref mut px) => px,
-            None => {
-                self.backing_store = Some(Rc::new(RefCell::new(Bitmap {
-                    width,
-                    height,
-                    format: PixelFormat::RGBA32,
-                    pixels: PixelData::new_owned((width * height * 4) as usize),
-                })));
-                self.backing_store.as_mut().unwrap()
-            }
+    fn new(host: &mut dyn Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
+        let mut host_win = host.create_window(hwnd.to_raw());
+        host_win.set_title(title);
+        host_win.set_size(width, height);
+
+        let surface = host.create_surface(
+            hwnd.to_raw(),
+            &SurfaceOptions {
+                width,
+                height,
+                bytes_per_pixel: 4,
+                primary: true,
+            },
+        );
+        WindowTopLevel {
+            host: host_win,
+            surface,
+            backing_store: Self::create_backing_store(width, height),
+            dirty: Some(Dirty {
+                erase_background: true,
+            }),
         }
     }
 
-    fn flush_backing_store(&mut self, mem: Mem) {
-        if let Some(backing_store) = &self.backing_store {
-            let backing_store = backing_store.borrow();
-            let bytes = backing_store.pixels.bytes(mem);
-            self.surface.write_pixels(bytes);
+    fn set_size(&mut self, host: &mut dyn Host, hwnd: HWND, width: u32, height: u32) {
+        self.host.set_size(width, height);
+        self.surface = host.create_surface(
+            hwnd.to_raw(),
+            &host::SurfaceOptions {
+                width,
+                height,
+                bytes_per_pixel: 4,
+                primary: true,
+            },
+        );
+        self.backing_store = WindowTopLevel::create_backing_store(width, height);
+    }
 
-            self.surface.show();
-        }
+    fn create_backing_store(width: u32, height: u32) -> Rc<RefCell<Bitmap>> {
+        Rc::new(RefCell::new(Bitmap {
+            width,
+            height,
+            format: PixelFormat::RGBA32,
+            pixels: PixelData::new_owned((width * height * 4) as usize),
+        }))
+    }
+
+    fn flush_backing_store(&mut self, mem: Mem) {
+        let backing_store = self.backing_store.borrow();
+        let bytes = backing_store.pixels.bytes(mem);
+        self.surface.write_pixels(bytes);
+
+        self.surface.show();
     }
 }
 
@@ -325,26 +346,13 @@ pub async fn CreateWindowExW(
     let typ = if style.contains(WS::CHILD) {
         WindowType::Child
     } else {
-        let mut host_win = machine.host.create_window(hwnd.to_raw());
-        host_win.set_title(&lpWindowName.unwrap().to_string());
-        host_win.set_size(width, height);
-        let surface = machine.host.create_surface(
-            hwnd.to_raw(),
-            &SurfaceOptions {
-                width,
-                height,
-                bytes_per_pixel: 4,
-                primary: true,
-            },
-        );
-        WindowType::TopLevel(WindowTopLevel {
-            host: host_win,
-            surface,
-            backing_store: None,
-            dirty: Some(Dirty {
-                erase_background: true,
-            }),
-        })
+        WindowType::TopLevel(WindowTopLevel::new(
+            &mut *machine.host,
+            hwnd,
+            &lpWindowName.unwrap().to_string(),
+            width,
+            height,
+        ))
     };
 
     let window = Window {
