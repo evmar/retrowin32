@@ -1,6 +1,7 @@
 //! DirectDraw shared API.  All the ddraw1 through ddraw7 interfaces back onto shared
 //! implementation defined here.
 
+use super::palette::Palette;
 pub use super::types::*;
 pub use crate::winapi::com::GUID;
 use crate::{
@@ -9,7 +10,6 @@ use crate::{
     winapi::{
         bitmap::transmute_pixels_mut,
         ddraw::{ddraw1, ddraw7},
-        gdi32::PALETTEENTRY,
         heap::Heap,
         types::{HWND, RECT},
     },
@@ -22,7 +22,7 @@ pub struct Surface {
     pub host: Box<dyn host::Surface>,
     pub width: u32,
     pub height: u32,
-    pub palette: u32, // same as key in palettes
+    pub palette: Option<Palette>,
     /// x86 address to pixel buffer, or 0 if unused.
     pub pixels: u32,
     pub bytes_per_pixel: u32,
@@ -39,7 +39,7 @@ impl Surface {
             host: machine.host.create_surface(hwnd.to_raw(), &opts),
             width: opts.width,
             height: opts.height,
-            palette: 0,
+            palette: None,
             pixels: 0,
             bytes_per_pixel: opts.bytes_per_pixel,
             attached: 0,
@@ -98,7 +98,7 @@ impl Surface {
         }
     }
 
-    pub fn flush(&mut self, mem: Mem, palette: Option<&[PALETTEENTRY]>) {
+    pub fn flush(&mut self, mem: Mem, palette: Option<&Palette>) {
         assert!(self.pixels != 0);
 
         // We need to copy self.pixels to convert its format to the RGBA expected by the write_pixels API.
@@ -112,6 +112,7 @@ impl Surface {
                     // On startup possibly no palette, which means leave black (?).
                     return;
                 };
+                let palette = palette.borrow();
                 for (pSrc, pDst) in pixels.zip(pixels_quads) {
                     let p = &palette[pSrc as usize];
                     *pDst = [p.peRed, p.peGreen, p.peBlue, 0xFF];
@@ -156,10 +157,10 @@ pub struct State {
 
     pub bytes_per_pixel: u32,
 
-    pub palettes: HashMap<u32, Box<[PALETTEENTRY]>>,
+    pub palettes: HashMap<u32, Palette>,
     /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
     /// how surface flipping works for the palettes to work out, so this is hacked for now.
-    pub palette_hack: u32,
+    pub palette_hack: Option<Palette>,
 }
 
 impl State {
@@ -182,7 +183,7 @@ impl Default for State {
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,
             palettes: HashMap::new(),
-            palette_hack: 0,
+            palette_hack: Default::default(),
         }
     }
 }

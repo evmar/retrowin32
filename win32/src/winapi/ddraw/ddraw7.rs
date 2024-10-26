@@ -1,18 +1,19 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use super::{palette::IDirectDrawPalette, types::*};
+use crate::winapi::gdi32::PALETTEENTRY;
 use crate::{
     winapi::{
         com::{vtable, GUID},
-        ddraw,
+        ddraw::{self, IDirectDrawClipper},
         kernel32::get_symbol,
         types::*,
     },
     Machine,
 };
 use bitflags::bitflags;
-use memory::Pod;
-use memory::{Extensions, ExtensionsMut};
+use memory::{Extensions, ExtensionsMut, Pod};
+use std::{cell::RefCell, rc::Rc};
 
 pub const IID_IDirectDraw7: GUID = GUID((
     0x15e65ec0,
@@ -56,10 +57,6 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
-    use ddraw::IDirectDrawClipper;
-
-    use crate::winapi::gdi32::PALETTEENTRY;
-
     use super::*;
 
     vtable![
@@ -140,8 +137,12 @@ pub mod IDirectDraw7 {
         let entries = machine
             .mem()
             .iter_pod::<PALETTEENTRY>(entries, 256)
-            .collect();
-        machine.state.ddraw.palettes.insert(palette, entries);
+            .collect::<Vec<_>>();
+        machine
+            .state
+            .ddraw
+            .palettes
+            .insert(palette, Rc::new(RefCell::new(entries.into_boxed_slice())));
         machine.mem().put_pod::<u32>(lplpPalette, palette);
         DD::OK
     }
@@ -557,8 +558,9 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> DD {
-        machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
-        machine.state.ddraw.palette_hack = palette;
+        let palette = machine.state.ddraw.palettes.get(&palette).unwrap();
+        machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = Some(palette.clone());
+        machine.state.ddraw.palette_hack = Some(palette.clone());
         DD::OK
     }
 
@@ -573,14 +575,9 @@ pub mod IDirectDrawSurface7 {
             rect.bottom = surf.height as i32;
         }
 
-        let palette = machine.state.ddraw.palette_hack; // TODO: surf.palette
-        let palette = if palette != 0 {
-            Some(&**machine.state.ddraw.palettes.get(&palette).unwrap())
-        } else {
-            None
-        };
+        let palette = &machine.state.ddraw.palette_hack; // TODO: surf.palette
 
-        surf.flush(machine.emu.memory.mem(), palette);
+        surf.flush(machine.emu.memory.mem(), palette.as_ref());
 
         DD::OK
     }

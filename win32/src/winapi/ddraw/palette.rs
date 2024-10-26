@@ -1,8 +1,12 @@
+use std::{cell::RefCell, rc::Rc};
+
 use crate::{
     winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
     Machine,
 };
 use memory::{Extensions, ExtensionsMut};
+
+pub type Palette = Rc<RefCell<Box<[PALETTEENTRY]>>>;
 
 #[win32_derive::dllexport]
 pub mod IDirectDrawPalette {
@@ -41,7 +45,13 @@ pub mod IDirectDrawPalette {
         count: u32,
         entries: u32,
     ) -> DD {
-        let palette = machine.state.ddraw.palettes.get_mut(&this).unwrap();
+        let mut palette = machine
+            .state
+            .ddraw
+            .palettes
+            .get(&this)
+            .unwrap()
+            .borrow_mut();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
         let entries = machine
             .emu
