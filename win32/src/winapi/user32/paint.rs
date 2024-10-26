@@ -89,7 +89,8 @@ unsafe impl memory::Pod for PAINTSTRUCT {}
 
 #[win32_derive::dllexport]
 pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTSTRUCT>) -> HDC {
-    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
+    let rcwindow = machine.state.user32.windows.get(hWnd).unwrap();
+    let window = rcwindow.borrow();
     // TODO: take from update region
     let dirty_rect = RECT {
         left: 0,
@@ -104,7 +105,7 @@ pub fn BeginPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&mut PAINTS
         log::warn!("TODO: BeginPaint for child windows");
         return HDC::null();
     };
-    let hdc = machine.state.gdi32.new_window_dc(hWnd);
+    let hdc = machine.state.gdi32.new_window_dc(rcwindow.clone());
     let update = toplevel.dirty.as_ref().unwrap();
 
     if update.erase_background {

@@ -3,7 +3,8 @@ use crate::{
     machine::Machine,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
-        types::{HANDLE, HWND, POINT},
+        types::{HANDLE, POINT},
+        user32::Window,
     },
 };
 use std::{cell::RefCell, rc::Rc};
@@ -14,22 +15,22 @@ pub type HDC = HANDLE<DC>;
 #[derive(Clone)]
 pub enum DCTarget {
     Memory(Rc<RefCell<Bitmap>>),
-    Window(HWND),
+    DesktopWindow,
+    Window(Rc<RefCell<Window>>),
     DirectDrawSurface(u32),
 }
 
 impl DCTarget {
     /// If this target is backed by a bitmap, return it.
-    pub fn get_bitmap(&self, machine: &Machine) -> Option<Rc<RefCell<Bitmap>>> {
+    pub fn get_bitmap(&self) -> Option<Rc<RefCell<Bitmap>>> {
         match self {
             DCTarget::Memory(bitmap) => Some(bitmap.clone()),
-            DCTarget::Window(hwnd) => {
-                let window = machine.state.user32.windows.get(*hwnd).unwrap();
+            DCTarget::Window(window) => {
                 let window = window.borrow();
                 return Some(window.bitmap().clone());
             }
             _ => {
-                log::warn!("no bitmap found in {:?}", self);
+                log::warn!("no bitmap found in DC");
                 None
             }
         }
@@ -37,14 +38,8 @@ impl DCTarget {
 
     pub fn flush(&self, machine: &Machine) {
         match self {
-            DCTarget::Window(hwnd) => {
-                let mut window = machine
-                    .state
-                    .user32
-                    .windows
-                    .get(*hwnd)
-                    .unwrap()
-                    .borrow_mut();
+            DCTarget::Window(window) => {
+                let mut window = window.borrow_mut();
                 window.flush_backing_store(machine.emu.memory.mem());
             }
             _ => {}
@@ -52,19 +47,6 @@ impl DCTarget {
     }
 }
 
-impl std::fmt::Debug for DCTarget {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Memory(bitmap) => f.debug_tuple("Memory").field(bitmap).finish(),
-            Self::Window(window) => f.debug_tuple("Window").field(window).finish(),
-            Self::DirectDrawSurface(addr) => {
-                f.debug_tuple("DirectDrawSurface").field(addr).finish()
-            }
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct DC {
     // TODO: it's unclear to me what the representation of a DC ought to be.
     // DirectDraw can also create a DC, and DirectDraw (as a DLL that came

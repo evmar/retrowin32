@@ -101,8 +101,7 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
                 dc.target = DCTarget::Memory(bitmap.clone());
                 std::mem::replace(&mut dc.bitmap, hGdiObj)
             }
-            DCTarget::Window(_) => todo!(),
-            DCTarget::DirectDrawSurface(_) => todo!(),
+            _ => todo!(),
         },
         Object::Brush(_) => std::mem::replace(&mut dc.brush, hGdiObj),
         Object::Pen(_) => std::mem::replace(&mut dc.pen, hGdiObj),

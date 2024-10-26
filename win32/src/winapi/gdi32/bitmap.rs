@@ -108,7 +108,7 @@ pub fn StretchBlt(
     };
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
-    let src_bitmap = src_dc.target.get_bitmap(machine).unwrap().clone();
+    let src_bitmap = src_dc.target.get_bitmap().unwrap();
     let src_bitmap = src_bitmap.borrow();
     src_bitmap.format.expect_rgba32();
 
@@ -131,7 +131,7 @@ pub fn StretchBlt(
         _ => {}
     }
 
-    let dst_bitmap = dst_dc.target.get_bitmap(machine).unwrap().clone();
+    let dst_bitmap = dst_dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -213,7 +213,7 @@ pub fn PatBlt(
         _ => todo!("unimplemented PatBlt with rop={rop:?}"),
     };
 
-    let dst_bitmap = dc.target.get_bitmap(machine).unwrap().clone();
+    let dst_bitmap = dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
     let dst_rect = RECT {
@@ -370,7 +370,7 @@ pub fn SetDIBitsToDevice(
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let dst_bitmap = dc.target.get_bitmap(machine).unwrap().clone();
+    let dst_bitmap = dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -437,7 +437,7 @@ pub fn StretchDIBits(
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    let dst_bitmap = dc.target.get_bitmap(machine).unwrap().clone();
+    let dst_bitmap = dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 

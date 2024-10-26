@@ -2,7 +2,6 @@ use super::*;
 use crate::{
     host,
     winapi::{
-        self,
         bitmap::{Bitmap, PixelData, PixelFormat},
         gdi32::HDC,
         stack_args::ArrayWithSize,
@@ -954,25 +953,8 @@ pub fn GetWindowDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
 #[win32_derive::dllexport]
 pub fn ReleaseDC(machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
     // Note: there is also DeleteDC; this one is specifically for GetWindowDC/GetDC.
-    if let Some(dc) = machine.state.gdi32.dcs.remove(hdc) {
-        match dc.target {
-            winapi::gdi32::DCTarget::Window(dc_hwnd) => {
-                if dc_hwnd == hwnd {
-                    true
-                } else {
-                    log::warn!("ReleaseDC of DC not matching HWND");
-                    false // fail
-                }
-            }
-            _ => {
-                log::warn!("ReleaseDC of non-window DC");
-                false // fail
-            }
-        }
-    } else {
-        log::warn!("ReleaseDC of unknown DC");
-        false // fail
-    }
+    // TODO: there is a separate refcount for ReleaseDC, but we don't track it.
+    true
 }
 
 #[win32_derive::dllexport]
@@ -1002,9 +984,10 @@ pub fn SetWindowLongA(
 pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
     match hWnd.to_option() {
         Some(hwnd) => {
-            let window = machine.state.user32.windows.get(hwnd).unwrap().borrow();
+            let rcwindow = machine.state.user32.windows.get(hwnd).unwrap();
+            let window = rcwindow.borrow();
             match &window.typ {
-                WindowType::TopLevel(_) => machine.state.gdi32.new_window_dc(hwnd),
+                WindowType::TopLevel(_) => machine.state.gdi32.new_window_dc(rcwindow.clone()),
                 _ => {
                     log::warn!("GetDC for non-top-level window");
                     HDC::null()
