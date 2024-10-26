@@ -418,10 +418,18 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> DD {
-        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-        let attached = surface.attached;
-        let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
-        back.host.show();
+        assert!(lpSurf == 0);
+        let (surface, back) = unsafe {
+            // Safety: need two surfaces, guaranteed to be two different entries.
+            // Can fix this by changing surfaces to be Rc<RefCell<Surface>>.
+            let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+            let attached = surface.attached;
+            let surface = surface as *const _;
+            assert!(this != attached);
+            let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
+            (&*surface, back)
+        };
+        back.flush(machine.emu.memory.mem(), Some(surface));
         DD::OK
     }
 
@@ -560,7 +568,6 @@ pub mod IDirectDrawSurface7 {
     pub fn SetPalette(machine: &mut Machine, this: u32, palette: u32) -> DD {
         let palette = machine.state.ddraw.palettes.get(&palette).unwrap();
         machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = Some(palette.clone());
-        machine.state.ddraw.palette_hack = Some(palette.clone());
         DD::OK
     }
 
@@ -575,9 +582,9 @@ pub mod IDirectDrawSurface7 {
             rect.bottom = surf.height as i32;
         }
 
-        let palette = &machine.state.ddraw.palette_hack; // TODO: surf.palette
-
-        surf.flush(machine.emu.memory.mem(), palette.as_ref());
+        if surf.primary {
+            surf.flush(machine.emu.memory.mem(), None);
+        }
 
         DD::OK
     }

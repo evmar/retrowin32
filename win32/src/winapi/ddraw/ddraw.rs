@@ -26,6 +26,7 @@ pub struct Surface {
     /// x86 address to pixel buffer, or 0 if unused.
     pub pixels: u32,
     pub bytes_per_pixel: u32,
+    pub primary: bool,
     /// Address of attached surface, e.g. back buffer.
     pub attached: u32,
 }
@@ -41,6 +42,7 @@ impl Surface {
             height: opts.height,
             palette: None,
             pixels: 0,
+            primary: opts.primary,
             bytes_per_pixel: opts.bytes_per_pixel,
             attached: 0,
         }
@@ -98,7 +100,8 @@ impl Surface {
         }
     }
 
-    pub fn flush(&mut self, mem: Mem, palette: Option<&Palette>) {
+    // If primary is given, use it as the source of the palette.
+    pub fn flush(&mut self, mem: Mem, primary: Option<&Surface>) {
         assert!(self.pixels != 0);
 
         // We need to copy self.pixels to convert its format to the RGBA expected by the write_pixels API.
@@ -108,8 +111,13 @@ impl Surface {
         match self.bytes_per_pixel {
             1 => {
                 let pixels = mem.iter_pod::<u8>(self.pixels, self.width * self.height);
+                let palette = if let Some(surf) = primary {
+                    surf.palette.as_ref()
+                } else {
+                    self.palette.as_ref()
+                };
                 let Some(palette) = palette else {
-                    // On startup possibly no palette, which means leave black (?).
+                    // On startup, no palette may mean all black?
                     return;
                 };
                 let palette = palette.borrow();
@@ -140,11 +148,7 @@ impl Surface {
         }
         self.host.write_pixels(&pixels_bytes);
 
-        // If surface is primary then updates should show immediately.
-        // XXX probably need something other than attached here
-        if self.attached == 0 {
-            self.host.show();
-        }
+        self.host.show();
     }
 }
 
@@ -158,9 +162,6 @@ pub struct State {
     pub bytes_per_pixel: u32,
 
     pub palettes: HashMap<u32, Palette>,
-    /// XXX monolife attaches palette only to back surface, then flips; we need to rearrange
-    /// how surface flipping works for the palettes to work out, so this is hacked for now.
-    pub palette_hack: Option<Palette>,
 }
 
 impl State {
@@ -183,7 +184,6 @@ impl Default for State {
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,
             palettes: HashMap::new(),
-            palette_hack: Default::default(),
         }
     }
 }
