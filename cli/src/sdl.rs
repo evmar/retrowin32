@@ -180,7 +180,7 @@ impl Window {
 #[derive(Clone)]
 struct WindowRef(Rc<RefCell<Window>>);
 impl win32::Window for WindowRef {
-    fn set_title(&mut self, title: &str) {
+    fn set_title(&self, title: &str) {
         self.0
             .borrow_mut()
             .canvas
@@ -189,7 +189,7 @@ impl win32::Window for WindowRef {
             .unwrap();
     }
 
-    fn set_size(&mut self, width: u32, height: u32) {
+    fn set_size(&self, width: u32, height: u32) {
         self.0
             .borrow_mut()
             .canvas
@@ -198,7 +198,7 @@ impl win32::Window for WindowRef {
             .unwrap();
     }
 
-    fn fullscreen(&mut self) {
+    fn fullscreen(&self) {
         log::info!("fullscreen request ignored for debugging ease");
         // self.0
         //     .borrow_mut()

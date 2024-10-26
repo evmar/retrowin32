@@ -1,8 +1,8 @@
 pub struct Window {}
 impl win32::Window for Window {
-    fn set_title(&mut self, _title: &str) {}
-    fn set_size(&mut self, _width: u32, _height: u32) {}
-    fn fullscreen(&mut self) {}
+    fn set_title(&self, _title: &str) {}
+    fn set_size(&self, _width: u32, _height: u32) {}
+    fn fullscreen(&self) {}
 }
 
 pub struct Surface {}

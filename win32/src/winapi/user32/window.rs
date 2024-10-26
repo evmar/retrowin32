@@ -176,7 +176,7 @@ pub struct Dirty {
 
 impl WindowTopLevel {
     fn new(host: &mut dyn Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
-        let mut host_win = host.create_window(hwnd.to_raw());
+        let host_win = host.create_window(hwnd.to_raw());
         host_win.set_title(title);
         host_win.set_size(width, height);
 

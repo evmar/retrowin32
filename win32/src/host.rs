@@ -30,9 +30,9 @@ pub struct SurfaceOptions {
 
 /// Floating window.
 pub trait Window {
-    fn set_title(&mut self, title: &str);
-    fn set_size(&mut self, width: u32, height: u32);
-    fn fullscreen(&mut self);
+    fn set_title(&self, title: &str);
+    fn set_size(&self, width: u32, height: u32);
+    fn fullscreen(&self);
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
