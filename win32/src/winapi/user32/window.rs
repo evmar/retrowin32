@@ -132,6 +132,7 @@ impl Window {
                     &host::SurfaceOptions {
                         width,
                         height,
+                        bytes_per_pixel: 4,
                         primary: true,
                     },
                 );
@@ -330,6 +331,7 @@ pub async fn CreateWindowExW(
             &SurfaceOptions {
                 width,
                 height,
+                bytes_per_pixel: 4,
                 primary: true,
             },
         );

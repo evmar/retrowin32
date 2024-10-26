@@ -20,20 +20,12 @@ pub trait Surface {
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SurfaceOptions {
     pub width: u32,
     pub height: u32,
+    pub bytes_per_pixel: u32,
     pub primary: bool,
-}
-impl Default for SurfaceOptions {
-    fn default() -> Self {
-        Self {
-            width: 0,
-            height: 0,
-            primary: false,
-        }
-    }
 }
 
 /// Floating window.

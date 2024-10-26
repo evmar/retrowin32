@@ -522,13 +522,13 @@ pub mod IDirectDrawSurface7 {
         if surf.pixels == 0 {
             surf.pixels = machine.state.ddraw.heap.alloc(
                 machine.emu.memory.mem(),
-                surf.width * surf.height * machine.state.ddraw.bytes_per_pixel,
+                surf.width * surf.height * surf.bytes_per_pixel,
             );
         }
         // It seems callers (effect, monolife) don't provide flags for what they want,
         // and instead expect all fields to be included.
         desc.lpSurface = surf.pixels;
-        desc.lPitch_dwLinearSize = surf.width * machine.state.ddraw.bytes_per_pixel;
+        desc.lPitch_dwLinearSize = surf.width * surf.bytes_per_pixel;
         DD::OK
     }
 
@@ -579,7 +579,7 @@ pub mod IDirectDrawSurface7 {
         let mut pixels_bytes = Vec::with_capacity((surf.width * surf.height * 4) as usize);
         unsafe { pixels_bytes.set_len(pixels_bytes.capacity()) };
         let pixels_quads: &mut [[u8; 4]] = transmute_pixels_mut(&mut pixels_bytes);
-        match machine.state.ddraw.bytes_per_pixel {
+        match surf.bytes_per_pixel {
             1 => {
                 let pixels = machine
                     .emu

@@ -23,6 +23,7 @@ pub struct Surface {
     pub palette: u32, // same as key in palettes
     /// x86 address to pixel buffer, or 0 if unused.
     pub pixels: u32,
+    pub bytes_per_pixel: u32,
     /// Address of attached surface, e.g. back buffer.
     pub attached: u32,
 }
@@ -38,6 +39,7 @@ impl Surface {
             height: opts.height,
             palette: 0,
             pixels: 0,
+            bytes_per_pixel: opts.bytes_per_pixel,
             attached: 0,
         }
     }
@@ -67,6 +69,10 @@ impl Surface {
                 opts.width = wnd.width;
                 opts.height = wnd.height;
             }
+        }
+
+        if opts.bytes_per_pixel == 0 {
+            opts.bytes_per_pixel = machine.state.ddraw.bytes_per_pixel;
         }
 
         surfaces.push(Surface::new(machine, hwnd, &opts));
