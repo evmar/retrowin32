@@ -118,7 +118,9 @@ pub fn StretchBlt(
         DCTarget::DirectDrawSurface(ptr) => {
             let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
 
-            assert!(src_rect == dst_rect);
+            if src_rect != dst_rect {
+                log::warn!("StretchBlt: stretching to DirectDrawSurface not implemented, {src_rect:?}=>{dst_rect:?}");
+            }
             assert!(surface.to_rect() == dst_rect);
 
             src_bitmap
