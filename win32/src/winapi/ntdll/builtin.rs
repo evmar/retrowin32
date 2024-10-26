@@ -12,6 +12,25 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::ntdll::*;
+    pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::trace::enabled("ntdll") {
+            crate::trace::Record::new(
+                winapi::ntdll::NtCurrentTeb_pos,
+                "ntdll",
+                "NtCurrentTeb",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ntdll::NtCurrentTeb(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn NtReadFile(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let FileHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -79,7 +98,11 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 2usize] = [
+const SHIMS: [Shim; 3usize] = [
+    Shim {
+        name: "NtCurrentTeb",
+        func: Handler::Sync(wrappers::NtCurrentTeb),
+    },
     Shim {
         name: "NtReadFile",
         func: Handler::Sync(wrappers::NtReadFile),

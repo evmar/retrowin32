@@ -51,6 +51,11 @@ pub fn NtReadFile(
 }
 
 #[win32_derive::dllexport]
+pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
+    machine.emu.x86.cpu().regs.fs_addr
+}
+
+#[win32_derive::dllexport]
 pub fn RtlExitUserProcess(machine: &mut Machine, exit_code: u32) {
     machine.exit(exit_code);
 }

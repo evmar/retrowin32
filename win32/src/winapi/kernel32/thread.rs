@@ -148,11 +148,6 @@ pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
     current_thread(machine).to_raw()
 }
 
-#[win32_derive::dllexport]
-pub fn NtCurrentTeb(machine: &mut Machine) -> u32 {
-    machine.emu.x86.cpu().regs.fs_addr
-}
-
 pub fn teb(machine: &Machine) -> &TEB {
     let fs = machine.emu.x86.cpu().regs.fs_addr;
     machine.emu.memory.mem().get_aligned_ref::<TEB>(fs)

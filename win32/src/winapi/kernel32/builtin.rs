@@ -3252,25 +3252,6 @@ mod wrappers {
         }
         result.to_raw()
     }
-    pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u32 {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("kernel32/thread") {
-            crate::trace::Record::new(
-                winapi::kernel32::NtCurrentTeb_pos,
-                "kernel32/thread",
-                "NtCurrentTeb",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::kernel32::NtCurrentTeb(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.to_raw()
-    }
     pub unsafe fn OpenMutexA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 0u32);
@@ -4784,7 +4765,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 196usize] = [
+const SHIMS: [Shim; 195usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5316,10 +5297,6 @@ const SHIMS: [Shim; 196usize] = [
     Shim {
         name: "MultiByteToWideChar",
         func: Handler::Sync(wrappers::MultiByteToWideChar),
-    },
-    Shim {
-        name: "NtCurrentTeb",
-        func: Handler::Sync(wrappers::NtCurrentTeb),
     },
     Shim {
         name: "OpenMutexA",
