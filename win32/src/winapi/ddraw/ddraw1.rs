@@ -163,7 +163,7 @@ pub mod IDirectDrawSurface {
         ReleaseDC: (IDirectDrawSurface7::ReleaseDC),
         Restore: todo,
         SetClipper: (IDirectDrawSurface7::SetClipper),
-        SetColorKey: todo,
+        SetColorKey: (IDirectDrawSurface7::SetColorKey),
         SetOverlayPosition: todo,
         SetPalette: (IDirectDrawSurface7::SetPalette),
         Unlock: ok,

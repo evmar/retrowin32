@@ -321,7 +321,7 @@ pub mod IDirectDrawSurface7 {
         ReleaseDC: ok,
         Restore: ok,
         SetClipper: ok,
-        SetColorKey: todo,
+        SetColorKey: ok,
         SetOverlayPosition: todo,
         SetPalette: ok,
         Unlock: ok,
@@ -545,6 +545,13 @@ pub mod IDirectDrawSurface7 {
     #[win32_derive::dllexport]
     pub fn SetClipper(_machine: &mut Machine, this: u32, clipper: u32) -> DD {
         // e.g. machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
+        log::warn!("TODO: SetClipper: stub");
+        DD::OK
+    }
+
+    #[win32_derive::dllexport]
+    pub fn SetColorKey(_machine: &mut Machine, this: u32, flags: u32, key: u32) -> DD {
+        log::warn!("TODO: SetColorKey: stub");
         DD::OK
     }
 

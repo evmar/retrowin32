@@ -1164,6 +1164,28 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IDirectDrawSurface7_SetColorKey(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let this = <u32>::from_stack(mem, stack_args + 0u32);
+        let flags = <u32>::from_stack(mem, stack_args + 4u32);
+        let key = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("ddraw/ddraw7") {
+            crate::trace::Record::new(
+                winapi::ddraw::IDirectDrawSurface7::SetColorKey_pos,
+                "ddraw/ddraw7",
+                "IDirectDrawSurface7::SetColorKey",
+                &[("this", &this), ("flags", &flags), ("key", &key)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ddraw::IDirectDrawSurface7::SetColorKey(machine, this, flags, key);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn IDirectDrawSurface7_SetPalette(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1461,7 +1483,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 56usize] = [
+const SHIMS: [Shim; 57usize] = [
     Shim {
         name: "DirectDrawCreate",
         func: Handler::Sync(wrappers::DirectDrawCreate),
@@ -1637,6 +1659,10 @@ const SHIMS: [Shim; 56usize] = [
     Shim {
         name: "IDirectDrawSurface7::SetClipper",
         func: Handler::Sync(wrappers::IDirectDrawSurface7_SetClipper),
+    },
+    Shim {
+        name: "IDirectDrawSurface7::SetColorKey",
+        func: Handler::Sync(wrappers::IDirectDrawSurface7_SetColorKey),
     },
     Shim {
         name: "IDirectDrawSurface7::SetPalette",
