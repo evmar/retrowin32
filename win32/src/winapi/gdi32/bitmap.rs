@@ -52,6 +52,28 @@ pub enum RasterOp {
     BLACKNESS = 0x000042,
 }
 
+impl RasterOp {
+    /// Return true if this uses the src surface at all.
+    fn uses_src(&self) -> bool {
+        match *self {
+            RasterOp::PATCOPY | RasterOp::BLACKNESS => false,
+            RasterOp::SRCCOPY | RasterOp::NOTSRCCOPY | RasterOp::SRCAND => true,
+        }
+    }
+
+    /// Return a function that combines a dst and src pixel.
+    fn to_binop(&self) -> fn([u8; 4], [u8; 4]) -> [u8; 4] {
+        match self {
+            RasterOp::SRCCOPY => |_, src| src,
+            RasterOp::SRCAND => |dst, src| {
+                // https://godbolt.org/z/aT1qc7EKo
+                (u32::from_le_bytes(dst) & u32::from_le_bytes(src)).to_le_bytes()
+            },
+            _ => todo!(),
+        }
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn StretchBlt(
     machine: &mut Machine,
@@ -67,6 +89,20 @@ pub fn StretchBlt(
     hSrc: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
+    let rop = rop.unwrap();
+    if !rop.uses_src() {
+        return PatBlt(
+            machine,
+            hdcDst,
+            xDst,
+            yDst,
+            wDst,
+            hDst,
+            Ok(RasterOp::BLACKNESS),
+        );
+    }
+    let op = rop.to_binop();
+
     let dst_rect = RECT {
         left: xDst,
         top: yDst,
@@ -79,31 +115,6 @@ pub fn StretchBlt(
         top: ySrc,
         right: xSrc + wSrc,
         bottom: ySrc + hSrc,
-    };
-
-    let op = match rop.unwrap() {
-        RasterOp::BLACKNESS => {
-            // It seems like passing null as `hdcSrc` when using BLACKNESS is supported on Windows.
-            return PatBlt(
-                machine,
-                hdcDst,
-                xDst,
-                yDst,
-                wDst,
-                hDst,
-                Ok(RasterOp::BLACKNESS),
-            );
-        }
-        RasterOp::SRCCOPY => |dst: [u8; 4], src: [u8; 4]| src,
-        RasterOp::SRCAND => |dst: [u8; 4], src: [u8; 4]| {
-            [
-                dst[0] & src[0],
-                dst[1] & src[1],
-                dst[2] & src[2],
-                dst[3] & src[3],
-            ]
-        },
-        _ => todo!(),
     };
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
