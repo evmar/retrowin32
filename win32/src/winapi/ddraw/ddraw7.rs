@@ -565,6 +565,7 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn Unlock(machine: &mut Machine, this: u32, rect: Option<&mut RECT>) -> DD {
+        let mem = machine.emu.memory.mem();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         if let Some(rect) = rect {
             // TODO: needs to match the rect passed in Lock.
@@ -581,11 +582,7 @@ pub mod IDirectDrawSurface7 {
         let pixels_quads: &mut [[u8; 4]] = transmute_pixels_mut(&mut pixels_bytes);
         match surf.bytes_per_pixel {
             1 => {
-                let pixels = machine
-                    .emu
-                    .memory
-                    .mem()
-                    .iter_pod::<u8>(surf.pixels, surf.width * surf.height);
+                let pixels = mem.iter_pod::<u8>(surf.pixels, surf.width * surf.height);
                 if let Some(palette) = machine
                     .state
                     .ddraw
@@ -599,11 +596,7 @@ pub mod IDirectDrawSurface7 {
                 }
             }
             2 => {
-                let pixels = machine
-                    .emu
-                    .memory
-                    .mem()
-                    .iter_pod::<u16>(surf.pixels, surf.width * surf.height);
+                let pixels = mem.iter_pod::<u16>(surf.pixels, surf.width * surf.height);
 
                 for (pSrc, pDst) in pixels.zip(pixels_quads) {
                     // TODO: this depends on whether 16bpp is 555 or 565 etc.
@@ -614,11 +607,7 @@ pub mod IDirectDrawSurface7 {
                 }
             }
             4 => {
-                let pixels = machine
-                    .emu
-                    .memory
-                    .mem()
-                    .iter_pod::<[u8; 4]>(surf.pixels, surf.width * surf.height);
+                let pixels = mem.iter_pod::<[u8; 4]>(surf.pixels, surf.width * surf.height);
                 // Ignore alpha channel in input; output is always opaque.
                 for (pSrc, pDst) in pixels.zip(pixels_quads) {
                     *pDst = [pSrc[0], pSrc[1], pSrc[2], 0xFF];
