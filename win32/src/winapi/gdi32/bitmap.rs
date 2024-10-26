@@ -107,12 +107,12 @@ pub fn StretchBlt(
         bottom: ySrc + hSrc,
     };
 
-    let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap();
+    let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap().borrow();
     let src_bitmap = src_dc.target.get_bitmap().unwrap();
     let src_bitmap = src_bitmap.borrow();
     src_bitmap.format.expect_rgba32();
 
-    let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap();
+    let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap().borrow();
 
     // Special case: BitBlt to a DirectDrawSurface does a full copy, and the rest is unimplemented.
     match dst_dc.target {
@@ -191,10 +191,7 @@ pub fn PatBlt(
     rop: Result<RasterOp, u32>,
 ) -> bool {
     let rop = rop.unwrap();
-    let Some(dc) = machine.state.gdi32.dcs.get(hdc) else {
-        log::warn!("PatBlt: ignoring invalid DC {hdc:?}");
-        return false;
-    };
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
 
     const DEFAULT_COLOR: [u8; 4] = [0xFF, 0xFF, 0xFF, 0xFF];
 
@@ -319,7 +316,7 @@ pub fn CreateDIBSection(
 
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     match &dc.target {
         DCTarget::Memory(hbitmap) => {
             // Cryogoat does a series of:
@@ -369,7 +366,7 @@ pub fn SetDIBitsToDevice(
         Some((machine.mem().slice(lpBits..), cLines as usize)),
     );
 
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     let dst_bitmap = dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
@@ -436,7 +433,7 @@ pub fn StretchDIBits(
         Some((machine.mem().slice(lpBits..), hSrc as usize)),
     );
 
-    let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     let dst_bitmap = dc.target.get_bitmap().unwrap();
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();

@@ -91,7 +91,7 @@ pub fn CreatePen(
 
 #[win32_derive::dllexport]
 pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&mut POINT>) -> bool {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let mut dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap().borrow_mut();
     if let Some(pt) = lppt {
         *pt = dc.pos;
     }
@@ -101,10 +101,10 @@ pub fn MoveToEx(machine: &mut Machine, hdc: HDC, x: i32, y: i32, lppt: Option<&m
 
 #[win32_derive::dllexport]
 pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
-    let window = match &dc.target {
+    let mut dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow_mut();
+    let window = match dc.target {
         DCTarget::Memory(_) => todo!(),
-        DCTarget::Window(window) => window.borrow(),
+        DCTarget::Window(ref window) => window.borrow(),
         _ => todo!(),
     };
 
@@ -126,7 +126,9 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
         }
     }
 
-    let mut bitmap = window.bitmap().borrow_mut();
+    let bitmap = window.bitmap().clone();
+    drop(window);
+    let mut bitmap = bitmap.borrow_mut();
     let stride = bitmap.width;
     let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
     let (dstX, dstY) = (x, y);
@@ -160,12 +162,12 @@ pub enum R2 {
 
 #[win32_derive::dllexport]
 pub fn SetROP2(machine: &mut Machine, hdc: HDC, rop2: Result<R2, u32>) -> u32 {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let mut dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow_mut();
     std::mem::replace(&mut dc.rop2, rop2.unwrap()) as u32
 }
 
 pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF) {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     match &dc.target {
         DCTarget::Window(window) => {
             let window = window.borrow();
@@ -181,7 +183,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
 
 #[win32_derive::dllexport]
 pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF) -> COLORREF {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     match &dc.target {
         DCTarget::Window(window) => {
             let window = window.borrow();
@@ -206,7 +208,7 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
 
 #[win32_derive::dllexport]
 pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
     match &dc.target {
         DCTarget::Window(window) => {
             let window = window.borrow();

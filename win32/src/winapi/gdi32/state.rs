@@ -3,9 +3,15 @@ use crate::winapi::{bitmap::Bitmap, handle::Handles, user32::Window};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct State {
-    pub dcs: Handles<HDC, DC>,
+    pub dcs: Handles<HDC, Rc<RefCell<DC>>>,
     pub screen_dc: HDC,
     pub objects: Handles<HGDIOBJ, Object>,
+}
+
+impl Handles<HDC, Rc<RefCell<DC>>> {
+    pub fn add_dc(&mut self, dc: DC) -> HDC {
+        self.add(Rc::new(RefCell::new(dc)))
+    }
 }
 
 impl Handles<HGDIOBJ, Object> {
@@ -24,8 +30,8 @@ impl Handles<HGDIOBJ, Object> {
 
 impl Default for State {
     fn default() -> Self {
-        let mut dcs: Handles<HDC, DC> = Default::default();
-        let screen_dc = dcs.add(DC::new(DCTarget::DesktopWindow));
+        let mut dcs: Handles<HDC, Rc<RefCell<DC>>> = Default::default();
+        let screen_dc = dcs.add_dc(DC::new(DCTarget::DesktopWindow));
         State {
             dcs,
             screen_dc,
@@ -36,6 +42,6 @@ impl Default for State {
 
 impl State {
     pub fn new_window_dc(&mut self, window: Rc<RefCell<Window>>) -> HDC {
-        self.dcs.add(DC::new(DCTarget::Window(window)))
+        self.dcs.add_dc(DC::new(DCTarget::Window(window)))
     }
 }

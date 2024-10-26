@@ -86,10 +86,11 @@ pub fn GetStockObject(machine: &mut Machine, i: Result<GetStockObjectArg, u32>) 
 
 #[win32_derive::dllexport]
 pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOBJ {
-    let dc = match machine.state.gdi32.dcs.get_mut(hdc) {
+    let mut dc = match machine.state.gdi32.dcs.get(hdc) {
         None => return HGDIOBJ::null(), // TODO: HGDI_ERROR
         Some(dc) => dc,
-    };
+    }
+    .borrow_mut();
 
     let obj = match machine.state.gdi32.objects.get(hGdiObj) {
         None => return HGDIOBJ::null(), // TODO: HGDI_ERROR

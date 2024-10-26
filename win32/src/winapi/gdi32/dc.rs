@@ -104,7 +104,7 @@ impl DC {
 #[win32_derive::dllexport]
 pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
     let dc = DC::new_memory(machine);
-    let handle = machine.state.gdi32.dcs.add(dc);
+    let handle = machine.state.gdi32.dcs.add_dc(dc);
     handle
 }
 
@@ -188,7 +188,7 @@ pub fn SetLayout(_machine: &mut Machine, hdc: HDC, l: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn GetDCOrgEx(machine: &mut Machine, hdc: HDC, lpPoint: Option<&mut POINT>) -> bool {
-    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap();
+    let dc = machine.state.gdi32.dcs.get_mut(hdc).unwrap().borrow();
     if let Some(lpPoint) = lpPoint {
         *lpPoint = dc.pos;
         return true;

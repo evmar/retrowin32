@@ -451,7 +451,7 @@ pub mod IDirectDrawSurface7 {
     pub fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> DD {
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
-        let handle = machine.state.gdi32.dcs.add(dc);
+        let handle = machine.state.gdi32.dcs.add_dc(dc);
         machine.mem().put_pod::<u32>(lpHDC, handle.to_raw());
         DD::OK
     }
