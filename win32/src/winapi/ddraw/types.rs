@@ -7,6 +7,7 @@ use memory::Pod;
 // TODO: maybe make some shared const fn for errors that sets high bit?
 // TODO: share constants with winapi ERROR type?
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[repr(u32)]
 pub enum DD {
     OK = 0,
     E_NOINTERFACE = 0x80004002,

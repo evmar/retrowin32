@@ -21,6 +21,7 @@ const GUID_SysKeyboard: GUID = GUID((
 ));
 
 #[derive(Debug, Copy, Clone)]
+#[repr(u32)]
 pub enum DI {
     OK = 0,
     ERR_DEVICENOTREG = 0x80040154,
