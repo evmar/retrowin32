@@ -50,7 +50,9 @@ unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 #[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum RT {
+    CURSOR = 1,
     BITMAP = 2,
+    ICON = 3,
     STRING = 6,
 }
 

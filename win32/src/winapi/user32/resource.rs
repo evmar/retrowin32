@@ -123,17 +123,19 @@ fn load_image(
         Cow::Owned(buf)
     } else {
         let typ = ResourceKey::Id(match typ {
+            IMAGE::CURSOR => pe::RT::CURSOR,
             IMAGE::BITMAP => pe::RT::BITMAP,
-            _ => todo!(),
+            IMAGE::ICON => pe::RT::ICON,
         } as u32);
-        let slice = crate::winapi::kernel32::find_resource(
+        let Some(slice) = crate::winapi::kernel32::find_resource(
             &machine.state.kernel32,
             machine.mem(),
             hInstance,
             typ,
             &name,
-        )
-        .unwrap();
+        ) else {
+            return HGDIOBJ::null();
+        };
         Cow::Borrowed(machine.mem().slice(slice))
     };
     let buf = &*buf;
