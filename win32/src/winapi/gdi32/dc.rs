@@ -11,10 +11,9 @@ use std::{cell::RefCell, rc::Rc};
 pub type HDC = HANDLE<DC>;
 
 /// Target device for a DC.
-/// TODO: remove Copy/Clone and make targeted objects refcounted.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone)]
 pub enum DCTarget {
-    Memory(HGDIOBJ), // aka Bitmap
+    Memory(Rc<RefCell<Bitmap>>),
     Window(HWND),
     DirectDrawSurface(u32),
 }
@@ -22,15 +21,10 @@ pub enum DCTarget {
 impl DCTarget {
     /// If this target is backed by a bitmap, return it.
     pub fn get_bitmap(&self, machine: &Machine) -> Option<Rc<RefCell<Bitmap>>> {
-        match *self {
-            DCTarget::Memory(bitmap) => machine
-                .state
-                .gdi32
-                .objects
-                .get_bitmap(bitmap)
-                .map(|b| b.clone()),
+        match self {
+            DCTarget::Memory(bitmap) => Some(bitmap.clone()),
             DCTarget::Window(hwnd) => {
-                let window = machine.state.user32.windows.get(hwnd).unwrap();
+                let window = machine.state.user32.windows.get(*hwnd).unwrap();
                 let window = window.borrow();
                 return Some(window.bitmap().clone());
             }
@@ -41,13 +35,31 @@ impl DCTarget {
         }
     }
 
-    pub fn flush(self, machine: &mut Machine) {
+    pub fn flush(&self, machine: &Machine) {
         match self {
             DCTarget::Window(hwnd) => {
-                let mut window = machine.state.user32.windows.get(hwnd).unwrap().borrow_mut();
+                let mut window = machine
+                    .state
+                    .user32
+                    .windows
+                    .get(*hwnd)
+                    .unwrap()
+                    .borrow_mut();
                 window.flush_backing_store(machine.emu.memory.mem());
             }
             _ => {}
+        }
+    }
+}
+
+impl std::fmt::Debug for DCTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Memory(bitmap) => f.debug_tuple("Memory").field(bitmap).finish(),
+            Self::Window(window) => f.debug_tuple("Window").field(window).finish(),
+            Self::DirectDrawSurface(addr) => {
+                f.debug_tuple("DirectDrawSurface").field(addr).finish()
+            }
         }
     }
 }
@@ -66,6 +78,7 @@ pub struct DC {
     // The SelectObject() API sets a drawing-related field on the DC and returns the
     // previously selected object of a given type, which means we need a storage field
     // per object type.
+    pub bitmap: HGDIOBJ,
     pub brush: HGDIOBJ,
     pub pen: HGDIOBJ,
 }
@@ -76,6 +89,7 @@ impl DC {
             target,
             rop2: R2::default(),
             pos: Default::default(),
+            bitmap: Default::default(),
             brush: Default::default(),
             pen: Default::default(),
         }
@@ -91,7 +105,17 @@ impl DC {
             pixels: PixelData::Ptr(0, 0),
         };
         let hobj = machine.state.gdi32.objects.add_bitmap(bitmap);
-        Self::new(DCTarget::Memory(hobj))
+        let mut dc = DC::new(DCTarget::Memory(
+            machine
+                .state
+                .gdi32
+                .objects
+                .get_bitmap(hobj)
+                .unwrap()
+                .clone(),
+        ));
+        dc.bitmap = hobj;
+        dc
     }
 }
 

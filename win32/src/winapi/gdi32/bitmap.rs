@@ -320,9 +320,8 @@ pub fn CreateDIBSection(
 #[win32_derive::dllexport]
 pub fn CreateCompatibleBitmap(machine: &mut Machine, hdc: HDC, cx: u32, cy: u32) -> HGDIOBJ {
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap();
-    match dc.target {
+    match &dc.target {
         DCTarget::Memory(hbitmap) => {
-            machine.state.gdi32.objects.get_bitmap(hbitmap).unwrap();
             // Cryogoat does a series of:
             //   let dc1 = GetDC(0); // desktop dc
             //   let dc2 = CreateCompatibleDc(dc1); // memory dc

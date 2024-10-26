@@ -178,7 +178,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
         }
         DCTarget::DirectDrawSurface(_) => todo!(),
     }
-    dc.target.flush(machine);
+    dc.target.clone().flush(machine);
 }
 
 #[win32_derive::dllexport]
@@ -201,7 +201,7 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
     }
 
     // TODO: don't need to flush whole window for just one pixel
-    dc.target.flush(machine);
+    dc.target.clone().flush(machine);
 
     color
 }

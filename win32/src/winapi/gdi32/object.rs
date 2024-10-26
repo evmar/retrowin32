@@ -96,10 +96,10 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
         Some(obj) => obj,
     };
     match obj {
-        Object::Bitmap(_) => match dc.target {
-            DCTarget::Memory(prev) => {
-                dc.target = DCTarget::Memory(hGdiObj);
-                prev
+        Object::Bitmap(bitmap) => match dc.target {
+            DCTarget::Memory(_) => {
+                dc.target = DCTarget::Memory(bitmap.clone());
+                std::mem::replace(&mut dc.bitmap, hGdiObj)
             }
             DCTarget::Window(_) => todo!(),
             DCTarget::DirectDrawSurface(_) => todo!(),
