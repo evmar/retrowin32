@@ -91,15 +91,7 @@ pub fn StretchBlt(
 ) -> bool {
     let rop = rop.unwrap();
     if !rop.uses_src() {
-        return PatBlt(
-            machine,
-            hdcDst,
-            xDst,
-            yDst,
-            wDst,
-            hDst,
-            Ok(RasterOp::BLACKNESS),
-        );
+        return PatBlt(machine, hdcDst, xDst, yDst, wDst, hDst, Ok(rop));
     }
     let op = rop.to_binop();
 
