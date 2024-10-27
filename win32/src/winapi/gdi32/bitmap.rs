@@ -190,6 +190,10 @@ pub fn PatBlt(
     h: i32,
     rop: Result<RasterOp, u32>,
 ) -> bool {
+    if hdc.is_null() {
+        log::warn!("PatBlt: ignoring null hdc, possibly child window");
+        return false;
+    }
     let rop = rop.unwrap();
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
 
