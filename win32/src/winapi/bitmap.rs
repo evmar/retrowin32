@@ -244,6 +244,7 @@ impl PixelFormat {
     }
 
     fn decode_rgb555(val: u16) -> COLORREF {
+        // xrrr_rrgg_gggb_bbbb
         let r = ((val >> 10) & 0x1F) as u8;
         let g = ((val >> 5) & 0x1F) as u8;
         let b = (val & 0x1F) as u8;
@@ -253,6 +254,21 @@ impl PixelFormat {
     fn encode_rgb555(val: COLORREF) -> u16 {
         let [r, g, b] = val.to_rgb();
         ((r as u16) << 10) | ((g as u16) << 5) | b as u16
+    }
+
+    #[allow(dead_code)]
+    fn decode_rgb565(val: u16) -> COLORREF {
+        // rrrr_rggg_gggb_bbbb
+        let r = ((val >> 11) & 0x1F) as u8;
+        let g = ((val >> 5) & 0x3F) as u8;
+        let b = (val & 0x1F) as u8;
+        COLORREF::from_rgb(r << 3, g << 3, b << 3)
+    }
+
+    #[allow(dead_code)]
+    fn encode_rgb565(val: COLORREF) -> u16 {
+        let [r, g, b] = val.to_rgb();
+        ((r as u16) << 11) | ((g as u16) << 5) | b as u16
     }
 }
 
