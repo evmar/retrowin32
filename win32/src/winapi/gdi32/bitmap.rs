@@ -108,30 +108,12 @@ pub fn StretchBlt(
     };
 
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap().borrow();
-    let src_bitmap = src_dc.target.get_bitmap().unwrap();
+    let src_bitmap = src_dc.target.get_bitmap(machine);
     let src_bitmap = src_bitmap.borrow();
     src_bitmap.format.expect_rgba32();
 
     let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap().borrow();
-
-    // Special case: BitBlt to a DirectDrawSurface does a full copy, and the rest is unimplemented.
-    match dst_dc.target {
-        DCTarget::DirectDrawSurface(ptr) => {
-            let surface = machine.state.ddraw.surfaces.get_mut(&ptr).unwrap();
-
-            if src_rect != dst_rect {
-                log::warn!("StretchBlt: stretching to DirectDrawSurface not implemented, {src_rect:?}=>{dst_rect:?}");
-            }
-            assert!(surface.to_rect() == dst_rect);
-
-            let bytes = src_bitmap.pixels.bytes(machine.emu.memory.mem());
-            surface.host.write_pixels(bytes);
-            return true;
-        }
-        _ => {}
-    }
-
-    let dst_bitmap = dst_dc.target.get_bitmap().unwrap();
+    let dst_bitmap = dst_dc.target.get_bitmap(machine);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -214,7 +196,7 @@ pub fn PatBlt(
         _ => todo!("unimplemented PatBlt with rop={rop:?}"),
     };
 
-    let dst_bitmap = dc.target.get_bitmap().unwrap();
+    let dst_bitmap = dc.target.get_bitmap(machine);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
     let dst_rect = RECT {
@@ -371,7 +353,7 @@ pub fn SetDIBitsToDevice(
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap().unwrap();
+    let dst_bitmap = dc.target.get_bitmap(machine);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 
@@ -438,7 +420,7 @@ pub fn StretchDIBits(
     );
 
     let dc = machine.state.gdi32.dcs.get(hdc).unwrap().borrow();
-    let dst_bitmap = dc.target.get_bitmap().unwrap();
+    let dst_bitmap = dc.target.get_bitmap(machine);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
     dst_bitmap.format.expect_rgba32();
 

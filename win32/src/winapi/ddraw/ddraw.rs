@@ -8,7 +8,7 @@ use crate::{
     host,
     machine::Machine,
     winapi::{
-        bitmap::transmute_pixels_mut,
+        bitmap::{transmute_pixels_mut, Bitmap, PixelData, PixelFormat},
         ddraw::{ddraw1, ddraw7},
         heap::Heap,
         types::{HWND, RECT},
@@ -101,6 +101,22 @@ impl Surface {
         }
     }
 
+    /// Create a Bitmap representing the backing pixel buffer.
+    pub fn to_bitmap(&self) -> Bitmap {
+        if self.bytes_per_pixel != 4 {
+            todo!()
+        }
+        if self.pixels == 0 {
+            todo!()
+        }
+        Bitmap {
+            width: self.width,
+            height: self.height,
+            format: PixelFormat::RGBA32,
+            pixels: PixelData::Ptr(self.pixels, self.width * self.height * 4),
+        }
+    }
+
     pub fn lock(&mut self, mem: Mem, heap: &mut Heap) -> u32 {
         if self.pixels == 0 {
             self.pixels = heap.alloc(mem, self.width * self.height * self.bytes_per_pixel);
@@ -115,7 +131,7 @@ impl Surface {
     }
 
     // If primary is given, use it as the source of the palette.
-    pub fn flush(&mut self, mem: Mem, primary: Option<&Surface>) {
+    pub fn flush(&self, mem: Mem, primary: Option<&Surface>) {
         assert!(self.pixels != 0);
 
         // We need to copy self.pixels to convert its format to the RGBA expected by the write_pixels API.

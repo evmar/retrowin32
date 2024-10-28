@@ -21,18 +21,19 @@ pub enum DCTarget {
 }
 
 impl DCTarget {
-    /// If this target is backed by a bitmap, return it.
-    pub fn get_bitmap(&self) -> Option<Rc<RefCell<Bitmap>>> {
+    /// Get the pixel buffer underlying this target.
+    pub fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>> {
         match self {
-            DCTarget::Memory(bitmap) => Some(bitmap.clone()),
+            DCTarget::Memory(bitmap) => bitmap.clone(),
             DCTarget::Window(window) => {
                 let window = window.borrow();
-                return Some(window.bitmap().clone());
+                window.bitmap().clone()
             }
-            _ => {
-                log::warn!("no bitmap found in DC");
-                None
+            DCTarget::DirectDrawSurface(addr) => {
+                let surface = machine.state.ddraw.surfaces.get(&addr).unwrap();
+                Rc::new(RefCell::new(surface.to_bitmap()))
             }
+            _ => todo!(),
         }
     }
 
@@ -41,6 +42,10 @@ impl DCTarget {
             DCTarget::Window(window) => {
                 let mut window = window.borrow_mut();
                 window.flush_backing_store(machine.emu.memory.mem());
+            }
+            DCTarget::DirectDrawSurface(addr) => {
+                let surface = machine.state.ddraw.surfaces.get(addr).unwrap();
+                surface.flush(machine.emu.memory.mem(), None);
             }
             _ => {}
         }
