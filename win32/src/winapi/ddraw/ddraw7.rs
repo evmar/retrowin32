@@ -397,6 +397,9 @@ pub mod IDirectDrawSurface7 {
         });
 
         dst.host.bit_blt(&dst_rect, src.host.as_ref(), &src_rect);
+        if dst.primary {
+            dst.host.show();
+        }
         DD::OK
     }
 
@@ -436,6 +439,9 @@ pub mod IDirectDrawSurface7 {
         };
 
         dst.host.bit_blt(&dst_rect, src.host.as_ref(), &src_rect);
+        if dst.primary {
+            dst.host.show();
+        }
         DD::OK
     }
 
@@ -449,10 +455,13 @@ pub mod IDirectDrawSurface7 {
             let attached = surface.attached;
             let surface = surface as *const _;
             assert!(this != attached);
-            let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
+            let back = machine.state.ddraw.surfaces.get(&attached).unwrap();
             (&*surface, back)
         };
         back.flush(machine.emu.memory.mem(), Some(surface));
+
+        surface.host.show();
+
         DD::OK
     }
 

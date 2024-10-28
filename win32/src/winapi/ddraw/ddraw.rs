@@ -178,8 +178,6 @@ impl Surface {
             bpp => todo!("Unlock for {bpp}bpp"),
         }
         self.host.write_pixels(&pixels_bytes);
-
-        self.host.show();
     }
 }
 
