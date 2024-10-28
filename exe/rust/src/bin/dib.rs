@@ -9,36 +9,61 @@ use windows_sys::Win32::{
 };
 
 /// Upward-pointing arrow, 16x16 monochrome.
-const ARROW: [u16; 16] = [
-    0b0000_0000_0000_0000,
-    0b0000_0001_1000_0000,
-    0b0000_0011_1100_0000,
-    0b0000_0111_1110_0000,
-    //
-    0b0000_1111_1111_0000,
-    0b0001_1111_1111_1000,
-    0b0011_1111_1111_1100,
-    0b0111_1111_1111_1110,
-    //
-    0b0000_0011_1100_0000,
-    0b0000_0011_1100_0000,
-    0b0000_0011_1100_0000,
-    0b0000_0011_1100_0000,
-    //
-    0b0000_0011_1100_0000,
-    0b0000_0011_1100_0000,
-    0b0000_0011_1100_0000,
-    0b0000_0000_0000_0000,
+#[rustfmt::skip]
+const ARROW: [u8; 16 * 2] = [
+    0b0000_0000, 0b0000_0000,
+    0b0000_0001, 0b1000_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0111, 0b1110_0000,
+    0b0000_1111, 0b1111_0000,
+    0b0001_1111, 0b1111_1000,
+    0b0011_1111, 0b1111_1100,
+    0b0111_1111, 0b1111_1110,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0011, 0b1100_0000,
+    0b0000_0000, 0b0000_0000,
 ];
 
+fn arrow_rgba() -> Vec<u32> {
+    let mut pixels = Vec::new();
+    for &b in ARROW.iter() {
+        for i in 0..8 {
+            let bit = (b >> (7 - i)) & 1;
+            let color: [u8; 4] = if bit == 0 {
+                [0, 0, 0, 0xff]
+            } else {
+                [0xff, 0xff, 0xff, 0xff]
+            };
+            pixels.push(u32::from_le_bytes(color));
+        }
+    }
+    pixels
+}
+
 struct State {
-    bitmap: HBITMAP,
-    /// Owned by bitmap.
-    pixels: &'static mut [u32; 16 * 16],
+    mono: HBITMAP,
+    dib: HBITMAP,
+    /// Owned by dib; writable pixel data.
+    dib_pixels: &'static mut [u32; 16 * 16],
 }
 
 impl State {
     unsafe fn new(hdc: HDC) -> Self {
+        let mono = Self::create_mono();
+        let (dib, dib_pixels) = Self::create_dib(hdc);
+        Self {
+            mono,
+            dib,
+            dib_pixels,
+        }
+    }
+
+    unsafe fn create_dib(hdc: HDC) -> (HBITMAP, &'static mut [u32; 16 * 16]) {
         let mut bits: *mut [u32; 16 * 16] = std::ptr::null_mut();
         let info = BITMAPINFOHEADER {
             biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
@@ -63,35 +88,15 @@ impl State {
         );
         let pixels = &mut *bits;
         pixels.copy_from_slice(&arrow_rgba());
+        (bitmap, pixels)
+    }
 
-        State { bitmap, pixels }
+    unsafe fn create_mono() -> HBITMAP {
+        CreateBitmap(16, 16, 1, 1, ARROW.as_ptr() as *const _)
     }
 }
 
 static mut STATE: Option<State> = None;
-
-/// CreateBitmap from mono pixels.
-// TODO: we don't support mono bitmaps yet.
-#[allow(unused)]
-unsafe fn create_mono() -> HBITMAP {
-    CreateBitmap(16, 16, 1, 1, ARROW.as_ptr() as *const _)
-}
-
-fn arrow_rgba() -> Vec<u32> {
-    let mut pixels = Vec::new();
-    for &b in ARROW.iter() {
-        for i in 0..16 {
-            let bit = (b >> (15 - i)) & 1;
-            let color: [u8; 4] = if bit == 0 {
-                [0, 0, 0, 0xff]
-            } else {
-                [0xff, 0xff, 0xff, 0xff]
-            };
-            pixels.push(u32::from_le_bytes(color));
-        }
-    }
-    pixels
-}
 
 #[allow(non_snake_case)]
 unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
@@ -194,9 +199,13 @@ unsafe fn paint(hdc: HDC) {
     };
 
     let hdc_bitmap = CreateCompatibleDC(hdc);
-    SelectObject(hdc_bitmap, state.bitmap);
 
     let mut row = 1;
+    SelectObject(hdc_bitmap, state.mono);
+    BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
+    row += 1;
+
+    SelectObject(hdc_bitmap, state.dib);
     BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
     row += 1;
 
@@ -218,7 +227,7 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
         WM_LBUTTONDOWN => {
             let s = STATE.as_mut().unwrap();
             for i in 0..32 * 2 {
-                s.pixels[i] = 0xff00_00ff;
+                s.dib_pixels[i] = 0xff00_00ff;
             }
             InvalidateRect(hwnd, std::ptr::null(), 0);
             0

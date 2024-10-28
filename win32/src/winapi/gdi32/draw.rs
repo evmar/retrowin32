@@ -15,6 +15,11 @@ impl COLORREF {
     pub fn from_rgb(r: u8, g: u8, b: u8) -> Self {
         Self(u32::from_le_bytes([r, g, b, 0]))
     }
+    pub fn to_rgb(&self) -> [u8; 3] {
+        let [r, g, b, _] = self.0.to_le_bytes();
+        [r, g, b]
+    }
+
     pub fn to_pixel(&self) -> [u8; 4] {
         let [r, g, b, _] = self.0.to_le_bytes();
         [r, g, b, 0xff]

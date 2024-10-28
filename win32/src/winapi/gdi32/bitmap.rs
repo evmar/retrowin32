@@ -1,4 +1,4 @@
-use super::{DCTarget, Object, BITMAPINFOHEADER, HDC, HGDIOBJ};
+use super::{DCTarget, Object, BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
     winapi::{
@@ -7,7 +7,7 @@ use crate::{
         types::{POINT, RECT},
     },
 };
-use memory::Mem;
+use memory::{Extensions, Mem};
 
 pub type HBITMAP = HGDIOBJ;
 
@@ -25,6 +25,7 @@ unsafe impl memory::Pod for BITMAP {}
 
 /// For the subset of dst within r, write pixels from op(x, y).
 /// Performs no clipping; caller must have already clipped.
+// TODO: remove me in favor of pattern used in StretchBlt
 fn fill_pixels(
     mem: Mem,
     dst: &mut Bitmap,
@@ -110,34 +111,42 @@ pub fn StretchBlt(
     let src_dc = machine.state.gdi32.dcs.get(hdcSrc).unwrap().borrow();
     let src_bitmap = src_dc.target.get_bitmap(machine);
     let src_bitmap = src_bitmap.borrow();
-    src_bitmap.format.expect_rgba32();
 
     let dst_dc = machine.state.gdi32.dcs.get(hdcDst).unwrap().borrow();
     let dst_bitmap = dst_dc.target.get_bitmap(machine);
     let mut dst_bitmap = dst_bitmap.borrow_mut();
-    dst_bitmap.format.expect_rgba32();
 
     // What does it mean when the src_rect isn't within the src bitmap?
     // sol.exe does this when you drag a card off screen.
     // Clipping here means the xform below will stretch slightly, hrmm.
+    // log::info!("src_rect={:x?}", src_rect);
     let src_rect = src_rect.clip(&src_bitmap.to_rect());
+    // log::info!("src_rect clipped={:x?}", src_rect);
 
     let copy_rect = dst_rect.clip(&dst_bitmap.to_rect());
+    // log::info!("dst_rect={:x?}", dst_rect);
+    // log::info!("dst_bitmap.to_rect()={:x?}", dst_bitmap.to_rect());
+    // log::info!("copy_rect={:x?}", copy_rect);
 
     let mem = machine.emu.memory.mem();
-    let src = src_bitmap.as_rgba(mem);
-    fill_pixels(mem, &mut *dst_bitmap, &copy_rect, |p, dpx| {
-        // Translate p from dst to src space.
-        // Because we're stretching, we scale to src space rather than clipping.
-        let p = p
-            .sub(dst_rect.origin())
-            .mul(src_rect.size())
-            .div(dst_rect.size())
-            .add(src_rect.origin());
-        let mut px = op(dpx, src[(p.y * src_bitmap.width as i32 + p.x) as usize]);
-        px[3] = 0xFF; // clear alpha
-        px
-    });
+
+    let mut row: Vec<COLORREF> = Vec::with_capacity((src_rect.right - src_rect.left) as usize);
+    row.resize_with(row.capacity(), || COLORREF::from_rgb(0xff, 0, 0));
+    for dy in copy_rect.top..copy_rect.bottom {
+        let sy = (dy - yDst) * hSrc / hDst + ySrc;
+        src_bitmap.read_row(
+            mem,
+            src_rect.left as u32..src_rect.right as u32,
+            sy as u32,
+            &mut row,
+        );
+        dst_bitmap.write_row(
+            mem,
+            copy_rect.left as u32..copy_rect.right as u32,
+            dy as u32,
+            &row,
+        );
+    }
     drop(dst_bitmap);
 
     dst_dc.target.flush(machine);
@@ -230,6 +239,7 @@ pub fn CreateBitmap(
             let len = (nHeight * stride) as usize;
             let mut pixels = Vec::with_capacity(len);
             pixels.resize(len, 0);
+            pixels.copy_from_slice(machine.mem().sub32(lpBits, len as u32));
             Bitmap {
                 width: nWidth,
                 height: nHeight,

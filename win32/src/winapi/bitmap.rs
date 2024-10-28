@@ -2,7 +2,9 @@
 
 #![allow(non_snake_case)]
 
-use super::types::*;
+use std::ops::Range;
+
+use super::{gdi32::COLORREF, types::*};
 use memory::{Extensions, ExtensionsMut, Mem};
 
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]
@@ -228,8 +230,9 @@ impl PixelFormat {
     }
 
     pub fn stride(&self, width: u32) -> u32 {
+        // Align to 2 byte boundary.
         let bpp = self.bits_per_pixel();
-        ((width * bpp + 31) & !31) >> 3
+        ((width * bpp + 0xF) & !0xF) >> 3
     }
 
     pub fn bits_per_pixel(&self) -> u32 {
@@ -238,6 +241,18 @@ impl PixelFormat {
             PixelFormat::RGB555 => 16,
             PixelFormat::Mono => 1,
         }
+    }
+
+    fn decode_rgb555(val: u16) -> COLORREF {
+        let r = ((val >> 10) & 0x1F) as u8;
+        let g = ((val >> 5) & 0x1F) as u8;
+        let b = (val & 0x1F) as u8;
+        COLORREF::from_rgb(r << 3, g << 3, b << 3)
+    }
+
+    fn encode_rgb555(val: COLORREF) -> u16 {
+        let [r, g, b] = val.to_rgb();
+        ((r as u16) << 10) | ((g as u16) << 5) | b as u16
     }
 }
 
@@ -282,6 +297,8 @@ impl Bitmap {
             BI::JPEG => todo!(),
             BI::PNG => todo!(),
         };
+
+        // TODO: remove all this; we should be able to use bitmaps in their native pixel format.
 
         fn get_pixel(header: &BitmapInfo, val: u8) -> [u8; 4] {
             // BMP palette is BGRx
@@ -357,6 +374,65 @@ impl Bitmap {
         self.format.expect_rgba32();
         let bytes = self.pixels.bytes_mut(mem);
         transmute_pixels_mut(bytes)
+    }
+
+    pub fn read_row(&self, mem: Mem, x: Range<u32>, y: u32, out: &mut [COLORREF]) {
+        let stride = self.format.stride(self.width);
+        let pixels = self.pixels.bytes(mem);
+        match self.format {
+            PixelFormat::RGBA32 => {
+                let row = &pixels[((y * stride) + x.start * 4) as usize..]
+                    [..(x.end - x.start) as usize * 4];
+                for (dst, src) in out.iter_mut().zip(row.chunks_exact(4)) {
+                    *dst = COLORREF::from_rgb(src[0], src[1], src[2]);
+                }
+            }
+            PixelFormat::RGB555 => {
+                let row = &pixels[((y * stride) + x.start * 2) as usize..]
+                    [..(x.end - x.start) as usize * 2];
+                for (dst, src) in out.iter_mut().zip(row.chunks_exact(2)) {
+                    *dst = PixelFormat::decode_rgb555(u16::from_le_bytes([src[0], src[1]]));
+                }
+            }
+            PixelFormat::Mono => {
+                let fullrow = &pixels[(y * stride) as usize..][..stride as usize];
+                for (i, dst) in out.iter_mut().enumerate() {
+                    let x = x.start as usize + i;
+                    let byte = fullrow[x / 8];
+                    let bit = 7 - (x % 8);
+                    let val = ((byte >> bit) & 1) * 0xff;
+                    *dst = COLORREF::from_rgb(val, val, val);
+                }
+            }
+        }
+    }
+
+    pub fn write_row(&mut self, mem: Mem, x: Range<u32>, y: u32, src: &[COLORREF]) {
+        let stride = self.format.stride(self.width);
+        let pixels = self.pixels.bytes_mut(mem);
+        match self.format {
+            PixelFormat::RGBA32 => {
+                let fullrow = &mut pixels[(y * stride) as usize..][..stride as usize];
+                let row = &mut fullrow[x.start as usize * 4..x.end as usize * 4];
+                let dst_width = (x.end - x.start) as usize;
+                for (i, dst) in row.chunks_exact_mut(4).enumerate() {
+                    let color = src[i * src.len() / dst_width];
+                    dst.copy_from_slice(&color.to_pixel());
+                }
+            }
+            PixelFormat::RGB555 => {
+                let fullrow = &mut pixels[(y * stride) as usize..][..stride as usize];
+                let row = &mut fullrow[x.start as usize * 2..x.end as usize * 2];
+                let dst_width = (x.end - x.start) as usize;
+                for (i, dst) in row.chunks_exact_mut(2).enumerate() {
+                    let color = src[i * src.len() / dst_width];
+                    dst.copy_from_slice(&PixelFormat::encode_rgb555(color).to_le_bytes());
+                }
+            }
+            PixelFormat::Mono => {
+                todo!();
+            }
+        }
     }
 }
 
