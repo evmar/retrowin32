@@ -449,6 +449,9 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> DD {
+        let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        // Ensure surface has backing store, since DC is for drawing on it.
+        surf.lock(machine.emu.memory.mem(), &mut machine.state.ddraw.heap);
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
         let handle = machine.state.gdi32.dcs.add_dc(dc);

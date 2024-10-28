@@ -215,6 +215,7 @@ impl PixelData {
 #[derive(Debug)]
 pub enum PixelFormat {
     RGBA32,
+    RGB555,
     Mono,
 }
 
@@ -222,20 +223,19 @@ impl PixelFormat {
     pub fn expect_rgba32(&self) {
         match self {
             PixelFormat::RGBA32 => {}
-            _ => panic!("expected RGBA32 bitmap"),
+            _ => todo!("expected RGBA32 bitmap"),
         }
     }
 
     pub fn stride(&self, width: u32) -> u32 {
-        match self {
-            PixelFormat::RGBA32 => width,
-            PixelFormat::Mono => ((width + 31) & !31) >> 3,
-        }
+        let bpp = self.bits_per_pixel();
+        ((width * bpp + 31) & !31) >> 3
     }
 
     pub fn bits_per_pixel(&self) -> u32 {
         match self {
             PixelFormat::RGBA32 => 32,
+            PixelFormat::RGB555 => 16,
             PixelFormat::Mono => 1,
         }
     }
