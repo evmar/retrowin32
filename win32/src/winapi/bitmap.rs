@@ -143,7 +143,7 @@ impl<'a> BitmapInfo<'a> {
             1 => 2,
             _ => unimplemented!(),
         };
-        // TODO: biClrUsed determines the size of the palette.
+        assert!(header.biClrUsed == 0 || header.biClrUsed == palette_len as u32);
         let palette_entry_size = 4usize;
         let palette_size = palette_len * palette_entry_size;
         let palette = buf.sub32(0, palette_size as u32);
@@ -252,8 +252,12 @@ impl PixelFormat {
     }
 
     fn encode_rgb555(val: COLORREF) -> u16 {
-        let [r, g, b] = val.to_rgb();
-        ((r as u16) << 10) | ((g as u16) << 5) | b as u16
+        let [mut r, mut g, mut b] = val.to_rgb();
+        r = r >> 3;
+        g = g >> 3;
+        b = b >> 3;
+        let out = ((r as u16) << 10) | ((g as u16) << 5) | b as u16;
+        out
     }
 
     #[allow(dead_code)]
@@ -267,7 +271,10 @@ impl PixelFormat {
 
     #[allow(dead_code)]
     fn encode_rgb565(val: COLORREF) -> u16 {
-        let [r, g, b] = val.to_rgb();
+        let [mut r, mut g, mut b] = val.to_rgb();
+        r = r >> 3;
+        g = g >> 2;
+        b = b >> 3;
         ((r as u16) << 11) | ((g as u16) << 5) | b as u16
     }
 }
@@ -460,5 +467,31 @@ impl std::fmt::Debug for Bitmap {
             .field("format", &self.format)
             //.field("pixels", &&self.pixels[0..16])
             .finish()
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_pixel_format_stride() {
+        assert_eq!(PixelFormat::RGBA32.stride(11), 44);
+        assert_eq!(PixelFormat::RGB555.stride(11), 22);
+        assert_eq!(PixelFormat::Mono.stride(11), 2);
+    }
+
+    #[test]
+    fn test_pixel_format_rgb555() {
+        let red = COLORREF::from_rgb(0xff, 0, 0);
+        let enc = PixelFormat::encode_rgb555(red);
+        assert_eq!(enc, 0b0_11111_00000_00000);
+        let dec = PixelFormat::decode_rgb555(enc);
+        assert_eq!(dec.to_rgb(), [0xf8, 0, 0]);
+
+        let cyan = COLORREF::from_rgb(0x20, 0x10, 0);
+        let enc = PixelFormat::encode_rgb555(cyan);
+        assert_eq!(enc, 0b0_00100_00010_00000);
+        let dec = PixelFormat::decode_rgb555(enc);
+        assert_eq!(dec.to_rgb(), [0x20, 0x10, 0]);
     }
 }
