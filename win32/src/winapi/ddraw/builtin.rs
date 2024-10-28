@@ -1167,8 +1167,8 @@ mod wrappers {
     pub unsafe fn IDirectDrawSurface7_SetColorKey(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
-        let flags = <u32>::from_stack(mem, stack_args + 4u32);
-        let key = <u32>::from_stack(mem, stack_args + 8u32);
+        let flags = <Result<DDCKEY, u32>>::from_stack(mem, stack_args + 4u32);
+        let key = <Option<&DDCOLORKEY>>::from_stack(mem, stack_args + 8u32);
         let __trace_record = if crate::trace::enabled("ddraw/ddraw7") {
             crate::trace::Record::new(
                 winapi::ddraw::IDirectDrawSurface7::SetColorKey_pos,

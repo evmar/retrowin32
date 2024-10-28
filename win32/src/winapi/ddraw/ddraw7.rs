@@ -55,6 +55,17 @@ bitflags! {
     }
 }
 
+bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
+    pub struct DDCKEY: u32 {
+        const COLORSPACE  = 0x00000001;
+        const DESTBLT     = 0x00000002;
+        const DESTOVERLAY = 0x00000004;
+        const SRCBLT      = 0x00000008;
+        const SRCOVERLAY  = 0x00000010;
+    }
+}
+
 #[win32_derive::dllexport]
 pub mod IDirectDraw7 {
     use super::*;
@@ -595,7 +606,12 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetColorKey(_machine: &mut Machine, this: u32, flags: u32, key: u32) -> DD {
+    pub fn SetColorKey(
+        _machine: &mut Machine,
+        this: u32,
+        flags: Result<DDCKEY, u32>,
+        key: Option<&DDCOLORKEY>,
+    ) -> DD {
         log::warn!("TODO: SetColorKey: stub");
         DD::OK
     }
