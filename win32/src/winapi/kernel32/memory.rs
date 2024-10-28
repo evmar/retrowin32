@@ -430,11 +430,11 @@ fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     if uFlags.contains(GMEM::MOVEABLE) {
         todo!("GMEM_MOVEABLE");
     }
-    let heap = machine
+    let addr = machine
         .state
         .kernel32
-        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
-    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+        .process_heap
+        .alloc(machine.emu.memory.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
         machine.mem().sub32_mut(addr, dwBytes).fill(0);
     }
@@ -451,10 +451,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     if uFlags.contains(GMEM::MODIFY) {
         todo!("GMEM_MODIFY");
     }
-    let heap = machine
-        .state
-        .kernel32
-        .get_process_heap(&mut machine.emu.memory);
+    let heap = &mut machine.state.kernel32.process_heap;
     let mem = machine.emu.memory.mem();
     let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
@@ -470,11 +467,11 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
 }
 
 fn free(machine: &mut Machine, hMem: u32) -> u32 {
-    let heap = machine
+    machine
         .state
         .kernel32
-        .get_process_heap(&mut machine.emu.memory);
-    heap.free(machine.emu.memory.mem(), hMem);
+        .process_heap
+        .free(machine.emu.memory.mem(), hMem);
     return 0; // success
 }
 
@@ -512,9 +509,5 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine
-        .state
-        .kernel32
-        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
-    machine.state.kernel32.process_heap
+    machine.state.kernel32.process_heap_addr
 }

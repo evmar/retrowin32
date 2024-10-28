@@ -53,7 +53,7 @@ pub mod IDirectInput {
         let lpDirectInput = machine
             .state
             .kernel32
-            .get_process_heap(&mut machine.emu.memory)
+            .process_heap
             .alloc(machine.emu.memory.mem(), 4);
         let vtable = kernel32::get_symbol(machine, "dinput.dll", "IDirectInput");
         machine.mem().put_pod::<u32>(lpDirectInput, vtable);
@@ -125,7 +125,7 @@ pub mod IDirectInputDevice {
         let lpDirectInputDevice = machine
             .state
             .kernel32
-            .get_process_heap(&mut machine.emu.memory)
+            .process_heap
             .alloc(machine.emu.memory.mem(), 4);
         let vtable = kernel32::get_symbol(machine, "dinput.dll", "IDirectInputDevice");
         machine.mem().put_pod::<u32>(lpDirectInputDevice, vtable);

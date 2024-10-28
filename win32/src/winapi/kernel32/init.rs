@@ -76,7 +76,7 @@ fn init_peb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
     let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
     let peb = mem.get_aligned_ref_mut::<PEB>(peb_addr);
     peb.ProcessParameters = params_addr;
-    peb.ProcessHeap = 0; // TODO: we use state.process_heap instead
+    peb.ProcessHeap = 0; // TODO: use state.process_heap_addr instead
     peb.TlsCount = 0;
 
     peb_addr
@@ -116,9 +116,19 @@ pub struct State {
     /// Address of PEB (process information exposed to executable).
     pub peb: u32,
     pub mappings: Mappings,
-    /// Heaps created by HeapAlloc().
+
+    /// Heaps created by HeapAlloc().  Note: doesn't include the process heap.
     heaps: HashMap<u32, Heap>,
-    pub process_heap: u32,
+
+    /// The "process heap" is a per-process default heap exposed via GetProcessHeap and used
+    /// by default.
+    /// We also use it for our own random allocations, e.g. buffers allocated by other APIs.
+    pub process_heap: Heap,
+
+    /// Unlike other heaps, the process heap is not stored in the `heaps` map, so we stash
+    /// its address separately, and need to remember to check it when doing operations
+    /// over heaps in general.
+    pub process_heap_addr: u32,
 
     pub dlls: HashMap<HMODULE, DLL>,
 
@@ -179,7 +189,8 @@ impl State {
             arena,
             image_base: 0,
             peb,
-            process_heap: 0,
+            process_heap: Heap::default(),
+            process_heap_addr: 0,
             mappings,
             heaps: HashMap::new(),
             dlls,
@@ -206,16 +217,18 @@ impl State {
     }
 
     pub fn get_heap<'a>(&'a mut self, addr: u32) -> Option<&mut Heap> {
+        if addr == self.process_heap_addr {
+            return Some(&mut self.process_heap);
+        }
         self.heaps.get_mut(&addr)
     }
 
-    pub fn get_process_heap<'a>(&'a mut self, memory: &mut MemImpl) -> &mut Heap {
-        if self.process_heap == 0 {
-            let size = 24 << 20;
-            let heap = self.new_heap(memory, size, "process heap".into());
-            self.process_heap = heap;
-        }
-        self.get_heap(self.process_heap).unwrap()
+    pub fn init_process_heap<'a>(&'a mut self, memory: &mut MemImpl) {
+        assert!(self.process_heap_addr == 0);
+        let size = 24 << 20;
+        let addr = self.new_heap(memory, size, "process heap".into());
+        self.process_heap = self.heaps.remove(&addr).unwrap();
+        self.process_heap_addr = addr;
     }
 
     pub fn create_gdt(&mut self, mem: Mem) -> GDTEntries {

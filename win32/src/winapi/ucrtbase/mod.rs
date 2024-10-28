@@ -173,20 +173,20 @@ pub fn __getmainargs(
 
 #[win32_derive::dllexport(cdecl)]
 pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
-    let heap = machine
+    machine
         .state
         .kernel32
-        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
-    heap.alloc(machine.emu.memory.mem(), size)
+        .process_heap
+        .alloc(machine.emu.memory.mem(), size)
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
-    let heap = machine
+    machine
         .state
         .kernel32
-        .get_process_heap(&mut machine.emu.memory); // lazy init process_heap
-    heap.free(machine.emu.memory.mem(), ptr);
+        .process_heap
+        .free(machine.emu.memory.mem(), ptr);
     0
 }
 

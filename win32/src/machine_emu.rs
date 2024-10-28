@@ -89,6 +89,10 @@ impl MachineX<Emulator> {
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
         let exe = pe::load_exe(self, buf, path, relocate)?;
+        // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
+        // that the exe wants.
+        self.state.kernel32.init_process_heap(&mut self.emu.memory);
+
         let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
 
         let NewThread {
