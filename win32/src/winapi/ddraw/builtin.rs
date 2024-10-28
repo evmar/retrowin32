@@ -859,7 +859,7 @@ mod wrappers {
         let y = <u32>::from_stack(mem, stack_args + 8u32);
         let lpSrc = <u32>::from_stack(mem, stack_args + 12u32);
         let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 16u32);
-        let flags = <u32>::from_stack(mem, stack_args + 20u32);
+        let flags = <Result<DDBLTFAST, u32>>::from_stack(mem, stack_args + 20u32);
         let __trace_record = if crate::trace::enabled("ddraw/ddraw7") {
             crate::trace::Record::new(
                 winapi::ddraw::IDirectDrawSurface7::BltFast_pos,

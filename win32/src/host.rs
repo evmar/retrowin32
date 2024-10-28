@@ -1,10 +1,10 @@
 //! Interfaces expected of the x86 host.
 
+pub use crate::winapi::types::RECT;
 pub use crate::winapi::ERROR;
 pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 /// Drawing surface, corresponding to window contents or DirectDraw surfaces.
-
 pub trait Surface {
     /// Write pixel data.
     /// TODO: currently data is rgba32, but non-web implementation could handle other formats
@@ -16,7 +16,7 @@ pub trait Surface {
 
     // TODO: the trait object here means we end up needing to cast, but the alternative
     // isn't object safe, bleh.
-    fn bit_blt(&self, dx: u32, dy: u32, src: &dyn Surface, sx: u32, sy: u32, w: u32, h: u32);
+    fn bit_blt(&self, dst_rect: &RECT, src: &dyn Surface, src_rect: &RECT);
 }
 
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]

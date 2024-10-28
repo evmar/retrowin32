@@ -238,6 +238,15 @@ impl Texture {
     }
 }
 
+fn sdl_rect_from_win32(rect: &win32::RECT) -> sdl2::rect::Rect {
+    sdl2::rect::Rect::new(
+        rect.left,
+        rect.top,
+        (rect.right - rect.left) as u32,
+        (rect.bottom - rect.top) as u32,
+    )
+}
+
 impl win32::Surface for Texture {
     fn write_pixels(&self, pixels: &[u8]) {
         let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
@@ -255,21 +264,12 @@ impl win32::Surface for Texture {
         canvas.present();
     }
 
-    fn bit_blt(
-        &self,
-        dx: u32,
-        dy: u32,
-        src: &dyn win32::Surface,
-        sx: u32,
-        sy: u32,
-        w: u32,
-        h: u32,
-    ) {
-        let src_rect = sdl2::rect::Rect::new(sx as i32, sy as i32, w, h);
+    fn bit_blt(&self, dst_rect: &win32::RECT, src: &dyn win32::Surface, src_rect: &win32::RECT) {
+        let src_rect = sdl_rect_from_win32(src_rect);
         let src = &unsafe { &*(src as *const dyn win32::Surface as *const Texture) }
             .texture
             .borrow();
-        let dst_rect = sdl2::rect::Rect::new(dx as i32, dy as i32, w, h);
+        let dst_rect = sdl_rect_from_win32(dst_rect);
 
         self.window
             .0

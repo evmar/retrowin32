@@ -9,16 +9,7 @@ pub struct Surface {}
 impl win32::Surface for Surface {
     fn write_pixels(&self, _pixels: &[u8]) {}
     fn show(&self) {}
-    fn bit_blt(
-        &self,
-        _dx: u32,
-        _dy: u32,
-        _src: &dyn win32::Surface,
-        _sx: u32,
-        _sy: u32,
-        _w: u32,
-        _h: u32,
-    ) {
+    fn bit_blt(&self, _dst_rect: &win32::RECT, _src: &dyn win32::Surface, _src_rect: &win32::RECT) {
     }
 }
 

@@ -62,16 +62,7 @@ impl win32::Surface for WebSurface {
             .unwrap();
     }
 
-    fn bit_blt(
-        &self,
-        dx: u32,
-        dy: u32,
-        src: &dyn win32::Surface,
-        sx: u32,
-        sy: u32,
-        w: u32,
-        h: u32,
-    ) {
+    fn bit_blt(&self, dst_rect: &win32::RECT, src: &dyn win32::Surface, src_rect: &win32::RECT) {
         // Hack: we know all surfaces are WebSurface.
         // I think to fix this properly I might need to make every X86 generic across all the
         // host types, eek.
@@ -79,14 +70,14 @@ impl win32::Surface for WebSurface {
         self.ctx
             .draw_image_with_html_canvas_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
                 &src.canvas,
-                sx as f64,
-                sy as f64,
-                w as f64,
-                h as f64,
-                dx as f64,
-                dy as f64,
-                w as f64,
-                h as f64,
+                src_rect.left as f64,
+                src_rect.top as f64,
+                (src_rect.right - src_rect.left) as f64,
+                (src_rect.bottom - src_rect.top) as f64,
+                dst_rect.left as f64,
+                dst_rect.top as f64,
+                (dst_rect.right - dst_rect.left) as f64,
+                (dst_rect.bottom - dst_rect.top) as f64,
             )
             .unwrap();
     }

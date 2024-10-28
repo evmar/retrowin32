@@ -430,6 +430,17 @@ bitflags! {
   }
 }
 
+bitflags! {
+    #[derive(win32_derive::TryFromBitflags)]
+    pub struct DDBLTFAST: u32 {
+        // const NOCOLORKEY   = 0x00000000;
+        const SRCCOLORKEY  = 0x00000001;
+        const DESTCOLORKEY = 0x00000002;
+        const WAIT         = 0x00000010;
+        const DONOTWAIT    = 0x00000020;
+  }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct DDBLTFX {

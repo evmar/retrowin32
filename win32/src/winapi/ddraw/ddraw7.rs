@@ -370,20 +370,34 @@ pub mod IDirectDrawSurface7 {
         flags: Result<DDBLT, u32>,
         lpDDBLTFX: Option<&DDBLTFX>,
     ) -> DD {
-        if lpDstRect.is_some() || lpSrcRect.is_some() {
-            log::warn!("todo: Blt with rects");
-        }
         let flags = flags.unwrap();
         if flags.contains(DDBLT::COLORFILL) {
             log::warn!("todo: DDBLT::COLORFILL");
             return DD::OK;
         }
-        if lpSrc == 0 {
-            log::error!("Blt from null surface");
-            return DD::OK;
-        }
         log::warn!("Blt: ignoring behavioral flags");
-        BltFast(machine, this, 0, 0, lpSrc, None, 0)
+        let (dst, src) = unsafe {
+            assert_ne!(this, lpSrc);
+            let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
+            let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap() as *const ddraw::Surface;
+            (&mut *dst, &*src)
+        };
+
+        let src_rect = lpSrcRect.copied().unwrap_or(RECT {
+            left: 0,
+            top: 0,
+            right: src.width as i32,
+            bottom: src.height as i32,
+        });
+        let dst_rect = lpDstRect.copied().unwrap_or(RECT {
+            left: 0,
+            top: 0,
+            right: dst.width as i32,
+            bottom: dst.height as i32,
+        });
+
+        dst.host.bit_blt(&dst_rect, src.host.as_ref(), &src_rect);
+        DD::OK
     }
 
     #[win32_derive::dllexport]
@@ -394,27 +408,34 @@ pub mod IDirectDrawSurface7 {
         y: u32,
         lpSrc: u32,
         lpRect: Option<&RECT>,
-        flags: u32,
+        flags: Result<DDBLTFAST, u32>,
     ) -> DD {
-        if flags != 0 {
-            log::warn!("BltFast flags: {:x}", flags);
+        let flags = flags.unwrap();
+        if !flags.is_empty() {
+            log::warn!("BltFast: ignoring flags: {:x}", flags);
         }
         let (dst, src) = unsafe {
+            assert_ne!(this, lpSrc);
             let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
             let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap() as *const ddraw::Surface;
-            assert_ne!(dst as *const ddraw::Surface, src);
             (&mut *dst, &*src)
         };
-        if let Some(rect) = lpRect {
-            let sx = rect.left as u32;
-            let w = (rect.right - rect.left) as u32;
-            let sy = rect.top as u32;
-            let h = (rect.bottom - rect.top) as u32;
-            dst.host.bit_blt(x, y, src.host.as_ref(), sx, sy, w, h);
-        } else {
-            dst.host
-                .bit_blt(x, y, src.host.as_ref(), 0, 0, src.width, src.height);
-        }
+
+        let src_rect = lpRect.copied().unwrap_or(RECT {
+            left: 0,
+            top: 0,
+            right: src.width as i32,
+            bottom: src.height as i32,
+        });
+
+        let dst_rect = RECT {
+            left: 0,
+            top: 0,
+            right: dst.width as i32,
+            bottom: dst.height as i32,
+        };
+
+        dst.host.bit_blt(&dst_rect, src.host.as_ref(), &src_rect);
         DD::OK
     }
 
