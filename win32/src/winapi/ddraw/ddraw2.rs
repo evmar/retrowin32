@@ -52,8 +52,11 @@ pub mod IDirectDraw2 {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectDraw = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw2");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
@@ -131,8 +134,8 @@ pub mod IDirectDraw2 {
         let mem = machine.emu.memory.mem();
         let desc_addr = machine
             .state
-            .ddraw
-            .heap
+            .kernel32
+            .process_heap
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC>() as u32);
         mem.put_pod::<DDSURFACEDESC>(desc_addr, desc);
 
@@ -142,8 +145,8 @@ pub mod IDirectDraw2 {
 
         machine
             .state
-            .ddraw
-            .heap
+            .kernel32
+            .process_heap
             .free(machine.emu.memory.mem(), desc_addr);
 
         DD::OK
@@ -236,8 +239,11 @@ pub mod IDirectDrawSurface2 {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawSurface = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectDrawSurface = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface2");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface

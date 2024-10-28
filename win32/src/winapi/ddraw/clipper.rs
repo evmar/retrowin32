@@ -34,8 +34,11 @@ pub mod IDirectDrawClipper {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let clipper = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let clipper = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawClipper");
         machine.mem().put_pod::<u32>(clipper, vtable);
         clipper

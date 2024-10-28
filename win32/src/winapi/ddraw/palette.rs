@@ -23,8 +23,11 @@ pub mod IDirectDrawPalette {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawPalette = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectDrawPalette = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
         machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette

@@ -93,8 +93,11 @@ pub mod IDirectDraw7 {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDraw = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectDraw = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw7");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
@@ -205,8 +208,8 @@ pub mod IDirectDraw7 {
         let mem = machine.emu.memory.mem();
         let desc_addr = machine
             .state
-            .ddraw
-            .heap
+            .kernel32
+            .process_heap
             .alloc(mem, std::mem::size_of::<DDSURFACEDESC2>() as u32);
         mem.put_pod::<DDSURFACEDESC2>(desc_addr, desc);
 
@@ -216,8 +219,8 @@ pub mod IDirectDraw7 {
 
         machine
             .state
-            .ddraw
-            .heap
+            .kernel32
+            .process_heap
             .free(machine.emu.memory.mem(), desc_addr);
 
         DD::OK
@@ -341,8 +344,11 @@ pub mod IDirectDrawSurface7 {
     ];
 
     pub fn new(machine: &mut Machine) -> u32 {
-        let ddraw = &mut machine.state.ddraw;
-        let lpDirectDrawSurface7 = ddraw.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectDrawSurface7 = machine
+            .state
+            .kernel32
+            .process_heap
+            .alloc(machine.emu.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
@@ -451,7 +457,10 @@ pub mod IDirectDrawSurface7 {
     pub fn GetDC(machine: &mut Machine, this: u32, lpHDC: u32) -> DD {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         // Ensure surface has backing store, since DC is for drawing on it.
-        surf.lock(machine.emu.memory.mem(), &mut machine.state.ddraw.heap);
+        surf.lock(
+            machine.emu.memory.mem(),
+            &mut machine.state.kernel32.process_heap,
+        );
         let dc =
             crate::winapi::gdi32::DC::new(crate::winapi::gdi32::DCTarget::DirectDrawSurface(this));
         let handle = machine.state.gdi32.dcs.add_dc(dc);
@@ -526,7 +535,10 @@ pub mod IDirectDrawSurface7 {
         }
         let desc = desc.unwrap();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
-        let pixels = surf.lock(machine.emu.memory.mem(), &mut machine.state.ddraw.heap);
+        let pixels = surf.lock(
+            machine.emu.memory.mem(),
+            &mut machine.state.kernel32.process_heap,
+        );
         // It seems callers (effect, monolife) don't provide flags for what they want,
         // and instead expect all fields to be included.
         desc.lpSurface = pixels;

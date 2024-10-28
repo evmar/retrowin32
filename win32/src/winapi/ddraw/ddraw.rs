@@ -184,8 +184,6 @@ impl Surface {
 }
 
 pub struct State {
-    pub heap: Heap,
-
     // TODO: this is per-IDirectDraw state.
     pub hwnd: HWND,
     pub surfaces: HashMap<u32, Surface>,
@@ -195,22 +193,9 @@ pub struct State {
     pub palettes: HashMap<u32, Palette>,
 }
 
-impl State {
-    pub fn new_init(machine: &mut Machine) -> Self {
-        let mut ddraw = State::default();
-        ddraw.heap = machine.state.kernel32.new_private_heap(
-            &mut machine.emu.memory,
-            4 << 20,
-            "ddraw.dll heap".into(),
-        );
-        ddraw
-    }
-}
-
 impl Default for State {
     fn default() -> Self {
         State {
-            heap: Heap::default(),
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
             bytes_per_pixel: 4,
@@ -239,10 +224,6 @@ pub fn DirectDrawCreateEx(
 ) -> DD {
     assert!(lpGuid.is_none());
     assert!(pUnkOuter == 0);
-
-    if machine.state.ddraw.heap.addr == 0 {
-        machine.state.ddraw = State::new_init(machine);
-    }
 
     match iid {
         None => {
