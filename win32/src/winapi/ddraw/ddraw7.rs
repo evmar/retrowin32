@@ -387,12 +387,9 @@ pub mod IDirectDrawSurface7 {
             return DD::OK;
         }
         log::warn!("Blt: ignoring behavioral flags");
-        let (dst, src) = unsafe {
-            assert_ne!(this, lpSrc);
-            let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
-            let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap() as *const ddraw::Surface;
-            (&mut *dst, &*src)
-        };
+
+        let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap();
 
         let src_rect = lpSrcRect.copied().unwrap_or(RECT {
             left: 0,
@@ -428,12 +425,9 @@ pub mod IDirectDrawSurface7 {
         if !flags.is_empty() {
             log::warn!("BltFast: ignoring flags: {:x}", flags);
         }
-        let (dst, src) = unsafe {
-            assert_ne!(this, lpSrc);
-            let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap() as *mut ddraw::Surface;
-            let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap() as *const ddraw::Surface;
-            (&mut *dst, &*src)
-        };
+
+        let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap();
 
         let src_rect = lpRect.copied().unwrap_or(RECT {
             left: 0,
@@ -459,16 +453,10 @@ pub mod IDirectDrawSurface7 {
     #[win32_derive::dllexport]
     pub fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> DD {
         assert!(lpSurf == 0);
-        let (surface, back) = unsafe {
-            // Safety: need two surfaces, guaranteed to be two different entries.
-            // Can fix this by changing surfaces to be Rc<RefCell<Surface>>.
-            let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
-            let attached = surface.attached;
-            let surface = surface as *const _;
-            assert!(this != attached);
-            let back = machine.state.ddraw.surfaces.get(&attached).unwrap();
-            (&*surface, back)
-        };
+
+        let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        let attached = surface.attached;
+        let back = machine.state.ddraw.surfaces.get(&attached).unwrap();
         back.flush(machine.emu.memory.mem(), Some(surface));
 
         surface.host.show();
