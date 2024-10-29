@@ -381,12 +381,15 @@ pub mod IDirectDrawSurface7 {
         flags: Result<DDBLT, u32>,
         lpDDBLTFX: Option<&DDBLTFX>,
     ) -> DD {
-        let flags = flags.unwrap();
+        let mut flags = flags.unwrap();
+        flags.remove(DDBLT::WAIT); // ignored
         if flags.contains(DDBLT::COLORFILL) {
             log::warn!("todo: DDBLT::COLORFILL");
             return DD::OK;
         }
-        log::warn!("Blt: ignoring behavioral flags");
+        if !flags.is_empty() {
+            log::warn!("Blt: ignoring flags: {flags:?}");
+        }
 
         let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
         let src = machine.state.ddraw.surfaces.get(&lpSrc).unwrap();
@@ -423,7 +426,7 @@ pub mod IDirectDrawSurface7 {
     ) -> DD {
         let flags = flags.unwrap();
         if !flags.is_empty() {
-            log::warn!("BltFast: ignoring flags: {:x}", flags);
+            log::warn!("BltFast: ignoring flags: {:?}", flags);
         }
 
         let dst = machine.state.ddraw.surfaces.get(&this).unwrap();
