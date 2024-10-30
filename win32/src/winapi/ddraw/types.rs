@@ -464,7 +464,7 @@ pub struct DDBLTFX {
     pub alphaDest: u32,
     pub dwAlphaSrcConstBitDepth: u32,
     pub alphaSrc: u32,
-    pub fill: u32,
+    pub dwFillColor: u32,
     pub ddckDestColorkey: DDCOLORKEY,
     pub ddckSrcColorkey: DDCOLORKEY,
 }

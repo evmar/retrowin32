@@ -15,7 +15,7 @@ use crate::{
     },
     SurfaceOptions,
 };
-use memory::{Extensions, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
 
 pub struct Surface {
@@ -129,6 +129,26 @@ impl Surface {
         if self.primary {
             self.flush(mem, None);
         }
+    }
+
+    pub fn fill(&mut self, mem: Mem, heap: &mut Heap, color: u32) {
+        let pixels = self.lock(mem, heap);
+        let pixels = mem.sub32_mut(pixels, self.width * self.height * self.bytes_per_pixel);
+        match self.bytes_per_pixel {
+            1 => {
+                pixels.fill(color as u8);
+            }
+            2 => {
+                let pixels = transmute_pixels_mut::<u8, u16>(pixels);
+                pixels.fill(color as u16);
+            }
+            4 => {
+                let pixels = transmute_pixels_mut::<u8, u32>(pixels);
+                pixels.fill(color);
+            }
+            _ => unreachable!(),
+        }
+        self.unlock(mem);
     }
 
     /// Copy pixels from emulator .pixels memory to the host's surface.

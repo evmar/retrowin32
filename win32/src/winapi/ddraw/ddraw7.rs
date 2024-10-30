@@ -381,10 +381,18 @@ pub mod IDirectDrawSurface7 {
         flags: Result<DDBLT, u32>,
         lpDDBLTFX: Option<&DDBLTFX>,
     ) -> DD {
+        let dst = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+
         let mut flags = flags.unwrap();
         flags.remove(DDBLT::WAIT); // ignored
         if flags.contains(DDBLT::COLORFILL) {
-            log::warn!("todo: DDBLT::COLORFILL");
+            let fx = lpDDBLTFX.unwrap();
+            // TODO: obey dst rect
+            dst.fill(
+                machine.emu.memory.mem(),
+                &mut machine.state.kernel32.process_heap,
+                fx.dwFillColor,
+            );
             return DD::OK;
         }
         if !flags.is_empty() {
