@@ -1,6 +1,10 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    winapi::{gdi32::COLORREF, stack_args::ArrayWithSize, types::HANDLE},
+    winapi::{
+        gdi32::COLORREF,
+        stack_args::ArrayWithSize,
+        types::{HANDLE, LPARAM},
+    },
     Machine,
 };
 use memory::Pod;
@@ -27,6 +31,40 @@ pub fn CreateFontA(
     pszFaceName: Option<&str>,
 ) -> HFONT {
     HFONT::null()
+}
+
+pub const LF_FACESIZE: usize = 32;
+#[repr(C)]
+#[derive(Debug)]
+pub struct LOGFONTA {
+    pub lfHeight: u32,
+    pub lfWidth: u32,
+    pub lfEscapement: u32,
+    pub lfOrientation: u32,
+    pub lfWeight: u32,
+    pub lfItalic: u8,
+    pub lfUnderline: u8,
+    pub lfStrikeOut: u8,
+    pub lfCharSet: u8,
+    pub lfOutPrecision: u8,
+    pub lfClipPrecision: u8,
+    pub lfQuality: u8,
+    pub lfPitchAndFamily: u8,
+    pub lfFaceName: [u8; LF_FACESIZE],
+}
+unsafe impl memory::Pod for LOGFONTA {}
+
+#[win32_derive::dllexport]
+pub fn EnumFontFamiliesExA(
+    _machine: &mut Machine,
+    hdc: HDC,
+    lpLogfont: Option<&mut LOGFONTA>,
+    lpProc: u32, /* FONTENUMPROCA */
+    lParam: LPARAM,
+    dwFlags: u32,
+) -> i32 {
+    // no calls to lpProc callback made
+    0
 }
 
 #[win32_derive::dllexport]

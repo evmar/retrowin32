@@ -25,6 +25,7 @@ impl<'a> StrExt<'a> for &'a CStr {
 
 pub type WORD = u16;
 pub type DWORD = u32;
+pub type LPARAM = u32;
 
 pub type HRESULT = u32;
 

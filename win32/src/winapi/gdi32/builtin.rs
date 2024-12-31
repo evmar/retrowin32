@@ -356,6 +356,37 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn EnumFontFamiliesExA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
+        let lpLogfont = <Option<&mut LOGFONTA>>::from_stack(mem, stack_args + 4u32);
+        let lpProc = <u32>::from_stack(mem, stack_args + 8u32);
+        let lParam = <LPARAM>::from_stack(mem, stack_args + 12u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("gdi32/text") {
+            crate::trace::Record::new(
+                winapi::gdi32::EnumFontFamiliesExA_pos,
+                "gdi32/text",
+                "EnumFontFamiliesExA",
+                &[
+                    ("hdc", &hdc),
+                    ("lpLogfont", &lpLogfont),
+                    ("lpProc", &lpProc),
+                    ("lParam", &lParam),
+                    ("dwFlags", &dwFlags),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result =
+            winapi::gdi32::EnumFontFamiliesExA(machine, hdc, lpLogfont, lpProc, lParam, dwFlags);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetDCOrgEx(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
@@ -1252,7 +1283,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 47usize] = [
+const SHIMS: [Shim; 48usize] = [
     Shim {
         name: "BitBlt",
         func: Handler::Sync(wrappers::BitBlt),
@@ -1300,6 +1331,10 @@ const SHIMS: [Shim; 47usize] = [
     Shim {
         name: "DeleteObject",
         func: Handler::Sync(wrappers::DeleteObject),
+    },
+    Shim {
+        name: "EnumFontFamiliesExA",
+        func: Handler::Sync(wrappers::EnumFontFamiliesExA),
     },
     Shim {
         name: "GetDCOrgEx",
