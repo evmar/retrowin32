@@ -1,8 +1,8 @@
 use crate::{
     str16::Str16,
     winapi::{
-        stack_args::VarArgs,
-        types::{HWND, POINT},
+        stack_args::{FromArg, VarArgs},
+        types::{HWND, POINT, RECT},
     },
     Machine,
 };
@@ -10,6 +10,19 @@ use memory::{Extensions, ExtensionsMut};
 use std::io::{Cursor, Write};
 
 pub type HINSTANCE = u32;
+pub type HKL = u32;
+pub type HMONITOR = u32;
+
+#[win32_derive::dllexport]
+pub fn CharLowerA<'a>(machine: &mut Machine, lpsz: u32) -> u32 {
+    if lpsz & 0xFFu32 == lpsz {
+        let mut byte: u8 = lpsz as u8;
+        byte.make_ascii_lowercase();
+        byte as u32
+    } else {
+        todo!()
+    }
+}
 
 /// System metrics.
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -271,6 +284,12 @@ pub fn GetKeyboardLayout(_machine: &mut Machine, idThread: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GetKeyboardLayoutList(_machine: &mut Machine, nBuff: i32, lpList: Option<&mut HKL>) -> i32 {
+    log::warn!("GetKeyboardLayoutList: stub");
+    0 // no layouts
+}
+
+#[win32_derive::dllexport]
 pub fn SetWindowsHookExA(
     _machine: &mut Machine,
     idHook: u32, /* WINDOWS_HOOK_ID */
@@ -279,4 +298,28 @@ pub fn SetWindowsHookExA(
     dwThreadId: u32,
 ) -> u32 {
     0
+}
+
+#[repr(C)]
+#[derive(Debug)]
+pub struct MONITORINFO {
+    pub cbSize: u32,
+    pub rcMonitor: RECT,
+    pub rcWork: RECT,
+    pub dwFlags: u32,
+}
+unsafe impl memory::Pod for MONITORINFO {}
+
+#[win32_derive::dllexport]
+pub fn GetMonitorInfoA(
+    _machine: &mut Machine,
+    hMonitor: HMONITOR,
+    lpmi: Option<&mut MONITORINFO>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn OemToCharA(_machine: &mut Machine, pSrc: Option<&str>, pDst: Option<&str>) -> bool {
+    true
 }
