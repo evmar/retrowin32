@@ -146,6 +146,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn CharLowerA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::CharLowerA_pos,
+                "user32/misc",
+                "CharLowerA",
+                &[("lpsz", &lpsz)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::CharLowerA(machine, lpsz);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn CheckDlgButton(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -1242,6 +1262,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetKeyboardLayoutList(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let nBuff = <i32>::from_stack(mem, stack_args + 0u32);
+        let lpList = <Option<&mut HKL>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::GetKeyboardLayoutList_pos,
+                "user32/misc",
+                "GetKeyboardLayoutList",
+                &[("nBuff", &nBuff), ("lpList", &lpList)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::GetKeyboardLayoutList(machine, nBuff, lpList);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetKeyboardState(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
@@ -1422,6 +1463,27 @@ mod wrappers {
             }
             result.to_raw()
         })
+    }
+    pub unsafe fn GetMonitorInfoA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hMonitor = <HMONITOR>::from_stack(mem, stack_args + 0u32);
+        let lpmi = <Option<&mut MONITORINFO>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::GetMonitorInfoA_pos,
+                "user32/misc",
+                "GetMonitorInfoA",
+                &[("hMonitor", &hMonitor), ("lpmi", &lpmi)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::GetMonitorInfoA(machine, hMonitor, lpmi);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
     }
     pub unsafe fn GetQueueStatus(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
@@ -2271,6 +2333,27 @@ mod wrappers {
             }
             result.to_raw()
         })
+    }
+    pub unsafe fn OemToCharA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let pSrc = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let pDst = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::OemToCharA_pos,
+                "user32/misc",
+                "OemToCharA",
+                &[("pSrc", &pSrc), ("pDst", &pDst)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::OemToCharA(machine, pSrc, pDst);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
     }
     pub unsafe fn PeekMessageA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
@@ -3518,7 +3601,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 138usize] = [
+const SHIMS: [Shim; 142usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3538,6 +3621,10 @@ const SHIMS: [Shim; 138usize] = [
     Shim {
         name: "CallWindowProcA",
         func: Handler::Sync(wrappers::CallWindowProcA),
+    },
+    Shim {
+        name: "CharLowerA",
+        func: Handler::Sync(wrappers::CharLowerA),
     },
     Shim {
         name: "CheckDlgButton",
@@ -3704,6 +3791,10 @@ const SHIMS: [Shim; 138usize] = [
         func: Handler::Sync(wrappers::GetKeyboardLayout),
     },
     Shim {
+        name: "GetKeyboardLayoutList",
+        func: Handler::Sync(wrappers::GetKeyboardLayoutList),
+    },
+    Shim {
         name: "GetKeyboardState",
         func: Handler::Sync(wrappers::GetKeyboardState),
     },
@@ -3730,6 +3821,10 @@ const SHIMS: [Shim; 138usize] = [
     Shim {
         name: "GetMessageW",
         func: Handler::Async(wrappers::GetMessageW),
+    },
+    Shim {
+        name: "GetMonitorInfoA",
+        func: Handler::Sync(wrappers::GetMonitorInfoA),
     },
     Shim {
         name: "GetQueueStatus",
@@ -3874,6 +3969,10 @@ const SHIMS: [Shim; 138usize] = [
     Shim {
         name: "MsgWaitForMultipleObjects",
         func: Handler::Async(wrappers::MsgWaitForMultipleObjects),
+    },
+    Shim {
+        name: "OemToCharA",
+        func: Handler::Sync(wrappers::OemToCharA),
     },
     Shim {
         name: "PeekMessageA",
