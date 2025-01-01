@@ -349,6 +349,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Fldl2e as usize] = Some(fldl2e);
 
     tab[iced_x86::Code::Fld_sti as usize] = Some(fld_sti);
+    tab[iced_x86::Code::Fld_m80fp as usize] = Some(fld_m80fp);
     tab[iced_x86::Code::Fld_m64fp as usize] = Some(fld_m64fp);
     tab[iced_x86::Code::Fld_m32fp as usize] = Some(fld_m32fp);
     tab[iced_x86::Code::Fild_m64int as usize] = Some(fild_m64int);
