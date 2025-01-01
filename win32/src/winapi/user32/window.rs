@@ -1068,3 +1068,8 @@ pub fn GetCapture(machine: &mut Machine) -> HWND {
 pub fn EnableWindow(_machine: &mut Machine, hWnd: HWND, bEnable: bool) -> bool {
     todo!();
 }
+
+#[win32_derive::dllexport]
+pub fn IsWindowVisible(_machine: &mut Machine, hWnd: HWND) -> bool {
+    true
+}

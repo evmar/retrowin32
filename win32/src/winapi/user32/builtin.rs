@@ -1887,6 +1887,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IsWindowVisible(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("user32/window") {
+            crate::trace::Record::new(
+                winapi::user32::IsWindowVisible_pos,
+                "user32/window",
+                "IsWindowVisible",
+                &[("hWnd", &hWnd)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::IsWindowVisible(machine, hWnd);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn KillTimer(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -2686,6 +2706,26 @@ mod wrappers {
             None
         };
         let result = winapi::user32::RegisterClassW(machine, lpWndClass);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn RegisterClipboardFormatA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpszFormat = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::RegisterClipboardFormatA_pos,
+                "user32/misc",
+                "RegisterClipboardFormatA",
+                &[("lpszFormat", &lpszFormat)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::RegisterClipboardFormatA(machine, lpszFormat);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3622,7 +3662,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 143usize] = [
+const SHIMS: [Shim; 145usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3924,6 +3964,10 @@ const SHIMS: [Shim; 143usize] = [
         func: Handler::Sync(wrappers::IsRectEmpty),
     },
     Shim {
+        name: "IsWindowVisible",
+        func: Handler::Sync(wrappers::IsWindowVisible),
+    },
+    Shim {
         name: "KillTimer",
         func: Handler::Sync(wrappers::KillTimer),
     },
@@ -4046,6 +4090,10 @@ const SHIMS: [Shim; 143usize] = [
     Shim {
         name: "RegisterClassW",
         func: Handler::Sync(wrappers::RegisterClassW),
+    },
+    Shim {
+        name: "RegisterClipboardFormatA",
+        func: Handler::Sync(wrappers::RegisterClipboardFormatA),
     },
     Shim {
         name: "RegisterWindowMessageA",

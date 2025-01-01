@@ -332,3 +332,9 @@ pub fn GetMonitorInfoA(
 pub fn OemToCharA(_machine: &mut Machine, pSrc: Option<&str>, pDst: Option<&str>) -> bool {
     true
 }
+
+#[win32_derive::dllexport]
+pub fn RegisterClipboardFormatA(_machine: &mut Machine, lpszFormat: Option<&str>) -> bool {
+    log::warn!("RegisterClipboardFormatA: stub");
+    false
+}
