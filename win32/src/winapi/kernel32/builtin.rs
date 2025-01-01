@@ -2371,6 +2371,46 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GlobalHandle(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let pMem = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/memory") {
+            crate::trace::Record::new(
+                winapi::kernel32::GlobalHandle_pos,
+                "kernel32/memory",
+                "GlobalHandle",
+                &[("pMem", &pMem)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GlobalHandle(machine, pMem);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn GlobalLock(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/memory") {
+            crate::trace::Record::new(
+                winapi::kernel32::GlobalLock_pos,
+                "kernel32/memory",
+                "GlobalLock",
+                &[("hMem", &hMem)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GlobalLock(machine, hMem);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GlobalReAlloc(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -2388,6 +2428,26 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::GlobalReAlloc(machine, hMem, dwBytes, uFlags);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn GlobalUnlock(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/memory") {
+            crate::trace::Record::new(
+                winapi::kernel32::GlobalUnlock_pos,
+                "kernel32/memory",
+                "GlobalUnlock",
+                &[("hMem", &hMem)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GlobalUnlock(machine, hMem);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -4765,7 +4825,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 195usize] = [
+const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5151,8 +5211,20 @@ const SHIMS: [Shim; 195usize] = [
         func: Handler::Sync(wrappers::GlobalFree),
     },
     Shim {
+        name: "GlobalHandle",
+        func: Handler::Sync(wrappers::GlobalHandle),
+    },
+    Shim {
+        name: "GlobalLock",
+        func: Handler::Sync(wrappers::GlobalLock),
+    },
+    Shim {
         name: "GlobalReAlloc",
         func: Handler::Sync(wrappers::GlobalReAlloc),
+    },
+    Shim {
+        name: "GlobalUnlock",
+        func: Handler::Sync(wrappers::GlobalUnlock),
     },
     Shim {
         name: "HeapAlloc",
