@@ -1,5 +1,6 @@
 use super::helpers::*;
 use crate::{fpu, registers::Flags, x86::CPU};
+use extended::Extended;
 use iced_x86::{Instruction, Register};
 use memory::{Extensions, ExtensionsMut, Mem};
 
@@ -48,6 +49,11 @@ pub fn fldl2e(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
 pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.get(instr.op0_register());
     cpu.fpu.push(x);
+}
+
+pub fn fld_m80fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x_bytes = mem.get_pod::<[u8; 10]>(x86_addr(cpu, instr));
+    cpu.fpu.push(Extended::from_le_bytes(x_bytes).to_f64());
 }
 
 pub fn fld_m64fp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
