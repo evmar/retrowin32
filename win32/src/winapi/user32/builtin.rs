@@ -166,6 +166,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn CharLowerBuffA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
+        let cchLength = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("user32/misc") {
+            crate::trace::Record::new(
+                winapi::user32::CharLowerBuffA_pos,
+                "user32/misc",
+                "CharLowerBuffA",
+                &[("lpsz", &lpsz), ("cchLength", &cchLength)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::CharLowerBuffA(machine, lpsz, cchLength);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn CheckDlgButton(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3601,7 +3622,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 142usize] = [
+const SHIMS: [Shim; 143usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3625,6 +3646,10 @@ const SHIMS: [Shim; 142usize] = [
     Shim {
         name: "CharLowerA",
         func: Handler::Sync(wrappers::CharLowerA),
+    },
+    Shim {
+        name: "CharLowerBuffA",
+        func: Handler::Sync(wrappers::CharLowerBuffA),
     },
     Shim {
         name: "CheckDlgButton",
