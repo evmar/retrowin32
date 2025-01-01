@@ -56,10 +56,23 @@ pub enum RT {
     STRING = 6,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Eq)]
 pub enum ResourceName<'a> {
     Name(&'a Str16),
     Id(u32),
+}
+
+impl<'a> PartialEq for ResourceName<'a> {
+    // Case insensitive comparison is used for string names
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Name(name), Self::Name(name_other)) => {
+                name.to_string().to_ascii_lowercase() == name_other.to_string().to_ascii_lowercase()
+            }
+            (Self::Id(id), Self::Id(id_other)) => id == id_other,
+            _ => false,
+        }
+    }
 }
 
 enum ResourceValue<'a> {
