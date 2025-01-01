@@ -446,6 +446,18 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
     alloc(machine, uFlags, dwBytes)
 }
 
+pub type HGLOBAL = u32;
+
+#[win32_derive::dllexport]
+pub fn GlobalHandle(_machine: &mut Machine, pMem: u32) -> HGLOBAL {
+    pMem
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalLock(_machine: &mut Machine, hMem: HGLOBAL) -> u32 {
+    hMem
+}
+
 #[win32_derive::dllexport]
 pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GMEM) -> u32 {
     if uFlags.contains(GMEM::MODIFY) {
@@ -464,6 +476,11 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
         mem.sub32_mut(addr + old_size, dwBytes - old_size).fill(0);
     }
     addr
+}
+
+#[win32_derive::dllexport]
+pub fn GlobalUnlock(_machine: &mut Machine, hMem: HGLOBAL) -> bool {
+    true // success
 }
 
 fn free(machine: &mut Machine, hMem: u32) -> u32 {
