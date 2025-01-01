@@ -24,6 +24,15 @@ pub fn CharLowerA<'a>(machine: &mut Machine, lpsz: u32) -> u32 {
     }
 }
 
+#[win32_derive::dllexport]
+pub fn CharLowerBuffA(machine: &mut Machine, lpsz: u32, cchLength: u32) -> u32 {
+    machine
+        .mem()
+        .sub32_mut(lpsz, cchLength)
+        .make_ascii_lowercase();
+    cchLength
+}
+
 /// System metrics.
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum SM {
