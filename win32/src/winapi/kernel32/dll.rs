@@ -139,19 +139,20 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
             Some(name) => filename = name.to_string(),
             None => return HMODULE::null(),
         }
-    } else if let Some(alias) = builtin::dll_alias(&filename) {
-        filename = alias.to_string();
     }
 
+    let use_external = machine.external_dlls.contains(&filename);
     // Builtin DLLs are special in that we load the DLL from an in-binary buffer,
     // and the symbols in the DLL are mapped to shims.
-    let builtin = if machine.external_dlls.contains(&filename) {
-        None
-    } else {
-        builtin::DLLS.iter().find(|&dll| dll.file_name == filename)
+    let mut builtin = None;
+    if !use_external {
+        if let Some(alias) = builtin::dll_alias(&filename) {
+            filename = alias.to_string();
+        }
+        builtin = builtin::DLLS.iter().find(|&dll| dll.file_name == filename)
     };
-    let mut buf = Vec::new();
 
+    let mut buf = Vec::new();
     let contents = {
         if let Some(builtin) = builtin {
             builtin.raw
