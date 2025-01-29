@@ -100,3 +100,57 @@ pub fn WriteConsoleW(
     }
     return bytes_written == buf.len() as u32;
 }
+
+pub type CONSOLE_READCONSOLE_CONTROL = u32; // TODO
+
+#[win32_derive::dllexport]
+pub fn ReadConsoleA(
+    _machine: &mut Machine,
+    hConsoleInput: HANDLE<()>,
+    lpBuffer: Option<&mut u8>,
+    nNumberOfCharsToRead: u32,
+    lpNumberOfCharsRead: Option<&mut u32>,
+    pInputControl: Option<&mut CONSOLE_READCONSOLE_CONTROL>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn SetConsoleMode(
+    _machine: &mut Machine,
+    hConsoleHandle: HANDLE<()>,
+    dwMode: u32, /* CONSOLE_MODE */
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn ReadConsoleInputA(
+    _machine: &mut Machine,
+    hConsoleInput: HANDLE<()>,
+    lpBuffer: u32, // [INPUT_RECORD]
+    nLength: u32,
+    lpNumberOfEventsRead: Option<&mut u32>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn PeekConsoleInputA(
+    _machine: &mut Machine,
+    hConsoleInput: HANDLE<()>,
+    lpBuffer: u32, // [INPUT_RECORD]
+    nLength: u32,
+    lpNumberOfEventsRead: Option<&mut u32>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetNumberOfConsoleInputEvents(
+    _machine: &mut Machine,
+    hConsoleInput: HANDLE<()>,
+    lpNumberOfEvents: Option<&mut u32>,
+) -> bool {
+    todo!()
+}

@@ -412,3 +412,15 @@ pub fn GlobalAddAtomA(_machine: &mut Machine, lpString: Option<&str>) -> ATOM {
     log::warn!("GlobalAddAtomA: stub");
     0
 }
+
+#[win32_derive::dllexport]
+pub fn Beep(_machine: &mut Machine, dwFreq: u32, dwDuration: u32) -> bool {
+    todo!()
+}
+
+pub type SEM = u32; // TODO: SEM_*
+
+#[win32_derive::dllexport]
+pub fn SetErrorMode(_machine: &mut Machine, uMode: SEM) -> SEM {
+    todo!()
+}

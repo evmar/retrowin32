@@ -40,6 +40,15 @@ pub fn GetEnvironmentVariableW(
 }
 
 #[win32_derive::dllexport]
+pub fn SetEnvironmentVariableW(
+    _machine: &mut Machine,
+    lpName: Option<&Str16>,
+    lpValue: Option<&Str16>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn SetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,

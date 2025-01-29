@@ -297,6 +297,22 @@ pub fn HeapValidate(_machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32
     todo!();
 }
 
+#[win32_derive::dllexport]
+pub fn HeapCompact(_machine: &mut Machine, hHeap: u32, dwFlags: u32 /* HEAP_FLAGS */) -> u32 {
+    todo!()
+}
+
+pub type PROCESS_HEAP_ENTRY = u32; // TODO
+
+#[win32_derive::dllexport]
+pub fn HeapWalk(
+    _machine: &mut Machine,
+    hHeap: u32,
+    lpEntry: Option<&mut PROCESS_HEAP_ENTRY>,
+) -> bool {
+    todo!()
+}
+
 bitflags! {
     #[derive(win32_derive::TryFromBitflags)]
     pub struct MEM: u32 {
