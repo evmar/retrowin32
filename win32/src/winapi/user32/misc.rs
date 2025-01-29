@@ -1,7 +1,7 @@
 use crate::{
     str16::Str16,
     winapi::{
-        stack_args::{FromArg, VarArgs},
+        stack_args::VarArgs,
         types::{HWND, POINT, RECT},
     },
     Machine,
