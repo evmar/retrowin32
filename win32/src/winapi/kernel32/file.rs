@@ -1,4 +1,4 @@
-use super::FILETIME;
+use super::{FILETIME, SECURITY_ATTRIBUTES};
 use crate::str16::String16;
 use crate::winapi::kernel32::set_last_error;
 use crate::winapi::stack_args::ToX86;
@@ -575,6 +575,11 @@ pub fn GetFullPathNameW(
 }
 
 #[win32_derive::dllexport]
+pub fn DeleteFileW(_machine: &mut Machine, lpFileName: Option<&Str16>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn DeleteFileA(machine: &mut Machine, lpFileName: Option<&str>) -> bool {
     let Some(file_name) = lpFileName else {
         log::debug!("DeleteFileA failed: null lpFileName");
@@ -597,6 +602,11 @@ pub fn DeleteFileA(machine: &mut Machine, lpFileName: Option<&str>) -> bool {
 }
 
 #[win32_derive::dllexport]
+pub fn RemoveDirectoryW(_machine: &mut Machine, lpPathName: Option<&Str16>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn RemoveDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool {
     let Some(path_name) = lpPathName else {
         log::debug!("RemoveDirectoryA failed: null lpPathName");
@@ -616,6 +626,11 @@ pub fn RemoveDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool
             false
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn GetFileAttributesW(_machine: &mut Machine, lpFileName: Option<&Str16>) -> u32 {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -646,6 +661,11 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
 }
 
 #[win32_derive::dllexport]
+pub fn GetCurrentDirectoryW(_machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
     let cwd = match machine.host.current_dir() {
         Ok(value) => value,
@@ -670,6 +690,11 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
 
     set_last_error(machine, ERROR::SUCCESS);
     out_bytes.len() as u32
+}
+
+#[win32_derive::dllexport]
+pub fn SetCurrentDirectoryW(_machine: &mut Machine, lpPathName: Option<&Str16>) -> bool {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -725,6 +750,17 @@ unsafe impl memory::Pod for WIN32_FIND_DATAA {}
 pub struct FindHandle {
     pub pattern: String,
     pub read_dir: Box<dyn ReadDir>,
+}
+
+pub type WIN32_FIND_DATAW = WIN32_FIND_DATAA; // TODO
+
+#[win32_derive::dllexport]
+pub fn FindFirstFileW(
+    _machine: &mut Machine,
+    lpFileName: Option<&Str16>,
+    lpFindFileData: Option<&mut WIN32_FIND_DATAW>,
+) -> HFIND {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -797,6 +833,15 @@ pub fn FindFirstFileA(
         .kernel32
         .find_handles
         .add(FindHandle { pattern, read_dir })
+}
+
+#[win32_derive::dllexport]
+pub fn FindNextFileW(
+    _machine: &mut Machine,
+    hFindFile: HFILE,
+    lpFindFileData: Option<&mut WIN32_FIND_DATAW>,
+) -> bool {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -963,6 +1008,15 @@ pub fn SetEndOfFile(machine: &mut Machine, hFile: HFILE) -> bool {
 }
 
 #[win32_derive::dllexport]
+pub fn CreateDirectoryW(
+    _machine: &mut Machine,
+    lpPathName: Option<&Str16>,
+    lpSecurityAttributes: Option<&mut SECURITY_ATTRIBUTES>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn CreateDirectoryA(
     machine: &mut Machine,
     lpPathName: Option<&str>,
@@ -986,6 +1040,15 @@ pub fn CreateDirectoryA(
             false
         }
     }
+}
+
+#[win32_derive::dllexport]
+pub fn SetFileAttributesW(
+    _machine: &mut Machine,
+    lpFileName: Option<&Str16>,
+    dwFileAttributes: Result<FileAttribute, u32>,
+) -> bool {
+    todo!()
 }
 
 #[win32_derive::dllexport]
@@ -1089,6 +1152,15 @@ fn glob_match(input: &str, pattern: &str) -> bool {
 }
 
 #[win32_derive::dllexport]
+pub fn MoveFileW(
+    _machine: &mut Machine,
+    lpExistingFileName: Option<&Str16>,
+    lpNewFileName: Option<&Str16>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn MoveFileA(
     _machine: &mut Machine,
     lpExistingFileName: Option<&str>,
@@ -1127,6 +1199,11 @@ pub fn GetDiskFreeSpaceA(
 }
 
 #[win32_derive::dllexport]
+pub fn GetDriveTypeW(_machine: &mut Machine, lpRootPathName: Option<&Str16>) -> u32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn GetDriveTypeA(_machine: &mut Machine, lpRootPathName: Option<&str>) -> u32 {
     todo!()
 }
@@ -1157,4 +1234,28 @@ mod tests {
 #[win32_derive::dllexport]
 pub fn FlushFileBuffers(machine: &mut Machine, hFile: HFILE) -> bool {
     todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn LockFile(
+    _machine: &mut Machine,
+    hFile: HFILE,
+    dwFileOffsetLow: u32,
+    dwFileOffsetHigh: u32,
+    nNumberOfBytesToLockLow: u32,
+    nNumberOfBytesToLockHigh: u32,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn UnlockFile(
+    _machine: &mut Machine,
+    hFile: HFILE,
+    dwFileOffsetLow: u32,
+    dwFileOffsetHigh: u32,
+    nNumberOfBytesToUnlockLow: u32,
+    nNumberOfBytesToUnlockHigh: u32,
+) -> bool {
+    todo!()
 }

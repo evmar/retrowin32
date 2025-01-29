@@ -73,6 +73,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn Beep(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let dwFreq = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwDuration = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/misc") {
+            crate::trace::Record::new(
+                winapi::kernel32::Beep_pos,
+                "kernel32/misc",
+                "Beep",
+                &[("dwFreq", &dwFreq), ("dwDuration", &dwDuration)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::Beep(machine, dwFreq, dwDuration);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn CloseHandle(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hObject = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -180,6 +201,31 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::CreateDirectoryA(machine, lpPathName, lpSecurityAttributes);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn CreateDirectoryW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let lpSecurityAttributes =
+            <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::CreateDirectoryW_pos,
+                "kernel32/file",
+                "CreateDirectoryW",
+                &[
+                    ("lpPathName", &lpPathName),
+                    ("lpSecurityAttributes", &lpSecurityAttributes),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::CreateDirectoryW(machine, lpPathName, lpSecurityAttributes);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -337,6 +383,36 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn CreatePipe(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hReadPipe = <Option<&mut HFILE>>::from_stack(mem, stack_args + 0u32);
+        let hWritePipe = <Option<&mut HFILE>>::from_stack(mem, stack_args + 4u32);
+        let lpPipeAttributes =
+            <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 8u32);
+        let nSize = <u32>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("kernel32/pipe") {
+            crate::trace::Record::new(
+                winapi::kernel32::CreatePipe_pos,
+                "kernel32/pipe",
+                "CreatePipe",
+                &[
+                    ("hReadPipe", &hReadPipe),
+                    ("hWritePipe", &hWritePipe),
+                    ("lpPipeAttributes", &lpPipeAttributes),
+                    ("nSize", &nSize),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result =
+            winapi::kernel32::CreatePipe(machine, hReadPipe, hWritePipe, lpPipeAttributes, nSize);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn CreateProcessA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpApplicationName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -375,6 +451,61 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::CreateProcessA(
+            machine,
+            lpApplicationName,
+            lpCommandLine,
+            lpProcessAttributes,
+            lpThreadAttributes,
+            bInheritHandles,
+            dwCreationFlags,
+            lpEnvironment,
+            lpCurrentDirectory,
+            lpStartupInfo,
+            lpProcessInformation,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn CreateProcessW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpApplicationName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let lpCommandLine = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
+        let lpProcessAttributes =
+            <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 8u32);
+        let lpThreadAttributes =
+            <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 12u32);
+        let bInheritHandles = <bool>::from_stack(mem, stack_args + 16u32);
+        let dwCreationFlags = <u32>::from_stack(mem, stack_args + 20u32);
+        let lpEnvironment = <Option<&mut u32>>::from_stack(mem, stack_args + 24u32);
+        let lpCurrentDirectory = <Option<&Str16>>::from_stack(mem, stack_args + 28u32);
+        let lpStartupInfo = <Option<&mut STARTUPINFOW>>::from_stack(mem, stack_args + 32u32);
+        let lpProcessInformation =
+            <Option<&mut PROCESS_INFORMATION>>::from_stack(mem, stack_args + 36u32);
+        let __trace_record = if crate::trace::enabled("kernel32/process") {
+            crate::trace::Record::new(
+                winapi::kernel32::CreateProcessW_pos,
+                "kernel32/process",
+                "CreateProcessW",
+                &[
+                    ("lpApplicationName", &lpApplicationName),
+                    ("lpCommandLine", &lpCommandLine),
+                    ("lpProcessAttributes", &lpProcessAttributes),
+                    ("lpThreadAttributes", &lpThreadAttributes),
+                    ("bInheritHandles", &bInheritHandles),
+                    ("dwCreationFlags", &dwCreationFlags),
+                    ("lpEnvironment", &lpEnvironment),
+                    ("lpCurrentDirectory", &lpCurrentDirectory),
+                    ("lpStartupInfo", &lpStartupInfo),
+                    ("lpProcessInformation", &lpProcessInformation),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::CreateProcessW(
             machine,
             lpApplicationName,
             lpCommandLine,
@@ -499,6 +630,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn DeleteFileW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::DeleteFileW_pos,
+                "kernel32/file",
+                "DeleteFileW",
+                &[("lpFileName", &lpFileName)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::DeleteFileW(machine, lpFileName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn DisableThreadLibraryCalls(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -577,6 +728,30 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::EnterCriticalSection(machine, lpCriticalSection);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn EnumSystemLocalesA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpLocaleEnumProc = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/nls") {
+            crate::trace::Record::new(
+                winapi::kernel32::EnumSystemLocalesA_pos,
+                "kernel32/nls",
+                "EnumSystemLocalesA",
+                &[
+                    ("lpLocaleEnumProc", &lpLocaleEnumProc),
+                    ("dwFlags", &dwFlags),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::EnumSystemLocalesA(machine, lpLocaleEnumProc, dwFlags);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -739,6 +914,30 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn FindFirstFileW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let lpFindFileData = <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::FindFirstFileW_pos,
+                "kernel32/file",
+                "FindFirstFileW",
+                &[
+                    ("lpFileName", &lpFileName),
+                    ("lpFindFileData", &lpFindFileData),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::FindFirstFileW(machine, lpFileName, lpFindFileData);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn FindNextFileA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
@@ -758,6 +957,30 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::FindNextFileA(machine, hFindFile, lpFindFileData);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn FindNextFileW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hFindFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+        let lpFindFileData = <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::FindNextFileW_pos,
+                "kernel32/file",
+                "FindNextFileW",
+                &[
+                    ("hFindFile", &hFindFile),
+                    ("lpFindFileData", &lpFindFileData),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::FindNextFileW(machine, hFindFile, lpFindFileData);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -1124,6 +1347,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
+        let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetCurrentDirectoryW_pos,
+                "kernel32/file",
+                "GetCurrentDirectoryW",
+                &[("nBufferLength", &nBufferLength), ("lpBuffer", &lpBuffer)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetCurrentDirectoryW(machine, nBufferLength, lpBuffer);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetCurrentProcess(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("kernel32/process") {
@@ -1257,6 +1501,26 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetDriveTypeW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpRootPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetDriveTypeW_pos,
+                "kernel32/file",
+                "GetDriveTypeW",
+                &[("lpRootPathName", &lpRootPathName)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetDriveTypeW(machine, lpRootPathName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("kernel32/env") {
@@ -1373,6 +1637,26 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::GetFileAttributesA(machine, lpFileName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn GetFileAttributesW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetFileAttributesW_pos,
+                "kernel32/file",
+                "GetFileAttributesW",
+                &[("lpFileName", &lpFileName)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetFileAttributesW(machine, lpFileName);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -1611,6 +1895,34 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetLocaleInfoW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let Locale = <u32>::from_stack(mem, stack_args + 0u32);
+        let LCType = <u32>::from_stack(mem, stack_args + 4u32);
+        let lpLCData = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
+        let cchData = <i32>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("kernel32/nls") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetLocaleInfoW_pos,
+                "kernel32/nls",
+                "GetLocaleInfoW",
+                &[
+                    ("Locale", &Locale),
+                    ("LCType", &LCType),
+                    ("lpLCData", &lpLCData),
+                    ("cchData", &cchData),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetLocaleInfoW(machine, Locale, LCType, lpLCData, cchData);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetLogicalDrives(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("kernel32/file") {
@@ -1738,6 +2050,34 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::GetModuleHandleW(machine, lpModuleName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn GetNumberOfConsoleInputEvents(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let lpNumberOfEvents = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/console") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetNumberOfConsoleInputEvents_pos,
+                "kernel32/console",
+                "GetNumberOfConsoleInputEvents",
+                &[
+                    ("hConsoleInput", &hConsoleInput),
+                    ("lpNumberOfEvents", &lpNumberOfEvents),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetNumberOfConsoleInputEvents(
+            machine,
+            hConsoleInput,
+            lpNumberOfEvents,
+        );
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -2230,6 +2570,25 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn GetUserDefaultLCID(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::trace::enabled("kernel32/nls") {
+            crate::trace::Record::new(
+                winapi::kernel32::GetUserDefaultLCID_pos,
+                "kernel32/nls",
+                "GetUserDefaultLCID",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetUserDefaultLCID(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn GetVersion(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("kernel32/misc") {
@@ -2479,6 +2838,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn HeapCompact(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/memory") {
+            crate::trace::Record::new(
+                winapi::kernel32::HeapCompact_pos,
+                "kernel32/memory",
+                "HeapCompact",
+                &[("hHeap", &hHeap), ("dwFlags", &dwFlags)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::HeapCompact(machine, hHeap, dwFlags);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn HeapCreate(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(mem, stack_args + 0u32);
@@ -2648,6 +3028,27 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::HeapValidate(machine, hHeap, dwFlags, lpMem);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn HeapWalk(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
+        let lpEntry = <Option<&mut PROCESS_HEAP_ENTRY>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/memory") {
+            crate::trace::Record::new(
+                winapi::kernel32::HeapWalk_pos,
+                "kernel32/memory",
+                "HeapWalk",
+                &[("hHeap", &hHeap), ("lpEntry", &lpEntry)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::HeapWalk(machine, hHeap, lpEntry);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3013,6 +3414,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn IsValidLocale(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let Locale = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/nls") {
+            crate::trace::Record::new(
+                winapi::kernel32::IsValidLocale_pos,
+                "kernel32/nls",
+                "IsValidLocale",
+                &[("Locale", &Locale), ("dwFlags", &dwFlags)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::IsValidLocale(machine, Locale, dwFlags);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn LCMapStringA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let locale = <LCID>::from_stack(mem, stack_args + 0u32);
@@ -3185,6 +3607,31 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn LocalFileTimeToFileTime(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
+        let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/time") {
+            crate::trace::Record::new(
+                winapi::kernel32::LocalFileTimeToFileTime_pos,
+                "kernel32/time",
+                "LocalFileTimeToFileTime",
+                &[
+                    ("lpLocalFileTime", &lpLocalFileTime),
+                    ("lpFileTime", &lpFileTime),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result =
+            winapi::kernel32::LocalFileTimeToFileTime(machine, lpLocalFileTime, lpFileTime);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn LocalFree(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
@@ -3200,6 +3647,43 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::LocalFree(machine, hMem);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn LockFile(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+        let dwFileOffsetLow = <u32>::from_stack(mem, stack_args + 4u32);
+        let dwFileOffsetHigh = <u32>::from_stack(mem, stack_args + 8u32);
+        let nNumberOfBytesToLockLow = <u32>::from_stack(mem, stack_args + 12u32);
+        let nNumberOfBytesToLockHigh = <u32>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::LockFile_pos,
+                "kernel32/file",
+                "LockFile",
+                &[
+                    ("hFile", &hFile),
+                    ("dwFileOffsetLow", &dwFileOffsetLow),
+                    ("dwFileOffsetHigh", &dwFileOffsetHigh),
+                    ("nNumberOfBytesToLockLow", &nNumberOfBytesToLockLow),
+                    ("nNumberOfBytesToLockHigh", &nNumberOfBytesToLockHigh),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::LockFile(
+            machine,
+            hFile,
+            dwFileOffsetLow,
+            dwFileOffsetHigh,
+            nNumberOfBytesToLockLow,
+            nNumberOfBytesToLockHigh,
+        );
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3244,6 +3728,30 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::MoveFileA(machine, lpExistingFileName, lpNewFileName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn MoveFileW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpExistingFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let lpNewFileName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::MoveFileW_pos,
+                "kernel32/file",
+                "MoveFileW",
+                &[
+                    ("lpExistingFileName", &lpExistingFileName),
+                    ("lpNewFileName", &lpNewFileName),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::MoveFileW(machine, lpExistingFileName, lpNewFileName);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3358,6 +3866,80 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn PeekConsoleInputA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
+        let nLength = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("kernel32/console") {
+            crate::trace::Record::new(
+                winapi::kernel32::PeekConsoleInputA_pos,
+                "kernel32/console",
+                "PeekConsoleInputA",
+                &[
+                    ("hConsoleInput", &hConsoleInput),
+                    ("lpBuffer", &lpBuffer),
+                    ("nLength", &nLength),
+                    ("lpNumberOfEventsRead", &lpNumberOfEventsRead),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::PeekConsoleInputA(
+            machine,
+            hConsoleInput,
+            lpBuffer,
+            nLength,
+            lpNumberOfEventsRead,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn PeekNamedPipe(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hNamedPipe = <HFILE>::from_stack(mem, stack_args + 0u32);
+        let lpBuffer = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+        let nBufferSize = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpBytesRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+        let lpTotalBytesAvail = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
+        let lpBytesLeftThisMessage = <Option<&mut u32>>::from_stack(mem, stack_args + 20u32);
+        let __trace_record = if crate::trace::enabled("kernel32/pipe") {
+            crate::trace::Record::new(
+                winapi::kernel32::PeekNamedPipe_pos,
+                "kernel32/pipe",
+                "PeekNamedPipe",
+                &[
+                    ("hNamedPipe", &hNamedPipe),
+                    ("lpBuffer", &lpBuffer),
+                    ("nBufferSize", &nBufferSize),
+                    ("lpBytesRead", &lpBytesRead),
+                    ("lpTotalBytesAvail", &lpTotalBytesAvail),
+                    ("lpBytesLeftThisMessage", &lpBytesLeftThisMessage),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::PeekNamedPipe(
+            machine,
+            hNamedPipe,
+            lpBuffer,
+            nBufferSize,
+            lpBytesRead,
+            lpTotalBytesAvail,
+            lpBytesLeftThisMessage,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn PulseEvent(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -3452,6 +4034,78 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn ReadConsoleA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let lpBuffer = <Option<&mut u8>>::from_stack(mem, stack_args + 4u32);
+        let nNumberOfCharsToRead = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpNumberOfCharsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+        let pInputControl =
+            <Option<&mut CONSOLE_READCONSOLE_CONTROL>>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("kernel32/console") {
+            crate::trace::Record::new(
+                winapi::kernel32::ReadConsoleA_pos,
+                "kernel32/console",
+                "ReadConsoleA",
+                &[
+                    ("hConsoleInput", &hConsoleInput),
+                    ("lpBuffer", &lpBuffer),
+                    ("nNumberOfCharsToRead", &nNumberOfCharsToRead),
+                    ("lpNumberOfCharsRead", &lpNumberOfCharsRead),
+                    ("pInputControl", &pInputControl),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::ReadConsoleA(
+            machine,
+            hConsoleInput,
+            lpBuffer,
+            nNumberOfCharsToRead,
+            lpNumberOfCharsRead,
+            pInputControl,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn ReadConsoleInputA(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
+        let nLength = <u32>::from_stack(mem, stack_args + 8u32);
+        let lpNumberOfEventsRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::trace::enabled("kernel32/console") {
+            crate::trace::Record::new(
+                winapi::kernel32::ReadConsoleInputA_pos,
+                "kernel32/console",
+                "ReadConsoleInputA",
+                &[
+                    ("hConsoleInput", &hConsoleInput),
+                    ("lpBuffer", &lpBuffer),
+                    ("nLength", &nLength),
+                    ("lpNumberOfEventsRead", &lpNumberOfEventsRead),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::ReadConsoleInputA(
+            machine,
+            hConsoleInput,
+            lpBuffer,
+            nLength,
+            lpNumberOfEventsRead,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn ReadFile(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
@@ -3536,6 +4190,26 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::RemoveDirectoryA(machine, lpPathName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn RemoveDirectoryW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::RemoveDirectoryW_pos,
+                "kernel32/file",
+                "RemoveDirectoryW",
+                &[("lpPathName", &lpPathName)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::RemoveDirectoryW(machine, lpPathName);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3636,6 +4310,27 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn SetConsoleMode(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hConsoleHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
+        let dwMode = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/console") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetConsoleMode_pos,
+                "kernel32/console",
+                "SetConsoleMode",
+                &[("hConsoleHandle", &hConsoleHandle), ("dwMode", &dwMode)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetConsoleMode(machine, hConsoleHandle, dwMode);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn SetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -3651,6 +4346,26 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::SetCurrentDirectoryA(machine, lpPathName);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn SetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetCurrentDirectoryW_pos,
+                "kernel32/file",
+                "SetCurrentDirectoryW",
+                &[("lpPathName", &lpPathName)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetCurrentDirectoryW(machine, lpPathName);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3697,6 +4412,47 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn SetEnvironmentVariableW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let lpValue = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/env") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetEnvironmentVariableW_pos,
+                "kernel32/env",
+                "SetEnvironmentVariableW",
+                &[("lpName", &lpName), ("lpValue", &lpValue)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetEnvironmentVariableW(machine, lpName, lpValue);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn SetErrorMode(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let uMode = <SEM>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/misc") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetErrorMode_pos,
+                "kernel32/misc",
+                "SetErrorMode",
+                &[("uMode", &uMode)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetErrorMode(machine, uMode);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn SetEvent(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
@@ -3736,6 +4492,30 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::SetFileAttributesA(machine, lpFileName, dwFileAttributes);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn SetFileAttributesW(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetFileAttributesW_pos,
+                "kernel32/file",
+                "SetFileAttributesW",
+                &[
+                    ("lpFileName", &lpFileName),
+                    ("dwFileAttributes", &dwFileAttributes),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetFileAttributesW(machine, lpFileName, dwFileAttributes);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3844,6 +4624,26 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::SetLastError(machine, dwErrCode);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn SetLocalTime(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::trace::enabled("kernel32/time") {
+            crate::trace::Record::new(
+                winapi::kernel32::SetLocalTime_pos,
+                "kernel32/time",
+                "SetLocalTime",
+                &[("lpSystemTime", &lpSystemTime)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::SetLocalTime(machine, lpSystemTime);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -4185,6 +4985,43 @@ mod wrappers {
             None
         };
         let result = winapi::kernel32::UnhandledExceptionFilter(machine, _exceptionInfo);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
+    pub unsafe fn UnlockFile(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+        let dwFileOffsetLow = <u32>::from_stack(mem, stack_args + 4u32);
+        let dwFileOffsetHigh = <u32>::from_stack(mem, stack_args + 8u32);
+        let nNumberOfBytesToUnlockLow = <u32>::from_stack(mem, stack_args + 12u32);
+        let nNumberOfBytesToUnlockHigh = <u32>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::trace::enabled("kernel32/file") {
+            crate::trace::Record::new(
+                winapi::kernel32::UnlockFile_pos,
+                "kernel32/file",
+                "UnlockFile",
+                &[
+                    ("hFile", &hFile),
+                    ("dwFileOffsetLow", &dwFileOffsetLow),
+                    ("dwFileOffsetHigh", &dwFileOffsetHigh),
+                    ("nNumberOfBytesToUnlockLow", &nNumberOfBytesToUnlockLow),
+                    ("nNumberOfBytesToUnlockHigh", &nNumberOfBytesToUnlockHigh),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::UnlockFile(
+            machine,
+            hFile,
+            dwFileOffsetLow,
+            dwFileOffsetHigh,
+            nNumberOfBytesToUnlockLow,
+            nNumberOfBytesToUnlockHigh,
+        );
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -4825,7 +5662,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 198usize] = [
+const SHIMS: [Shim; 230usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -4837,6 +5674,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "AddVectoredExceptionHandler",
         func: Handler::Sync(wrappers::AddVectoredExceptionHandler),
+    },
+    Shim {
+        name: "Beep",
+        func: Handler::Sync(wrappers::Beep),
     },
     Shim {
         name: "CloseHandle",
@@ -4855,6 +5696,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::CreateDirectoryA),
     },
     Shim {
+        name: "CreateDirectoryW",
+        func: Handler::Sync(wrappers::CreateDirectoryW),
+    },
+    Shim {
         name: "CreateEventA",
         func: Handler::Sync(wrappers::CreateEventA),
     },
@@ -4871,8 +5716,16 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::CreateMutexA),
     },
     Shim {
+        name: "CreatePipe",
+        func: Handler::Sync(wrappers::CreatePipe),
+    },
+    Shim {
         name: "CreateProcessA",
         func: Handler::Sync(wrappers::CreateProcessA),
+    },
+    Shim {
+        name: "CreateProcessW",
+        func: Handler::Sync(wrappers::CreateProcessW),
     },
     Shim {
         name: "CreateThread",
@@ -4891,6 +5744,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::DeleteFileA),
     },
     Shim {
+        name: "DeleteFileW",
+        func: Handler::Sync(wrappers::DeleteFileW),
+    },
+    Shim {
         name: "DisableThreadLibraryCalls",
         func: Handler::Sync(wrappers::DisableThreadLibraryCalls),
     },
@@ -4901,6 +5758,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "EnterCriticalSection",
         func: Handler::Sync(wrappers::EnterCriticalSection),
+    },
+    Shim {
+        name: "EnumSystemLocalesA",
+        func: Handler::Sync(wrappers::EnumSystemLocalesA),
     },
     Shim {
         name: "ExitProcess",
@@ -4931,8 +5792,16 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::FindFirstFileA),
     },
     Shim {
+        name: "FindFirstFileW",
+        func: Handler::Sync(wrappers::FindFirstFileW),
+    },
+    Shim {
         name: "FindNextFileA",
         func: Handler::Sync(wrappers::FindNextFileA),
+    },
+    Shim {
+        name: "FindNextFileW",
+        func: Handler::Sync(wrappers::FindNextFileW),
     },
     Shim {
         name: "FindResourceA",
@@ -4995,6 +5864,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::GetCurrentDirectoryA),
     },
     Shim {
+        name: "GetCurrentDirectoryW",
+        func: Handler::Sync(wrappers::GetCurrentDirectoryW),
+    },
+    Shim {
         name: "GetCurrentProcess",
         func: Handler::Sync(wrappers::GetCurrentProcess),
     },
@@ -5019,6 +5892,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::GetDriveTypeA),
     },
     Shim {
+        name: "GetDriveTypeW",
+        func: Handler::Sync(wrappers::GetDriveTypeW),
+    },
+    Shim {
         name: "GetEnvironmentStrings",
         func: Handler::Sync(wrappers::GetEnvironmentStrings),
     },
@@ -5041,6 +5918,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "GetFileAttributesA",
         func: Handler::Sync(wrappers::GetFileAttributesA),
+    },
+    Shim {
+        name: "GetFileAttributesW",
+        func: Handler::Sync(wrappers::GetFileAttributesW),
     },
     Shim {
         name: "GetFileInformationByHandle",
@@ -5079,6 +5960,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::GetLocaleInfoA),
     },
     Shim {
+        name: "GetLocaleInfoW",
+        func: Handler::Sync(wrappers::GetLocaleInfoW),
+    },
+    Shim {
         name: "GetLogicalDrives",
         func: Handler::Sync(wrappers::GetLogicalDrives),
     },
@@ -5101,6 +5986,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "GetModuleHandleW",
         func: Handler::Sync(wrappers::GetModuleHandleW),
+    },
+    Shim {
+        name: "GetNumberOfConsoleInputEvents",
+        func: Handler::Sync(wrappers::GetNumberOfConsoleInputEvents),
     },
     Shim {
         name: "GetOEMCP",
@@ -5183,6 +6072,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::GetTimeZoneInformation),
     },
     Shim {
+        name: "GetUserDefaultLCID",
+        func: Handler::Sync(wrappers::GetUserDefaultLCID),
+    },
+    Shim {
         name: "GetVersion",
         func: Handler::Sync(wrappers::GetVersion),
     },
@@ -5231,6 +6124,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::HeapAlloc),
     },
     Shim {
+        name: "HeapCompact",
+        func: Handler::Sync(wrappers::HeapCompact),
+    },
+    Shim {
         name: "HeapCreate",
         func: Handler::Sync(wrappers::HeapCreate),
     },
@@ -5257,6 +6154,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "HeapValidate",
         func: Handler::Sync(wrappers::HeapValidate),
+    },
+    Shim {
+        name: "HeapWalk",
+        func: Handler::Sync(wrappers::HeapWalk),
     },
     Shim {
         name: "InitOnceBeginInitialize",
@@ -5323,6 +6224,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::IsValidCodePage),
     },
     Shim {
+        name: "IsValidLocale",
+        func: Handler::Sync(wrappers::IsValidLocale),
+    },
+    Shim {
         name: "LCMapStringA",
         func: Handler::Sync(wrappers::LCMapStringA),
     },
@@ -5351,8 +6256,16 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::LocalAlloc),
     },
     Shim {
+        name: "LocalFileTimeToFileTime",
+        func: Handler::Sync(wrappers::LocalFileTimeToFileTime),
+    },
+    Shim {
         name: "LocalFree",
         func: Handler::Sync(wrappers::LocalFree),
+    },
+    Shim {
+        name: "LockFile",
+        func: Handler::Sync(wrappers::LockFile),
     },
     Shim {
         name: "LockResource",
@@ -5361,6 +6274,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "MoveFileA",
         func: Handler::Sync(wrappers::MoveFileA),
+    },
+    Shim {
+        name: "MoveFileW",
+        func: Handler::Sync(wrappers::MoveFileW),
     },
     Shim {
         name: "MulDiv",
@@ -5379,6 +6296,14 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::OutputDebugStringA),
     },
     Shim {
+        name: "PeekConsoleInputA",
+        func: Handler::Sync(wrappers::PeekConsoleInputA),
+    },
+    Shim {
+        name: "PeekNamedPipe",
+        func: Handler::Sync(wrappers::PeekNamedPipe),
+    },
+    Shim {
         name: "PulseEvent",
         func: Handler::Sync(wrappers::PulseEvent),
     },
@@ -5393,6 +6318,14 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "RaiseException",
         func: Handler::Sync(wrappers::RaiseException),
+    },
+    Shim {
+        name: "ReadConsoleA",
+        func: Handler::Sync(wrappers::ReadConsoleA),
+    },
+    Shim {
+        name: "ReadConsoleInputA",
+        func: Handler::Sync(wrappers::ReadConsoleInputA),
     },
     Shim {
         name: "ReadFile",
@@ -5411,6 +6344,10 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::RemoveDirectoryA),
     },
     Shim {
+        name: "RemoveDirectoryW",
+        func: Handler::Sync(wrappers::RemoveDirectoryW),
+    },
+    Shim {
         name: "ResetEvent",
         func: Handler::Sync(wrappers::ResetEvent),
     },
@@ -5427,8 +6364,16 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::SetConsoleCtrlHandler),
     },
     Shim {
+        name: "SetConsoleMode",
+        func: Handler::Sync(wrappers::SetConsoleMode),
+    },
+    Shim {
         name: "SetCurrentDirectoryA",
         func: Handler::Sync(wrappers::SetCurrentDirectoryA),
+    },
+    Shim {
+        name: "SetCurrentDirectoryW",
+        func: Handler::Sync(wrappers::SetCurrentDirectoryW),
     },
     Shim {
         name: "SetEndOfFile",
@@ -5439,12 +6384,24 @@ const SHIMS: [Shim; 198usize] = [
         func: Handler::Sync(wrappers::SetEnvironmentVariableA),
     },
     Shim {
+        name: "SetEnvironmentVariableW",
+        func: Handler::Sync(wrappers::SetEnvironmentVariableW),
+    },
+    Shim {
+        name: "SetErrorMode",
+        func: Handler::Sync(wrappers::SetErrorMode),
+    },
+    Shim {
         name: "SetEvent",
         func: Handler::Sync(wrappers::SetEvent),
     },
     Shim {
         name: "SetFileAttributesA",
         func: Handler::Sync(wrappers::SetFileAttributesA),
+    },
+    Shim {
+        name: "SetFileAttributesW",
+        func: Handler::Sync(wrappers::SetFileAttributesW),
     },
     Shim {
         name: "SetFilePointer",
@@ -5461,6 +6418,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "SetLastError",
         func: Handler::Sync(wrappers::SetLastError),
+    },
+    Shim {
+        name: "SetLocalTime",
+        func: Handler::Sync(wrappers::SetLocalTime),
     },
     Shim {
         name: "SetPriorityClass",
@@ -5525,6 +6486,10 @@ const SHIMS: [Shim; 198usize] = [
     Shim {
         name: "UnhandledExceptionFilter",
         func: Handler::Sync(wrappers::UnhandledExceptionFilter),
+    },
+    Shim {
+        name: "UnlockFile",
+        func: Handler::Sync(wrappers::UnlockFile),
     },
     Shim {
         name: "VirtualAlloc",

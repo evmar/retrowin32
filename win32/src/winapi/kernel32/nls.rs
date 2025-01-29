@@ -1,6 +1,6 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{winapi::stack_args::ArrayWithSizeMut, Machine};
+use crate::{str16::Str16, winapi::stack_args::ArrayWithSizeMut, Machine};
 use bitflags::bitflags;
 use memory::Extensions;
 
@@ -143,6 +143,17 @@ pub fn GetThreadLocale(_machine: &mut Machine) -> LCID {
 }
 
 #[win32_derive::dllexport]
+pub fn GetLocaleInfoW(
+    _machine: &mut Machine,
+    Locale: u32,
+    LCType: u32,
+    lpLCData: Option<&Str16>,
+    cchData: i32,
+) -> i32 {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn GetLocaleInfoA(
     _machine: &mut Machine,
     Locale: u32,
@@ -198,4 +209,27 @@ pub fn GetStringTypeW(
     lpCharType: Option<&mut u32>,
 ) -> bool {
     todo!();
+}
+
+#[win32_derive::dllexport]
+pub fn EnumSystemLocalesA(
+    _machine: &mut Machine,
+    lpLocaleEnumProc: u32, /* LOCALE_ENUMPROCA */
+    dwFlags: u32,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn IsValidLocale(
+    _machine: &mut Machine,
+    Locale: u32,
+    dwFlags: u32, /* IS_VALID_LOCALE_FLAGS */
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetUserDefaultLCID(_machine: &mut Machine) -> u32 {
+    todo!()
 }

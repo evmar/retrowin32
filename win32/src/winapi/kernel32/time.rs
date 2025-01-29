@@ -118,6 +118,11 @@ pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>
 }
 
 #[win32_derive::dllexport]
+pub fn SetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn SystemTimeToFileTime(
     machine: &mut Machine,
     lpSystemTime: Option<&SYSTEMTIME>,
@@ -247,6 +252,15 @@ pub fn FileTimeToLocalFileTime(
             .and_utc(),
     );
     true
+}
+
+#[win32_derive::dllexport]
+pub fn LocalFileTimeToFileTime(
+    _machine: &mut Machine,
+    lpLocalFileTime: Option<&mut FILETIME>,
+    lpFileTime: Option<&mut FILETIME>,
+) -> bool {
+    todo!()
 }
 
 #[win32_derive::dllexport]
