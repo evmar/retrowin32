@@ -516,15 +516,17 @@ pub mod IDirectDrawSurface7 {
     ) -> DD {
         let fmt = fmt.unwrap();
         assert!(fmt.dwSize == std::mem::size_of::<DDPIXELFORMAT>() as u32);
+        // The "RGBA32" we use has the R as the first byte, so due to little
+        // endian that means the *low* end of the bit mask here.
         *fmt = DDPIXELFORMAT {
             dwSize: std::mem::size_of::<DDPIXELFORMAT>() as u32,
             dwFlags: 0x00000040,
             dwFourCC: 0,
             dwRGBBitCount: 32,
-            dwRBitMask: 0xFF00_0000,
-            dwGBitMask: 0x00FF_0000,
-            dwBBitMask: 0x0000_FF00,
-            dwRGBAlphaBitMask: 0x0000_00FF,
+            dwRBitMask: 0x0000_00FF,
+            dwGBitMask: 0x0000_FF00,
+            dwBBitMask: 0x00FF_0000,
+            dwRGBAlphaBitMask: 0xFF00_0000,
         };
         DD::OK
     }
