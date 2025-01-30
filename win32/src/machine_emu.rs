@@ -163,6 +163,9 @@ impl MachineX<Emulator> {
                     message: message.clone(),
                 };
             }
+            x86::CPUState::DebugBreak => {
+                self.status = Status::DebugBreak;
+            }
             state => unimplemented!("{state:?}"),
         }
         self.status.is_running()

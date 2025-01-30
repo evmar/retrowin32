@@ -57,6 +57,8 @@ pub enum Status {
         // TODO:
         // signal: u8
     },
+    /// Hit a breakpoint.
+    DebugBreak,
     /// Process exited.
     Exit(u32),
 }
