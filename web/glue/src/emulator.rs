@@ -106,6 +106,7 @@ impl Emulator {
             win32::Status::Running => Status::Running,
             win32::Status::Blocked => Status::Blocked,
             win32::Status::Error { message } => return Err(JsError::new(message)),
+            win32::Status::DebugBreak => Status::DebugBreak,
             win32::Status::Exit(_code) => {
                 // TODO: use exit code
                 Status::Exit
