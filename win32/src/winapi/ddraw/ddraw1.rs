@@ -97,9 +97,6 @@ pub mod IDirectDraw {
             machine.state.ddraw.hwnd,
             &DDSURFACEDESC2::from_desc(desc.unwrap()),
         );
-        if surfaces.len() > 2 {
-            todo!()
-        }
 
         let mut prev = 0;
         for mut surface in surfaces.into_iter().rev() {
