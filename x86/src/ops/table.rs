@@ -429,6 +429,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Fcomp_m32fp as usize] = Some(fcomp_m32fp);
     tab[iced_x86::Code::Fcomp_m64fp as usize] = Some(fcomp_m64fp);
     tab[iced_x86::Code::Fcomp_st0_sti as usize] = Some(fcomp_st0_sti);
+    tab[iced_x86::Code::Fcompp as usize] = Some(fcompp);
     tab[iced_x86::Code::Fucomp_st0_sti as usize] = Some(fucomp_st0_sti);
     tab[iced_x86::Code::Fcomi_st0_sti as usize] = Some(fcomi_st0_sti);
     tab[iced_x86::Code::Fucomi_st0_sti as usize] = Some(fucomi_st0_sti);
