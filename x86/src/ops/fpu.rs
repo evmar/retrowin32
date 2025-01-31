@@ -283,6 +283,13 @@ pub fn f2xm1(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     *x = 2.0_f64.powf(*x) - 1.0;
 }
 
+pub fn fyl2x(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    cpu.fpu.pop();
+    let y = cpu.fpu.st0();
+    *y = *y * x.log2();
+}
+
 pub fn fscale(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     let y = *cpu.fpu.get(iced_x86::Register::ST1);
     let x = cpu.fpu.st0();

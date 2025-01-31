@@ -404,6 +404,7 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab[iced_x86::Code::Fmulp_sti_st0 as usize] = Some(fmulp_sti_sti);
 
     tab[iced_x86::Code::F2xm1 as usize] = Some(f2xm1);
+    tab[iced_x86::Code::Fyl2x as usize] = Some(fyl2x);
     tab[iced_x86::Code::Fscale as usize] = Some(fscale);
 
     tab[iced_x86::Code::Fdiv_m64fp as usize] = Some(fdiv_m64fp);
