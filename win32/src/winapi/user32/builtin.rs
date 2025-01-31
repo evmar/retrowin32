@@ -3414,9 +3414,9 @@ mod wrappers {
     }
     pub unsafe fn SystemParametersInfoA(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
-        let uiAction = <u32>::from_stack(mem, stack_args + 0u32);
+        let uiAction = <Result<SPI, u32>>::from_stack(mem, stack_args + 0u32);
         let uiParam = <u32>::from_stack(mem, stack_args + 4u32);
-        let pvParam = <Option<&mut u8>>::from_stack(mem, stack_args + 8u32);
+        let pvParam = <u32>::from_stack(mem, stack_args + 8u32);
         let fWinIni = <u32>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::trace::enabled("user32/misc") {
             crate::trace::Record::new(
