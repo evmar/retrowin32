@@ -203,13 +203,20 @@ pub async fn CreateThread(
     let retrowin32_thread_main =
         winapi::kernel32::get_kernel32_builtin(machine, "retrowin32_thread_main");
 
+    let stack_size = if dwStackSize > 0 {
+        dwStackSize
+    } else {
+        // TODO: in theory this is configured by exe header, but in practice probably doesn't matter.
+        64 << 10
+    };
+
     #[cfg(feature = "x86-emu")]
     {
         // TODO: should reuse a CPU from a previous thread that has exited
         let NewThread {
             thread,
             stack_pointer,
-        } = create_thread(machine, dwStackSize);
+        } = create_thread(machine, stack_size);
         let cpu = machine.emu.x86.new_cpu();
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
