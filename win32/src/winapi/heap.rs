@@ -53,7 +53,8 @@ impl Heap {
         let size = mem.get_pod::<u32>(addr);
 
         if !self.range().contains(&addr) {
-            panic!("free of addr not on heap");
+            log::error!("free of addr not on heap");
+            return;
         }
 
         let mut insert_index = 0;
