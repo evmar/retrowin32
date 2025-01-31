@@ -334,7 +334,7 @@ impl<T: Copy + Clone + Default> RingBuffer<T> {
         }
 
         if bytes.len() > 0 || self.start == self.end {
-            panic!("ringbuffer overflow");
+            panic!("ringbuffer overflow, {} bytes remaining", bytes.len());
         }
     }
 
@@ -371,8 +371,9 @@ struct AudioBuffer {
 
 impl Default for AudioBuffer {
     fn default() -> Self {
+        // "kill the clone" writes 353kb in a single write.
         AudioBuffer {
-            buf: RingBuffer::new(64 << 10),
+            buf: RingBuffer::new(512 << 10),
         }
     }
 }
