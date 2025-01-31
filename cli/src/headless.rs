@@ -16,6 +16,9 @@ impl win32::Surface for Surface {
 pub struct Audio {}
 impl win32::Audio for Audio {
     fn write(&mut self, _buf: &[u8]) {}
+    fn pos(&mut self) -> usize {
+        todo!()
+    }
 }
 
 pub struct GUI {

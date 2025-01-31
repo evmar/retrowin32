@@ -367,6 +367,9 @@ impl<T: Copy + Clone + Default> RingBuffer<T> {
 
 struct AudioBuffer {
     buf: RingBuffer<i16>,
+    /// The count of i16s that have been read in total,
+    /// for use in querying current audio position.
+    pos: usize,
 }
 
 impl Default for AudioBuffer {
@@ -374,6 +377,7 @@ impl Default for AudioBuffer {
         // "kill the clone" writes 353kb in a single write.
         AudioBuffer {
             buf: RingBuffer::new(512 << 10),
+            pos: 0,
         }
     }
 }
@@ -390,8 +394,10 @@ impl sdl2::audio::AudioCallback for AudioBuffer {
     fn callback(&mut self, buf: &mut [i16]) {
         let n = self.buf.read(buf);
         if n < buf.len() {
+            // Audio underflow; use 0 to at least not play static.
             buf[n..].fill(0);
         }
+        self.pos += buf.len();
     }
 }
 
@@ -418,5 +424,9 @@ impl Audio {
 impl win32::Audio for Audio {
     fn write(&mut self, buf: &[u8]) {
         self.dev.lock().write(buf);
+    }
+
+    fn pos(&mut self) -> usize {
+        self.dev.lock().pos
     }
 }
