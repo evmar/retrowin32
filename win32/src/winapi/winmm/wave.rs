@@ -198,14 +198,19 @@ unsafe impl memory::Pod for MMTIME_smpte {}
 
 #[win32_derive::dllexport]
 pub fn waveOutGetPosition(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hwo: HWAVEOUT,
     pmmt: Option<&mut MMTIME>,
     cbmmt: u32,
 ) -> MMRESULT {
     assert_eq!(cbmmt, std::mem::size_of::<MMTIME>() as u32);
+
+    let pos = machine.state.winmm.audio.as_mut().unwrap().pos();
     let mmt = pmmt.unwrap();
-    mmt.u.sample = 0;
+    match TIME::try_from(mmt.wType).unwrap() {
+        TIME::BYTES => mmt.u.cb = pos as u32 * 2,
+        t => todo!("{:?}", t),
+    }
     MMRESULT::MMSYSERR_NOERROR
 }
 

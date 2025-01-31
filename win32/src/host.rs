@@ -122,6 +122,7 @@ pub struct Message {
 
 pub trait Audio {
     fn write(&mut self, buf: &[u8]);
+    fn pos(&mut self) -> usize;
 }
 
 pub trait Host {
