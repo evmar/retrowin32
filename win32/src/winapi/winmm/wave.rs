@@ -130,12 +130,45 @@ pub struct MMTIME {
 }
 unsafe impl memory::Pod for MMTIME {}
 
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum TIME {
+    MS = 0x0001,
+    SAMPLES = 0x0002,
+    BYTES = 0x0004,
+    SMPTE = 0x0008,
+    MIDI = 0x0010,
+    TICKS = 0x0020,
+}
+
 impl std::fmt::Debug for MMTIME {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MMTIME")
-            .field("wType", &self.wType)
-            .field("u", &"TODO")
-            .finish()
+        let time = TIME::try_from(self.wType);
+        let mut st = f.debug_struct("MMTIME");
+        st.field("wType", &time);
+        unsafe {
+            match time {
+                Ok(TIME::MS) => {
+                    st.field("ms", &self.u.ms);
+                }
+                Ok(TIME::SAMPLES) => {
+                    st.field("sample", &self.u.sample);
+                }
+                Ok(TIME::BYTES) => {
+                    st.field("cb", &self.u.cb);
+                }
+                Ok(TIME::SMPTE) => {
+                    st.field("smpte", &self.u.smpte);
+                }
+                Ok(TIME::MIDI) => {
+                    st.field("midi", &self.u.midi);
+                }
+                Ok(TIME::TICKS) => {
+                    st.field("ticks", &self.u.ticks);
+                }
+                Err(_) => {}
+            }
+        }
+        st.finish()
     }
 }
 
