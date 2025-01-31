@@ -393,6 +393,14 @@ pub fn fcomp_st0_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     cpu.fpu.pop();
 }
 
+pub fn fcompp(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let x = *cpu.fpu.st0();
+    let y = *cpu.fpu.get(iced_x86::Register::ST1);
+    fcom(cpu, x, y);
+    cpu.fpu.pop();
+    cpu.fpu.pop();
+}
+
 pub fn fucomp_st0_sti(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fcomp_st0_sti(cpu, mem, instr);
     // TODO: raise the invalid-arithmetic-operand exception when appropriate.
