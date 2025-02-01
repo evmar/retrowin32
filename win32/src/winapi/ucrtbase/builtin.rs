@@ -637,6 +637,28 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let dest = <u32>::from_stack(mem, stack_args + 0u32);
+        let src = <u32>::from_stack(mem, stack_args + 4u32);
+        let count = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::trace::enabled("ucrtbase/misc") {
+            crate::trace::Record::new(
+                winapi::ucrtbase::memcpy_pos,
+                "ucrtbase/misc",
+                "memcpy",
+                &[("dest", &dest), ("src", &src), ("count", &count)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::memcpy(machine, dest, src, count);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn rand(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("ucrtbase/rand") {
@@ -712,7 +734,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 33usize] = [
+const SHIMS: [Shim; 34usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -828,6 +850,10 @@ const SHIMS: [Shim; 33usize] = [
     Shim {
         name: "malloc",
         func: Handler::Sync(wrappers::malloc),
+    },
+    Shim {
+        name: "memcpy",
+        func: Handler::Sync(wrappers::memcpy),
     },
     Shim {
         name: "rand",
