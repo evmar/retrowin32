@@ -46,9 +46,9 @@ impl<'a> crate::winapi::stack_args::FromArg<'a> for COLORREF {
     }
 }
 
-impl crate::winapi::stack_args::ToX86 for COLORREF {
-    fn to_raw(&self) -> u32 {
-        self.0
+impl crate::winapi::stack_args::ABIReturn for COLORREF {
+    fn to_abireturn(&self) -> u64 {
+        self.0 as u64
     }
 }
 

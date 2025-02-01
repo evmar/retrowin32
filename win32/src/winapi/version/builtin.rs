@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::version::*;
-    pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -34,7 +34,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 1usize] = [Shim {

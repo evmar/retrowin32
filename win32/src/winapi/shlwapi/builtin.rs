@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::shlwapi::*;
-    pub unsafe fn PathRemoveFileSpecA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn PathRemoveFileSpecA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("shlwapi") {
@@ -30,7 +30,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 1usize] = [Shim {

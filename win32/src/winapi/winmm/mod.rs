@@ -28,9 +28,9 @@ pub enum MMRESULT {
     MMSYSERR_NOERROR = 0,
     MMSYSERR_NOTENABLED = 3,
 }
-impl super::stack_args::ToX86 for MMRESULT {
-    fn to_raw(&self) -> u32 {
-        *self as u32
+impl super::stack_args::ABIReturn for MMRESULT {
+    fn to_abireturn(&self) -> u64 {
+        *self as u64
     }
 }
 

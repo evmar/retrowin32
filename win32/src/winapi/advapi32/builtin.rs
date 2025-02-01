@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::advapi32::*;
-    pub unsafe fn RegCloseKey(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegCloseKey(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("advapi32") {
@@ -30,9 +30,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegCreateKeyA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegCreateKeyA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -56,9 +56,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegCreateKeyExW(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegCreateKeyExW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpSubKey = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -105,9 +105,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegOpenKeyExA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegOpenKeyExA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -137,9 +137,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegQueryValueExA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegQueryValueExA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpValueName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -177,9 +177,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegQueryValueExW(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegQueryValueExW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpValueName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -217,9 +217,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegSetValueExA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegSetValueExA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpValueName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -257,9 +257,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RegSetValueExW(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RegSetValueExW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
         let lpValueName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -297,7 +297,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 8usize] = [

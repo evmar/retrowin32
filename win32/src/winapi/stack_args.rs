@@ -188,12 +188,13 @@ impl<'a> FromStack<'a> for VarArgs {
     }
 }
 
-/// Types that can be returned from a winapi function, passed via EAX.
-pub trait ToX86 {
-    fn to_raw(&self) -> u32;
+/// Types that can be returned from a winapi function, passed via EAX and sometimes EDX.
+pub trait ABIReturn {
+    fn to_abireturn(&self) -> u64;
 }
-impl ToX86 for bool {
-    fn to_raw(&self) -> u32 {
+
+impl ABIReturn for bool {
+    fn to_abireturn(&self) -> u64 {
         if *self {
             1
         } else {
@@ -201,18 +202,21 @@ impl ToX86 for bool {
         }
     }
 }
-impl ToX86 for u32 {
-    fn to_raw(&self) -> u32 {
-        *self
+
+impl ABIReturn for u32 {
+    fn to_abireturn(&self) -> u64 {
+        *self as u64
     }
 }
-impl ToX86 for i32 {
-    fn to_raw(&self) -> u32 {
-        *self as u32
+
+impl ABIReturn for i32 {
+    fn to_abireturn(&self) -> u64 {
+        *self as u32 as u64
     }
 }
-impl ToX86 for () {
-    fn to_raw(&self) -> u32 {
+
+impl ABIReturn for () {
+    fn to_abireturn(&self) -> u64 {
         0
     }
 }

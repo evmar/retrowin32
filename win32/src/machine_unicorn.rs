@@ -221,9 +221,10 @@ impl MachineX<Emulator> {
             Handler::Sync(func) => {
                 let ret = unsafe { func(self, stack_args) };
 
+                self.emu.unicorn.reg_write(RegisterX86::EAX, ret).unwrap();
                 self.emu
                     .unicorn
-                    .reg_write(RegisterX86::EAX, ret as u64)
+                    .reg_write(RegisterX86::EDX, ret >> 32)
                     .unwrap();
 
                 // After call, attempt to clear registers to make execution traces easier to match.

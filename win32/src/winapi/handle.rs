@@ -99,9 +99,9 @@ impl<'a, T> crate::winapi::stack_args::FromArg<'a> for HANDLE<T> {
     }
 }
 
-impl<T> crate::winapi::stack_args::ToX86 for HANDLE<T> {
-    fn to_raw(&self) -> u32 {
-        self.raw
+impl<T> crate::winapi::stack_args::ABIReturn for HANDLE<T> {
+    fn to_abireturn(&self) -> u64 {
+        self.raw as u64
     }
 }
 

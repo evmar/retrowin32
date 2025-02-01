@@ -199,7 +199,8 @@ impl MachineX<Emulator> {
             Handler::Sync(func) => {
                 let ret = unsafe { func(self, stack_args) };
                 let regs = &mut self.emu.x86.cpu_mut().regs;
-                regs.set32(x86::Register::EAX, ret);
+                regs.set32(x86::Register::EAX, ret as u32);
+                regs.set32(x86::Register::EDX, (ret >> 32) as u32);
 
                 // After call, attempt to clear registers to make execution traces easier to match.
                 // eax: holds return value

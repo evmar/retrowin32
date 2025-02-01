@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::ntdll::*;
-    pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("ntdll") {
             crate::trace::Record::new(
@@ -29,9 +29,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn NtReadFile(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn NtReadFile(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let FileHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
         let Event = <u32>::from_stack(mem, stack_args + 4u32);
@@ -75,9 +75,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn RtlExitUserProcess(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn RtlExitUserProcess(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("ntdll") {
@@ -95,7 +95,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 3usize] = [

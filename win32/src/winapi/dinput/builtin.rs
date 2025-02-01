@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::dinput::*;
-    pub unsafe fn DirectInputCreateA(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn DirectInputCreateA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hinst = <u32>::from_stack(mem, stack_args + 0u32);
         let version = <u32>::from_stack(mem, stack_args + 4u32);
@@ -38,9 +38,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInputDevice_Acquire(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInputDevice_Acquire(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("dinput/dinput") {
@@ -58,9 +58,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInputDevice_EnumObjects(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInputDevice_EnumObjects(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpCallback = <u32>::from_stack(mem, stack_args + 4u32);
@@ -88,9 +88,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInputDevice_GetDeviceData(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInputDevice_GetDeviceData(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let cbObjectData = <u32>::from_stack(mem, stack_args + 4u32);
@@ -125,12 +125,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
     pub unsafe fn IDirectInputDevice_SetCooperativeLevel(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> u32 {
+    ) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
@@ -151,9 +151,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInputDevice_SetDataFormat(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInputDevice_SetDataFormat(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpdf = <Option<&DIDATAFORMAT>>::from_stack(mem, stack_args + 4u32);
@@ -172,12 +172,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
     pub unsafe fn IDirectInputDevice_SetEventNotification(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> u32 {
+    ) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hEvent = <u32>::from_stack(mem, stack_args + 4u32);
@@ -197,9 +197,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInputDevice_SetProperty(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInputDevice_SetProperty(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let rguidProp = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
@@ -224,9 +224,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInput_AddRef(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInput_AddRef(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("dinput/dinput") {
@@ -244,9 +244,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInput_CreateDevice(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpGUID = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
@@ -278,9 +278,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInput_EnumDevices(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInput_EnumDevices(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let dwDevType = <u32>::from_stack(mem, stack_args + 4u32);
@@ -310,9 +310,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn IDirectInput_Release(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn IDirectInput_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("dinput/dinput") {
@@ -330,7 +330,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 12usize] = [
