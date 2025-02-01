@@ -110,3 +110,15 @@ pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip
         println!();
     }
 }
+
+#[allow(unused)]
+pub fn dump_fpu_state(cpu: &crate::CPU) {
+    if cpu.fpu.st_top == 8 {
+        return;
+    }
+    println!("fpu status: {:04x}", cpu.fpu.status());
+    for i in cpu.fpu.st_top..8 {
+        let value = cpu.fpu.st[i];
+        println!("st{}: {:20.16}", i - cpu.fpu.st_top, value);
+    }
+}
