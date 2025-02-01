@@ -363,6 +363,20 @@ mod wrappers {
         }
         result.to_raw()
     }
+    pub unsafe fn _ftol(machine: &mut Machine, stack_args: u32) -> u32 {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::trace::enabled("ucrtbase/math") {
+            crate::trace::Record::new(winapi::ucrtbase::_ftol_pos, "ucrtbase/math", "_ftol", &[])
+                .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::_ftol(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.to_raw()
+    }
     pub unsafe fn _get_initial_narrow_environment(machine: &mut Machine, stack_args: u32) -> u32 {
         let mem = machine.mem().detach();
         let __trace_record = if crate::trace::enabled("ucrtbase/init") {
@@ -734,7 +748,7 @@ mod wrappers {
         result.to_raw()
     }
 }
-const SHIMS: [Shim; 34usize] = [
+const SHIMS: [Shim; 35usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -798,6 +812,10 @@ const SHIMS: [Shim; 34usize] = [
     Shim {
         name: "_exit",
         func: Handler::Sync(wrappers::_exit),
+    },
+    Shim {
+        name: "_ftol",
+        func: Handler::Sync(wrappers::_ftol),
     },
     Shim {
         name: "_get_initial_narrow_environment",
