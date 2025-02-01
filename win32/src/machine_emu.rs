@@ -201,10 +201,11 @@ impl MachineX<Emulator> {
                 let regs = &mut self.emu.x86.cpu_mut().regs;
                 regs.set32(x86::Register::EAX, ret);
 
-                // Clear registers to make traces clean.
-                // eax holds return value; other registers are callee-saved per ABI.
+                // After call, attempt to clear registers to make execution traces easier to match.
+                // eax: holds return value
                 regs.set32(x86::Register::ECX, 0);
-                regs.set32(x86::Register::EDX, 0);
+                // edx: sometimes used for 64-bit returns
+                // ebx: callee-saved
             }
 
             Handler::Async(func) => {

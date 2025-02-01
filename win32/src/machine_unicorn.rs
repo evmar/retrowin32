@@ -225,6 +225,12 @@ impl MachineX<Emulator> {
                     .unicorn
                     .reg_write(RegisterX86::EAX, ret as u64)
                     .unwrap();
+
+                // After call, attempt to clear registers to make execution traces easier to match.
+                // eax: holds return value
+                self.emu.unicorn.reg_write(RegisterX86::ECX, 0).unwrap();
+                // edx: sometimes used for 64-bit returns
+                // ebx: callee-saved
             }
             Handler::Async(func) => {
                 let return_address = eip;

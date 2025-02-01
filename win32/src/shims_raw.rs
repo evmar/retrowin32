@@ -60,11 +60,11 @@ std::arch::global_asm!(
     "pushq %rdi",                  // preserve edi
     "pushq %rsi",                  // preserve esi
     "call {call64}",               // call 64-bit Rust
-    // clear registers to make traces clean
-    // eax holds return value, leave alone
+    // After call, attempt to clear registers to make execution traces easier to match.
+    // eax: holds return value
     "xorl %ecx, %ecx",
+    // edx: sometimes used for 64-bit returns
     // ebx: callee-saved
-    "xorl %edx, %edx",
     "popq %rsi",                   // restore esi
     "popq %rdi",                   // restore edi
     // ebp: callee-saved
