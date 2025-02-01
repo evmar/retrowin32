@@ -38,8 +38,8 @@ impl From<ERROR> for u32 {
     }
 }
 
-impl stack_args::ToX86 for ERROR {
-    fn to_raw(&self) -> u32 {
-        *self as u32
+impl stack_args::ABIReturn for ERROR {
+    fn to_abireturn(&self) -> u64 {
+        *self as u64
     }
 }

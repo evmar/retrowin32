@@ -13,9 +13,9 @@
 use crate::Machine;
 use std::collections::HashMap;
 
-pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u32;
+pub type SyncHandler = unsafe fn(&mut Machine, u32) -> u64;
 pub type AsyncHandler =
-    unsafe fn(&mut Machine, u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>>;
+    unsafe fn(&mut Machine, u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>>;
 #[derive(Debug, Clone, Copy)]
 pub enum Handler {
     Sync(SyncHandler),

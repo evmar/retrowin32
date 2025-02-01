@@ -12,7 +12,7 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::vcruntime140::*;
-    pub unsafe fn _CxxThrowException(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn _CxxThrowException(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
         let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
@@ -35,9 +35,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn memcmp(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn memcmp(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lhs = <u32>::from_stack(mem, stack_args + 0u32);
         let rhs = <u32>::from_stack(mem, stack_args + 4u32);
@@ -57,9 +57,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let src = <u32>::from_stack(mem, stack_args + 4u32);
@@ -79,9 +79,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
-    pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> u32 {
+    pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let val = <u32>::from_stack(mem, stack_args + 4u32);
@@ -101,7 +101,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     }
 }
 const SHIMS: [Shim; 4usize] = [

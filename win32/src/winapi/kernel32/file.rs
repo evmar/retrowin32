@@ -1,7 +1,7 @@
 use super::{FILETIME, SECURITY_ATTRIBUTES};
 use crate::str16::String16;
 use crate::winapi::kernel32::set_last_error;
-use crate::winapi::stack_args::ToX86;
+use crate::winapi::stack_args::ABIReturn;
 use crate::winapi::types::{DWORD, HFIND, MAX_PATH};
 use crate::winapi::ERROR;
 use crate::{
@@ -101,9 +101,9 @@ impl From<&Stat> for FileAttribute {
     }
 }
 
-impl ToX86 for FileAttribute {
-    fn to_raw(&self) -> u32 {
-        self.bits()
+impl ABIReturn for FileAttribute {
+    fn to_abireturn(&self) -> u64 {
+        self.bits() as u64
     }
 }
 
@@ -248,7 +248,7 @@ pub struct BY_HANDLE_FILE_INFORMATION {
 impl From<&Stat> for BY_HANDLE_FILE_INFORMATION {
     fn from(stat: &Stat) -> Self {
         Self {
-            dwFileAttributes: FileAttribute::from(stat).to_raw(),
+            dwFileAttributes: FileAttribute::from(stat).bits(),
             ftCreationTime: FILETIME::from_unix_nanos(stat.ctime),
             ftLastAccessTime: FILETIME::from_unix_nanos(stat.atime),
             ftLastWriteTime: FILETIME::from_unix_nanos(stat.mtime),
@@ -720,7 +720,7 @@ impl From<&ReadDirEntry> for WIN32_FIND_DATAA {
     fn from(file: &ReadDirEntry) -> Self {
         let stat = &file.stat;
         let mut data = Self {
-            dwFileAttributes: FileAttribute::from(stat).to_raw(),
+            dwFileAttributes: FileAttribute::from(stat).bits(),
             ftCreationTime: FILETIME::from_unix_nanos(stat.ctime),
             ftLastAccessTime: FILETIME::from_unix_nanos(stat.atime),
             ftLastWriteTime: FILETIME::from_unix_nanos(stat.mtime),

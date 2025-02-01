@@ -69,14 +69,14 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_raw()
+        result.to_abireturn()
     };
 
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
         (
             quote!(Handler::Async(wrappers::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32>>> {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
                     #fetch_args
                     let machine: *mut Machine = machine;
                     Box::pin(async move {
@@ -91,7 +91,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         (
             quote!(Handler::Sync(wrappers::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> u32 {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> u64 {
                     #fetch_args
                     let result = #impls_mod::#base_name(machine, #(#args),*);
                     #return_result
