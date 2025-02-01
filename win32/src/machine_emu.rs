@@ -236,9 +236,11 @@ impl MachineX<Emulator> {
     }
 
     pub fn dump_state(&self, eip_offset: usize) {
-        x86::debug::dump_state(self.emu.x86.cpu(), self.mem(), &self.labels, eip_offset);
+        let cpu = self.emu.x86.cpu();
+        x86::debug::dump_state(cpu, self.mem(), &self.labels, eip_offset);
         println!("stack:");
         self.dump_stack();
+        x86::debug::dump_fpu_state(cpu);
     }
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
