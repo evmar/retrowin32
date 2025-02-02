@@ -138,7 +138,7 @@ func deploy(entries map[string][]*Entry) error {
 				}
 				if err := os.Link(src, dst); err != nil {
 					if !errors.Is(err, fs.ErrExist) {
-						return err
+						fmt.Fprintf(os.Stderr, "%v\n", err)
 					}
 				}
 			}
