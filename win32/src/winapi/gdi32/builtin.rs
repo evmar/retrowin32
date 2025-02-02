@@ -49,7 +49,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -80,7 +80,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateCompatibleBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -102,7 +102,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateCompatibleDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -122,7 +122,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateDIBSection(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -155,7 +155,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateDIBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -188,7 +188,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateFontA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -252,7 +252,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreatePalette(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -272,7 +272,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreatePen(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -294,7 +294,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn CreateSolidBrush(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -314,7 +314,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn DeleteDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -334,7 +334,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn DeleteObject(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -354,7 +354,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn EnumFontFamiliesExA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -385,7 +385,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetDCOrgEx(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -406,7 +406,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetDIBits(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -441,7 +441,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetDeviceCaps(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -462,7 +462,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetLayout(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -482,7 +482,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetObjectA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -504,7 +504,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -532,7 +532,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetPixel(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -554,7 +554,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetStockObject(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -574,7 +574,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetSystemPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -603,7 +603,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetTextExtentPoint32A(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -631,7 +631,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetTextExtentPoint32W(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -659,7 +659,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetTextMetricsA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -680,7 +680,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn GetTextMetricsW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -701,7 +701,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn LineDDA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -733,7 +733,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn LineTo(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -755,7 +755,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn MoveToEx(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -778,7 +778,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn PatBlt(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -810,7 +810,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn PtVisible(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -832,7 +832,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn RealizePalette(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -852,7 +852,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SelectObject(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -873,7 +873,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SelectPalette(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -895,7 +895,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetBkColor(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -916,7 +916,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetBkMode(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -937,7 +937,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetBrushOrgEx(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -960,7 +960,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1006,7 +1006,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetLayout(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1027,7 +1027,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1055,7 +1055,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetPixel(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1078,7 +1078,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetROP2(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1099,7 +1099,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetTextAlign(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1120,7 +1120,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn SetTextColor(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1141,7 +1141,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn StretchBlt(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1185,7 +1185,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn StretchDIBits(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1234,7 +1234,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn TextOutA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1257,7 +1257,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn TextOutW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1280,7 +1280,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
 }
 const SHIMS: [Shim; 48usize] = [

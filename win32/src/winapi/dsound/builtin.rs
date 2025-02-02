@@ -36,7 +36,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn DirectSoundEnumerateA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -60,7 +60,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_GetCurrentPosition(
         machine: &mut Machine,
@@ -94,7 +94,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_GetStatus(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -115,7 +115,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_Lock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -161,7 +161,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_Play(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -195,7 +195,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -215,7 +215,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_SetFormat(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -236,7 +236,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSoundBuffer_Unlock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -273,7 +273,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSound_CreateSoundBuffer(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -307,7 +307,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSound_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -327,7 +327,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectSound_SetCooperativeLevel(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -350,7 +350,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
 }
 const SHIMS: [Shim; 12usize] = [

@@ -36,7 +36,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn DirectDrawCreateClipper(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -63,7 +63,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn DirectDrawCreateEx(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -91,7 +91,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw2_CreateSurface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -125,7 +125,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw2_EnumDisplayModes(
         machine: &mut Machine,
@@ -169,7 +169,7 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.to_abireturn()
+            result.into_abireturn()
         })
     }
     pub unsafe fn IDirectDraw2_GetDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
@@ -191,7 +191,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw2_QueryInterface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -213,7 +213,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw2_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -233,7 +233,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw2_SetDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -261,7 +261,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_CreateClipper(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -295,7 +295,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_CreatePalette(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -332,7 +332,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_CreateSurface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -366,7 +366,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_EnumDisplayModes(
         machine: &mut Machine,
@@ -410,7 +410,7 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.to_abireturn()
+            result.into_abireturn()
         })
     }
     pub unsafe fn IDirectDraw7_GetDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
@@ -432,7 +432,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -452,7 +452,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_RestoreDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -472,7 +472,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_SetCooperativeLevel(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -494,7 +494,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_SetDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -528,7 +528,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw7_WaitForVerticalBlank(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -551,7 +551,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawClipper_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -571,7 +571,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawClipper_SetHWnd(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -593,7 +593,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawPalette_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -613,7 +613,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawPalette_SetEntries(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -645,7 +645,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_GetAttachedSurface(
         machine: &mut Machine,
@@ -679,7 +679,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_GetCaps(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -700,7 +700,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_GetSurfaceDesc(
         machine: &mut Machine,
@@ -724,7 +724,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_Lock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -755,7 +755,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -775,7 +775,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface2_Unlock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -796,7 +796,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface3_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -816,7 +816,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Blt(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -850,7 +850,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_BltFast(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -883,7 +883,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Flip(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -905,7 +905,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_GetAttachedSurface(
         machine: &mut Machine,
@@ -939,7 +939,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_GetCaps(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -960,7 +960,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_GetDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -981,7 +981,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_GetPixelFormat(
         machine: &mut Machine,
@@ -1005,7 +1005,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_GetSurfaceDesc(
         machine: &mut Machine,
@@ -1029,7 +1029,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_IsLost(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1049,7 +1049,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Lock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1080,7 +1080,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1100,7 +1100,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_ReleaseDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1121,7 +1121,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Restore(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1141,7 +1141,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_SetClipper(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1162,7 +1162,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_SetColorKey(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1184,7 +1184,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_SetPalette(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1205,7 +1205,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface7_Unlock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1226,7 +1226,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_GetAttachedSurface(
         machine: &mut Machine,
@@ -1260,7 +1260,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_GetCaps(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1281,7 +1281,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_Lock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1312,7 +1312,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_QueryInterface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1335,7 +1335,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1355,7 +1355,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDrawSurface_Unlock(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1376,7 +1376,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw_CreateSurface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1410,7 +1410,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw_QueryInterface(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1432,7 +1432,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1452,7 +1452,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
     pub unsafe fn IDirectDraw_SetDisplayMode(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
@@ -1480,7 +1480,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     }
 }
 const SHIMS: [Shim; 57usize] = [

@@ -29,8 +29,8 @@ pub enum MMRESULT {
     MMSYSERR_NOTENABLED = 3,
 }
 impl super::stack_args::ABIReturn for MMRESULT {
-    fn to_abireturn(&self) -> u64 {
-        *self as u64
+    fn into_abireturn(self) -> u64 {
+        self as u64
     }
 }
 

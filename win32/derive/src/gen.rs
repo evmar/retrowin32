@@ -69,7 +69,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.to_abireturn()
+        result.into_abireturn()
     };
 
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
