@@ -1,4 +1,4 @@
-use crate::{str16::Str16, winapi::stack_args::ArrayWithSize, Machine};
+use crate::{str16::Str16, winapi::calling_convention::ArrayWithSize, Machine};
 
 #[win32_derive::dllexport]
 pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {

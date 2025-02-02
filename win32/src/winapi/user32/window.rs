@@ -3,8 +3,8 @@ use crate::{
     host,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
+        calling_convention::ArrayWithSize,
         gdi32::HDC,
-        stack_args::ArrayWithSize,
         types::{Str16, String16, HWND, POINT, RECT},
     },
     Host, Machine, SurfaceOptions,
@@ -235,7 +235,7 @@ pub enum CreateWindowClassName<'a, Str: ?Sized> {
     Atom(u16),
     Name(&'a Str),
 }
-impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, str> {
+impl<'a> crate::winapi::calling_convention::FromArg<'a> for CreateWindowClassName<'a, str> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
@@ -244,7 +244,7 @@ impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, st
         }
     }
 }
-impl<'a> crate::winapi::stack_args::FromArg<'a> for CreateWindowClassName<'a, Str16> {
+impl<'a> crate::winapi::calling_convention::FromArg<'a> for CreateWindowClassName<'a, Str16> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)

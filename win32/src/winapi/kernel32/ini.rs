@@ -1,7 +1,7 @@
 //! Functions that work with .ini files.
 
 use crate::{
-    winapi::{stack_args::ArrayWithSizeMut, types::Str16},
+    winapi::{calling_convention::ArrayWithSizeMut, types::Str16},
     Machine,
 };
 

@@ -6,8 +6,8 @@ use crate::winapi::user32::HINSTANCE;
 use crate::{
     pe,
     winapi::{
+        calling_convention::FromArg,
         kernel32,
-        stack_args::FromArg,
         types::{Str16, String16},
     },
     Machine,

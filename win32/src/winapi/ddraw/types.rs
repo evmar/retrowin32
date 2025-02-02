@@ -14,7 +14,7 @@ pub enum DD {
     ERR_GENERIC = 0x80004005,
 }
 
-impl crate::winapi::stack_args::ABIReturn for DD {
+impl crate::winapi::calling_convention::ABIReturn for DD {
     fn into_abireturn(self) -> u64 {
         self as u64
     }

@@ -93,13 +93,13 @@ impl<T> std::fmt::LowerHex for HANDLE<T> {
     }
 }
 
-impl<'a, T> crate::winapi::stack_args::FromArg<'a> for HANDLE<T> {
+impl<'a, T> crate::winapi::calling_convention::FromArg<'a> for HANDLE<T> {
     unsafe fn from_arg(_mem: memory::Mem, arg: u32) -> Self {
         Self::from_raw(arg)
     }
 }
 
-impl<T> crate::winapi::stack_args::ABIReturn for HANDLE<T> {
+impl<T> crate::winapi::calling_convention::ABIReturn for HANDLE<T> {
     fn into_abireturn(self) -> u64 {
         self.raw as u64
     }
