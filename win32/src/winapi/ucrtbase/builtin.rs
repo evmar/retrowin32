@@ -729,7 +729,7 @@ mod wrappers {
     }
     pub unsafe fn time(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
+        let destTime = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::trace::enabled("ucrtbase/time") {
             crate::trace::Record::new(
                 winapi::ucrtbase::time_pos,
