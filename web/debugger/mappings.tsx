@@ -34,7 +34,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
     });
     return (
       <section style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <table style={{ display: 'block', overflow: 'auto', position: 'relative' }}>
+        <table style={{ display: 'block', overflow: 'auto' }}>
           <thead>
             <tr>
               <th>addr</th>
