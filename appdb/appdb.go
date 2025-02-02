@@ -52,11 +52,13 @@ func loadEntry(path string) (*Entry, error) {
 	if _, err := toml.DecodeFile(path, &entry); err != nil {
 		return nil, err
 	}
-	if entry.Desc == "" {
-		return nil, nil
-	}
-	if entry.Category == "" {
-		return nil, fmt.Errorf("missing category")
+	if !entry.Broken {
+		if entry.Desc == "" {
+			return nil, fmt.Errorf("missing description")
+		}
+		if entry.Category == "" {
+			return nil, fmt.Errorf("missing category")
+		}
 	}
 	return &entry, nil
 }
@@ -74,10 +76,8 @@ func load() (map[string][]*Entry, error) {
 		if err != nil {
 			return fmt.Errorf("loading %q: %w", path, err)
 		}
-		if entry != nil {
-			if entry.Broken == *flagBroken {
-				entries[entry.Category] = append(entries[entry.Category], entry)
-			}
+		if entry.Broken == *flagBroken {
+			entries[entry.Category] = append(entries[entry.Category], entry)
 		}
 		return nil
 	})
