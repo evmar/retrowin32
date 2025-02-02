@@ -37,6 +37,9 @@ type Entry struct {
 	// Extra files needed to run, found in Dir.
 	Files []string `toml:"files"`
 
+	// DLLs to use from the file system instead of the internal copy.
+	External []string `toml:"external"`
+
 	// Origin is where the exe came from.
 	Origin *Link `toml:"origin"`
 

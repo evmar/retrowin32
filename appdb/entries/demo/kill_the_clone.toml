@@ -1,0 +1,11 @@
+title = "kill the clone"
+dir = "archive/demo/"
+path = "kill the clone unpacked.exe"
+category = "demoscene"
+broken = true
+files = ["msvcrt.dll"]
+external = ["msvcrt.dll"]
+
+[origin]
+desc = "pouet.net"
+url = "https://www.pouet.net/prod.php?which=2017"
