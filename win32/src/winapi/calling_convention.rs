@@ -209,6 +209,12 @@ impl ABIReturn for bool {
     }
 }
 
+impl ABIReturn for u64 {
+    fn into_abireturn(self) -> u64 {
+        self
+    }
+}
+
 impl ABIReturn for u32 {
     fn into_abireturn(self) -> u64 {
         self as u64
