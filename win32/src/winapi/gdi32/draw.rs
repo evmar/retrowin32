@@ -40,13 +40,13 @@ impl std::fmt::Debug for COLORREF {
     }
 }
 
-impl<'a> crate::winapi::stack_args::FromArg<'a> for COLORREF {
+impl<'a> crate::winapi::calling_convention::FromArg<'a> for COLORREF {
     unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         COLORREF(arg)
     }
 }
 
-impl crate::winapi::stack_args::ABIReturn for COLORREF {
+impl crate::winapi::calling_convention::ABIReturn for COLORREF {
     fn into_abireturn(self) -> u64 {
         self.0 as u64
     }

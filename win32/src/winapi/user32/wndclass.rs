@@ -1,7 +1,7 @@
 use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE};
 use crate::{
     str16::{expect_ascii, Str16},
-    winapi::{stack_args::FromArg, types::HWND},
+    winapi::{calling_convention::FromArg, types::HWND},
     Machine,
 };
 use bitflags::bitflags;

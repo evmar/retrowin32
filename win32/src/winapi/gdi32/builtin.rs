@@ -8,7 +8,7 @@ use crate::{
 mod wrappers {
     use crate::{
         machine::Machine,
-        winapi::{self, stack_args::*, types::*},
+        winapi::{self, calling_convention::*, types::*},
     };
     use ::memory::Extensions;
     use winapi::gdi32::*;

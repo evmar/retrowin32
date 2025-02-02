@@ -1,4 +1,4 @@
-use crate::winapi::{com::vtable, kernel32, stack_args};
+use crate::winapi::{calling_convention, com::vtable, kernel32};
 use crate::Machine;
 use memory::ExtensionsMut;
 
@@ -27,7 +27,7 @@ pub enum DI {
     ERR_DEVICENOTREG = 0x80040154,
 }
 
-impl stack_args::ABIReturn for DI {
+impl calling_convention::ABIReturn for DI {
     fn into_abireturn(self) -> u64 {
         self as u64
     }

@@ -7,7 +7,7 @@ pub use builtin::DLL;
 
 use crate::{
     machine::Machine,
-    winapi::{stack_args::ArrayWithSizeMut, types::HFILE},
+    winapi::{calling_convention::ArrayWithSizeMut, types::HFILE},
 };
 
 const STATUS_SUCCESS: u32 = 0;

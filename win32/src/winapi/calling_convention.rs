@@ -1,4 +1,10 @@
-//! Functions to unsafely grab winapi function arguments from an x86 stack.
+//! Functions implementing the win32 calling convention:
+//! - reading arguments from the stack;
+//! - converting return values into a form suitable for putting in registers
+//!
+//! These functions work with an arbitrary stack pointer (for input) and convert to
+//! plain values (for output) so that different machine implementations can do their
+//! own control over the stack and moving return values into registers.
 
 use super::types::{CStr, Str16};
 use crate::str16::expect_ascii;

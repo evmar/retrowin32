@@ -185,7 +185,7 @@ impl<'m> Mem<'m> {
         }
     }
 
-    /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in stack_args codegen.
+    /// Create a new Mem with arbitrary lifetime.  Very unsafe, used in calling_convertion codegen.
     pub unsafe fn detach<'a, 'b>(&'a self) -> Mem<'b> {
         std::mem::transmute(*self)
     }
