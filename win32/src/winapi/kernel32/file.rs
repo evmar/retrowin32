@@ -102,7 +102,7 @@ impl From<&Stat> for FileAttribute {
 }
 
 impl ABIReturn for FileAttribute {
-    fn to_abireturn(&self) -> u64 {
+    fn into_abireturn(self) -> u64 {
         self.bits() as u64
     }
 }

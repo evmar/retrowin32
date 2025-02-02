@@ -38,7 +38,7 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.to_abireturn()
+            result.into_abireturn()
         })
     }
 }

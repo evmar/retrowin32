@@ -100,7 +100,7 @@ impl<'a, T> crate::winapi::stack_args::FromArg<'a> for HANDLE<T> {
 }
 
 impl<T> crate::winapi::stack_args::ABIReturn for HANDLE<T> {
-    fn to_abireturn(&self) -> u64 {
+    fn into_abireturn(self) -> u64 {
         self.raw as u64
     }
 }

@@ -39,7 +39,7 @@ impl From<ERROR> for u32 {
 }
 
 impl stack_args::ABIReturn for ERROR {
-    fn to_abireturn(&self) -> u64 {
-        *self as u64
+    fn into_abireturn(self) -> u64 {
+        self as u64
     }
 }

@@ -190,12 +190,12 @@ impl<'a> FromStack<'a> for VarArgs {
 
 /// Types that can be returned from a winapi function, passed via EAX and sometimes EDX.
 pub trait ABIReturn {
-    fn to_abireturn(&self) -> u64;
+    fn into_abireturn(self) -> u64;
 }
 
 impl ABIReturn for bool {
-    fn to_abireturn(&self) -> u64 {
-        if *self {
+    fn into_abireturn(self) -> u64 {
+        if self {
             1
         } else {
             0
@@ -204,19 +204,19 @@ impl ABIReturn for bool {
 }
 
 impl ABIReturn for u32 {
-    fn to_abireturn(&self) -> u64 {
-        *self as u64
+    fn into_abireturn(self) -> u64 {
+        self as u64
     }
 }
 
 impl ABIReturn for i32 {
-    fn to_abireturn(&self) -> u64 {
-        *self as u32 as u64
+    fn into_abireturn(self) -> u64 {
+        self as u32 as u64
     }
 }
 
 impl ABIReturn for () {
-    fn to_abireturn(&self) -> u64 {
+    fn into_abireturn(self) -> u64 {
         0
     }
 }

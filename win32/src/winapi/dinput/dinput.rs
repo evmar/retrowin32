@@ -28,8 +28,8 @@ pub enum DI {
 }
 
 impl stack_args::ABIReturn for DI {
-    fn to_abireturn(&self) -> u64 {
-        *self as u64
+    fn into_abireturn(self) -> u64 {
+        self as u64
     }
 }
 
