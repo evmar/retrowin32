@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorHost } from './emulator';
+import { Emulator, EmulatorStatus, EmulatorHost } from './emulator';
 import { EmulatorComponent, loadEmulator } from './web';
 
 interface Status {
@@ -68,13 +68,8 @@ namespace Page {
 class Page extends preact.Component<{}, Page.State> {
   private async load() {
     const host: EmulatorHost = {
-      exit: (code) => {
-        this.print(`exited with code ${code}\n`);
-      },
       onWindowChanged: () => {
         this.forceUpdate();
-      },
-      showTab: (name: string) => {
       },
       onError: (msg) => {
         this.print(msg + '\n');
@@ -83,8 +78,11 @@ class Page extends preact.Component<{}, Page.State> {
       onStdOut: (stdout) => {
         this.print(stdout);
       },
-      onStopped: () => {
-        // TODO
+      onStopped: (status) => {
+        switch (status) {
+          case EmulatorStatus.Exit:
+            this.print(`exited with code ${emulator.emu.exit_code}\n`);
+        }
       },
     };
     const emulator = await loadEmulator(host);

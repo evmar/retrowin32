@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorHost } from '../emulator';
+import { Emulator, EmulatorStatus, EmulatorHost } from '../emulator';
 import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent, loadEmulator } from '../web';
 import { BreakpointsComponent } from './break';
@@ -72,15 +72,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
   private async load() {
     this.print('Loading...\n');
     const host: EmulatorHost = {
-      exit: (code: number) => {
-        this.print(`\nexited with code ${code}`);
-        this.stop();
-      },
       onWindowChanged: () => {
         this.forceUpdate();
-      },
-      showTab: (name: string) => {
-        this.setState({ selectedTab: name });
       },
       onError: (msg: string) => {
         this.print(msg + '\n');
@@ -95,7 +88,20 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
       onStdOut: (stdout: string) => {
         this.print(stdout);
       },
-      onStopped: () => {
+      onStopped: (status) => {
+        switch (status) {
+          case EmulatorStatus.Exit:
+            this.print(`\nexited with code ${emulator.emu.exit_code}`);
+            break;
+          case EmulatorStatus.DebugBreak:
+            const bp = emulator.breakpoints.isAtBreakpoint(emulator.emu.eip);
+            if (bp) {
+              if (!bp.oneShot) {
+                this.setState({ selectedTab: 'breakpoints' });
+              }
+            }
+            break;
+        }
         this.stop();
       },
     };
