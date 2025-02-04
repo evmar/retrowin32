@@ -12,10 +12,10 @@ async function fetchBytes(path: string): Promise<Uint8Array> {
 }
 
 class Window implements glue.JsWindow {
-  constructor(readonly jsHost: JsHost, readonly hwnd: number) {
+  constructor(readonly host: EmulatorHost, readonly hwnd: number) {
     const stashEvent = (ev: Event) => {
       (ev as any).hwnd = hwnd;
-      jsHost.enqueueEvent(ev);
+      host.onEvent(ev);
       return false;
     };
     this.canvas.onmousedown = stashEvent;
@@ -50,7 +50,7 @@ class Window implements glue.JsWindow {
     ctx.reset();
     ctx.imageSmoothingEnabled = false;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    this.jsHost.emuHost.onWindowChanged();
+    this.host.onWindowChanged();
   }
 
   set_size(w: number, h: number) {
@@ -119,7 +119,8 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 
 /** Emulator host, providing the emulation=>web API.  Extended by Emulator class. */
 export abstract class JsHost implements glue.JsHost, glue.JsLogger {
-  private events: Event[] = [];
+  // TODO: fold these classes together
+  protected events: Event[] = [];
   private timer?: number;
 
   decoder = new TextDecoder();
@@ -149,11 +150,6 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
   }
 
   abstract start(): void;
-
-  enqueueEvent(event: Event) {
-    this.events.push(event);
-    this.start();
-  }
 
   ensure_timer(when: number): void {
     if (this.timer) {
@@ -194,7 +190,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
 
   windows: Window[] = [];
   create_window(hwnd: number): glue.JsWindow {
-    let window = new Window(this, hwnd);
+    let window = new Window(this.emuHost, hwnd);
     this.windows.push(window);
     this.emuHost.onWindowChanged();
     return window;

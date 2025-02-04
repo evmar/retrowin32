@@ -11,6 +11,8 @@ export interface EmulatorHost {
   onError(msg: string): void;
   onStdOut(stdout: string): void;
   onStopped(status: EmulatorStatus): void;
+  /** DOM event on an emulator surface; should be forwarded to emulator. */
+  onEvent(event: Event): void;
 }
 
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
@@ -69,6 +71,11 @@ export class Emulator extends JsHost {
 
   stop() {
     this.looper.stop();
+  }
+
+  enqueueEvent(event: Event) {
+    this.events.push(event);
+    this.start();
   }
 
   mappings(): wasm.Mapping[] {

@@ -103,6 +103,10 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
         }
         this.stop();
       },
+      onEvent: (event) => {
+        // TODO: drop events if we're paused in a breakpoint etc.
+        emulator.enqueueEvent(event);
+      },
     };
     const emulator = await loadEmulator(host);
     emulator.emu.set_tracing_scheme('*');
