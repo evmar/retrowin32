@@ -54,34 +54,6 @@ struct RTL_USER_PROCESS_PARAMETERS {
 }
 unsafe impl ::memory::Pod for RTL_USER_PROCESS_PARAMETERS {}
 
-fn init_peb(cmdline: &mut CommandLine, arena: &mut Arena, mem: Mem) -> u32 {
-    // RTL_USER_PROCESS_PARAMETERS
-    let params_addr = arena.alloc(
-        std::cmp::max(
-            std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
-            0x100,
-        ),
-        4,
-    );
-    let params = mem.get_aligned_ref_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
-    // x86.put::<u32>(params_addr + 0x10, console_handle);
-    // x86.put::<u32>(params_addr + 0x14, console_flags);
-    // x86.put::<u32>(params_addr + 0x18, stdin);
-    params.hStdOutput = STDOUT_HFILE;
-    params.hStdError = STDERR_HFILE;
-    params.ImagePathName.clear();
-    params.CommandLine = cmdline.as_unicode_string(arena, mem);
-
-    // PEB
-    let peb_addr = arena.alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
-    let peb = mem.get_aligned_ref_mut::<PEB>(peb_addr);
-    peb.ProcessParameters = params_addr;
-    peb.ProcessHeap = 0; // TODO: use state.process_heap_addr instead
-    peb.TlsCount = 0;
-
-    peb_addr
-}
-
 /// Result of setting up the GDT, with initial values for all the relevant segment registers.
 pub struct GDTEntries {
     /// Address of GDT itself.
@@ -149,7 +121,7 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, cmdline: String, retrowin32_syscall: &[u8]) -> Self {
+    pub fn new(mem: &mut MemImpl, retrowin32_syscall: &[u8]) -> Self {
         let mut mappings = Mappings::new();
         let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
         let mut arena = Arena::new(mapping.addr, mapping.size);
@@ -182,13 +154,10 @@ impl State {
             .sub32_mut(env_addr, env.len() as u32)
             .copy_from_slice(env);
 
-        let mut cmdline = CommandLine::new(cmdline);
-        let peb = init_peb(&mut cmdline, &mut arena, mem.mem());
-
         State {
             arena,
             image_base: 0,
-            peb,
+            peb: 0,
             process_heap: Heap::default(),
             process_heap_addr: 0,
             mappings,
@@ -198,10 +167,39 @@ impl State {
             files: Default::default(),
             find_handles: Default::default(),
             env: env_addr,
-            cmdline,
+            cmdline: CommandLine::default(),
             resources: Default::default(),
             resource_handles: Default::default(),
         }
+    }
+
+    pub fn init_process(&mut self, mem: Mem, cmdline: String) {
+        self.cmdline = CommandLine::new(cmdline);
+
+        // RTL_USER_PROCESS_PARAMETERS
+        let params_addr = self.arena.alloc(
+            std::cmp::max(
+                std::mem::size_of::<RTL_USER_PROCESS_PARAMETERS>() as u32,
+                0x100,
+            ),
+            4,
+        );
+        let params = mem.get_aligned_ref_mut::<RTL_USER_PROCESS_PARAMETERS>(params_addr);
+        // x86.put::<u32>(params_addr + 0x10, console_handle);
+        // x86.put::<u32>(params_addr + 0x14, console_flags);
+        // x86.put::<u32>(params_addr + 0x18, stdin);
+        params.hStdOutput = STDOUT_HFILE;
+        params.hStdError = STDERR_HFILE;
+        params.ImagePathName.clear();
+        params.CommandLine = self.cmdline.as_unicode_string(&mut self.arena, mem);
+
+        self.peb = self
+            .arena
+            .alloc(std::cmp::max(std::mem::size_of::<PEB>() as u32, 0x100), 4);
+        let peb = mem.get_aligned_ref_mut::<PEB>(self.peb);
+        peb.ProcessParameters = params_addr;
+        peb.ProcessHeap = 0; // TODO: use state.process_heap_addr instead
+        peb.TlsCount = 0;
     }
 
     pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> Heap {

@@ -58,7 +58,8 @@ impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = BoxMem::new(256 << 20);
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, retrowin32_syscall);
+        let mut kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
+        kernel32.init_process(memory.mem(), cmdline);
         let shims = Shims::default();
         let state = winapi::State::new(&mut memory, kernel32);
 
