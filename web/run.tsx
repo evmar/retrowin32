@@ -89,6 +89,9 @@ class Page extends preact.Component<{}, Page.State> {
             this.print(`exited with code ${emulator.emu.exit_code}\n`);
         }
       },
+      onEvent: (event) => {
+        emulator.enqueueEvent(event);
+      },
     };
     const emulator = await loadEmulator(host);
     emulator.emu.set_tracing_scheme('-');
