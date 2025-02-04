@@ -1,7 +1,12 @@
+/**
+ * The main page for running the emulator.
+ * The top panel, console, and EmulatorComponent.
+ */
+
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorStatus, EmulatorHost } from './emulator';
-import { EmulatorComponent, loadEmulator } from './web';
+import { Emulator, EmulatorHost, EmulatorStatus, loadEmulator } from './emulator';
+import { EmulatorComponent } from './web';
 
 interface Status {
   instrCount: number;
