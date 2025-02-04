@@ -1,7 +1,7 @@
 import { Breakpoints } from './debugger/break';
 import * as wasm from './glue/pkg/glue';
 import { Status as EmulatorStatus } from './glue/pkg/glue';
-import { FileSet, JsHost } from './host';
+import { fetchFileSet, FileSet, JsHost } from './host';
 
 export { EmulatorStatus };
 
@@ -150,4 +150,55 @@ class Looper {
   stop() {
     this.running = false;
   }
+}
+
+interface URLParams {
+  /** URL directory that all other paths are resolved relative to. */
+  dir?: string;
+  /** Executable to run. */
+  exe: string;
+  /** DLLs to load from files instead of builtin implementations. */
+  externalDLLs: string[];
+  /** Other data files to load.  TODO: we should fetch these dynamically instead. */
+  files: string[];
+  /** If true, relocate the exe on load. */
+  relocate?: boolean;
+  /** Command line to pass to executable. */
+  cmdLine?: string;
+}
+
+function parseURL(): URLParams | undefined {
+  const query = new URLSearchParams(document.location.search);
+  const exe = query.get('exe');
+  if (!exe) return undefined;
+  const dir = query.get('dir') || undefined;
+  const externalDLLs = (query.get('external') || '').split(',');
+  const files = query.getAll('file');
+  const relocate = query.has('relocate');
+  const cmdLine = query.get('cmdline') || undefined;
+  const params: URLParams = { dir, exe, externalDLLs, files, relocate, cmdLine };
+  return params;
+}
+
+export async function loadEmulator(host: EmulatorHost) {
+  const params = parseURL();
+  if (!params) {
+    throw new Error('invalid URL params');
+  }
+
+  const fileset = await fetchFileSet([params.exe, ...params.files], params.dir);
+
+  await wasm.default(new URL('wasm.wasm', document.location.href));
+
+  const cmdLine = params.cmdLine ?? params.exe;
+  const exePath = (params.dir ?? '') + params.exe;
+  return new Emulator(
+    host,
+    fileset,
+    exePath,
+    cmdLine,
+    params.externalDLLs,
+    fileset.get(params.exe)!,
+    params.relocate ?? false,
+  );
 }

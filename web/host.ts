@@ -1,4 +1,7 @@
-import * as emulator from './emulator';
+/**
+ * The hosting side of the emulator, with implementations of JsWindow, JsFile, etc.
+ */
+
 import { EmulatorHost } from './emulator';
 import * as glue from './glue/pkg/glue';
 

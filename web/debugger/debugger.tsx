@@ -1,8 +1,8 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorStatus, EmulatorHost } from '../emulator';
+import { Emulator, EmulatorHost, EmulatorStatus, loadEmulator } from '../emulator';
 import { Instruction } from '../glue/pkg/glue';
-import { EmulatorComponent, loadEmulator } from '../web';
+import { EmulatorComponent } from '../web';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
 import { Labels, parseCSV } from './labels';
@@ -11,7 +11,6 @@ import { Memory, MemoryView, Number } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
-import { hex } from './util';
 
 namespace StartStop {
   export interface Props {
