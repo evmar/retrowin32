@@ -210,7 +210,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           />
           &nbsp;
           <div>
-            {emulator.emu.instr_count} instrs executed | {Math.floor(emulator.instrPerMs)}/ms
+            {emulator.emu.instr_count} instrs executed | {Math.floor(emulator.looper.stepsPerMs)}/ms
           </div>
         </section>
         <div style={{ display: 'flex', gap: '8px' }}>

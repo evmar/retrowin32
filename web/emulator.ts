@@ -15,10 +15,8 @@ export interface EmulatorHost {
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
 export class Emulator extends JsHost {
   readonly emu: wasm.Emulator;
-  /** True when the emulator is actively trying to loop and executing instructions, false when stopped or blocked. */
-  running = false;
   breakpoints: Breakpoints;
-  channel = new MessageChannel();
+  looper: Looper;
 
   constructor(
     host: EmulatorHost,
@@ -34,8 +32,7 @@ export class Emulator extends JsHost {
     this.emu.set_external_dlls(externalDLLs);
     this.emu.load_exe(exePath, bytes, relocate);
     this.breakpoints = new Breakpoints(exePath);
-
-    this.channel.port2.onmessage = () => this.loop();
+    this.looper = new Looper(this.runBatch);
   }
 
   step() {
@@ -43,89 +40,55 @@ export class Emulator extends JsHost {
     this.emu.run(1);
   }
 
-  /** Number of instructions to execute per stepMany, adjusted dynamically. */
-  stepSize = 5000;
-  /** Moving average of instructions executed per millisecond. */
-  instrPerMs = 0;
-
-  private runBatch() {
-    const startTime = performance.now();
+  private runBatch = (stepSize: number): number | null => {
     const startSteps = this.emu.instr_count;
-    const cpuState = this.emu.run(this.stepSize) as wasm.Status;
-    const endTime = performance.now();
+    const cpuState = this.emu.run(stepSize) as wasm.Status;
     const endSteps = this.emu.instr_count;
 
-    const steps = endSteps - startSteps;
-    if (steps > 1000) { // only update if we ran enough instructions to get a good measurement
-      const deltaTime = endTime - startTime;
-
-      const instrPerMs = steps / deltaTime;
-      const alpha = 0.5; // smoothing factor
-      this.instrPerMs = alpha * instrPerMs + (1 - alpha) * this.instrPerMs;
-
-      if (deltaTime < 8) {
-        this.stepSize = this.instrPerMs * 8;
-        // console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
-      }
+    if (cpuState !== wasm.Status.Running) {
+      this.onStopped(cpuState);
+      return null;
     }
 
-    return cpuState;
+    const steps = endSteps - startSteps;
+    return steps;
+  };
+
+  start() {
+    if (this.looper.running) return;
+    this.emu.unblock(); // Attempt to resume any blocked threads.
+    // Advance past the current breakpoint, if any.
+    if (this.breakpoints.isAtBreakpoint(this.emu.eip)) {
+      this.step();
+    }
+    this.breakpoints.install(this.emu);
+    this.looper.start();
   }
 
-  /** Runs a batch of instructions.  Returns false if we should stop. */
-  private stepMany(): boolean {
-    this.breakpoints.install(this.emu);
-    const cpuState = this.runBatch();
-    this.breakpoints.uninstall(this.emu);
+  stop() {
+    this.looper.stop();
+  }
 
+  private onStopped(cpuState: wasm.Status) {
+    this.breakpoints.uninstall(this.emu);
     switch (cpuState) {
-      case wasm.Status.Running:
-        return true;
       case wasm.Status.DebugBreak: {
         const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
         if (bp) {
           if (!bp.oneShot) {
             this.emuHost.showTab('breakpoints');
           }
-          this.emuHost.onStopped();
         }
-        return false;
+        break;
       }
       case wasm.Status.Blocked:
       case wasm.Status.Error:
-        this.emuHost.onStopped();
-        return false;
+        break;
       case wasm.Status.Exit:
-        this.emuHost.onStopped();
         this.emuHost.exit(this.emu.exit_code);
-        return false;
+        break;
     }
-  }
-
-  start() {
-    if (this.running) return;
-    this.emu.unblock(); // Attempt to resume any blocked threads.
-    // Advance past the current breakpoint, if any.
-    if (this.breakpoints.isAtBreakpoint(this.emu.eip)) {
-      this.step();
-    }
-    this.running = true;
-    // Don't loop() immediately, to allow the message loop one tick before emulation starts.
-    this.channel.port1.postMessage(null);
-  }
-
-  /** Runs a batch of instructions; called in a loop. */
-  private loop() {
-    if (!this.running) return;
-    if (!this.stepMany()) {
-      this.stop();
-      return;
-    }
-    this.channel.port1.postMessage(null);
-  }
-
-  stop() {
-    this.running = false;
+    this.emuHost.onStopped();
   }
 
   mappings(): wasm.Mapping[] {
@@ -140,5 +103,71 @@ export class Emulator extends JsHost {
   disassemble(addr: number): wasm.Instruction[] {
     // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
     return JSON.parse(this.emu.disassemble_json(addr, 20)) as wasm.Instruction[];
+  }
+}
+
+/** Target milliseconds to execute per batch. */
+const TARGET_MS = 8;
+
+/** Runs blocking code (emulation) while yielding to to the browser event loop. */
+class Looper {
+  channel = new MessageChannel();
+
+  running = false;
+
+  /** Number of steps to execute per stepMany, adjusted dynamically. */
+  stepSize = 5000;
+  /** Moving average of steps executed per millisecond. */
+  stepsPerMs = 0;
+
+  constructor(private loopee: (count: number) => number | null) {
+    this.channel.port2.onmessage = () => this.loop();
+  }
+
+  /** Main "loop" that loops asynchronously by posting to the internal message channel. */
+  private loop() {
+    if (!this.running) return;
+    const keepGoing = this.runBatch();
+    if (!keepGoing) {
+      this.stop();
+    } else {
+      this.channel.port1.postMessage(null);
+    }
+  }
+
+  /** Runs one batch of steps, measuring and adjusting parameters to hit this.targetMs. */
+  private runBatch(): boolean {
+    const startTime = performance.now();
+    const steps = this.loopee(this.stepSize);
+    const endTime = performance.now();
+
+    if (steps === null) {
+      return false;
+    }
+
+    if (steps > 1000) { // only update if we ran enough instructions to get a good measurement
+      const deltaTime = endTime - startTime;
+
+      const stepsPerMs = steps / deltaTime;
+      const alpha = 0.5; // smoothing factor
+      this.stepsPerMs = alpha * stepsPerMs + (1 - alpha) * this.stepsPerMs;
+
+      if (deltaTime < TARGET_MS) {
+        this.stepSize = this.stepsPerMs * TARGET_MS;
+        // console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
+      }
+    }
+
+    return true;
+  }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.channel.port1.postMessage(null);
+  }
+
+  stop() {
+    this.running = false;
   }
 }

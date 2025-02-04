@@ -19,7 +19,7 @@ class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status 
     this.setState({
       status: {
         instrCount: this.props.emulator.emu.instr_count,
-        instrPerMs: Math.floor(this.props.emulator.instrPerMs),
+        instrPerMs: Math.floor(this.props.emulator.looper.stepsPerMs),
       },
     });
   };
