@@ -92,6 +92,7 @@ export interface JsWindow {
 
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "JsWindow")]
     pub type JsWindow;
     #[wasm_bindgen(method, setter)]
     fn set_title(this: &JsWindow, title: &str);
@@ -126,6 +127,7 @@ export interface JsFile {
 
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "JsFile")]
     pub type JsFile;
     #[wasm_bindgen(method)]
     fn info(this: &JsFile) -> u64;
@@ -259,6 +261,7 @@ export interface JsHost {
 
 #[wasm_bindgen]
 extern "C" {
+    #[wasm_bindgen(typescript_type = "JsHost")]
     pub type JsHost;
 
     #[wasm_bindgen(method)]
