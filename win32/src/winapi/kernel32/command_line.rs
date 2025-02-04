@@ -7,6 +7,7 @@ use memory::{ExtensionsMut, Mem};
 /// Process command line, as exposed in GetCommandLine() and also TEB.
 /// Gross: GetCommandLineA() needs to return a pointer that's never freed,
 /// so we need to hang on to both versions of the command line.
+#[derive(Default)]
 pub struct CommandLine {
     /// Command line as understood by retrowin32.
     string: String,

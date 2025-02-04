@@ -32,7 +32,8 @@ pub type Machine = MachineX<Emulator>;
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
         let mut memory = MemImpl::default();
-        let kernel32 = winapi::kernel32::State::new(&mut memory, cmdline, &retrowin32_syscall());
+        let mut kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
+        kernel32.init_process(memory.mem(), cmdline);
         let shims = Shims::new(kernel32.teb);
         let state = winapi::State::new(&mut memory, kernel32);
 
