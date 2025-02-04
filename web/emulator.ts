@@ -1,15 +1,16 @@
 import { Breakpoints } from './debugger/break';
 import * as wasm from './glue/pkg/glue';
+import { Status as EmulatorStatus } from './glue/pkg/glue';
 import { FileSet, JsHost } from './host';
+
+export { EmulatorStatus };
 
 /** Functions the emulator may need to call. */
 export interface EmulatorHost {
-  exit(code: number): void;
   onWindowChanged(): void;
-  showTab(name: string): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
-  onStopped(): void;
+  onStopped(status: EmulatorStatus): void;
 }
 
 /** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
@@ -46,7 +47,8 @@ export class Emulator extends JsHost {
     const endSteps = this.emu.instr_count;
 
     if (cpuState !== wasm.Status.Running) {
-      this.onStopped(cpuState);
+      this.breakpoints.uninstall(this.emu);
+      this.emuHost.onStopped(cpuState);
       return null;
     }
 
@@ -67,28 +69,6 @@ export class Emulator extends JsHost {
 
   stop() {
     this.looper.stop();
-  }
-
-  private onStopped(cpuState: wasm.Status) {
-    this.breakpoints.uninstall(this.emu);
-    switch (cpuState) {
-      case wasm.Status.DebugBreak: {
-        const bp = this.breakpoints.isAtBreakpoint(this.emu.eip);
-        if (bp) {
-          if (!bp.oneShot) {
-            this.emuHost.showTab('breakpoints');
-          }
-        }
-        break;
-      }
-      case wasm.Status.Blocked:
-      case wasm.Status.Error:
-        break;
-      case wasm.Status.Exit:
-        this.emuHost.exit(this.emu.exit_code);
-        break;
-    }
-    this.emuHost.onStopped();
   }
 
   mappings(): wasm.Mapping[] {

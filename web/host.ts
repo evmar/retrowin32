@@ -121,7 +121,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
 
   decoder = new TextDecoder();
 
-  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) {}
+  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) { }
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
@@ -143,11 +143,6 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
       default:
         throw new Error(`unexpected log level #{level}`);
     }
-  }
-
-  // TODO: now unused
-  exit(code: number) {
-    this.emuHost.exit(code);
   }
 
   abstract start(): void;
