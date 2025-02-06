@@ -30,10 +30,9 @@ pub type MemImpl = RawMem;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = MemImpl::default();
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
-        kernel32.init_process(memory.mem(), cmdline);
+        let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
         let shims = Shims::new(kernel32.teb);
         let state = winapi::State::new(&mut memory, kernel32);
 
@@ -57,8 +56,12 @@ impl MachineX<Emulator> {
         &mut self,
         buf: &[u8],
         path: &std::path::Path,
+        cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
+        self.state
+            .kernel32
+            .init_process(self.emu.memory.mem(), cmdline);
         let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack = self.state.kernel32.mappings.alloc(

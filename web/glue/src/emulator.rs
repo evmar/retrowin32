@@ -26,12 +26,19 @@ impl Emulator {
         self.machine.set_external_dlls(&dlls);
     }
 
-    pub fn load_exe(&mut self, name: &str, buf: &[u8], relocate: bool) -> JsResult<()> {
+    pub fn load_exe(
+        &mut self,
+        name: &str,
+        buf: &[u8],
+        cmdline: String,
+        relocate: bool,
+    ) -> JsResult<()> {
         // TODO: maybe we shouldn't be bundling std::path code on web?
         self.machine
             .load_exe(
                 buf,
                 std::path::Path::new(name),
+                cmdline,
                 if relocate { Some(None) } else { None },
             )
             .map_err(err_from_anyhow)?;
@@ -131,8 +138,8 @@ impl Emulator {
 }
 
 #[wasm_bindgen]
-pub fn new_emulator(host: JsHost, cmdline: String) -> Emulator {
+pub fn new_emulator(host: JsHost) -> Emulator {
     crate::log::init(host.clone().unchecked_into());
-    let machine = win32::Machine::new(Box::new(host), cmdline);
+    let machine = win32::Machine::new(Box::new(host));
     Emulator { machine }
 }

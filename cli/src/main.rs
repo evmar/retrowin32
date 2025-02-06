@@ -148,12 +148,12 @@ fn main() -> anyhow::Result<ExitCode> {
         .map(|s| escape_arg(s))
         .collect::<Vec<_>>()
         .join(" ");
-    let mut machine = win32::Machine::new(Box::new(host.clone()), cmdline);
+    let mut machine = win32::Machine::new(Box::new(host.clone()));
     machine.set_external_dlls(&args.external_dll);
     machine.state.winmm.audio_enabled = args.audio;
 
     let addrs = machine
-        .load_exe(&buf, &exe, None)
+        .load_exe(&buf, &exe, cmdline, None)
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
     _ = addrs;
 
