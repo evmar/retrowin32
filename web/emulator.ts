@@ -25,17 +25,17 @@ export class Emulator extends JsHost {
     host: EmulatorHost,
     files: FileSet,
     readonly exePath: string,
-    cmdLine: string,
     externalDLLs: string[],
-    bytes: Uint8Array,
-    relocate: boolean,
   ) {
     super(host, files);
     this.emu = wasm.new_emulator(this);
     this.emu.set_external_dlls(externalDLLs);
-    this.emu.load_exe(bytes, cmdLine, relocate);
     this.breakpoints = new Breakpoints(exePath);
     this.looper = new Looper(this.runBatch);
+  }
+
+  loadExe(cmdLine: string, bytes: Uint8Array, relocate: boolean) {
+    this.emu.load_exe(bytes, cmdLine, relocate);
   }
 
   step() {
@@ -199,13 +199,7 @@ export async function loadEmulator(host: EmulatorHost) {
 
   const cmdLine = params.cmdLine ?? params.exe;
   const exePath = (params.dir ?? '') + params.exe;
-  return new Emulator(
-    host,
-    fileset,
-    exePath,
-    cmdLine,
-    params.externalDLLs,
-    fileset.get(params.exe)!,
-    params.relocate ?? false,
-  );
+  const emu = new Emulator(host, fileset, exePath, params.externalDLLs);
+  emu.loadExe(cmdLine, fileset.get(params.exe)!, params.relocate ?? false);
+  return emu;
 }
