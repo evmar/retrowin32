@@ -90,11 +90,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
       onStopped: (status) => {
         switch (status) {
           case emulator.Status.Blocked:
-            emu.stop();
-            return;
-          case emulator.Status.Error:
-            this.stop();
-            break;
+            return; // don't stop the UI on this
           case emulator.Status.DebugBreak:
             const bp = emu.breakpoints.isAtBreakpoint(emu.emu.eip);
             if (bp) {
@@ -107,7 +103,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             this.print(`\nexited with code ${emu.emu.exit_code}`);
             break;
         }
-        this.stop();
+        this.stop(); // update the run/stop button etc.
       },
       onEvent: (event) => {
         if (!this.state.running) {
