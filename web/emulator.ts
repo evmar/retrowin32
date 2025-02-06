@@ -125,22 +125,35 @@ export interface Host {
   onEvent(event: Event): void;
 }
 
-/** Emulator host, providing the emulation=>web API.  Extended by Emulator class. */
-export abstract class JsHost implements wasm.JsHost, wasm.JsLogger {
-  // TODO: fold these classes together
-  protected events: Event[] = [];
-  private timer?: number;
+/** Wraps wasm.Emulator, providing the emulation=>web API. */
+export class Emulator implements wasm.JsHost, wasm.JsLogger {
+  readonly emu: wasm.Emulator;
+  breakpoints: Breakpoints;
+  looper: Looper;
+
+  events: Event[] = [];
+  timer?: number;
 
   decoder = new TextDecoder();
 
-  constructor(readonly emuHost: Host, readonly files: FileSet) {}
+  constructor(
+    readonly host: Host,
+    readonly files: FileSet,
+    readonly exePath: string,
+    externalDLLs: string[],
+  ) {
+    this.emu = wasm.new_emulator(this);
+    this.emu.set_external_dlls(externalDLLs);
+    this.breakpoints = new Breakpoints(exePath);
+    this.looper = new Looper(this.runBatch);
+  }
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
     switch (level) {
       case 1:
         console.error(msg);
-        this.emuHost.onError(msg);
+        this.host.onError(msg);
         break;
       case 2:
         console.warn(msg);
@@ -156,8 +169,6 @@ export abstract class JsHost implements wasm.JsHost, wasm.JsLogger {
         throw new Error(`unexpected log level #{level}`);
     }
   }
-
-  abstract start(): void;
 
   ensure_timer(when: number): void {
     if (this.timer) {
@@ -193,14 +204,14 @@ export abstract class JsHost implements wasm.JsHost, wasm.JsLogger {
 
   stdout(buf: Uint8Array) {
     const text = this.decoder.decode(buf);
-    this.emuHost.onStdOut(text);
+    this.host.onStdOut(text);
   }
 
   windows: Window[] = [];
   create_window(hwnd: number): wasm.JsWindow {
-    let window = new Window(this.emuHost, hwnd);
+    let window = new Window(this.host, hwnd);
     this.windows.push(window);
-    this.emuHost.onWindowChanged();
+    this.host.onWindowChanged();
     return window;
   }
 
@@ -213,26 +224,6 @@ export abstract class JsHost implements wasm.JsHost, wasm.JsLogger {
 
   audio(buf: Int16Array) {
     console.warn('TODO: audio');
-  }
-}
-
-/** Wraps wasm.Emulator, able to run in a loop while still yielding to browser events. */
-export class Emulator extends JsHost {
-  readonly emu: wasm.Emulator;
-  breakpoints: Breakpoints;
-  looper: Looper;
-
-  constructor(
-    host: Host,
-    files: FileSet,
-    readonly exePath: string,
-    externalDLLs: string[],
-  ) {
-    super(host, files);
-    this.emu = wasm.new_emulator(this);
-    this.emu.set_external_dlls(externalDLLs);
-    this.breakpoints = new Breakpoints(exePath);
-    this.looper = new Looper(this.runBatch);
   }
 
   loadExe(cmdLine: string, bytes: Uint8Array, relocate: boolean) {
@@ -251,7 +242,7 @@ export class Emulator extends JsHost {
 
     if (cpuState !== wasm.Status.Running) {
       this.breakpoints.uninstall(this.emu);
-      this.emuHost.onStopped(cpuState);
+      this.host.onStopped(cpuState);
       return null;
     }
 
