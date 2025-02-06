@@ -273,6 +273,10 @@ impl MachineX<Emulator> {
         }
     }
 
+    pub fn exit_thread(&mut self) {
+        self.emu.x86.cpu_mut().state = x86::CPUState::Free;
+    }
+
     pub fn exit(&mut self, exit_code: u32) {
         self.status = Status::Exit(exit_code);
     }

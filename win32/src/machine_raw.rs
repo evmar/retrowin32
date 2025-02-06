@@ -97,6 +97,10 @@ impl MachineX<Emulator> {
         crate::shims::call_sync(pin);
     }
 
+    pub fn exit_thread(&mut self) {
+        todo!();
+    }
+
     pub fn exit(&mut self, exit_code: u32) {
         self.status = Status::Exit(exit_code);
     }

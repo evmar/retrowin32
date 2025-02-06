@@ -241,18 +241,22 @@ pub async fn CreateThread(
 
 #[win32_derive::dllexport]
 pub fn ExitThread(machine: &mut Machine, dwExitCode: u32) {
-    if machine.emu.x86.cur_cpu == 0 {
-        panic!("ExitThread called on main thread");
+    #[cfg(feature = "x86-emu")]
+    {
+        if machine.emu.x86.cur_cpu == 0 {
+            panic!("ExitThread called on main thread");
+        }
+
+        log::warn!(
+            "thread on cpu {id} exiting with code {code}",
+            code = dwExitCode,
+            id = machine.emu.x86.cur_cpu
+        );
+        // TODO: free stack, other thread cleanup, set event to signal waiters, etc.
+        machine.exit_thread();
     }
-
-    log::warn!(
-        "thread on cpu {id} exiting with code {code}",
-        code = dwExitCode,
-        id = machine.emu.x86.cur_cpu
-    );
-    // TODO: free stack, other thread cleanup, set event to signal waiters, etc.
-
-    machine.emu.x86.cpu_mut().state = x86::CPUState::Free;
+    #[cfg(not(feature = "x86-emu"))]
+    todo!();
 }
 
 #[win32_derive::dllexport]
