@@ -5,7 +5,7 @@
 
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorHost, EmulatorStatus, loadEmulator } from './emulator';
+import * as emulator from './emulator';
 import { EmulatorComponent } from './web';
 
 interface Status {
@@ -13,7 +13,7 @@ interface Status {
   instrPerMs: number;
 }
 
-class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status }> {
+class Panel extends preact.Component<{ emulator?: emulator.Emulator }, { status?: Status }> {
   private debugger() {
     window.location.pathname = window.location.pathname.replace('/run.html', '/debugger.html');
   }
@@ -65,14 +65,14 @@ class Panel extends preact.Component<{ emulator?: Emulator }, { status?: Status 
 
 namespace Page {
   export interface State {
-    emulator?: Emulator;
+    emulator?: emulator.Emulator;
     output?: string;
   }
 }
 
 class Page extends preact.Component<{}, Page.State> {
   private async load() {
-    const host: EmulatorHost = {
+    const host: emulator.Host = {
       onWindowChanged: () => {
         this.forceUpdate();
       },
@@ -85,18 +85,18 @@ class Page extends preact.Component<{}, Page.State> {
       },
       onStopped: (status) => {
         switch (status) {
-          case EmulatorStatus.Exit:
-            this.print(`exited with code ${emulator.emu.exit_code}\n`);
+          case emulator.Status.Exit:
+            this.print(`exited with code ${emu.emu.exit_code}\n`);
         }
       },
       onEvent: (event) => {
-        emulator.enqueueEvent(event);
+        emu.enqueueEvent(event);
       },
     };
-    const emulator = await loadEmulator(host);
-    emulator.emu.set_tracing_scheme('-');
-    this.setState({ emulator });
-    emulator.start();
+    const emu = await emulator.load(host);
+    emu.emu.set_tracing_scheme('-');
+    this.setState({ emulator: emu });
+    emu.start();
   }
 
   private print = (text: string) => {

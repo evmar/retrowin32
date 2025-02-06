@@ -1,6 +1,6 @@
 import * as preact from 'preact';
 import { Fragment, h } from 'preact';
-import { Emulator, EmulatorHost, EmulatorStatus, loadEmulator } from '../emulator';
+import * as emulator from '../emulator';
 import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent } from '../web';
 import { BreakpointsComponent } from './break';
@@ -52,7 +52,7 @@ namespace Debugger {
   export interface Props {
   }
   export interface State {
-    emulator?: Emulator;
+    emulator?: emulator.Emulator;
     stdout?: string;
     error: string;
     /** Initial address to show in memory pane. */
@@ -70,7 +70,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
   private async load() {
     this.print('Loading...\n');
-    const host: EmulatorHost = {
+    const host: emulator.Host = {
       onWindowChanged: () => {
         this.forceUpdate();
       },
@@ -89,11 +89,11 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
       },
       onStopped: (status) => {
         switch (status) {
-          case EmulatorStatus.Exit:
-            this.print(`\nexited with code ${emulator.emu.exit_code}`);
+          case emulator.Status.Exit:
+            this.print(`\nexited with code ${emu.emu.exit_code}`);
             break;
-          case EmulatorStatus.DebugBreak:
-            const bp = emulator.breakpoints.isAtBreakpoint(emulator.emu.eip);
+          case emulator.Status.DebugBreak:
+            const bp = emu.breakpoints.isAtBreakpoint(emu.emu.eip);
             if (bp) {
               if (!bp.oneShot) {
                 this.setState({ selectedTab: 'breakpoints' });
@@ -105,22 +105,22 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
       },
       onEvent: (event) => {
         // TODO: drop events if we're paused in a breakpoint etc.
-        emulator.enqueueEvent(event);
+        emu.enqueueEvent(event);
       },
     };
-    const emulator = await loadEmulator(host);
-    emulator.emu.set_tracing_scheme('*');
+    const emu = await emulator.load(host);
+    emu.emu.set_tracing_scheme('*');
 
-    const labels = emulator.labels();
+    const labels = emu.labels();
     this.state.labels.load(labels);
 
-    this.setState({ stdout: undefined, emulator });
+    this.setState({ stdout: undefined, emulator: emu });
 
-    this.loadLabelsCSV(emulator).catch((e) => this.print(e.stack ?? e.toString()));
+    this.loadLabelsCSV(emu).catch((e) => this.print(e.stack ?? e.toString()));
   }
 
   /** Load ghidra CSV, if any exists, into the label list. */
-  async loadLabelsCSV(emulator: Emulator) {
+  async loadLabelsCSV(emulator: emulator.Emulator) {
     const resp = await fetch(emulator.exePath + '.csv');
     if (!resp.ok) {
       return;
