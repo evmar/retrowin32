@@ -97,6 +97,10 @@ impl MachineX<Emulator> {
         crate::shims::call_sync(pin);
     }
 
+    pub fn teb_addr(&self) -> u32 {
+        todo!();
+    }
+
     pub fn exit_thread(&mut self) {
         todo!();
     }
