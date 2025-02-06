@@ -55,11 +55,10 @@ pub type MemImpl = BoxMem;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = BoxMem::new(256 << 20);
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
-        kernel32.init_process(memory.mem(), cmdline);
+        let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
         let shims = Shims::default();
         let state = winapi::State::new(&mut memory, kernel32);
 
@@ -87,9 +86,14 @@ impl MachineX<Emulator> {
         &mut self,
         buf: &[u8],
         path: &Path,
+        cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
+        self.state
+            .kernel32
+            .init_process(self.emu.memory.mem(), cmdline);
         let exe = pe::load_exe(self, buf, path, relocate)?;
+
         // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
         // that the exe wants.
         self.state.kernel32.init_process_heap(&mut self.emu.memory);

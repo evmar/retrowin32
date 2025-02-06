@@ -46,11 +46,10 @@ pub struct Emulator {
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
-    pub fn new(host: Box<dyn host::Host>, cmdline: String) -> Self {
+    pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = MemImpl::new(32 << 20);
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
-        let mut kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
-        kernel32.init_process(memory.mem(), cmdline);
+        let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
 
         let mut unicorn = Unicorn::new(Arch::X86, Mode::MODE_32).unwrap();
         unsafe {
@@ -177,8 +176,12 @@ impl MachineX<Emulator> {
         &mut self,
         buf: &[u8],
         path: &Path,
+        cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
+        self.state
+            .kernel32
+            .init_process(self.emu.memory.mem(), cmdline);
         let exe = pe::load_exe(self, buf, path, relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
