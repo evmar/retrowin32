@@ -1,7 +1,7 @@
 import { Breakpoints } from './debugger/break';
 import * as wasm from './glue/pkg/glue';
 import { Status } from './glue/pkg/glue';
-export { Status as EmulatorStatus };
+export { Status };
 
 async function fetchBytes(path: string): Promise<Uint8Array> {
   const resp = await fetch(path);
@@ -22,7 +22,7 @@ export async function fetchFileSet(files: string[], dir: string = ''): Promise<F
 }
 
 class Window implements wasm.JsWindow {
-  constructor(readonly host: EmulatorHost, readonly hwnd: number) {
+  constructor(readonly host: Host, readonly hwnd: number) {
     const stashEvent = (ev: Event) => {
       (ev as any).hwnd = hwnd;
       host.onEvent(ev);
@@ -115,9 +115,8 @@ class File implements wasm.JsFile {
   }
 }
 
-
 /** Functions the emulator may need to call. */
-export interface EmulatorHost {
+export interface Host {
   onWindowChanged(): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
@@ -134,7 +133,7 @@ export abstract class JsHost implements wasm.JsHost, wasm.JsLogger {
 
   decoder = new TextDecoder();
 
-  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) { }
+  constructor(readonly emuHost: Host, readonly files: FileSet) {}
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
@@ -224,7 +223,7 @@ export class Emulator extends JsHost {
   looper: Looper;
 
   constructor(
-    host: EmulatorHost,
+    host: Host,
     files: FileSet,
     readonly exePath: string,
     externalDLLs: string[],
@@ -389,7 +388,7 @@ function parseURL(): URLParams | undefined {
   return params;
 }
 
-export async function loadEmulator(host: EmulatorHost) {
+export async function load(host: Host) {
   const params = parseURL();
   if (!params) {
     throw new Error('invalid URL params');
