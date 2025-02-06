@@ -418,7 +418,7 @@ pub fn WriteFile(
 
     let n = match hFile {
         STDOUT_HFILE | STDERR_HFILE => {
-            machine.host.log(buf);
+            machine.host.stdout(buf);
             buf.len()
         }
         _ => {

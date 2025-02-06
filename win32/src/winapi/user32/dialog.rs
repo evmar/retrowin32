@@ -52,9 +52,7 @@ pub fn MessageBoxA(
     let caption = caption.to_str_or_warn();
     let text = lpText.unwrap();
     let text = text.to_str_or_warn();
-    machine
-        .host
-        .log(format!("MessageBox: {caption}\n{text}",).as_bytes());
+    log::info!("MessageBox: {caption}\n{text}");
     1 // IDOK
 }
 
@@ -66,13 +64,10 @@ pub fn MessageBoxW(
     lpCaption: Option<&Str16>,
     uType: u32,
 ) -> u32 {
-    machine.host.log(
-        format!(
-            "MessageBox: {}\n{}",
-            lpCaption.unwrap().to_string(),
-            lpText.unwrap().to_string()
-        )
-        .as_bytes(),
+    log::info!(
+        "MessageBox: {}\n{}",
+        lpCaption.unwrap().to_string(),
+        lpText.unwrap().to_string()
     );
     1 // IDOK
 }

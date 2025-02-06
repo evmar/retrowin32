@@ -200,7 +200,7 @@ impl win32::Host for EnvRef {
         Ok(())
     }
 
-    fn log(&self, buf: &[u8]) {
+    fn stdout(&self, buf: &[u8]) {
         std::io::stdout().lock().write_all(buf).unwrap();
     }
 

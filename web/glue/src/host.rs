@@ -334,7 +334,7 @@ impl win32::Host for JsHost {
         Ok(Box::new(ReadDir {}))
     }
 
-    fn log(&self, buf: &[u8]) {
+    fn stdout(&self, buf: &[u8]) {
         JsHost::stdout(self, buf)
     }
 
