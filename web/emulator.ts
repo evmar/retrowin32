@@ -120,6 +120,7 @@ export interface Host {
   onWindowChanged(): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
+  /** Notification that the emulator stopped, e.g. on blocking, error, or exit. */
   onStopped(status: Status): void;
   /** DOM event on an emulator surface; should be forwarded to emulator. */
   onEvent(event: Event): void;
@@ -242,6 +243,7 @@ export class Emulator implements wasm.JsHost, wasm.JsLogger {
 
     if (cpuState !== wasm.Status.Running) {
       this.breakpoints.uninstall(this.emu);
+      this.looper.stop();
       this.host.onStopped(cpuState);
       return null;
     }
