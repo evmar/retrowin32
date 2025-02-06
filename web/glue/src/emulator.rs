@@ -26,21 +26,9 @@ impl Emulator {
         self.machine.set_external_dlls(&dlls);
     }
 
-    pub fn load_exe(
-        &mut self,
-        name: &str,
-        buf: &[u8],
-        cmdline: String,
-        relocate: bool,
-    ) -> JsResult<()> {
-        // TODO: maybe we shouldn't be bundling std::path code on web?
+    pub fn load_exe(&mut self, buf: &[u8], cmdline: String, relocate: bool) -> JsResult<()> {
         self.machine
-            .load_exe(
-                buf,
-                std::path::Path::new(name),
-                cmdline,
-                if relocate { Some(None) } else { None },
-            )
+            .load_exe(buf, cmdline, if relocate { Some(None) } else { None })
             .map_err(err_from_anyhow)?;
         Ok(())
     }

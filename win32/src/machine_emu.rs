@@ -7,11 +7,11 @@ use crate::{
     shims::{Handler, Shims},
     winapi::{
         self,
-        kernel32::{create_thread, NewThread},
+        kernel32::{create_thread, CommandLine, NewThread},
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::{collections::HashMap, path::Path};
+use std::collections::HashMap;
 
 pub struct BoxMem(Box<[u8]>);
 
@@ -72,7 +72,6 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
-            exe_path: Default::default(),
             external_dlls: Default::default(),
             status: Default::default(),
         }
@@ -85,14 +84,13 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        path: &Path,
         cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
         self.state
             .kernel32
-            .init_process(self.emu.memory.mem(), cmdline);
-        let exe = pe::load_exe(self, buf, path, relocate)?;
+            .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
+        let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
         // that the exe wants.
@@ -115,7 +113,6 @@ impl MachineX<Emulator> {
         x86::ops::push(cpu, mem, 0); // return address
         cpu.regs.eip = retrowin32_main;
 
-        self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,

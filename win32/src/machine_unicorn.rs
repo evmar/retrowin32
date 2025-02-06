@@ -95,7 +95,6 @@ impl MachineX<Emulator> {
             host,
             state,
             labels: HashMap::new(),
-            exe_path: Default::default(),
             external_dlls: Default::default(),
             status: Default::default(),
         }
@@ -175,14 +174,13 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        path: &Path,
-        cmdline: String,
+        cmdline: CommandLine,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
         self.state
             .kernel32
             .init_process(self.emu.memory.mem(), cmdline);
-        let exe = pe::load_exe(self, buf, path, relocate)?;
+        let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
         self.setup_segments();
@@ -196,7 +194,6 @@ impl MachineX<Emulator> {
             .reg_write(RegisterX86::EBX, 0xdeadbeeb)
             .unwrap();
 
-        self.exe_path = path.to_path_buf();
         Ok(LoadedAddrs {
             entry_point: exe.entry_point,
             stack_pointer,

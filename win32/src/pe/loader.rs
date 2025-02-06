@@ -204,11 +204,12 @@ pub struct EXEFields {
 pub fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
-    path: &Path,
+    path: &str,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
 
+    let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
     let base = load_pe(machine, &filename, buf, &file, relocate)?;
     machine.state.kernel32.image_base = base;

@@ -173,8 +173,8 @@ impl State {
         }
     }
 
-    pub fn init_process(&mut self, mem: Mem, cmdline: String) {
-        self.cmdline = CommandLine::new(cmdline);
+    pub fn init_process(&mut self, mem: Mem, cmdline: CommandLine) {
+        self.cmdline = cmdline;
 
         // RTL_USER_PROCESS_PARAMETERS
         let params_addr = self.arena.alloc(
