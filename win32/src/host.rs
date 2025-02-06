@@ -125,20 +125,7 @@ pub trait Audio {
     fn pos(&mut self) -> usize;
 }
 
-pub trait Host {
-    /// Get an arbitrary time counter, measured in milliseconds.
-    fn ticks(&self) -> u32;
-    fn system_time(&self) -> chrono::DateTime<chrono::Local>;
-
-    /// Get the next pending message, or None if no message waiting.
-    fn get_message(&self) -> Option<Message>;
-
-    /// Signal that the emulator is blocked awaiting a message or an (optional) timeout.
-    /// Returns true if block() synchronously blocked until the message/timeout happened,
-    /// and false otherwise, in which case it's the host's responsibility to call
-    /// unblock() when ready.
-    fn block(&self, wait: Option<u32>) -> bool;
-
+pub trait FileSystem {
     /// Retrieves the absolute (Windows-style) path of the current working directory.
     fn current_dir(&self) -> Result<WindowsPathBuf, ERROR>;
     /// Open a file at the given (Windows-style) path.
@@ -153,6 +140,21 @@ pub trait Host {
     fn remove_file(&self, path: &WindowsPath) -> Result<(), ERROR>;
     /// Remove a directory at the given (Windows-style) path.
     fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR>;
+}
+
+pub trait Host: FileSystem {
+    /// Get an arbitrary time counter, measured in milliseconds.
+    fn ticks(&self) -> u32;
+    fn system_time(&self) -> chrono::DateTime<chrono::Local>;
+
+    /// Get the next pending message, or None if no message waiting.
+    fn get_message(&self) -> Option<Message>;
+
+    /// Signal that the emulator is blocked awaiting a message or an (optional) timeout.
+    /// Returns true if block() synchronously blocked until the message/timeout happened,
+    /// and false otherwise, in which case it's the host's responsibility to call
+    /// unblock() when ready.
+    fn block(&self, wait: Option<u32>) -> bool;
 
     fn stdout(&self, buf: &[u8]);
 

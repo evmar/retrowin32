@@ -108,29 +108,7 @@ impl Env {
 #[derive(Clone)]
 pub struct EnvRef(pub Rc<RefCell<Env>>);
 
-impl win32::Host for EnvRef {
-    fn ticks(&self) -> u32 {
-        let mut env = self.0.borrow_mut();
-        let gui = env.ensure_gui().unwrap();
-        gui.time()
-    }
-
-    fn system_time(&self) -> chrono::DateTime<chrono::Local> {
-        chrono::Local::now()
-    }
-
-    fn get_message(&self) -> Option<win32::Message> {
-        let mut env = self.0.borrow_mut();
-        let gui = env.gui.as_mut().unwrap();
-        gui.get_message()
-    }
-
-    fn block(&self, wait: Option<u32>) -> bool {
-        let mut env = self.0.borrow_mut();
-        let gui = env.gui.as_mut().unwrap();
-        gui.block(wait)
-    }
-
+impl win32::FileSystem for EnvRef {
     fn current_dir(&self) -> Result<WindowsPathBuf, ERROR> {
         let path = std::env::current_dir()?;
         Ok(host_to_windows_path(&path))
@@ -198,6 +176,30 @@ impl win32::Host for EnvRef {
         let path = windows_to_host_path(path);
         std::fs::remove_dir(path)?;
         Ok(())
+    }
+}
+
+impl win32::Host for EnvRef {
+    fn ticks(&self) -> u32 {
+        let mut env = self.0.borrow_mut();
+        let gui = env.ensure_gui().unwrap();
+        gui.time()
+    }
+
+    fn system_time(&self) -> chrono::DateTime<chrono::Local> {
+        chrono::Local::now()
+    }
+
+    fn get_message(&self) -> Option<win32::Message> {
+        let mut env = self.0.borrow_mut();
+        let gui = env.gui.as_mut().unwrap();
+        gui.get_message()
+    }
+
+    fn block(&self, wait: Option<u32>) -> bool {
+        let mut env = self.0.borrow_mut();
+        let gui = env.gui.as_mut().unwrap();
+        gui.block(wait)
     }
 
     fn stdout(&self, buf: &[u8]) {
