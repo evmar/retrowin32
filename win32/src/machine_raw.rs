@@ -4,7 +4,7 @@ use crate::{
     pe,
     shims::Shims,
     shims_raw::retrowin32_syscall,
-    winapi,
+    winapi::{self, kernel32::CommandLine},
 };
 use memory::Mem;
 use std::collections::HashMap;
@@ -33,7 +33,8 @@ impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
         let mut memory = MemImpl::default();
         let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
-        let shims = Shims::new(kernel32.teb);
+        let teb = 0; // TODO: set up teb here
+        let shims = Shims::new(teb);
         let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
@@ -54,12 +55,12 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        cmdline: CommandLine,
+        cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
         self.state
             .kernel32
-            .init_process(self.emu.memory.mem(), cmdline);
+            .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
         let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         let stack = self.state.kernel32.mappings.alloc(

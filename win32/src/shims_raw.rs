@@ -16,7 +16,7 @@ static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
 static mut STACK64: u64 = 0;
 
-unsafe extern "C" fn call64() -> u32 {
+unsafe extern "C" fn call64() -> u64 {
     let machine: &mut Machine = &mut *MACHINE;
 
     // call sequence:

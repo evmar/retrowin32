@@ -78,7 +78,13 @@ pub async fn wait_for_objects(
         //     crate::winapi::kernel32::current_thread(machine),
         //     handles
         // );
-        machine.emu.x86.cpu_mut().block(until).await;
+
+        #[cfg(feature = "x86-emu")]
+        {
+            machine.emu.x86.cpu_mut().block(until).await;
+        }
+        #[cfg(not(feature = "x86-emu"))]
+        todo!();
     }
 }
 
