@@ -288,6 +288,43 @@ extern "C" {
     fn audio(this: &JsHost, buf: &[i16]);
 }
 
+impl win32::FileSystem for JsHost {
+    fn open(
+        &self,
+        path: &WindowsPath,
+        options: win32::FileOptions,
+    ) -> Result<Box<dyn win32::File>, win32::ERROR> {
+        match JsHost::open(self, &path.to_string_lossy(), options) {
+            Some(file) => Ok(Box::new(file)),
+            None => Err(win32::ERROR::FILE_NOT_FOUND),
+        }
+    }
+
+    fn stat(&self, path: &WindowsPath) -> Result<Stat, win32::ERROR> {
+        todo!("stat {path}")
+    }
+
+    fn read_dir(&self, _path: &WindowsPath) -> Result<Box<dyn win32::ReadDir>, win32::ERROR> {
+        Ok(Box::new(ReadDir {}))
+    }
+
+    fn current_dir(&self) -> Result<win32::WindowsPathBuf, win32::ERROR> {
+        Ok(win32::WindowsPathBuf::from("Z:\\".to_string()))
+    }
+
+    fn create_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
+        todo!("create_dir {path}")
+    }
+
+    fn remove_file(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
+        todo!("remove_file {path}")
+    }
+
+    fn remove_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
+        todo!("remove_dir {path}")
+    }
+}
+
 impl win32::Host for JsHost {
     fn ticks(&self) -> u32 {
         web_sys::window().unwrap().performance().unwrap().now() as u32
@@ -315,25 +352,6 @@ impl win32::Host for JsHost {
         false
     }
 
-    fn open(
-        &self,
-        path: &WindowsPath,
-        options: win32::FileOptions,
-    ) -> Result<Box<dyn win32::File>, win32::ERROR> {
-        match JsHost::open(self, &path.to_string_lossy(), options) {
-            Some(file) => Ok(Box::new(file)),
-            None => Err(win32::ERROR::FILE_NOT_FOUND),
-        }
-    }
-
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, win32::ERROR> {
-        todo!("stat {path}")
-    }
-
-    fn read_dir(&self, _path: &WindowsPath) -> Result<Box<dyn win32::ReadDir>, win32::ERROR> {
-        Ok(Box::new(ReadDir {}))
-    }
-
     fn stdout(&self, buf: &[u8]) {
         JsHost::stdout(self, buf)
     }
@@ -349,22 +367,6 @@ impl win32::Host for JsHost {
         opts: &win32::SurfaceOptions,
     ) -> Box<dyn win32::Surface> {
         Box::new(WebSurface::new(hwnd, opts, JsHost::screen(self)))
-    }
-
-    fn current_dir(&self) -> Result<win32::WindowsPathBuf, win32::ERROR> {
-        Ok(win32::WindowsPathBuf::from("Z:\\".to_string()))
-    }
-
-    fn create_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
-        todo!("create_dir {path}")
-    }
-
-    fn remove_file(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
-        todo!("remove_file {path}")
-    }
-
-    fn remove_dir(&self, path: &WindowsPath) -> Result<(), win32::ERROR> {
-        todo!("remove_dir {path}")
     }
 
     fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
