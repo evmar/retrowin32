@@ -273,6 +273,10 @@ impl MachineX<Emulator> {
         }
     }
 
+    pub fn teb_addr(&self) -> u32 {
+        self.emu.x86.cpu().regs.fs_addr
+    }
+
     pub fn exit_thread(&mut self) {
         self.emu.x86.cpu_mut().state = x86::CPUState::Free;
     }

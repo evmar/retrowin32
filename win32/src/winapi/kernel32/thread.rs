@@ -149,13 +149,19 @@ pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
 }
 
 pub fn teb(machine: &Machine) -> &TEB {
-    let fs = machine.emu.x86.cpu().regs.fs_addr;
-    machine.emu.memory.mem().get_aligned_ref::<TEB>(fs)
+    machine
+        .emu
+        .memory
+        .mem()
+        .get_aligned_ref::<TEB>(machine.teb_addr())
 }
 
 pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
-    let fs = machine.emu.x86.cpu().regs.fs_addr;
-    machine.emu.memory.mem().get_aligned_ref_mut::<TEB>(fs)
+    machine
+        .emu
+        .memory
+        .mem()
+        .get_aligned_ref_mut::<TEB>(machine.teb_addr())
 }
 
 #[win32_derive::dllexport]
