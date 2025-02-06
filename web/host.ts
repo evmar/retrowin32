@@ -125,7 +125,7 @@ export abstract class JsHost implements glue.JsHost, glue.JsLogger {
 
   decoder = new TextDecoder();
 
-  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) { }
+  constructor(readonly emuHost: EmulatorHost, readonly files: FileSet) {}
 
   log(level: number, msg: string) {
     // TODO: surface this in the UI.
