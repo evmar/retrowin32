@@ -153,7 +153,8 @@ pub trait Host {
     fn remove_file(&self, path: &WindowsPath) -> Result<(), ERROR>;
     /// Remove a directory at the given (Windows-style) path.
     fn remove_dir(&self, path: &WindowsPath) -> Result<(), ERROR>;
-    fn log(&self, buf: &[u8]);
+
+    fn stdout(&self, buf: &[u8]);
 
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
