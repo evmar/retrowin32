@@ -1,5 +1,5 @@
 use crate::{host, winapi};
-use std::{collections::HashMap, path::PathBuf};
+use std::collections::HashMap;
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::{Machine, MemImpl};
@@ -19,7 +19,6 @@ pub struct MachineX<Emu> {
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub labels: HashMap<u32, String>,
-    pub exe_path: PathBuf,
     pub external_dlls: Vec<String>,
     pub status: Status,
 }

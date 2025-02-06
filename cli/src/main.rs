@@ -153,7 +153,7 @@ fn main() -> anyhow::Result<ExitCode> {
     machine.state.winmm.audio_enabled = args.audio;
 
     let addrs = machine
-        .load_exe(&buf, &exe, cmdline, None)
+        .load_exe(&buf, cmdline, None)
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
     _ = addrs;
 
