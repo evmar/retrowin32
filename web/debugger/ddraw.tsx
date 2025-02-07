@@ -26,14 +26,14 @@ export class DirectDraw extends preact.Component<DirectDraw.Props, DirectDraw.St
           <td style={{ textAlign: 'right' }}>
             <Number digits={8} {...this.props}>{surface.ptr}</Number>
           </td>
-          <td style={{ padding: '0 1ex', textAlign: 'right' }}>
+          <td style={{ textAlign: 'right' }}>
             {surface.width}x{surface.height}x{surface.bytes_per_pixel}
           </td>
-          <td style={{ padding: '0 1ex', textAlign: 'right' }}>{surface.primary ? 'yes' : 'no'}</td>
-          <td style={{ padding: '0 1ex', textAlign: 'right' }}>
+          <td style={{ textAlign: 'right' }}>{surface.primary ? 'yes' : 'no'}</td>
+          <td style={{ textAlign: 'right' }}>
             {surface.pixels && <Number digits={8} {...this.props}>{surface.pixels}</Number>}
           </td>
-          <td style={{ padding: '0 1ex', textAlign: 'right' }}>
+          <td style={{ textAlign: 'right' }}>
             {surface.palette && <Number digits={8} {...this.props}>{surface.palette}</Number>}
           </td>
         </tr>
