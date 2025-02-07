@@ -189,6 +189,7 @@ unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
     );
 }
 
+#[allow(static_mut_refs)]
 unsafe fn paint(hdc: HDC) {
     let state = match STATE {
         Some(ref state) => state,
@@ -218,6 +219,7 @@ unsafe fn paint(hdc: HDC) {
     DeleteDC(hdc_bitmap);
 }
 
+#[allow(static_mut_refs)]
 unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: isize) -> LRESULT {
     match msg {
         WM_DESTROY => {

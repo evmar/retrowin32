@@ -78,11 +78,13 @@ impl State {
 
 static mut STATE: UnsafeCell<Option<State>> = UnsafeCell::new(None);
 
+#[allow(static_mut_refs)]
 pub fn set_scheme(scheme: &str) {
     unsafe { *STATE.get_mut() = Some(State::new(scheme)) };
 }
 
 #[inline(never)]
+#[allow(static_mut_refs)]
 pub fn enabled(context: &'static str) -> bool {
     unsafe {
         match STATE.get_mut() {
@@ -92,6 +94,7 @@ pub fn enabled(context: &'static str) -> bool {
     }
 }
 
+#[allow(static_mut_refs)]
 fn include_return() -> bool {
     unsafe { STATE.get_mut().as_mut().unwrap().include_return }
 }
