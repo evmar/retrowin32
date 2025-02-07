@@ -24,7 +24,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
               <Number digits={8} {...this.props}>{mapping.addr}</Number>
             </code>
           </td>
-          <td style={{ textAlign: 'right', padding: '0 2ex' }}>
+          <td style={{ textAlign: 'right' }}>
             <code>{hex(mapping.size)}</code>
           </td>
           <td>{mapping.desc}</td>
