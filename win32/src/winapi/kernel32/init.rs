@@ -214,7 +214,7 @@ impl State {
         addr
     }
 
-    pub fn get_heap<'a>(&'a mut self, addr: u32) -> Option<&mut Heap> {
+    pub fn get_heap(&mut self, addr: u32) -> Option<&mut Heap> {
         if addr == self.process_heap_addr {
             return Some(&mut self.process_heap);
         }
