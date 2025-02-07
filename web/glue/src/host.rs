@@ -387,6 +387,17 @@ impl win32::Host for JsHost {
     }
 
     fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
-        todo!()
+        let host: JsHost = self.clone().into();
+        Box::new(host)
+    }
+}
+
+impl win32::Audio for JsHost {
+    fn write(&mut self, _buf: &[u8]) {
+        // ignore
+    }
+
+    fn pos(&mut self) -> usize {
+        0
     }
 }

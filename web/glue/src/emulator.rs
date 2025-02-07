@@ -145,6 +145,7 @@ pub fn new_emulator(host: JsHost) -> Emulator {
     unsafe { JS_HOST = Some(host.clone().unchecked_into()) };
     crate::log::init();
     win32::winapi::trace::set_output(win32_trace);
-    let machine = win32::Machine::new(Box::new(host));
+    let mut machine = win32::Machine::new(Box::new(host));
+    machine.state.winmm.audio_enabled = true;
     Emulator { machine }
 }
