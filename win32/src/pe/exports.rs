@@ -1,8 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::str16::expect_ascii;
-use memory::Extensions;
+use memory::{str16, Extensions};
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -25,7 +24,7 @@ unsafe impl memory::Pod for IMAGE_EXPORT_DIRECTORY {}
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
     pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
-        expect_ascii(image.slicez(self.Name))
+        str16::expect_ascii(image.slicez(self.Name))
     }
 
     /// Returns an iterator of function addresses in ordinal order.
@@ -38,7 +37,7 @@ impl IMAGE_EXPORT_DIRECTORY {
         let names = image.iter_pod::<u32>(self.AddressOfNames, self.NumberOfNames);
         let ords = image.iter_pod::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
-        let ni = names.map(move |addr| expect_ascii(image.slicez(addr)));
+        let ni = names.map(move |addr| str16::expect_ascii(image.slicez(addr)));
         ni.zip(ords)
     }
 }

@@ -7,8 +7,7 @@
 //! own control over the stack and moving return values into registers.
 
 use super::types::{CStr, Str16};
-use crate::str16::expect_ascii;
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{str16, Extensions, ExtensionsMut, Mem};
 
 /// ArrayWithSize<u8> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,
@@ -158,7 +157,7 @@ impl<'a> FromArg<'a> for Option<&'a str> {
         if arg == 0 {
             return None;
         }
-        let strz = expect_ascii(mem.slicez(arg));
+        let strz = str16::expect_ascii(mem.slicez(arg));
         Some(strz)
     }
 }

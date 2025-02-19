@@ -1,11 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::{
-    str16::expect_ascii,
-    winapi::{types::DWORD, ImportSymbol},
-};
-use memory::Extensions;
+use crate::winapi::{types::DWORD, ImportSymbol};
+use memory::{str16, Extensions};
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
 //
@@ -35,7 +32,7 @@ unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn image_name<'m>(&self, image: &'m [u8]) -> &'m str {
-        expect_ascii(image.slicez(self.Name))
+        str16::expect_ascii(image.slicez(self.Name))
     }
 
     pub fn ilt<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = ILTEntry> + 'm {
@@ -78,7 +75,7 @@ impl ILTEntry {
         } else {
             // First two bytes at offset are hint/name table index, used to look up
             // the name faster in the DLL; we just skip them.
-            let sym_name = expect_ascii(image.slicez(entry + 2));
+            let sym_name = str16::expect_ascii(image.slicez(entry + 2));
             ImportSymbol::Name(sym_name)
         }
     }
