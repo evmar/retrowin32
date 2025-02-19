@@ -4,7 +4,7 @@ use crate::{
     winapi::{
         handle::Handles,
         kernel32::{self, GetCurrentThreadId},
-        types::*,
+        *,
     },
     Host, Machine, MouseButton,
 };

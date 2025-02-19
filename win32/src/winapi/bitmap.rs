@@ -4,7 +4,7 @@
 
 use std::ops::Range;
 
-use super::{gdi32::COLORREF, types::*};
+use super::{gdi32::COLORREF, *};
 use memory::{Extensions, ExtensionsMut, Mem};
 
 #[derive(Debug, Eq, PartialEq, win32_derive::TryFromEnum)]

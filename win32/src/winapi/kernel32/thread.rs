@@ -1,11 +1,7 @@
 use super::{peb_mut, EventObject, KernelObject};
 use crate::{
     machine::Machine,
-    winapi::{
-        self,
-        alloc::Arena,
-        types::{Str16, HANDLE},
-    },
+    winapi::{self, alloc::Arena, Str16, HANDLE},
 };
 use memory::{Extensions, Mem};
 use std::rc::Rc;

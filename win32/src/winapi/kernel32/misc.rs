@@ -2,7 +2,7 @@
 
 use super::teb_mut;
 use crate::{
-    winapi::{kernel32::CURRENT_PROCESS_HANDLE, types::*, ERROR},
+    winapi::{kernel32::CURRENT_PROCESS_HANDLE, ERROR, *},
     Machine,
 };
 use ::memory::Pod;

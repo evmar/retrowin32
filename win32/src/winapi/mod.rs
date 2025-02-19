@@ -20,7 +20,7 @@ mod ole32;
 mod oleaut32;
 mod retrowin32_test;
 mod shlwapi;
-pub mod types;
+mod types;
 mod ucrtbase;
 pub mod user32;
 mod vcruntime140;
@@ -28,7 +28,9 @@ mod version;
 mod wininet;
 mod winmm;
 
+pub use crate::str16::{Str16, String16};
 pub use error::ERROR;
+pub use types::*;
 
 pub struct State {
     scratch: heap::Heap,

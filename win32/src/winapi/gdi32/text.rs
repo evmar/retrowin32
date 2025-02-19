@@ -1,10 +1,6 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    winapi::{
-        calling_convention::ArrayWithSize,
-        gdi32::COLORREF,
-        types::{HANDLE, LPARAM},
-    },
+    winapi::{calling_convention::ArrayWithSize, gdi32::COLORREF, HANDLE, LPARAM},
     Machine,
 };
 use memory::Pod;

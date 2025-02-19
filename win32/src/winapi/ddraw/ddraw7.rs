@@ -7,7 +7,7 @@ use crate::{
         com::{vtable, GUID},
         ddraw::{self, IDirectDrawClipper},
         kernel32::get_symbol,
-        types::*,
+        *,
     },
     Machine,
 };

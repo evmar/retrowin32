@@ -5,7 +5,7 @@ use crate::{
         bitmap::{Bitmap, PixelData, PixelFormat},
         calling_convention::ArrayWithSize,
         gdi32::HDC,
-        types::{Str16, String16, HWND, POINT, RECT},
+        *,
     },
     Host, Machine, SurfaceOptions,
 };

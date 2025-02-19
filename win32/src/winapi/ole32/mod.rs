@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::types::HRESULT;
+use super::HRESULT;
 use crate::Machine;
 
 #[win32_derive::dllexport]

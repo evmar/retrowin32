@@ -8,7 +8,7 @@ use pe::ImportSymbol;
 use crate::{
     host,
     machine::Machine,
-    winapi::{self, builtin, calling_convention::ArrayWithSizeMut, types::*},
+    winapi::{self, builtin, calling_convention::ArrayWithSizeMut, *},
 };
 use std::io::Write;
 use typed_path::WindowsPath;

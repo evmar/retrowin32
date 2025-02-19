@@ -1,4 +1,4 @@
-use crate::winapi::types::CStr;
+use crate::winapi::CStr;
 use crate::Machine;
 
 #[win32_derive::dllexport(cdecl)]

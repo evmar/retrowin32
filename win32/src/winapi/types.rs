@@ -1,10 +1,9 @@
 //! Types exposed by the Windows API.
 
-pub use super::handle::HANDLE;
-pub use crate::str16::{Str16, String16};
 use memory::Extensions;
 use std::borrow::Cow;
 
+pub use super::handle::HANDLE;
 pub use std::ffi::CStr;
 
 pub trait StrExt<'a> {

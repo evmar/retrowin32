@@ -6,7 +6,7 @@ use super::{
     GUID,
 };
 use crate::{
-    winapi::{com::vtable, ddraw, kernel32::get_symbol, types::*},
+    winapi::{com::vtable, ddraw, kernel32::get_symbol, *},
     Machine,
 };
 use memory::ExtensionsMut;

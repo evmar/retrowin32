@@ -1,5 +1,5 @@
 use crate::{
-    winapi::{com::vtable, ddraw::DD, kernel32::get_symbol, types::HWND},
+    winapi::{com::vtable, ddraw::DD, kernel32::get_symbol, HWND},
     Machine,
 };
 use memory::ExtensionsMut;

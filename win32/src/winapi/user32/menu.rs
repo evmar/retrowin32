@@ -1,5 +1,5 @@
 use crate::{
-    winapi::types::{HWND, RECT},
+    winapi::{HWND, RECT},
     Machine,
 };
 use bitflags::bitflags;

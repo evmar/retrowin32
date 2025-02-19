@@ -11,7 +11,7 @@ use crate::{
         bitmap::{transmute_pixels_mut, Bitmap, PixelData, PixelFormat},
         ddraw::{ddraw1, ddraw7},
         heap::Heap,
-        types::{HWND, RECT},
+        HWND, RECT,
     },
     SurfaceOptions,
 };

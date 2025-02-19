@@ -1,6 +1,6 @@
 use super::{Brush, DCTarget, Pen, BITMAP, COLORREF, HDC};
 use crate::{
-    winapi::{bitmap::Bitmap, types::HANDLE},
+    winapi::{bitmap::Bitmap, HANDLE},
     Machine,
 };
 use memory::ExtensionsMut;

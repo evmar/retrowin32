@@ -1,14 +1,10 @@
 #![allow(non_snake_case)]
 
 use crate::winapi::kernel32::HMODULE;
-use crate::winapi::types::HRSRC;
 use crate::winapi::user32::HINSTANCE;
+use crate::winapi::HRSRC;
 use crate::{
-    winapi::{
-        calling_convention::FromArg,
-        kernel32,
-        types::{Str16, String16},
-    },
+    winapi::{calling_convention::FromArg, kernel32, Str16, String16},
     Machine,
 };
 use memory::Mem;
