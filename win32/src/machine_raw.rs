@@ -4,7 +4,10 @@ use crate::{
     pe,
     shims::Shims,
     shims_raw::retrowin32_syscall,
-    winapi::{self, kernel32::CommandLine},
+    winapi::{
+        kernel32::CommandLine,
+        {self},
+    },
 };
 use memory::Mem;
 use std::collections::HashMap;

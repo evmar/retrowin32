@@ -2,8 +2,7 @@
 #![no_std]
 #![windows_subsystem = "console"]
 
-use no_std::fmt::Fmt;
-use no_std::print::print;
+use no_std::{fmt::Fmt, print::print};
 
 #[inline(never)]
 fn fmt_flags(buf: &mut Fmt, reg: u32) {

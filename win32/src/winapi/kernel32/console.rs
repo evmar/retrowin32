@@ -1,9 +1,10 @@
-use crate::str16::Str16;
-use crate::winapi::calling_convention::ArrayWithSize;
-use crate::winapi::handle::HANDLE;
-use crate::winapi::kernel32::WriteFile;
-use crate::winapi::{DWORD, HFILE, WORD};
-use crate::Machine;
+use crate::{
+    str16::Str16,
+    winapi::{
+        calling_convention::ArrayWithSize, handle::HANDLE, kernel32::WriteFile, DWORD, HFILE, WORD,
+    },
+    Machine,
+};
 
 #[win32_derive::dllexport]
 pub fn SetConsoleCtrlHandler(_machine: &mut Machine, _handlerRoutine: DWORD, _add: u32) -> bool {

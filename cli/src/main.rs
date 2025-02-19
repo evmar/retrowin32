@@ -10,8 +10,7 @@ mod sdl;
 mod resv32;
 
 use anyhow::anyhow;
-use std::borrow::Cow;
-use std::process::ExitCode;
+use std::{borrow::Cow, process::ExitCode};
 use win32::FileSystem;
 
 #[derive(argh::FromArgs)]

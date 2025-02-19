@@ -3,7 +3,9 @@ use crate::{
     host,
     winapi::{
         handle::Handles,
-        kernel32::{self, GetCurrentThreadId},
+        kernel32::{
+            GetCurrentThreadId, {self},
+        },
         *,
     },
     Host, Machine, MouseButton,

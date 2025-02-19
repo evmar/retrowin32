@@ -2,9 +2,13 @@
 use crate::headless::GUI;
 #[cfg(feature = "sdl")]
 use crate::sdl::GUI;
-use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
-use std::{cell::RefCell, io::Write, rc::Rc};
+use std::{
+    cell::RefCell,
+    io::Write,
+    path::{Path, PathBuf},
+    rc::Rc,
+    time::{SystemTime, UNIX_EPOCH},
+};
 use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
 use win32::{FileOptions, ReadDir, Stat, ERROR};
 

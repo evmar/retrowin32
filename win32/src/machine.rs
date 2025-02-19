@@ -2,11 +2,17 @@ use crate::{host, winapi};
 use std::collections::HashMap;
 
 #[cfg(feature = "x86-emu")]
-pub use crate::machine_emu::{Machine, MemImpl};
+pub use crate::machine_emu::Machine;
+#[cfg(feature = "x86-emu")]
+pub use crate::machine_emu::MemImpl;
 #[cfg(feature = "x86-64")]
-pub use crate::machine_raw::{Machine, MemImpl};
+pub use crate::machine_raw::Machine;
+#[cfg(feature = "x86-64")]
+pub use crate::machine_raw::MemImpl;
 #[cfg(feature = "x86-unicorn")]
-pub use crate::machine_unicorn::{Machine, MemImpl};
+pub use crate::machine_unicorn::Machine;
+#[cfg(feature = "x86-unicorn")]
+pub use crate::machine_unicorn::MemImpl;
 
 pub struct LoadedAddrs {
     pub entry_point: u32,
