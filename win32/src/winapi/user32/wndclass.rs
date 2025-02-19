@@ -1,11 +1,11 @@
 use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE};
 use crate::{
-    str16::{expect_ascii, Str16},
+    str16::Str16,
     winapi::{calling_convention::FromArg, types::HWND},
     Machine,
 };
 use bitflags::bitflags;
-use memory::Extensions;
+use memory::{str16, Extensions};
 use std::{cell::RefCell, rc::Rc};
 
 bitflags! {
@@ -136,7 +136,7 @@ unsafe impl memory::Pod for WNDCLASSEXW {}
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
+    let name = str16::expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
     let wndclass = WndClass {
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),

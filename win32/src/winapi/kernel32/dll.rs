@@ -2,12 +2,11 @@ use crate::{
     loader::{self, Module},
     winapi::kernel32::set_last_error,
 };
-use memory::{Extensions, Pod};
+use memory::{str16, Extensions, Pod};
 
 use crate::{
     host,
     machine::Machine,
-    str16::expect_ascii,
     winapi::{self, builtin, calling_convention::ArrayWithSizeMut, types::*, ImportSymbol},
 };
 use std::io::Write;
@@ -235,7 +234,7 @@ impl<'a> winapi::calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
         if lpProcName & 0xFFFF_0000 == 0 {
             GetProcAddressArg(ImportSymbol::Ordinal(lpProcName))
         } else {
-            let proc_name = expect_ascii(mem.slicez(lpProcName));
+            let proc_name = str16::expect_ascii(mem.slicez(lpProcName));
             GetProcAddressArg(ImportSymbol::Name(proc_name))
         }
     }
