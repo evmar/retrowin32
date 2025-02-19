@@ -112,15 +112,36 @@ fn load_section(
     );
 }
 
-fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTORY) {
+/// Load the exports section of a module, gathering addresses of exported symbols.
+fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
+    let dir = pe::read_exports(exports_data);
+
+    let mut fns = Vec::new();
+    for addr in dir.fns(image) {
+        fns.push(image_base + addr);
+    }
+
+    let mut names = HashMap::new();
+    for (name, i) in dir.names(image) {
+        let addr = fns[i as usize];
+        names.insert(name.to_string(), addr);
+    }
+
+    Exports {
+        ordinal_base: dir.Base,
+        fns,
+        names,
+    }
+}
+
+fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
-    // the relevant DLLs shims.
-    let mut patches = Vec::new();
+    // the correct targets.
+    let mut patches: Vec<(u32, u32)> = Vec::new();
 
     let image: &[u8] = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
-    let section = match imports_data.as_slice(image) {
-        None => return,
-        Some(s) => s,
+    let Some(section) = imports_addr.as_slice(image) else {
+        return;
     };
     for dll_imports in pe::read_imports(section) {
         let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
@@ -153,13 +174,14 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_data: &IMAGE_DATA_DIRECTO
     }
 }
 
-fn load_pe(
+/// Load an exe or dll, including resolving imports.
+pub fn load_module(
     machine: &mut Machine,
     filename: &str,
     buf: &[u8],
     file: &pe::File,
     relocate: Option<Option<u32>>,
-) -> anyhow::Result<u32> {
+) -> anyhow::Result<Module> {
     let base = load_image(machine, filename, file, buf, relocate);
 
     for sec in file.sections.iter() {
@@ -189,11 +211,43 @@ fn load_pe(
         }
     }
 
+    // Gather exports before loading imports, because the import process may need to load
+    // DLLs which reference exports from this module.
+    let image = machine.emu.memory.mem().slice(base..);
+    let exports = if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
+        let section = dir
+            .as_slice(image)
+            .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
+        let exports = load_exports(base, image, section);
+        for (name, &addr) in exports.names.iter() {
+            machine.labels.insert(addr, format!("{filename}!{name}"));
+        }
+        exports
+    } else {
+        Exports::default()
+    };
+
     if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
         patch_iat(machine, base, imports);
     }
 
-    Ok(base)
+    let resources = file
+        .data_directory
+        .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
+        .cloned();
+
+    let entry_point = if file.opt_header.AddressOfEntryPoint == 0 {
+        None
+    } else {
+        Some(base + file.opt_header.AddressOfEntryPoint)
+    };
+
+    Ok(Module {
+        image_base: base,
+        exports,
+        resources,
+        entry_point,
+    })
 }
 
 pub struct EXEFields {
@@ -208,87 +262,46 @@ pub fn load_exe(
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<EXEFields> {
     let file = pe::parse(buf)?;
-
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
-    let base = load_pe(machine, &filename, buf, &file, relocate)?;
-    machine.state.kernel32.image_base = base;
+    let module = load_module(machine, &filename, buf, &file, relocate)?;
+    machine.state.kernel32.image_base = module.image_base;
 
-    if let Some(res_data) = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
-    {
-        machine.state.kernel32.resources = res_data.clone();
+    if let Some(res_data) = module.resources {
+        machine.state.kernel32.resources = res_data;
     }
 
-    let entry_point = base + file.opt_header.AddressOfEntryPoint;
-
     let addrs = EXEFields {
-        entry_point,
+        entry_point: module.entry_point.unwrap(),
         stack_size: file.opt_header.SizeOfStackReserve,
     };
     Ok(addrs)
 }
 
-#[derive(Debug)]
-pub struct DLL {
-    /// Image base address.
-    pub base: u32,
+/// The result of loading an exe or DLL.
+#[derive(Debug, Default)]
+pub struct Module {
+    /// Address where the module was loaded.
+    pub image_base: u32,
 
-    /// Function name => resolved address.
+    pub resources: Option<IMAGE_DATA_DIRECTORY>,
+
+    pub exports: Exports,
+
+    pub entry_point: Option<u32>,
+}
+
+#[derive(Debug, Default)]
+pub struct Exports {
+    /// Exported function name => resolved address.
     pub names: HashMap<String, u32>,
 
     /// fns[ordinal - ordinal base] => resolved address.
     pub ordinal_base: u32,
     pub fns: Vec<u32>,
-
-    pub resources: Option<IMAGE_DATA_DIRECTORY>,
-
-    /// Address of DllMain() entry point.
-    pub entry_point: Option<u32>,
 }
 
-pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<DLL> {
-    let file = pe::parse(&buf)?;
-
-    let base = load_pe(machine, filename, buf, &file, Some(None))?;
-    let image = machine.emu.memory.mem().slice(base..);
-
-    let entry_point = if file.opt_header.AddressOfEntryPoint != 0 {
-        Some(base + file.opt_header.AddressOfEntryPoint)
-    } else {
-        None
-    };
-    let mut ordinal_base = 1;
-    let mut fns = Vec::new();
-    let mut names = HashMap::new();
-    if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
-        let section = dir
-            .as_slice(image)
-            .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
-        let dir = pe::read_exports(section);
-        ordinal_base = dir.Base;
-        for addr in dir.fns(image) {
-            fns.push(base + addr);
-        }
-        for (name, i) in dir.names(image) {
-            let addr = fns[i as usize];
-            names.insert(name.to_string(), addr);
-            machine.labels.insert(addr, format!("{filename}!{name}"));
-        }
-    }
-
-    let resources = file
-        .data_directory
-        .get(pe::IMAGE_DIRECTORY_ENTRY::RESOURCE as usize)
-        .cloned();
-
-    Ok(DLL {
-        base,
-        names,
-        ordinal_base,
-        fns,
-        resources,
-        entry_point,
-    })
+pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<Module> {
+    let file = pe::parse(buf)?;
+    load_module(machine, filename, buf, &file, Some(None))
 }
