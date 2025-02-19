@@ -1,7 +1,10 @@
 //! Process command line.
 
 use super::UNICODE_STRING;
-use crate::{str16::String16, winapi::alloc::Arena, Machine};
+use crate::{
+    winapi::{alloc::Arena, String16},
+    Machine,
+};
 use memory::{ExtensionsMut, Mem};
 
 /// Process command line, as exposed in GetCommandLine() and also TEB.

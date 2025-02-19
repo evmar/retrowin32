@@ -1,6 +1,5 @@
 use crate::{
-    str16::Str16,
-    winapi::{calling_convention::VarArgs, HWND, POINT, RECT},
+    winapi::{calling_convention::VarArgs, Str16, HWND, POINT, RECT},
     Machine,
 };
 use memory::{Extensions, ExtensionsMut};

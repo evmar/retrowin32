@@ -21,4 +21,3 @@ mod machine_unicorn;
 
 pub use host::*;
 pub use machine::{Machine, Status};
-pub use memory::str16;

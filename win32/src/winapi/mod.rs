@@ -28,8 +28,8 @@ mod version;
 mod wininet;
 mod winmm;
 
-pub use crate::str16::{Str16, String16};
 pub use error::ERROR;
+pub use memory::str16::{Str16, String16};
 pub use types::*;
 
 pub struct State {
