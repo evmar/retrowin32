@@ -1,4 +1,8 @@
-//! Windows-style strings.
+//! Windows-style UTF-16 strings.
+//! TODO: this probably doesn't belong in the memory crate,
+//! but there is probably a real UTF-16 crate that we should use instead.
+
+use crate::Mem;
 
 /// UTF-16 string view.
 #[derive(PartialEq, Eq)]
@@ -31,7 +35,7 @@ impl Str16 {
         Self::from_buffer(&mem[..end])
     }
 
-    pub unsafe fn from_nul_term_ptr(mem: memory::Mem, addr: u32) -> Option<&Self> {
+    pub unsafe fn from_nul_term_ptr(mem: Mem, addr: u32) -> Option<&Self> {
         if addr == 0 {
             return None;
         }

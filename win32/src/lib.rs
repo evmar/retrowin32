@@ -4,7 +4,6 @@ mod machine;
 pub mod pe;
 mod segments;
 pub mod shims;
-pub mod str16;
 pub mod trace;
 pub mod winapi;
 
@@ -23,3 +22,4 @@ mod machine_unicorn;
 
 pub use host::*;
 pub use machine::{Machine, Status};
+pub use memory::str16;
