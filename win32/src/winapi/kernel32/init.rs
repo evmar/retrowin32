@@ -7,7 +7,6 @@ use super::{
 use crate::{
     loader,
     machine::MemImpl,
-    pe,
     segments::SegmentDescriptor,
     winapi::{alloc::Arena, handle::Handles, heap::Heap, types::*},
     Machine,

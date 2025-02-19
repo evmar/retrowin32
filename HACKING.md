@@ -119,6 +119,7 @@ information.
 
 - `x86/` -- the x86 emulator
 - [`win32/`](win32/) -- the win32 emulator
+- `pe/` -- PE (.exe/.dll) parser
 - `cli/` -- a command-line emulator runner
 - [`web/`](web/) -- a webapp that runs the emulator in a browser
 - `exe/` -- some sample Windows executables

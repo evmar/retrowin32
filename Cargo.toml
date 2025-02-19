@@ -6,6 +6,7 @@ members = [
   "exe/rust",
   "exe/zip",
   "minibuild",
+  "pe",
   "web/glue",
   "win32/derive",
   "win32/extract",
@@ -14,6 +15,7 @@ members = [
 [workspace.dependencies]
 log = "0.4"
 memory = { path = "memory" }
+pe = { path = "pe" }
 win32 = { path = "win32" }
 x86 = { path = "x86" }
 tsify = "0.4.1"

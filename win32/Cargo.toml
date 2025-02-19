@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 log = { workspace = true }
 memory = { workspace = true }
+pe = { workspace = true }
 win32-derive = { path = "derive" }
 x86 = { workspace = true, optional = true }
 
