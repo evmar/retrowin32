@@ -1,5 +1,7 @@
 use crate::{
-    loader::{self, Module},
+    loader::{
+        Module, {self},
+    },
     winapi::kernel32::set_last_error,
 };
 use memory::{Extensions, Pod};
@@ -8,7 +10,11 @@ use pe::ImportSymbol;
 use crate::{
     host,
     machine::Machine,
-    winapi::{self, builtin, calling_convention::ArrayWithSizeMut, *},
+    winapi::{
+        builtin,
+        calling_convention::ArrayWithSizeMut,
+        *, {self},
+    },
 };
 use std::io::Write;
 use typed_path::WindowsPath;

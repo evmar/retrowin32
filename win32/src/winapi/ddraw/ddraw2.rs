@@ -9,8 +9,7 @@ use crate::{
     winapi::{com::vtable, ddraw, kernel32::get_symbol, *},
     Machine,
 };
-use memory::ExtensionsMut;
-use memory::Pod;
+use memory::{ExtensionsMut, Pod};
 
 pub const IID_IDirectDraw2: GUID = GUID((
     0xb3a6f3e0,

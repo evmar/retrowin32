@@ -7,8 +7,10 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, future::Future, path::Path, pin::Pin};
-use unicorn_engine::unicorn_const::{Arch, Mode, Permission};
-use unicorn_engine::{RegisterX86, Unicorn, X86Mmr};
+use unicorn_engine::{
+    unicorn_const::{Arch, Mode, Permission},
+    RegisterX86, Unicorn, X86Mmr,
+};
 
 pub struct MemImpl(Pin<Box<[u8]>>);
 

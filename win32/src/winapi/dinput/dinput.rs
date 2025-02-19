@@ -1,5 +1,7 @@
-use crate::winapi::{calling_convention, com::vtable, kernel32};
-use crate::Machine;
+use crate::{
+    winapi::{calling_convention, com::vtable, kernel32},
+    Machine,
+};
 use memory::ExtensionsMut;
 
 pub use crate::winapi::com::GUID;

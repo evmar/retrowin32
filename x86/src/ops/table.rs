@@ -10,14 +10,7 @@ pub type Op = fn(&mut CPU, Mem, &Instruction);
 const OP_TAB: [Option<Op>; 2553] = {
     let mut tab: [Option<Op>; 2553] = [None; 2553];
 
-    use super::basic::*;
-    use super::control::*;
-    use super::cpuid::*;
-    use super::fpu::*;
-    use super::math::*;
-    use super::mmx::*;
-    use super::string::*;
-    use super::test::*;
+    use super::{basic::*, control::*, cpuid::*, fpu::*, math::*, mmx::*, string::*, test::*};
 
     tab[iced_x86::Code::Enterd_imm16_imm8 as usize] = Some(enterd_imm16_imm8);
     tab[iced_x86::Code::Leaved as usize] = Some(leaved);

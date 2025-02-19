@@ -5,9 +5,7 @@
 //!   --win32-trace=kernel32/,-kernel32/file
 //! Pass '*' to enable all.
 
-use std::cell::UnsafeCell;
-use std::collections::HashMap;
-use std::fmt::Write;
+use std::{cell::UnsafeCell, collections::HashMap, fmt::Write};
 
 #[derive(Debug)]
 struct Rule {

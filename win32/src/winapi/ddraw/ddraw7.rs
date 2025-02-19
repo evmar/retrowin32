@@ -1,11 +1,13 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use super::{palette::IDirectDrawPalette, types::*};
-use crate::winapi::gdi32::PALETTEENTRY;
 use crate::{
     winapi::{
         com::{vtable, GUID},
-        ddraw::{self, IDirectDrawClipper},
+        ddraw::{
+            IDirectDrawClipper, {self},
+        },
+        gdi32::PALETTEENTRY,
         kernel32::get_symbol,
         *,
     },

@@ -1,14 +1,11 @@
 use super::{FILETIME, SECURITY_ATTRIBUTES};
-use crate::str16::String16;
-use crate::winapi::calling_convention::ABIReturn;
-use crate::winapi::kernel32::set_last_error;
-use crate::winapi::ERROR;
-use crate::winapi::{DWORD, HFIND, MAX_PATH};
 use crate::{
     machine::Machine,
+    str16::String16,
     winapi::{
-        calling_convention::{ArrayWithSize, ArrayWithSizeMut},
-        Str16, HFILE,
+        calling_convention::{ABIReturn, ArrayWithSize, ArrayWithSizeMut},
+        kernel32::set_last_error,
+        Str16, DWORD, ERROR, HFILE, HFIND, MAX_PATH,
     },
     FileOptions, ReadDir, ReadDirEntry, Stat, StatKind,
 };

@@ -5,8 +5,8 @@ use crate::{
     machine::{LoadedAddrs, MachineX, Status},
     shims::{Handler, Shims},
     winapi::{
-        self,
         kernel32::{create_thread, CommandLine, NewThread},
+        {self},
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};

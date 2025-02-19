@@ -1,5 +1,7 @@
 use bitflags::bitflags;
-use iced_x86::Register::{self, *};
+use iced_x86::Register::{
+    *, {self},
+};
 
 bitflags! {
     #[derive(Default)]
