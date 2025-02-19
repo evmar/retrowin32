@@ -2,7 +2,7 @@ use crate::str16::Str16;
 use crate::winapi::calling_convention::ArrayWithSize;
 use crate::winapi::handle::HANDLE;
 use crate::winapi::kernel32::WriteFile;
-use crate::winapi::types::{DWORD, HFILE, WORD};
+use crate::winapi::{DWORD, HFILE, WORD};
 use crate::Machine;
 
 #[win32_derive::dllexport]

@@ -3,7 +3,7 @@
 use super::{DCTarget, Object, HDC, HGDIOBJ};
 use crate::{
     machine::Machine,
-    winapi::types::{POINT, RECT},
+    winapi::{POINT, RECT},
 };
 
 /// COLORREF is a u32 containing RGB0, modeled specially here because there is the

@@ -4,7 +4,7 @@ use crate::{
         bitmap::{Bitmap, BITMAPFILEHEADER},
         gdi32::HGDIOBJ,
         kernel32::ResourceKey,
-        types::*,
+        *,
     },
     FileOptions, Machine,
 };

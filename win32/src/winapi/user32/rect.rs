@@ -1,5 +1,5 @@
 use crate::{
-    winapi::types::{POINT, RECT},
+    winapi::{POINT, RECT},
     Machine,
 };
 

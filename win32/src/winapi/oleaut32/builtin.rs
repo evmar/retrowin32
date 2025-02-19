@@ -8,7 +8,7 @@ use crate::{
 mod wrappers {
     use crate::{
         machine::Machine,
-        winapi::{self, calling_convention::*, types::*},
+        winapi::{self, calling_convention::*, *},
     };
     use ::memory::Extensions;
     use winapi::oleaut32::*;

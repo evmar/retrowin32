@@ -4,7 +4,7 @@ use crate::{
     winapi::{
         calling_convention::FromArg,
         gdi32::{self, COLORREF, HGDIOBJ},
-        types::{HWND, RECT},
+        HWND, RECT,
     },
     Machine,
 };

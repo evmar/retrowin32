@@ -1,6 +1,6 @@
 //! Types defined in the DirectDraw API.
 
-use crate::winapi::types::*;
+use crate::winapi::*;
 use bitflags::bitflags;
 use memory::Pod;
 

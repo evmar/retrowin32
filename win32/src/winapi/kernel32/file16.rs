@@ -1,5 +1,5 @@
 use crate::{
-    winapi::{calling_convention::ArrayWithSize, types::HFILE},
+    winapi::{calling_convention::ArrayWithSize, HFILE},
     Machine,
 };
 

@@ -1,4 +1,4 @@
-use crate::{winapi::types::*, Machine};
+use crate::{winapi::*, Machine};
 
 use super::{MSG, WM};
 

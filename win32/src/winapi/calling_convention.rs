@@ -6,7 +6,7 @@
 //! plain values (for output) so that different machine implementations can do their
 //! own control over the stack and moving return values into registers.
 
-use super::types::{CStr, Str16};
+use crate::winapi::{CStr, Str16};
 use memory::{str16, Extensions, ExtensionsMut, Mem};
 
 /// ArrayWithSize<u8> matches a pair of C arguments like

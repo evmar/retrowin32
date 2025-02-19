@@ -2,7 +2,7 @@
 
 use super::EventObject;
 use crate::{
-    winapi::{kernel32::KernelObject, types::HANDLE},
+    winapi::{kernel32::KernelObject, HANDLE},
     Machine,
 };
 use memory::Extensions;

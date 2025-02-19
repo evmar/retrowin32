@@ -3,8 +3,8 @@ use crate::{
     machine::Machine,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
-        types::{HANDLE, POINT},
         user32::Window,
+        HANDLE, POINT,
     },
 };
 use std::{cell::RefCell, rc::Rc};

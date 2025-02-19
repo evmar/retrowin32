@@ -2,13 +2,13 @@ use super::{FILETIME, SECURITY_ATTRIBUTES};
 use crate::str16::String16;
 use crate::winapi::calling_convention::ABIReturn;
 use crate::winapi::kernel32::set_last_error;
-use crate::winapi::types::{DWORD, HFIND, MAX_PATH};
 use crate::winapi::ERROR;
+use crate::winapi::{DWORD, HFIND, MAX_PATH};
 use crate::{
     machine::Machine,
     winapi::{
         calling_convention::{ArrayWithSize, ArrayWithSizeMut},
-        types::{Str16, HFILE},
+        Str16, HFILE,
     },
     FileOptions, ReadDir, ReadDirEntry, Stat, StatKind,
 };

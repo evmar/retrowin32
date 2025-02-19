@@ -1,7 +1,7 @@
 //! Interfaces expected of the x86 host.
 
-pub use crate::winapi::types::RECT;
 pub use crate::winapi::ERROR;
+pub use crate::winapi::RECT;
 pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 /// Drawing surface, corresponding to window contents or DirectDraw surfaces.

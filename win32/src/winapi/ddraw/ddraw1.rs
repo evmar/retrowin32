@@ -11,7 +11,7 @@ use crate::{
         com::{vtable, GUID},
         ddraw,
         kernel32::get_symbol,
-        types::*,
+        *,
     },
     Machine,
 };

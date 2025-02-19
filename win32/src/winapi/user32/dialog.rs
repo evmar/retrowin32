@@ -1,5 +1,5 @@
 use crate::{
-    winapi::{calling_convention::ArrayWithSizeMut, types::*},
+    winapi::{calling_convention::ArrayWithSizeMut, *},
     Machine,
 };
 

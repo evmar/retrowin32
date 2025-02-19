@@ -3,8 +3,7 @@ use crate::{
     machine::Machine,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat, BI},
-        kernel32,
-        types::{POINT, RECT},
+        kernel32, POINT, RECT,
     },
 };
 use memory::{Extensions, Mem};

@@ -18,7 +18,7 @@ use std::{cell::RefCell, rc::Rc};
 pub use builtin::DLL;
 
 use super::handle::Handles;
-use super::types::HWND;
+use super::HWND;
 
 pub use super::gdi32::HDC;
 pub use super::kernel32::ResourceKey;

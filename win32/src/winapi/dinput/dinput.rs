@@ -117,7 +117,7 @@ pub mod IDirectInput {
 
 #[win32_derive::dllexport]
 pub mod IDirectInputDevice {
-    use crate::winapi::types::HWND;
+    use crate::winapi::HWND;
 
     use super::*;
 

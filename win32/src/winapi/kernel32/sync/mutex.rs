@@ -1,5 +1,5 @@
 use crate::{
-    winapi::{kernel32::SECURITY_ATTRIBUTES, types::HANDLE},
+    winapi::{kernel32::SECURITY_ATTRIBUTES, HANDLE},
     Machine,
 };
 
