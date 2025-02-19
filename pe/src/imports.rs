@@ -1,7 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use crate::winapi::{types::DWORD, ImportSymbol};
 use memory::{str16, Extensions};
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
@@ -21,12 +20,12 @@ use memory::{str16, Extensions};
 #[repr(C)]
 pub struct IMAGE_IMPORT_DESCRIPTOR {
     /// ILT
-    OriginalFirstThunk: DWORD,
-    TimeDateStamp: DWORD,
-    ForwarderChain: DWORD,
-    Name: DWORD,
+    OriginalFirstThunk: u32,
+    TimeDateStamp: u32,
+    ForwarderChain: u32,
+    Name: u32,
     /// IAT
-    FirstThunk: DWORD,
+    FirstThunk: u32,
 }
 unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
@@ -65,6 +64,20 @@ pub fn read_imports<'m>(buf: &'m [u8]) -> impl Iterator<Item = IMAGE_IMPORT_DESC
 #[derive(Clone)]
 pub struct ILTEntry(u32);
 unsafe impl memory::Pod for ILTEntry {}
+
+#[derive(Debug)]
+pub enum ImportSymbol<'a> {
+    Name(&'a str),
+    Ordinal(u32),
+}
+impl<'a> std::fmt::Display for ImportSymbol<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImportSymbol::Name(name) => f.write_str(name),
+            ImportSymbol::Ordinal(ord) => f.write_fmt(format_args!("{}", ord)),
+        }
+    }
+}
 
 impl ILTEntry {
     pub fn as_import_symbol(self, image: &[u8]) -> ImportSymbol {

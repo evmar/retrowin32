@@ -2,7 +2,6 @@
 #![allow(non_camel_case_types)]
 
 use super::reader::Reader;
-use crate::winapi::types::{DWORD, WORD};
 use anyhow::{anyhow, bail};
 use bitflags::bitflags;
 use memory::Extensions;
@@ -13,19 +12,19 @@ use memory::Extensions;
 fn dos_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<u32> {
     r.expect("MZ")?;
     r.skip(0x3a)?;
-    Ok(r.read::<DWORD>())
+    Ok(r.read::<u32>())
 }
 
 #[derive(Debug, Default, Clone)]
 #[repr(C)]
 pub struct IMAGE_FILE_HEADER {
-    pub Machine: WORD,
-    pub NumberOfSections: WORD,
-    pub TimeDateStamp: DWORD,
-    pub PointerToSymbolTable: DWORD,
-    pub NumberOfSymbols: DWORD,
-    pub SizeOfOptionalHeader: WORD,
-    pub Characteristics: WORD,
+    pub Machine: u16,
+    pub NumberOfSections: u16,
+    pub TimeDateStamp: u32,
+    pub PointerToSymbolTable: u32,
+    pub NumberOfSymbols: u32,
+    pub SizeOfOptionalHeader: u16,
+    pub Characteristics: u16,
 }
 unsafe impl memory::Pod for IMAGE_FILE_HEADER {}
 
@@ -48,44 +47,44 @@ bitflags! {
 #[repr(C)]
 #[derive(Debug, Clone)]
 pub struct IMAGE_OPTIONAL_HEADER32 {
-    pub Magic: WORD,
+    pub Magic: u16,
     pub MajorLinkerVersion: u8,
     pub MinorLinkerVersion: u8,
-    pub SizeOfCode: DWORD,
-    pub SizeOfInitializedData: DWORD,
-    pub SizeOfUninitializedData: DWORD,
-    pub AddressOfEntryPoint: DWORD,
-    pub BaseOfCode: DWORD,
-    pub BaseOfData: DWORD,
-    pub ImageBase: DWORD,
-    pub SectionAlignment: DWORD,
-    pub FileAlignment: DWORD,
-    pub MajorOperatingSystemVersion: WORD,
-    pub MinorOperatingSystemVersion: WORD,
-    pub MajorImageVersion: WORD,
-    pub MinorImageVersion: WORD,
-    pub MajorSubsystemVersion: WORD,
-    pub MinorSubsystemVersion: WORD,
-    pub Win32VersionValue: DWORD,
-    pub SizeOfImage: DWORD,
-    pub SizeOfHeaders: DWORD,
-    pub CheckSum: DWORD,
-    pub Subsystem: WORD,
-    pub DllCharacteristics: WORD,
-    pub SizeOfStackReserve: DWORD,
-    pub SizeOfStackCommit: DWORD,
-    pub SizeOfHeapReserve: DWORD,
-    pub SizeOfHeapCommit: DWORD,
-    pub LoaderFlags: DWORD,
-    pub NumberOfRvaAndSizes: DWORD,
+    pub SizeOfCode: u32,
+    pub SizeOfInitializedData: u32,
+    pub SizeOfUninitializedData: u32,
+    pub AddressOfEntryPoint: u32,
+    pub BaseOfCode: u32,
+    pub BaseOfData: u32,
+    pub ImageBase: u32,
+    pub SectionAlignment: u32,
+    pub FileAlignment: u32,
+    pub MajorOperatingSystemVersion: u16,
+    pub MinorOperatingSystemVersion: u16,
+    pub MajorImageVersion: u16,
+    pub MinorImageVersion: u16,
+    pub MajorSubsystemVersion: u16,
+    pub MinorSubsystemVersion: u16,
+    pub Win32VersionValue: u32,
+    pub SizeOfImage: u32,
+    pub SizeOfHeaders: u32,
+    pub CheckSum: u32,
+    pub Subsystem: u16,
+    pub DllCharacteristics: u16,
+    pub SizeOfStackReserve: u32,
+    pub SizeOfStackCommit: u32,
+    pub SizeOfHeapReserve: u32,
+    pub SizeOfHeapCommit: u32,
+    pub LoaderFlags: u32,
+    pub NumberOfRvaAndSizes: u32,
 }
 unsafe impl memory::Pod for IMAGE_OPTIONAL_HEADER32 {}
 
 #[repr(C)]
 #[derive(Clone, Debug, Default)]
 pub struct IMAGE_DATA_DIRECTORY {
-    pub VirtualAddress: DWORD,
-    pub Size: DWORD,
+    pub VirtualAddress: u32,
+    pub Size: u32,
 }
 unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {

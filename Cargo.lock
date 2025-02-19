@@ -303,6 +303,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
+name = "pe"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bitflags",
+ "log",
+ "memory",
+ "serde",
+]
+
+[[package]]
 name = "pkg-config"
 version = "0.3.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -586,6 +597,7 @@ dependencies = [
  "memory",
  "num-derive",
  "num-traits",
+ "pe",
  "serde",
  "tsify",
  "typed-path",

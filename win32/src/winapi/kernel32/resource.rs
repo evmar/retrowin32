@@ -4,7 +4,6 @@ use crate::winapi::kernel32::HMODULE;
 use crate::winapi::types::HRSRC;
 use crate::winapi::user32::HINSTANCE;
 use crate::{
-    pe,
     winapi::{
         calling_convention::FromArg,
         kernel32,

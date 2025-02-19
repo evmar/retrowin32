@@ -3,11 +3,12 @@ use crate::{
     winapi::kernel32::set_last_error,
 };
 use memory::{str16, Extensions, Pod};
+use pe::ImportSymbol;
 
 use crate::{
     host,
     machine::Machine,
-    winapi::{self, builtin, calling_convention::ArrayWithSizeMut, types::*, ImportSymbol},
+    winapi::{self, builtin, calling_convention::ArrayWithSizeMut, types::*},
 };
 use std::io::Write;
 use typed_path::WindowsPath;

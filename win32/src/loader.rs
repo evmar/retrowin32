@@ -1,6 +1,6 @@
 //! PE image loading.
 
-use crate::{machine::Machine, pe, winapi};
+use crate::{machine::Machine, winapi};
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, path::Path};
 

@@ -1,6 +1,5 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
-    pe,
     winapi::{
         bitmap::{Bitmap, BITMAPFILEHEADER},
         gdi32::HGDIOBJ,
