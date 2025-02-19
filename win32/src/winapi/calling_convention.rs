@@ -7,7 +7,7 @@
 //! own control over the stack and moving return values into registers.
 
 use crate::winapi::{CStr, Str16};
-use memory::{str16, Extensions, ExtensionsMut, Mem};
+use memory::{Extensions, ExtensionsMut, Mem};
 
 /// ArrayWithSize<u8> matches a pair of C arguments like
 ///    const u8_t* items, size_t len,
@@ -157,7 +157,9 @@ impl<'a> FromArg<'a> for Option<&'a str> {
         if arg == 0 {
             return None;
         }
-        let strz = str16::expect_ascii(mem.slicez(arg));
+        let Some(strz) = mem.slicez(arg).try_ascii() else {
+            todo!("non-ascii string; change winapi function to accept bytes");
+        };
         Some(strz)
     }
 }

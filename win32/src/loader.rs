@@ -123,7 +123,7 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
     let mut names = HashMap::new();
     for (name, i) in dir.names(image) {
         let addr = fns[i as usize];
-        names.insert(name.to_string(), addr);
+        names.insert(name.to_vec(), addr);
     }
 
     Exports {
@@ -143,7 +143,14 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIR
         return;
     };
     for dll_imports in pe::read_imports(section) {
-        let dll_name = dll_imports.image_name(image).to_ascii_lowercase();
+        let Some(dll_name) = dll_imports.image_name(image).try_ascii() else {
+            log::warn!(
+                "skipping non-ascii import {:?}",
+                dll_imports.image_name(image)
+            );
+            continue;
+        };
+        let dll_name = dll_name.to_ascii_lowercase();
         let hmodule = winapi::kernel32::load_library(machine, &dll_name);
         let mut dll = machine.state.kernel32.dlls.get_mut(&hmodule);
         for (i, entry) in dll_imports.ilt(image).enumerate() {
@@ -219,7 +226,9 @@ pub fn load_module(
             .ok_or_else(|| anyhow::anyhow!("invalid exports"))?;
         let exports = load_exports(base, image, section);
         for (name, &addr) in exports.names.iter() {
-            machine.labels.insert(addr, format!("{filename}!{name}"));
+            if let Some(name) = name.try_ascii() {
+                machine.labels.insert(addr, format!("{filename}!{name}"));
+            }
         }
         exports
     } else {
@@ -293,7 +302,7 @@ pub struct Module {
 #[derive(Debug, Default)]
 pub struct Exports {
     /// Exported function name => resolved address.
-    pub names: HashMap<String, u32>,
+    pub names: HashMap<Vec<u8>, u32>,
 
     /// fns[ordinal - ordinal base] => resolved address.
     pub ordinal_base: u32,

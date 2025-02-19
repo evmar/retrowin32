@@ -2,7 +2,7 @@ use crate::{
     loader::{self, Module},
     winapi::kernel32::set_last_error,
 };
-use memory::{str16, Extensions, Pod};
+use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 
 use crate::{
@@ -235,7 +235,7 @@ impl<'a> winapi::calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
         if lpProcName & 0xFFFF_0000 == 0 {
             GetProcAddressArg(ImportSymbol::Ordinal(lpProcName))
         } else {
-            let proc_name = str16::expect_ascii(mem.slicez(lpProcName));
+            let proc_name = mem.slicez(lpProcName);
             GetProcAddressArg(ImportSymbol::Name(proc_name))
         }
     }
@@ -244,7 +244,7 @@ impl<'a> winapi::calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
 pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
     let hmodule = load_library(machine, dll);
     let dll = machine.state.kernel32.dlls.get_mut(&hmodule).unwrap();
-    dll.resolve(&ImportSymbol::Name(name)).unwrap()
+    dll.resolve(&ImportSymbol::Name(name.as_bytes())).unwrap()
 }
 
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {

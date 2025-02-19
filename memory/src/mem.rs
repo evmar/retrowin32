@@ -36,6 +36,16 @@ pub trait Extensions<'m>: Sized {
     fn sub32(self, ofs: u32, len: u32) -> &'m [u8];
     fn slicez(self, ofs: u32) -> &'m [u8];
 
+    fn try_ascii(self) -> Option<&'m str> {
+        let slice = self.as_slice();
+        if slice.is_ascii() {
+            // Safety: ASCII is a subset of UTF-8.
+            Some(unsafe { std::str::from_utf8_unchecked(slice) })
+        } else {
+            None
+        }
+    }
+
     /// Create an iterator over a contiguous array of Pod types.
     fn into_iter_pod<T: Clone + Pod>(self) -> Iterator<'m, T> {
         Iterator {
