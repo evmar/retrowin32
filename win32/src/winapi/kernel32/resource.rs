@@ -87,7 +87,7 @@ pub fn find_resource<'a>(
             .map(|r| (hInstance + r.start)..(hInstance + r.end))
     } else {
         let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
-        match dll.dll.resources.clone() {
+        match dll.module.resources.clone() {
             None => return None,
             Some(resources) => {
                 let section = resources.as_slice(image)?;

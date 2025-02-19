@@ -134,19 +134,19 @@ impl State {
                 .copy_from_slice(retrowin32_syscall);
             let mut names = HashMap::new();
             names.insert("retrowin32_syscall".into(), addr);
+            let exports = pe::Exports {
+                names,
+                ..Default::default()
+            };
             DLL {
                 name: "retrowin32.dll".into(),
-                dll: pe::DLL {
-                    base: 0, // unused
-                    names,
-                    ordinal_base: 0,         // unused
-                    fns: Default::default(), // unused
-                    resources: None,
-                    entry_point: None,
+                module: pe::Module {
+                    exports,
+                    ..Default::default() // rest of fields unused
                 },
             }
         };
-        dlls.insert(HMODULE::from_raw(dll.dll.base), dll);
+        dlls.insert(HMODULE::from_raw(dll.module.image_base), dll);
 
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
@@ -353,8 +353,8 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
         .iter()
         .filter_map(|(_, dll)| {
             Some(DllData {
-                base: dll.dll.base,
-                entry_point: dll.dll.entry_point?,
+                base: dll.module.image_base,
+                entry_point: dll.module.entry_point?,
             })
         })
         .collect::<Vec<_>>();
