@@ -1,12 +1,11 @@
 use super::{WindowType, HBRUSH, HDC};
 use crate::{
-    str16::Str16,
     winapi::{
         calling_convention::FromArg,
         gdi32::{
             COLORREF, HGDIOBJ, {self},
         },
-        HWND, RECT,
+        Str16, HWND, RECT,
     },
     Machine,
 };

@@ -1,7 +1,7 @@
 use crate::{
-    str16::Str16,
     winapi::{
-        calling_convention::ArrayWithSize, handle::HANDLE, kernel32::WriteFile, DWORD, HFILE, WORD,
+        calling_convention::ArrayWithSize, handle::HANDLE, kernel32::WriteFile, Str16, DWORD,
+        HFILE, WORD,
     },
     Machine,
 };

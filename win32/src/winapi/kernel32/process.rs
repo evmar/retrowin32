@@ -1,5 +1,8 @@
 use super::STARTUPINFOA;
-use crate::{str16::Str16, winapi::HANDLE, Machine};
+use crate::{
+    winapi::{Str16, HANDLE},
+    Machine,
+};
 
 pub type HPROCESS = HANDLE<()>;
 
