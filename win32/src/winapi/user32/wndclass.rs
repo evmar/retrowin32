@@ -5,7 +5,7 @@ use crate::{
     Machine,
 };
 use bitflags::bitflags;
-use memory::{str16, Extensions};
+use memory::Extensions;
 use std::{cell::RefCell, rc::Rc};
 
 bitflags! {
@@ -136,7 +136,12 @@ unsafe impl memory::Pod for WNDCLASSEXW {}
 #[win32_derive::dllexport]
 pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = str16::expect_ascii(machine.mem().slicez(lpWndClassEx.lpszClassName)).to_string();
+    let name = machine
+        .mem()
+        .slicez(lpWndClassEx.lpszClassName)
+        .try_ascii()
+        .unwrap()
+        .to_string();
     let wndclass = WndClass {
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),

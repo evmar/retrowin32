@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use memory::{str16, Extensions};
+use memory::Extensions;
 
 #[derive(Debug, Clone)]
 #[repr(C)]
@@ -23,8 +23,8 @@ unsafe impl memory::Pod for IMAGE_EXPORT_DIRECTORY {}
 
 impl IMAGE_EXPORT_DIRECTORY {
     #[allow(dead_code)]
-    pub fn name<'a>(&self, image: &'a [u8]) -> &'a str {
-        str16::expect_ascii(image.slicez(self.Name))
+    pub fn name<'a>(&self, image: &'a [u8]) -> &'a [u8] {
+        image.slicez(self.Name)
     }
 
     /// Returns an iterator of function addresses in ordinal order.
@@ -33,11 +33,11 @@ impl IMAGE_EXPORT_DIRECTORY {
     }
 
     /// Returns an iterator of (name, index) pairs, where index is an index into fn()s.
-    pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a str, u16)> {
+    pub fn names<'a>(&self, image: &'a [u8]) -> impl Iterator<Item = (&'a [u8], u16)> {
         let names = image.iter_pod::<u32>(self.AddressOfNames, self.NumberOfNames);
         let ords = image.iter_pod::<u16>(self.AddressOfNameOrdinals, self.NumberOfNames);
 
-        let ni = names.map(move |addr| str16::expect_ascii(image.slicez(addr)));
+        let ni = names.map(move |addr| image.slicez(addr));
         ni.zip(ords)
     }
 }
