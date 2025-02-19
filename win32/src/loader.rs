@@ -1,6 +1,5 @@
-#![allow(non_snake_case)]
+//! PE image loading.
 
-use super::{apply_relocs, IMAGE_DATA_DIRECTORY, IMAGE_SECTION_HEADER};
 use crate::{machine::Machine, pe, winapi};
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, path::Path};
@@ -62,7 +61,7 @@ fn load_section(
     filename: &str,
     base: u32,
     buf: &[u8],
-    sec: &IMAGE_SECTION_HEADER,
+    sec: &pe::IMAGE_SECTION_HEADER,
 ) {
     let mut src = sec.PointerToRawData as usize;
     if src == 1 {
@@ -134,7 +133,7 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
     }
 }
 
-fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &IMAGE_DATA_DIRECTORY) {
+fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the correct targets.
     let mut patches: Vec<(u32, u32)> = Vec::new();
@@ -194,7 +193,7 @@ pub fn load_module(
             if let Some(sec) = relocs.as_slice(image) {
                 // Warning: apply_relocs wants to mutate arbitrary memory, which violates Rust aliasing rules.
                 // It has started silently failing in release builds in the past...
-                apply_relocs(
+                pe::apply_relocs(
                     file.opt_header.ImageBase,
                     base,
                     sec,
@@ -284,7 +283,7 @@ pub struct Module {
     /// Address where the module was loaded.
     pub image_base: u32,
 
-    pub resources: Option<IMAGE_DATA_DIRECTORY>,
+    pub resources: Option<pe::IMAGE_DATA_DIRECTORY>,
 
     pub exports: Exports,
 

@@ -5,6 +5,7 @@ use super::{
     HEVENT, HMODULE, STDERR_HFILE, STDOUT_HFILE,
 };
 use crate::{
+    loader,
     machine::MemImpl,
     pe,
     segments::SegmentDescriptor,
@@ -134,13 +135,13 @@ impl State {
                 .copy_from_slice(retrowin32_syscall);
             let mut names = HashMap::new();
             names.insert("retrowin32_syscall".into(), addr);
-            let exports = pe::Exports {
+            let exports = loader::Exports {
                 names,
                 ..Default::default()
             };
             DLL {
                 name: "retrowin32.dll".into(),
-                module: pe::Module {
+                module: loader::Module {
                     exports,
                     ..Default::default() // rest of fields unused
                 },

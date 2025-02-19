@@ -1,4 +1,5 @@
 mod host;
+pub mod loader;
 mod machine;
 pub mod pe;
 mod segments;

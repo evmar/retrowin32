@@ -1,9 +1,8 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
-    host,
+    host, loader,
     machine::{LoadedAddrs, MachineX, Status},
-    pe,
     shims::{Handler, Shims},
     winapi::{
         self,
@@ -90,7 +89,7 @@ impl MachineX<Emulator> {
         self.state
             .kernel32
             .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
-        let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
+        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
         // that the exe wants.

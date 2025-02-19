@@ -1,10 +1,12 @@
-use crate::winapi::kernel32::set_last_error;
+use crate::{
+    loader::{self, Module},
+    winapi::kernel32::set_last_error,
+};
 use memory::{Extensions, Pod};
 
 use crate::{
     host,
     machine::Machine,
-    pe,
     str16::expect_ascii,
     winapi::{self, builtin, calling_convention::ArrayWithSizeMut, types::*, ImportSymbol},
 };
@@ -20,7 +22,7 @@ pub type HMODULE = HANDLE<HMODULET>;
 pub struct DLL {
     pub name: String,
 
-    pub module: pe::Module,
+    pub module: Module,
 }
 
 impl DLL {
@@ -180,7 +182,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
         return HMODULE::null();
     }
 
-    let module = pe::load_dll(machine, &filename, contents).unwrap();
+    let module = loader::load_dll(machine, &filename, contents).unwrap();
 
     // For builtins, register all the exports as known symbols.
     // It is critical that the DLL's exports match up to the shims array;
