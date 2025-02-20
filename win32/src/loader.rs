@@ -185,8 +185,8 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIR
     }
 }
 
-pub fn normalize_module_name(name: &str) -> String {
-    let mut name = name.to_ascii_lowercase();
+pub fn normalize_module_name(mut name: String) -> String {
+    name.make_ascii_lowercase();
     if !name.ends_with(".dll") && !name.ends_with(".") {
         name.push_str(".dll");
     }
@@ -196,12 +196,11 @@ pub fn normalize_module_name(name: &str) -> String {
 /// Load an exe or dll, including resolving imports.
 fn load_module(
     machine: &mut Machine,
-    filename: &str,
+    module_name: String,
     buf: &[u8],
     file: &pe::File,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<Module> {
-    let module_name = normalize_module_name(filename);
     let base = load_image(machine, &module_name, file, buf, relocate);
 
     for sec in file.sections.iter() {
@@ -287,7 +286,8 @@ pub fn load_exe(
     let file = pe::parse(buf)?;
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
-    let module = load_module(machine, &filename, buf, &file, relocate)?;
+    let module_name = normalize_module_name(filename.into_owned());
+    let module = load_module(machine, module_name, buf, &file, relocate)?;
     machine.state.kernel32.image_base = module.image_base;
 
     if let Some(res_data) = module.resources {
@@ -339,7 +339,7 @@ impl Exports {
 }
 
 pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE> {
-    let mut filename = normalize_module_name(filename);
+    let mut filename = normalize_module_name(filename.to_owned());
 
     // See if already loaded.
     if let Some((&hmodule, _)) = machine
@@ -399,7 +399,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE
     }
 
     let file = pe::parse(contents)?;
-    let module = load_module(machine, &filename, contents, &file, Some(None))?;
+    let module = load_module(machine, filename, contents, &file, Some(None))?;
 
     // For builtins, register all the exports as known symbols.
     // It is critical that the DLL's exports match up to the shims array;
