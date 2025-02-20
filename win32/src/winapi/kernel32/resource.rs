@@ -81,8 +81,8 @@ pub fn find_resource<'a>(
         pe::find_resource(section, typ.into_pe(), name.into_pe())
             .map(|r| (hInstance + r.start)..(hInstance + r.end))
     } else {
-        let dll = kernel32.dlls.get(&HMODULE::from_raw(hInstance))?;
-        match dll.module.resources.clone() {
+        let module = kernel32.modules.get(&HMODULE::from_raw(hInstance))?;
+        match &module.resources {
             None => return None,
             Some(resources) => {
                 let section = resources.as_slice(image)?;

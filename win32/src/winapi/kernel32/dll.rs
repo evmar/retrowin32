@@ -1,9 +1,4 @@
-use crate::{
-    loader::{
-        Module, {self},
-    },
-    winapi::kernel32::set_last_error,
-};
+use crate::{loader, winapi::kernel32::set_last_error};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 
@@ -21,37 +16,9 @@ use typed_path::WindowsPath;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
-/// HMODULE is the address of the loaded DLL image.
+/// HMODULE is the address of the loaded PE image.
 // (BASS.dll calls LoadLibrary and reads the PE header found at the returned address.)
 pub type HMODULE = HANDLE<HMODULET>;
-
-pub struct DLL {
-    pub name: String,
-
-    pub module: Module,
-}
-
-impl DLL {
-    pub fn resolve(&mut self, sym: &ImportSymbol) -> Option<u32> {
-        match *sym {
-            ImportSymbol::Name(name) => self.module.exports.names.get(name).copied(),
-            ImportSymbol::Ordinal(ord) => self
-                .module
-                .exports
-                .fns
-                .get((ord - self.module.exports.ordinal_base) as usize)
-                .copied(),
-        }
-    }
-}
-
-pub fn normalize_module_name(name: &str) -> String {
-    let mut name = name.to_ascii_lowercase();
-    if !name.ends_with(".dll") && !name.ends_with(".") {
-        name.push_str(".dll");
-    }
-    name
-}
 
 #[win32_derive::dllexport]
 pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HMODULE {
@@ -60,12 +27,12 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         Some(name) => name,
     };
 
-    let name = normalize_module_name(name);
+    let name = loader::normalize_module_name(name);
 
     if let Some((hmodule, _)) = machine
         .state
         .kernel32
-        .dlls
+        .modules
         .iter()
         .find(|(_, dll)| dll.name == name)
     {
@@ -130,13 +97,13 @@ pub fn GetModuleFileNameW(
 }
 
 pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
-    let mut filename = normalize_module_name(filename);
+    let mut filename = loader::normalize_module_name(filename);
 
     // See if already loaded.
     if let Some((hmodule, _)) = machine
         .state
         .kernel32
-        .dlls
+        .modules
         .iter()
         .find(|(_, dll)| dll.name == filename)
     {
@@ -200,13 +167,7 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     }
 
     let hmodule = HMODULE::from_raw(module.image_base);
-    machine.state.kernel32.dlls.insert(
-        hmodule,
-        DLL {
-            name: filename,
-            module,
-        },
-    );
+    machine.state.kernel32.modules.insert(hmodule, module);
     hmodule
 }
 
@@ -249,8 +210,11 @@ impl<'a> winapi::calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
 
 pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
     let hmodule = load_library(machine, dll);
-    let dll = machine.state.kernel32.dlls.get_mut(&hmodule).unwrap();
-    dll.resolve(&ImportSymbol::Name(name.as_bytes())).unwrap()
+    let module = machine.state.kernel32.modules.get_mut(&hmodule).unwrap();
+    module
+        .exports
+        .resolve(&ImportSymbol::Name(name.as_bytes()))
+        .unwrap()
 }
 
 pub fn get_kernel32_builtin(machine: &mut Machine, name: &str) -> u32 {
@@ -263,9 +227,9 @@ pub fn GetProcAddress(
     hModule: HMODULE,
     lpProcName: GetProcAddressArg,
 ) -> u32 {
-    let dll = machine.state.kernel32.dlls.get_mut(&hModule).unwrap();
-    let Some(addr) = dll.resolve(&lpProcName.0) else {
-        log::warn!("GetProcAddress({:?}, {:?}) failed", dll.name, lpProcName);
+    let module = machine.state.kernel32.modules.get_mut(&hModule).unwrap();
+    let Some(addr) = module.exports.resolve(&lpProcName.0) else {
+        log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);
         return 0; // fail
     };
     addr

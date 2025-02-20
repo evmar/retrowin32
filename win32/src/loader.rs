@@ -25,7 +25,7 @@ fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Op
 /// Copy the file header itself into memory, choosing a base address.
 fn load_image(
     machine: &mut Machine,
-    filename: &str,
+    module_name: &str,
     file: &pe::File,
     buf: &[u8],
     relocate: Option<Option<u32>>,
@@ -46,7 +46,7 @@ fn load_image(
         winapi::kernel32::Mapping {
             addr,
             size: first_page_size as u32,
-            desc: filename.into(),
+            desc: module_name.into(),
             flags: pe::IMAGE_SCN::MEM_READ,
         },
         Some(&buf[..first_page_size]),
@@ -58,7 +58,7 @@ fn load_image(
 /// Load a PE section into memory.
 fn load_section(
     machine: &mut Machine,
-    filename: &str,
+    module_name: &str,
     base: u32,
     buf: &[u8],
     sec: &pe::IMAGE_SECTION_HEADER,
@@ -93,7 +93,7 @@ fn load_section(
         addr: dst,
         size: mapping_size,
         desc: format!(
-            "{filename} {:?} ({:?})",
+            "{module_name} {:?} ({:?})",
             sec.name().unwrap_or("[invalid]"),
             flags
         ),
@@ -152,15 +152,15 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIR
         };
         let dll_name = dll_name.to_ascii_lowercase();
         let hmodule = winapi::kernel32::load_library(machine, &dll_name);
-        let mut dll = machine.state.kernel32.dlls.get_mut(&hmodule);
+        let mut module = machine.state.kernel32.modules.get_mut(&hmodule);
         for (i, entry) in dll_imports.ilt(image).enumerate() {
             let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
             let iat_addr = base + dll_imports.iat_offset() + (i as u32 * 4);
             machine.labels.insert(iat_addr, format!("{}@IAT", name));
 
-            let resolved_addr = if let Some(dll) = dll.as_mut() {
-                if let Some(sym) = dll.resolve(&sym) {
+            let resolved_addr = if let Some(module) = module.as_deref_mut() {
+                if let Some(sym) = module.exports.resolve(&sym) {
                     Some(sym)
                 } else {
                     log::warn!("missing symbol {name}");
@@ -180,6 +180,14 @@ fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIR
     }
 }
 
+pub fn normalize_module_name(name: &str) -> String {
+    let mut name = name.to_ascii_lowercase();
+    if !name.ends_with(".dll") && !name.ends_with(".") {
+        name.push_str(".dll");
+    }
+    name
+}
+
 /// Load an exe or dll, including resolving imports.
 pub fn load_module(
     machine: &mut Machine,
@@ -188,10 +196,11 @@ pub fn load_module(
     file: &pe::File,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<Module> {
-    let base = load_image(machine, filename, file, buf, relocate);
+    let module_name = normalize_module_name(filename);
+    let base = load_image(machine, &module_name, file, buf, relocate);
 
     for sec in file.sections.iter() {
-        load_section(machine, filename, base, buf, sec);
+        load_section(machine, &module_name, base, buf, sec);
     }
 
     if base != file.opt_header.ImageBase {
@@ -227,7 +236,7 @@ pub fn load_module(
         let exports = load_exports(base, image, section);
         for (name, &addr) in exports.names.iter() {
             if let Some(name) = name.try_ascii() {
-                machine.labels.insert(addr, format!("{filename}!{name}"));
+                machine.labels.insert(addr, format!("{module_name}!{name}"));
             }
         }
         exports
@@ -251,6 +260,7 @@ pub fn load_module(
     };
 
     Ok(Module {
+        name: module_name,
         image_base: base,
         exports,
         resources,
@@ -289,6 +299,9 @@ pub fn load_exe(
 /// The result of loading an exe or DLL.
 #[derive(Debug, Default)]
 pub struct Module {
+    /// Normalized module name, e.g. "kernel32.dll".
+    pub name: String,
+
     /// Address where the module was loaded.
     pub image_base: u32,
 
@@ -307,6 +320,17 @@ pub struct Exports {
     /// fns[ordinal - ordinal base] => resolved address.
     pub ordinal_base: u32,
     pub fns: Vec<u32>,
+}
+
+impl Exports {
+    pub fn resolve(&mut self, sym: &pe::ImportSymbol) -> Option<u32> {
+        match *sym {
+            pe::ImportSymbol::Name(name) => self.names.get(name).copied(),
+            pe::ImportSymbol::Ordinal(ord) => {
+                self.fns.get((ord - self.ordinal_base) as usize).copied()
+            }
+        }
+    }
 }
 
 pub fn load_dll(machine: &mut Machine, filename: &str, buf: &[u8]) -> anyhow::Result<Module> {

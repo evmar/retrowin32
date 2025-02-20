@@ -1,11 +1,11 @@
 //! Process initialization and startup.
 
 use super::{
-    command_line::CommandLine, EventObject, FindHandle, Mappings, ResourceHandle, Thread, DLL,
-    HEVENT, HMODULE, STDERR_HFILE, STDOUT_HFILE,
+    command_line::CommandLine, EventObject, FindHandle, Mappings, ResourceHandle, Thread, HEVENT,
+    HMODULE, STDERR_HFILE, STDOUT_HFILE,
 };
 use crate::{
-    loader,
+    loader::{self, Module},
     machine::MemImpl,
     segments::SegmentDescriptor,
     winapi::{alloc::Arena, handle::Handles, heap::Heap, *},
@@ -102,7 +102,8 @@ pub struct State {
     /// over heaps in general.
     pub process_heap_addr: u32,
 
-    pub dlls: HashMap<HMODULE, DLL>,
+    /// Loaded PE modules: the exe and all DLLs.
+    pub modules: HashMap<HMODULE, Module>,
 
     pub resources: pe::IMAGE_DATA_DIRECTORY,
     pub resource_handles: Handles<HRSRC, ResourceHandle>,
@@ -127,7 +128,7 @@ impl State {
         let mut arena = Arena::new(mapping.addr, mapping.size);
 
         let mut dlls = HashMap::new();
-        let dll = {
+        let module = {
             let addr = arena.alloc(retrowin32_syscall.len() as u32, 8);
             mem.mem()
                 .sub32_mut(addr, retrowin32_syscall.len() as u32)
@@ -138,15 +139,13 @@ impl State {
                 names,
                 ..Default::default()
             };
-            DLL {
+            loader::Module {
                 name: "retrowin32.dll".into(),
-                module: loader::Module {
-                    exports,
-                    ..Default::default() // rest of fields unused
-                },
+                exports,
+                ..Default::default() // rest of fields unused
             }
         };
-        dlls.insert(HMODULE::from_raw(dll.module.image_base), dll);
+        dlls.insert(HMODULE::from_raw(module.image_base), module);
 
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
@@ -162,7 +161,7 @@ impl State {
             process_heap_addr: 0,
             mappings,
             heaps: HashMap::new(),
-            dlls,
+            modules: dlls,
             objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
@@ -349,12 +348,12 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
     let dlls = machine
         .state
         .kernel32
-        .dlls
+        .modules
         .iter()
-        .filter_map(|(_, dll)| {
+        .filter_map(|(_, module)| {
             Some(DllData {
-                base: dll.module.image_base,
-                entry_point: dll.module.entry_point?,
+                base: module.image_base,
+                entry_point: module.entry_point?,
             })
         })
         .collect::<Vec<_>>();
