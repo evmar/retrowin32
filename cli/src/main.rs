@@ -148,7 +148,7 @@ fn main() -> anyhow::Result<ExitCode> {
         .collect::<Vec<_>>()
         .join(" ");
     let mut machine = win32::Machine::new(Box::new(host.clone()));
-    machine.set_external_dlls(&args.external_dll);
+    machine.set_external_dlls(args.external_dll);
     machine.state.winmm.audio_enabled = args.audio;
 
     let addrs = machine

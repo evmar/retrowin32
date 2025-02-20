@@ -23,7 +23,7 @@ pub enum Status {
 #[wasm_bindgen]
 impl Emulator {
     pub fn set_external_dlls(&mut self, dlls: Vec<String>) {
-        self.machine.set_external_dlls(&dlls);
+        self.machine.set_external_dlls(dlls);
     }
 
     pub fn load_exe(&mut self, buf: &[u8], cmdline: String, relocate: bool) -> JsResult<()> {

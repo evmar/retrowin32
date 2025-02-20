@@ -24,7 +24,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         Some(name) => name,
     };
 
-    let name = loader::normalize_module_name(name);
+    let name = loader::normalize_module_name(name.to_owned());
 
     if let Some((hmodule, _)) = machine
         .state
