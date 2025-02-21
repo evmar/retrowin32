@@ -4,7 +4,7 @@ mod advapi32;
 mod alloc;
 mod bass;
 mod bitmap;
-mod builtin;
+pub mod builtin;
 mod calling_convention;
 mod com;
 pub mod ddraw;
