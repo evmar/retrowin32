@@ -151,10 +151,9 @@ fn main() -> anyhow::Result<ExitCode> {
     machine.set_external_dlls(args.external_dll);
     machine.state.winmm.audio_enabled = args.audio;
 
-    let addrs = machine
+    let entry_point = machine
         .load_exe(&buf, cmdline, None)
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
-    _ = addrs;
 
     let exit_code: u32;
 
@@ -163,15 +162,15 @@ fn main() -> anyhow::Result<ExitCode> {
         assert!(args.trace_points.is_none());
         unsafe {
             let ptr: *mut win32::Machine = &mut machine;
-            machine.emu.shims.set_machine_hack(ptr, addrs.stack_pointer);
-            machine.jump_to_entry_point(addrs.entry_point);
+            machine.emu.shims.set_machine_hack(ptr);
+            machine.jump_to_entry_point(entry_point);
         }
         exit_code = 0; // TODO: exit code path never hit
     }
 
     #[cfg(feature = "x86-emu")]
     {
-        _ = addrs;
+        _ = entry_point;
 
         let start = std::time::Instant::now();
         if args.trace_blocks {
@@ -239,7 +238,7 @@ fn main() -> anyhow::Result<ExitCode> {
             print_trace(&machine);
             todo!();
         } else {
-            match machine.main(addrs.entry_point) {
+            match machine.main(entry_point) {
                 win32::Status::Exit(code) => {
                     exit_code = *code;
                 }

@@ -15,11 +15,6 @@ pub use crate::machine_unicorn::Machine;
 #[cfg(feature = "x86-unicorn")]
 pub use crate::machine_unicorn::MemImpl;
 
-pub struct LoadedAddrs {
-    pub entry_point: u32,
-    pub stack_pointer: u32,
-}
-
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct MachineX<Emu> {
     pub emu: Emu,

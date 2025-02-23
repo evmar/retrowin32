@@ -1,8 +1,8 @@
 use crate::{
     host, loader,
-    machine::{LoadedAddrs, MachineX, Status},
+    machine::{MachineX, Status},
     shims::Shims,
-    shims_raw::retrowin32_syscall,
+    shims_raw::{self, retrowin32_syscall},
     winapi::{
         kernel32::CommandLine,
         {self},
@@ -59,7 +59,7 @@ impl MachineX<Emulator> {
         buf: &[u8],
         cmdline: String,
         relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<LoadedAddrs> {
+    ) -> anyhow::Result<u32> {
         self.state
             .kernel32
             .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
@@ -71,11 +71,11 @@ impl MachineX<Emulator> {
             &mut self.emu.memory,
         );
         let stack_pointer = stack.addr + stack.size - 4;
+        unsafe {
+            shims_raw::set_stack32(stack_pointer);
+        }
 
-        Ok(LoadedAddrs {
-            entry_point: exe.entry_point,
-            stack_pointer,
-        })
+        Ok(exe.entry_point)
     }
 
     pub async fn call_x86(&mut self, func: u32, args: Vec<u32>) -> u32 {
