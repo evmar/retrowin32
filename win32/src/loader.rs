@@ -1,4 +1,8 @@
 //! PE image loading.
+//!
+//! The two main entry points are load_exe and load_dll.
+//! These call into a shared load_module, which does the PE loading
+//! as well as recursively resolving imported modules.
 
 use crate::{
     host,
@@ -138,7 +142,7 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
     }
 }
 
-fn patch_iat(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
+fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the correct targets.
     let mut patches: Vec<(u32, u32)> = Vec::new();
@@ -194,8 +198,8 @@ pub fn normalize_module_name(mut name: String) -> String {
     name
 }
 
-/// Load an exe or dll, including resolving imports.
-fn load_module(
+/// Load an exe or dll without resolving its imports.
+fn load_one_module(
     machine: &mut Machine,
     module_name: String,
     buf: &[u8],
@@ -231,8 +235,6 @@ fn load_module(
         }
     }
 
-    // Gather exports before loading imports, because the import process may need to load
-    // DLLs which reference exports from this module.
     let image = machine.emu.memory.mem().slice(base..);
     let exports = if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let section = dir
@@ -248,10 +250,6 @@ fn load_module(
     } else {
         Exports::default()
     };
-
-    if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
-        patch_iat(machine, base, imports);
-    }
 
     let resources = file
         .data_directory
@@ -273,6 +271,28 @@ fn load_module(
     })
 }
 
+/// Load an exe or dll, inserting it into the module map and resolving its imports.
+fn load_module(
+    machine: &mut Machine,
+    module_name: String,
+    buf: &[u8],
+    file: &pe::File,
+    relocate: Option<Option<u32>>,
+) -> anyhow::Result<HMODULE> {
+    let module = load_one_module(machine, module_name, buf, file, relocate)?;
+    let image_base = module.image_base;
+
+    // Register module before loading imports, because imports may refer back to this module.
+    let hmodule = HMODULE::from_raw(module.image_base);
+    machine.state.kernel32.modules.insert(hmodule, module);
+
+    if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
+        load_imports(machine, image_base, imports);
+    }
+
+    Ok(hmodule)
+}
+
 pub struct EXEFields {
     pub entry_point: u32,
     pub stack_size: u32,
@@ -288,11 +308,12 @@ pub fn load_exe(
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
     let module_name = normalize_module_name(filename.into_owned());
-    let module = load_module(machine, module_name, buf, &file, relocate)?;
+    let hmodule = load_module(machine, module_name, buf, &file, relocate)?;
+    let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
-    if let Some(res_data) = module.resources {
-        machine.state.kernel32.resources = res_data;
+    if let Some(res_data) = &module.resources {
+        machine.state.kernel32.resources = res_data.clone();
     }
 
     let addrs = EXEFields {
@@ -389,16 +410,17 @@ pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE
         return Ok(hmodule);
     }
 
-    let module = match res {
+    match res {
         DLLResolution::Builtin(builtin) => {
             let file = pe::parse(builtin.raw)?;
-            let module = load_module(
+            let hmodule = load_module(
                 machine,
                 builtin.file_name.to_owned(),
                 builtin.raw,
                 &file,
                 Some(None),
             )?;
+            let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
 
             // For builtins, register all the exports as known symbols.
             // It is critical that the DLL's exports match up to the shims array;
@@ -407,7 +429,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE
                 machine.emu.shims.register(addr, Ok(shim));
             }
 
-            module
+            Ok(hmodule)
         }
         DLLResolution::External(filename) => {
             let mut buf = Vec::new();
@@ -428,11 +450,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE
                 anyhow::bail!("{filename:?} not found");
             }
             let file = pe::parse(&buf)?;
-            load_module(machine, filename, &buf, &file, Some(None))?
+            load_module(machine, filename, &buf, &file, Some(None))
         }
-    };
-
-    let hmodule = HMODULE::from_raw(module.image_base);
-    machine.state.kernel32.modules.insert(hmodule, module);
-    Ok(hmodule)
+    }
 }
