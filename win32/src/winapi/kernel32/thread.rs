@@ -2,7 +2,7 @@ use super::{peb_mut, EventObject, KernelObject};
 use crate::{
     machine::Machine,
     winapi::{
-        alloc::Arena,
+        arena::Arena,
         Str16, HANDLE, {self},
     },
 };

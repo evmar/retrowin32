@@ -1,7 +1,7 @@
 use crate::memory::Memory;
 
 mod advapi32;
-mod alloc;
+mod arena;
 mod bass;
 mod bitmap;
 pub mod builtin;

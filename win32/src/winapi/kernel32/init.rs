@@ -8,7 +8,7 @@ use crate::{
     loader::{self, Module},
     memory::Memory,
     segments::SegmentDescriptor,
-    winapi::{alloc::Arena, handle::Handles, heap::Heap, *},
+    winapi::{arena::Arena, handle::Handles, heap::Heap, *},
     Machine,
 };
 use ::memory::Mem;
