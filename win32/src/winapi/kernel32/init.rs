@@ -141,6 +141,8 @@ impl State {
             };
             loader::Module {
                 name: "retrowin32.dll".into(),
+                // use a non-zero base address so it doesn't register as the null HMODULE
+                image_base: 1,
                 exports,
                 ..Default::default() // rest of fields unused
             }
