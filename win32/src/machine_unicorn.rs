@@ -1,12 +1,12 @@
 use crate::{
-    host,
-    machine::{LoadedAddrs, MachineX, Status},
-    pe,
+    host, loader,
+    machine::{MachineX, Status},
+    memory::Memory,
     shims::{Handler, Shims},
-    winapi,
+    winapi::{self, kernel32::CommandLine},
 };
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::{collections::HashMap, future::Future, path::Path, pin::Pin};
+use std::{collections::HashMap, future::Future, pin::Pin};
 use unicorn_engine::{
     unicorn_const::{Arch, Mode, Permission},
     RegisterX86, Unicorn, X86Mmr,
@@ -40,7 +40,6 @@ const MAGIC_ADDR: u64 = 0xFFFF_FFF0;
 pub struct Emulator {
     pub unicorn: Unicorn<'static, ()>,
     pub shims: Shims,
-    pub memory: MemImpl,
     breakpoints: HashMap<u32, *mut core::ffi::c_void>,
     futures: Vec<Pin<Box<dyn Future<Output = ()>>>>,
 }
@@ -49,7 +48,7 @@ pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = MemImpl::new(32 << 20);
+        let mut memory = Memory::new(MemImpl::new(32 << 20));
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
         let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
 
@@ -61,7 +60,7 @@ impl MachineX<Emulator> {
                     offset as u64,
                     (memory.len() as usize) - offset,
                     Permission::ALL,
-                    memory.ptr().add(offset) as *mut _,
+                    memory.imp.ptr().add(offset) as *mut _,
                 )
                 .unwrap();
         };
@@ -90,10 +89,10 @@ impl MachineX<Emulator> {
             emu: Emulator {
                 unicorn,
                 shims: Shims::default(),
-                memory,
                 breakpoints: Default::default(),
                 futures: Default::default(),
             },
+            memory,
             host,
             state,
             labels: HashMap::new(),
@@ -106,13 +105,12 @@ impl MachineX<Emulator> {
         self.memory.mem()
     }
 
-    /// Initialize a memory mapping for the stack and return the initial stack pointer.
-    fn setup_stack(&mut self, stack_size: u32) -> u32 {
-        let stack =
-            self.state
-                .kernel32
-                .mappings
-                .alloc(stack_size, "stack".into(), &mut self.memory);
+    /// Initialize a memory mapping for the stack and set the stack pointers.
+    fn setup_stack(&mut self, stack_size: u32) {
+        let stack = self
+            .memory
+            .mappings
+            .alloc(stack_size, "stack".into(), &mut self.memory.imp);
         let stack_pointer = stack.addr + stack.size - 4;
 
         // TODO: put this init somewhere better.
@@ -124,8 +122,6 @@ impl MachineX<Emulator> {
             .unicorn
             .reg_write(RegisterX86::EBP, stack_pointer as u64)
             .unwrap();
-
-        stack_pointer
     }
 
     /// Initialize segment registers.  In particular, we need FS to point at the kernel32 TEB.
@@ -176,13 +172,15 @@ impl MachineX<Emulator> {
     pub fn load_exe(
         &mut self,
         buf: &[u8],
-        cmdline: CommandLine,
+        cmdline: String,
         relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<LoadedAddrs> {
-        self.state.kernel32.init_process(self.memory.mem(), cmdline);
-        let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
+    ) -> anyhow::Result<u32> {
+        self.state
+            .kernel32
+            .init_process(self.memory.mem(), CommandLine::new(cmdline));
+        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
-        let stack_pointer = self.setup_stack(exe.stack_size);
+        self.setup_stack(exe.stack_size);
         self.setup_segments();
 
         self.emu
@@ -194,10 +192,7 @@ impl MachineX<Emulator> {
             .reg_write(RegisterX86::EBX, 0xdeadbeeb)
             .unwrap();
 
-        Ok(LoadedAddrs {
-            entry_point: exe.entry_point,
-            stack_pointer,
-        })
+        Ok(exe.entry_point)
     }
 
     fn handle_shim_call(&mut self) {
@@ -244,7 +239,7 @@ impl MachineX<Emulator> {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future.
     /// When it finishes we will return to return_address.
-    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u32>>>, return_address: u32) {
+    fn call_async(&mut self, future: Pin<Box<dyn Future<Output = u64>>>, return_address: u32) {
         self.emu
             .unicorn
             .reg_write(RegisterX86::EIP, MAGIC_ADDR)
@@ -255,6 +250,9 @@ impl MachineX<Emulator> {
             let emu = unsafe { &mut *emu };
             let ret = future.await;
             emu.unicorn.reg_write(RegisterX86::EAX, ret as u64).unwrap();
+            if ret > 0xFFFF_FFFF {
+                todo!();
+            }
             emu.unicorn
                 .reg_write(RegisterX86::EIP, return_address as u64)
                 .unwrap();
