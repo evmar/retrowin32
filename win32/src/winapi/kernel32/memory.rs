@@ -1,154 +1,7 @@
-use crate::{
-    machine::{Machine, MemImpl},
-    winapi::calling_convention,
-};
+use crate::{machine::Machine, winapi::calling_convention};
 use bitflags::bitflags;
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{ExtensionsMut, Mem};
 use std::cmp::max;
-
-pub fn round_up_to_page_granularity(size: u32) -> u32 {
-    size + (0x1000 - 1) & !(0x1000 - 1)
-}
-
-/// Memory span as managed by the kernel.  Some come from the exe and others are allocated dynamically.
-#[derive(Debug, serde::Serialize)]
-#[cfg_attr(feature = "wasm", derive(tsify::Tsify))]
-pub struct Mapping {
-    pub addr: u32,
-    pub size: u32,
-    pub desc: String,
-    pub flags: pe::IMAGE_SCN,
-}
-
-impl Mapping {
-    pub fn contains(&self, addr: u32) -> bool {
-        addr >= self.addr && addr < self.addr + self.size
-    }
-}
-
-/// The set of Mappings managed by the kernel.
-/// These get visualized in the debugger when you hover a pointer.
-#[derive(serde::Serialize, Debug)]
-pub struct Mappings(Vec<Mapping>);
-impl Mappings {
-    pub fn new() -> Self {
-        Mappings(vec![Mapping {
-            addr: 0,
-            size: 0x1000,
-            desc: "avoid null pointers".into(),
-            flags: pe::IMAGE_SCN::empty(),
-        }])
-    }
-
-    pub fn add(&mut self, mut mapping: Mapping) -> &Mapping {
-        mapping.size = round_up_to_page_granularity(mapping.size);
-        let pos = self
-            .0
-            .iter()
-            .position(|m| m.addr > mapping.addr)
-            .unwrap_or(self.0.len());
-        if pos > 0 {
-            let prev = &mut self.0[pos - 1];
-            if prev.addr + prev.size > mapping.addr {
-                panic!("mapping conflict loading {mapping:x?} conflicts with {prev:x?}",);
-            }
-        }
-        if pos < self.0.len() {
-            let next = &self.0[pos];
-            assert!(mapping.addr + mapping.size <= next.addr);
-        }
-        self.0.insert(pos, mapping);
-        &self.0[pos]
-    }
-
-    /// Find an address where we can create a new mapping of given size.
-    pub fn find_space(&self, size: u32) -> u32 {
-        let size = round_up_to_page_granularity(size);
-        let mut prev_end = 0;
-        for mapping in &self.0 {
-            let space = mapping.addr - prev_end;
-            if space >= size {
-                break;
-            }
-            prev_end = mapping.addr + mapping.size;
-        }
-        prev_end
-    }
-
-    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut MemImpl) -> &Mapping {
-        let size = round_up_to_page_granularity(size);
-        if size > 32 << 20 {
-            panic!("new mapping {:?} too large: {size:x} bytes", desc);
-        }
-        let addr = self.find_space(size);
-        if addr + size > mem.len() {
-            panic!(
-                "not enough memory reserved, need at least {}mb",
-                (addr + size) >> 20
-            );
-        }
-        self.add(Mapping {
-            addr,
-            size,
-            desc,
-            flags: pe::IMAGE_SCN::empty(),
-        })
-    }
-
-    pub fn vec(&self) -> &Vec<Mapping> {
-        &self.0
-    }
-
-    pub fn grow(&mut self, addr: u32, min_growth: u32) -> u32 {
-        let pos = self.0.iter().position(|m| m.addr == addr).unwrap();
-        let mapping = &self.0[pos];
-        let mut new_size = mapping.size;
-        while new_size - mapping.size < min_growth {
-            new_size *= 2;
-        }
-
-        // Check if we run into a mapping after this one.
-        if pos + 1 < self.0.len() {
-            let next = &self.0[pos + 1];
-            if mapping.addr + new_size > next.addr {
-                panic!("cannot grow {:?}", mapping);
-            }
-        }
-
-        let mapping = &mut self.0[pos];
-        let growth = new_size - mapping.size;
-        mapping.size = new_size;
-        log::info!(
-            "grew mapping {:?} by {:#x}, new size {:#x}",
-            mapping.desc,
-            growth,
-            new_size
-        );
-        log::warn!("might need to grow backing memory after growth");
-        growth
-    }
-
-    pub fn dump(&self) {
-        for map in &self.0 {
-            println!(
-                "{:08x}-{:08x} {:?} {:?}",
-                map.addr,
-                map.addr + map.size,
-                map.desc,
-                map.flags
-            );
-        }
-    }
-
-    pub fn dump_memory(&self, mem: Mem) {
-        for map in &self.0 {
-            println!("{map:x?}");
-            for addr in (map.addr..map.addr + map.size).step_by(16) {
-                println!("{addr:x} {:x?}", mem.sub32(addr, 16));
-            }
-        }
-    }
-}
 
 bitflags! {
     #[derive(Default, win32_derive::TryFromBitflags)]
@@ -179,7 +32,7 @@ pub fn HeapAlloc(
         }
         Some(heap) => heap,
     };
-    let addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    let addr = heap.alloc(machine.memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -203,7 +56,7 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         .kernel32
         .get_heap(hHeap)
         .unwrap()
-        .free(machine.emu.memory.mem(), lpMem);
+        .free(machine.memory.mem(), lpMem);
     true
 }
 
@@ -219,7 +72,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         }
         Some(heap) => heap,
     };
-    heap.size(machine.emu.memory.mem(), lpMem)
+    heap.size(machine.memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -251,10 +104,10 @@ pub fn HeapReAlloc(
         }
         Some(heap) => heap,
     };
-    let old_size = heap.size(machine.emu.memory.mem(), lpMem);
-    let new_addr = heap.alloc(machine.emu.memory.mem(), dwBytes);
+    let old_size = heap.size(machine.memory.mem(), lpMem);
+    let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
     assert!(dwBytes >= old_size);
-    heap.free(machine.emu.memory.mem(), lpMem);
+    heap.free(machine.memory.mem(), lpMem);
     machine.mem().copy(lpMem, new_addr, old_size);
     new_addr
 }
@@ -282,7 +135,7 @@ pub fn HeapCreate(
     machine
         .state
         .kernel32
-        .new_heap(&mut machine.emu.memory, size, "HeapCreate".into())
+        .new_heap(&mut machine.memory, size, "HeapCreate".into())
 }
 
 #[win32_derive::dllexport]
@@ -356,8 +209,7 @@ pub fn VirtualAlloc(
     if lpAddress != 0 {
         // Changing flags on an existing address, hopefully.
         match machine
-            .state
-            .kernel32
+            .memory
             .mappings
             .vec()
             .iter()
@@ -375,11 +227,11 @@ pub fn VirtualAlloc(
     }
     // TODO round dwSize to page boundary
 
-    let mapping = machine.state.kernel32.mappings.alloc(
-        dwSize,
-        "VirtualAlloc".into(),
-        &mut machine.emu.memory,
-    );
+    let mapping =
+        machine
+            .memory
+            .mappings
+            .alloc(dwSize, "VirtualAlloc".into(), &mut machine.memory.imp);
     mapping.addr
 }
 
@@ -449,7 +301,7 @@ fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
         .state
         .kernel32
         .process_heap
-        .alloc(machine.emu.memory.mem(), dwBytes);
+        .alloc(machine.memory.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
         machine.mem().sub32_mut(addr, dwBytes).fill(0);
     }
@@ -479,7 +331,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
         todo!("GMEM_MODIFY");
     }
     let heap = &mut machine.state.kernel32.process_heap;
-    let mem = machine.emu.memory.mem();
+    let mem = machine.memory.mem();
     let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
         return hMem;
@@ -503,7 +355,7 @@ fn free(machine: &mut Machine, hMem: u32) -> u32 {
         .state
         .kernel32
         .process_heap
-        .free(machine.emu.memory.mem(), hMem);
+        .free(machine.memory.mem(), hMem);
     return 0; // success
 }
 

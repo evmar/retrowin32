@@ -103,7 +103,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn mem(&self) -> Mem {
-        self.emu.memory.mem()
+        self.memory.mem()
     }
 
     /// Initialize a memory mapping for the stack and return the initial stack pointer.
@@ -112,7 +112,7 @@ impl MachineX<Emulator> {
             self.state
                 .kernel32
                 .mappings
-                .alloc(stack_size, "stack".into(), &mut self.emu.memory);
+                .alloc(stack_size, "stack".into(), &mut self.memory);
         let stack_pointer = stack.addr + stack.size - 4;
 
         // TODO: put this init somewhere better.
@@ -134,7 +134,7 @@ impl MachineX<Emulator> {
         // for the code and data segments too.
         // https://scoding.de/setting-global-descriptor-table-unicorn
         // https://github.com/unicorn-engine/unicorn/blob/master/samples/sample_x86_32_gdt_and_seg_regs.c
-        let gdt = self.state.kernel32.create_gdt(self.emu.memory.mem());
+        let gdt = self.state.kernel32.create_gdt(self.memory.mem());
 
         let gdtr = X86Mmr {
             selector: 0, // unused
@@ -179,9 +179,7 @@ impl MachineX<Emulator> {
         cmdline: CommandLine,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<LoadedAddrs> {
-        self.state
-            .kernel32
-            .init_process(self.emu.memory.mem(), cmdline);
+        self.state.kernel32.init_process(self.memory.mem(), cmdline);
         let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         let stack_pointer = self.setup_stack(exe.stack_size);
@@ -212,7 +210,7 @@ impl MachineX<Emulator> {
         // address of shim = return address - length of call instruction
         let esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;
         assert!(esp != 0);
-        let return_addr = self.emu.memory.mem().get_pod::<u32>(esp);
+        let return_addr = self.memory.mem().get_pod::<u32>(esp);
         assert!(return_addr != 0);
         let shim = match self.emu.shims.get(return_addr - 6) {
             Ok(shim) => shim,
@@ -283,7 +281,7 @@ impl MachineX<Emulator> {
     /// Set up the CPU as if a function was just called with arguments,
     /// with return address and arguments on the stack.
     fn setup_call_x86(&mut self, func: u32, args: Vec<u32>) {
-        let mem = self.emu.memory.mem();
+        let mem = self.memory.mem();
 
         let ret_addr = self.emu.unicorn.reg_read(RegisterX86::EIP).unwrap() as u32;
         let mut esp = self.emu.unicorn.reg_read(RegisterX86::ESP).unwrap() as u32;

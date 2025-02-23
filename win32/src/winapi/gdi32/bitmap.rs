@@ -127,7 +127,7 @@ pub fn StretchBlt(
     // log::info!("dst_bitmap.to_rect()={:x?}", dst_bitmap.to_rect());
     // log::info!("copy_rect={:x?}", copy_rect);
 
-    let mem = machine.emu.memory.mem();
+    let mem = machine.memory.mem();
 
     let mut row: Vec<COLORREF> = Vec::with_capacity((src_rect.right - src_rect.left) as usize);
     row.resize_with(row.capacity(), || COLORREF::from_rgb(0xff, 0, 0));

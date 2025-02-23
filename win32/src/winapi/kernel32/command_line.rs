@@ -110,7 +110,7 @@ pub fn GetCommandLineA(machine: &mut Machine) -> u32 {
         .state
         .kernel32
         .cmdline
-        .cmdline8(&mut machine.state.kernel32.arena, machine.emu.memory.mem())
+        .cmdline8(&mut machine.state.kernel32.arena, machine.memory.mem())
 }
 
 #[win32_derive::dllexport]
@@ -119,5 +119,5 @@ pub fn GetCommandLineW(machine: &mut Machine) -> u32 {
         .state
         .kernel32
         .cmdline
-        .cmdline16(&mut machine.state.kernel32.arena, machine.emu.memory.mem())
+        .cmdline16(&mut machine.state.kernel32.arena, machine.memory.mem())
 }

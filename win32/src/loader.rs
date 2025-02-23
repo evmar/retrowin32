@@ -7,6 +7,7 @@
 use crate::{
     host,
     machine::Machine,
+    memory::Mapping,
     winapi::{self, builtin::BuiltinDLL, kernel32::HMODULE},
 };
 use memory::{Extensions, ExtensionsMut};
@@ -14,12 +15,11 @@ use std::{collections::HashMap, path::Path};
 use typed_path::WindowsPath;
 
 /// Create a memory mapping, optionally copying some data to it.
-fn map_memory(machine: &mut Machine, mapping: winapi::kernel32::Mapping, buf: Option<&[u8]>) {
-    let winapi::kernel32::Mapping { addr, size, .. } =
-        *machine.state.kernel32.mappings.add(mapping);
+fn map_memory(machine: &mut Machine, mapping: Mapping, buf: Option<&[u8]>) {
+    let Mapping { addr, size, .. } = *machine.memory.mappings.add(mapping);
 
     let memory_end = addr + size;
-    if memory_end > machine.emu.memory.len() {
+    if memory_end > machine.memory.len() {
         panic!("not enough memory reserved");
     }
 
@@ -42,8 +42,7 @@ fn load_image(
     let addr = match relocate {
         Some(Some(addr)) => addr,
         Some(None) => machine
-            .state
-            .kernel32
+            .memory
             .mappings
             .find_space(file.opt_header.SizeOfImage),
         None => file.opt_header.ImageBase,
@@ -52,7 +51,7 @@ fn load_image(
     let first_page_size = std::cmp::min(buf.len(), 0x1000);
     map_memory(
         machine,
-        winapi::kernel32::Mapping {
+        Mapping {
             addr,
             size: first_page_size as u32,
             desc: module_name.into(),
@@ -98,7 +97,7 @@ fn load_section(
     let load_data =
         flags.contains(pe::IMAGE_SCN::CODE) || flags.contains(pe::IMAGE_SCN::INITIALIZED_DATA);
 
-    let mapping = winapi::kernel32::Mapping {
+    let mapping = Mapping {
         addr: dst,
         size: mapping_size,
         desc: format!(
@@ -235,7 +234,7 @@ fn load_one_module(
         }
     }
 
-    let image = machine.emu.memory.mem().slice(base..);
+    let image = machine.memory.mem().slice(base..);
     let exports = if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let section = dir
             .as_slice(image)

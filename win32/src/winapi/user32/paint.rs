@@ -139,7 +139,7 @@ pub fn EndPaint(machine: &mut Machine, hWnd: HWND, lpPaint: Option<&PAINTSTRUCT>
     match &mut window.typ {
         WindowType::TopLevel(toplevel) => {
             toplevel.dirty = None;
-            window.flush_backing_store(machine.emu.memory.mem());
+            window.flush_backing_store(machine.memory.mem());
         }
         _ => {
             log::warn!("TODO: EndPaint for child windows");

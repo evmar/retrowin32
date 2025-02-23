@@ -1,4 +1,4 @@
-use crate::machine::MemImpl;
+use crate::memory::Memory;
 
 mod advapi32;
 mod alloc;
@@ -44,8 +44,8 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, mut kernel32: kernel32::State) -> Self {
-        let scratch = kernel32.new_private_heap(mem, 0x1000, "winapi scratch".into());
+    pub fn new(memory: &mut Memory, mut kernel32: kernel32::State) -> Self {
+        let scratch = kernel32.new_private_heap(memory, 0x1000, "winapi scratch".into());
 
         State {
             scratch,

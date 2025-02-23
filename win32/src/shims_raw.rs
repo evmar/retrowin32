@@ -203,7 +203,7 @@ pub async fn call_x86(machine: &mut Machine, func: u32, args: Vec<u32>) -> u32 {
         // and then tramp32 switches esp to point to the top of this stack.
         // When tramp32 returns it pops the m16:32.
 
-        let mem = machine.emu.memory.mem();
+        let mem = machine.memory.mem();
 
         // Push selector and reserve space for return address.
         let mut esp = STACK32;

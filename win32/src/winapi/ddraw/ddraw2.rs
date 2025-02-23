@@ -55,7 +55,7 @@ pub mod IDirectDraw2 {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw2");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
@@ -130,7 +130,7 @@ pub mod IDirectDraw2 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        let mem = machine.emu.memory.mem();
+        let mem = machine.memory.mem();
         let desc_addr = machine
             .state
             .kernel32
@@ -146,7 +146,7 @@ pub mod IDirectDraw2 {
             .state
             .kernel32
             .process_heap
-            .free(machine.emu.memory.mem(), desc_addr);
+            .free(machine.memory.mem(), desc_addr);
 
         DD::OK
     }
@@ -242,7 +242,7 @@ pub mod IDirectDrawSurface2 {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface2");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface

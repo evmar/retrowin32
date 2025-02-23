@@ -3,10 +3,11 @@
 use crate::{
     host, loader,
     machine::{MachineX, Status},
+    memory::Memory,
     shims::{Handler, Shims},
     winapi::{
+        self,
         kernel32::{create_thread, CommandLine, NewThread},
-        {self},
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};
@@ -42,7 +43,6 @@ impl BoxMem {
 
 pub struct Emulator {
     pub x86: x86::X86,
-    pub memory: BoxMem,
     pub shims: Shims,
 
     /// Places where we've patched out the instruction with an int3.
@@ -55,7 +55,7 @@ pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = BoxMem::new(256 << 20);
+        let mut memory = Memory::new(BoxMem::new(256 << 20));
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
         let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
         let shims = Shims::default();
@@ -64,10 +64,10 @@ impl MachineX<Emulator> {
         Machine {
             emu: Emulator {
                 x86: x86::X86::new(),
-                memory,
                 shims,
                 breakpoints: Default::default(),
             },
+            memory,
             host,
             state,
             labels: HashMap::new(),
@@ -77,7 +77,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn mem(&self) -> Mem {
-        self.emu.memory.mem()
+        self.memory.mem()
     }
 
     pub fn load_exe(
@@ -88,12 +88,12 @@ impl MachineX<Emulator> {
     ) -> anyhow::Result<u32> {
         self.state
             .kernel32
-            .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
+            .init_process(self.memory.mem(), CommandLine::new(cmdline));
         let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
         // that the exe wants.
-        self.state.kernel32.init_process_heap(&mut self.emu.memory);
+        self.state.kernel32.init_process_heap(&mut self.memory);
 
         let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
 
@@ -107,7 +107,7 @@ impl MachineX<Emulator> {
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
         cpu.regs.fs_addr = thread.teb;
 
-        let mem = self.emu.memory.mem();
+        let mem = self.memory.mem();
         x86::ops::push(cpu, mem, exe.entry_point);
         x86::ops::push(cpu, mem, 0); // return address
         cpu.regs.eip = retrowin32_main;
@@ -116,7 +116,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn single_step(&mut self) {
-        self.emu.x86.single_step_next_block(self.emu.memory.mem());
+        self.emu.x86.single_step_next_block(self.memory.mem());
         self.run();
     }
 
@@ -170,7 +170,7 @@ impl MachineX<Emulator> {
     }
 
     fn execute_block(&mut self) {
-        self.emu.x86.execute_block(self.emu.memory.mem())
+        self.emu.x86.execute_block(self.memory.mem())
     }
 
     fn syscall(&mut self) {
@@ -185,7 +185,7 @@ impl MachineX<Emulator> {
         // Subtract to find the address of the shim function.
         let esp = regs.get32(x86::Register::ESP);
         let call_len = 6;
-        let shim_addr = self.emu.memory.mem().get_pod::<u32>(esp) - call_len;
+        let shim_addr = self.memory.mem().get_pod::<u32>(esp) - call_len;
 
         let shim = match self.emu.shims.get(shim_addr) {
             Ok(shim) => shim,
@@ -219,7 +219,7 @@ impl MachineX<Emulator> {
         self.emu
             .x86
             .cpu_mut()
-            .call_x86(self.emu.memory.mem(), func, args)
+            .call_x86(self.memory.mem(), func, args)
             .await
     }
 
@@ -248,7 +248,7 @@ impl MachineX<Emulator> {
         match self.emu.breakpoints.entry(addr) {
             std::collections::hash_map::Entry::Occupied(_) => false,
             std::collections::hash_map::Entry::Vacant(entry) => {
-                let mem = self.emu.memory.mem();
+                let mem = self.memory.mem();
                 entry.insert(mem.get_pod::<u8>(addr));
                 mem.put_pod::<u8>(addr, 0xcc); // int3
                 self.emu.x86.icache.clear_cache(addr);

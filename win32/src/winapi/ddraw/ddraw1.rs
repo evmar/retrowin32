@@ -52,7 +52,7 @@ pub mod IDirectDraw {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
@@ -177,7 +177,7 @@ pub mod IDirectDrawSurface {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface, vtable);
         lpDirectDrawSurface

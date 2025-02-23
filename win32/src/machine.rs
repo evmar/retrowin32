@@ -1,5 +1,4 @@
-use crate::loader;
-use crate::{host, winapi};
+use crate::{host, loader, memory::Memory, winapi};
 use std::collections::HashMap;
 
 #[cfg(feature = "x86-emu")]
@@ -18,6 +17,7 @@ pub use crate::machine_unicorn::MemImpl;
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct MachineX<Emu> {
     pub emu: Emu,
+    pub memory: Memory,
     pub host: Box<dyn host::Host>,
     pub state: winapi::State,
     pub labels: HashMap<u32, String>,

@@ -803,7 +803,7 @@ pub async fn SetWindowPos(
     uFlags: Result<SWP, u32>,
 ) -> bool {
     let windowpos_addr = machine.state.scratch.alloc(
-        machine.emu.memory.mem(),
+        machine.memory.mem(),
         std::mem::size_of::<WINDOWPOS>() as u32,
     );
     machine.mem().put_pod::<WINDOWPOS>(

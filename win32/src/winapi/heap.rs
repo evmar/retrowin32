@@ -2,8 +2,9 @@
 //! and also for win32-visible allocations created by other calls (like in
 //! DirectDraw).
 
-use super::alloc::align_to;
 use memory::{Extensions, ExtensionsMut, Mem};
+
+use crate::memory::align_to;
 
 #[derive(Default)]
 pub struct Heap {

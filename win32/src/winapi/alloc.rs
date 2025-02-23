@@ -1,14 +1,4 @@
-pub fn align_to(n: u32, align: usize) -> u32 {
-    // log2(align) - 1
-    let add = match align {
-        1 => return n,
-        2 => 1,
-        4 => 3,
-        8 => 7,
-        _ => todo!("{align}"),
-    };
-    (n + add) & !add
-}
+use crate::memory::align_to;
 
 pub struct Arena {
     pub addr: u32,

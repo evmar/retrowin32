@@ -135,7 +135,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     drop(window);
     let mut bitmap = bitmap.borrow_mut();
     let stride = bitmap.width;
-    let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+    let pixels = bitmap.as_rgba_mut(machine.memory.mem());
     let (dstX, dstY) = (x, y);
     if dstX == dc.pos.x {
         let x = x.max(0) as u32;
@@ -178,7 +178,7 @@ pub fn fill_rect(machine: &mut Machine, hdc: HDC, _rect: &RECT, color: COLORREF)
             let window = window.borrow();
             // TODO: obey rect
             let mut bitmap = window.bitmap().borrow_mut();
-            let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+            let pixels = bitmap.as_rgba_mut(machine.memory.mem());
             pixels.fill(color.to_pixel());
         }
         _ => todo!(),
@@ -197,7 +197,7 @@ pub fn SetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32, color: COLORREF
             }
             let stride = window.width;
             let mut bitmap = window.bitmap().borrow_mut();
-            let pixels = bitmap.as_rgba_mut(machine.emu.memory.mem());
+            let pixels = bitmap.as_rgba_mut(machine.memory.mem());
             pixels[((y * stride) + x) as usize] = color.to_pixel();
         }
         _ => {
@@ -219,7 +219,7 @@ pub fn GetPixel(machine: &mut Machine, hdc: HDC, x: u32, y: u32) -> COLORREF {
             let window = window.borrow();
             let stride = window.width;
             let bitmap = window.bitmap().borrow();
-            let pixels = bitmap.as_rgba(machine.emu.memory.mem());
+            let pixels = bitmap.as_rgba(machine.memory.mem());
             let pixel = pixels[((y * stride) + x) as usize];
             COLORREF::from_rgb(pixel[0], pixel[1], pixel[2])
         }
