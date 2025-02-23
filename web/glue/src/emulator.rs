@@ -121,7 +121,7 @@ impl Emulator {
     }
 
     pub fn set_tracing_scheme(&self, scheme: &str) {
-        win32::trace::set_scheme(scheme);
+        win32::winapi::trace::set_scheme(scheme);
     }
 }
 

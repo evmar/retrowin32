@@ -4,7 +4,6 @@ mod machine;
 mod memory;
 mod segments;
 pub mod shims;
-pub mod trace;
 pub mod winapi;
 
 #[cfg(feature = "x86-emu")]

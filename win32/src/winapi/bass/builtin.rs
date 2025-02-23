@@ -15,8 +15,8 @@ mod wrappers {
     pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let mode = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_ChannelGetPosition_pos,
                 "bass",
                 "BASS_ChannelGetPosition",
@@ -35,8 +35,8 @@ mod wrappers {
     pub unsafe fn BASS_Free(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_Free_pos,
                 "bass",
                 "BASS_Free",
@@ -58,8 +58,8 @@ mod wrappers {
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
         let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
         let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_Init_pos,
                 "bass",
                 "BASS_Init",
@@ -87,8 +87,8 @@ mod wrappers {
         let arg3 = <u32>::from_stack(mem, stack_args + 8u32);
         let arg4 = <u32>::from_stack(mem, stack_args + 12u32);
         let arg5 = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_MusicLoad_pos,
                 "bass",
                 "BASS_MusicLoad",
@@ -113,8 +113,8 @@ mod wrappers {
     pub unsafe fn BASS_MusicPlay(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_MusicPlay_pos,
                 "bass",
                 "BASS_MusicPlay",
@@ -134,8 +134,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
                 winapi::bass::BASS_MusicSetPositionScaler_pos,
                 "bass",
                 "BASS_MusicSetPositionScaler",
@@ -153,9 +153,14 @@ mod wrappers {
     }
     pub unsafe fn BASS_Start(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("bass") {
-            crate::trace::Record::new(winapi::bass::BASS_Start_pos, "bass", "BASS_Start", &[])
-                .enter()
+        let __trace_record = if crate::winapi::trace::enabled("bass") {
+            crate::winapi::trace::Record::new(
+                winapi::bass::BASS_Start_pos,
+                "bass",
+                "BASS_Start",
+                &[],
+            )
+            .enter()
         } else {
             None
         };

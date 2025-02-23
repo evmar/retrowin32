@@ -14,8 +14,8 @@ mod wrappers {
     use winapi::ntdll::*;
     pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("ntdll") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ntdll") {
+            crate::winapi::trace::Record::new(
                 winapi::ntdll::NtCurrentTeb_pos,
                 "ntdll",
                 "NtCurrentTeb",
@@ -41,8 +41,8 @@ mod wrappers {
         let Buffer = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 20u32);
         let ByteOffset = <Option<&mut u64>>::from_stack(mem, stack_args + 28u32);
         let Key = <u32>::from_stack(mem, stack_args + 32u32);
-        let __trace_record = if crate::trace::enabled("ntdll") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ntdll") {
+            crate::winapi::trace::Record::new(
                 winapi::ntdll::NtReadFile_pos,
                 "ntdll",
                 "NtReadFile",
@@ -80,8 +80,8 @@ mod wrappers {
     pub unsafe fn RtlExitUserProcess(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("ntdll") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ntdll") {
+            crate::winapi::trace::Record::new(
                 winapi::ntdll::RtlExitUserProcess_pos,
                 "ntdll",
                 "RtlExitUserProcess",

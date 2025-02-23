@@ -20,6 +20,7 @@ mod ole32;
 mod oleaut32;
 mod retrowin32_test;
 mod shlwapi;
+pub mod trace;
 mod types;
 mod ucrtbase;
 pub mod user32;

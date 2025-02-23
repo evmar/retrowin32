@@ -19,8 +19,8 @@ mod wrappers {
         let dwClsContext = <u32>::from_stack(mem, stack_args + 8u32);
         let riid = <u32>::from_stack(mem, stack_args + 12u32);
         let ppv = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("ole32") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ole32") {
+            crate::winapi::trace::Record::new(
                 winapi::ole32::CoCreateInstance_pos,
                 "ole32",
                 "CoCreateInstance",
@@ -46,8 +46,8 @@ mod wrappers {
     pub unsafe fn CoInitialize(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("ole32") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ole32") {
+            crate::winapi::trace::Record::new(
                 winapi::ole32::CoInitialize_pos,
                 "ole32",
                 "CoInitialize",
@@ -67,8 +67,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let pvReserved = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let dwCoInit = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("ole32") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ole32") {
+            crate::winapi::trace::Record::new(
                 winapi::ole32::CoInitializeEx_pos,
                 "ole32",
                 "CoInitializeEx",
@@ -86,8 +86,8 @@ mod wrappers {
     }
     pub unsafe fn CoUninitialize(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("ole32") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ole32") {
+            crate::winapi::trace::Record::new(
                 winapi::ole32::CoUninitialize_pos,
                 "ole32",
                 "CoUninitialize",
@@ -106,8 +106,8 @@ mod wrappers {
     pub unsafe fn OleInitialize(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let _pvReserved = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("ole32") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("ole32") {
+            crate::winapi::trace::Record::new(
                 winapi::ole32::OleInitialize_pos,
                 "ole32",
                 "OleInitialize",

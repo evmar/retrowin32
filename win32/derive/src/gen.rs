@@ -57,8 +57,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             })
             .collect::<Vec<_>>();
         fetch_args.extend(quote! {
-            let __trace_record = if crate::trace::enabled(#trace_module_name) {
-                crate::trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
+            let __trace_record = if crate::winapi::trace::enabled(#trace_module_name) {
+                crate::winapi::trace::Record::new(#impls_mod::#pos_name, #trace_module_name, #name_str, &[#(#trace_args),*]).enter()
             } else {
                 None
             };

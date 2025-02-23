@@ -15,8 +15,8 @@ mod wrappers {
     pub unsafe fn PathRemoveFileSpecA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("shlwapi") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("shlwapi") {
+            crate::winapi::trace::Record::new(
                 winapi::shlwapi::PathRemoveFileSpecA_pos,
                 "shlwapi",
                 "PathRemoveFileSpecA",
