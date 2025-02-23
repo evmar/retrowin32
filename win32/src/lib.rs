@@ -1,6 +1,7 @@
 mod host;
 pub mod loader;
 mod machine;
+mod memory;
 mod segments;
 pub mod shims;
 pub mod trace;

@@ -284,11 +284,7 @@ pub fn waveOutWrite(
 ) -> MMRESULT {
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
     let hdr = pwh.unwrap();
-    let buf = machine
-        .emu
-        .memory
-        .mem()
-        .sub32(hdr.lpData, hdr.dwBufferLength);
+    let buf = machine.memory.mem().sub32(hdr.lpData, hdr.dwBufferLength);
     machine.state.winmm.audio.as_mut().unwrap().write(buf);
     MMRESULT::MMSYSERR_NOERROR
 }

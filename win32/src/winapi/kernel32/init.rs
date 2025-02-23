@@ -1,12 +1,12 @@
 //! Process initialization and startup.
 
 use super::{
-    command_line::CommandLine, EventObject, FindHandle, Mappings, ResourceHandle, Thread, HEVENT,
-    HMODULE, STDERR_HFILE, STDOUT_HFILE,
+    command_line::CommandLine, EventObject, FindHandle, ResourceHandle, Thread, HEVENT, HMODULE,
+    STDERR_HFILE, STDOUT_HFILE,
 };
 use crate::{
     loader::{self, Module},
-    machine::MemImpl,
+    memory::Memory,
     segments::SegmentDescriptor,
     winapi::{alloc::Arena, handle::Handles, heap::Heap, *},
     Machine,
@@ -87,7 +87,6 @@ pub struct State {
     pub image_base: u32,
     /// Address of PEB (process information exposed to executable).
     pub peb: u32,
-    pub mappings: Mappings,
 
     /// Heaps created by HeapAlloc().  Note: doesn't include the process heap.
     heaps: HashMap<u32, Heap>,
@@ -122,15 +121,17 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(mem: &mut MemImpl, retrowin32_syscall: &[u8]) -> Self {
-        let mut mappings = Mappings::new();
-        let mapping = mappings.alloc(0x1000, "kernel32 data".into(), mem);
+    pub fn new(memory: &mut Memory, retrowin32_syscall: &[u8]) -> Self {
+        let mapping = memory
+            .mappings
+            .alloc(0x1000, "kernel32 data".into(), &mut memory.imp);
         let mut arena = Arena::new(mapping.addr, mapping.size);
 
         let mut dlls = HashMap::new();
         let module = {
             let addr = arena.alloc(retrowin32_syscall.len() as u32, 8);
-            mem.mem()
+            memory
+                .mem()
                 .sub32_mut(addr, retrowin32_syscall.len() as u32)
                 .copy_from_slice(retrowin32_syscall);
             let mut names = HashMap::new();
@@ -151,7 +152,8 @@ impl State {
 
         let env = b"WINDIR=C:\\Windows\0\0";
         let env_addr = arena.alloc(env.len() as u32, 1);
-        mem.mem()
+        memory
+            .mem()
             .sub32_mut(env_addr, env.len() as u32)
             .copy_from_slice(env);
 
@@ -161,7 +163,6 @@ impl State {
             peb: 0,
             process_heap: Heap::default(),
             process_heap_addr: 0,
-            mappings,
             heaps: HashMap::new(),
             modules: dlls,
             objects: Default::default(),
@@ -203,13 +204,13 @@ impl State {
         peb.TlsCount = 0;
     }
 
-    pub fn new_private_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> Heap {
-        let mapping = self.mappings.alloc(size as u32, desc, mem);
+    pub fn new_private_heap(&mut self, memory: &mut Memory, size: usize, desc: String) -> Heap {
+        let mapping = memory.mappings.alloc(size as u32, desc, &mut memory.imp);
         Heap::new(mapping.addr, mapping.size)
     }
 
-    pub fn new_heap(&mut self, mem: &mut MemImpl, size: usize, desc: String) -> u32 {
-        let heap = self.new_private_heap(mem, size, desc);
+    pub fn new_heap(&mut self, memory: &mut Memory, size: usize, desc: String) -> u32 {
+        let heap = self.new_private_heap(memory, size, desc);
         let addr = heap.addr;
         self.heaps.insert(addr, heap);
         addr
@@ -222,7 +223,7 @@ impl State {
         self.heaps.get_mut(&addr)
     }
 
-    pub fn init_process_heap<'a>(&'a mut self, memory: &mut MemImpl) {
+    pub fn init_process_heap<'a>(&'a mut self, memory: &mut Memory) {
         assert!(self.process_heap_addr == 0);
         let size = 24 << 20;
         let addr = self.new_heap(memory, size, "process heap".into());

@@ -40,7 +40,7 @@ impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut dsound = State::default();
         dsound.heap = machine.state.kernel32.new_private_heap(
-            &mut machine.emu.memory,
+            &mut machine.memory,
             128 << 10, // chillin needs a 64kb buffer
             "dsound.dll heap".into(),
         );
@@ -120,7 +120,7 @@ pub mod IDirectSound {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSound = dsound.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "dsound.dll", "IDirectSound");
         machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
@@ -151,7 +151,7 @@ pub mod IDirectSound {
                 .state
                 .dsound
                 .heap
-                .alloc(machine.emu.memory.mem(), desc.dwBufferBytes);
+                .alloc(machine.memory.mem(), desc.dwBufferBytes);
             buffer.size = desc.dwBufferBytes;
         }
 
@@ -185,7 +185,7 @@ pub mod IDirectSoundBuffer {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = dsound.heap.alloc(machine.emu.memory.mem(), 4);
+        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
         machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer

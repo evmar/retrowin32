@@ -101,14 +101,14 @@ pub struct NewThread {
 pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     let handle = machine.state.kernel32.objects.reserve();
 
-    let stack = machine.state.kernel32.mappings.alloc(
+    let stack = machine.memory.mappings.alloc(
         stack_size,
         format!("thread {handle:x} stack", handle = handle.to_raw()),
-        &mut machine.emu.memory,
+        &mut machine.memory.imp,
     );
     let stack_pointer = stack.addr + stack.size - 4;
 
-    let mem = machine.emu.memory.mem();
+    let mem = machine.memory.mem();
     let teb = init_teb(
         machine.state.kernel32.peb,
         handle.to_raw(),
@@ -149,7 +149,6 @@ pub fn GetCurrentThreadId(machine: &mut Machine) -> u32 {
 
 pub fn teb(machine: &Machine) -> &TEB {
     machine
-        .emu
         .memory
         .mem()
         .get_aligned_ref::<TEB>(machine.teb_addr())
@@ -157,7 +156,6 @@ pub fn teb(machine: &Machine) -> &TEB {
 
 pub fn teb_mut(machine: &mut Machine) -> &mut TEB {
     machine
-        .emu
         .memory
         .mem()
         .get_aligned_ref_mut::<TEB>(machine.teb_addr())
@@ -226,7 +224,7 @@ pub async fn CreateThread(
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
         cpu.regs.fs_addr = thread.teb;
-        let mem = machine.emu.memory.mem();
+        let mem = machine.memory.mem();
         x86::ops::push(cpu, mem, lpParameter);
         x86::ops::push(cpu, mem, lpStartAddress);
         x86::ops::push(cpu, mem, 0);

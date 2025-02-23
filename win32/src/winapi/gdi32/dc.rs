@@ -41,11 +41,11 @@ impl DCTarget {
         match self {
             DCTarget::Window(window) => {
                 let mut window = window.borrow_mut();
-                window.flush_backing_store(machine.emu.memory.mem());
+                window.flush_backing_store(machine.memory.mem());
             }
             DCTarget::DirectDrawSurface(addr) => {
                 let surface = machine.state.ddraw.surfaces.get(addr).unwrap();
-                surface.flush(machine.emu.memory.mem(), None);
+                surface.flush(machine.memory.mem(), None);
             }
             _ => {}
         }

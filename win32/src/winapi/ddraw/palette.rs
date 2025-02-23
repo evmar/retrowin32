@@ -27,7 +27,7 @@ pub mod IDirectDrawPalette {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
         machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
         lpDirectDrawPalette
@@ -57,7 +57,6 @@ pub mod IDirectDrawPalette {
             .borrow_mut();
         // TODO: if palette is DDPCAPS_8BITENTRIES then entries are one byte, not 4.
         let entries = machine
-            .emu
             .memory
             .mem()
             .iter_pod::<PALETTEENTRY>(entries, count);

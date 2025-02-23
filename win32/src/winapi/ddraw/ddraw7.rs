@@ -110,7 +110,7 @@ pub mod IDirectDraw7 {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDraw7");
         machine.mem().put_pod::<u32>(lpDirectDraw, vtable);
         lpDirectDraw
@@ -218,7 +218,7 @@ pub mod IDirectDraw7 {
             dwRGBAlphaBitMask: 0x000000FF,
         };
 
-        let mem = machine.emu.memory.mem();
+        let mem = machine.memory.mem();
         let desc_addr = machine
             .state
             .kernel32
@@ -234,7 +234,7 @@ pub mod IDirectDraw7 {
             .state
             .kernel32
             .process_heap
-            .free(machine.emu.memory.mem(), desc_addr);
+            .free(machine.memory.mem(), desc_addr);
 
         DD::OK
     }
@@ -361,7 +361,7 @@ pub mod IDirectDrawSurface7 {
             .state
             .kernel32
             .process_heap
-            .alloc(machine.emu.memory.mem(), 4);
+            .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawSurface7");
         machine.mem().put_pod::<u32>(lpDirectDrawSurface7, vtable);
         lpDirectDrawSurface7
@@ -391,7 +391,7 @@ pub mod IDirectDrawSurface7 {
             let fx = lpDDBLTFX.unwrap();
             // TODO: obey dst rect
             dst.fill(
-                machine.emu.memory.mem(),
+                machine.memory.mem(),
                 &mut machine.state.kernel32.process_heap,
                 fx.dwFillColor,
             );
@@ -470,7 +470,7 @@ pub mod IDirectDrawSurface7 {
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
         let attached = surface.attached;
         let back = machine.state.ddraw.surfaces.get(&attached).unwrap();
-        back.flush(machine.emu.memory.mem(), Some(surface));
+        back.flush(machine.memory.mem(), Some(surface));
 
         surface.host.show();
 
@@ -500,7 +500,7 @@ pub mod IDirectDrawSurface7 {
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         // Ensure surface has backing store, since DC is for drawing on it.
         surf.lock(
-            machine.emu.memory.mem(),
+            machine.memory.mem(),
             &mut machine.state.kernel32.process_heap,
         );
         let dc =
@@ -580,7 +580,7 @@ pub mod IDirectDrawSurface7 {
         let desc = desc.unwrap();
         let surf = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
         let pixels = surf.lock(
-            machine.emu.memory.mem(),
+            machine.memory.mem(),
             &mut machine.state.kernel32.process_heap,
         );
         // It seems callers (effect, monolife) don't provide flags for what they want,
@@ -636,7 +636,7 @@ pub mod IDirectDrawSurface7 {
             rect.right = surf.width as i32;
             rect.bottom = surf.height as i32;
         }
-        surf.unlock(machine.emu.memory.mem());
+        surf.unlock(machine.memory.mem());
 
         DD::OK
     }

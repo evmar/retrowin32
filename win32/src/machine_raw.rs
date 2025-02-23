@@ -1,6 +1,7 @@
 use crate::{
     host, loader,
     machine::{MachineX, Status},
+    memory::Memory,
     shims::Shims,
     shims_raw::{self, retrowin32_syscall},
     winapi::{
@@ -25,7 +26,6 @@ impl RawMem {
 
 pub struct Emulator {
     pub shims: Shims,
-    pub memory: RawMem,
 }
 
 pub type MemImpl = RawMem;
@@ -33,14 +33,15 @@ pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = MemImpl::default();
+        let mut memory = Memory::new(MemImpl::default());
         let kernel32 = winapi::kernel32::State::new(&mut memory, &retrowin32_syscall());
         let teb = 0; // TODO: set up teb here
         let shims = Shims::new(teb);
         let state = winapi::State::new(&mut memory, kernel32);
 
         Machine {
-            emu: Emulator { shims, memory },
+            emu: Emulator { shims },
+            memory,
             host,
             state,
             labels: HashMap::new(),
@@ -50,7 +51,7 @@ impl MachineX<Emulator> {
     }
 
     pub fn mem(&self) -> Mem {
-        self.emu.memory.mem()
+        self.memory.mem()
     }
 
     #[allow(non_snake_case)]
@@ -62,14 +63,13 @@ impl MachineX<Emulator> {
     ) -> anyhow::Result<u32> {
         self.state
             .kernel32
-            .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
+            .init_process(self.memory.mem(), CommandLine::new(cmdline));
         let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
-        let stack = self.state.kernel32.mappings.alloc(
-            exe.stack_size,
-            "stack".into(),
-            &mut self.emu.memory,
-        );
+        let stack =
+            self.memory
+                .mappings
+                .alloc(exe.stack_size, "stack".into(), &mut self.memory.imp);
         let stack_pointer = stack.addr + stack.size - 4;
         unsafe {
             shims_raw::set_stack32(stack_pointer);

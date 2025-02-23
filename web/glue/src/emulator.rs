@@ -41,7 +41,7 @@ impl Emulator {
     pub fn memory(&self) -> js_sys::DataView {
         let mem = js_sys::WebAssembly::Memory::from(wasm_bindgen::memory());
         let buf = js_sys::ArrayBuffer::from(mem.buffer());
-        let ofs = self.machine.emu.memory.as_ptr() as usize;
+        let ofs = self.machine.memory.imp.as_ptr() as usize;
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
@@ -117,7 +117,7 @@ impl Emulator {
     }
 
     pub fn mappings_json(&self) -> String {
-        serde_json::to_string(&self.machine.state.kernel32.mappings.vec()).unwrap_throw()
+        serde_json::to_string(&self.machine.memory.mappings.vec()).unwrap_throw()
     }
 
     pub fn set_tracing_scheme(&self, scheme: &str) {
