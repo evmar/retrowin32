@@ -16,6 +16,10 @@ static mut MACHINE: *mut Machine = std::ptr::null_mut();
 static mut STACK32: u32 = 0;
 static mut STACK64: u64 = 0;
 
+pub unsafe fn set_stack32(esp: u32) {
+    STACK32 = esp;
+}
+
 unsafe extern "C" fn call64() -> u64 {
     let machine: &mut Machine = &mut *MACHINE;
 
@@ -175,9 +179,8 @@ impl Shims {
 
     /// HACK: we need a pointer to the Machine, but we get it so late we have to poke it in
     /// way after all the initialization happens...
-    pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine, esp: u32) {
+    pub unsafe fn set_machine_hack(&mut self, machine: *mut Machine) {
         MACHINE = machine;
-        STACK32 = esp;
     }
 }
 

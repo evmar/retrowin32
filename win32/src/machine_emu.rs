@@ -2,7 +2,7 @@
 
 use crate::{
     host, loader,
-    machine::{LoadedAddrs, MachineX, Status},
+    machine::{MachineX, Status},
     shims::{Handler, Shims},
     winapi::{
         kernel32::{create_thread, CommandLine, NewThread},
@@ -85,7 +85,7 @@ impl MachineX<Emulator> {
         buf: &[u8],
         cmdline: String,
         relocate: Option<Option<u32>>,
-    ) -> anyhow::Result<LoadedAddrs> {
+    ) -> anyhow::Result<u32> {
         self.state
             .kernel32
             .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
@@ -112,10 +112,7 @@ impl MachineX<Emulator> {
         x86::ops::push(cpu, mem, 0); // return address
         cpu.regs.eip = retrowin32_main;
 
-        Ok(LoadedAddrs {
-            entry_point: exe.entry_point,
-            stack_pointer,
-        })
+        Ok(exe.entry_point)
     }
 
     pub fn single_step(&mut self) {
