@@ -1,7 +1,6 @@
 use crate::{
-    host,
+    host, loader,
     machine::{LoadedAddrs, MachineX, Status},
-    pe,
     shims::Shims,
     shims_raw::retrowin32_syscall,
     winapi::{
@@ -64,7 +63,7 @@ impl MachineX<Emulator> {
         self.state
             .kernel32
             .init_process(self.emu.memory.mem(), CommandLine::new(cmdline));
-        let exe = pe::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
+        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
         let stack = self.state.kernel32.mappings.alloc(
             exe.stack_size,
