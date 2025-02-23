@@ -17,8 +17,8 @@ mod wrappers {
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
         let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
         let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::AdjustWindowRect_pos,
                 "user32/window",
                 "AdjustWindowRect",
@@ -44,8 +44,8 @@ mod wrappers {
         let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
         let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
         let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::AdjustWindowRectEx_pos,
                 "user32/window",
                 "AdjustWindowRectEx",
@@ -72,8 +72,8 @@ mod wrappers {
         let uFlags = <u32>::from_stack(mem, stack_args + 4u32);
         let uIDNewItem = <u32>::from_stack(mem, stack_args + 8u32);
         let lpNewItem = <Option<&str>>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::AppendMenuA_pos,
                 "user32/menu",
                 "AppendMenuA",
@@ -98,8 +98,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpPaint = <Option<&mut PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::BeginPaint_pos,
                 "user32/paint",
                 "BeginPaint",
@@ -122,8 +122,8 @@ mod wrappers {
         let Msg = <u32>::from_stack(mem, stack_args + 8u32);
         let wParam = <u32>::from_stack(mem, stack_args + 12u32);
         let lParam = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CallWindowProcA_pos,
                 "user32/message",
                 "CallWindowProcA",
@@ -149,8 +149,8 @@ mod wrappers {
     pub unsafe fn CharLowerA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CharLowerA_pos,
                 "user32/misc",
                 "CharLowerA",
@@ -170,8 +170,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
         let cchLength = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CharLowerBuffA_pos,
                 "user32/misc",
                 "CharLowerBuffA",
@@ -192,8 +192,8 @@ mod wrappers {
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDButton = <i32>::from_stack(mem, stack_args + 4u32);
         let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CheckDlgButton_pos,
                 "user32/dialog",
                 "CheckDlgButton",
@@ -218,8 +218,8 @@ mod wrappers {
         let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
         let uIDCheckItem = <u32>::from_stack(mem, stack_args + 4u32);
         let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CheckMenuItem_pos,
                 "user32/menu",
                 "CheckMenuItem",
@@ -245,8 +245,8 @@ mod wrappers {
         let nIDFirstButton = <i32>::from_stack(mem, stack_args + 4u32);
         let nIDLastButton = <i32>::from_stack(mem, stack_args + 8u32);
         let nIDCheckButton = <i32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CheckRadioButton_pos,
                 "user32/dialog",
                 "CheckRadioButton",
@@ -277,8 +277,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ClientToScreen_pos,
                 "user32/window",
                 "ClientToScreen",
@@ -298,8 +298,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
         let lprcSrc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CopyRect_pos,
                 "user32/rect",
                 "CopyRect",
@@ -324,8 +324,8 @@ mod wrappers {
         let nHeight = <u32>::from_stack(mem, stack_args + 16u32);
         let pvANDPlane = <u32>::from_stack(mem, stack_args + 20u32);
         let pvXORPlane = <u32>::from_stack(mem, stack_args + 24u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CreateCursor_pos,
                 "user32/resource",
                 "CreateCursor",
@@ -353,8 +353,8 @@ mod wrappers {
     }
     pub unsafe fn CreatePopupMenu(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CreatePopupMenu_pos,
                 "user32/menu",
                 "CreatePopupMenu",
@@ -387,8 +387,8 @@ mod wrappers {
         let hMenu = <u32>::from_stack(mem, stack_args + 36u32);
         let hInstance = <u32>::from_stack(mem, stack_args + 40u32);
         let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CreateWindowExA_pos,
                 "user32/window",
                 "CreateWindowExA",
@@ -453,8 +453,8 @@ mod wrappers {
         let hMenu = <u32>::from_stack(mem, stack_args + 36u32);
         let hInstance = <u32>::from_stack(mem, stack_args + 40u32);
         let lpParam = <u32>::from_stack(mem, stack_args + 44u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::CreateWindowExW_pos,
                 "user32/window",
                 "CreateWindowExW",
@@ -511,8 +511,8 @@ mod wrappers {
         let msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DefWindowProcA_pos,
                 "user32/window",
                 "DefWindowProcA",
@@ -546,8 +546,8 @@ mod wrappers {
         let msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DefWindowProcW_pos,
                 "user32/window",
                 "DefWindowProcW",
@@ -577,8 +577,8 @@ mod wrappers {
         let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
         let uPosition = <u32>::from_stack(mem, stack_args + 4u32);
         let uFlags = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DeleteMenu_pos,
                 "user32/menu",
                 "DeleteMenu",
@@ -601,8 +601,8 @@ mod wrappers {
     pub unsafe fn DestroyWindow(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DestroyWindow_pos,
                 "user32/window",
                 "DestroyWindow",
@@ -625,8 +625,8 @@ mod wrappers {
         let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
         let lpDialogFunc = <u32>::from_stack(mem, stack_args + 12u32);
         let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DialogBoxIndirectParamA_pos,
                 "user32/dialog",
                 "DialogBoxIndirectParamA",
@@ -662,8 +662,8 @@ mod wrappers {
         let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
         let lpDialogFunc = <u32>::from_stack(mem, stack_args + 12u32);
         let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DialogBoxParamA_pos,
                 "user32/dialog",
                 "DialogBoxParamA",
@@ -699,8 +699,8 @@ mod wrappers {
         let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
         let lpDialogFunc = <u32>::from_stack(mem, stack_args + 12u32);
         let dwInitParam = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DialogBoxParamW_pos,
                 "user32/dialog",
                 "DialogBoxParamW",
@@ -735,8 +735,8 @@ mod wrappers {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
         let mem = machine.mem().detach();
         let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DispatchMessageA_pos,
                 "user32/message",
                 "DispatchMessageA",
@@ -762,8 +762,8 @@ mod wrappers {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
         let mem = machine.mem().detach();
         let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DispatchMessageW_pos,
                 "user32/message",
                 "DispatchMessageW",
@@ -786,8 +786,8 @@ mod wrappers {
     pub unsafe fn DrawMenuBar(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DrawMenuBar_pos,
                 "user32/menu",
                 "DrawMenuBar",
@@ -810,8 +810,8 @@ mod wrappers {
         let nCount = <i32>::from_stack(mem, stack_args + 8u32);
         let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 12u32);
         let uFormat = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::DrawTextW_pos,
                 "user32/paint",
                 "DrawTextW",
@@ -838,8 +838,8 @@ mod wrappers {
         let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
         let uIDEnableItem = <u32>::from_stack(mem, stack_args + 4u32);
         let uEnable = <Result<MF, u32>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::EnableMenuItem_pos,
                 "user32/menu",
                 "EnableMenuItem",
@@ -863,8 +863,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let bEnable = <bool>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::EnableWindow_pos,
                 "user32/window",
                 "EnableWindow",
@@ -884,8 +884,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nResult = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::EndDialog_pos,
                 "user32/dialog",
                 "EndDialog",
@@ -905,8 +905,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpPaint = <Option<&PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::EndPaint_pos,
                 "user32/paint",
                 "EndPaint",
@@ -927,8 +927,8 @@ mod wrappers {
         let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
         let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
         let hbr = <BrushOrColor>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::FillRect_pos,
                 "user32/paint",
                 "FillRect",
@@ -948,8 +948,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::FindWindowA_pos,
                 "user32/window",
                 "FindWindowA",
@@ -973,8 +973,8 @@ mod wrappers {
         let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
         let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
         let hbr = <HBRUSH>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::FrameRect_pos,
                 "user32/paint",
                 "FrameRect",
@@ -992,8 +992,8 @@ mod wrappers {
     }
     pub unsafe fn GetActiveWindow(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetActiveWindow_pos,
                 "user32/window",
                 "GetActiveWindow",
@@ -1011,8 +1011,8 @@ mod wrappers {
     }
     pub unsafe fn GetCapture(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetCapture_pos,
                 "user32/window",
                 "GetCapture",
@@ -1032,8 +1032,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetClassLongA_pos,
                 "user32/wndclass",
                 "GetClassLongA",
@@ -1053,8 +1053,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetClientRect_pos,
                 "user32/window",
                 "GetClientRect",
@@ -1073,8 +1073,8 @@ mod wrappers {
     pub unsafe fn GetCursorPos(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetCursorPos_pos,
                 "user32/misc",
                 "GetCursorPos",
@@ -1093,8 +1093,8 @@ mod wrappers {
     pub unsafe fn GetDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetDC_pos,
                 "user32/window",
                 "GetDC",
@@ -1112,8 +1112,8 @@ mod wrappers {
     }
     pub unsafe fn GetDesktopWindow(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetDesktopWindow_pos,
                 "user32/window",
                 "GetDesktopWindow",
@@ -1133,8 +1133,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetDlgItem_pos,
                 "user32/dialog",
                 "GetDlgItem",
@@ -1156,8 +1156,8 @@ mod wrappers {
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
         let lpTranslated = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let bSigned = <bool>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetDlgItemInt_pos,
                 "user32/dialog",
                 "GetDlgItemInt",
@@ -1184,8 +1184,8 @@ mod wrappers {
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
         let lpString = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetDlgItemTextW_pos,
                 "user32/dialog",
                 "GetDlgItemTextW",
@@ -1207,8 +1207,8 @@ mod wrappers {
     }
     pub unsafe fn GetFocus(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetFocus_pos,
                 "user32/window",
                 "GetFocus",
@@ -1226,8 +1226,8 @@ mod wrappers {
     }
     pub unsafe fn GetForegroundWindow(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetForegroundWindow_pos,
                 "user32/window",
                 "GetForegroundWindow",
@@ -1246,8 +1246,8 @@ mod wrappers {
     pub unsafe fn GetKeyState(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let nVirtKey = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetKeyState_pos,
                 "user32/misc",
                 "GetKeyState",
@@ -1266,8 +1266,8 @@ mod wrappers {
     pub unsafe fn GetKeyboardLayout(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let idThread = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetKeyboardLayout_pos,
                 "user32/misc",
                 "GetKeyboardLayout",
@@ -1287,8 +1287,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let nBuff = <i32>::from_stack(mem, stack_args + 0u32);
         let lpList = <Option<&mut HKL>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetKeyboardLayoutList_pos,
                 "user32/misc",
                 "GetKeyboardLayoutList",
@@ -1307,8 +1307,8 @@ mod wrappers {
     pub unsafe fn GetKeyboardState(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetKeyboardState_pos,
                 "user32/misc",
                 "GetKeyboardState",
@@ -1327,8 +1327,8 @@ mod wrappers {
     pub unsafe fn GetKeyboardType(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetKeyboardType_pos,
                 "user32/misc",
                 "GetKeyboardType",
@@ -1346,8 +1346,8 @@ mod wrappers {
     }
     pub unsafe fn GetLastActivePopup(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetLastActivePopup_pos,
                 "user32/window",
                 "GetLastActivePopup",
@@ -1366,8 +1366,8 @@ mod wrappers {
     pub unsafe fn GetMenu(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetMenu_pos,
                 "user32/menu",
                 "GetMenu",
@@ -1389,8 +1389,8 @@ mod wrappers {
         let hMenu = <HMENU>::from_stack(mem, stack_args + 4u32);
         let uItem = <u32>::from_stack(mem, stack_args + 8u32);
         let lprcItem = <Option<&mut RECT>>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetMenuItemRect_pos,
                 "user32/menu",
                 "GetMenuItemRect",
@@ -1420,8 +1420,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
         let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
         let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetMessageA_pos,
                 "user32/message",
                 "GetMessageA",
@@ -1457,8 +1457,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
         let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
         let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetMessageW_pos,
                 "user32/message",
                 "GetMessageW",
@@ -1489,8 +1489,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hMonitor = <HMONITOR>::from_stack(mem, stack_args + 0u32);
         let lpmi = <Option<&mut MONITORINFO>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetMonitorInfoA_pos,
                 "user32/misc",
                 "GetMonitorInfoA",
@@ -1509,8 +1509,8 @@ mod wrappers {
     pub unsafe fn GetQueueStatus(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetQueueStatus_pos,
                 "user32/message",
                 "GetQueueStatus",
@@ -1530,8 +1530,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
         let nPos = <i32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetSubMenu_pos,
                 "user32/menu",
                 "GetSubMenu",
@@ -1550,8 +1550,8 @@ mod wrappers {
     pub unsafe fn GetSysColor(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let nIndex = <i32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetSysColor_pos,
                 "user32/misc",
                 "GetSysColor",
@@ -1571,8 +1571,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let bRevert = <bool>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetSystemMenu_pos,
                 "user32/menu",
                 "GetSystemMenu",
@@ -1591,8 +1591,8 @@ mod wrappers {
     pub unsafe fn GetSystemMetrics(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let nIndex = <Result<SM, u32>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetSystemMetrics_pos,
                 "user32/misc",
                 "GetSystemMetrics",
@@ -1613,8 +1613,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
         let bErase = <bool>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetUpdateRect_pos,
                 "user32/paint",
                 "GetUpdateRect",
@@ -1633,8 +1633,8 @@ mod wrappers {
     pub unsafe fn GetWindowDC(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetWindowDC_pos,
                 "user32/window",
                 "GetWindowDC",
@@ -1654,8 +1654,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <i32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetWindowLongA_pos,
                 "user32/window",
                 "GetWindowLongA",
@@ -1675,8 +1675,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetWindowPlacement_pos,
                 "user32/window",
                 "GetWindowPlacement",
@@ -1696,8 +1696,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::GetWindowRect_pos,
                 "user32/window",
                 "GetWindowRect",
@@ -1718,8 +1718,8 @@ mod wrappers {
         let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
         let dx = <i32>::from_stack(mem, stack_args + 4u32);
         let dy = <i32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::InflateRect_pos,
                 "user32/rect",
                 "InflateRect",
@@ -1740,8 +1740,8 @@ mod wrappers {
         let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
         let lprcSrc1 = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
         let lprcSrc2 = <Option<&RECT>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::IntersectRect_pos,
                 "user32/rect",
                 "IntersectRect",
@@ -1766,8 +1766,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
         let bErase = <bool>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::InvalidateRect_pos,
                 "user32/paint",
                 "InvalidateRect",
@@ -1788,8 +1788,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let hRgn = <HRGN>::from_stack(mem, stack_args + 4u32);
         let bErase = <bool>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::InvalidateRgn_pos,
                 "user32/paint",
                 "InvalidateRgn",
@@ -1809,8 +1809,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
         let lpr = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::InvertRect_pos,
                 "user32/paint",
                 "InvertRect",
@@ -1830,8 +1830,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDButton = <i32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::IsDlgButtonChecked_pos,
                 "user32/dialog",
                 "IsDlgButtonChecked",
@@ -1850,8 +1850,8 @@ mod wrappers {
     pub unsafe fn IsIconic(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::IsIconic_pos,
                 "user32/misc",
                 "IsIconic",
@@ -1870,8 +1870,8 @@ mod wrappers {
     pub unsafe fn IsRectEmpty(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::IsRectEmpty_pos,
                 "user32/rect",
                 "IsRectEmpty",
@@ -1890,8 +1890,8 @@ mod wrappers {
     pub unsafe fn IsWindowVisible(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::IsWindowVisible_pos,
                 "user32/window",
                 "IsWindowVisible",
@@ -1911,8 +1911,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let uIDEvent = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/timer") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/timer") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::KillTimer_pos,
                 "user32/timer",
                 "KillTimer",
@@ -1932,8 +1932,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpTableName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadAcceleratorsW_pos,
                 "user32/resource",
                 "LoadAcceleratorsW",
@@ -1953,8 +1953,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
         let lpBitmapName = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadBitmapA_pos,
                 "user32/resource",
                 "LoadBitmapA",
@@ -1974,8 +1974,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadCursorA_pos,
                 "user32/resource",
                 "LoadCursorA",
@@ -1995,8 +1995,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadCursorW_pos,
                 "user32/resource",
                 "LoadCursorW",
@@ -2016,8 +2016,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadIconA_pos,
                 "user32/resource",
                 "LoadIconA",
@@ -2037,8 +2037,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadIconW_pos,
                 "user32/resource",
                 "LoadIconW",
@@ -2062,8 +2062,8 @@ mod wrappers {
         let cx = <u32>::from_stack(mem, stack_args + 12u32);
         let cy = <u32>::from_stack(mem, stack_args + 16u32);
         let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadImageA_pos,
                 "user32/resource",
                 "LoadImageA",
@@ -2094,8 +2094,8 @@ mod wrappers {
         let cx = <u32>::from_stack(mem, stack_args + 12u32);
         let cy = <u32>::from_stack(mem, stack_args + 16u32);
         let fuLoad = <Result<LR, u32>>::from_stack(mem, stack_args + 20u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadImageW_pos,
                 "user32/resource",
                 "LoadImageW",
@@ -2122,8 +2122,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadMenuA_pos,
                 "user32/menu",
                 "LoadMenuA",
@@ -2143,8 +2143,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
         let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadMenuW_pos,
                 "user32/resource",
                 "LoadMenuW",
@@ -2166,8 +2166,8 @@ mod wrappers {
         let uID = <u32>::from_stack(mem, stack_args + 4u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
         let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadStringA_pos,
                 "user32/resource",
                 "LoadStringA",
@@ -2194,8 +2194,8 @@ mod wrappers {
         let uID = <u32>::from_stack(mem, stack_args + 4u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
         let cchBufferMax = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::LoadStringW_pos,
                 "user32/resource",
                 "LoadStringW",
@@ -2221,8 +2221,8 @@ mod wrappers {
         let hWndFrom = <HWND>::from_stack(mem, stack_args + 0u32);
         let hWndTo = <HWND>::from_stack(mem, stack_args + 4u32);
         let lpPoints = <ArrayWithSize<POINT>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::MapWindowPoints_pos,
                 "user32/window",
                 "MapWindowPoints",
@@ -2248,8 +2248,8 @@ mod wrappers {
         let lpText = <Option<&CStr>>::from_stack(mem, stack_args + 4u32);
         let lpCaption = <Option<&CStr>>::from_stack(mem, stack_args + 8u32);
         let uType = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::MessageBoxA_pos,
                 "user32/dialog",
                 "MessageBoxA",
@@ -2276,8 +2276,8 @@ mod wrappers {
         let lpText = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
         let lpCaption = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
         let uType = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::MessageBoxW_pos,
                 "user32/dialog",
                 "MessageBoxW",
@@ -2306,8 +2306,8 @@ mod wrappers {
         let nWidth = <u32>::from_stack(mem, stack_args + 12u32);
         let nHeight = <u32>::from_stack(mem, stack_args + 16u32);
         let bRepaint = <bool>::from_stack(mem, stack_args + 20u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::MoveWindow_pos,
                 "user32/window",
                 "MoveWindow",
@@ -2340,8 +2340,8 @@ mod wrappers {
         let fWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 12u32);
         let dwWakeMask = <Result<QS, u32>>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::MsgWaitForMultipleObjects_pos,
                 "user32/message",
                 "MsgWaitForMultipleObjects",
@@ -2379,8 +2379,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let pSrc = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let pDst = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::OemToCharA_pos,
                 "user32/misc",
                 "OemToCharA",
@@ -2403,8 +2403,8 @@ mod wrappers {
         let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
         let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
         let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PeekMessageA_pos,
                 "user32/message",
                 "PeekMessageA",
@@ -2440,8 +2440,8 @@ mod wrappers {
         let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
         let wMsgFilterMax = <u32>::from_stack(mem, stack_args + 12u32);
         let wRemoveMsg = <Result<RemoveMsg, u32>>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PeekMessageW_pos,
                 "user32/message",
                 "PeekMessageW",
@@ -2476,8 +2476,8 @@ mod wrappers {
         let Msg = <u32>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PostMessageA_pos,
                 "user32/message",
                 "PostMessageA",
@@ -2504,8 +2504,8 @@ mod wrappers {
         let Msg = <u32>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PostMessageW_pos,
                 "user32/message",
                 "PostMessageW",
@@ -2529,8 +2529,8 @@ mod wrappers {
     pub unsafe fn PostQuitMessage(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let nExitCode = <i32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PostQuitMessage_pos,
                 "user32/message",
                 "PostQuitMessage",
@@ -2552,8 +2552,8 @@ mod wrappers {
         let Msg = <u32>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PostThreadMessageA_pos,
                 "user32/message",
                 "PostThreadMessageA",
@@ -2578,8 +2578,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
         let pt = <POINT>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::PtInRect_pos,
                 "user32/rect",
                 "PtInRect",
@@ -2604,8 +2604,8 @@ mod wrappers {
         let lprcUpdate = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
         let hrgnUpdate = <HRGN>::from_stack(mem, stack_args + 8u32);
         let flags = <Result<RDW, u32>>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RedrawWindow_pos,
                 "user32/window",
                 "RedrawWindow",
@@ -2634,8 +2634,8 @@ mod wrappers {
     pub unsafe fn RegisterClassA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterClassA_pos,
                 "user32/wndclass",
                 "RegisterClassA",
@@ -2654,8 +2654,8 @@ mod wrappers {
     pub unsafe fn RegisterClassExA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterClassExA_pos,
                 "user32/wndclass",
                 "RegisterClassExA",
@@ -2674,8 +2674,8 @@ mod wrappers {
     pub unsafe fn RegisterClassExW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpWndClassEx = <Option<&WNDCLASSEXW>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterClassExW_pos,
                 "user32/wndclass",
                 "RegisterClassExW",
@@ -2694,8 +2694,8 @@ mod wrappers {
     pub unsafe fn RegisterClassW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterClassW_pos,
                 "user32/wndclass",
                 "RegisterClassW",
@@ -2714,8 +2714,8 @@ mod wrappers {
     pub unsafe fn RegisterClipboardFormatA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpszFormat = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterClipboardFormatA_pos,
                 "user32/misc",
                 "RegisterClipboardFormatA",
@@ -2734,8 +2734,8 @@ mod wrappers {
     pub unsafe fn RegisterWindowMessageA(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterWindowMessageA_pos,
                 "user32/window",
                 "RegisterWindowMessageA",
@@ -2754,8 +2754,8 @@ mod wrappers {
     pub unsafe fn RegisterWindowMessageW(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::RegisterWindowMessageW_pos,
                 "user32/window",
                 "RegisterWindowMessageW",
@@ -2773,8 +2773,8 @@ mod wrappers {
     }
     pub unsafe fn ReleaseCapture(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ReleaseCapture_pos,
                 "user32/window",
                 "ReleaseCapture",
@@ -2794,8 +2794,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let hdc = <HDC>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ReleaseDC_pos,
                 "user32/window",
                 "ReleaseDC",
@@ -2818,8 +2818,8 @@ mod wrappers {
         let Msg = <u32>::from_stack(mem, stack_args + 8u32);
         let wParam = <u32>::from_stack(mem, stack_args + 12u32);
         let lParam = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SendDlgItemMessageA_pos,
                 "user32/message",
                 "SendDlgItemMessageA",
@@ -2851,8 +2851,8 @@ mod wrappers {
         let Msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SendMessageA_pos,
                 "user32/message",
                 "SendMessageA",
@@ -2886,8 +2886,8 @@ mod wrappers {
         let Msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
         let wParam = <u32>::from_stack(mem, stack_args + 8u32);
         let lParam = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SendMessageW_pos,
                 "user32/message",
                 "SendMessageW",
@@ -2915,8 +2915,8 @@ mod wrappers {
     pub unsafe fn SetCapture(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetCapture_pos,
                 "user32/window",
                 "SetCapture",
@@ -2937,8 +2937,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
         let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/wndclass") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetClassLongA_pos,
                 "user32/wndclass",
                 "SetClassLongA",
@@ -2961,8 +2961,8 @@ mod wrappers {
     pub unsafe fn SetCursor(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hCursor = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetCursor_pos,
                 "user32/resource",
                 "SetCursor",
@@ -2982,8 +2982,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let x = <i32>::from_stack(mem, stack_args + 0u32);
         let y = <i32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetCursorPos_pos,
                 "user32/misc",
                 "SetCursorPos",
@@ -3005,8 +3005,8 @@ mod wrappers {
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
         let uValue = <u32>::from_stack(mem, stack_args + 8u32);
         let _bSigned = <bool>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetDlgItemInt_pos,
                 "user32/dialog",
                 "SetDlgItemInt",
@@ -3032,8 +3032,8 @@ mod wrappers {
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetDlgItemTextA_pos,
                 "user32/dialog",
                 "SetDlgItemTextA",
@@ -3058,8 +3058,8 @@ mod wrappers {
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
         let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/dialog") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetDlgItemTextW_pos,
                 "user32/dialog",
                 "SetDlgItemTextW",
@@ -3082,8 +3082,8 @@ mod wrappers {
     pub unsafe fn SetFocus(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetFocus_pos,
                 "user32/window",
                 "SetFocus",
@@ -3102,8 +3102,8 @@ mod wrappers {
     pub unsafe fn SetForegroundWindow(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetForegroundWindow_pos,
                 "user32/window",
                 "SetForegroundWindow",
@@ -3123,8 +3123,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let hMenu = <HMENU>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetMenu_pos,
                 "user32/menu",
                 "SetMenu",
@@ -3146,8 +3146,8 @@ mod wrappers {
         let item = <u32>::from_stack(mem, stack_args + 4u32);
         let fByPosition = <bool>::from_stack(mem, stack_args + 8u32);
         let lpmii = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/menu") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetMenuItemInfoA_pos,
                 "user32/menu",
                 "SetMenuItemInfoA",
@@ -3175,8 +3175,8 @@ mod wrappers {
         let yTop = <i32>::from_stack(mem, stack_args + 8u32);
         let xRight = <i32>::from_stack(mem, stack_args + 12u32);
         let yBottom = <i32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetRect_pos,
                 "user32/rect",
                 "SetRect",
@@ -3201,8 +3201,8 @@ mod wrappers {
     pub unsafe fn SetRectEmpty(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/rect") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetRectEmpty_pos,
                 "user32/rect",
                 "SetRectEmpty",
@@ -3224,8 +3224,8 @@ mod wrappers {
         let nIDEvent = <u32>::from_stack(mem, stack_args + 4u32);
         let uElapse = <u32>::from_stack(mem, stack_args + 8u32);
         let lpTimerFunc = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/timer") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/timer") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetTimer_pos,
                 "user32/timer",
                 "SetTimer",
@@ -3251,8 +3251,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
         let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetWindowLongA_pos,
                 "user32/window",
                 "SetWindowLongA",
@@ -3284,8 +3284,8 @@ mod wrappers {
         let cx = <i32>::from_stack(mem, stack_args + 16u32);
         let cy = <i32>::from_stack(mem, stack_args + 20u32);
         let uFlags = <Result<SWP, u32>>::from_stack(mem, stack_args + 24u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetWindowPos_pos,
                 "user32/window",
                 "SetWindowPos",
@@ -3319,8 +3319,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetWindowTextA_pos,
                 "user32/window",
                 "SetWindowTextA",
@@ -3342,8 +3342,8 @@ mod wrappers {
         let lpfn = <u32>::from_stack(mem, stack_args + 4u32);
         let hmod = <HINSTANCE>::from_stack(mem, stack_args + 8u32);
         let dwThreadId = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SetWindowsHookExA_pos,
                 "user32/misc",
                 "SetWindowsHookExA",
@@ -3367,8 +3367,8 @@ mod wrappers {
     pub unsafe fn ShowCursor(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let bShow = <bool>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/resource") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ShowCursor_pos,
                 "user32/resource",
                 "ShowCursor",
@@ -3391,8 +3391,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let nCmdShow = <Result<SW, u32>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ShowWindow_pos,
                 "user32/window",
                 "ShowWindow",
@@ -3418,8 +3418,8 @@ mod wrappers {
         let uiParam = <u32>::from_stack(mem, stack_args + 4u32);
         let pvParam = <u32>::from_stack(mem, stack_args + 8u32);
         let fWinIni = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::SystemParametersInfoA_pos,
                 "user32/misc",
                 "SystemParametersInfoA",
@@ -3446,8 +3446,8 @@ mod wrappers {
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let hAccTable = <u32>::from_stack(mem, stack_args + 4u32);
         let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::TranslateAcceleratorW_pos,
                 "user32/message",
                 "TranslateAcceleratorW",
@@ -3470,8 +3470,8 @@ mod wrappers {
     pub unsafe fn TranslateMessage(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::TranslateMessage_pos,
                 "user32/message",
                 "TranslateMessage",
@@ -3493,8 +3493,8 @@ mod wrappers {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("user32/window") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::UpdateWindow_pos,
                 "user32/window",
                 "UpdateWindow",
@@ -3518,8 +3518,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("user32/paint") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::ValidateRect_pos,
                 "user32/paint",
                 "ValidateRect",
@@ -3540,8 +3540,8 @@ mod wrappers {
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
         let mem = machine.mem().detach();
-        let __trace_record = if crate::trace::enabled("user32/message") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/message") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::WaitMessage_pos,
                 "user32/message",
                 "WaitMessage",
@@ -3567,8 +3567,8 @@ mod wrappers {
         let lpszHelp = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
         let uCommand = <u32>::from_stack(mem, stack_args + 8u32);
         let dwData = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::WinHelpW_pos,
                 "user32/misc",
                 "WinHelpW",
@@ -3595,8 +3595,8 @@ mod wrappers {
         let bScan = <u8>::from_stack(mem, stack_args + 4u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
         let dwExtraInfo = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::keybd_event_pos,
                 "user32/misc",
                 "keybd_event",
@@ -3622,8 +3622,8 @@ mod wrappers {
         let buf = <u32>::from_stack(mem, stack_args + 0u32);
         let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
         let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::wsprintfA_pos,
                 "user32/misc",
                 "wsprintfA",
@@ -3644,8 +3644,8 @@ mod wrappers {
         let buf = <u32>::from_stack(mem, stack_args + 0u32);
         let fmt = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
         let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("user32/misc") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
                 winapi::user32::wsprintfW_pos,
                 "user32/misc",
                 "wsprintfW",

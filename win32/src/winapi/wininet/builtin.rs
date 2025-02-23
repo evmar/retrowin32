@@ -19,8 +19,8 @@ mod wrappers {
         let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
         let lpszProxyBypass = <Option<&str>>::from_stack(mem, stack_args + 12u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("wininet") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("wininet") {
+            crate::winapi::trace::Record::new(
                 winapi::wininet::InternetOpenA_pos,
                 "wininet",
                 "InternetOpenA",

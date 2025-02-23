@@ -16,8 +16,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
         let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("vcruntime140") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+            crate::winapi::trace::Record::new(
                 winapi::vcruntime140::_CxxThrowException_pos,
                 "vcruntime140",
                 "_CxxThrowException",
@@ -42,8 +42,8 @@ mod wrappers {
         let lhs = <u32>::from_stack(mem, stack_args + 0u32);
         let rhs = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("vcruntime140") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+            crate::winapi::trace::Record::new(
                 winapi::vcruntime140::memcmp_pos,
                 "vcruntime140",
                 "memcmp",
@@ -64,8 +64,8 @@ mod wrappers {
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let src = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("vcruntime140") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+            crate::winapi::trace::Record::new(
                 winapi::vcruntime140::memcpy_pos,
                 "vcruntime140",
                 "memcpy",
@@ -86,8 +86,8 @@ mod wrappers {
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let val = <u32>::from_stack(mem, stack_args + 4u32);
         let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("vcruntime140") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+            crate::winapi::trace::Record::new(
                 winapi::vcruntime140::memset_pos,
                 "vcruntime140",
                 "memset",

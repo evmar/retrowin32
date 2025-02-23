@@ -123,7 +123,7 @@ fn main() -> anyhow::Result<ExitCode> {
         std::env::set_current_dir(dir).unwrap();
     }
 
-    win32::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
+    win32::winapi::trace::set_scheme(args.win32_trace.as_deref().unwrap_or("-"));
 
     let exe = args
         .cmdline

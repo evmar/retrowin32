@@ -18,8 +18,8 @@ mod wrappers {
         let version = <u32>::from_stack(mem, stack_args + 4u32);
         let ppDI = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::DirectInputCreateA_pos,
                 "dinput/dinput",
                 "DirectInputCreateA",
@@ -43,8 +43,8 @@ mod wrappers {
     pub unsafe fn IDirectInputDevice_Acquire(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::Acquire_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::Acquire",
@@ -66,8 +66,8 @@ mod wrappers {
         let lpCallback = <u32>::from_stack(mem, stack_args + 4u32);
         let pvRef = <u32>::from_stack(mem, stack_args + 8u32);
         let dwFlag = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::EnumObjects_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::EnumObjects",
@@ -97,8 +97,8 @@ mod wrappers {
         let rgdod = <u32>::from_stack(mem, stack_args + 8u32);
         let pdwInOut = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::GetDeviceData_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::GetDeviceData",
@@ -135,8 +135,8 @@ mod wrappers {
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::SetCooperativeLevel_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetCooperativeLevel",
@@ -157,8 +157,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpdf = <Option<&DIDATAFORMAT>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::SetDataFormat_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetDataFormat",
@@ -181,8 +181,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hEvent = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::SetEventNotification_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetEventNotification",
@@ -204,8 +204,8 @@ mod wrappers {
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let rguidProp = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
         let pdiph = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInputDevice::SetProperty_pos,
                 "dinput/dinput",
                 "IDirectInputDevice::SetProperty",
@@ -229,8 +229,8 @@ mod wrappers {
     pub unsafe fn IDirectInput_AddRef(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInput::AddRef_pos,
                 "dinput/dinput",
                 "IDirectInput::AddRef",
@@ -252,8 +252,8 @@ mod wrappers {
         let lpGUID = <Option<&GUID>>::from_stack(mem, stack_args + 4u32);
         let lplpDirectInputDevice = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
         let pUnkOuter = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInput::CreateDevice_pos,
                 "dinput/dinput",
                 "IDirectInput::CreateDevice",
@@ -287,8 +287,8 @@ mod wrappers {
         let callback = <u32>::from_stack(mem, stack_args + 8u32);
         let pvRef = <u32>::from_stack(mem, stack_args + 12u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInput::EnumDevices_pos,
                 "dinput/dinput",
                 "IDirectInput::EnumDevices",
@@ -315,8 +315,8 @@ mod wrappers {
     pub unsafe fn IDirectInput_Release(machine: &mut Machine, stack_args: u32) -> u64 {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::trace::enabled("dinput/dinput") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("dinput/dinput") {
+            crate::winapi::trace::Record::new(
                 winapi::dinput::IDirectInput::Release_pos,
                 "dinput/dinput",
                 "IDirectInput::Release",

@@ -16,8 +16,8 @@ mod wrappers {
         let mem = machine.mem().detach();
         let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::trace::enabled("version") {
-            crate::trace::Record::new(
+        let __trace_record = if crate::winapi::trace::enabled("version") {
+            crate::winapi::trace::Record::new(
                 winapi::version::GetFileVersionInfoSizeA_pos,
                 "version",
                 "GetFileVersionInfoSizeA",
