@@ -2,7 +2,7 @@
 
 use super::UNICODE_STRING;
 use crate::{
-    winapi::{alloc::Arena, String16},
+    winapi::{arena::Arena, String16},
     Machine,
 };
 use memory::{ExtensionsMut, Mem};
