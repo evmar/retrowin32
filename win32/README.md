@@ -1,6 +1,6 @@
 # win32 implementation
 
-This directory contains retrowin32's implementation of the win32 API.
+This directory contains retrowin32's implementation of Windows and win32 API.
 
 ## winapi
 
@@ -12,7 +12,7 @@ Each given Windows function like `CreateWindowA()` is written in Rust. A custom
 plumbing for those functions into the machinery so that they can be called from
 the x86 executable.
 
-## Code generator
+### Code generator
 
 The code generator traverses the `dllexport` attributes and generates a Rust
 glue module as well as the code for special `.dll` files that end up inlined
@@ -39,11 +39,13 @@ realistically, either native (found in `../cli`) or web (found in
 
 ## Code layout
 
+- `src` -- roughly the Windows OS, or the bits of Windows that lie outside of
+  the win32 API
 - [`derive/`](derive/) -- macro implementations, primarily `dllexport`
   annotations on functions, see README
-- `dll/` -- currently unused work in progress; generated win32 dlls for builtin
-  API
+- `dll/` -- win32 dlls used for builtin APIs; generated, mostly empty, mostly
+  hooks that map to retrowin32 internal implementations
 - `src/pe` -- PE file parsing/loading, in theory independent of any winapi or
   emulation concerns
-- `src/winapi` -- the Windows API, see above `winapi` docs
+- `src/winapi` -- the win32 API, see above `winapi` docs
 - [`lib/`](lib/) -- support machinery to generate a DLL used in test, see README
