@@ -348,6 +348,7 @@ impl DDSURFACEDESC2 {
         }
         Some(self.dwBackBufferCount_dwDepth)
     }
+
     pub fn caps(&self) -> Option<&DDSCAPS2> {
         if !self.dwFlags.contains(DDSD::CAPS) {
             return None;
