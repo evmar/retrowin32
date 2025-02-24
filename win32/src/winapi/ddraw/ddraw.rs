@@ -61,10 +61,10 @@ impl Surface {
             opts.height = desc.dwHeight;
         }
 
-        if let Some(caps) = desc.caps() {
-            if caps.dwCaps.contains(DDSCAPS::PRIMARYSURFACE) {
-                opts.primary = true;
-            }
+        // win003 doesn't set desc.dwFlags at all, so don't consider whether they provided DDSD::CAPS.
+        let caps = desc.ddsCaps.dwCaps;
+        if caps.contains(DDSCAPS::PRIMARYSURFACE) {
+            opts.primary = true;
         }
 
         if opts.width == 0 || opts.height == 0 {
