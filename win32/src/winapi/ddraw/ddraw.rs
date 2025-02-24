@@ -126,9 +126,7 @@ impl Surface {
     }
 
     pub fn unlock(&mut self, mem: Mem) {
-        if self.primary {
-            self.flush(mem, None);
-        }
+        self.flush(mem, None);
     }
 
     pub fn fill(&mut self, mem: Mem, heap: &mut Heap, color: u32) {
