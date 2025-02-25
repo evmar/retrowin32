@@ -14,7 +14,7 @@ export class Stack extends preact.Component<Stack.Props> {
   render() {
     const { emu } = this.props;
     const esp = emu.esp;
-    const memory = memory();
+    const memory = emu.memory();
     const rows = [];
     for (let addr = esp - 0x10; addr < esp + 0x20; addr += 4) {
       const value = memory.getUint32(addr, true);

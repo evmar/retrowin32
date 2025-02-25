@@ -246,7 +246,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
             memory: () => (
               <Memory
-                mem={emulator.memory()}
+                mem={emulator.emu.memory()}
                 base={this.state.memBase}
                 highlight={this.state.memHighlight}
                 jumpTo={(addr) => this.setState({ memBase: Math.max(0, addr) })}
