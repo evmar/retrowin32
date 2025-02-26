@@ -182,34 +182,23 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
     const { emulator, labels } = this.state;
 
     const output = (
-      <div>
-        <code>
-          {this.state.stdout}
-          {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
-        </code>
-      </div>
+      <code>
+        {this.state.stdout}
+        {this.state.error ? <div class='error'>ERROR: {this.state.error}</div> : null}
+      </code>
     );
 
     if (!emulator) {
       return output;
     }
 
-    // Note: disassemble_json() may cause allocations, invalidating any existing .memory()!
+    // Note: disassemble() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
-    let code;
     const eip = emulator.emu.eip;
     if (eip == 0xffff_fff0) {
-      code = <section class='code'>(in async)</section>;
+      instrs = [];
     } else {
       instrs = emulator.disassemble(eip);
-      code = (
-        <Code
-          instrs={instrs}
-          labels={labels}
-          {...this.memoryView}
-          runTo={this.runTo}
-        />
-      );
     }
     return (
       <>
@@ -227,66 +216,79 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             {emulator.emu.instr_count} instrs executed | {Math.floor(emulator.looper.stepsPerMs)}/ms
           </div>
         </section>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {code}
-          <RegistersComponent
-            {...this.memoryView}
-            regs={emulator.emu.regs()}
-          />
-          <Stack
-            {...this.memoryView}
-            labels={labels}
-            emu={emulator.emu}
-          />
+        <div style={{ display: 'flex' }}>
+          <section class='code'>
+            <Code
+              instrs={instrs}
+              labels={labels}
+              {...this.memoryView}
+              runTo={this.runTo}
+            />
+          </section>
+          <section>
+            <RegistersComponent
+              {...this.memoryView}
+              regs={emulator.emu.regs()}
+            />
+          </section>
+          <section style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>
+            <Stack
+              {...this.memoryView}
+              labels={labels}
+              emu={emulator.emu}
+            />
+          </section>
         </div>
-        <Tabs
-          style={{ width: '80ex', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}
-          tabs={{
-            output: () => output,
+        <section style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+          <Tabs
+            style={{ flex: 1 }}
+            tabs={{
+              output: () => output,
 
-            memory: () => (
-              <Memory
-                mem={emulator.emu.memory()}
-                base={this.state.memBase}
-                highlight={this.state.memHighlight}
-                jumpTo={(addr) => this.setState({ memBase: Math.max(0, addr) })}
-              />
-            ),
-            mappings: () => (
-              <Mappings
-                mappings={emulator.mappings()}
-                highlight={this.state.memHighlight}
-                {...this.memoryView}
-              />
-            ),
+              memory: () => (
+                <Memory
+                  mem={emulator.emu.memory()}
+                  base={this.state.memBase}
+                  highlight={this.state.memHighlight}
+                  jumpTo={(addr) => this.setState({ memBase: Math.max(0, addr) })}
+                />
+              ),
+              mappings: () => (
+                <Mappings
+                  mappings={emulator.mappings()}
+                  highlight={this.state.memHighlight}
+                  {...this.memoryView}
+                />
+              ),
 
-            imports: () => {
-              const labels = emulator.labels();
-              return (
-                <div style={{ flex: 1, overflow: 'auto' }}>
-                  {labels.map(([addr, name]) => (
-                    <div>
-                      <code>
-                        <Number digits={8} {...this.memoryView}>{addr}</Number>: {name}
-                      </code>
-                    </div>
-                  ))}
-                </div>
-              );
-            },
+              imports: () => {
+                const labels = emulator.labels();
+                return (
+                  <div style={{ minHeight: 0, flex: 1, overflow: 'auto' }}>
+                    {labels.map(([addr, name]) => (
+                      <div>
+                        <code>
+                          <Number digits={8} {...this.memoryView}>{addr}</Number>: {name}
+                        </code>
+                      </div>
+                    ))}
+                  </div>
+                );
+              },
 
-            breakpoints: () => (
-              <BreakpointsComponent
-                breakpoints={emulator.breakpoints}
-                labels={labels}
-                highlight={eip}
-                {...this.memoryView}
-              />
-            ),
-          }}
-          selected={this.state.selectedTab}
-          switchTab={(selectedTab) => this.setState({ selectedTab })}
-        />
+              breakpoints: () => (
+                <BreakpointsComponent
+                  breakpoints={emulator.breakpoints}
+                  labels={labels}
+                  highlight={eip}
+                  {...this.memoryView}
+                />
+              ),
+            }}
+            selected={this.state.selectedTab}
+            switchTab={(selectedTab) => this.setState({ selectedTab })}
+          />
+        </section>
       </>
     );
   }

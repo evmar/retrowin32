@@ -114,7 +114,7 @@ export class Memory extends preact.Component<Memory.Props> {
     }
 
     return (
-      <section style={{ minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
+      <div style={{ minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
         <form style={{ display: 'flex', justifyContent: 'center' }} onSubmit={this.onSubmit}>
           <button type='button' onClick={this.onJumpBack}>&lt;</button>
           <input name='addr' size={8} value={hex(this.props.base, 8)} />
@@ -125,7 +125,7 @@ export class Memory extends preact.Component<Memory.Props> {
           <code class='grid'>{hexRows}</code>
           <code>{asciiRows}</code>
         </div>
-      </section>
+      </div>
     );
   }
 }

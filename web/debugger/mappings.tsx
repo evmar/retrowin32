@@ -33,8 +33,8 @@ export class Mappings extends preact.Component<Mappings.Props> {
       );
     });
     return (
-      <section style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <table style={{ display: 'block', overflow: 'auto' }}>
+      <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
+        <table style={{ width: '100%', display: 'block', overflow: 'auto' }}>
           <thead>
             <tr>
               <th>addr</th>
@@ -44,7 +44,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
           </thead>
           <tbody>{rows}</tbody>
         </table>
-      </section>
+      </div>
     );
   }
 }

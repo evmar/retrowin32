@@ -53,11 +53,9 @@ export class Code extends preact.Component<Code.Props> {
       );
     });
     return (
-      <section class='code'>
-        <code class='disassembly'>
-          {instrs}
-        </code>
-      </section>
+      <code class='disassembly'>
+        {instrs}
+      </code>
     );
   }
 }

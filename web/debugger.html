@@ -18,14 +18,18 @@
     }
 
     body {
+        margin: 0;
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        min-width: 0;
     }
 
-    section.panel {
+    section {
         padding: 1ex;
+        background: var(--gray);
+        border-right: 1px solid black;
+        border-bottom: 1px solid black;
     }
 
     /* memory */
@@ -46,13 +50,11 @@
         outline: solid 1px red;
     }
 
-
     .error {
         color: red;
     }
 
     .code {
-        padding: 1ex;
         background: white;
         width: 80ex;
     }

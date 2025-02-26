@@ -1,3 +1,7 @@
+:root {
+    --gray: #d6d3ce;
+}
+
 body {
     font-family: tahoma, sans-serif;
     font-size: 12px;
@@ -11,7 +15,7 @@ button {
 
 button,
 .panel {
-    background: #d0d0c8;
+    background: var(--gray);
     border: outset 2px;
     image-rendering: pixelated;
     border-image: url("9p-inactive.png") 2;
