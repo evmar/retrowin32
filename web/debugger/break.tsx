@@ -137,10 +137,10 @@ export class BreakpointsComponent extends preact.Component<BreakpointsComponent.
       );
     }
     return (
-      <section>
+      <div>
         {rows}
         <AddComponent onAccept={(text) => this.add(text)} />
-      </section>
+      </div>
     );
   }
 }

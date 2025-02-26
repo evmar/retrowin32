@@ -14,7 +14,7 @@ export class Tabs extends preact.Component<Tabs.Props> {
     const { style, tabs, selected, switchTab } = this.props;
     const content = tabs[selected]();
     return (
-      <section class='panel' style={style}>
+      <div style={{ minHeight: 0, display: 'flex', flexDirection: 'column', ...style }}>
         <div class='tabs-strip'>
           |
           {Object.keys(tabs).map((name) => {
@@ -26,7 +26,7 @@ export class Tabs extends preact.Component<Tabs.Props> {
           })}
         </div>
         {content}
-      </section>
+      </div>
     );
   }
 }
