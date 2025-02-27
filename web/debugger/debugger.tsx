@@ -285,7 +285,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
                 />
               ),
 
-              directdraw: () => <DirectDraw state={emulator.emu.directdraw_state()} />,
+              directdraw: () => <DirectDraw state={emulator.emu.directdraw_state()} {...this.memoryView} />,
             }}
             selected={this.state.selectedTab}
             switchTab={(selectedTab) => this.setState({ selectedTab })}
