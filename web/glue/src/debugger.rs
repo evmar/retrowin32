@@ -66,6 +66,7 @@ pub struct DirectDrawSurfaceMeta {
     pub height: u32,
     pub bytes_per_pixel: u32,
     pub primary: bool,
+    pub pixels: Option<u32>,
     pub palette: Option<u32>,
     // TODO:
     // pub attached: u32,
@@ -84,6 +85,7 @@ pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
                 height: s.height,
                 bytes_per_pixel: s.bytes_per_pixel,
                 primary: s.primary,
+                pixels: if s.pixels != 0 { Some(s.pixels) } else { None },
                 palette: s.palette.as_ref().map(|p| p.ptr),
             };
 
