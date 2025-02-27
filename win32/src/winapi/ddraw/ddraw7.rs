@@ -287,7 +287,7 @@ pub mod IDirectDraw7 {
             wnd.borrow_mut()
                 .set_client_size(&mut *machine.host, width, height);
         }
-        machine.state.ddraw.bytes_per_pixel = bpp / 8;
+        machine.state.ddraw.screen_bytes_per_pixel = bpp / 8;
         DD::OK
     }
 
