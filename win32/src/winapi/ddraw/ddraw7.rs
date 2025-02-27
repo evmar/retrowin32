@@ -468,13 +468,26 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn Flip(machine: &mut Machine, this: u32, lpSurf: u32, flags: Result<DDFLIP, u32>) -> DD {
-        assert!(lpSurf == 0);
+        // Swap the back buffer's pixels with the front buffer.
+        if lpSurf != 0 {
+            todo!();
+        }
 
         let surface = machine.state.ddraw.surfaces.get(&this).unwrap();
+        if !surface.primary {
+            // TODO: surface can be an arbitrary surface in the flip chain, not just the back buffer.
+            todo!();
+        }
+        let old_pixels = surface.pixels;
         let attached = surface.attached;
-        let back = machine.state.ddraw.surfaces.get(&attached).unwrap();
-        back.flush(machine.memory.mem(), Some(surface));
+        let back = machine.state.ddraw.surfaces.get_mut(&attached).unwrap();
+        let new_pixels = back.pixels;
+        back.pixels = old_pixels;
 
+        let surface = machine.state.ddraw.surfaces.get_mut(&this).unwrap();
+        assert!(new_pixels != 0);
+        surface.pixels = new_pixels;
+        surface.flush(machine.memory.mem());
         surface.host.show();
 
         DD::OK

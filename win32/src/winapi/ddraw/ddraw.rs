@@ -126,7 +126,7 @@ impl Surface {
     }
 
     pub fn unlock(&mut self, mem: Mem) {
-        self.flush(mem, None);
+        self.flush(mem);
     }
 
     pub fn fill(&mut self, mem: Mem, heap: &mut Heap, color: u32) {
@@ -152,7 +152,7 @@ impl Surface {
     /// Copy pixels from emulator .pixels memory to the host's surface.
     /// Called after GDI drawing calls or Lock/Unlock.
     // If primary is given, use it as the source of the palette.
-    pub fn flush(&self, mem: Mem, primary: Option<&Surface>) {
+    pub fn flush(&self, mem: Mem) {
         assert!(self.pixels != 0);
 
         // We need to copy self.pixels to convert its format to the RGBA expected by the write_pixels API.
@@ -162,12 +162,7 @@ impl Surface {
         match self.bytes_per_pixel {
             1 => {
                 let pixels = mem.iter_pod::<u8>(self.pixels, self.width * self.height);
-                let palette = if let Some(surf) = primary {
-                    surf.palette.as_ref()
-                } else {
-                    self.palette.as_ref()
-                };
-                let Some(palette) = palette else {
+                let Some(palette) = self.palette.as_ref() else {
                     // On startup, no palette may mean all black?
                     return;
                 };

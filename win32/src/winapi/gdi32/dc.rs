@@ -45,7 +45,7 @@ impl DCTarget {
             }
             DCTarget::DirectDrawSurface(addr) => {
                 let surface = machine.state.ddraw.surfaces.get(addr).unwrap();
-                surface.flush(machine.memory.mem(), None);
+                surface.flush(machine.memory.mem());
             }
             _ => {}
         }
