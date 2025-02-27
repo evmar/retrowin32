@@ -66,9 +66,8 @@ pub struct DirectDrawSurfaceMeta {
     pub height: u32,
     pub bytes_per_pixel: u32,
     pub primary: bool,
+    pub palette: Option<u32>,
     // TODO:
-    // pub palette: Option<Palette>,
-    // pixels: u32,
     // pub attached: u32,
 }
 
@@ -85,6 +84,7 @@ pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
                 height: s.height,
                 bytes_per_pixel: s.bytes_per_pixel,
                 primary: s.primary,
+                palette: s.palette.as_ref().map(|p| p.ptr),
             };
 
             // Attach canvas property to JS object we create from meta.

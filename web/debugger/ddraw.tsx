@@ -30,6 +30,9 @@ export class DirectDraw extends preact.Component<DirectDraw.Props, DirectDraw.St
           <td style={{ textAlign: 'right' }}>{surface.height}</td>
           <td style={{ textAlign: 'right' }}>{surface.bytes_per_pixel}</td>
           <td style={{ textAlign: 'right' }}>{surface.primary ? 'yes' : 'no'}</td>
+          <td style={{ textAlign: 'right' }}>
+            {surface.palette && <Number digits={8} {...this.props}>{surface.palette}</Number>}
+          </td>
         </tr>
       );
     });
@@ -38,10 +41,11 @@ export class DirectDraw extends preact.Component<DirectDraw.Props, DirectDraw.St
         <table>
           <tr>
             <th>ptr</th>
-            <th>width</th>
-            <th>height</th>
-            <th>bytes_per_pixel</th>
-            <th>primary</th>
+            <th style={{ paddingLeft: '2ex' }}>width</th>
+            <th style={{ paddingLeft: '2ex' }}>height</th>
+            <th style={{ paddingLeft: '2ex' }}>bytes per pixel</th>
+            <th style={{ paddingLeft: '2ex' }}>primary</th>
+            <th style={{ paddingLeft: '2ex' }}>palette</th>
           </tr>
           {rows}
         </table>
