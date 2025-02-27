@@ -77,7 +77,7 @@ impl Surface {
         }
 
         if opts.bytes_per_pixel == 0 {
-            opts.bytes_per_pixel = machine.state.ddraw.bytes_per_pixel;
+            opts.bytes_per_pixel = machine.state.ddraw.screen_bytes_per_pixel;
         }
 
         surfaces.push(Surface::new(machine, hwnd, &opts));
@@ -202,11 +202,16 @@ impl Surface {
 }
 
 pub struct State {
-    // TODO: this is per-IDirectDraw state.
+    // TODO: the fields in this struct are really per-IDirectDraw state.
     pub hwnd: HWND,
+
+    /// Maps interface pointer to Surface objects.
+    /// Note that you cannot have multiple pointers to the same surface;
+    /// instead, DirectDraw refcounts the interfaces themselves.
     pub surfaces: HashMap<u32, Surface>,
 
-    pub bytes_per_pixel: u32,
+    /// bpp of the current display mode.
+    pub screen_bytes_per_pixel: u32,
 
     pub palettes: HashMap<u32, Palette>,
 }
@@ -216,7 +221,7 @@ impl Default for State {
         State {
             hwnd: HWND::null(),
             surfaces: HashMap::new(),
-            bytes_per_pixel: 4,
+            screen_bytes_per_pixel: 4,
             palettes: HashMap::new(),
         }
     }
