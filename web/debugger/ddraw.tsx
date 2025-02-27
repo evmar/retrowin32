@@ -1,5 +1,4 @@
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
 import * as wasm from '../glue/pkg/glue';
 
 namespace DirectDraw {

@@ -1,5 +1,4 @@
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
 
 namespace Tabs {
   export interface Props {

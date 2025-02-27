@@ -3,7 +3,6 @@
  */
 
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
 import { Emulator } from './emulator';
 
 namespace WindowComponent {
