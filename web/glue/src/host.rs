@@ -16,9 +16,9 @@ use win32::{Stat, StatKind, WindowsPath};
 ///
 /// https://developer.chrome.com/blog/taking-advantage-of-gpu-acceleration-in-the-2d-canvas
 /// https://web.dev/articles/canvas-performance
-struct WebSurface {
+pub struct WebSurface {
     _hwnd: u32,
-    canvas: web_sys::HtmlCanvasElement,
+    pub canvas: web_sys::HtmlCanvasElement,
     width: u32,
     ctx: web_sys::CanvasRenderingContext2d,
     screen: web_sys::CanvasRenderingContext2d,
