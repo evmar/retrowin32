@@ -24,7 +24,7 @@ pub struct Surface {
     pub height: u32,
     pub palette: Option<Rc<Palette>>,
     /// x86 address to pixel buffer, or 0 if unused.
-    pixels: u32,
+    pub pixels: u32,
     pub bytes_per_pixel: u32,
     pub primary: bool,
     /// Address of attached surface, e.g. back buffer.
