@@ -4,6 +4,18 @@ use anyhow::bail;
 use wasm_bindgen::prelude::*;
 use win32::{Stat, StatKind, WindowsPath};
 
+/// We create one <canvas> per DirectDraw Surface.  We draw to them by pushing pixels
+/// via putImageData (not hw accelerated) and then use drawImage (likely hw accelerated)
+/// to implement bit_blt between surfaces.
+///
+/// We also use drawImage to draw the "primary" surface to the canvas in the HTML DOM
+/// when page flipping.  It's not clear whether this performs well vs just putting the
+/// relevant canvas in place in the DOM, nor can I find good references that talk about
+/// these relative options.  FWIW ChatGPT believes that drawImage is faster than DOM
+/// manipulation.
+///
+/// https://developer.chrome.com/blog/taking-advantage-of-gpu-acceleration-in-the-2d-canvas
+/// https://web.dev/articles/canvas-performance
 struct WebSurface {
     _hwnd: u32,
     canvas: web_sys::HtmlCanvasElement,
