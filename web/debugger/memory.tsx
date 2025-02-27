@@ -1,5 +1,4 @@
 import * as preact from 'preact';
-import { h } from 'preact';
 import { hex } from './util';
 
 /**

@@ -1,5 +1,4 @@
 import * as preact from 'preact';
-import { h } from 'preact';
 import { Registers } from '../glue/pkg/glue';
 import { MemoryView, Number } from './memory';
 import { hex } from './util';

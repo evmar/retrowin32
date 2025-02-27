@@ -4,7 +4,6 @@
  */
 
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
 import * as emulator from './emulator';
 import { EmulatorComponent } from './web';
 

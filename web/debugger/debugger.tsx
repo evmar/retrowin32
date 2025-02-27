@@ -1,5 +1,4 @@
 import * as preact from 'preact';
-import { Fragment, h } from 'preact';
 import * as emulator from '../emulator';
 import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent } from '../web';
