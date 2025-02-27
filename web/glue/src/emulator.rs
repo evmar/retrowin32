@@ -123,6 +123,10 @@ impl Emulator {
     pub fn set_tracing_scheme(&self, scheme: &str) {
         win32::winapi::trace::set_scheme(scheme);
     }
+
+    pub fn directdraw_state(&self) -> debugger::DirectDrawState {
+        debugger::DirectDrawState::from_machine(&self.machine)
+    }
 }
 
 #[wasm_bindgen]
