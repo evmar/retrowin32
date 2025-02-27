@@ -16,13 +16,13 @@ use crate::{
     SurfaceOptions,
 };
 use memory::{Extensions, ExtensionsMut, Mem};
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,
     pub width: u32,
     pub height: u32,
-    pub palette: Option<Palette>,
+    pub palette: Option<Rc<Palette>>,
     /// x86 address to pixel buffer, or 0 if unused.
     pixels: u32,
     pub bytes_per_pixel: u32,
@@ -171,9 +171,9 @@ impl Surface {
                     // On startup, no palette may mean all black?
                     return;
                 };
-                let palette = palette.borrow();
+                let entries = palette.entries.borrow();
                 for (pSrc, pDst) in pixels.zip(pixels_quads) {
-                    let p = &palette[pSrc as usize];
+                    let p = &entries[pSrc as usize];
                     *pDst = [p.peRed, p.peGreen, p.peBlue, 0xFF];
                 }
             }
@@ -213,7 +213,7 @@ pub struct State {
     /// bpp of the current display mode.
     pub screen_bytes_per_pixel: u32,
 
-    pub palettes: HashMap<u32, Palette>,
+    pub palettes: HashMap<u32, Rc<Palette>>,
 }
 
 impl Default for State {

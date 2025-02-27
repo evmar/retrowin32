@@ -1,10 +1,11 @@
 //! Implementation of DirectDraw7 interfaces.
 
-use super::{palette::IDirectDrawPalette, types::*};
 use crate::{
     winapi::{
         com::{vtable, GUID},
         ddraw::{
+            palette::{IDirectDrawPalette, Palette},
+            types::*,
             IDirectDrawClipper, {self},
         },
         gdi32::PALETTEENTRY,
@@ -149,17 +150,19 @@ pub mod IDirectDraw7 {
         }
         // TODO: if palette is DDPCAPS_8BITENTRIES then SetEntries needs change too.
 
-        let palette = IDirectDrawPalette::new(machine);
+        let ptr = IDirectDrawPalette::new(machine);
         let entries = machine
             .mem()
             .iter_pod::<PALETTEENTRY>(entries, 256)
-            .collect::<Vec<_>>();
-        machine
-            .state
-            .ddraw
-            .palettes
-            .insert(palette, Rc::new(RefCell::new(entries.into_boxed_slice())));
-        machine.mem().put_pod::<u32>(lplpPalette, palette);
+            .collect::<Box<_>>();
+        machine.state.ddraw.palettes.insert(
+            ptr,
+            Rc::new(Palette {
+                ptr,
+                entries: RefCell::new(entries),
+            }),
+        );
+        machine.mem().put_pod::<u32>(lplpPalette, ptr);
         DD::OK
     }
 
