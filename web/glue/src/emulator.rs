@@ -124,8 +124,8 @@ impl Emulator {
         win32::winapi::trace::set_scheme(scheme);
     }
 
-    pub fn directdraw_state(&self) -> debugger::DirectDrawState {
-        debugger::DirectDrawState::from_machine(&self.machine)
+    pub fn direct_draw_surfaces(&self) -> Vec<JsValue> {
+        debugger::surfaces_from_machine(&self.machine)
     }
 }
 

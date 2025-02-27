@@ -1,6 +1,9 @@
 //! API used specifically for debugging the emulator.
 
-use tsify::Tsify;
+use tsify::{JsValueSerdeExt, Tsify};
+use wasm_bindgen::prelude::*;
+
+use crate::host::WebSurface;
 
 /// Registers are serialized as a JSON blob.
 #[derive(Tsify, serde::Serialize)]
@@ -51,8 +54,13 @@ impl Registers {
     }
 }
 
+#[wasm_bindgen(typescript_custom_section)]
+const SURFACE_META_TS: &'static str = r#"
+export type SurfaceDebug = DirectDrawSurfaceMeta & { canvas: HTMLCanvasElement };
+"#;
+
 #[derive(Tsify, serde::Serialize)]
-pub struct DirectDrawSurface {
+pub struct DirectDrawSurfaceMeta {
     pub ptr: u32,
     pub width: u32,
     pub height: u32,
@@ -64,27 +72,29 @@ pub struct DirectDrawSurface {
     // pub attached: u32,
 }
 
-#[derive(Tsify, serde::Serialize)]
-#[tsify(into_wasm_abi)]
-pub struct DirectDrawState {
-    surfaces: Vec<DirectDrawSurface>,
-}
+pub fn surfaces_from_machine(machine: &win32::Machine) -> Vec<JsValue> {
+    machine
+        .state
+        .ddraw
+        .surfaces
+        .iter()
+        .map(|(&ptr, s)| {
+            let meta = DirectDrawSurfaceMeta {
+                ptr,
+                width: s.width,
+                height: s.height,
+                bytes_per_pixel: s.bytes_per_pixel,
+                primary: s.primary,
+            };
 
-impl DirectDrawState {
-    pub fn from_machine(machine: &win32::Machine) -> DirectDrawState {
-        let ddraw = &machine.state.ddraw;
-        DirectDrawState {
-            surfaces: ddraw
-                .surfaces
-                .iter()
-                .map(|(&ptr, s)| DirectDrawSurface {
-                    ptr,
-                    width: s.width,
-                    height: s.height,
-                    bytes_per_pixel: s.bytes_per_pixel,
-                    primary: s.primary,
-                })
-                .collect(),
-        }
-    }
+            // Attach canvas property to JS object we create from meta.
+            let val = JsValue::from_serde(&meta).unwrap();
+            let web_surface =
+                unsafe { &*(s.host.as_ref() as *const dyn win32::Surface as *const WebSurface) };
+            js_sys::Reflect::set(&val, &"canvas".into(), &web_surface.canvas.clone().into())
+                .unwrap();
+
+            val
+        })
+        .collect()
 }
