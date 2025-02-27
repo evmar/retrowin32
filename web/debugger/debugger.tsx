@@ -5,6 +5,7 @@ import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent } from '../web';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
+import { DirectDraw } from './ddraw';
 import { Labels, parseCSV } from './labels';
 import { Mappings } from './mappings';
 import { Memory, MemoryView, Number } from './memory';
@@ -284,6 +285,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
                   {...this.memoryView}
                 />
               ),
+
+              directdraw: () => <DirectDraw state={emulator.emu.directdraw_state()} />,
             }}
             selected={this.state.selectedTab}
             switchTab={(selectedTab) => this.setState({ selectedTab })}

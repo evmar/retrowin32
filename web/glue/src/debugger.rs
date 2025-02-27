@@ -50,3 +50,39 @@ impl Registers {
         }
     }
 }
+
+#[derive(Tsify, serde::Serialize)]
+pub struct DirectDrawSurface {
+    pub width: u32,
+    pub height: u32,
+    pub bytes_per_pixel: u32,
+    pub primary: bool,
+    // TODO:
+    // pub palette: Option<Palette>,
+    // pixels: u32,
+    // pub attached: u32,
+}
+
+#[derive(Tsify, serde::Serialize)]
+#[tsify(into_wasm_abi)]
+pub struct DirectDrawState {
+    surfaces: Vec<DirectDrawSurface>,
+}
+
+impl DirectDrawState {
+    pub fn from_machine(machine: &win32::Machine) -> DirectDrawState {
+        let ddraw = &machine.state.ddraw;
+        DirectDrawState {
+            surfaces: ddraw
+                .surfaces
+                .values()
+                .map(|s| DirectDrawSurface {
+                    width: s.width,
+                    height: s.height,
+                    bytes_per_pixel: s.bytes_per_pixel,
+                    primary: s.primary,
+                })
+                .collect(),
+        }
+    }
+}
