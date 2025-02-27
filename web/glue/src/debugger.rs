@@ -53,6 +53,7 @@ impl Registers {
 
 #[derive(Tsify, serde::Serialize)]
 pub struct DirectDrawSurface {
+    pub ptr: u32,
     pub width: u32,
     pub height: u32,
     pub bytes_per_pixel: u32,
@@ -75,8 +76,9 @@ impl DirectDrawState {
         DirectDrawState {
             surfaces: ddraw
                 .surfaces
-                .values()
-                .map(|s| DirectDrawSurface {
+                .iter()
+                .map(|(&ptr, s)| DirectDrawSurface {
+                    ptr,
                     width: s.width,
                     height: s.height,
                     bytes_per_pixel: s.bytes_per_pixel,
