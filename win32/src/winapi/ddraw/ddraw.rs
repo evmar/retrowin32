@@ -151,7 +151,6 @@ impl Surface {
 
     /// Copy pixels from emulator .pixels memory to the host's surface.
     /// Called after GDI drawing calls or Lock/Unlock.
-    // If primary is given, use it as the source of the palette.
     pub fn flush(&self, mem: Mem) {
         assert!(self.pixels != 0);
 
@@ -193,6 +192,9 @@ impl Surface {
             bpp => todo!("Unlock for {bpp}bpp"),
         }
         self.host.write_pixels(&pixels_bytes);
+        if self.primary {
+            self.host.show();
+        }
     }
 }
 
