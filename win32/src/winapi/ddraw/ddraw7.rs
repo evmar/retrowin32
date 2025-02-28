@@ -488,7 +488,6 @@ pub mod IDirectDrawSurface7 {
         assert!(new_pixels != 0);
         surface.pixels = new_pixels;
         surface.flush(machine.memory.mem());
-        surface.host.show();
 
         DD::OK
     }
