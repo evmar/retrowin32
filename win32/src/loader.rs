@@ -191,7 +191,7 @@ fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_
 /// TODO: any direct user of this misses out on the aliasing performed in resolve_dll.
 pub fn normalize_module_name(mut name: String) -> String {
     name.make_ascii_lowercase();
-    if !name.ends_with(".dll") && !name.ends_with(".") {
+    if !name.ends_with(".dll") && !name.ends_with(".exe") && !name.ends_with(".") {
         name.push_str(".dll");
     }
     name
