@@ -5,10 +5,12 @@ use iced_x86::Instruction;
 use memory::Mem;
 
 /// The type of all operations defined in the ops module.
-pub type Op = fn(&mut CPU, Mem, &Instruction);
+type OpImp = fn(&mut CPU, Mem, &Instruction);
 
-const OP_TAB: [Option<Op>; 2553] = {
-    let mut tab: [Option<Op>; 2553] = [None; 2553];
+// Note that Some(OpImp) is the same size as OpImp, so wrapping it in Option here is just
+// for clarity.
+const OP_TAB: [Option<OpImp>; 2553] = {
+    let mut tab: [Option<OpImp>; 2553] = [None; 2553];
 
     use super::{basic::*, control::*, cpuid::*, fpu::*, math::*, mmx::*, string::*, test::*};
 
@@ -508,9 +510,24 @@ const OP_TAB: [Option<Op>; 2553] = {
     tab
 };
 
+pub struct Op {
+    imp: OpImp,
+    instr: iced_x86::Instruction,
+}
+
+impl Op {
+    pub fn execute(&self, cpu: &mut CPU, mem: Mem) {
+        (self.imp)(cpu, mem, &self.instr);
+    }
+
+    pub fn next_ip(&self) -> u32 {
+        self.instr.next_ip() as u32
+    }
+}
+
 /// Decode a single instruction, returning the function that implements it.
 /// ops is the list of operations that precede this instruction.
-pub fn decode(instr: &Instruction, ops: &[crate::icache::Op]) -> Option<Op> {
+pub fn decode(instr: &Instruction, ops: &[Op]) -> Option<Op> {
     // The implementation of 'jp' requires a specific instruction to precede it.
     match instr.mnemonic() {
         iced_x86::Mnemonic::Jp => {
@@ -518,5 +535,8 @@ pub fn decode(instr: &Instruction, ops: &[crate::icache::Op]) -> Option<Op> {
         }
         _ => {}
     }
-    OP_TAB[instr.code() as usize]
+    Some(Op {
+        imp: OP_TAB[instr.code() as usize]?,
+        instr: instr.clone(),
+    })
 }
