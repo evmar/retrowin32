@@ -141,9 +141,9 @@ impl CPU {
         let mut count = 0;
         for op in block.ops.iter() {
             let prev_ip = self.regs.eip;
-            self.regs.eip = op.instr.next_ip() as u32;
+            self.regs.eip = op.next_ip();
             count += 1;
-            (op.op)(self, mem, &op.instr);
+            op.execute(self, mem);
             match self.state {
                 CPUState::Running => continue,
                 CPUState::Error(_) => {
