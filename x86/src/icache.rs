@@ -12,14 +12,9 @@
 
 use memory::Mem;
 
-const CACHE_LINES: usize = 2 << 10;
+use crate::ops::Op;
 
-pub struct Op {
-    pub instr: iced_x86::Instruction,
-    /// The function that implements instr.  Cached here to avoid looking it up;
-    /// this was worth about 10% performance in a quick test.
-    pub op: crate::ops::Op,
-}
+const CACHE_LINES: usize = 2 << 10;
 
 #[derive(Default)]
 pub struct BasicBlock {
@@ -64,7 +59,7 @@ impl BasicBlock {
                     code = instr.code()
                 )
             });
-            ops.push(Op { op, instr });
+            ops.push(op);
             len += instr.len() as u32;
             if instr.flow_control() != iced_x86::FlowControl::Next || single_step {
                 break;
