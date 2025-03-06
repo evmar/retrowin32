@@ -3,7 +3,7 @@ use crate::{
     winapi::{Str16, HWND, POINT, RECT},
     Machine,
 };
-use memory::{Extensions, ExtensionsMut};
+use memory::ExtensionsMut;
 use std::io::{Cursor, Write};
 
 pub type HINSTANCE = u32;
@@ -144,70 +144,16 @@ pub fn GetSysColor(_machine: &mut Machine, nIndex: i32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, mut args: VarArgs) -> u32 {
+pub fn wsprintfA(machine: &mut Machine, buf: u32, fmt: Option<&str>, args: VarArgs) -> u32 {
+    // The output buffer size is unspecified (eek) but is maximum 1024.
     const BUF_LEN: u32 = 1024;
     let mem = machine.mem();
     let buf = mem.sub32_mut(buf, BUF_LEN);
+
     let mut out = Cursor::new(buf);
-
-    fn read_number(c: u8) -> usize {
-        // TODO: multiple digits, error handling, etc.
-        assert!(c >= b'0' && c <= b'9');
-        (c - b'0') as usize
-    }
-
-    let mut i = fmt.unwrap().bytes();
-    while let Some(c) = i.next() {
-        if c == b'%' {
-            let mut c = i.next().unwrap();
-            let mut width = 0;
-            if c >= b'0' && c <= b'9' {
-                width = read_number(c);
-                c = i.next().unwrap();
-            }
-            let mut precision = 0;
-            if c == b'.' {
-                c = i.next().unwrap();
-                precision = read_number(c);
-                c = i.next().unwrap();
-            }
-
-            let mut long = false;
-            if c == b'l' {
-                long = true;
-                c = i.next().unwrap();
-            }
-            _ = long; // currently ignored
-
-            match c {
-                b'u' => write!(
-                    out,
-                    "{:width$.precision$}",
-                    args.pop::<u32>(mem),
-                    width = width,
-                    precision = precision
-                )
-                .unwrap(),
-                b'd' => write!(
-                    out,
-                    "{:width$.precision$}",
-                    args.pop::<i32>(mem),
-                    width = width,
-                    precision = precision
-                )
-                .unwrap(),
-                b's' => {
-                    let addr = args.pop::<u32>(mem);
-                    let str = mem.slicez(addr);
-                    write!(out, "{}", std::str::from_utf8(str).unwrap()).unwrap();
-                }
-                _ => todo!("format string character {:?}", c as char),
-            }
-        } else {
-            out.write(&[c]).unwrap();
-        }
-    }
+    crate::winapi::printf::printf(&mut out, fmt.unwrap(), args, mem).unwrap();
     out.write(&[0]).unwrap();
+
     // let len = out.position() as usize;
     // let buf = &out.into_inner()[..len];
     // log::info!("=> {}", std::str::from_utf8(buf).unwrap());

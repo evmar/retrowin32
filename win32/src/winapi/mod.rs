@@ -17,6 +17,7 @@ pub mod kernel32;
 mod ntdll;
 mod ole32;
 mod oleaut32;
+mod printf;
 mod retrowin32_test;
 mod shlwapi;
 pub mod trace;
