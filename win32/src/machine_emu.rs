@@ -174,6 +174,28 @@ impl MachineX<Emulator> {
         self.emu.x86.execute_block(self.memory.mem())
     }
 
+    /// Update registers after a syscall; shared by sync and async codepaths.
+    fn post_syscall(&mut self, ret: ABIReturn) {
+        // In addition to passing return values, we attempt to clear other registers
+        // to make execution traces easier to match.
+
+        let regs = &mut self.emu.x86.cpu_mut().regs;
+        match ret {
+            ABIReturn::U32(ret) => {
+                regs.set32(x86::Register::EAX, ret);
+                regs.set32(x86::Register::ECX, 0);
+                regs.set32(x86::Register::EDX, 0);
+                // EBX: callee-saved
+            }
+            ABIReturn::U64(ret) => {
+                regs.set32(x86::Register::EAX, ret as u32);
+                regs.set32(x86::Register::ECX, 0);
+                regs.set32(x86::Register::EDX, (ret >> 32) as u32);
+                // EBX: callee-saved
+            }
+        }
+    }
+
     fn syscall(&mut self) {
         self.emu.x86.cpu_mut().state = x86::CPUState::Running;
 
@@ -197,36 +219,19 @@ impl MachineX<Emulator> {
         match shim.func {
             Handler::Sync(func) => {
                 let ret = unsafe { func(self, stack_args) };
-                let regs = &mut self.emu.x86.cpu_mut().regs;
-                match ret {
-                    ABIReturn::U32(ret) => {
-                        regs.set32(x86::Register::EAX, ret);
-                    }
-                    ABIReturn::U64(ret) => {
-                        regs.set32(x86::Register::EAX, ret as u32);
-                        regs.set32(x86::Register::EDX, (ret >> 32) as u32);
-                    }
-                }
-
-                // After call, attempt to clear registers to make execution traces easier to match.
-                // eax: holds return value
-                regs.set32(x86::Register::ECX, 0);
-                // edx: sometimes used for 64-bit returns
-                // ebx: callee-saved
+                self.post_syscall(ret);
             }
 
             Handler::Async(func) => {
-                let eip = regs.eip; // return address
-                let s = self as *mut _;
+                let return_address = regs.eip;
+                let machine = self as *mut _;
                 let future = Box::pin(async move {
-                    let ret = unsafe { func(&mut *s, stack_args) }.await;
-                    // TODO: move ABI return handing from x86 call_async to here.
-                    match ret {
-                        ABIReturn::U32(ret) => ret as u64,
-                        ABIReturn::U64(ret) => ret,
-                    }
+                    let machine = unsafe { &mut *machine };
+                    let ret = unsafe { func(machine, stack_args) }.await;
+                    machine.post_syscall(ret);
+                    return_address
                 });
-                self.emu.x86.cpu_mut().call_async(future, eip);
+                self.emu.x86.cpu_mut().call_async(future);
             }
         }
     }
