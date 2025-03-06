@@ -3,8 +3,6 @@ dir = "archive/demo/"
 path = "kill the clone unpacked.exe"
 category = "demoscene"
 broken = true
-files = ["msvcrt.dll"]
-external = ["msvcrt.dll"]
 
 [origin]
 desc = "pouet.net"
