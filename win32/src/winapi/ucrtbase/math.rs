@@ -32,3 +32,13 @@ pub fn _ftol(machine: &mut Machine) -> u64 {
 pub fn sqrt(machine: &mut Machine, x: f64) -> f64 {
     x.sqrt()
 }
+
+#[win32_derive::dllexport(cdecl)]
+pub fn sin(machine: &mut Machine, x: f64) -> f64 {
+    x.sin()
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn cos(machine: &mut Machine, x: f64) -> f64 {
+    x.cos()
+}
