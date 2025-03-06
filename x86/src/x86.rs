@@ -49,8 +49,8 @@ pub struct CPU {
     pub state: CPUState,
 
     /// If eip==MAGIC_ADDR, then the next step is to poll a future rather than
-    /// executing a basic block.
-    futures: Vec<BoxFuture<()>>,
+    /// executing a basic block.  The future result sets the next eip.
+    futures: Vec<BoxFuture<u32>>,
 }
 
 impl CPU {
@@ -94,16 +94,9 @@ impl CPU {
 
     /// Set up the CPU such that we are making an x86->async call, enqueuing a Future
     /// that is polled the next time the CPU executes.
-    pub fn call_async(&mut self, future: BoxFuture<u64>, return_address: u32) {
+    pub fn call_async(&mut self, future: BoxFuture<u32>) {
         self.regs.eip = MAGIC_ADDR;
-        let cpu = self as *mut CPU;
-        self.futures.push(Box::pin(async move {
-            let cpu = unsafe { &mut *cpu };
-            let ret = future.await;
-            cpu.regs.set32(Register::EAX, ret as u32);
-            cpu.regs.set32(Register::EDX, (ret >> 32) as u32);
-            cpu.regs.eip = return_address;
-        }));
+        self.futures.push(future);
     }
 
     fn async_executor(&mut self) {
@@ -115,8 +108,9 @@ impl CPU {
         let context: &mut std::task::Context = unsafe { &mut *std::ptr::null_mut() };
         let poll = future.as_mut().poll(context);
         match poll {
-            Poll::Ready(()) => {
+            Poll::Ready(eip) => {
                 self.futures.pop();
+                self.regs.eip = eip;
             }
             Poll::Pending => {}
         }
