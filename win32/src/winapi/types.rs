@@ -130,7 +130,7 @@ impl POINT {
     }
 }
 
-impl<'a> super::calling_convention::FromStack<'a> for POINT {
+impl<'a> crate::calling_convention::FromStack<'a> for POINT {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
         let x = mem.get_pod::<i32>(sp);
         let y = mem.get_pod::<i32>(sp + 4);

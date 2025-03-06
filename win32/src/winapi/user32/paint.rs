@@ -1,7 +1,7 @@
 use super::{WindowType, HBRUSH, HDC};
 use crate::{
+    calling_convention::FromArg,
     winapi::{
-        calling_convention::FromArg,
         gdi32::{
             COLORREF, HGDIOBJ, {self},
         },

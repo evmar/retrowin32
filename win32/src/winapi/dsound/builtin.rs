@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::dsound::*;
-    pub unsafe fn DirectSoundCreate(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DirectSoundCreate(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpGuid = <Option<&GUID>>::from_stack(mem, stack_args + 0u32);
         let ppDS = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -36,9 +37,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DirectSoundEnumerateA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DirectSoundEnumerateA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpDSEnumCallback = <u32>::from_stack(mem, stack_args + 0u32);
         let lpContext = <u32>::from_stack(mem, stack_args + 4u32);
@@ -60,12 +61,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn IDirectSoundBuffer_GetCurrentPosition(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> u64 {
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpdwCurrentPlayCursor = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -94,9 +95,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_GetStatus(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_GetStatus(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpdwStatus = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -115,9 +119,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_Lock(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_Lock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let dwWriteCursor = <u32>::from_stack(mem, stack_args + 4u32);
@@ -161,9 +165,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_Play(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_Play(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let dwReserved1 = <u32>::from_stack(mem, stack_args + 4u32);
@@ -195,9 +199,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_Release(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_Release(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("dsound") {
@@ -215,9 +219,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_SetFormat(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_SetFormat(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpcfxFormat = <Option<&WAVEFORMATEX>>::from_stack(mem, stack_args + 4u32);
@@ -236,9 +243,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSoundBuffer_Unlock(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSoundBuffer_Unlock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpvAudioPtr1 = <u32>::from_stack(mem, stack_args + 4u32);
@@ -273,9 +280,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSound_CreateSoundBuffer(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSound_CreateSoundBuffer(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let lpcDSBufferDesc = <Option<&DSBUFFERDESC>>::from_stack(mem, stack_args + 4u32);
@@ -307,9 +317,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSound_Release(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSound_Release(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("dsound") {
@@ -327,9 +337,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IDirectSound_SetCooperativeLevel(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IDirectSound_SetCooperativeLevel(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hwnd = <u32>::from_stack(mem, stack_args + 4u32);
@@ -350,7 +363,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
 }
 const SHIMS: [Shim; 12usize] = [

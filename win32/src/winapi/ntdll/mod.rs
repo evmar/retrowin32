@@ -5,10 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::{
-    machine::Machine,
-    winapi::{calling_convention::ArrayWithSizeMut, HFILE},
-};
+use crate::{calling_convention::ArrayWithSizeMut, machine::Machine, winapi::HFILE};
 
 const STATUS_SUCCESS: u32 = 0;
 

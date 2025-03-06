@@ -1,7 +1,4 @@
-use crate::{
-    winapi::{calling_convention::ArrayWithSizeMut, HWND},
-    Machine,
-};
+use crate::{calling_convention::ArrayWithSizeMut, winapi::HWND, Machine};
 
 #[win32_derive::dllexport]
 pub fn mciGetErrorStringA(

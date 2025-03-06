@@ -28,9 +28,10 @@ pub enum MMRESULT {
     MMSYSERR_NOERROR = 0,
     MMSYSERR_NOTENABLED = 3,
 }
-impl super::calling_convention::ABIReturn for MMRESULT {
-    fn into_abireturn(self) -> u64 {
-        self as u64
+
+impl Into<crate::calling_convention::ABIReturn> for MMRESULT {
+    fn into(self) -> crate::calling_convention::ABIReturn {
+        (self as u32).into()
     }
 }
 

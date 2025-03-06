@@ -69,14 +69,14 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     };
 
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
         (
             quote!(Handler::Async(wrappers::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
                     #fetch_args
                     let machine: *mut Machine = machine;
                     Box::pin(async move {
@@ -91,7 +91,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         (
             quote!(Handler::Sync(wrappers::#sym_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> u64 {
+                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> ABIReturn {
                     #fetch_args
                     let result = #impls_mod::#base_name(machine, #(#args),*);
                     #return_result
@@ -134,7 +134,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
 
         mod wrappers {
             use ::memory::Extensions;
-            use crate::{machine::Machine, winapi::{self, *, calling_convention::*}};
+            use crate::{calling_convention::*, machine::Machine, winapi::{self, *}};
             use winapi::#module::*;  // for types
             #(#wrappers)*
         }

@@ -1,9 +1,9 @@
 use super::*;
 use crate::{
+    calling_convention::ArrayWithSize,
     host,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
-        calling_convention::ArrayWithSize,
         gdi32::HDC,
         *,
     },
@@ -235,7 +235,7 @@ pub enum CreateWindowClassName<'a, Str: ?Sized> {
     Atom(u16),
     Name(&'a Str),
 }
-impl<'a> crate::winapi::calling_convention::FromArg<'a> for CreateWindowClassName<'a, str> {
+impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, str> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
@@ -244,7 +244,7 @@ impl<'a> crate::winapi::calling_convention::FromArg<'a> for CreateWindowClassNam
         }
     }
 }
-impl<'a> crate::winapi::calling_convention::FromArg<'a> for CreateWindowClassName<'a, Str16> {
+impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, Str16> {
     unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)

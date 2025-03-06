@@ -14,9 +14,9 @@ pub enum DD {
     ERR_GENERIC = 0x80004005,
 }
 
-impl crate::winapi::calling_convention::ABIReturn for DD {
-    fn into_abireturn(self) -> u64 {
-        self as u64
+impl Into<crate::calling_convention::ABIReturn> for DD {
+    fn into(self) -> crate::calling_convention::ABIReturn {
+        (self as u32).into()
     }
 }
 

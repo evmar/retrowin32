@@ -1,9 +1,6 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{
-    winapi::{calling_convention::ArrayWithSizeMut, Str16},
-    Machine,
-};
+use crate::{calling_convention::ArrayWithSizeMut, winapi::Str16, Machine};
 use bitflags::bitflags;
 use memory::Extensions;
 

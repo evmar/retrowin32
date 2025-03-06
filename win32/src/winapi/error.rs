@@ -1,6 +1,6 @@
 // https://learn.microsoft.com/en-us/windows/win32/debug/system-error-codes--0-499-
 
-use super::calling_convention;
+use crate::calling_convention;
 
 /// Windows error codes.
 #[allow(non_camel_case_types)]
@@ -38,8 +38,8 @@ impl From<ERROR> for u32 {
     }
 }
 
-impl calling_convention::ABIReturn for ERROR {
-    fn into_abireturn(self) -> u64 {
-        self as u64
+impl Into<calling_convention::ABIReturn> for ERROR {
+    fn into(self) -> calling_convention::ABIReturn {
+        (self as u32).into()
     }
 }

@@ -1,9 +1,6 @@
 //! Functions that work with .ini files.
 
-use crate::{
-    winapi::{calling_convention::ArrayWithSizeMut, Str16},
-    Machine,
-};
+use crate::{calling_convention::ArrayWithSizeMut, winapi::Str16, Machine};
 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(

@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::winmm::*;
-    pub unsafe fn PlaySoundW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PlaySoundW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let pszSound = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let hmod = <HMODULE>::from_stack(mem, stack_args + 4u32);
@@ -36,9 +37,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn joyGetDevCapsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn joyGetDevCapsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
         let pjc = <Option<&mut JOYCAPSA>>::from_stack(mem, stack_args + 4u32);
@@ -58,9 +59,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn joyGetNumDevs(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn joyGetNumDevs(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/joy") {
             crate::winapi::trace::Record::new(
@@ -77,9 +78,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn joyGetPosEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn joyGetPosEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uJoyID = <u32>::from_stack(mem, stack_args + 0u32);
         let pji = <Option<&mut JOYINFOEX>>::from_stack(mem, stack_args + 4u32);
@@ -98,9 +99,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mciGetErrorStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mciGetErrorStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let mcierr = <u32>::from_stack(mem, stack_args + 0u32);
         let pszText = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -124,9 +125,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mciSendCommandA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mciSendCommandA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/misc") {
             crate::winapi::trace::Record::new(
@@ -143,9 +144,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mciSendStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mciSendStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpstrCommand = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpstrReturnString = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
@@ -170,9 +171,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutClose(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutClose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/midi") {
@@ -190,9 +191,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutGetDevCapsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutGetDevCapsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uDeviceID = <u32>::from_stack(mem, stack_args + 0u32);
         let pmoc = <Option<&mut MIDIOUTCAPSA>>::from_stack(mem, stack_args + 4u32);
@@ -216,9 +217,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutGetNumDevs(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutGetNumDevs(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/midi") {
             crate::winapi::trace::Record::new(
@@ -235,9 +236,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutOpen(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutOpen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let phmo = <Option<&mut HMIDIOUT>>::from_stack(mem, stack_args + 0u32);
         let uDeviceID = <u32>::from_stack(mem, stack_args + 4u32);
@@ -266,9 +267,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutReset(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutReset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/midi") {
@@ -286,9 +287,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutSetVolume(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutSetVolume(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
         let dwVolume = <u32>::from_stack(mem, stack_args + 4u32);
@@ -307,9 +308,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn midiOutShortMsg(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn midiOutShortMsg(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
         let dwMsg = <u32>::from_stack(mem, stack_args + 4u32);
@@ -328,9 +329,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerClose(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerClose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmx = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/mixer") {
@@ -348,9 +349,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerGetControlDetailsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerGetControlDetailsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/mixer") {
             crate::winapi::trace::Record::new(
@@ -367,9 +368,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerGetLineControlsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerGetLineControlsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmxobj = <u32>::from_stack(mem, stack_args + 0u32);
         let pmxlc = <u32>::from_stack(mem, stack_args + 4u32);
@@ -393,9 +394,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerGetLineInfoA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerGetLineInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmxobj = <HMIXEROBJ>::from_stack(mem, stack_args + 0u32);
         let pmxl = <u32>::from_stack(mem, stack_args + 4u32);
@@ -415,9 +416,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerOpen(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerOpen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let phmx = <u32>::from_stack(mem, stack_args + 0u32);
         let uMxId = <u32>::from_stack(mem, stack_args + 4u32);
@@ -446,9 +447,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn mixerSetControlDetails(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn mixerSetControlDetails(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmxobj = <u32>::from_stack(mem, stack_args + 0u32);
         let pmxcd = <u32>::from_stack(mem, stack_args + 4u32);
@@ -472,9 +473,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeBeginPeriod(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeBeginPeriod(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
@@ -492,9 +493,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeEndPeriod(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeEndPeriod(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
@@ -512,9 +513,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeGetDevCaps(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeGetDevCaps(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let ptc = <Option<&mut TIMECAPS>>::from_stack(mem, stack_args + 0u32);
         let cbtc = <u32>::from_stack(mem, stack_args + 4u32);
@@ -533,9 +534,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeGetTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeGetTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
             crate::winapi::trace::Record::new(
@@ -552,9 +553,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeKillEvent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeKillEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uTimerID = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
@@ -572,9 +573,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn timeSetEvent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn timeSetEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uDelay = <u32>::from_stack(mem, stack_args + 0u32);
         let uResolution = <u32>::from_stack(mem, stack_args + 4u32);
@@ -603,9 +604,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutClose(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutClose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
@@ -623,9 +624,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutGetDevCapsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutGetDevCapsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uDeviceID = <u32>::from_stack(mem, stack_args + 0u32);
         let pwoc = <Option<&mut WAVEOUTCAPS>>::from_stack(mem, stack_args + 4u32);
@@ -649,9 +650,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutGetNumDevs(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
             crate::winapi::trace::Record::new(
@@ -668,9 +669,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutGetPosition(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutGetPosition(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let pmmt = <Option<&mut MMTIME>>::from_stack(mem, stack_args + 4u32);
@@ -690,9 +691,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutGetVolume(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutGetVolume(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let pdwVolume = <u32>::from_stack(mem, stack_args + 4u32);
@@ -711,9 +712,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutOpen(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutOpen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let phwo = <Option<&mut HWAVEOUT>>::from_stack(mem, stack_args + 0u32);
         let uDeviceID = <u32>::from_stack(mem, stack_args + 4u32);
@@ -745,9 +746,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutPause(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutPause(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
@@ -765,9 +766,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutPrepareHeader(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutPrepareHeader(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let pwh = <Option<&WAVEHDR>>::from_stack(mem, stack_args + 4u32);
@@ -787,9 +788,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutReset(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutReset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
@@ -807,9 +808,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutRestart(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutRestart(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
@@ -827,9 +828,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutSetVolume(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutSetVolume(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let dwVolume = <u32>::from_stack(mem, stack_args + 4u32);
@@ -848,9 +849,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutUnprepareHeader(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutUnprepareHeader(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let pwh = <Option<&mut WAVEHDR>>::from_stack(mem, stack_args + 4u32);
@@ -870,9 +871,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn waveOutWrite(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn waveOutWrite(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
         let pwh = <Option<&WAVEHDR>>::from_stack(mem, stack_args + 4u32);
@@ -892,7 +893,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
 }
 const SHIMS: [Shim; 39usize] = [
