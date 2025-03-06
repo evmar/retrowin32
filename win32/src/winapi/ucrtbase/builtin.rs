@@ -603,6 +603,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn cos(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let x = <f64>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::cos_pos,
+                "ucrtbase/math",
+                "cos",
+                &[("x", &x)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::cos(machine, x);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn exit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let status = <u32>::from_stack(mem, stack_args + 0u32);
@@ -704,6 +724,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn sin(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let x = <f64>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::sin_pos,
+                "ucrtbase/math",
+                "sin",
+                &[("x", &x)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::sin(machine, x);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn sqrt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -785,7 +825,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 36usize] = [
+const SHIMS: [Shim; 38usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -895,6 +935,10 @@ const SHIMS: [Shim; 36usize] = [
         func: Handler::Sync(wrappers::_unlock),
     },
     Shim {
+        name: "cos",
+        func: Handler::Sync(wrappers::cos),
+    },
+    Shim {
         name: "exit",
         func: Handler::Sync(wrappers::exit),
     },
@@ -913,6 +957,10 @@ const SHIMS: [Shim; 36usize] = [
     Shim {
         name: "rand",
         func: Handler::Sync(wrappers::rand),
+    },
+    Shim {
+        name: "sin",
+        func: Handler::Sync(wrappers::sin),
     },
     Shim {
         name: "sqrt",
