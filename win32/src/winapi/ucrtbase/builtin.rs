@@ -705,6 +705,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn printf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let fmt = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let args = <VarArgs>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::printf_pos,
+                "ucrtbase/misc",
+                "printf",
+                &[("fmt", &fmt), ("args", &args)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::printf(machine, fmt, args);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn rand(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("ucrtbase/rand") {
@@ -825,7 +846,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 38usize] = [
+const SHIMS: [Shim; 39usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -953,6 +974,10 @@ const SHIMS: [Shim; 38usize] = [
     Shim {
         name: "memcpy",
         func: Handler::Sync(wrappers::memcpy),
+    },
+    Shim {
+        name: "printf",
+        func: Handler::Sync(wrappers::printf),
     },
     Shim {
         name: "rand",
