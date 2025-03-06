@@ -193,6 +193,13 @@ impl MachineX<Emulator> {
                 regs.set32(x86::Register::EDX, (ret >> 32) as u32);
                 // EBX: callee-saved
             }
+            ABIReturn::F64(ret) => {
+                regs.set32(x86::Register::EAX, 0);
+                regs.set32(x86::Register::ECX, 0);
+                regs.set32(x86::Register::EDX, 0);
+                // EBX: callee-saved
+                self.emu.x86.cpu_mut().fpu.push(ret);
+            }
         }
     }
 

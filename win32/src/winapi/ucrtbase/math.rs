@@ -27,3 +27,8 @@ pub fn _ftol(machine: &mut Machine) -> u64 {
         todo!();
     }
 }
+
+#[win32_derive::dllexport(cdecl)]
+pub fn sqrt(machine: &mut Machine, x: f64) -> f64 {
+    x.sqrt()
+}

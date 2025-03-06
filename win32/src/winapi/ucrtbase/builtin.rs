@@ -704,6 +704,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn sqrt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let x = <f64>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::sqrt_pos,
+                "ucrtbase/math",
+                "sqrt",
+                &[("x", &x)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::sqrt(machine, x);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn srand(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let seed = <u32>::from_stack(mem, stack_args + 0u32);
@@ -765,7 +785,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 35usize] = [
+const SHIMS: [Shim; 36usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -893,6 +913,10 @@ const SHIMS: [Shim; 35usize] = [
     Shim {
         name: "rand",
         func: Handler::Sync(wrappers::rand),
+    },
+    Shim {
+        name: "sqrt",
+        func: Handler::Sync(wrappers::sqrt),
     },
     Shim {
         name: "srand",

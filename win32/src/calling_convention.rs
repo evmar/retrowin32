@@ -96,6 +96,12 @@ impl<'a> FromArg<'a> for bool {
     }
 }
 
+impl<'a> FromStack<'a> for f64 {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+        mem.get_pod::<f64>(sp)
+    }
+}
+
 impl<'a, T: TryFrom<u32>> FromArg<'a> for Result<T, T::Error> {
     unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         T::try_from(arg)
@@ -199,9 +205,7 @@ impl<'a> FromStack<'a> for VarArgs {
 pub enum ABIReturn {
     U32(u32), // via eax
     U64(u64), // via edx:eax
-
-              // TODO: F64(f64)
-              // via st(0)
+    F64(f64), // via st(0)
 }
 
 impl From<u32> for ABIReturn {
@@ -213,6 +217,12 @@ impl From<u32> for ABIReturn {
 impl From<u64> for ABIReturn {
     fn from(value: u64) -> Self {
         ABIReturn::U64(value)
+    }
+}
+
+impl From<f64> for ABIReturn {
+    fn from(value: f64) -> Self {
+        ABIReturn::F64(value)
     }
 }
 

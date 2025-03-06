@@ -128,7 +128,7 @@ pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
     }
 
     let name = &ty.path.segments[0].ident;
-    if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" {
+    if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" || name == "f64" {
         ArgumentStack::Ordinary(8)
     } else if name == "VarArgs" {
         ArgumentStack::VarArgs
