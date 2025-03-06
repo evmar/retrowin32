@@ -1,11 +1,11 @@
-use crate::{loader, winapi::kernel32::set_last_error};
+use crate::{calling_convention, loader, winapi::kernel32::set_last_error};
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 
 use crate::{
+    calling_convention::ArrayWithSizeMut,
     machine::Machine,
     winapi::{
-        calling_convention::ArrayWithSizeMut,
         *, {self},
     },
 };
@@ -130,7 +130,7 @@ pub fn FreeLibrary(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
 #[derive(Debug)]
 pub struct GetProcAddressArg<'a>(pub ImportSymbol<'a>);
 
-impl<'a> winapi::calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
+impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
         let lpProcName = <u32>::from_stack(mem, sp);
         if lpProcName & 0xFFFF_0000 == 0 {

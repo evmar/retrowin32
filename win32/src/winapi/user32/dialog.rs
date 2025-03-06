@@ -1,7 +1,4 @@
-use crate::{
-    winapi::{calling_convention::ArrayWithSizeMut, *},
-    Machine,
-};
+use crate::{calling_convention::ArrayWithSizeMut, winapi::*, Machine};
 
 /*
 pub mod MessageBoxFlags {

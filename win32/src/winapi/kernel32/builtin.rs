@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::kernel32::*;
-    pub unsafe fn AcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn AcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
@@ -30,9 +31,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn AcquireSRWLockShared(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn AcquireSRWLockShared(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
@@ -50,9 +51,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn AddVectoredExceptionHandler(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn AddVectoredExceptionHandler(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let first = <u32>::from_stack(mem, stack_args + 0u32);
         let handler = <u32>::from_stack(mem, stack_args + 4u32);
@@ -71,9 +72,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn Beep(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn Beep(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwFreq = <u32>::from_stack(mem, stack_args + 0u32);
         let dwDuration = <u32>::from_stack(mem, stack_args + 4u32);
@@ -92,9 +93,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CloseHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CloseHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hObject = <HFILE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -112,9 +113,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CompareStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CompareStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <u32>::from_stack(mem, stack_args + 0u32);
         let dwCmpFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -146,9 +147,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CompareStringW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CompareStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <u32>::from_stack(mem, stack_args + 0u32);
         let dwCmpFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -180,9 +181,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 4u32);
@@ -204,9 +205,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateDirectoryW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateDirectoryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpSecurityAttributes =
@@ -229,9 +230,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateEventA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateEventA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpEventAttributes = <u32>::from_stack(mem, stack_args + 0u32);
         let bManualReset = <bool>::from_stack(mem, stack_args + 4u32);
@@ -263,9 +264,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateFileA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 4u32);
@@ -308,9 +309,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateFileW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 4u32);
@@ -353,9 +354,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateMutexA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateMutexA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpMutexAttributes =
             <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 0u32);
@@ -381,9 +382,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreatePipe(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreatePipe(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hReadPipe = <Option<&mut HFILE>>::from_stack(mem, stack_args + 0u32);
         let hWritePipe = <Option<&mut HFILE>>::from_stack(mem, stack_args + 4u32);
@@ -411,9 +412,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateProcessA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateProcessA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpApplicationName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpCommandLine = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -466,9 +467,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateProcessW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateProcessW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpApplicationName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpCommandLine = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -521,12 +522,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn CreateThread(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let lpThreadAttributes = <u32>::from_stack(mem, stack_args + 0u32);
         let dwStackSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -568,10 +569,10 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
-    pub unsafe fn DebugBreak(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DebugBreak(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
@@ -588,9 +589,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DeleteCriticalSection(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DeleteCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section") {
@@ -608,9 +609,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DeleteFileA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DeleteFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -628,9 +629,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DeleteFileW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DeleteFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -648,9 +649,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DisableThreadLibraryCalls(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DisableThreadLibraryCalls(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -668,9 +669,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DuplicateHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DuplicateHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hSourceProcessHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let hSourceHandle = <HANDLE<()>>::from_stack(mem, stack_args + 4u32);
@@ -711,9 +712,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn EnterCriticalSection(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn EnterCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section") {
@@ -731,9 +732,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn EnumSystemLocalesA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn EnumSystemLocalesA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpLocaleEnumProc = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -755,9 +756,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ExitProcess(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ExitProcess(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uExitCode = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -775,9 +776,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ExitThread(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ExitThread(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwExitCode = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -795,9 +796,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FileTimeToDosDateTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FileTimeToDosDateTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
         let lpFatDate = <Option<&mut u16>>::from_stack(mem, stack_args + 4u32);
@@ -822,9 +823,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FileTimeToLocalFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FileTimeToLocalFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
         let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
@@ -847,9 +848,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FileTimeToSystemTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FileTimeToSystemTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 0u32);
         let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 4u32);
@@ -868,9 +869,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindClose(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindClose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -888,9 +889,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindFirstFileA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindFirstFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
@@ -912,9 +913,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindFirstFileW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindFirstFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpFindFileData = <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
@@ -936,9 +937,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindNextFileA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindNextFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFindFile = <HFIND>::from_stack(mem, stack_args + 0u32);
         let lpFindFileData = <Option<&mut WIN32_FIND_DATAA>>::from_stack(mem, stack_args + 4u32);
@@ -960,9 +961,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindNextFileW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindNextFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFindFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpFindFileData = <Option<&mut WIN32_FIND_DATAW>>::from_stack(mem, stack_args + 4u32);
@@ -984,9 +985,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindResourceA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindResourceA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let lpName = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
@@ -1010,9 +1011,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FindResourceW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FindResourceW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let lpName = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -1036,9 +1037,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FlushFileBuffers(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FlushFileBuffers(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1056,9 +1057,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FormatMessageA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FormatMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
         let lpSource = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1099,9 +1100,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FormatMessageW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FormatMessageW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwFlags = <Result<FormatMessageFlags, u32>>::from_stack(mem, stack_args + 0u32);
         let lpSource = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1142,9 +1143,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _penv = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
@@ -1162,9 +1163,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FreeEnvironmentStringsW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FreeEnvironmentStringsW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
             crate::winapi::trace::Record::new(
@@ -1181,9 +1182,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn FreeLibrary(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn FreeLibrary(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hLibModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -1201,9 +1202,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetACP(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetACP(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
@@ -1220,9 +1221,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCPInfo(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCPInfo(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _CodePage = <u32>::from_stack(mem, stack_args + 0u32);
         let _lpCPInfo = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1241,9 +1242,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCommandLineA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCommandLineA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/command_line") {
             crate::winapi::trace::Record::new(
@@ -1260,9 +1261,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCommandLineW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCommandLineW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/command_line") {
             crate::winapi::trace::Record::new(
@@ -1279,9 +1280,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetConsoleMode(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetConsoleMode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpMode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -1300,9 +1301,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetConsoleScreenBufferInfo(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetConsoleScreenBufferInfo(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpConsoleScreenBufferInfo =
@@ -1329,9 +1330,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1350,9 +1351,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nBufferLength = <u32>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1371,9 +1372,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentProcess(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentProcess(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/process") {
             crate::winapi::trace::Record::new(
@@ -1390,9 +1391,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentProcessId(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentProcessId(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
@@ -1409,9 +1410,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentThread(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentThread(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
             crate::winapi::trace::Record::new(
@@ -1428,9 +1429,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetCurrentThreadId(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetCurrentThreadId(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
             crate::winapi::trace::Record::new(
@@ -1447,9 +1448,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDiskFreeSpaceA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDiskFreeSpaceA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpSectorsPerCluster = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -1484,9 +1485,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDriveTypeA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDriveTypeA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpRootPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1504,9 +1505,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDriveTypeW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDriveTypeW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpRootPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1524,9 +1525,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetEnvironmentStrings(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
             crate::winapi::trace::Record::new(
@@ -1543,9 +1544,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetEnvironmentStringsW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetEnvironmentStringsW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
             crate::winapi::trace::Record::new(
@@ -1562,9 +1563,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetEnvironmentVariableA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetEnvironmentVariableA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let buf = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 4u32);
@@ -1583,9 +1584,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetEnvironmentVariableW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetEnvironmentVariableW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let name = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let buf = <ArrayWithSize<u16>>::from_stack(mem, stack_args + 4u32);
@@ -1604,9 +1605,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetExitCodeProcess(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetExitCodeProcess(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hProcess = <HPROCESS>::from_stack(mem, stack_args + 0u32);
         let lpExitCode = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -1625,9 +1626,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileAttributesA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileAttributesA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1645,9 +1646,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileAttributesW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileAttributesW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1665,9 +1666,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileInformationByHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileInformationByHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpFileInformation =
@@ -1688,9 +1689,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileSize(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileSize(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpFileSizeHigh = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -1709,9 +1710,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpCreationTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
@@ -1743,9 +1744,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFileType(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFileType(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -1763,9 +1764,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFullPathNameA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFullPathNameA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let nBufferLength = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1797,9 +1798,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetFullPathNameW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetFullPathNameW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let nBufferLength = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1831,9 +1832,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLastError(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLastError(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
@@ -1850,9 +1851,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLocalTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLocalTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -1870,9 +1871,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLocaleInfoA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLocaleInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <u32>::from_stack(mem, stack_args + 0u32);
         let LCType = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1898,9 +1899,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLocaleInfoW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLocaleInfoW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <u32>::from_stack(mem, stack_args + 0u32);
         let LCType = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1926,9 +1927,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLogicalDrives(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLogicalDrives(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
             crate::winapi::trace::Record::new(
@@ -1945,9 +1946,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetModuleFileNameA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetModuleFileNameA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let filename = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
@@ -1966,9 +1967,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetModuleFileNameW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetModuleFileNameW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let _lpFilename = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1992,9 +1993,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetModuleHandleA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetModuleHandleA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpModuleName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -2012,9 +2013,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetModuleHandleExW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetModuleHandleExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwFlags = <u32>::from_stack(mem, stack_args + 0u32);
         let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -2038,9 +2039,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetModuleHandleW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetModuleHandleW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpModuleName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -2058,9 +2059,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetNumberOfConsoleInputEvents(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetNumberOfConsoleInputEvents(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpNumberOfEvents = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -2086,9 +2090,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetOEMCP(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetOEMCP(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
@@ -2105,9 +2109,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetPrivateProfileIntW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetPrivateProfileIntW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -2135,9 +2139,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetPrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetPrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -2175,9 +2179,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetPrivateProfileStringW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetPrivateProfileStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -2212,9 +2216,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetProcAddress(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetProcAddress(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let lpProcName = <GetProcAddressArg>::from_stack(mem, stack_args + 4u32);
@@ -2233,9 +2237,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetProcessHeap(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetProcessHeap(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
             crate::winapi::trace::Record::new(
@@ -2252,9 +2256,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetProfileIntW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetProfileIntW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -2278,9 +2282,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetProfileStringW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetProfileStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -2312,9 +2316,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStartupInfoA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStartupInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -2332,9 +2336,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStartupInfoW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStartupInfoW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpStartupInfo = <Option<&mut STARTUPINFOA>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -2352,9 +2356,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStdHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStdHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -2372,9 +2376,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStringTypeA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStringTypeA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <LCID>::from_stack(mem, stack_args + 0u32);
         let dwInfoType = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2404,9 +2408,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStringTypeW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStringTypeW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwInfoType = <u32>::from_stack(mem, stack_args + 0u32);
         let lpSrcStr = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2433,9 +2437,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetSystemDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetSystemDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
         let uSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2454,9 +2458,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetSystemTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetSystemTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -2474,9 +2478,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetSystemTimeAsFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTimeAsFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -2494,9 +2498,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetThreadLocale(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetThreadLocale(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
@@ -2513,9 +2517,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetThreadPriority(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetThreadPriority(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -2533,9 +2537,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTickCount(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTickCount(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
             crate::winapi::trace::Record::new(
@@ -2552,9 +2556,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTimeZoneInformation(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTimeZoneInformation(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpTimeZoneInformation =
             <Option<&mut TIME_ZONE_INFORMATION>>::from_stack(mem, stack_args + 0u32);
@@ -2573,9 +2577,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetUserDefaultLCID(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetUserDefaultLCID(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
@@ -2592,9 +2596,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetVersion(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetVersion(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
@@ -2611,9 +2615,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetVersionExA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetVersionExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpVersionInformation = <Option<&mut OSVERSIONINFO>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -2631,9 +2635,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetWindowsDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetWindowsDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpBuffer = <u32>::from_stack(mem, stack_args + 0u32);
         let uSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2652,9 +2656,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalAddAtomA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalAddAtomA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -2672,9 +2676,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
         let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2693,9 +2697,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalFlags(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalFlags(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2713,9 +2717,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalFree(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalFree(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2733,9 +2737,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let pMem = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2753,9 +2757,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalLock(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalLock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2773,9 +2777,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalReAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalReAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
         let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2795,9 +2799,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GlobalUnlock(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GlobalUnlock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <HGLOBAL>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2815,9 +2819,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <Result<HeapAllocFlags, u32>>::from_stack(mem, stack_args + 4u32);
@@ -2841,9 +2845,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapCompact(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapCompact(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2862,9 +2866,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapCreate(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapCreate(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let flOptions = <Result<HeapCreateFlags, u32>>::from_stack(mem, stack_args + 0u32);
         let dwInitialSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2888,9 +2892,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapDestroy(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapDestroy(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -2908,9 +2912,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapFree(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapFree(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2930,9 +2934,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapReAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapReAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2958,9 +2962,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapSetInformation(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapSetInformation(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let HeapHandle = <u32>::from_stack(mem, stack_args + 0u32);
         let HeapInformationClass = <u32>::from_stack(mem, stack_args + 4u32);
@@ -2992,9 +2996,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapSize(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapSize(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3014,9 +3018,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapValidate(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapValidate(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3036,9 +3040,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn HeapWalk(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn HeapWalk(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hHeap = <u32>::from_stack(mem, stack_args + 0u32);
         let lpEntry = <Option<&mut PROCESS_HEAP_ENTRY>>::from_stack(mem, stack_args + 4u32);
@@ -3057,9 +3061,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InitOnceBeginInitialize(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InitOnceBeginInitialize(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3087,9 +3091,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InitOnceComplete(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InitOnceComplete(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpInitOnce = <Option<&mut INIT_ONCE>>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3113,9 +3117,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InitializeCriticalSection(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InitializeCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section") {
@@ -3133,12 +3137,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn InitializeCriticalSectionAndSpinCount(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> u64 {
+    ) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3164,9 +3168,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InitializeCriticalSectionEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InitializeCriticalSectionEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSpinCount = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3195,9 +3199,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InitializeSListHead(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InitializeSListHead(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let ListHead = <Option<&mut SLIST_HEADER>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -3215,9 +3219,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InterlockedDecrement(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InterlockedDecrement(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/interlocked") {
@@ -3235,9 +3239,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn InterlockedIncrement(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn InterlockedIncrement(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let addend = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/interlocked") {
@@ -3255,9 +3259,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsBadCodePtr(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsBadCodePtr(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpfn = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -3275,9 +3279,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsBadReadPtr(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsBadReadPtr(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lp = <u32>::from_stack(mem, stack_args + 0u32);
         let ucb = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3296,9 +3300,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsBadWritePtr(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsBadWritePtr(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lp = <u32>::from_stack(mem, stack_args + 0u32);
         let ucb = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3317,9 +3321,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsDBCSLeadByte(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsDBCSLeadByte(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
@@ -3337,9 +3341,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsDBCSLeadByteEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsDBCSLeadByteEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _TestChar = <u8>::from_stack(mem, stack_args + 0u32);
         let _CodePage = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3358,9 +3362,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsDebuggerPresent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsDebuggerPresent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
@@ -3377,9 +3381,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsProcessorFeaturePresent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsProcessorFeaturePresent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let feature = <Result<ProcessorFeature, u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -3397,9 +3401,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsValidCodePage(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsValidCodePage(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let CodePage = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
@@ -3417,9 +3421,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn IsValidLocale(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn IsValidLocale(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let Locale = <u32>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3438,9 +3442,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LCMapStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LCMapStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let locale = <LCID>::from_stack(mem, stack_args + 0u32);
         let dwMapFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3470,9 +3474,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LCMapStringW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LCMapStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let locale = <LCID>::from_stack(mem, stack_args + 0u32);
         let dwMapFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3502,9 +3506,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LeaveCriticalSection(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LeaveCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/critical_section") {
@@ -3522,9 +3526,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LoadLibraryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LoadLibraryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -3542,9 +3546,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LoadLibraryExW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LoadLibraryExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpLibFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let hFile = <HFILE>::from_stack(mem, stack_args + 4u32);
@@ -3568,9 +3572,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LoadResource(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LoadResource(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
@@ -3589,9 +3593,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LocalAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LocalAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uFlags = <GMEM>::from_stack(mem, stack_args + 0u32);
         let dwBytes = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3610,9 +3614,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LocalFileTimeToFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LocalFileTimeToFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpLocalFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 0u32);
         let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
@@ -3635,9 +3639,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LocalFree(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LocalFree(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hMem = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/memory") {
@@ -3655,9 +3659,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LockFile(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LockFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let dwFileOffsetLow = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3692,9 +3696,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LockResource(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LockResource(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hResData = <HRSRC>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/resource") {
@@ -3712,9 +3716,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn MoveFileA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn MoveFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpExistingFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpNewFileName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -3736,9 +3740,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn MoveFileW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn MoveFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpExistingFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpNewFileName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -3760,9 +3764,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn MulDiv(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn MulDiv(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nNumber = <i32>::from_stack(mem, stack_args + 0u32);
         let nNumerator = <i32>::from_stack(mem, stack_args + 4u32);
@@ -3786,9 +3790,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn MultiByteToWideChar(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn MultiByteToWideChar(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <Result<MB, u32>>::from_stack(mem, stack_args + 4u32);
@@ -3823,9 +3827,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn OpenMutexA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn OpenMutexA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 0u32);
         let bInheritHandle = <bool>::from_stack(mem, stack_args + 4u32);
@@ -3849,9 +3853,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn OutputDebugStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn OutputDebugStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let msg = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -3869,9 +3873,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn PeekConsoleInputA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PeekConsoleInputA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
@@ -3903,9 +3907,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn PeekNamedPipe(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PeekNamedPipe(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hNamedPipe = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
@@ -3943,9 +3947,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn PulseEvent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PulseEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
@@ -3963,9 +3967,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn QueryPerformanceCounter(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn QueryPerformanceCounter(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPerformanceCount = <Option<&mut LARGE_INTEGER>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -3983,9 +3987,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn QueryPerformanceFrequency(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn QueryPerformanceFrequency(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFrequency = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -4003,9 +4007,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn RaiseException(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn RaiseException(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwExceptionCode = <u32>::from_stack(mem, stack_args + 0u32);
         let dwExceptionFlags = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4037,9 +4041,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ReadConsoleA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ReadConsoleA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <Option<&mut u8>>::from_stack(mem, stack_args + 4u32);
@@ -4075,9 +4079,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ReadConsoleInputA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ReadConsoleInputA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleInput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4109,9 +4113,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ReadFile(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ReadFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
@@ -4138,9 +4142,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ReleaseSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ReleaseSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
@@ -4158,9 +4162,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ReleaseSRWLockShared(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ReleaseSRWLockShared(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
@@ -4178,9 +4182,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn RemoveDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn RemoveDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -4198,9 +4202,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn RemoveDirectoryW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn RemoveDirectoryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -4218,9 +4222,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ResetEvent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ResetEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
@@ -4238,9 +4242,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn ResumeThread(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn ResumeThread(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -4258,9 +4262,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn RtlUnwind(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn RtlUnwind(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let TargetFrame = <u32>::from_stack(mem, stack_args + 0u32);
         let TargetIp = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4292,9 +4296,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetConsoleCtrlHandler(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _handlerRoutine = <DWORD>::from_stack(mem, stack_args + 0u32);
         let _add = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4313,9 +4317,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetConsoleMode(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetConsoleMode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleHandle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let dwMode = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4334,9 +4338,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetCurrentDirectoryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -4354,9 +4358,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetCurrentDirectoryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -4374,9 +4378,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetEndOfFile(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetEndOfFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
@@ -4394,9 +4398,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetEnvironmentVariableA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetEnvironmentVariableA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let name = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let value = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -4415,9 +4419,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetEnvironmentVariableW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetEnvironmentVariableW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpValue = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -4436,9 +4440,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetErrorMode(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetErrorMode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uMode = <SEM>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -4456,9 +4460,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetEvent(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hEvent = <HEVENT>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/event") {
@@ -4476,9 +4480,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetFileAttributesA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetFileAttributesA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
@@ -4500,9 +4504,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetFileAttributesW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetFileAttributesW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let dwFileAttributes = <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 4u32);
@@ -4524,9 +4528,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetFilePointer(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetFilePointer(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lDistanceToMove = <i32>::from_stack(mem, stack_args + 4u32);
@@ -4558,9 +4562,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpCreationTime = <Option<&FILETIME>>::from_stack(mem, stack_args + 4u32);
@@ -4592,9 +4596,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetHandleCount(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetHandleCount(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uNumber = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -4612,9 +4616,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetLastError(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetLastError(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwErrCode = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -4632,9 +4636,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetLocalTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetLocalTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTime = <Option<&mut SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -4652,9 +4656,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetPriorityClass(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetPriorityClass(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hProcess = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let dwPriorityClass = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4676,9 +4680,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetStdHandle(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetStdHandle(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nStdHandle = <Result<STD, u32>>::from_stack(mem, stack_args + 0u32);
         let hHandle = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4697,9 +4701,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetThreadDescription(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetThreadDescription(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
         let lpThreadDescription = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -4721,9 +4725,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetThreadPriority(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetThreadPriority(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
         let nPriority = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4742,9 +4746,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetThreadStackGuarantee(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetThreadStackGuarantee(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let StackSizeInBytes = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -4762,9 +4766,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetUnhandledExceptionFilter(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetUnhandledExceptionFilter(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _lpTopLevelExceptionFilter = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -4783,9 +4787,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SizeofResource(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SizeofResource(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
         let hResInfo = <HRSRC>::from_stack(mem, stack_args + 4u32);
@@ -4804,12 +4808,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn Sleep(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
@@ -4830,10 +4834,10 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
-    pub unsafe fn SystemTimeToFileTime(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SystemTimeToFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
         let lpFileTime = <Option<&mut FILETIME>>::from_stack(mem, stack_args + 4u32);
@@ -4852,9 +4856,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TerminateProcess(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TerminateProcess(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hProcess = <u32>::from_stack(mem, stack_args + 0u32);
         let uExitCode = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4873,9 +4877,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TlsAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TlsAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
             crate::winapi::trace::Record::new(
@@ -4892,9 +4896,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TlsFree(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TlsFree(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -4912,9 +4916,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TlsGetValue(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TlsGetValue(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -4932,9 +4936,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TlsSetValue(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TlsSetValue(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dwTlsIndex = <u32>::from_stack(mem, stack_args + 0u32);
         let lpTlsValue = <u32>::from_stack(mem, stack_args + 4u32);
@@ -4953,9 +4957,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TryAcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TryAcquireSRWLockExclusive(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let SRWLock = <Option<&mut SRWLOCK>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/sync/srw_lock") {
@@ -4973,9 +4977,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn UnhandledExceptionFilter(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn UnhandledExceptionFilter(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _exceptionInfo = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -4993,9 +4997,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn UnlockFile(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn UnlockFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let dwFileOffsetLow = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5030,9 +5034,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn VirtualAlloc(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn VirtualAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5059,9 +5063,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn VirtualFree(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn VirtualFree(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5085,9 +5089,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn VirtualProtect(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn VirtualProtect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
         let dwSize = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5119,9 +5123,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn VirtualQuery(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn VirtualQuery(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAddress = <u32>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <Option<&mut MEMORY_BASIC_INFORMATION>>::from_stack(mem, stack_args + 4u32);
@@ -5145,12 +5149,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn WaitForMultipleObjects(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let nCount = <u32>::from_stack(mem, stack_args + 0u32);
         let lpHandles = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5186,13 +5190,13 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
     pub unsafe fn WaitForSingleObject(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let handle = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let dwMilliseconds = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5215,10 +5219,10 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
-    pub unsafe fn WideCharToMultiByte(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WideCharToMultiByte(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let CodePage = <Result<CP, u32>>::from_stack(mem, stack_args + 0u32);
         let dwFlags = <Result<WC, u32>>::from_stack(mem, stack_args + 4u32);
@@ -5259,9 +5263,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn WriteConsoleA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WriteConsoleA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 4u32);
@@ -5293,9 +5297,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn WriteConsoleW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WriteConsoleW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hConsoleOutput = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <ArrayWithSize<u16>>::from_stack(mem, stack_args + 4u32);
@@ -5327,9 +5331,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn WriteFile(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WriteFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 4u32);
@@ -5361,9 +5365,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn WritePrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WritePrivateProfileStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -5391,9 +5395,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn WriteProfileStringW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn WriteProfileStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -5417,9 +5421,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn _lclose(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn _lclose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file16") {
@@ -5437,9 +5441,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn _llseek(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn _llseek(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lOffset = <i32>::from_stack(mem, stack_args + 4u32);
@@ -5463,9 +5467,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn _lopen(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn _lopen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpPathName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let iReadWrite = <i32>::from_stack(mem, stack_args + 4u32);
@@ -5484,9 +5488,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn _lread(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn _lread(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
         let lpBuffer = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 4u32);
@@ -5505,9 +5509,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn lstrcmpiA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn lstrcmpiA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString1 = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -5526,9 +5530,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn lstrcpyA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn lstrcpyA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
         let lpString2 = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -5547,9 +5551,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn lstrcpyW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn lstrcpyW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString1 = <u32>::from_stack(mem, stack_args + 0u32);
         let lpString2 = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
@@ -5568,9 +5572,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn lstrlenA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn lstrlenA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
@@ -5588,9 +5592,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn lstrlenW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn lstrlenW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/libc") {
@@ -5608,12 +5612,12 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
     pub unsafe fn retrowin32_main(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/init") {
@@ -5634,13 +5638,13 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
     pub unsafe fn retrowin32_thread_main(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u64>>> {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let entry_point = <u32>::from_stack(mem, stack_args + 0u32);
         let param = <u32>::from_stack(mem, stack_args + 4u32);
@@ -5663,7 +5667,7 @@ mod wrappers {
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
-            result.into_abireturn()
+            result.into()
         })
     }
 }

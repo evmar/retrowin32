@@ -1,3 +1,4 @@
+pub mod calling_convention;
 mod host;
 pub mod loader;
 mod machine;

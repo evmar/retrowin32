@@ -195,41 +195,45 @@ impl<'a> FromStack<'a> for VarArgs {
     }
 }
 
-/// Types that can be returned from a winapi function, passed via EAX and sometimes EDX.
-pub trait ABIReturn {
-    fn into_abireturn(self) -> u64;
+/// Types that can be returned from a winapi function.
+pub enum ABIReturn {
+    U32(u32), // via eax
+    U64(u64), // via edx:eax
+
+              // TODO: F64(f64)
+              // via st(0)
 }
 
-impl ABIReturn for bool {
-    fn into_abireturn(self) -> u64 {
-        if self {
-            1
+impl From<u32> for ABIReturn {
+    fn from(value: u32) -> Self {
+        ABIReturn::U32(value)
+    }
+}
+
+impl From<u64> for ABIReturn {
+    fn from(value: u64) -> Self {
+        ABIReturn::U64(value)
+    }
+}
+
+impl From<bool> for ABIReturn {
+    fn from(value: bool) -> Self {
+        if value {
+            1u32.into()
         } else {
-            0
+            0u32.into()
         }
     }
 }
 
-impl ABIReturn for u64 {
-    fn into_abireturn(self) -> u64 {
-        self
+impl From<i32> for ABIReturn {
+    fn from(value: i32) -> Self {
+        (value as u32).into()
     }
 }
 
-impl ABIReturn for u32 {
-    fn into_abireturn(self) -> u64 {
-        self as u64
-    }
-}
-
-impl ABIReturn for i32 {
-    fn into_abireturn(self) -> u64 {
-        self as u32 as u64
-    }
-}
-
-impl ABIReturn for () {
-    fn into_abireturn(self) -> u64 {
-        0
+impl From<()> for ABIReturn {
+    fn from(_: ()) -> Self {
+        0u32.into()
     }
 }

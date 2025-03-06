@@ -1,6 +1,7 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
+    calling_convention::ABIReturn,
     host, loader,
     machine::{MachineX, Status},
     memory::Memory,
@@ -197,8 +198,15 @@ impl MachineX<Emulator> {
             Handler::Sync(func) => {
                 let ret = unsafe { func(self, stack_args) };
                 let regs = &mut self.emu.x86.cpu_mut().regs;
-                regs.set32(x86::Register::EAX, ret as u32);
-                regs.set32(x86::Register::EDX, (ret >> 32) as u32);
+                match ret {
+                    ABIReturn::U32(ret) => {
+                        regs.set32(x86::Register::EAX, ret);
+                    }
+                    ABIReturn::U64(ret) => {
+                        regs.set32(x86::Register::EAX, ret as u32);
+                        regs.set32(x86::Register::EDX, (ret >> 32) as u32);
+                    }
+                }
 
                 // After call, attempt to clear registers to make execution traces easier to match.
                 // eax: holds return value
@@ -209,7 +217,15 @@ impl MachineX<Emulator> {
 
             Handler::Async(func) => {
                 let eip = regs.eip; // return address
-                let future = unsafe { func(self, stack_args) };
+                let s = self as *mut _;
+                let future = Box::pin(async move {
+                    let ret = unsafe { func(&mut *s, stack_args) }.await;
+                    // TODO: move ABI return handing from x86 call_async to here.
+                    match ret {
+                        ABIReturn::U32(ret) => ret as u64,
+                        ABIReturn::U64(ret) => ret,
+                    }
+                });
                 self.emu.x86.cpu_mut().call_async(future, eip);
             }
         }

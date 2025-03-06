@@ -5,7 +5,6 @@ mod arena;
 mod bass;
 mod bitmap;
 pub mod builtin;
-mod calling_convention;
 mod com;
 pub mod ddraw;
 mod dinput;

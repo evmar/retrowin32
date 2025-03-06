@@ -1,11 +1,8 @@
 use super::{FILETIME, SECURITY_ATTRIBUTES};
 use crate::{
+    calling_convention::{ABIReturn, ArrayWithSize, ArrayWithSizeMut},
     machine::Machine,
-    winapi::{
-        calling_convention::{ABIReturn, ArrayWithSize, ArrayWithSizeMut},
-        kernel32::set_last_error,
-        Str16, String16, DWORD, ERROR, HFILE, HFIND, MAX_PATH,
-    },
+    winapi::{kernel32::set_last_error, Str16, String16, DWORD, ERROR, HFILE, HFIND, MAX_PATH},
     FileOptions, ReadDir, ReadDirEntry, Stat, StatKind,
 };
 use bitflags::bitflags;
@@ -97,9 +94,9 @@ impl From<&Stat> for FileAttribute {
     }
 }
 
-impl ABIReturn for FileAttribute {
-    fn into_abireturn(self) -> u64 {
-        self.bits() as u64
+impl Into<ABIReturn> for FileAttribute {
+    fn into(self) -> ABIReturn {
+        (self.bits() as u32).into()
     }
 }
 

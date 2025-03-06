@@ -1,4 +1,4 @@
-use crate::{machine::Machine, winapi::calling_convention};
+use crate::{calling_convention, machine::Machine};
 use bitflags::bitflags;
 use memory::{ExtensionsMut, Mem};
 use std::cmp::max;

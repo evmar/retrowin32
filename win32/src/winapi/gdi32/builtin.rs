@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::gdi32::*;
-    pub unsafe fn BitBlt(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BitBlt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
         let xDst = <i32>::from_stack(mem, stack_args + 4u32);
@@ -49,9 +50,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateBitmap(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let nWidth = <u32>::from_stack(mem, stack_args + 0u32);
         let nHeight = <u32>::from_stack(mem, stack_args + 4u32);
@@ -80,9 +81,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateCompatibleBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateCompatibleBitmap(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let cx = <u32>::from_stack(mem, stack_args + 4u32);
@@ -102,9 +103,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateCompatibleDC(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateCompatibleDC(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/dc") {
@@ -122,9 +123,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateDIBSection(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateDIBSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let pbmi = <Option<&BITMAPINFOHEADER>>::from_stack(mem, stack_args + 4u32);
@@ -155,9 +156,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateDIBitmap(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateDIBitmap(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let pbmih = <Option<&mut BITMAPINFOHEADER>>::from_stack(mem, stack_args + 4u32);
@@ -188,9 +189,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateFontA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateFontA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let cHeight = <i32>::from_stack(mem, stack_args + 0u32);
         let cWidth = <i32>::from_stack(mem, stack_args + 4u32);
@@ -252,9 +253,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreatePalette(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreatePalette(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let plpal = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/palette") {
@@ -272,9 +273,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreatePen(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreatePen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let iStyle = <Result<PS, u32>>::from_stack(mem, stack_args + 0u32);
         let cWidth = <u32>::from_stack(mem, stack_args + 4u32);
@@ -294,9 +295,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn CreateSolidBrush(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn CreateSolidBrush(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let color = <COLORREF>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/draw") {
@@ -314,9 +315,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DeleteDC(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DeleteDC(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/dc") {
@@ -334,9 +335,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn DeleteObject(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn DeleteObject(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let handle = <HGDIOBJ>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/object") {
@@ -354,9 +355,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn EnumFontFamiliesExA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn EnumFontFamiliesExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lpLogfont = <Option<&mut LOGFONTA>>::from_stack(mem, stack_args + 4u32);
@@ -385,9 +386,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDCOrgEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDCOrgEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 4u32);
@@ -406,9 +407,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDIBits(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDIBits(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let hbm = <HBITMAP>::from_stack(mem, stack_args + 4u32);
@@ -441,9 +442,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetDeviceCaps(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetDeviceCaps(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let index = <Result<GetDeviceCapsArg, u32>>::from_stack(mem, stack_args + 4u32);
@@ -462,9 +463,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetLayout(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetLayout(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/dc") {
@@ -482,9 +483,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetObjectA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetObjectA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let handle = <HGDIOBJ>::from_stack(mem, stack_args + 0u32);
         let bytes = <u32>::from_stack(mem, stack_args + 4u32);
@@ -504,9 +505,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetPaletteEntries(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
         let iStart = <u32>::from_stack(mem, stack_args + 4u32);
@@ -532,9 +533,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetPixel(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetPixel(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
@@ -554,9 +555,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetStockObject(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetStockObject(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let i = <Result<GetStockObjectArg, u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/object") {
@@ -574,9 +575,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetSystemPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetSystemPaletteEntries(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let iStart = <u32>::from_stack(mem, stack_args + 4u32);
@@ -603,9 +604,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTextExtentPoint32A(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTextExtentPoint32A(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -631,9 +632,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTextExtentPoint32W(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTextExtentPoint32W(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lpString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
@@ -659,9 +660,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTextMetricsA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTextMetricsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lptm = <Option<&mut TEXTMETRICA>>::from_stack(mem, stack_args + 4u32);
@@ -680,9 +681,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn GetTextMetricsW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn GetTextMetricsW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let lptm = <Option<&mut TEXTMETRICW>>::from_stack(mem, stack_args + 4u32);
@@ -701,9 +702,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LineDDA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LineDDA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let xStart = <i32>::from_stack(mem, stack_args + 0u32);
         let yStart = <i32>::from_stack(mem, stack_args + 4u32);
@@ -733,9 +734,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn LineTo(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn LineTo(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <i32>::from_stack(mem, stack_args + 4u32);
@@ -755,9 +756,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn MoveToEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn MoveToEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <i32>::from_stack(mem, stack_args + 4u32);
@@ -778,9 +779,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn PatBlt(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PatBlt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <i32>::from_stack(mem, stack_args + 4u32);
@@ -810,9 +811,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn PtVisible(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn PtVisible(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <i32>::from_stack(mem, stack_args + 4u32);
@@ -832,9 +833,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn RealizePalette(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn RealizePalette(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/palette") {
@@ -852,9 +853,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SelectObject(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SelectObject(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let hGdiObj = <HGDIOBJ>::from_stack(mem, stack_args + 4u32);
@@ -873,9 +874,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SelectPalette(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SelectPalette(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let hPal = <HPALETTE>::from_stack(mem, stack_args + 4u32);
@@ -895,9 +896,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetBkColor(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetBkColor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let color = <COLORREF>::from_stack(mem, stack_args + 4u32);
@@ -916,9 +917,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetBkMode(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetBkMode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let mode = <i32>::from_stack(mem, stack_args + 4u32);
@@ -937,9 +938,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetBrushOrgEx(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetBrushOrgEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <i32>::from_stack(mem, stack_args + 4u32);
@@ -960,9 +961,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetDIBitsToDevice(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let xDst = <i32>::from_stack(mem, stack_args + 4u32);
@@ -1006,9 +1007,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetLayout(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetLayout(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let l = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1027,9 +1028,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetPaletteEntries(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetPaletteEntries(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hpal = <HPALETTE>::from_stack(mem, stack_args + 0u32);
         let iStart = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1055,9 +1056,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetPixel(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetPixel(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1078,9 +1079,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetROP2(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetROP2(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let rop2 = <Result<R2, u32>>::from_stack(mem, stack_args + 4u32);
@@ -1099,9 +1100,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetTextAlign(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetTextAlign(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let fMode = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1120,9 +1121,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn SetTextColor(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn SetTextColor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let color = <COLORREF>::from_stack(mem, stack_args + 4u32);
@@ -1141,9 +1142,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn StretchBlt(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn StretchBlt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdcDst = <HDC>::from_stack(mem, stack_args + 0u32);
         let xDst = <i32>::from_stack(mem, stack_args + 4u32);
@@ -1185,9 +1186,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn StretchDIBits(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn StretchDIBits(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let xDst = <i32>::from_stack(mem, stack_args + 4u32);
@@ -1234,9 +1235,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TextOutA(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TextOutA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1257,9 +1258,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn TextOutW(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn TextOutW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
@@ -1280,7 +1281,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
 }
 const SHIMS: [Shim; 48usize] = [

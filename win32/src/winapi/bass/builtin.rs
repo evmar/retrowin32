@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::bass::*;
-    pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_ChannelGetPosition(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let mode = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("bass") {
@@ -30,9 +31,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_Free(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_Free(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("bass") {
@@ -50,9 +51,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_Init(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_Init(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
@@ -78,9 +79,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_MusicLoad(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_MusicLoad(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
@@ -108,9 +109,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_MusicPlay(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_MusicPlay(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("bass") {
@@ -128,9 +129,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_MusicSetPositionScaler(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_MusicSetPositionScaler(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let arg1 = <u32>::from_stack(mem, stack_args + 0u32);
         let arg2 = <u32>::from_stack(mem, stack_args + 4u32);
@@ -149,9 +150,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn BASS_Start(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn BASS_Start(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("bass") {
             crate::winapi::trace::Record::new(
@@ -168,7 +169,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
 }
 const SHIMS: [Shim; 7usize] = [

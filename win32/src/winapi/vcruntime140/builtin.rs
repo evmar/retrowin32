@@ -7,12 +7,13 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        calling_convention::*,
         machine::Machine,
-        winapi::{self, calling_convention::*, *},
+        winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::vcruntime140::*;
-    pub unsafe fn _CxxThrowException(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn _CxxThrowException(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
         let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
@@ -35,9 +36,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn memcmp(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn memcmp(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lhs = <u32>::from_stack(mem, stack_args + 0u32);
         let rhs = <u32>::from_stack(mem, stack_args + 4u32);
@@ -57,9 +58,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let src = <u32>::from_stack(mem, stack_args + 4u32);
@@ -79,9 +80,9 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
-    pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> u64 {
+    pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let dst = <u32>::from_stack(mem, stack_args + 0u32);
         let val = <u32>::from_stack(mem, stack_args + 4u32);
@@ -101,7 +102,7 @@ mod wrappers {
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
-        result.into_abireturn()
+        result.into()
     }
 }
 const SHIMS: [Shim; 4usize] = [
