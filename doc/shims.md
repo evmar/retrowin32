@@ -48,12 +48,18 @@ functions that return a Future.
 
 1. A given shim winapi function like IDirectDraw7::EnumDisplayModes needs to
    call back to x86 with each available display mode.
-2. To do so, we change its body to the form:
+2. To do so, we change it to an async function:
 
-   #[win32_derive::dllexport] async fn EnumDisplayModes(...) -> u32 { ...setup
-   code... // Call into x86 function and await its result.
-   shims::call_x86(some_ptr, vec![args]).await; // Return to x86 caller, as
-   before. 0 }
+```
+#[win32_derive::dllexport]
+async fn EnumDisplayModes(...) -> ... {
+  ...setup code... 
+  // Call into x86 function and await its result.
+  shims::call_x86(some_ptr, vec![args]).await;
+  ...return to x86 caller, as before...
+}
+```
+
 3. The dllexport transform notices that async type and forwards to push_async,
    which redirects the x86 to call async_executor next.
 4. async_executor picks up the Future returned in step #2 and runs it.
