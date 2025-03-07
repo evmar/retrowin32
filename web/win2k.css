@@ -26,6 +26,14 @@ button:active {
     border-image: url("9p-active.png") 2;
 }
 
+[popover] {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    position: absolute;
+    position-area: span-right span-bottom;
+}
+
 .window {
     font-size: 11px;
     position: absolute;
