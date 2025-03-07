@@ -260,7 +260,7 @@ pub mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetCooperativeLevel(
+    pub async fn SetCooperativeLevel(
         machine: &mut Machine,
         this: u32,
         hwnd: HWND,
@@ -270,6 +270,7 @@ pub mod IDirectDraw7 {
         machine.state.ddraw.hwnd = hwnd;
         let flags = flags.unwrap();
         if flags.contains(DDSCL::FULLSCREEN) {
+            user32::activate_window(machine, hwnd).await; // dispatches WM_ACTIVATE{,APP} if needed
             let mut window = machine.state.user32.windows.get(hwnd).unwrap().borrow_mut();
             window.expect_toplevel_mut().host.fullscreen();
         }
