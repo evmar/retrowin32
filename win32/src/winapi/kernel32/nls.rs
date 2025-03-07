@@ -25,6 +25,11 @@ pub fn GetOEMCP(_machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn GetConsoleOutputCP(_machine: &mut Machine) -> u32 {
+    CP::ACP as u32
+}
+
+#[win32_derive::dllexport]
 pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
     CodePage == 1252
 }
