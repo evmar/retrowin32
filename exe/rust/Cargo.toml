@@ -9,6 +9,9 @@ edition = "2021"
 # https://github.com/microsoft/windows-rs/issues/3006
 # This is apparently picked up in the lock file.
 
+# Further, note that versions 0.59+ break rust-analyzer:
+# https://github.com/microsoft/windows-rs/issues/3440
+
 [dependencies.windows-sys]
 version = "0.52.0"
 features = [
@@ -26,3 +29,6 @@ features = [
   "Win32",
   "Win32_Graphics_Gdi",
 ]
+
+[dependencies.ddraw-sys]
+path = "ddraw-sys"

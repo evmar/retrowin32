@@ -22,21 +22,42 @@ had this sequence of events, where the braced message lists are messages
 that were processed during the function call:
 
 CreateWindow() {
-    msg: 36 WM_GETMINMAXINFO
-    msg: 129 WM_NCCREATE
-    msg: 131 WM_NCCALCSIZE
-    msg: 1 WM_CREATE
+    WM_GETMINMAXINFO
+    WM_NCCREATE
+    WM_NCCALCSIZE
+    WM_CREATE
 }
 ShowWindow() {
-    msg: 24 WM_SHOWWINDOW
-    msg: 70 WM_WINDOWPOSCHANGING
-    msg: 28 WM_ACTIVATEAPP
-    msg: 134 WM_NCACTIVATE
-    msg: 6 WM_ACTIVATE
-    msg: 7 WM_SETFOCUS
-    msg: 71 WM_WINDOWPOSCHANGED
-    msg: 5 WM_SIZE
-    msg: 3 WM_MOVE
+    WM_SHOWWINDOW
+    WM_WINDOWPOSCHANGING
+    WM_ACTIVATEAPP
+    WM_NCACTIVATE
+    WM_ACTIVATE
+    WM_SETFOCUS
+    WM_WINDOWPOSCHANGED
+    WM_SIZE
+    WM_MOVE
+}
+
+exe/rust/src/bin/ddraw.rs creates a window and then starts DirectDraw calls on it,
+without ever showing it.  SetCooperativeLevel has this sequence under Wine:
+SetCooperativeLevel {
+    WM_STYLECHANGING
+    WM_STYLECHANGED
+    WM_STYLECHANGING
+    WM_STYLECHANGED
+    WM_WINDOWPOSCHANGING
+    WM_NCCALCSIZE
+    WM_WINDOWPOSCHANGED
+        WM_MOVE  (sent by DefWindowProc)
+        WM_SIZE
+    WM_WINDOWPOSCHANGING
+    WM_QUERYNEWPALETTE
+    WM_WINDOWPOSCHANGING
+    WM_ACTIVATEAPP
+    WM_NCACTIVATE
+    WM_ACTIVATE
+        WM_SETFOCUS
 }
 
 */
