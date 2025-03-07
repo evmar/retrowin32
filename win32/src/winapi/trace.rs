@@ -1,9 +1,8 @@
 //! A system for enabling tracing of different subsystems of winapi.
-//! Each winapi file has a magic TRACE_CONTEXT constant string like
-//! "kernel32/file".  The user can specify tracing based on prefix
-//! matching, and a "-" suppresses, so e.g.
-//!   --win32-trace=kernel32/,-kernel32/file
-//! Pass '*' to enable all.
+//!
+//! Each win32_derive::dllexport function can trace its incoming args
+//! and return value.  The user can specify which functions to trace.
+//! See 'Tracing' in HACKING.md.
 
 use std::{cell::UnsafeCell, collections::HashMap, fmt::Write};
 

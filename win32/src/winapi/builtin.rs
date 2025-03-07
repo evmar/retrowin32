@@ -1,5 +1,5 @@
 //! Built-in DLLs that are statically linked into the emulator.
-//! Each winapi DLL has a generated 'builtin.rs' constructed by win32/Makefile,
+//! Each winapi DLL contains a generated 'builtin.rs',
 //! which joins the raw DLL bytes with emulator-side implementation.
 
 use crate::shims::Shim;
