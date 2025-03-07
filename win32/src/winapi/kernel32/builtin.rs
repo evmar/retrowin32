@@ -1303,6 +1303,25 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn GetConsoleOutputCP(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::GetConsoleOutputCP_pos,
+                "kernel32/nls",
+                "GetConsoleOutputCP",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetConsoleOutputCP(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn GetConsoleScreenBufferInfo(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _hConsoleOutput = <HANDLE<()>>::from_stack(mem, stack_args + 0u32);
@@ -5671,7 +5690,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 230usize] = [
+const SHIMS: [Shim; 231usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5863,6 +5882,10 @@ const SHIMS: [Shim; 230usize] = [
     Shim {
         name: "GetConsoleMode",
         func: Handler::Sync(wrappers::GetConsoleMode),
+    },
+    Shim {
+        name: "GetConsoleOutputCP",
+        func: Handler::Sync(wrappers::GetConsoleOutputCP),
     },
     Shim {
         name: "GetConsoleScreenBufferInfo",
