@@ -481,7 +481,7 @@ mod wrappers {
     pub unsafe fn IDirectDraw7_SetCooperativeLevel(
         machine: &mut Machine,
         stack_args: u32,
-    ) -> ABIReturn {
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let this = <u32>::from_stack(mem, stack_args + 0u32);
         let hwnd = <HWND>::from_stack(mem, stack_args + 4u32);
@@ -497,11 +497,16 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::ddraw::IDirectDraw7::SetCooperativeLevel(machine, this, hwnd, flags);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.into()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result =
+                winapi::ddraw::IDirectDraw7::SetCooperativeLevel(machine, this, hwnd, flags).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
     }
     pub unsafe fn IDirectDraw7_SetDisplayMode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
@@ -1578,7 +1583,7 @@ const SHIMS: [Shim; 57usize] = [
     },
     Shim {
         name: "IDirectDraw7::SetCooperativeLevel",
-        func: Handler::Sync(wrappers::IDirectDraw7_SetCooperativeLevel),
+        func: Handler::Async(wrappers::IDirectDraw7_SetCooperativeLevel),
     },
     Shim {
         name: "IDirectDraw7::SetDisplayMode",

@@ -553,34 +553,14 @@ pub async fn RedrawWindow(
     true
 }
 
-/// nCmdShow passed to ShowWindow().
-#[derive(Copy, Clone, Debug, win32_derive::TryFromEnum)]
-pub enum SW {
-    HIDE = 0,
-    NORMAL = 1,
-    SHOWMINIMIZED = 2,
-    SHOWMAXIMIZED = 3,
-    SHOWNOACTIVATE = 4,
-    SHOW = 5,
-    MINIMIZE = 6,
-    SHOWMINNOACTIVE = 7,
-    SHOWNA = 8,
-    RESTORE = 9,
-    SHOWDEFAULT = 10,
-    FORCEMINIMIZE = 11,
-}
-
-#[win32_derive::dllexport]
-pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
-    // Store the show command for returning from GetWindowPlacement.
-    machine
-        .state
-        .user32
-        .windows
-        .get(hWnd)
-        .unwrap()
-        .borrow_mut()
-        .show_cmd = nCmdShow.unwrap();
+/// Set a window as the current foreground window.
+/// This triggers WM::ACTIVATEAPP and WM::ACTIVATE messages.
+/// This happens when the window is shown, but can also happen via DirectDraw SetCooperativeLevel.
+pub async fn activate_window(machine: &mut Machine, hWnd: HWND) {
+    if hWnd == machine.state.user32.active_window {
+        return;
+    }
+    machine.state.user32.active_window = hWnd;
 
     dispatch_message(
         machine,
@@ -610,6 +590,38 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
         },
     )
     .await;
+}
+
+/// nCmdShow passed to ShowWindow().
+#[derive(Copy, Clone, Debug, win32_derive::TryFromEnum)]
+pub enum SW {
+    HIDE = 0,
+    NORMAL = 1,
+    SHOWMINIMIZED = 2,
+    SHOWMAXIMIZED = 3,
+    SHOWNOACTIVATE = 4,
+    SHOW = 5,
+    MINIMIZE = 6,
+    SHOWMINNOACTIVE = 7,
+    SHOWNA = 8,
+    RESTORE = 9,
+    SHOWDEFAULT = 10,
+    FORCEMINIMIZE = 11,
+}
+
+#[win32_derive::dllexport]
+pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, u32>) -> bool {
+    // Store the show command for returning from GetWindowPlacement.
+    machine
+        .state
+        .user32
+        .windows
+        .get(hWnd)
+        .unwrap()
+        .borrow_mut()
+        .show_cmd = nCmdShow.unwrap();
+
+    activate_window(machine, hWnd).await;
 
     // TODO: WM_WINDOWPOSCHANGED should pass a WINDOWPOS struct,
     // but the DefWindowProc we provide ignores it and calls WM_MOVE/WM_SIZE directly.

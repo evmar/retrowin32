@@ -37,8 +37,13 @@ pub struct State {
     // These generally don't change, but SetWindowLong lets you poke at most of their fields,
     // so RefCell it is.
     wndclasses: Vec<Rc<RefCell<WndClass>>>,
+
+    /// Count of user-registered message ids, see RegisterWindowMessageA.
     pub user_window_message_count: u32,
+
     pub windows: Handles<HWND, Rc<RefCell<Window>>>,
+    active_window: HWND,
+
     messages: MessageQueue,
     timers: Timers,
 }
