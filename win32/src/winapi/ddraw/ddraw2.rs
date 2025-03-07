@@ -222,7 +222,7 @@ pub mod IDirectDrawSurface2 {
         IsLost: todo,
         Lock: ok,
         ReleaseDC: (IDirectDrawSurface7::ReleaseDC),
-        Restore: todo,
+        Restore: (IDirectDrawSurface7::Restore),
         SetClipper: (IDirectDrawSurface7::SetClipper),
         SetColorKey: todo,
         SetOverlayPosition: todo,
