@@ -603,6 +603,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn calloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let count = <u32>::from_stack(mem, stack_args + 0u32);
+        let size = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::calloc_pos,
+                "ucrtbase/memory",
+                "calloc",
+                &[("count", &count), ("size", &size)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::calloc(machine, count, size);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn cos(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -846,7 +867,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 39usize] = [
+const SHIMS: [Shim; 40usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -954,6 +975,10 @@ const SHIMS: [Shim; 39usize] = [
     Shim {
         name: "_unlock",
         func: Handler::Sync(wrappers::_unlock),
+    },
+    Shim {
+        name: "calloc",
+        func: Handler::Sync(wrappers::calloc),
     },
     Shim {
         name: "cos",
