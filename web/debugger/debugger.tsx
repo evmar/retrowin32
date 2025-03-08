@@ -227,8 +227,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           </section>
           <section>
             <RegistersComponent
+              emu={emulator.emu}
               {...this.memoryView}
-              regs={emulator.emu.regs()}
             />
           </section>
           <section style={{ flex: 1, minWidth: 0, overflow: 'auto' }}>

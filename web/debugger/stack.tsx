@@ -1,5 +1,5 @@
 import * as preact from 'preact';
-import { Emulator } from '../glue/pkg/glue';
+import { Emulator, Register } from '../glue/pkg/glue';
 import { Labels } from './labels';
 import { MemoryView, Number } from './memory';
 
@@ -12,7 +12,7 @@ namespace Stack {
 export class Stack extends preact.Component<Stack.Props> {
   render() {
     const { emu } = this.props;
-    const esp = emu.esp;
+    const esp = emu.reg(Register.ESP);
     const memory = emu.memory();
     const rows = [];
     for (let addr = esp - 0x10; addr < esp + 0x20; addr += 4) {

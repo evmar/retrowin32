@@ -1,8 +1,13 @@
 import * as preact from 'preact';
-import { Registers } from '../glue/pkg/glue';
+import { Emulator, Register, Registers } from '../glue/pkg/glue';
 import { MemoryView, Number } from './memory';
 import { hex } from './util';
 
+function selectAllOnFocus(e: Event) {
+  (e.target as HTMLInputElement).select();
+}
+
+/** Contents of the popup shown when you click on a register. */
 namespace RegisterPanel {
   export interface Props {
     value: number;
@@ -25,8 +30,8 @@ class RegisterPanel extends preact.Component<RegisterPanel.Props, RegisterPanel.
   }
 
   commit = (e: Event) => {
+    e.preventDefault();
     this.props.set(this.getValue());
-    return false;
   };
 
   showMemory = () => {
@@ -42,7 +47,15 @@ class RegisterPanel extends preact.Component<RegisterPanel.Props, RegisterPanel.
     return (
       <div class='panel' style={{ padding: '1ex', display: 'flex', flexDirection: 'column', gap: '1ex' }}>
         <form onSubmit={this.commit}>
-          <input type='text' size={8} defaultValue={this.state.text} onInput={this.onInput} />
+          <input
+            type='text'
+            size={8}
+            defaultValue={this.state.text}
+            onInput={this.onInput}
+            onFocusIn={selectAllOnFocus}
+            onFocusOut={this.commit}
+          />
+          <sub>16</sub>
         </form>
         <div>
           {this.getValue()}
@@ -60,13 +73,65 @@ declare global {
   }
 }
 
-/// Displays one
-///    eax 00123456
-/// row, with a clickable value that pops up an editing panel.
+/** The names of registers that we can display/set/get via RegisterComponent. */
+type NamedRegister = 'eax' | 'ecx' | 'edx' | 'ebx' | 'esp' | 'ebp' | 'esi' | 'edi' | 'eip';
+
+function getNamedRegister(emu: Emulator, reg: NamedRegister): number {
+  switch (reg) {
+    case 'eax':
+      return emu.reg(Register.EAX);
+    case 'ecx':
+      return emu.reg(Register.ECX);
+    case 'edx':
+      return emu.reg(Register.EDX);
+    case 'ebx':
+      return emu.reg(Register.EBX);
+    case 'esp':
+      return emu.reg(Register.ESP);
+    case 'ebp':
+      return emu.reg(Register.EBP);
+    case 'esi':
+      return emu.reg(Register.ESI);
+    case 'edi':
+      return emu.reg(Register.EDI);
+    case 'eip':
+      return emu.eip;
+  }
+}
+
+function setNamedRegister(emu: Emulator, reg: NamedRegister, value: number) {
+  switch (reg) {
+    case 'eax':
+      return emu.set_reg(Register.EAX, value);
+    case 'ecx':
+      return emu.set_reg(Register.ECX, value);
+    case 'edx':
+      return emu.set_reg(Register.EDX, value);
+    case 'ebx':
+      return emu.set_reg(Register.EBX, value);
+    case 'esp':
+      return emu.set_reg(Register.ESP, value);
+    case 'ebp':
+      return emu.set_reg(Register.EBP, value);
+    case 'esi':
+      return emu.set_reg(Register.ESI, value);
+    case 'edi':
+      return emu.set_reg(Register.EDI, value);
+    case 'eip':
+      emu.eip = value;
+      break;
+  }
+}
+
+/**
+ * Displays one
+ *    eax 00123456
+ * row, with a clickable value that pops up a RegisterPanel.
+ */
 namespace RegisterComponent {
   export interface Props extends MemoryView {
-    regs: Registers;
-    reg: string;
+    emu: Emulator;
+    reg: NamedRegister;
   }
   export interface State {
     pop: boolean;
@@ -92,15 +157,13 @@ class RegisterComponent extends preact.Component<RegisterComponent.Props, Regist
     }
   };
 
-  set = (value: number) => {
-    const regs = this.props.regs as unknown as Record<string, number>;
-    // TODO: register setting
-    // regs[this.props.reg] = value;
-    // this.forceUpdate();
+  setValue = (value: number) => {
+    setNamedRegister(this.props.emu, this.props.reg, value);
+    this.forceUpdate();
   };
 
   render() {
-    const value = (this.props.regs as unknown as Record<string, number>)[this.props.reg];
+    const value = getNamedRegister(this.props.emu, this.props.reg);
     return (
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1ex' }}>
         <div style={{ flex: 1 }}>{this.props.reg}</div>
@@ -110,7 +173,7 @@ class RegisterComponent extends preact.Component<RegisterComponent.Props, Regist
         {this.state.pop
           && (
             <div ref={this.ref} popover='auto' onToggle={this.unPop}>
-              <RegisterPanel value={value} showMemory={this.props.showMemory} set={() => {}} />
+              <RegisterPanel value={value} showMemory={this.props.showMemory} set={this.setValue} />
             </div>
           )}
       </div>
@@ -120,12 +183,12 @@ class RegisterComponent extends preact.Component<RegisterComponent.Props, Regist
 
 namespace RegistersComponent {
   export interface Props extends MemoryView {
-    regs: Registers;
+    emu: Emulator;
   }
 }
 export class RegistersComponent extends preact.Component<RegistersComponent.Props> {
   render() {
-    const { regs } = this.props;
+    const regs = this.props.emu.regs();
     const st = regs.st;
     return (
       <div>
