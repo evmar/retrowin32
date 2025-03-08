@@ -1,4 +1,4 @@
-profile?=debug
+profile?=release
 
 all: wasm index.html
 
