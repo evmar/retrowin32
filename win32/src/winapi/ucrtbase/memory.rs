@@ -10,6 +10,15 @@ pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
+pub fn calloc(machine: &mut Machine, count: u32, size: u32) -> u32 {
+    machine
+        .state
+        .kernel32
+        .process_heap
+        .alloc(machine.memory.mem(), count * size)
+}
+
+#[win32_derive::dllexport(cdecl)]
 pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
     machine
         .state
