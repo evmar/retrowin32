@@ -1,5 +1,5 @@
 import * as preact from 'preact';
-import { Emulator, Register, Registers } from '../glue/pkg/glue';
+import { CPU, Register } from '../glue/pkg/glue';
 import { MemoryView, Number } from './memory';
 import { hex } from './util';
 
@@ -76,49 +76,49 @@ declare global {
 /** The names of registers that we can display/set/get via RegisterComponent. */
 type NamedRegister = 'eax' | 'ecx' | 'edx' | 'ebx' | 'esp' | 'ebp' | 'esi' | 'edi' | 'eip';
 
-function getNamedRegister(emu: Emulator, reg: NamedRegister): number {
+function getNamedRegister(cpu: CPU, reg: NamedRegister): number {
   switch (reg) {
     case 'eax':
-      return emu.reg(Register.EAX);
+      return cpu.get(Register.EAX);
     case 'ecx':
-      return emu.reg(Register.ECX);
+      return cpu.get(Register.ECX);
     case 'edx':
-      return emu.reg(Register.EDX);
+      return cpu.get(Register.EDX);
     case 'ebx':
-      return emu.reg(Register.EBX);
+      return cpu.get(Register.EBX);
     case 'esp':
-      return emu.reg(Register.ESP);
+      return cpu.get(Register.ESP);
     case 'ebp':
-      return emu.reg(Register.EBP);
+      return cpu.get(Register.EBP);
     case 'esi':
-      return emu.reg(Register.ESI);
+      return cpu.get(Register.ESI);
     case 'edi':
-      return emu.reg(Register.EDI);
+      return cpu.get(Register.EDI);
     case 'eip':
-      return emu.eip;
+      return cpu.eip;
   }
 }
 
-function setNamedRegister(emu: Emulator, reg: NamedRegister, value: number) {
+function setNamedRegister(cpu: CPU, reg: NamedRegister, value: number) {
   switch (reg) {
     case 'eax':
-      return emu.set_reg(Register.EAX, value);
+      return cpu.set(Register.EAX, value);
     case 'ecx':
-      return emu.set_reg(Register.ECX, value);
+      return cpu.set(Register.ECX, value);
     case 'edx':
-      return emu.set_reg(Register.EDX, value);
+      return cpu.set(Register.EDX, value);
     case 'ebx':
-      return emu.set_reg(Register.EBX, value);
+      return cpu.set(Register.EBX, value);
     case 'esp':
-      return emu.set_reg(Register.ESP, value);
+      return cpu.set(Register.ESP, value);
     case 'ebp':
-      return emu.set_reg(Register.EBP, value);
+      return cpu.set(Register.EBP, value);
     case 'esi':
-      return emu.set_reg(Register.ESI, value);
+      return cpu.set(Register.ESI, value);
     case 'edi':
-      return emu.set_reg(Register.EDI, value);
+      return cpu.set(Register.EDI, value);
     case 'eip':
-      emu.eip = value;
+      cpu.jmp(value);
       break;
   }
 }
@@ -130,7 +130,7 @@ function setNamedRegister(emu: Emulator, reg: NamedRegister, value: number) {
  */
 namespace RegisterComponent {
   export interface Props extends MemoryView {
-    emu: Emulator;
+    cpu: CPU;
     reg: NamedRegister;
   }
   export interface State {
@@ -158,12 +158,12 @@ class RegisterComponent extends preact.Component<RegisterComponent.Props, Regist
   };
 
   setValue = (value: number) => {
-    setNamedRegister(this.props.emu, this.props.reg, value);
+    setNamedRegister(this.props.cpu, this.props.reg, value);
     this.forceUpdate();
   };
 
   render() {
-    const value = getNamedRegister(this.props.emu, this.props.reg);
+    const value = getNamedRegister(this.props.cpu, this.props.reg);
     return (
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '1ex' }}>
         <div style={{ flex: 1 }}>{this.props.reg}</div>
@@ -183,13 +183,29 @@ class RegisterComponent extends preact.Component<RegisterComponent.Props, Regist
 
 namespace RegistersComponent {
   export interface Props extends MemoryView {
-    emu: Emulator;
+    cpu: CPU;
   }
 }
 export class RegistersComponent extends preact.Component<RegistersComponent.Props> {
   render() {
-    const regs = this.props.emu.regs();
-    const st = regs.st;
+    const { cpu } = this.props;
+
+    const st = cpu.st();
+    let fpu;
+    if (st.length > 0) {
+      fpu = (
+        <div>
+          fpu<br />
+          {Array.from(st).map(n => (
+            <span>
+              {n.toFixed(6)}
+              <br />
+            </span>
+          ))}
+        </div>
+      );
+    }
+
     return (
       <div>
         <RegisterComponent reg='eax' {...this.props} />
@@ -207,32 +223,20 @@ export class RegistersComponent extends preact.Component<RegistersComponent.Prop
         <RegisterComponent reg='eip' {...this.props} />
         <br />
 
-        cs&nbsp;<Number digits={4} {...this.props}>{regs.cs}</Number>{' '}
-        fs&nbsp;<Number digits={4} {...this.props}>{regs.fs}</Number>
+        cs&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.CS)}</Number>{' '}
+        fs&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.FS)}</Number>
         <br />
-        ds&nbsp;<Number digits={4} {...this.props}>{regs.ds}</Number>{' '}
-        gs&nbsp;<Number digits={4} {...this.props}>{regs.gs}</Number>
+        ds&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.DS)}</Number>{' '}
+        gs&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.GS)}</Number>
         <br />
-        es&nbsp;<Number digits={4} {...this.props}>{regs.es}</Number>{' '}
-        ss&nbsp;<Number digits={4} {...this.props}>{regs.ss}</Number>
+        es&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.ES)}</Number>{' '}
+        ss&nbsp;<Number digits={4} {...this.props}>{cpu.get(Register.SS)}</Number>
         <br />
         <br />
 
-        flags&nbsp;{hex(regs.flags)} {regs.flags_str}
+        flags&nbsp;{hex(cpu.flags())} {cpu.flags_str()}
         <br />
-        {st.length > 0
-          ? (
-            <div>
-              fpu<br />
-              {Array.from(regs.st).map(n => (
-                <span>
-                  {n.toFixed(6)}
-                  <br />
-                </span>
-              ))}
-            </div>
-          )
-          : null}
+        {fpu}
       </div>
     );
   }

@@ -21,33 +21,6 @@ pub enum Status {
 }
 
 #[wasm_bindgen]
-pub enum Register {
-    EAX,
-    ECX,
-    EDX,
-    EBX,
-    ESP,
-    EBP,
-    ESI,
-    EDI,
-}
-
-impl From<Register> for x86::Register {
-    fn from(reg: Register) -> Self {
-        match reg {
-            Register::EAX => x86::Register::EAX,
-            Register::ECX => x86::Register::ECX,
-            Register::EDX => x86::Register::EDX,
-            Register::EBX => x86::Register::EBX,
-            Register::ESP => x86::Register::ESP,
-            Register::EBP => x86::Register::EBP,
-            Register::ESI => x86::Register::ESI,
-            Register::EDI => x86::Register::EDI,
-        }
-    }
-}
-
-#[wasm_bindgen]
 impl Emulator {
     pub fn set_external_dlls(&mut self, dlls: Vec<String>) {
         self.machine.set_external_dlls(dlls);
@@ -72,24 +45,8 @@ impl Emulator {
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn eip(&self) -> u32 {
-        self.machine.emu.x86.cpu().regs.eip
-    }
-    #[wasm_bindgen(setter)]
-    pub fn set_eip(&mut self, value: u32) {
-        self.machine
-            .emu
-            .x86
-            .cpu_mut()
-            .jmp(self.machine.memory.mem(), value);
-    }
-
-    pub fn reg(&self, reg: Register) -> u32 {
-        self.machine.emu.x86.cpu().regs.get32(reg.into())
-    }
-    pub fn set_reg(&mut self, reg: Register, value: u32) {
-        self.machine.emu.x86.cpu_mut().regs.set32(reg.into(), value);
+    pub fn cpu(&mut self) -> debugger::CPU {
+        debugger::CPU::from(self.machine.emu.x86.cpu_mut())
     }
 
     #[wasm_bindgen(getter)]
@@ -98,10 +55,6 @@ impl Emulator {
             win32::Status::Exit(code) => code,
             _ => 0,
         }
-    }
-
-    pub fn regs(&self) -> debugger::Registers {
-        debugger::Registers::from_x86(&self.machine.emu.x86.cpu())
     }
 
     #[wasm_bindgen(getter)]

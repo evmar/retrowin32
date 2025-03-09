@@ -92,7 +92,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           case emulator.Status.Blocked:
             return; // don't stop the UI on this
           case emulator.Status.DebugBreak:
-            const bp = emu.breakpoints.isAtBreakpoint(emu.emu.eip);
+            const bp = emu.breakpoints.isAtBreakpoint(emu.emu.cpu().eip);
             if (bp) {
               if (!bp.oneShot) {
                 this.setState({ selectedTab: 'breakpoints' });
@@ -194,7 +194,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
 
     // Note: disassemble() may cause allocations, invalidating any existing .memory()!
     let instrs: Instruction[] = [];
-    const eip = emulator.emu.eip;
+    const eip = emulator.emu.cpu().eip;
     if (eip == 0xffff_fff0) {
       instrs = [];
     } else {
@@ -227,7 +227,7 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
           </section>
           <section>
             <RegistersComponent
-              emu={emulator.emu}
+              cpu={emulator.emu.cpu()}
               {...this.memoryView}
             />
           </section>

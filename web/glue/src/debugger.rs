@@ -5,35 +5,101 @@ use wasm_bindgen::prelude::*;
 
 use crate::host::WebSurface;
 
-/// Some registers are serialized as a JSON blob.
-/// TODO: remove this.
-#[derive(Tsify, serde::Serialize)]
-#[tsify(into_wasm_abi)]
-pub struct Registers {
-    cs: u16,
-    ds: u16,
-    es: u16,
-    fs: u16,
-    gs: u16,
-    ss: u16,
-    flags: u32,
-    flags_str: String,
-    st: Box<[f64]>,
+#[wasm_bindgen]
+pub enum Register {
+    EAX,
+    ECX,
+    EDX,
+    EBX,
+    ESP,
+    EBP,
+    ESI,
+    EDI,
+    CS,
+    DS,
+    ES,
+    FS,
+    GS,
+    SS,
 }
 
-impl Registers {
-    pub fn from_x86(x86: &x86::CPU) -> Registers {
-        Registers {
-            cs: x86.regs.get16(x86::Register::CS),
-            ds: x86.regs.get16(x86::Register::DS),
-            es: x86.regs.get16(x86::Register::ES),
-            fs: x86.regs.get16(x86::Register::FS),
-            gs: x86.regs.get16(x86::Register::GS),
-            ss: x86.regs.get16(x86::Register::SS),
-            flags: x86.flags.bits(),
-            flags_str: format!("{:?}", x86.flags),
-            st: x86.fpu.st[x86.fpu.st_top..].into(),
+#[wasm_bindgen]
+pub struct CPU {
+    // It's gross to use a raw pointer here, but in practice CPUs are Pin<>ed and
+    // you only access one of these off an Emulator that is keeping things alive.
+    cpu: *mut x86::CPU,
+}
+
+impl From<&mut x86::CPU> for CPU {
+    fn from(cpu: &mut x86::CPU) -> Self {
+        Self { cpu }
+    }
+}
+
+#[wasm_bindgen]
+impl CPU {
+    #[wasm_bindgen(getter)]
+    pub fn eip(&self) -> u32 {
+        let cpu = unsafe { &mut *self.cpu };
+        cpu.regs.eip
+    }
+    pub fn jmp(&mut self, _eip: u32) {
+        let _cpu = unsafe { &mut *self.cpu };
+        todo!(); //cpu.jmp(eip);
+    }
+
+    pub fn get(&self, reg: Register) -> u32 {
+        let cpu = unsafe { &mut *self.cpu };
+        match reg {
+            Register::EAX => cpu.regs.get32(x86::Register::EAX),
+            Register::ECX => cpu.regs.get32(x86::Register::ECX),
+            Register::EDX => cpu.regs.get32(x86::Register::EDX),
+            Register::EBX => cpu.regs.get32(x86::Register::EBX),
+            Register::ESP => cpu.regs.get32(x86::Register::ESP),
+            Register::EBP => cpu.regs.get32(x86::Register::EBP),
+            Register::ESI => cpu.regs.get32(x86::Register::ESI),
+            Register::EDI => cpu.regs.get32(x86::Register::EDI),
+            Register::CS => cpu.regs.get16(x86::Register::CS) as u32,
+            Register::DS => cpu.regs.get16(x86::Register::DS) as u32,
+            Register::ES => cpu.regs.get16(x86::Register::ES) as u32,
+            Register::FS => cpu.regs.get16(x86::Register::FS) as u32,
+            Register::GS => cpu.regs.get16(x86::Register::GS) as u32,
+            Register::SS => cpu.regs.get16(x86::Register::SS) as u32,
         }
+    }
+
+    pub fn set(&self, reg: Register, value: u32) {
+        let cpu = unsafe { &mut *self.cpu };
+        match reg {
+            Register::EAX => cpu.regs.set32(x86::Register::EAX, value),
+            Register::ECX => cpu.regs.set32(x86::Register::ECX, value),
+            Register::EDX => cpu.regs.set32(x86::Register::EDX, value),
+            Register::EBX => cpu.regs.set32(x86::Register::EBX, value),
+            Register::ESP => cpu.regs.set32(x86::Register::ESP, value),
+            Register::EBP => cpu.regs.set32(x86::Register::EBP, value),
+            Register::ESI => cpu.regs.set32(x86::Register::ESI, value),
+            Register::EDI => cpu.regs.set32(x86::Register::EDI, value),
+            Register::CS => cpu.regs.set16(x86::Register::CS, value as u16),
+            Register::DS => cpu.regs.set16(x86::Register::DS, value as u16),
+            Register::ES => cpu.regs.set16(x86::Register::ES, value as u16),
+            Register::FS => cpu.regs.set16(x86::Register::FS, value as u16),
+            Register::GS => cpu.regs.set16(x86::Register::GS, value as u16),
+            Register::SS => cpu.regs.set16(x86::Register::SS, value as u16),
+        }
+    }
+
+    pub fn flags(&self) -> u32 {
+        let cpu = unsafe { &mut *self.cpu };
+        cpu.flags.bits()
+    }
+    pub fn flags_str(&self) -> String {
+        let cpu = unsafe { &mut *self.cpu };
+        format!("{:?}", cpu.flags)
+    }
+
+    pub fn st(&self) -> Box<[f64]> {
+        let cpu = unsafe { &mut *self.cpu };
+        cpu.fpu.st.iter().map(|&x| x as f64).collect()
     }
 }
 
