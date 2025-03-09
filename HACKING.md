@@ -13,10 +13,10 @@ $ cargo build -p retrowin32 -F x86-emu,sdl --profile=lto
 $ ./target/lto/retrowin32 exe/zig_hello/hello.exe
 ```
 
-The command line as seen by the program is an optional third argument:
+Then run it. Arguments after the exe are passed as arguments to the exe.
 
 ```
-$ ./target/lto/retrowin32 path/to/some.exe "c:\\some.exe arg1 arg2"
+$ ./target/lto/retrowin32 path/to/some.exe arg1 arg2
 ```
 
 ### Tracing
