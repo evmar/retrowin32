@@ -4,6 +4,7 @@ import { Instruction } from '../glue/pkg/glue';
 import { EmulatorComponent } from '../web';
 import { BreakpointsComponent } from './break';
 import { Code } from './code';
+import { CPUs } from './cpus';
 import { DirectDraw } from './ddraw';
 import { Labels, parseCSV } from './labels';
 import { Mappings } from './mappings';
@@ -244,6 +245,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             style={{ flex: 1 }}
             tabs={{
               output: () => output,
+
+              cpus: () => <CPUs cpus={emulator.emu.cpus()} />,
 
               memory: () => (
                 <Memory

@@ -38,6 +38,11 @@ impl From<&mut x86::CPU> for CPU {
 
 #[wasm_bindgen]
 impl CPU {
+    pub fn state(&self) -> String {
+        let cpu = unsafe { &mut *self.cpu };
+        format!("{:?}", cpu.state)
+    }
+
     #[wasm_bindgen(getter)]
     pub fn eip(&self) -> u32 {
         let cpu = unsafe { &mut *self.cpu };

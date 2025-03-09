@@ -45,6 +45,16 @@ impl Emulator {
         js_sys::DataView::new(&buf, ofs, buf.byte_length() as usize - ofs)
     }
 
+    pub fn cpus(&mut self) -> Box<[debugger::CPU]> {
+        self.machine
+            .emu
+            .x86
+            .cpus
+            .iter_mut()
+            .map(|cpu| debugger::CPU::from(unsafe { cpu.as_mut().get_unchecked_mut() }))
+            .collect()
+    }
+
     pub fn cpu(&mut self) -> debugger::CPU {
         debugger::CPU::from(self.machine.emu.x86.cpu_mut())
     }
