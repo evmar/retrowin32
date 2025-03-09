@@ -20,11 +20,11 @@ struct Args {
     #[argh(option, short = 'C')]
     chdir: Option<String>,
 
-    /// dlls to load from disk rather than builtin
+    /// dlls to load from disk rather than retrowin32's builtin
     #[argh(option)]
     external_dll: Vec<String>,
 
-    /// winapi systems to trace; see trace.rs for docs
+    /// winapi systems to trace; see HACKING.md for docs
     #[argh(option)]
     win32_trace: Option<String>,
 
