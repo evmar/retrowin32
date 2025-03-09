@@ -256,7 +256,7 @@ export class Emulator implements wasm.JsHost, wasm.JsLogger {
     if (this.looper.running) return;
     this.emu.unblock(); // Attempt to resume any blocked threads.
     // Advance past the current breakpoint, if any.
-    if (this.breakpoints.isAtBreakpoint(this.emu.eip)) {
+    if (this.breakpoints.isAtBreakpoint(this.emu.cpu().eip)) {
       this.step();
     }
     this.breakpoints.install(this.emu);
