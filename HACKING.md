@@ -1,23 +1,33 @@
 # Hacking on retrowin32
 
+retrowin32 has two primary targets: the native app and the web-hosted version.
+
+The native app is for running executables locally. For development it's useful
+for faster iteration and better profiling tools.
+
+The web app runs in a browser. For development it's useful for the integrated
+x86 debugger.
+
 ## Setup
 
 See [build setup docs](doc/build_setup.md) for initial build requirements.
 
-## CLI build
+## Native
 
-Build/run the CLI app:
+Build the app:
 
 ```
 $ cargo build -p retrowin32 -F x86-emu,sdl --profile=lto
-$ ./target/lto/retrowin32 exe/zig_hello/hello.exe
 ```
 
-Then run it. Arguments after the exe are passed as arguments to the exe.
+Run it by passing the path of the executable. Arguments after the exe are passed
+as arguments to the exe.
 
 ```
-$ ./target/lto/retrowin32 path/to/some.exe arg1 arg2
+$ ./target/lto/retrowin32 [flags] path/to/some.exe arg1 arg2
 ```
+
+See `retrowin32 --help` for a list of flags.
 
 ### Tracing
 
@@ -38,7 +48,8 @@ Some common variations I use are:
 --win32-trace '*,-kernel32/memory'
 ```
 
-On `todo()` it's useful to see which function we were in:
+On `todo()` panics it's useful to see which function we were in before the
+crash:
 
 ```
 --win32-trace '^*,-kernel32/memory'
@@ -56,17 +67,17 @@ Build/run the web app:
 ```
 $ cd web
 $ make
-$ npm run serve
+$ npm run serve  # will print a port
 ```
 
-Optionally, `make profile=lto` for faster binary.
+Optionally, `make profile=lto` for a longer compile but faster binary.
 
-## Compile-time features matrix
+## Compile-time features
 
-The above commands cover the main things you'd build, but they wrap some more
-subtle configuration.
+The above commands cover the main things you'd build. The full configuration is
+specified via Rust "features" in the `-F` flag when building.
 
-To choose the x86 emulation strategy, you must pick a Rust "feature":
+To choose the x86 emulation strategy, you must pick one of:
 
 - `x86-emu`: retrowin32's own x86 emulator
 - `x86-64`: generate x86-64 code, requires x86 CPU or Rosetta
