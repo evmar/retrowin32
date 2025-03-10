@@ -96,20 +96,24 @@ fn include_return() -> bool {
     unsafe { STATE.get_mut().as_mut().unwrap().include_return }
 }
 
+/// Where to send trace output; defaults to the logger.
+static mut OUTPUT: Option<fn(&Record)> = Some(Record::to_logger);
+
 pub struct Record {
     file: &'static str,
     line: u32,
+    context: &'static str,
     msg: String,
 }
 
 impl Record {
     pub fn new(
         pos: (&'static str, u32),
-        context: &str,
+        context: &'static str,
         func: &str,
         args: &[(&str, &dyn std::fmt::Debug)],
     ) -> Record {
-        let mut msg = format!("{}/{}(", context, func);
+        let mut msg = format!("{}(", func);
         for (i, arg) in args.iter().enumerate() {
             if i > 0 {
                 msg.push_str(", ");
@@ -119,24 +123,39 @@ impl Record {
         msg.push_str(")");
 
         let (file, line) = pos;
-        Record { file, line, msg }
+        Record {
+            file,
+            line,
+            context,
+            msg,
+        }
     }
 
+    #[allow(static_mut_refs)]
     pub fn enter(self) -> Option<Record> {
         if !include_return() {
-            self.exit(&None::<u32>);
+            unsafe { OUTPUT.as_ref().unwrap()(&self) };
             return None;
         }
         Some(self)
     }
 
-    pub fn exit(&self, result: &dyn std::fmt::Debug) {
+    #[allow(static_mut_refs)]
+    pub fn exit(mut self, result: &dyn std::fmt::Debug) {
+        if !include_return() {
+            return;
+        }
+        write!(self.msg, " -> {:x?}", result).ok();
+        unsafe { OUTPUT.as_ref().unwrap()(&self) };
+    }
+
+    fn to_logger(&self) {
         log::logger().log(
             &log::Record::builder()
                 .level(log::Level::Info)
                 .file(Some(self.file))
                 .line(Some(self.line))
-                .args(format_args!("{} -> {:x?}", self.msg, result))
+                .args(format_args!("{}/{}", self.context, self.msg))
                 .build(),
         );
     }
