@@ -52,7 +52,7 @@ jobs:
       - name: Install wasm-opt
         run: cargo install --locked wasm-opt --version 0.116.1
       - name: Build Rust
-        run: make -C web profile=lto
+        run: make -C web wasm profile=lto
 
       - uses: actions/setup-node@v4
         with:
