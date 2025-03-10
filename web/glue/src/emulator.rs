@@ -136,10 +136,15 @@ pub fn js_host() -> &'static JsHost {
     unsafe { JS_HOST.as_ref().unwrap() }
 }
 
+fn win32_trace(r: &win32::winapi::trace::Record) {
+    js_host().win32_trace(r.context, &r.msg);
+}
+
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost) -> Emulator {
     unsafe { JS_HOST = Some(host.clone().unchecked_into()) };
     crate::log::init();
+    win32::winapi::trace::set_output(win32_trace);
     let machine = win32::Machine::new(Box::new(host));
     Emulator { machine }
 }

@@ -260,6 +260,8 @@ impl win32::ReadDir for ReadDir {
 const JSHOST_TS: &'static str = r#"
 export interface JsHost {
   log(level: number, msg: string): void;
+  win32_trace(contest: string, msg: string): void;
+
   ensure_timer(when: number): void;
   get_event(): Event | undefined;
   
@@ -278,6 +280,9 @@ extern "C" {
 
     #[wasm_bindgen(method)]
     pub fn log(this: &JsHost, level: u8, msg: String);
+
+    #[wasm_bindgen(method)]
+    pub fn win32_trace(this: &JsHost, context: &str, msg: &str);
 
     #[wasm_bindgen(method)]
     fn ensure_timer(this: &JsHost, when: u32);

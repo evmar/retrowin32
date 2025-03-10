@@ -99,11 +99,15 @@ fn include_return() -> bool {
 /// Where to send trace output; defaults to the logger.
 static mut OUTPUT: Option<fn(&Record)> = Some(Record::to_logger);
 
+pub fn set_output(output: fn(&Record)) {
+    unsafe { OUTPUT = Some(output) };
+}
+
 pub struct Record {
-    file: &'static str,
-    line: u32,
-    context: &'static str,
-    msg: String,
+    pub file: &'static str,
+    pub line: u32,
+    pub context: &'static str,
+    pub msg: String,
 }
 
 impl Record {
