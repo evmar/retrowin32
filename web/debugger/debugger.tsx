@@ -12,6 +12,7 @@ import { Memory, MemoryView, Number } from './memory';
 import { RegistersComponent } from './registers';
 import { Stack } from './stack';
 import { Tabs } from './tabs';
+import { TraceComponent } from './trace';
 
 namespace StartStop {
   export interface Props {
@@ -56,6 +57,7 @@ namespace Debugger {
     emulator?: emulator.Emulator;
     stdout?: string;
     error: string;
+    trace: emulator.Trace[];
     /** Initial address to show in memory pane. */
     memBase: number;
     /** Address to highlight in memory pane. */
@@ -67,7 +69,7 @@ namespace Debugger {
   }
 }
 export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
-  state: Debugger.State = { error: '', memBase: 0, labels: new Labels(), selectedTab: 'output' };
+  state: Debugger.State = { error: '', memBase: 0, labels: new Labels(), selectedTab: 'output', trace: [] };
 
   private async load() {
     this.print('Loading...\n');
@@ -89,7 +91,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
         this.print(stdout);
       },
       onTrace: (trace: emulator.Trace) => {
-        console.info(`${trace.context}/${trace.msg}`);
+        this.state.trace.push(trace);
+        this.setState({ trace: this.state.trace });
       },
       onStopped: (status) => {
         switch (status) {
@@ -248,6 +251,8 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
             style={{ flex: 1 }}
             tabs={{
               output: () => output,
+
+              trace: () => <TraceComponent trace={this.state.trace} />,
 
               cpus: () => <CPUs cpus={emulator.emu.cpus()} />,
 
