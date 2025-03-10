@@ -127,7 +127,7 @@ export interface Host {
 }
 
 /** Wraps wasm.Emulator, providing the emulation=>web API. */
-export class Emulator implements wasm.JsHost, wasm.JsLogger {
+export class Emulator implements wasm.JsHost {
   readonly emu: wasm.Emulator;
   breakpoints: Breakpoints;
   looper: Looper;

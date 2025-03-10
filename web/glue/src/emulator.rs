@@ -129,9 +129,17 @@ impl Emulator {
     }
 }
 
+static mut JS_HOST: Option<JsHost> = None;
+
+#[allow(static_mut_refs)]
+pub fn js_host() -> &'static JsHost {
+    unsafe { JS_HOST.as_ref().unwrap() }
+}
+
 #[wasm_bindgen]
 pub fn new_emulator(host: JsHost) -> Emulator {
-    crate::log::init(host.clone().unchecked_into());
+    unsafe { JS_HOST = Some(host.clone().unchecked_into()) };
+    crate::log::init();
     let machine = win32::Machine::new(Box::new(host));
     Emulator { machine }
 }

@@ -2,25 +2,15 @@
 //! This doesn't map directly to console.log etc. because we want to (eventually)
 //! surface these logs in the UI.
 
-use wasm_bindgen::prelude::*;
+use crate::emulator;
 
-#[wasm_bindgen(typescript_custom_section)]
-const JSLOGGER_TS: &'static str = r#"
-export interface JsLogger {
-  log(level: number, msg: string): void;
-}"#;
+struct JsLogger;
 
-#[wasm_bindgen]
-extern "C" {
-    pub type JsLogger;
-
-    #[wasm_bindgen(method)]
-    fn log(this: &JsLogger, level: u8, msg: String);
-}
+const JS_LOGGER: JsLogger = JsLogger;
 
 impl log::Log for JsLogger {
     fn log(&self, record: &log::Record) {
-        self.log(
+        emulator::js_host().log(
             record.level() as u8,
             format!(
                 "{}:{} {}",
@@ -38,20 +28,12 @@ impl log::Log for JsLogger {
     fn flush(&self) {}
 }
 
-// There are no threads in wasm, but the log crate requires these traits.
-unsafe impl Sync for JsLogger {}
-unsafe impl Send for JsLogger {}
-
-pub fn init(host: JsLogger) {
-    let logger: &'static mut JsLogger = {
-        let host: JsLogger = host.clone().unchecked_into();
-        Box::leak(Box::new(host))
-    };
-    log::set_logger(logger).unwrap();
+pub fn init() {
+    log::set_logger(&JS_LOGGER).unwrap();
     log::set_max_level(log::LevelFilter::Debug);
     std::panic::set_hook(Box::new(move |info| {
         // Don't use log::error!() here, because that includes the current file
         // and line, which just points at the logging code.
-        host.log(log::Level::Error as u8, format!("panic: {}", info));
+        emulator::js_host().log(log::Level::Error as u8, format!("panic: {}", info));
     }));
 }
