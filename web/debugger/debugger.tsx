@@ -88,6 +88,9 @@ export class Debugger extends preact.Component<Debugger.Props, Debugger.State> {
       onStdOut: (stdout: string) => {
         this.print(stdout);
       },
+      onTrace: (trace: emulator.Trace) => {
+        console.info(`${trace.context}/${trace.msg}`);
+      },
       onStopped: (status) => {
         switch (status) {
           case emulator.Status.Blocked:
