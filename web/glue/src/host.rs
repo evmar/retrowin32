@@ -277,7 +277,7 @@ extern "C" {
     pub type JsHost;
 
     #[wasm_bindgen(method)]
-    fn log(this: &JsHost, level: u8, msg: String);
+    pub fn log(this: &JsHost, level: u8, msg: String);
 
     #[wasm_bindgen(method)]
     fn ensure_timer(this: &JsHost, when: u32);
