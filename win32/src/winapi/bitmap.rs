@@ -138,6 +138,7 @@ impl<'a> BitmapInfo<'a> {
     fn parseBMPv3(header: &BITMAPINFOHEADER, buf: &'a [u8]) -> Self {
         let palette_len = match header.biBitCount {
             32 => 0,
+            16 => 0,
             8 => 256,
             4 => 16,
             1 => 2,
@@ -347,6 +348,12 @@ impl Bitmap {
                 32 => {
                     // TODO: might need to swizzle here, depending on BI::BITFIELDS.
                     dst.extend_from_slice(transmute_pixels(&row[..width * 4]));
+                }
+                16 => {
+                    let row: &[u16] = transmute_pixels(row);
+                    for &p in row {
+                        dst.push(PixelFormat::decode_rgb555(p).to_pixel());
+                    }
                 }
                 8 => {
                     for &p in &row[..width] {

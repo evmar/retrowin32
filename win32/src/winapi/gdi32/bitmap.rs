@@ -352,7 +352,7 @@ pub fn SetDIBitsToDevice(
     lpBmi: u32,
     iUsage: u32,
 ) -> u32 {
-    if StartScan as i32 != ySrc || cLines as i32 != h {
+    if StartScan as i32 != 0 {
         todo!()
     }
     if iUsage != DIB_RGB_COLORS {
