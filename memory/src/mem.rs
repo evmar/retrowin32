@@ -63,7 +63,7 @@ pub trait Extensions<'m>: Sized {
 pub trait ExtensionsMut<'m>: Sized {
     fn get_ptr_mut<T: Pod>(self, ofs: u32) -> *mut T;
     fn sub32_mut(self, ofs: u32, len: u32) -> &'m mut [u8];
-    fn put_pod<T: Clone + Pod>(self, ofs: u32, val: T) {
+    fn put_pod<T: Pod>(self, ofs: u32, val: T) {
         unsafe {
             std::ptr::write_unaligned(self.get_ptr_mut::<T>(ofs), val);
         }
