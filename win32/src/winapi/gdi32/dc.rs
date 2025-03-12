@@ -20,6 +20,19 @@ pub enum DCTarget {
     DirectDrawSurface(u32),
 }
 
+impl std::fmt::Debug for DCTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Memory(_) => f.debug_tuple("Memory").finish(),
+            Self::DesktopWindow => write!(f, "DesktopWindow"),
+            Self::Window(_) => f.debug_tuple("Window").finish(),
+            Self::DirectDrawSurface(arg0) => {
+                f.debug_tuple("DirectDrawSurface").field(arg0).finish()
+            }
+        }
+    }
+}
+
 impl DCTarget {
     /// Get the pixel buffer underlying this target.
     pub fn get_bitmap(&self, machine: &Machine) -> Rc<RefCell<Bitmap>> {

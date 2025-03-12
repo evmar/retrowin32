@@ -99,10 +99,20 @@ pub fn SelectObject(machine: &mut Machine, hdc: HDC, hGdiObj: HGDIOBJ) -> HGDIOB
     match obj {
         Object::Bitmap(bitmap) => match dc.target {
             DCTarget::Memory(_) => {
+                // TODO: "A single bitmap cannot be selected into more than one DC at the same time."
                 dc.target = DCTarget::Memory(bitmap.clone());
                 std::mem::replace(&mut dc.bitmap, hGdiObj)
             }
-            _ => todo!(),
+            _ => {
+                // MSDN: "Bitmaps can only be selected into memory DC's [sic].""
+                // But kill the clone attempts to select one onto a window, just before using
+                // normal drawing calls to draw the same bitmap onto the same window.
+                log::warn!(
+                    "ignoring invalid SelectObject of bitmap onto {:?}",
+                    dc.target
+                );
+                HGDIOBJ::null()
+            }
         },
         Object::Brush(_) => std::mem::replace(&mut dc.brush, hGdiObj),
         Object::Pen(_) => std::mem::replace(&mut dc.pen, hGdiObj),
