@@ -1888,6 +1888,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn IsWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("user32/window") {
+            crate::winapi::trace::Record::new(
+                winapi::user32::IsWindow_pos,
+                "user32/window",
+                "IsWindow",
+                &[("hWnd", &hWnd)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::IsWindow(machine, hWnd);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn IsWindowVisible(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3663,7 +3683,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 145usize] = [
+const SHIMS: [Shim; 146usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3963,6 +3983,10 @@ const SHIMS: [Shim; 145usize] = [
     Shim {
         name: "IsRectEmpty",
         func: Handler::Sync(wrappers::IsRectEmpty),
+    },
+    Shim {
+        name: "IsWindow",
+        func: Handler::Sync(wrappers::IsWindow),
     },
     Shim {
         name: "IsWindowVisible",

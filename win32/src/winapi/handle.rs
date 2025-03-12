@@ -66,6 +66,9 @@ impl<T> HANDLE<T> {
     pub fn is_invalid(&self) -> bool {
         self.raw == -1i32 as u32
     }
+    pub fn is_null_or_invalid(&self) -> bool {
+        self.is_null() || self.is_invalid()
+    }
 
     pub fn to_option(self) -> Option<Self> {
         if self.is_null() || self.is_invalid() {

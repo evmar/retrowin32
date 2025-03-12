@@ -1170,3 +1170,11 @@ pub fn EnableWindow(_machine: &mut Machine, hWnd: HWND, bEnable: bool) -> bool {
 pub fn IsWindowVisible(_machine: &mut Machine, hWnd: HWND) -> bool {
     true
 }
+
+#[win32_derive::dllexport]
+pub fn IsWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+    if hWnd.is_null_or_invalid() {
+        return false;
+    }
+    true
+}
