@@ -1047,12 +1047,14 @@ pub enum GWL {
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
+pub fn GetWindowLongA(machine: &mut Machine, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
+    let window = machine.state.user32.windows.get(hWnd).unwrap().borrow();
     match nIndex {
         Ok(gwl) => match gwl {
             GWL::STYLE => WS::empty().bits() as i32,
             GWL::EXSTYLE => WS_EX::empty().bits() as i32,
-            _ => todo!("GetWindowLong({gwl:?})"),
+            GWL::USERDATA => window.user_data,
+            // _ => todo!("GetWindowLong({gwl:?})"),
         },
         Err(val) => todo!("GetWindowLong({nIndex})", nIndex = val as i32),
     }
