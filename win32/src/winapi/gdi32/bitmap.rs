@@ -278,9 +278,11 @@ pub fn CreateDIBSection(
     if bi.is_bottom_up() {
         log::warn!("CreateDIBSection: bottom-up bitmap will need flipping");
     }
-    if bi.biBitCount != 32 {
-        todo!()
-    }
+    let format = match bi.biBitCount {
+        32 => PixelFormat::RGBA32,
+        16 => PixelFormat::RGB555,
+        _ => todo!(),
+    };
     match bi.compression().unwrap() {
         BI::BITFIELDS => {
             // TODO: ought to check that .bmiColors masks are the RGBX we expect.
@@ -303,7 +305,7 @@ pub fn CreateDIBSection(
     let bitmap = Bitmap {
         width: bi.width(),
         height: bi.height(),
-        format: PixelFormat::RGBA32,
+        format,
         pixels: PixelData::Ptr(pixels, byte_count),
     };
     machine.state.gdi32.objects.add_bitmap(bitmap)
