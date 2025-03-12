@@ -50,7 +50,6 @@ pub enum CreationDisposition {
 bitflags! {
     #[derive(win32_derive::TryFromBitflags)]
     pub struct FileAttribute: u32 {
-        const INVALID = u32::MAX;
         const READONLY = 0x1;
         const HIDDEN = 0x2;
         const SYSTEM = 0x4;
@@ -73,6 +72,12 @@ bitflags! {
         const UNPINNED = 0x100000;
         const RECALL_ON_OPEN = 0x40000;
         const RECALL_ON_DATA_ACCESS = 0x400000;
+    }
+}
+impl FileAttribute {
+    pub fn invalid() -> FileAttribute {
+        // INVALID_FILE_ATTRIBUTES is not part of the enum
+        unsafe { FileAttribute::from_bits_unchecked(u32::MAX) }
     }
 }
 
@@ -110,15 +115,33 @@ bitflags! {
     }
 }
 
+/// The dwFlagsAndAttributes param to CreateFile combines FileAttribute with other flags.
+#[derive(Debug)]
+pub struct FlagsAndAttributes {
+    #[allow(unused)] // logged in debugging
+    flags: u32,
+    attr: FileAttribute,
+}
+
+impl TryFrom<u32> for FlagsAndAttributes {
+    type Error = u32;
+
+    fn try_from(value: u32) -> Result<Self, Self::Error> {
+        let attr = FileAttribute::from_bits(value & FileAttribute::all().bits()).unwrap();
+        let flags = value & !FileAttribute::all().bits();
+        Ok(FlagsAndAttributes { flags, attr })
+    }
+}
+
 #[win32_derive::dllexport]
 pub fn CreateFileA(
     machine: &mut Machine,
     lpFileName: Option<&str>,
-    dwDesiredAccess: u32,
+    dwDesiredAccess: Result<GENERIC, u32>,
     dwShareMode: u32,
     lpSecurityAttributes: u32,
     dwCreationDisposition: Result<CreationDisposition, u32>,
-    dwFlagsAndAttributes: Result<FileAttribute, u32>,
+    dwFlagsAndAttributes: Result<FlagsAndAttributes, u32>,
     hTemplateFile: HFILE,
 ) -> HFILE {
     let Some(file_name) = lpFileName else {
@@ -128,7 +151,7 @@ pub fn CreateFileA(
     };
 
     // If this from_bits fails, it's due to more complex access bits; see ACCESS_MASK in MSDN docs.
-    let mut generic_access = GENERIC::from_bits(dwDesiredAccess).unwrap();
+    let mut generic_access = dwDesiredAccess.unwrap();
     let creation_disposition = match dwCreationDisposition {
         Ok(value) => value,
         Err(value) => {
@@ -159,9 +182,9 @@ pub fn CreateFileA(
         create_new: creation_disposition == CreationDisposition::CREATE_NEW,
     };
 
-    let attr = dwFlagsAndAttributes.unwrap();
-    if !(attr & !FileAttribute::NORMAL).is_empty() {
-        unimplemented!("dwFlagsAndAttributes {attr:?}");
+    let flags = dwFlagsAndAttributes.unwrap();
+    if !(flags.attr & !FileAttribute::NORMAL).is_empty() {
+        unimplemented!("dwFlagsAndAttributes {attr:?}", attr = flags.attr);
     }
 
     if !hTemplateFile.is_null() {
@@ -186,11 +209,11 @@ pub fn CreateFileA(
 pub fn CreateFileW(
     machine: &mut Machine,
     lpFileName: Option<&Str16>,
-    dwDesiredAccess: u32,
+    dwDesiredAccess: Result<GENERIC, u32>,
     dwShareMode: u32,
     lpSecurityAttributes: u32,
     dwCreationDisposition: Result<CreationDisposition, u32>,
-    dwFlagsAndAttributes: Result<FileAttribute, u32>,
+    dwFlagsAndAttributes: Result<FlagsAndAttributes, u32>,
     hTemplateFile: HFILE,
 ) -> HFILE {
     CreateFileA(
@@ -631,7 +654,7 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
     let Some(file_name) = lpFileName else {
         log::debug!("CreateFileA failed: null lpFileName");
         set_last_error(machine, ERROR::INVALID_DATA);
-        return FileAttribute::INVALID;
+        return FileAttribute::invalid();
     };
 
     let path = WindowsPath::new(file_name);
@@ -640,7 +663,7 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
         Err(err) => {
             log::debug!("GetFileAttributesA({file_name:?}) failed: {err:?}",);
             set_last_error(machine, err);
-            return FileAttribute::INVALID;
+            return FileAttribute::invalid();
         }
     };
 

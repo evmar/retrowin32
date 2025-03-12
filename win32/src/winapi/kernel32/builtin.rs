@@ -269,13 +269,13 @@ mod wrappers {
     pub unsafe fn CreateFileA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 4u32);
+        let dwDesiredAccess = <Result<GENERIC, u32>>::from_stack(mem, stack_args + 4u32);
         let dwShareMode = <u32>::from_stack(mem, stack_args + 8u32);
         let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 12u32);
         let dwCreationDisposition =
             <Result<CreationDisposition, u32>>::from_stack(mem, stack_args + 16u32);
         let dwFlagsAndAttributes =
-            <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 20u32);
+            <Result<FlagsAndAttributes, u32>>::from_stack(mem, stack_args + 20u32);
         let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
             crate::winapi::trace::Record::new(
@@ -314,13 +314,13 @@ mod wrappers {
     pub unsafe fn CreateFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
-        let dwDesiredAccess = <u32>::from_stack(mem, stack_args + 4u32);
+        let dwDesiredAccess = <Result<GENERIC, u32>>::from_stack(mem, stack_args + 4u32);
         let dwShareMode = <u32>::from_stack(mem, stack_args + 8u32);
         let lpSecurityAttributes = <u32>::from_stack(mem, stack_args + 12u32);
         let dwCreationDisposition =
             <Result<CreationDisposition, u32>>::from_stack(mem, stack_args + 16u32);
         let dwFlagsAndAttributes =
-            <Result<FileAttribute, u32>>::from_stack(mem, stack_args + 20u32);
+            <Result<FlagsAndAttributes, u32>>::from_stack(mem, stack_args + 20u32);
         let hTemplateFile = <HFILE>::from_stack(mem, stack_args + 24u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file") {
             crate::winapi::trace::Record::new(
