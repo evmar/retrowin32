@@ -62,7 +62,7 @@ fn convert_type(ty: &windows_metadata::Type) -> String {
         String => todo!(),
         Object => todo!(),
         Name(name) => convert_typename(name, None),
-        Const(_type_name) => todo!(),
+        Const(name) => convert_typename(name, None),
         GenericParam(_generic_param) => todo!(),
         TypeDef(type_def, vec) => {
             assert!(vec.is_empty()); // ?
@@ -127,6 +127,18 @@ fn convert_method(method: &windows_metadata::MethodDef) {
     }
 }
 
+fn convert_typedef(type_def: &windows_metadata::TypeDef) {
+    println!("struct {name} {{", name = type_def.name());
+    for f in type_def.fields() {
+        println!(
+            "    {name}: {ty},",
+            name = f.name(),
+            ty = convert_type(&f.ty(None))
+        );
+    }
+    println!("}}");
+}
+
 fn main() {
     let bytes = std::fs::read(r#"Windows.Win32.winmd"#).expect("File not found");
 
@@ -136,8 +148,11 @@ fn main() {
     for search in std::env::args().skip(1) {
         for item in reader.items() {
             match item {
-                windows_metadata::Item::Type(_type_def) => {
-                    //println!("type {n}", n = type_def.name());
+                windows_metadata::Item::Type(type_def) => {
+                    if type_def.name() != search {
+                        continue;
+                    }
+                    convert_typedef(&type_def);
                 }
                 windows_metadata::Item::Const(_field) => {
                     //println!("f {n}", n = field.name());
