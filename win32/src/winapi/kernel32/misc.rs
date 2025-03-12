@@ -422,5 +422,6 @@ pub type SEM = u32; // TODO: SEM_*
 
 #[win32_derive::dllexport]
 pub fn SetErrorMode(_machine: &mut Machine, uMode: SEM) -> SEM {
-    todo!()
+    log::warn!("ignoring SetErrorMode({uMode:x?})");
+    uMode
 }

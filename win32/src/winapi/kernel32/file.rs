@@ -715,7 +715,8 @@ pub fn SetCurrentDirectoryW(_machine: &mut Machine, lpPathName: Option<&Str16>) 
 
 #[win32_derive::dllexport]
 pub fn SetCurrentDirectoryA(_machine: &mut Machine, lpPathName: Option<&str>) -> bool {
-    todo!()
+    log::warn!("SetCurrentDirectoryA not implemented");
+    true
 }
 
 #[repr(C)]
@@ -1221,12 +1222,15 @@ pub fn GetDriveTypeW(_machine: &mut Machine, lpRootPathName: Option<&Str16>) -> 
 
 #[win32_derive::dllexport]
 pub fn GetDriveTypeA(_machine: &mut Machine, lpRootPathName: Option<&str>) -> u32 {
-    todo!()
+    const DRIVE_FIXED: u32 = 3; // hard drive
+    DRIVE_FIXED
 }
 
 #[win32_derive::dllexport]
 pub fn GetLogicalDrives(_machine: &mut Machine) -> u32 {
-    todo!()
+    let mut drives = 0;
+    drives |= 1 << 2; // C:
+    drives
 }
 
 #[cfg(test)]
