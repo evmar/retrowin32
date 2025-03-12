@@ -120,13 +120,13 @@ export interface Host {
   onWindowChanged(): void;
   onError(msg: string): void;
   onStdOut(stdout: string): void;
-  onTrace(trace: Trace): void;
   /** Notification that the emulator stopped, e.g. on blocking, error, or exit. */
   onStopped(status: Status): void;
   /** DOM event on an emulator surface; should be forwarded to emulator. */
   onEvent(event: Event): void;
 }
 
+/** Windows function calls, for debugging. */
 export interface Trace {
   context: string;
   msg: string;
@@ -139,6 +139,7 @@ export class Emulator implements wasm.JsHost {
   breakpoints: Breakpoints;
   looper: Looper;
 
+  trace: Trace[] = [];
   events: Event[] = [];
   timer?: number;
 
@@ -179,7 +180,7 @@ export class Emulator implements wasm.JsHost {
   }
 
   win32_trace(context: string, msg: string) {
-    this.host.onTrace({ context, msg });
+    this.trace.push({ context, msg });
   }
 
   ensure_timer(when: number): void {

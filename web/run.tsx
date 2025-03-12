@@ -82,9 +82,6 @@ class Page extends preact.Component<{}, Page.State> {
       onStdOut: (stdout) => {
         this.print(stdout);
       },
-      onTrace: (trace) => {
-        throw new Error('unexpected trace');
-      },
       onStopped: (status) => {
         switch (status) {
           case emulator.Status.Exit:
