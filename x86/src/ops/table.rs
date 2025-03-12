@@ -438,6 +438,8 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Fldcw_m2byte as usize] = Some(fldcw_m2byte);
     tab[iced_x86::Code::Fclex as usize] = Some(nop);
     tab[iced_x86::Code::Fnclex as usize] = Some(nop);
+    tab[iced_x86::Code::Fnsave_m108byte as usize] = Some(nop);
+    tab[iced_x86::Code::Frstor_m108byte as usize] = Some(nop);
 
     tab[iced_x86::Code::Fcmovnbe_st0_sti as usize] = Some(fcmovnbe_st0_sti);
 
