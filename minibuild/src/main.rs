@@ -67,6 +67,7 @@ fn main() -> anyhow::Result<()> {
     let dlls = [
         "advapi32",
         "bass",
+        "comctl32",
         "ddraw",
         "dinput",
         "dsound",

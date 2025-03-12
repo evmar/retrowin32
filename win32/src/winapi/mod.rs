@@ -6,6 +6,7 @@ mod bass;
 mod bitmap;
 pub mod builtin;
 mod com;
+mod comctl32;
 pub mod ddraw;
 mod dinput;
 pub mod dsound;
