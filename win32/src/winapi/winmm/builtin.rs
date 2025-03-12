@@ -173,6 +173,25 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn midiInGetNumDevs(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("winmm/midi") {
+            crate::winapi::trace::Record::new(
+                winapi::winmm::midiInGetNumDevs_pos,
+                "winmm/midi",
+                "midiInGetNumDevs",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::winmm::midiInGetNumDevs(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn midiOutClose(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hmo = <HMIDIOUT>::from_stack(mem, stack_args + 0u32);
@@ -896,7 +915,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 39usize] = [
+const SHIMS: [Shim; 40usize] = [
     Shim {
         name: "PlaySoundW",
         func: Handler::Sync(wrappers::PlaySoundW),
@@ -924,6 +943,10 @@ const SHIMS: [Shim; 39usize] = [
     Shim {
         name: "mciSendStringA",
         func: Handler::Sync(wrappers::mciSendStringA),
+    },
+    Shim {
+        name: "midiInGetNumDevs",
+        func: Handler::Sync(wrappers::midiInGetNumDevs),
     },
     Shim {
         name: "midiOutClose",

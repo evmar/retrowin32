@@ -50,3 +50,8 @@ pub fn midiOutSetVolume(_machine: &mut Machine, hmo: HMIDIOUT, dwVolume: u32) ->
 pub fn midiOutShortMsg(_machine: &mut Machine, hmo: HMIDIOUT, dwMsg: u32) -> u32 {
     todo!()
 }
+
+#[win32_derive::dllexport]
+pub fn midiInGetNumDevs(_machine: &mut Machine) -> u32 {
+    0
+}
