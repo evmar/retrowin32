@@ -95,6 +95,24 @@ bitflags! {
     }
 }
 
+#[derive(Debug)]
+#[allow(unused)]
+struct CREATESTRUCTA {
+    lpCreateParams: u32,
+    hInstance: HINSTANCE,
+    hMenu: HMENU,
+    hwndParent: HWND,
+    cy: i32,
+    cx: i32,
+    y: i32,
+    x: i32,
+    style: i32,
+    lpszName: u32,
+    lpszClass: u32,
+    dwExStyle: WS_EX, /* WINDOW_EX_STYLE */
+}
+unsafe impl ::memory::Pod for CREATESTRUCTA {}
+
 pub struct Window {
     /// Identity for tying to Surfaces in the host.
     // TODO: make create_surface a method on Window and remove this.
@@ -393,16 +411,43 @@ pub async fn CreateWindowExW(
         .set(hwnd, Rc::new(RefCell::new(window)));
 
     // Synchronously dispatch WM_CREATE.
+    let createstruct_addr = machine.state.scratch.alloc(
+        machine.memory.mem(),
+        std::mem::size_of::<CREATESTRUCTA>() as u32,
+    );
+    machine.mem().put_pod::<CREATESTRUCTA>(
+        createstruct_addr,
+        CREATESTRUCTA {
+            lpCreateParams: lpParam,
+            hInstance,
+            hMenu,
+            hwndParent: HWND::null(),
+            cy: 0,
+            cx: 0,
+            y: 0,
+            x: 0,
+            style: 0,
+            lpszName: 0,
+            lpszClass: 0,
+            dwExStyle: WS_EX::empty(),
+        },
+    );
+
     let msg = MSG {
         hwnd,
         message: WM::CREATE as u32,
         wParam: 0,
-        lParam: 0, // TODO: CREATESTRUCT
+        lParam: createstruct_addr,
         time: 0,
         pt_x: 0,
         pt_y: 0,
     };
     dispatch_message(machine, &msg).await;
+
+    machine
+        .state
+        .scratch
+        .free(machine.memory.mem(), createstruct_addr);
 
     hwnd
 }
