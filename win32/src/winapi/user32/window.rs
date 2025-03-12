@@ -126,6 +126,8 @@ pub struct Window {
     pub style: WS,
     /// The current show state of the window.
     pub show_cmd: SW,
+    /// User data set via SetWindowLong.
+    pub user_data: i32,
 }
 
 pub enum WindowType {
@@ -403,6 +405,7 @@ pub async fn CreateWindowExW(
         wndclass,
         style,
         show_cmd: SW::HIDE,
+        user_data: 0,
     };
     machine
         .state
@@ -1035,27 +1038,41 @@ pub fn ReleaseDC(machine: &mut Machine, hwnd: HWND, hdc: HDC) -> bool {
     true
 }
 
+/// System metrics.
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum GWL {
+    STYLE = -16,
+    EXSTYLE = -20,
+    USERDATA = -21,
+}
+
 #[win32_derive::dllexport]
-pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: i32) -> i32 {
+pub fn GetWindowLongA(_machine: &mut Machine, hWnd: HWND, nIndex: Result<GWL, u32>) -> i32 {
     match nIndex {
-        // GWL_STYLE
-        -16 => WS::empty().bits() as i32,
-
-        // GWL_EXSTYLE
-        -20 => WS_EX::empty().bits() as i32,
-
-        _ => todo!("GetWindowLong({nIndex})"),
+        Ok(gwl) => match gwl {
+            GWL::STYLE => WS::empty().bits() as i32,
+            GWL::EXSTYLE => WS_EX::empty().bits() as i32,
+            _ => todo!("GetWindowLong({gwl:?})"),
+        },
+        Err(val) => todo!("GetWindowLong({nIndex})", nIndex = val as i32),
     }
 }
 
 #[win32_derive::dllexport]
 pub fn SetWindowLongA(
-    _machine: &mut Machine,
+    machine: &mut Machine,
     hWnd: HWND,
-    nIndex: u32, /* WINDOW_LONG_PTR_INDEX */
+    nIndex: Result<GWL, u32>,
     dwNewLong: i32,
 ) -> i32 {
-    todo!()
+    let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
+    match nIndex {
+        Ok(gwl) => match gwl {
+            GWL::USERDATA => std::mem::replace(&mut window.user_data, dwNewLong),
+            _ => todo!("GetWindowLong({gwl:?})"),
+        },
+        Err(val) => todo!("SetWindowLong({nIndex})", nIndex = val as i32),
+    }
 }
 
 #[win32_derive::dllexport]

@@ -1654,7 +1654,7 @@ mod wrappers {
     pub unsafe fn GetWindowLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let nIndex = <i32>::from_stack(mem, stack_args + 4u32);
+        let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
         let __trace_record = if crate::winapi::trace::enabled("user32/window") {
             crate::winapi::trace::Record::new(
                 winapi::user32::GetWindowLongA_pos,
@@ -3250,7 +3250,7 @@ mod wrappers {
     pub unsafe fn SetWindowLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
-        let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+        let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
         let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
         let __trace_record = if crate::winapi::trace::enabled("user32/window") {
             crate::winapi::trace::Record::new(
