@@ -4856,6 +4856,37 @@ mod wrappers {
             result.into()
         })
     }
+    pub unsafe fn SleepEx(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+        let mem = machine.mem().detach();
+        let dwMilliseconds = <u32>::from_stack(mem, stack_args + 0u32);
+        let bAlertable = <bool>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/time") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::SleepEx_pos,
+                "kernel32/time",
+                "SleepEx",
+                &[
+                    ("dwMilliseconds", &dwMilliseconds),
+                    ("bAlertable", &bAlertable),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::kernel32::SleepEx(machine, dwMilliseconds, bAlertable).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
+    }
     pub unsafe fn SystemTimeToFileTime(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpSystemTime = <Option<&SYSTEMTIME>>::from_stack(mem, stack_args + 0u32);
@@ -5690,7 +5721,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 231usize] = [
+const SHIMS: [Shim; 232usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6486,6 +6517,10 @@ const SHIMS: [Shim; 231usize] = [
     Shim {
         name: "Sleep",
         func: Handler::Async(wrappers::Sleep),
+    },
+    Shim {
+        name: "SleepEx",
+        func: Handler::Async(wrappers::SleepEx),
     },
     Shim {
         name: "SystemTimeToFileTime",

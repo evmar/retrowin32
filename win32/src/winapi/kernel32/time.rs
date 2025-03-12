@@ -164,6 +164,11 @@ pub async fn Sleep(machine: &mut Machine, dwMilliseconds: u32) -> u32 {
     0
 }
 
+#[win32_derive::dllexport]
+pub async fn SleepEx(machine: &mut Machine, dwMilliseconds: u32, bAlertable: bool) -> u32 {
+    Sleep(machine, dwMilliseconds).await
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub struct SYSTEMTIME {
