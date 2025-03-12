@@ -3462,6 +3462,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn TrackMouseEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::user32::TrackMouseEvent_pos,
+                "user32/misc",
+                "TrackMouseEvent",
+                &[("lpEventTrack", &lpEventTrack)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::TrackMouseEvent(machine, lpEventTrack);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn TranslateAcceleratorW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
@@ -3683,7 +3703,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 146usize] = [
+const SHIMS: [Shim; 147usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -4231,6 +4251,10 @@ const SHIMS: [Shim; 146usize] = [
     Shim {
         name: "SystemParametersInfoA",
         func: Handler::Sync(wrappers::SystemParametersInfoA),
+    },
+    Shim {
+        name: "TrackMouseEvent",
+        func: Handler::Sync(wrappers::TrackMouseEvent),
     },
     Shim {
         name: "TranslateAcceleratorW",

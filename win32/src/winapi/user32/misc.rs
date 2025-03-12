@@ -396,3 +396,18 @@ pub fn RegisterClipboardFormatA(_machine: &mut Machine, lpszFormat: Option<&str>
     log::warn!("RegisterClipboardFormatA: stub");
     false
 }
+
+#[derive(Debug)]
+#[allow(unused)]
+pub struct TRACKMOUSEEVENT {
+    cbSize: u32,
+    dwFlags: u32, /* TRACKMOUSEEVENT_FLAGS */
+    hwndTrack: HWND,
+    dwHoverTime: u32,
+}
+unsafe impl ::memory::Pod for TRACKMOUSEEVENT {}
+
+#[win32_derive::dllexport]
+pub fn TrackMouseEvent(_machine: &mut Machine, lpEventTrack: Option<&mut TRACKMOUSEEVENT>) -> bool {
+    false // fail
+}
