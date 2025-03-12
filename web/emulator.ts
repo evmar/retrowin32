@@ -338,15 +338,14 @@ class Looper {
       return false;
     }
 
-    if (steps > 1000) { // only update if we ran enough instructions to get a good measurement
-      const deltaTime = endTime - startTime;
-
+    const deltaTime = endTime - startTime;
+    if (steps > 1000 && deltaTime > 0) { // only update if we ran enough instructions to get a good measurement
       const stepsPerMs = steps / deltaTime;
       const alpha = 0.5; // smoothing factor
       this.stepsPerMs = alpha * stepsPerMs + (1 - alpha) * this.stepsPerMs;
 
       if (deltaTime < TARGET_MS) {
-        this.stepSize = this.stepsPerMs * TARGET_MS;
+        this.stepSize = Math.round(this.stepsPerMs * TARGET_MS);
         // console.log(`${steps} instructions in ${deltaTime.toFixed(0)}ms; adjusted step rate: ${this.stepSize}`);
       }
     }
