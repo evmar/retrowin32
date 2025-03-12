@@ -502,6 +502,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Tzcnt_r32_rm32 as usize] = Some(tzcnt_r32_rm32);
 
     tab[iced_x86::Code::Cpuid as usize] = Some(cpuid);
+    tab[iced_x86::Code::Rdtsc as usize] = Some(rdtsc);
 
     // Code to print the necessary size of the table:
     // let last = OP_TAB.iter().rposition(|op| op.is_some());

@@ -501,3 +501,8 @@ pub fn tzcnt_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.flags.set(Flags::ZF, count == 0);
     x.set(count);
 }
+
+pub fn rdtsc(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    let value = 0;
+    set_edx_eax(cpu, value);
+}
