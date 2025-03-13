@@ -1,4 +1,4 @@
-use super::STARTUPINFOA;
+use super::{SECURITY_ATTRIBUTES, STARTUPINFOA};
 use crate::{
     winapi::{Str16, HANDLE},
     Machine,
@@ -23,7 +23,6 @@ pub fn GetExitCodeProcess(
     todo!()
 }
 
-pub type SECURITY_ATTRIBUTES = u32; // TODO
 pub type PROCESS_INFORMATION = u32; // TODO
 
 pub type STARTUPINFOW = STARTUPINFOA; // TODO: same layout, different strings

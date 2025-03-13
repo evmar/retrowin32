@@ -153,3 +153,13 @@ pub fn GetNumberOfConsoleInputEvents(
 ) -> bool {
     todo!()
 }
+
+#[win32_derive::dllexport]
+pub fn GetConsoleMode(
+    _machine: &mut Machine,
+    hConsoleHandle: HFILE,
+    lpMode: Option<&mut u32>,
+) -> bool {
+    *lpMode.unwrap() = 0;
+    true
+}

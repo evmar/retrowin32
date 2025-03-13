@@ -1,8 +1,8 @@
 //! Process initialization and startup.
 
 use super::{
-    command_line::CommandLine, EventObject, FindHandle, ResourceHandle, Thread, HEVENT, HMODULE,
-    STDERR_HFILE, STDOUT_HFILE,
+    command_line::CommandLine, EventObject, FindHandle, ResourceHandle, Thread, HEVENT, HFIND,
+    HMODULE, STDERR_HFILE, STDOUT_HFILE,
 };
 use crate::{
     loader::{self, Module},

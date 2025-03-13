@@ -28,13 +28,7 @@ pub type LPARAM = u32;
 
 pub type HRESULT = u32;
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct HFILET;
-pub type HFILE = HANDLE<HFILET>;
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub struct HFINDT;
-pub type HFIND = HANDLE<HFINDT>;
+pub use super::kernel32::HFILE;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HRSRCT;
@@ -137,5 +131,3 @@ impl<'a> crate::calling_convention::FromStack<'a> for POINT {
         POINT { x, y }
     }
 }
-
-pub const MAX_PATH: usize = 260;

@@ -9,6 +9,8 @@ use ::memory::Pod;
 use bitflags::bitflags;
 use memory::ExtensionsMut;
 
+pub type SECURITY_ATTRIBUTES = u32; // TODO
+
 pub fn set_last_error(machine: &mut Machine, err: ERROR) {
     teb_mut(machine).LastErrorValue = err.into();
 }
