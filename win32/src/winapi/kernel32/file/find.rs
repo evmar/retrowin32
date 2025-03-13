@@ -9,7 +9,7 @@ use crate::{
     Machine, ReadDir, ReadDirEntry, StatKind, ERROR,
 };
 
-use super::{HFILE, MAX_PATH};
+use super::{normalize_dos_path, HFILE, MAX_PATH};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFINDT;
@@ -88,9 +88,16 @@ pub fn FindFirstFileA(
         set_last_error(machine, ERROR::INVALID_DATA);
         return HFIND::invalid();
     };
+    let file_name = normalize_dos_path(file_name);
 
     let path = WindowsPath::new(file_name);
-    let parent = path.parent().unwrap_or(WindowsPath::new("."));
+    let parent = match path.parent() {
+        // Empty path means a filename with no parent directory, apparently(?).
+        Some(parent) if parent.as_bytes().len() == 0 => WindowsPath::new("."),
+        // None means a path with no parent, e.g. root directory.
+        None => WindowsPath::new("."),
+        Some(parent) => parent,
+    };
     let Some(pattern) = path.file_name() else {
         log::debug!("FindFirstFileA({file_name:?}) no file name");
         set_last_error(machine, ERROR::INVALID_DATA);

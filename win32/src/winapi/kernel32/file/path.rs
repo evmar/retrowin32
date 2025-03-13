@@ -6,6 +6,17 @@ use memory::ExtensionsMut;
 
 pub const MAX_PATH: usize = 260;
 
+/// Windows APIs like CreateFile accept DOS paths or NT paths.
+/// The latter start with "\\?\"; the former get normalized via
+/// a bunch of logic that we don't implement, but at least this bit.
+///
+/// This means it's possible for e.g. FindNextFile() to return a path
+/// (with a trailing space) that you can then not open with CreateFile()!
+/// There are StackOverflow threads about it.
+pub fn normalize_dos_path(path: &str) -> &str {
+    path.trim_end_matches(|c| c == ' ' || c == '.')
+}
+
 #[win32_derive::dllexport]
 pub fn GetFullPathNameA(
     machine: &mut Machine,
