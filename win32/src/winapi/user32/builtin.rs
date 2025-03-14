@@ -3100,7 +3100,10 @@ mod wrappers {
         }
         result.into()
     }
-    pub unsafe fn SetFocus(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetFocus(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -3114,11 +3117,15 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::user32::SetFocus(machine, hWnd);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.into()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::user32::SetFocus(machine, hWnd).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
     }
     pub unsafe fn SetForegroundWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
@@ -4198,7 +4205,7 @@ const SHIMS: [Shim; 147usize] = [
     },
     Shim {
         name: "SetFocus",
-        func: Handler::Sync(wrappers::SetFocus),
+        func: Handler::Async(wrappers::SetFocus),
     },
     Shim {
         name: "SetForegroundWindow",

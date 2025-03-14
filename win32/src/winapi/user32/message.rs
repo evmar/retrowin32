@@ -54,6 +54,7 @@ pub enum WM {
     MOVE = 0x0003,
     SIZE = 0x0005,
     ACTIVATE = 0x0006,
+    SETFOCUS = 0x0007,
     SETTEXT = 0x000C,
     PAINT = 0x000F,
     CLOSE = 0x0010,
