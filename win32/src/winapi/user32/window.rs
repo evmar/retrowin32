@@ -693,8 +693,21 @@ pub async fn ShowWindow(machine: &mut Machine, hWnd: HWND, nCmdShow: Result<SW, 
 }
 
 #[win32_derive::dllexport]
-pub fn SetFocus(_machine: &mut Machine, hWnd: HWND) -> HWND {
-    let prev_focused = HWND::null();
+pub async fn SetFocus(machine: &mut Machine, hWnd: HWND) -> HWND {
+    let prev_focused = machine.state.user32.active_window;
+    dispatch_message(
+        machine,
+        &MSG {
+            hwnd: hWnd,
+            message: WM::SETFOCUS as u32,
+            wParam: prev_focused.to_raw(),
+            lParam: 0,
+            time: 0,
+            pt_x: 0,
+            pt_y: 0,
+        },
+    )
+    .await;
     prev_focused
 }
 
@@ -715,6 +728,9 @@ async fn def_window_proc(
         Err(_) => return 0, // ignore
     };
     match msg {
+        WM::ACTIVATE => {
+            SetFocus(machine, hWnd).await;
+        }
         WM::PAINT => {
             let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
             let window = window.expect_toplevel_mut();
