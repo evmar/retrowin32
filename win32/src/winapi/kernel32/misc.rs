@@ -427,3 +427,8 @@ pub fn SetErrorMode(_machine: &mut Machine, uMode: SEM) -> SEM {
     log::warn!("ignoring SetErrorMode({uMode:x?})");
     uMode
 }
+
+#[win32_derive::dllexport]
+pub fn EncodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
+    ptr
+}
