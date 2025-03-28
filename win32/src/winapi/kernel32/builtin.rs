@@ -714,6 +714,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn EncodePointer(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let ptr = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::EncodePointer_pos,
+                "kernel32/misc",
+                "EncodePointer",
+                &[("ptr", &ptr)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::EncodePointer(machine, ptr);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn EnterCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5721,7 +5741,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 232usize] = [
+const SHIMS: [Shim; 233usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5813,6 +5833,10 @@ const SHIMS: [Shim; 232usize] = [
     Shim {
         name: "DuplicateHandle",
         func: Handler::Sync(wrappers::DuplicateHandle),
+    },
+    Shim {
+        name: "EncodePointer",
+        func: Handler::Sync(wrappers::EncodePointer),
     },
     Shim {
         name: "EnterCriticalSection",
