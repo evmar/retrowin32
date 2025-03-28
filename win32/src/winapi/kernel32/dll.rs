@@ -127,8 +127,16 @@ pub fn FreeLibrary(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
 }
 
 /// The argument to GetProcAddress is an ImportSymbol stuffed into a u32.
-#[derive(Debug)]
 pub struct GetProcAddressArg<'a>(pub ImportSymbol<'a>);
+
+impl<'a> std::fmt::Debug for GetProcAddressArg<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            ImportSymbol::Name(name) => write!(f, "{:?}", std::str::from_utf8(name).unwrap()),
+            ImportSymbol::Ordinal(ordinal) => write!(f, "0x{:x}", ordinal),
+        }
+    }
+}
 
 impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
     unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
