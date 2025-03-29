@@ -228,50 +228,47 @@ pub fn xchg_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cpu.regs.set8(r1, tmp);
 }
 
-pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = cpu.regs.get32(instr.op1_register());
-    match instr.op0_kind() {
-        iced_x86::OpKind::Register => todo!(),
-        iced_x86::OpKind::Memory => {
-            let addr = x86_addr(cpu, instr);
-            let x = mem.get_pod::<u32>(addr);
-            if cpu.regs.get32(Register::EAX) == x {
-                cpu.flags.insert(Flags::ZF);
-                mem.put_pod::<u32>(addr, y);
-            } else {
-                cpu.flags.remove(Flags::ZF);
-                cpu.regs.set32(Register::EAX, x);
-            }
-        }
-        _ => unreachable!(),
-    };
-}
-
 pub fn cmpxchg8b_m64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let addr = x86_addr(cpu, instr);
-    let m64 = mem.get_pod::<u64>(addr);
+    let prev = mem.get_pod::<u64>(addr);
     let test = get_edx_eax(cpu);
-    if test == m64 {
+    if test == prev {
         cpu.flags.insert(Flags::ZF);
         let val =
             ((cpu.regs.get32(Register::ECX) as u64) << 32) | (cpu.regs.get32(Register::EBX) as u64);
         mem.put_pod::<u64>(addr, val);
     } else {
         cpu.flags.remove(Flags::ZF);
-        set_edx_eax(cpu, m64);
+        set_edx_eax(cpu, prev);
+    }
+}
+
+pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    assert_eq!(instr.op0_kind(), iced_x86::OpKind::Memory);
+
+    let new = cpu.regs.get32(instr.op1_register());
+    let prev = rm32(cpu, mem, instr);
+    if cpu.regs.get32(Register::EAX) == prev.get() {
+        cpu.flags.insert(Flags::ZF);
+        prev.set(new);
+    } else {
+        cpu.flags.remove(Flags::ZF);
+        cpu.regs.set32(Register::EAX, prev.get());
     }
 }
 
 pub fn cmpxchg_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm8(cpu, mem, instr);
-    let x = rm8(cpu, mem, instr);
-    let al = cpu.regs.get8(Register::AL);
-    if al == x.get() {
+    assert_eq!(instr.op0_kind(), iced_x86::OpKind::Memory);
+
+    let new = op1_rm8(cpu, mem, instr);
+    let prev = rm8(cpu, mem, instr);
+    let test = cpu.regs.get8(Register::AL);
+    if test == prev.get() {
         cpu.flags.insert(Flags::ZF);
-        x.set(y);
+        prev.set(new);
     } else {
         cpu.flags.remove(Flags::ZF);
-        cpu.regs.set8(Register::AL, x.get());
+        cpu.regs.set8(Register::AL, prev.get());
     }
 }
 
