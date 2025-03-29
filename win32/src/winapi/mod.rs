@@ -21,6 +21,7 @@ mod oleaut32;
 mod printf;
 mod retrowin32_test;
 mod shlwapi;
+mod string;
 pub mod trace;
 mod types;
 mod ucrtbase;

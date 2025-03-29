@@ -1,8 +1,11 @@
 use crate::{
-    winapi::kernel32::{set_last_error, SECURITY_ATTRIBUTES},
+    winapi::{
+        kernel32::{set_last_error, SECURITY_ATTRIBUTES},
+        string::{BufWrite, BufWriteAnsi, BufWriteWide},
+    },
     Machine, ERROR,
 };
-use memory::{str16::Str16, ExtensionsMut};
+use memory::str16::Str16;
 use typed_path::WindowsPath;
 
 #[win32_derive::dllexport]
@@ -59,36 +62,38 @@ pub fn RemoveDirectoryA(machine: &mut Machine, lpPathName: Option<&str>) -> bool
     }
 }
 
-#[win32_derive::dllexport]
-pub fn GetCurrentDirectoryW(_machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
-    todo!()
-}
-
-#[win32_derive::dllexport]
-pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
+fn get_current_directory(machine: &mut Machine, buf: &mut dyn BufWrite) -> u32 {
     let cwd = match machine.host.current_dir() {
         Ok(value) => value,
         Err(err) => {
-            log::debug!("GetCurrentDirectoryA failed: {err:?}");
+            log::debug!("GetCurrentDirectory failed: {err:?}");
             set_last_error(machine, err);
             return 0;
         }
     };
-    let out_bytes = cwd.as_bytes();
 
-    let buf = machine.mem().sub32_mut(lpBuffer, nBufferLength);
-
-    if buf.len() < out_bytes.len() + 1 {
-        // not enough space
-        log::debug!("GetCurrentDirectoryA -> size {}", out_bytes.len() + 1);
-        return out_bytes.len() as u32 + 1;
-    }
-
-    buf[..out_bytes.len()].copy_from_slice(out_bytes);
-    buf[out_bytes.len()] = 0;
+    let len = match buf.write(std::str::from_utf8(cwd.as_bytes()).unwrap()) {
+        Ok(len) => len - 1, // exclude nul
+        Err(len) => {
+            log::debug!("GetCurrentDirectory -> size {}", len);
+            return len;
+        }
+    };
 
     set_last_error(machine, ERROR::SUCCESS);
-    out_bytes.len() as u32
+    len
+}
+
+#[win32_derive::dllexport]
+pub fn GetCurrentDirectoryW(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
+    let mut buf = BufWriteWide::new(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
+    get_current_directory(machine, &mut buf)
+}
+
+#[win32_derive::dllexport]
+pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
+    let mut buf = BufWriteAnsi::new(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
+    get_current_directory(machine, &mut buf)
 }
 
 #[win32_derive::dllexport]
