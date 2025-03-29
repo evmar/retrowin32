@@ -240,7 +240,7 @@ pub fn cmpxchg_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
                 mem.put_pod::<u32>(addr, y);
             } else {
                 cpu.flags.remove(Flags::ZF);
-                cpu.regs.set32(Register::EAX, y);
+                cpu.regs.set32(Register::EAX, x);
             }
         }
         _ => unreachable!(),
