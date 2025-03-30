@@ -86,13 +86,15 @@ fn get_current_directory(machine: &mut Machine, buf: &mut dyn BufWrite) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn GetCurrentDirectoryW(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
-    let mut buf = BufWriteWide::new(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
+    let mut buf =
+        BufWriteWide::from_mem(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
     get_current_directory(machine, &mut buf)
 }
 
 #[win32_derive::dllexport]
 pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer: u32) -> u32 {
-    let mut buf = BufWriteAnsi::new(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
+    let mut buf =
+        BufWriteAnsi::from_mem(unsafe { machine.mem().detach() }, lpBuffer, nBufferLength);
     get_current_directory(machine, &mut buf)
 }
 

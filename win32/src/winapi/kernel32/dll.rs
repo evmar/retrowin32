@@ -1,15 +1,16 @@
-use crate::{calling_convention, loader, winapi::kernel32::set_last_error};
-use memory::{Extensions, Pod};
-use pe::ImportSymbol;
-
 use crate::{
-    calling_convention::ArrayWithSizeMut,
+    calling_convention::{self, ArrayWithSizeMut},
+    loader,
     machine::Machine,
     winapi::{
-        *, {self},
+        self,
+        kernel32::set_last_error,
+        string::{BufWrite, BufWriteAnsi, BufWriteWide},
+        *,
     },
 };
-use std::io::Write;
+use memory::{Extensions, Pod};
+use pe::ImportSymbol;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
@@ -63,34 +64,47 @@ pub fn GetModuleHandleExW(
     return !hMod.is_null();
 }
 
-#[win32_derive::dllexport]
-pub fn GetModuleFileNameA(
+fn get_module_file_name(
     machine: &mut Machine,
     hModule: HMODULE,
-    filename: ArrayWithSizeMut<u8>,
+    filename: &mut dyn BufWrite,
 ) -> u32 {
-    let mut filename = filename.unwrap();
     if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
-        let mut exe = machine.state.kernel32.cmdline.exe_name();
-        exe.push(0 as char);
-        let n = filename.write(exe.as_bytes()).unwrap();
-        n as u32 - 1 // exclude nul
+        let exe = machine.state.kernel32.cmdline.exe_name();
+        let n = filename.write(&exe);
+        match n {
+            Ok(n) => n - 1,
+            Err(_) => {
+                set_last_error(machine, ERROR::INSUFFICIENT_BUFFER);
+                // TODO: nul termination behavior.
+                // Docs say this returns buffer size, not needed space.
+                return filename.capacity() as u32;
+            }
+        }
     } else {
         todo!();
     }
 }
 
 #[win32_derive::dllexport]
-pub fn GetModuleFileNameW(
-    _machine: &mut Machine,
+pub fn GetModuleFileNameA(
+    machine: &mut Machine,
     hModule: HMODULE,
-    _lpFilename: u32,
-    _nSize: u32,
+    filename: ArrayWithSizeMut<u8>,
 ) -> u32 {
-    if !hModule.is_null() {
-        log::error!("unimplemented: GetModuleFileNameW(non-null)")
-    }
-    0 // fail
+    get_module_file_name(machine, hModule, &mut BufWriteAnsi::new(filename.unwrap()))
+}
+
+#[win32_derive::dllexport]
+pub fn GetModuleFileNameW(
+    machine: &mut Machine,
+    hModule: HMODULE,
+    lpFilename: u32,
+    nSize: u32,
+) -> u32 {
+    // TODO: figure out what we should do with ArrayWithSize for u16.
+    let mut filename = BufWriteWide::from_mem(unsafe { machine.mem().detach() }, lpFilename, nSize);
+    get_module_file_name(machine, hModule, &mut filename)
 }
 
 pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
