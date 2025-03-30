@@ -411,3 +411,20 @@ unsafe impl ::memory::Pod for TRACKMOUSEEVENT {}
 pub fn TrackMouseEvent(_machine: &mut Machine, lpEventTrack: Option<&mut TRACKMOUSEEVENT>) -> bool {
     false // fail
 }
+
+#[win32_derive::dllexport]
+pub fn GetUserObjectInformationW(
+    _machine: &mut Machine,
+    hObj: u32,
+    nIndex: u32, /* USER_OBJECT_INFORMATION_INDEX */
+    pvInfo: u32,
+    nLength: u32,
+    lpnLengthNeeded: Option<&mut u32>,
+) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
+pub fn GetProcessWindowStation(_machine: &mut Machine) -> u32 {
+    todo!()
+}
