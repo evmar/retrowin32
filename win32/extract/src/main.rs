@@ -70,7 +70,7 @@ fn convert_type(ty: &windows_metadata::Type) -> String {
         }
         MutPtr(ty, x) => {
             if *x != 1 {
-                todo!(); // what is this?
+                // it appears this is for like lplpFoo types
             }
             format!("Option<&mut {}>", convert_type(ty))
         }
