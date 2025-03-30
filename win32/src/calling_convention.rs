@@ -6,12 +6,10 @@
 //! plain values (for output) so that different machine implementations can do their
 //! own control over the stack and moving return values into registers.
 
+use std::ops::Deref;
+
 use crate::winapi::{CStr, Str16};
 use memory::{Extensions, ExtensionsMut, Mem};
-
-/// ArrayWithSize<u8> matches a pair of C arguments like
-///    const u8_t* items, size_t len,
-pub type ArrayWithSize<'a, T> = Option<&'a [T]>;
 
 /// ArrayWithSizeMut<u8> matches a pair of C arguments like
 ///    u8_t* items, size_t len,
@@ -34,6 +32,66 @@ impl<'a, T> ArrayWithSizeMut<'a, T> {
     }
     pub fn unwrap(self) -> &'a mut [T] {
         self.0.unwrap()
+    }
+}
+
+/// ArrayOut<u8> is like Array<u8> but it doesn't print its contents in its Debug impl.
+pub struct ArrayOut<'a, T> {
+    bytes: &'a mut [u8],
+    _marker: std::marker::PhantomData<T>,
+}
+
+impl<'a, T: memory::Pod> FromStack<'a> for ArrayOut<'a, T> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+        let addr = mem.get_pod::<u32>(sp);
+        assert!(addr != 0);
+        let count = mem.get_pod::<u32>(sp + 4);
+        let slice = mem.sub32_mut(addr, count);
+        ArrayOut {
+            bytes: slice,
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<'a, T> std::fmt::Debug for ArrayOut<'a, T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if std::mem::size_of::<T>() == 1 {
+            write!(f, "[buffer size {}]", self.bytes.len())
+        } else {
+            write!(
+                f,
+                "[buffer size {}x{}]",
+                self.bytes.len(),
+                std::mem::size_of::<T>()
+            )
+        }
+    }
+}
+
+/// Array<u8> matches a pair of C arguments like
+///    const u8_t* items, size_t len,
+#[derive(Debug)]
+pub struct Array<'a, T> {
+    /// Array's underlying buffer is always [u8] for alignment reasons.
+    bytes: &'a [u8],
+    _marker: std::marker::PhantomData<T>,
+}
+
+impl<T> Deref for Array<'_, T> {
+    type Target = [u8];
+    fn deref(&self) -> &Self::Target {
+        self.bytes
+    }
+}
+
+impl<'a, T: memory::Pod> FromStack<'a> for Array<'a, T> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+        let buf = ArrayOut::<'a, T>::from_stack(mem, sp);
+        Array {
+            bytes: buf.bytes,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 

@@ -2297,7 +2297,7 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hWndFrom = <HWND>::from_stack(mem, stack_args + 0u32);
         let hWndTo = <HWND>::from_stack(mem, stack_args + 4u32);
-        let lpPoints = <ArrayWithSize<POINT>>::from_stack(mem, stack_args + 8u32);
+        let lpPoints = <Array<POINT>>::from_stack(mem, stack_args + 8u32);
         let __trace_record = if crate::winapi::trace::enabled("user32/window") {
             crate::winapi::trace::Record::new(
                 winapi::user32::MapWindowPoints_pos,

@@ -1,6 +1,6 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    calling_convention::ArrayWithSize,
+    calling_convention::Array,
     winapi::{gdi32::COLORREF, HANDLE, LPARAM},
     Machine,
 };
@@ -75,25 +75,12 @@ pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORR
 }
 
 #[win32_derive::dllexport]
-pub fn TextOutA(
-    _machine: &mut Machine,
-    hdc: HDC,
-    x: u32,
-    y: u32,
-    lpString: ArrayWithSize<u8>,
-) -> bool {
-    let _text = std::str::from_utf8(lpString.unwrap()).unwrap();
+pub fn TextOutA(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, lpString: Array<u8>) -> bool {
     true
 }
 
 #[win32_derive::dllexport]
-pub fn TextOutW(
-    _machine: &mut Machine,
-    hdc: HDC,
-    x: u32,
-    y: u32,
-    lpString: ArrayWithSize<u16>,
-) -> bool {
+pub fn TextOutW(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, lpString: Array<u16>) -> bool {
     true
 }
 

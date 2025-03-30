@@ -1,4 +1,4 @@
-use crate::{calling_convention::ArrayWithSize, winapi::HFILE, Machine};
+use crate::{calling_convention::ArrayOut, winapi::HFILE, Machine};
 
 #[win32_derive::dllexport]
 pub fn _lopen(_machine: &mut Machine, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {
@@ -16,6 +16,6 @@ pub fn _llseek(_machine: &mut Machine, hFile: HFILE, lOffset: i32, iOrigin: i32)
 }
 
 #[win32_derive::dllexport]
-pub fn _lread(_machine: &mut Machine, hFile: HFILE, lpBuffer: ArrayWithSize<u8>) -> u32 {
+pub fn _lread(_machine: &mut Machine, hFile: HFILE, lpBuffer: ArrayOut<u8>) -> u32 {
     todo!();
 }

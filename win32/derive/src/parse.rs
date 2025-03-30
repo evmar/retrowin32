@@ -128,7 +128,14 @@ pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
     }
 
     let name = &ty.path.segments[0].ident;
-    if name == "ArrayWithSize" || name == "ArrayWithSizeMut" || name == "POINT" || name == "f64" {
+    // cannot use "match" here because we rely on == impl on Ident :(
+    if name == "Array"
+        || name == "ArrayOut"
+        || name == "ArrayWithSize"
+        || name == "ArrayWithSizeMut"
+        || name == "POINT"
+        || name == "f64"
+    {
         ArgumentStack::Ordinary(8)
     } else if name == "VarArgs" {
         ArgumentStack::VarArgs
