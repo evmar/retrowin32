@@ -106,6 +106,11 @@ pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
 }
 
 #[win32_derive::dllexport]
+pub fn LoadLibraryW(machine: &mut Machine, filename: Option<&Str16>) -> HMODULE {
+    load_library(machine, &filename.unwrap().to_string())
+}
+
+#[win32_derive::dllexport]
 pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
     load_library(machine, filename.unwrap())
 }
