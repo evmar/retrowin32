@@ -1507,6 +1507,25 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn GetProcessWindowStation(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::user32::GetProcessWindowStation_pos,
+                "user32/misc",
+                "GetProcessWindowStation",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::GetProcessWindowStation(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn GetQueueStatus(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
@@ -1626,6 +1645,43 @@ mod wrappers {
             None
         };
         let result = winapi::user32::GetUpdateRect(machine, hWnd, lpRect, bErase);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn GetUserObjectInformationW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let hObj = <u32>::from_stack(mem, stack_args + 0u32);
+        let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
+        let pvInfo = <u32>::from_stack(mem, stack_args + 8u32);
+        let nLength = <u32>::from_stack(mem, stack_args + 12u32);
+        let lpnLengthNeeded = <Option<&mut u32>>::from_stack(mem, stack_args + 16u32);
+        let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::user32::GetUserObjectInformationW_pos,
+                "user32/misc",
+                "GetUserObjectInformationW",
+                &[
+                    ("hObj", &hObj),
+                    ("nIndex", &nIndex),
+                    ("pvInfo", &pvInfo),
+                    ("nLength", &nLength),
+                    ("lpnLengthNeeded", &lpnLengthNeeded),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::GetUserObjectInformationW(
+            machine,
+            hObj,
+            nIndex,
+            pvInfo,
+            nLength,
+            lpnLengthNeeded,
+        );
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -3710,7 +3766,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 147usize] = [
+const SHIMS: [Shim; 149usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -3940,6 +3996,10 @@ const SHIMS: [Shim; 147usize] = [
         func: Handler::Sync(wrappers::GetMonitorInfoA),
     },
     Shim {
+        name: "GetProcessWindowStation",
+        func: Handler::Sync(wrappers::GetProcessWindowStation),
+    },
+    Shim {
         name: "GetQueueStatus",
         func: Handler::Sync(wrappers::GetQueueStatus),
     },
@@ -3962,6 +4022,10 @@ const SHIMS: [Shim; 147usize] = [
     Shim {
         name: "GetUpdateRect",
         func: Handler::Sync(wrappers::GetUpdateRect),
+    },
+    Shim {
+        name: "GetUserObjectInformationW",
+        func: Handler::Sync(wrappers::GetUserObjectInformationW),
     },
     Shim {
         name: "GetWindowDC",
