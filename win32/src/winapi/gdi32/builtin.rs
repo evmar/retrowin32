@@ -1242,7 +1242,7 @@ mod wrappers {
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
         let y = <u32>::from_stack(mem, stack_args + 8u32);
-        let lpString = <ArrayWithSize<u8>>::from_stack(mem, stack_args + 12u32);
+        let lpString = <Array<u8>>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/text") {
             crate::winapi::trace::Record::new(
                 winapi::gdi32::TextOutA_pos,
@@ -1265,7 +1265,7 @@ mod wrappers {
         let hdc = <HDC>::from_stack(mem, stack_args + 0u32);
         let x = <u32>::from_stack(mem, stack_args + 4u32);
         let y = <u32>::from_stack(mem, stack_args + 8u32);
-        let lpString = <ArrayWithSize<u16>>::from_stack(mem, stack_args + 12u32);
+        let lpString = <Array<u16>>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::winapi::trace::enabled("gdi32/text") {
             crate::winapi::trace::Record::new(
                 winapi::gdi32::TextOutW_pos,

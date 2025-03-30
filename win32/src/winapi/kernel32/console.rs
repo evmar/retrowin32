@@ -1,6 +1,6 @@
 use crate::{
-    calling_convention::ArrayWithSize,
-    winapi::{handle::HANDLE, kernel32::WriteFile, Str16, DWORD, HFILE, WORD},
+    calling_convention::Array,
+    winapi::{self, handle::HANDLE, DWORD, HFILE, WORD},
     Machine,
 };
 
@@ -63,11 +63,11 @@ pub fn GetConsoleScreenBufferInfo(
 pub fn WriteConsoleA(
     _machine: &mut Machine,
     hConsoleOutput: HANDLE<()>,
-    lpBuffer: ArrayWithSize<u8>,
+    lpBuffer: Array<u8>,
     lpNumberOfCharsWritten: Option<&mut u32>,
     lpReserved: u32,
 ) -> bool {
-    let msg = std::str::from_utf8(lpBuffer.unwrap()).unwrap();
+    let msg = std::str::from_utf8(&lpBuffer).unwrap();
     log::debug!("WriteConsoleA: {:?}", msg);
     if let Some(w) = lpNumberOfCharsWritten {
         *w = msg.len() as u32;
@@ -79,25 +79,22 @@ pub fn WriteConsoleA(
 pub fn WriteConsoleW(
     machine: &mut Machine,
     hConsoleOutput: HFILE,
-    lpBuffer: ArrayWithSize<u16>,
+    lpBuffer: Array<u16>,
     lpNumberOfCharsWritten: Option<&mut u32>,
     _lpReserved: u32,
 ) -> bool {
-    let buf = Str16::from_buffer(lpBuffer.unwrap()).to_string();
-    let mut bytes_written = 0;
-    if !WriteFile(
-        machine,
-        hConsoleOutput,
-        Some(buf.as_bytes()),
-        Some(&mut bytes_written),
-        0,
-    ) {
-        return false;
+    match winapi::kernel32::write_file(machine, hConsoleOutput, &lpBuffer) {
+        Err(err) => {
+            log::debug!("WriteConsoleW({hConsoleOutput:?}) failed: {:?}", err);
+            false
+        }
+        Ok(n) => {
+            if let Some(chars_written) = lpNumberOfCharsWritten {
+                *chars_written = n as u32 / 2;
+            }
+            true
+        }
     }
-    if let Some(chars_written) = lpNumberOfCharsWritten {
-        *chars_written = bytes_written;
-    }
-    return bytes_written == buf.len() as u32;
 }
 
 pub type CONSOLE_READCONSOLE_CONTROL = u32; // TODO

@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    calling_convention::ArrayWithSize,
+    calling_convention::Array,
     host,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
@@ -1116,7 +1116,7 @@ pub fn MapWindowPoints(
     _machine: &mut Machine,
     hWndFrom: HWND,
     hWndTo: HWND,
-    lpPoints: ArrayWithSize<POINT>,
+    lpPoints: Array<POINT>,
 ) -> i32 {
     if !(hWndFrom.is_null() || hWndTo.is_null()) {
         todo!()

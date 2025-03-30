@@ -1,4 +1,4 @@
-use crate::{calling_convention::ArrayWithSize, winapi::Str16, Machine};
+use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
 
 #[win32_derive::dllexport]
 pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
@@ -25,7 +25,7 @@ pub fn FreeEnvironmentStringsW(_machine: &mut Machine) -> bool {
 pub fn GetEnvironmentVariableA(
     _machine: &mut Machine,
     name: Option<&str>,
-    buf: ArrayWithSize<u8>,
+    buf: ArrayOut<u8>,
 ) -> bool {
     false
 }
@@ -34,7 +34,7 @@ pub fn GetEnvironmentVariableA(
 pub fn GetEnvironmentVariableW(
     _machine: &mut Machine,
     name: Option<&Str16>,
-    buf: ArrayWithSize<u16>,
+    buf: ArrayOut<u16>,
 ) -> bool {
     false
 }

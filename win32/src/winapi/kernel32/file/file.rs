@@ -1,5 +1,5 @@
 use crate::{
-    calling_convention::{ArrayWithSize, ArrayWithSizeMut},
+    calling_convention::{Array, ArrayWithSizeMut},
     machine::Machine,
     winapi::{
         kernel32::{set_last_error, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
@@ -204,11 +204,41 @@ pub fn ReadFile(
     true
 }
 
+pub fn write_file(machine: &mut Machine, hFile: HFILE, mut buf: &[u8]) -> Result<usize, ERROR> {
+    match hFile {
+        STDOUT_HFILE | STDERR_HFILE => {
+            machine.host.stdout(buf);
+            return Ok(buf.len());
+        }
+        _ => {}
+    };
+
+    let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
+        log::debug!("WriteFile({hFile:?}) unknown handle");
+        return Err(ERROR::INVALID_HANDLE);
+    };
+    let mut written = 0;
+    while !buf.is_empty() {
+        match file.write(buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                written += n;
+                buf = &buf[n..];
+            }
+            Err(err) => {
+                log::debug!("WriteFile({hFile:?}) failed: {:?}", err);
+                return Err(ERROR::from(err));
+            }
+        }
+    }
+    Ok(written)
+}
+
 #[win32_derive::dllexport]
 pub fn WriteFile(
     machine: &mut Machine,
     hFile: HFILE,
-    lpBuffer: ArrayWithSize<u8>,
+    lpBuffer: Array<u8>,
     mut lpNumberOfBytesWritten: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
@@ -219,47 +249,20 @@ pub fn WriteFile(
     if lpOverlapped != 0 {
         unimplemented!("ReadFile overlapped");
     }
-    let Some(mut buf) = lpBuffer else {
-        log::debug!("WriteFile({hFile:?}) failed: null lpBuffer");
-        set_last_error(machine, ERROR::INVALID_DATA);
-        return false;
-    };
 
-    let n = match hFile {
-        STDOUT_HFILE | STDERR_HFILE => {
-            machine.host.stdout(buf);
-            buf.len()
+    match write_file(machine, hFile, &lpBuffer) {
+        Err(err) => {
+            set_last_error(machine, err);
+            false
         }
-        _ => {
-            let Some(file) = machine.state.kernel32.files.get_mut(hFile) else {
-                log::debug!("WriteFile({hFile:?}) unknown handle");
-                set_last_error(machine, ERROR::INVALID_HANDLE);
-                return false;
-            };
-            let mut written = 0;
-            while !buf.is_empty() {
-                match file.write(buf) {
-                    Ok(0) => break,
-                    Ok(n) => {
-                        written += n;
-                        buf = &buf[n..];
-                    }
-                    Err(err) => {
-                        log::debug!("WriteFile({hFile:?}) failed: {:?}", err);
-                        set_last_error(machine, ERROR::from(err));
-                        return false;
-                    }
-                }
+        Ok(n) => {
+            set_last_error(machine, ERROR::SUCCESS);
+            if let Some(written) = lpNumberOfBytesWritten {
+                *written = n as u32;
             }
-            written
+            true
         }
-    };
-
-    set_last_error(machine, ERROR::SUCCESS);
-    if let Some(written) = lpNumberOfBytesWritten {
-        *written = n as u32;
     }
-    true
 }
 
 #[win32_derive::dllexport]
