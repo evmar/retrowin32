@@ -3613,6 +3613,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn LoadLibraryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::LoadLibraryW_pos,
+                "kernel32/dll",
+                "LoadLibraryW",
+                &[("filename", &filename)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::LoadLibraryW(machine, filename);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn LoadResource(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
@@ -5741,7 +5761,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 233usize] = [
+const SHIMS: [Shim; 234usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6333,6 +6353,10 @@ const SHIMS: [Shim; 233usize] = [
     Shim {
         name: "LoadLibraryExW",
         func: Handler::Sync(wrappers::LoadLibraryExW),
+    },
+    Shim {
+        name: "LoadLibraryW",
+        func: Handler::Sync(wrappers::LoadLibraryW),
     },
     Shim {
         name: "LoadResource",
