@@ -1,6 +1,6 @@
 use crate::{
     machine::Machine,
-    winapi::{kernel32::set_last_error, Str16, String16, ERROR},
+    winapi::{kernel32::set_last_error, Str16, ERROR},
 };
 use memory::ExtensionsMut;
 
@@ -80,50 +80,6 @@ pub fn GetFullPathNameW(
     lpBuffer: u32,
     lpFilePart: Option<&mut u32>,
 ) -> u32 {
-    let Some(file_name) = lpFileName else {
-        log::debug!("GetFullPathNameW failed: null lpFileName");
-        set_last_error(machine, ERROR::INVALID_DATA);
-        return 0;
-    };
-
-    let file_name = file_name.to_string();
-    let cwd = match machine.host.current_dir() {
-        Ok(value) => value,
-        Err(err) => {
-            log::debug!("GetFullPathNameW({file_name:?}) failed: {err:?}",);
-            set_last_error(machine, err);
-            return 0;
-        }
-    };
-    let out_path = cwd.join(&file_name).normalize();
-    let out_bytes = String16::from(out_path.to_string_lossy().as_ref()).0;
-
-    set_last_error(machine, ERROR::SUCCESS);
-
-    let buf = Str16::from_bytes_mut(machine.mem().sub32_mut(lpBuffer, nBufferLength * 2));
-    if let Some(part) = lpFilePart {
-        if let Some(i) = out_bytes.iter().rposition(|&b| b == b'\\' as u16) {
-            if i == out_bytes.len() - 1 {
-                *part = 0;
-            } else {
-                *part = lpBuffer + (i as u32 + 1) * 2;
-            }
-        } else {
-            *part = 0;
-        }
-    }
-
-    if buf.len() < out_bytes.len() + 1 {
-        // not enough space
-        log::debug!(
-            "GetFullPathNameW({file_name:?}) -> size {}",
-            file_name.len() + 1
-        );
-        return out_bytes.len() as u32 + 1;
-    }
-
-    buf[..out_bytes.len()].copy_from_slice(&out_bytes);
-    buf[out_bytes.len()] = 0;
-
-    out_bytes.len() as u32
+    // TODO: merge this with GetFullPathNameA, using Strings underneath.
+    todo!();
 }
