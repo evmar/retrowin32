@@ -1,5 +1,5 @@
 use crate::{
-    calling_convention::{Array, ArrayWithSizeMut},
+    calling_convention::{Array, ArrayOut},
     machine::Machine,
     winapi::{
         kernel32::{set_last_error, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
@@ -156,7 +156,7 @@ pub fn CreateFileW(
 pub fn ReadFile(
     machine: &mut Machine,
     hFile: HFILE,
-    lpBuffer: ArrayWithSizeMut<u8>,
+    mut lpBuffer: ArrayOut<u8>,
     mut lpNumberOfBytesRead: Option<&mut u32>,
     lpOverlapped: u32,
 ) -> bool {
@@ -175,11 +175,7 @@ pub fn ReadFile(
     if lpOverlapped != 0 {
         unimplemented!("ReadFile overlapped");
     }
-    let Some(mut buf) = lpBuffer.to_option() else {
-        log::debug!("ReadFile({hFile:?}) failed: null lpBuffer");
-        set_last_error(machine, ERROR::INVALID_DATA);
-        return false;
-    };
+    let mut buf = lpBuffer.as_mut_slice();
 
     let mut read = 0;
     while !buf.is_empty() {

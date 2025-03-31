@@ -1,6 +1,6 @@
 //! Functions that work with .ini files.
 
-use crate::{calling_convention::ArrayWithSizeMut, winapi::Str16, Machine};
+use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(
@@ -32,13 +32,13 @@ pub fn GetPrivateProfileStringW(
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     lpDefault: Option<&Str16>,
-    lpReturnedString: ArrayWithSizeMut<u16>,
+    mut lpReturnedString: ArrayOut<u16>,
     lpFileName: Option<&Str16>,
 ) -> u32 {
-    let dst = lpReturnedString.unwrap();
+    let dst = &mut lpReturnedString;
     let src = lpDefault.unwrap();
     let copy_len = std::cmp::min(dst.len() - 1, src.len());
-    dst[..copy_len].copy_from_slice(&src.buf()[..copy_len]);
+    dst[..copy_len].copy_from_slice(&src.as_bytes()[..copy_len]);
     dst[copy_len] = 0;
     copy_len as u32
 }
@@ -59,12 +59,12 @@ pub fn GetProfileStringW(
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     lpDefault: Option<&Str16>,
-    lpReturnedString: ArrayWithSizeMut<u16>,
+    mut lpReturnedString: ArrayOut<u16>,
 ) -> u32 {
-    let dst = lpReturnedString.unwrap();
+    let dst = &mut lpReturnedString;
     let src = lpDefault.unwrap();
     let copy_len = std::cmp::min(dst.len() - 1, src.len());
-    dst[..copy_len].copy_from_slice(&src.buf()[..copy_len]);
+    dst[..copy_len].copy_from_slice(&src.as_bytes()[..copy_len]);
     dst[copy_len] = 0;
     copy_len as u32
 }

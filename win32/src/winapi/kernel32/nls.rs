@@ -1,6 +1,6 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{calling_convention::ArrayWithSizeMut, winapi::Str16, Machine};
+use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
 use bitflags::bitflags;
 use memory::Extensions;
 
@@ -56,7 +56,7 @@ pub fn MultiByteToWideChar(
     dwFlags: Result<MB, u32>,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
-    lpWideCharStr: ArrayWithSizeMut<u16>,
+    mut lpWideCharStr: Option<ArrayOut<u16>>,
 ) -> u32 {
     match CodePage {
         Err(value) => unimplemented!("MultiByteToWideChar code page {value}"),
@@ -65,28 +65,31 @@ pub fn MultiByteToWideChar(
     // TODO: obey dwFlags
     dwFlags.unwrap();
 
-    let input_len = match cbMultiByte {
-        0 => return 0,                                               // TODO: invalid param
-        -1 => machine.mem().slicez(lpMultiByteStr).len() as u32 + 1, // include nul
+    let src_addr = lpMultiByteStr;
+    let src_len = match cbMultiByte {
+        0 => return 0,                                         // TODO: invalid param
+        -1 => machine.mem().slicez(src_addr).len() as u32 + 1, // include nul
         len => len as u32,
     };
 
-    let mut lpWideCharStr = lpWideCharStr.to_option();
-    match lpWideCharStr {
-        Some(buf) if buf.len() == 0 => lpWideCharStr = None,
-        _ => (),
-    };
+    let dst = &mut lpWideCharStr;
+    if let Some(buf) = dst {
+        if buf.len() == 0 {
+            *dst = None;
+        }
+    }
 
-    match lpWideCharStr {
-        None => input_len,
-        Some(buf) => {
-            let input = machine.mem().sub32(lpMultiByteStr, input_len);
+    // TODO: reuse the conversion in winapi/string.rs.
+    match dst {
+        None => src_len,
+        Some(dst) => {
+            let src = machine.mem().sub32(src_addr, src_len);
             let mut len = 0;
-            for (&c_in, c_out) in std::iter::zip(input, buf) {
-                if c_in > 0x7f {
+            for &c in src {
+                if c > 0x7f {
                     unimplemented!("unicode");
                 }
-                *c_out = c_in as u16;
+                dst.put_pod(len, c as u16);
                 len += 1;
             }
             len
@@ -176,7 +179,7 @@ pub fn LCMapStringA(
     dwMapFlags: u32,
     lpSrcStr: u32,
     cchSrc: i32,
-    lpDestStr: ArrayWithSizeMut<u8>,
+    lpDestStr: ArrayOut<u8>,
 ) -> i32 {
     todo!();
 }
@@ -188,7 +191,7 @@ pub fn LCMapStringW(
     dwMapFlags: u32,
     lpSrcStr: u32,
     cchSrc: i32,
-    lpDestStr: ArrayWithSizeMut<u16>,
+    lpDestStr: ArrayOut<u16>,
 ) -> i32 {
     todo!();
 }

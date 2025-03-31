@@ -6,32 +6,33 @@
 //! plain values (for output) so that different machine implementations can do their
 //! own control over the stack and moving return values into registers.
 
-use std::ops::Deref;
-
 use crate::winapi::{CStr, Str16};
 use memory::{Extensions, ExtensionsMut, Mem};
+use std::ops::{Deref, DerefMut};
 
-/// ArrayWithSizeMut<u8> matches a pair of C arguments like
-///    u8_t* items, size_t len,
-/// it's a wrapper type to provide a custom Debug implementation that doesn't
-/// dump the internal contents.
-pub struct ArrayWithSizeMut<'a, T>(Option<&'a mut [T]>);
+/// Array<u8> matches a pair of C arguments like
+///    const u8_t* items, size_t len,
+#[derive(Debug)]
+pub struct Array<'a, T> {
+    /// Array's underlying buffer is always [u8] for alignment reasons.
+    bytes: &'a [u8],
+    _marker: std::marker::PhantomData<T>,
+}
 
-impl<'a, T> std::fmt::Debug for ArrayWithSizeMut<'a, T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match &self.0 {
-            None => write!(f, "None"),
-            Some(buf) => write!(f, "[buffer size {}]", buf.len()),
-        }
+impl<T> Deref for Array<'_, T> {
+    type Target = [u8];
+    fn deref(&self) -> &Self::Target {
+        self.bytes
     }
 }
 
-impl<'a, T> ArrayWithSizeMut<'a, T> {
-    pub fn to_option(self) -> Option<&'a mut [T]> {
-        self.0
-    }
-    pub fn unwrap(self) -> &'a mut [T] {
-        self.0.unwrap()
+impl<'a, T: memory::Pod> FromStack<'a> for Array<'a, T> {
+    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+        let buf = ArrayOut::<'a, T>::from_stack(mem, sp);
+        Array {
+            bytes: buf.bytes,
+            _marker: std::marker::PhantomData,
+        }
     }
 }
 
@@ -39,6 +40,18 @@ impl<'a, T> ArrayWithSizeMut<'a, T> {
 pub struct ArrayOut<'a, T> {
     bytes: &'a mut [u8],
     _marker: std::marker::PhantomData<T>,
+}
+
+impl<'a, T: memory::Pod> ArrayOut<'a, T> {
+    pub fn as_mut_slice(&mut self) -> &mut [u8] {
+        self.bytes
+    }
+
+    pub fn put_pod(&mut self, index: u32, val: T) {
+        let ofs = index * std::mem::size_of::<T>() as u32;
+        assert!(ofs as usize + std::mem::size_of::<T>() <= self.bytes.len());
+        self.bytes.put_pod::<T>(ofs, val);
+    }
 }
 
 impl<'a, T: memory::Pod> FromStack<'a> for ArrayOut<'a, T> {
@@ -69,29 +82,26 @@ impl<'a, T> std::fmt::Debug for ArrayOut<'a, T> {
     }
 }
 
-/// Array<u8> matches a pair of C arguments like
-///    const u8_t* items, size_t len,
-#[derive(Debug)]
-pub struct Array<'a, T> {
-    /// Array's underlying buffer is always [u8] for alignment reasons.
-    bytes: &'a [u8],
-    _marker: std::marker::PhantomData<T>,
-}
-
-impl<T> Deref for Array<'_, T> {
+impl<T> Deref for ArrayOut<'_, T> {
     type Target = [u8];
     fn deref(&self) -> &Self::Target {
         self.bytes
     }
 }
 
-impl<'a, T: memory::Pod> FromStack<'a> for Array<'a, T> {
+impl<T> DerefMut for ArrayOut<'_, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.bytes
+    }
+}
+
+impl<'a, T: memory::Pod> FromStack<'a> for Option<ArrayOut<'a, T>> {
     unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let buf = ArrayOut::<'a, T>::from_stack(mem, sp);
-        Array {
-            bytes: buf.bytes,
-            _marker: std::marker::PhantomData,
+        let addr = mem.get_pod::<u32>(sp);
+        if addr == 0 {
+            return None;
         }
+        return Some(ArrayOut::from_stack(mem, sp));
     }
 }
 
@@ -198,21 +208,6 @@ impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
             slice.as_ptr() as *const _,
             count as usize,
         ))
-    }
-}
-
-impl<'a, T: memory::Pod> FromStack<'a> for ArrayWithSizeMut<'a, T> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
-        let addr = mem.get_pod::<u32>(sp);
-        let count = mem.get_pod::<u32>(sp + 4);
-        if addr == 0 {
-            return ArrayWithSizeMut(None);
-        }
-        let slice = mem.sub32_mut(addr, count);
-        ArrayWithSizeMut(Some(std::slice::from_raw_parts_mut(
-            slice.as_mut_ptr() as *mut _,
-            count as usize,
-        )))
     }
 }
 

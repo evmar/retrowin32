@@ -1990,7 +1990,7 @@ mod wrappers {
     pub unsafe fn GetModuleFileNameA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hModule = <HMODULE>::from_stack(mem, stack_args + 0u32);
-        let filename = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
+        let filename = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::GetModuleFileNameA_pos,
@@ -2225,7 +2225,7 @@ mod wrappers {
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
         let lpDefault = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-        let lpReturnedString = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 12u32);
+        let lpReturnedString = <ArrayOut<u16>>::from_stack(mem, stack_args + 12u32);
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 20u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
             crate::winapi::trace::Record::new(
@@ -2328,7 +2328,7 @@ mod wrappers {
         let lpAppName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let lpKeyName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
         let lpDefault = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-        let lpReturnedString = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 12u32);
+        let lpReturnedString = <ArrayOut<u16>>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/ini") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::GetProfileStringW_pos,
@@ -3489,7 +3489,7 @@ mod wrappers {
         let dwMapFlags = <u32>::from_stack(mem, stack_args + 4u32);
         let lpSrcStr = <u32>::from_stack(mem, stack_args + 8u32);
         let cchSrc = <i32>::from_stack(mem, stack_args + 12u32);
-        let lpDestStr = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 16u32);
+        let lpDestStr = <ArrayOut<u8>>::from_stack(mem, stack_args + 16u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::LCMapStringA_pos,
@@ -3521,7 +3521,7 @@ mod wrappers {
         let dwMapFlags = <u32>::from_stack(mem, stack_args + 4u32);
         let lpSrcStr = <u32>::from_stack(mem, stack_args + 8u32);
         let cchSrc = <i32>::from_stack(mem, stack_args + 12u32);
-        let lpDestStr = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 16u32);
+        let lpDestStr = <ArrayOut<u16>>::from_stack(mem, stack_args + 16u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::LCMapStringW_pos,
@@ -3857,7 +3857,7 @@ mod wrappers {
         let dwFlags = <Result<MB, u32>>::from_stack(mem, stack_args + 4u32);
         let lpMultiByteStr = <u32>::from_stack(mem, stack_args + 8u32);
         let cbMultiByte = <i32>::from_stack(mem, stack_args + 12u32);
-        let lpWideCharStr = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 16u32);
+        let lpWideCharStr = <Option<ArrayOut<u16>>>::from_stack(mem, stack_args + 16u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::MultiByteToWideChar_pos,
@@ -4177,7 +4177,7 @@ mod wrappers {
     pub unsafe fn ReadFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
-        let lpBuffer = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
+        let lpBuffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
         let lpNumberOfBytesRead = <Option<&mut u32>>::from_stack(mem, stack_args + 12u32);
         let lpOverlapped = <u32>::from_stack(mem, stack_args + 16u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/file/file") {

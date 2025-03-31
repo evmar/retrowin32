@@ -39,7 +39,7 @@ mod wrappers {
         let ApcRoutine = <u32>::from_stack(mem, stack_args + 8u32);
         let ApcContext = <u32>::from_stack(mem, stack_args + 12u32);
         let IoStatusBlock = <Option<&mut IO_STATUS_BLOCK>>::from_stack(mem, stack_args + 16u32);
-        let Buffer = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 20u32);
+        let Buffer = <ArrayOut<u8>>::from_stack(mem, stack_args + 20u32);
         let ByteOffset = <Option<&mut u64>>::from_stack(mem, stack_args + 28u32);
         let Key = <u32>::from_stack(mem, stack_args + 32u32);
         let __trace_record = if crate::winapi::trace::enabled("ntdll") {
