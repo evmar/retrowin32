@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::{calling_convention::ArrayWithSizeMut, machine::Machine, winapi::HFILE};
+use crate::{calling_convention::ArrayOut, machine::Machine, winapi::HFILE};
 
 const STATUS_SUCCESS: u32 = 0;
 
@@ -25,7 +25,7 @@ pub fn NtReadFile(
     ApcRoutine: u32,
     ApcContext: u32,
     IoStatusBlock: Option<&mut IO_STATUS_BLOCK>,
-    Buffer: ArrayWithSizeMut<u8>,
+    mut Buffer: ArrayOut<u8>,
     ByteOffset: Option<&mut u64>,
     Key: u32,
 ) -> u32 {
@@ -34,7 +34,7 @@ pub fn NtReadFile(
         todo!();
     }
     let status_block = IoStatusBlock.unwrap();
-    let buf = Buffer.unwrap();
+    let buf = &mut Buffer;
     if ByteOffset.is_some() {
         todo!();
     }

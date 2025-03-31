@@ -1,5 +1,5 @@
 use crate::{
-    calling_convention::{self, ArrayWithSizeMut},
+    calling_convention::{self, ArrayOut},
     loader,
     machine::Machine,
     winapi::{
@@ -90,9 +90,9 @@ fn get_module_file_name(
 pub fn GetModuleFileNameA(
     machine: &mut Machine,
     hModule: HMODULE,
-    filename: ArrayWithSizeMut<u8>,
+    mut filename: ArrayOut<u8>,
 ) -> u32 {
-    get_module_file_name(machine, hModule, &mut BufWriteAnsi::new(filename.unwrap()))
+    get_module_file_name(machine, hModule, &mut BufWriteAnsi::new(&mut filename))
 }
 
 #[win32_derive::dllexport]

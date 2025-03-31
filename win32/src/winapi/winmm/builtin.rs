@@ -149,7 +149,7 @@ mod wrappers {
     pub unsafe fn mciSendStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpstrCommand = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let lpstrReturnString = <ArrayWithSizeMut<u8>>::from_stack(mem, stack_args + 4u32);
+        let lpstrReturnString = <ArrayOut<u8>>::from_stack(mem, stack_args + 4u32);
         let hwndCallback = <HWND>::from_stack(mem, stack_args + 12u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/mci") {
             crate::winapi::trace::Record::new(

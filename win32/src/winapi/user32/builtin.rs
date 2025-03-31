@@ -1184,7 +1184,7 @@ mod wrappers {
         let mem = machine.mem().detach();
         let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
         let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
-        let lpString = <ArrayWithSizeMut<u16>>::from_stack(mem, stack_args + 8u32);
+        let lpString = <ArrayOut<u16>>::from_stack(mem, stack_args + 8u32);
         let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
             crate::winapi::trace::Record::new(
                 winapi::user32::GetDlgItemTextW_pos,

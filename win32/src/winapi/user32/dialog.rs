@@ -1,4 +1,4 @@
-use crate::{calling_convention::ArrayWithSizeMut, winapi::*, Machine};
+use crate::{calling_convention::ArrayOut, winapi::*, Machine};
 
 /*
 pub mod MessageBoxFlags {
@@ -152,7 +152,7 @@ pub fn GetDlgItemTextW(
     machine: &mut Machine,
     hDlg: HWND,
     nIDDlgItem: i32,
-    lpString: ArrayWithSizeMut<u16>,
+    lpString: ArrayOut<u16>,
 ) -> u32 {
     todo!();
 }

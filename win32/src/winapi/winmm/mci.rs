@@ -1,4 +1,4 @@
-use crate::{calling_convention::ArrayWithSizeMut, winapi::HWND, Machine};
+use crate::{calling_convention::ArrayOut, winapi::HWND, Machine};
 
 #[win32_derive::dllexport]
 pub fn mciGetErrorStringA(
@@ -14,7 +14,7 @@ pub fn mciGetErrorStringA(
 pub fn mciSendStringA(
     _machine: &mut Machine,
     lpstrCommand: Option<&str>,
-    lpstrReturnString: ArrayWithSizeMut<u8>,
+    lpstrReturnString: ArrayOut<u8>,
     hwndCallback: HWND,
 ) -> u32 {
     let cmd = lpstrCommand.unwrap();

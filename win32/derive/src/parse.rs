@@ -132,7 +132,7 @@ pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
     if name == "Array"
         || name == "ArrayOut"
         || name == "ArrayWithSize"
-        || name == "ArrayWithSizeMut"
+        || name == "ArrayOut"
         || name == "POINT"
         || name == "f64"
     {
