@@ -2,59 +2,55 @@
 //! TODO: this probably doesn't belong in the memory crate,
 //! but there is probably a real UTF-16 crate that we should use instead.
 
-use crate::Mem;
+use crate::{Extensions, Mem};
 
 /// UTF-16 string view.
+/// Still uses a [u8] underneath for alignment reasons.
 #[derive(PartialEq, Eq)]
 #[repr(transparent)]
-pub struct Str16([u16]);
+pub struct Str16([u8]);
 
 impl Str16 {
-    pub fn from_bytes(mem: &[u8]) -> &Self {
-        Str16::from_buffer(unsafe {
-            std::slice::from_raw_parts(mem.as_ptr() as *const _, mem.len() / 2)
+    pub fn from_bytes(buf: &[u8]) -> &Self {
+        assert_eq!(buf.len() % 2, 0);
+        unsafe { std::mem::transmute(buf) }
+    }
+
+    pub fn from_bytes_mut(buf: &mut [u8]) -> &mut Self {
+        assert_eq!(buf.len() % 2, 0);
+        unsafe { std::mem::transmute(buf) }
+    }
+
+    pub fn from_u16(buf: &[u16]) -> &Self {
+        Self::from_bytes(unsafe {
+            std::slice::from_raw_parts(buf.as_ptr() as *const _, buf.len() * 2)
         })
-    }
-
-    pub fn from_bytes_mut(mem: &mut [u8]) -> &mut Self {
-        Str16::from_buffer_mut(unsafe {
-            std::slice::from_raw_parts_mut(mem.as_ptr() as *mut _, mem.len() / 2)
-        })
-    }
-
-    pub fn from_buffer(mem: &[u16]) -> &Self {
-        unsafe { std::mem::transmute(mem) }
-    }
-
-    pub fn from_buffer_mut(mem: &mut [u16]) -> &mut Self {
-        unsafe { std::mem::transmute(mem) }
-    }
-
-    pub fn from_nul_term(mem: &[u16]) -> &Self {
-        let end = mem.iter().position(|&c| c == 0).unwrap();
-        Self::from_buffer(&mem[..end])
     }
 
     pub unsafe fn from_nul_term_ptr(mem: Mem, addr: u32) -> Option<&Self> {
         if addr == 0 {
             return None;
         }
-        let mem16: &[u16] = {
-            let mem = mem.slice(addr..);
-            let ptr = mem.as_ptr() as *const u16;
-            std::slice::from_raw_parts(ptr, mem.len() as usize / 2)
-        };
-        Some(Self::from_nul_term(mem16))
+        let end = mem
+            .iter_pod::<u16>(addr, (mem.len() - addr) / 2)
+            .position(|c| c == 0)
+            .unwrap();
+        Some(Self::from_bytes(mem.sub32(addr, end as u32 * 2)))
     }
 
+    /// TODO: remove this, it gets alignment wrong.
     pub fn buf(&self) -> &[u16] {
+        unsafe { std::slice::from_raw_parts(self.0.as_ptr() as *const u16, self.0.len() / 2) }
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }
 
     pub fn to_string(&self) -> String {
         self.0
-            .iter()
-            .map(|&c| {
+            .into_iter_pod::<u16>()
+            .map(|c| {
                 if c > 0xFF {
                     // TODO
                     panic!("unhandled non-ascii {:?}", char::from_u32(c as u32));
@@ -72,7 +68,7 @@ impl std::fmt::Debug for Str16 {
 }
 
 impl std::ops::Deref for Str16 {
-    type Target = [u16];
+    type Target = [u8];
 
     fn deref(&self) -> &Self::Target {
         &self.0
@@ -90,7 +86,7 @@ pub struct String16(pub Vec<u16>);
 
 impl String16 {
     pub fn as_str16(&self) -> &Str16 {
-        Str16::from_buffer(&self.0)
+        Str16::from_u16(&self.0)
     }
 
     pub fn byte_size(&self) -> usize {
