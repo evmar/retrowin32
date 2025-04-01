@@ -432,3 +432,8 @@ pub fn SetErrorMode(_machine: &mut Machine, uMode: SEM) -> SEM {
 pub fn EncodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
     ptr
 }
+
+#[win32_derive::dllexport]
+pub fn DecodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
+    ptr
+}
