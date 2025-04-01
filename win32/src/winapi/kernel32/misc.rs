@@ -20,15 +20,13 @@ pub fn set_last_error(machine: &mut Machine, err: ERROR) {
 }
 
 #[win32_derive::dllexport]
-pub fn SetLastError(machine: &mut Machine, dwErrCode: u32) -> u32 {
-    // Avoid set_last_error to allow for unknown error codes.
-    teb_mut(machine).LastErrorValue = dwErrCode;
-    0 // unused
+pub fn SetLastError(machine: &mut Machine, dwErrCode: Result<ERROR, u32>) {
+    teb_mut(machine).LastErrorValue = dwErrCode.map_or_else(|err| err, |err| err as u32);
 }
 
 #[win32_derive::dllexport]
-pub fn GetLastError(machine: &mut Machine) -> u32 {
-    teb_mut(machine).LastErrorValue
+pub fn GetLastError(machine: &mut Machine) -> Result<ERROR, u32> {
+    ERROR::try_from(teb_mut(machine).LastErrorValue)
 }
 
 #[win32_derive::dllexport]
