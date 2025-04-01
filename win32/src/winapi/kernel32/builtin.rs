@@ -591,6 +591,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn DecodePointer(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let ptr = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::DecodePointer_pos,
+                "kernel32/misc",
+                "DecodePointer",
+                &[("ptr", &ptr)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::DecodePointer(machine, ptr);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn DeleteCriticalSection(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpCriticalSection = <u32>::from_stack(mem, stack_args + 0u32);
@@ -5761,7 +5781,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 234usize] = [
+const SHIMS: [Shim; 235usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5833,6 +5853,10 @@ const SHIMS: [Shim; 234usize] = [
     Shim {
         name: "DebugBreak",
         func: Handler::Sync(wrappers::DebugBreak),
+    },
+    Shim {
+        name: "DecodePointer",
+        func: Handler::Sync(wrappers::DecodePointer),
     },
     Shim {
         name: "DeleteCriticalSection",
