@@ -343,7 +343,10 @@ unsafe impl ::memory::Pod for PEB {}
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
+    #[derive(Debug)]
     struct DllData {
+        #[allow(unused)] // for Debug only
+        name: String,
         base: u32,
         entry_point: u32,
     }
@@ -355,6 +358,7 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
         .iter()
         .filter_map(|(_, module)| {
             Some(DllData {
+                name: module.name.clone(),
                 base: module.image_base,
                 entry_point: module.entry_point?,
             })
@@ -365,6 +369,7 @@ pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
         let hInstance = dll.base;
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;
+        log::debug!("invoking DLLMain: {dll:#x?}",);
         machine
             .call_x86(dll.entry_point, vec![hInstance, fdwReason, lpvReserved])
             .await;
