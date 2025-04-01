@@ -107,9 +107,9 @@ pub fn GetModuleFileNameW(
     get_module_file_name(machine, hModule, &mut filename)
 }
 
-fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
+async fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
     let res = loader::resolve_dll(machine, filename);
-    match loader::load_dll(machine, &res) {
+    match loader::load_dll(machine, &res).await {
         Ok(hmodule) => hmodule,
         Err(e) => {
             // TODO: set_last_error fails here if this happens before TEB setup
@@ -121,24 +121,24 @@ fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryW(machine: &mut Machine, filename: Option<&Str16>) -> HMODULE {
-    load_library(machine, &filename.unwrap().to_string())
+pub async fn LoadLibraryW(machine: &mut Machine, filename: Option<&Str16>) -> HMODULE {
+    load_library(machine, &filename.unwrap().to_string()).await
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
-    load_library(machine, filename.unwrap())
+pub async fn LoadLibraryA(machine: &mut Machine, filename: Option<&str>) -> HMODULE {
+    load_library(machine, filename.unwrap()).await
 }
 
 #[win32_derive::dllexport]
-pub fn LoadLibraryExW(
+pub async fn LoadLibraryExW(
     machine: &mut Machine,
     lpLibFileName: Option<&Str16>,
     hFile: HFILE,
     dwFlags: u32,
 ) -> HMODULE {
     let filename = lpLibFileName.map(|f| f.to_string());
-    load_library(machine, &filename.unwrap())
+    load_library(machine, &filename.unwrap()).await
 }
 
 #[win32_derive::dllexport]
@@ -171,8 +171,17 @@ impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
 }
 
 pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
-    let hmodule = load_library(machine, dll);
-    let module = machine.state.kernel32.modules.get_mut(&hmodule).unwrap();
+    let res = loader::resolve_dll(machine, dll);
+    let dll_name = res.name();
+
+    let module = machine
+        .state
+        .kernel32
+        .modules
+        .iter()
+        .find(|(_, m)| m.name == dll_name)
+        .unwrap()
+        .1;
     module
         .exports
         .resolve(&ImportSymbol::Name(name.as_bytes()))

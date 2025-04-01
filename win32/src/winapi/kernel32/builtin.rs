@@ -3587,7 +3587,10 @@ mod wrappers {
         }
         result.into()
     }
-    pub unsafe fn LoadLibraryA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadLibraryA(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -3601,13 +3604,20 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::kernel32::LoadLibraryA(machine, filename);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.into()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::kernel32::LoadLibraryA(machine, filename).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
     }
-    pub unsafe fn LoadLibraryExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadLibraryExW(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let lpLibFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let hFile = <HFILE>::from_stack(mem, stack_args + 4u32);
@@ -3627,13 +3637,21 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.into()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result =
+                winapi::kernel32::LoadLibraryExW(machine, lpLibFileName, hFile, dwFlags).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
     }
-    pub unsafe fn LoadLibraryW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadLibraryW(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         let mem = machine.mem().detach();
         let filename = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/dll") {
@@ -3647,11 +3665,15 @@ mod wrappers {
         } else {
             None
         };
-        let result = winapi::kernel32::LoadLibraryW(machine, filename);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
-        }
-        result.into()
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::kernel32::LoadLibraryW(machine, filename).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
     }
     pub unsafe fn LoadResource(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
@@ -6372,15 +6394,15 @@ const SHIMS: [Shim; 235usize] = [
     },
     Shim {
         name: "LoadLibraryA",
-        func: Handler::Sync(wrappers::LoadLibraryA),
+        func: Handler::Async(wrappers::LoadLibraryA),
     },
     Shim {
         name: "LoadLibraryExW",
-        func: Handler::Sync(wrappers::LoadLibraryExW),
+        func: Handler::Async(wrappers::LoadLibraryExW),
     },
     Shim {
         name: "LoadLibraryW",
-        func: Handler::Sync(wrappers::LoadLibraryW),
+        func: Handler::Async(wrappers::LoadLibraryW),
     },
     Shim {
         name: "LoadResource",

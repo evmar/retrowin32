@@ -147,7 +147,7 @@ fn load_exports(image_base: u32, image: &[u8], exports_data: &[u8]) -> Exports {
     }
 }
 
-fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
+async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_DIRECTORY) {
     // Traverse the ILT, gathering up addresses that need to be fixed up to point at
     // the correct targets.
     let mut patches: Vec<(u32, u32)> = Vec::new();
@@ -163,7 +163,7 @@ fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_
         };
         let res = resolve_dll(machine, dll_name);
         let module = {
-            match load_dll(machine, &res) {
+            match load_dll(machine, &res).await {
                 Ok(hmodule) => machine.state.kernel32.modules.get_mut(&hmodule),
                 Err(err) => {
                     log::warn!("failed to load import {dll_name:?}: {err}");
@@ -288,7 +288,7 @@ fn load_one_module(
 }
 
 /// Load an exe or dll, inserting it into the module map and resolving its imports.
-fn load_module(
+async fn load_module(
     machine: &mut Machine,
     module_name: String,
     buf: &[u8],
@@ -303,7 +303,20 @@ fn load_module(
     machine.state.kernel32.modules.insert(hmodule, module);
 
     if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
-        load_imports(machine, image_base, imports);
+        Box::pin(load_imports(machine, image_base, imports)).await;
+    }
+
+    // Invoke DllMain() if present.
+    let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
+    #[allow(non_snake_case)]
+    if file.header.Characteristics.contains(pe::IMAGE_FILE::DLL) && module.entry_point.is_some() {
+        let entry_point = module.entry_point.unwrap();
+        let hInstance = module.image_base;
+        let fdwReason = 1u32; // DLL_PROCESS_ATTACH
+        let lpvReserved = 0u32;
+        machine
+            .call_x86(entry_point, vec![hInstance, fdwReason, lpvReserved])
+            .await;
     }
 
     Ok(hmodule)
@@ -314,7 +327,7 @@ pub struct EXEFields {
     pub stack_size: u32,
 }
 
-pub fn load_exe(
+pub async fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
     path: &str,
@@ -324,7 +337,7 @@ pub fn load_exe(
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
     let module_name = normalize_module_name(&filename);
-    let hmodule = load_module(machine, module_name, buf, &file, relocate)?;
+    let hmodule = load_module(machine, module_name, buf, &file, relocate).await?;
     let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
@@ -418,9 +431,8 @@ pub fn resolve_dll(machine: &mut Machine, filename: &str) -> DLLResolution {
     DLLResolution::External(filename)
 }
 
-pub fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HMODULE> {
+pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HMODULE> {
     let module_name = res.name();
-
     // See if already loaded.
     if let Some((&hmodule, _)) = machine
         .state
@@ -441,7 +453,8 @@ pub fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HM
                 builtin.raw,
                 &file,
                 Some(None),
-            )?;
+            )
+            .await?;
             let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
 
             // For builtins, register all the exports as known symbols.
@@ -475,7 +488,7 @@ pub fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HM
                 anyhow::bail!("{filename:?} not found");
             }
             let file = pe::parse(&buf)?;
-            load_module(machine, filename.to_owned(), &buf, &file, Some(None))
+            load_module(machine, filename.to_owned(), &buf, &file, Some(None)).await
         }
     }
 }
