@@ -1,9 +1,7 @@
 use crate::Machine;
 
 #[win32_derive::dllexport]
-pub fn InitializeCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> bool {
-    true
-}
+pub fn InitializeCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
 pub fn InitializeCriticalSectionEx(
@@ -27,16 +25,10 @@ pub fn InitializeCriticalSectionAndSpinCount(
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
-    0
-}
+pub fn DeleteCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
-pub fn EnterCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
-    0
-}
+pub fn EnterCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
-pub fn LeaveCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) -> u32 {
-    0
-}
+pub fn LeaveCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
