@@ -27,7 +27,7 @@ pub enum CreationDisposition {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct GENERIC: u32 {
         const ALL = 0x10000000;
         const EXECUTE = 0x20000000;

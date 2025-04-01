@@ -61,7 +61,7 @@ struct Lock {
 }
 
 bitflags::bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DSBCAPS: u32 {
         const PRIMARYBUFFER       = 0x00000001;
         const STATIC              = 0x00000002;
@@ -82,7 +82,7 @@ bitflags::bitflags! {
 }
 
 bitflags::bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DSBLOCK: u32 {
         const FROMWRITECURSOR = 0x00000001;
         const ENTIREBUFFER    = 0x00000002;

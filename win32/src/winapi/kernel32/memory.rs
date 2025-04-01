@@ -4,7 +4,7 @@ use memory::{ExtensionsMut, Mem};
 use std::cmp::max;
 
 bitflags! {
-    #[derive(Default, win32_derive::TryFromBitflags)]
+    #[derive(Copy, Clone, Debug, Default, win32_derive::TryFromBitflags)]
     pub struct HeapAllocFlags: u32 {
         const HEAP_GENERATE_EXCEPTIONS = 0x4;
         const HEAP_NO_SERIALIZE = 0x1;
@@ -113,7 +113,7 @@ pub fn HeapReAlloc(
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct HeapCreateFlags: u32 {
         const HEAP_CREATE_ENABLE_EXECUTE = 0x00040000;
         const HEAP_GENERATE_EXCEPTIONS = 0x00000004;
@@ -166,7 +166,7 @@ pub fn HeapWalk(
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct MEM: u32 {
         const COMMIT = 0x00001000;
         const RESERVE = 0x00002000;
@@ -180,7 +180,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct PAGE: u32 {
         const EXECUTE = 0x10;
         const EXECUTE_READ = 0x20;
@@ -279,6 +279,7 @@ pub fn IsBadCodePtr(_machine: &mut Machine, lpfn: u32) -> bool {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct GMEM: u32 {
         const MOVEABLE = 0x2;
         const ZEROINIT = 0x40;

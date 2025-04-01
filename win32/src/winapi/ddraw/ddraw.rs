@@ -62,7 +62,7 @@ impl Surface {
         }
 
         // win003 doesn't set desc.dwFlags at all, so don't consider whether they provided DDSD::CAPS.
-        let caps = desc.ddsCaps.dwCaps;
+        let caps = &desc.ddsCaps.dwCaps;
         if caps.contains(DDSCAPS::PRIMARYSURFACE) {
             opts.primary = true;
         }

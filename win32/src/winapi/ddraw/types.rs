@@ -21,7 +21,7 @@ impl Into<crate::calling_convention::ABIReturn> for DD {
 }
 
 #[repr(C)]
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 pub struct DDSCAPS2 {
     pub dwCaps: DDSCAPS,
     dwCaps2: DWORD,
@@ -31,7 +31,7 @@ pub struct DDSCAPS2 {
 unsafe impl memory::Pod for DDSCAPS2 {}
 
 bitflags! {
-    #[derive(Default)]
+    #[derive(Copy, Clone, Debug, Default)]
     pub struct DDSCAPS: u32 {
         const ALPHA = 0x00000002;
         const BACKBUFFER = 0x00000004;
@@ -65,7 +65,7 @@ bitflags! {
 unsafe impl memory::Pod for DDSCAPS {}
 
 bitflags! {
-    #[derive(Default)]
+    #[derive(Copy, Clone, Debug, Default)]
     pub struct DDSD: u32 {
         const CAPS = 0x00000001;
         const HEIGHT = 0x00000002;
@@ -91,7 +91,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDPCAPS: u32 {
         const _4BIT = 0x00000001;
         const _8BITENTRIES = 0x00000002;
@@ -108,7 +108,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDLOCK: u32 {
         const SURFACEMEMORYPTR= 0x00000000;
         const WAIT = 0x00000001;
@@ -134,7 +134,7 @@ pub struct DDCOLORKEY {
 unsafe impl memory::Pod for DDCOLORKEY {}
 
 #[repr(C)]
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct DDSURFACEDESC {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -249,7 +249,6 @@ impl DDSURFACEDESC {
 }
 
 #[repr(C)]
-#[derive(Clone)]
 pub struct DDSURFACEDESC2 {
     pub dwSize: DWORD,
     pub dwFlags: DDSD,
@@ -399,7 +398,7 @@ pub struct DDPIXELFORMAT {
 unsafe impl memory::Pod for DDPIXELFORMAT {}
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDBLT: u32 {
         const ALPHADEST                = 0x00000001;
         const ALPHADESTCONSTOVERRIDE   = 0x00000002;
@@ -432,7 +431,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDBLTFAST: u32 {
         // const NOCOLORKEY   = 0x00000000;
         const SRCCOLORKEY  = 0x00000001;
@@ -472,6 +471,7 @@ pub struct DDBLTFX {
 unsafe impl memory::Pod for DDBLTFX {}
 
 bitflags! {
+    #[derive(Debug)]
     pub struct DDBLTFXT: u32 {
         const ARITHSTRETCHY   = 0x001;
         const MIRRORLEFTRIGHT = 0x002;

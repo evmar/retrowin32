@@ -14,11 +14,13 @@ members = [
 ]
 
 [workspace.dependencies]
-log = "0.4"
 memory = { path = "memory" }
 pe = { path = "pe" }
 win32 = { path = "win32" }
 x86 = { path = "x86" }
+
+bitflags = { version = "2.9.0", features = ["serde"] }
+log = "0.4"
 tsify = "0.4.1"
 # Must match version of wasm-bindgen-cli, with version pinned in CI.
 wasm-bindgen = "=0.2.100"

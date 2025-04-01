@@ -10,7 +10,7 @@ use std::{cell::RefCell, rc::Rc};
 
 bitflags! {
     /// CS_ class style flags for window classes.
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct CS: u32 {
         const VREDRAW         = 0x0001;
         const HREDRAW         = 0x0002;

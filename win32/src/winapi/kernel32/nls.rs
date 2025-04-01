@@ -40,7 +40,7 @@ pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct MB: u32 {
         const PRECOMPOSED = 0x00000001;
         const COMPOSITE = 0x00000002;
@@ -98,7 +98,7 @@ pub fn MultiByteToWideChar(
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct WC: u32 {
         const COMPOSITECHECK = 0x00000200;
         const DISCARDNS = 0x00000010;
