@@ -34,7 +34,7 @@ impl Emulator {
     }
 
     pub fn labels(&self) -> JsResult<String> {
-        let str = serde_json::to_string(&self.machine.labels)?;
+        let str = serde_json::to_string(&self.machine.memory.labels)?;
         Ok(str)
     }
 
