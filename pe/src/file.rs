@@ -24,23 +24,29 @@ pub struct IMAGE_FILE_HEADER {
     pub PointerToSymbolTable: u32,
     pub NumberOfSymbols: u32,
     pub SizeOfOptionalHeader: u16,
-    pub Characteristics: u16,
+    pub Characteristics: IMAGE_FILE,
 }
 unsafe impl memory::Pod for IMAGE_FILE_HEADER {}
 
 bitflags! {
-    pub struct DllCharacteristics: u16 {
-        const HIGH_ENTROPY_VA = 0x0020;
-        const DYNAMIC_BASE = 0x0040;
-        const FORCE_INTEGRITY = 0x0080;
-        const NX_COMPAT = 0x0100;
-        const NO_ISOLATION = 0x0200;
-        const NO_SEH = 0x0400;
-        const NO_BIND = 0x0800;
-        const APPCONTAINER = 0x1000;
-        const WDM_DRIVER = 0x2000;
-        const GUARD_CF = 0x4000;
-        const TERMINAL_SERVER_AWARE = 0x8000;
+    #[derive(Debug)]
+    pub struct IMAGE_FILE: u16 {
+        const RELOCS_STRIPPED = 0x0001;
+        const EXECUTABLE_IMAGE = 0x0002;
+        const LINE_NUMS_STRIPPED = 0x0004;
+        const LOCAL_SYMS_STRIPPED = 0x0008;
+        const AGGRESSIVE_WS_TRIM = 0x0010;
+        const LARGE_ADDRESS_AWARE = 0x0020;
+        const BYTES_REVERSED_LO = 0x0080;
+        const _32BIT_MACHINE = 0x0100;
+        const DEBUG_STRIPPED = 0x0200;
+        const REMOVABLE_RUN_FROM_SWAP = 0x0400;
+        const NET_RUN_FROM_SWAP = 0x0800;
+        const SYSTEM = 0x1000;
+        const DLL = 0x2000;
+        const UP_SYSTEM_ONLY = 0x4000;
+        const BYTES_REVERSED_HI = 0x8000;
+        const _ = !0;
     }
 }
 
@@ -70,7 +76,7 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub SizeOfHeaders: u32,
     pub CheckSum: u32,
     pub Subsystem: u16,
-    pub DllCharacteristics: u16,
+    pub DllCharacteristics: IMAGE_DLL_CHARACTERISTICS,
     pub SizeOfStackReserve: u32,
     pub SizeOfStackCommit: u32,
     pub SizeOfHeapReserve: u32,
@@ -79,6 +85,24 @@ pub struct IMAGE_OPTIONAL_HEADER32 {
     pub NumberOfRvaAndSizes: u32,
 }
 unsafe impl memory::Pod for IMAGE_OPTIONAL_HEADER32 {}
+
+bitflags! {
+    #[derive(Debug)]
+    pub struct IMAGE_DLL_CHARACTERISTICS: u16 {
+        const HIGH_ENTROPY_VA = 0x0020;
+        const DYNAMIC_BASE = 0x0040;
+        const FORCE_INTEGRITY = 0x0080;
+        const NX_COMPAT = 0x0100;
+        const NO_ISOLATION = 0x0200;
+        const NO_SEH = 0x0400;
+        const NO_BIND = 0x0800;
+        const APPCONTAINER = 0x1000;
+        const WDM_DRIVER = 0x2000;
+        const GUARD_CF = 0x4000;
+        const TERMINAL_SERVER_AWARE = 0x8000;
+        const _ = !0;
+    }
+}
 
 #[repr(C)]
 #[derive(Clone, Debug, Default)]
