@@ -83,37 +83,48 @@ impl MachineX<Emulator> {
 
     pub fn load_exe(
         &mut self,
-        buf: &[u8],
+        buf: Vec<u8>,
         cmdline: String,
         relocate: Option<Option<u32>>,
     ) -> anyhow::Result<u32> {
         self.state
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
-        let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
-        // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
-        // that the exe wants.
-        self.state.kernel32.init_process_heap(&mut self.memory);
-
-        let retrowin32_main = winapi::kernel32::get_kernel32_builtin(self, "retrowin32_main");
-
+        let stack_size = 0x4096; // TODO: read from exe
         let NewThread {
             thread,
             stack_pointer,
-        } = create_thread(self, exe.stack_size);
+        } = create_thread(self, stack_size);
 
+        let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();
         cpu.regs.set32(x86::Register::ESP, stack_pointer);
         cpu.regs.set32(x86::Register::EBP, stack_pointer);
         cpu.regs.fs_addr = thread.teb;
+        cpu.call_async(Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let exe = loader::load_exe(
+                machine,
+                &buf,
+                &machine.state.kernel32.cmdline.exe_name(),
+                relocate,
+            )
+            .await
+            .unwrap();
 
-        let mem = self.memory.mem();
-        x86::ops::push(cpu, mem, exe.entry_point);
-        x86::ops::push(cpu, mem, 0); // return address
-        cpu.regs.eip = retrowin32_main;
+            // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
+            // that the exe wants.
+            machine
+                .state
+                .kernel32
+                .init_process_heap(&mut machine.memory);
 
-        Ok(exe.entry_point)
+            winapi::kernel32::retrowin32_main(machine, exe.entry_point).await;
+            0
+        }));
+
+        Ok(0) // return value unused
     }
 
     pub fn single_step(&mut self) {

@@ -152,7 +152,7 @@ fn main() -> anyhow::Result<ExitCode> {
     machine.state.winmm.audio_enabled = args.audio;
 
     let entry_point = machine
-        .load_exe(&buf, cmdline, None)
+        .load_exe(buf, cmdline, None)
         .map_err(|err| anyhow!("loading {}: {}", exe.display(), err))?;
 
     let exit_code: u32;

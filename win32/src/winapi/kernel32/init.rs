@@ -343,38 +343,6 @@ unsafe impl ::memory::Pod for PEB {}
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
-    #[derive(Debug)]
-    struct DllData {
-        #[allow(unused)] // for Debug only
-        name: String,
-        base: u32,
-        entry_point: u32,
-    }
-
-    let dlls = machine
-        .state
-        .kernel32
-        .modules
-        .iter()
-        .filter_map(|(_, module)| {
-            Some(DllData {
-                name: module.name.clone(),
-                base: module.image_base,
-                entry_point: module.entry_point?,
-            })
-        })
-        .collect::<Vec<_>>();
-    // TODO: invoking dllmains can load more dlls.
-    for dll in dlls {
-        let hInstance = dll.base;
-        let fdwReason = 1u32; // DLL_PROCESS_ATTACH
-        let lpvReserved = 0u32;
-        log::debug!("invoking DLLMain: {dll:#x?}",);
-        machine
-            .call_x86(dll.entry_point, vec![hInstance, fdwReason, lpvReserved])
-            .await;
-    }
-
     machine.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
     // spawned threads before exiting.
