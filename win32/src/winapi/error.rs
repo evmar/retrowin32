@@ -44,3 +44,12 @@ impl Into<calling_convention::ABIReturn> for ERROR {
         (self as u32).into()
     }
 }
+
+impl Into<calling_convention::ABIReturn> for Result<ERROR, u32> {
+    fn into(self) -> calling_convention::ABIReturn {
+        match self {
+            Ok(err) => err.into(),
+            Err(err) => err.into(),
+        }
+    }
+}

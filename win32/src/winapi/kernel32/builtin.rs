@@ -4699,7 +4699,7 @@ mod wrappers {
     }
     pub unsafe fn SetLastError(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
-        let dwErrCode = <u32>::from_stack(mem, stack_args + 0u32);
+        let dwErrCode = <Result<ERROR, u32>>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::SetLastError_pos,
