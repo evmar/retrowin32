@@ -152,28 +152,37 @@ fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_
     // the correct targets.
     let mut patches: Vec<(u32, u32)> = Vec::new();
 
-    let image: &[u8] = unsafe { std::mem::transmute(machine.mem().slice(base..)) };
+    let image: &[u8] = unsafe { machine.mem().detach().slice(base..) };
     let Some(section) = imports_addr.as_slice(image) else {
         return;
     };
-    for dll_imports in pe::read_imports(section) {
-        let Some(dll_name) = dll_imports.image_name(image).try_ascii() else {
-            log::warn!(
-                "skipping non-ascii import {:?}",
-                dll_imports.image_name(image)
-            );
+    for imports in pe::read_imports(section) {
+        let Some(dll_name) = imports.image_name(image).try_ascii() else {
+            log::warn!("skipping non-ascii import {:?}", imports.image_name(image));
             continue;
         };
-        let dll_name = dll_name.to_ascii_lowercase();
-        let hmodule = winapi::kernel32::load_library(machine, &dll_name);
-        let mut module = machine.state.kernel32.modules.get_mut(&hmodule);
-        for (i, entry) in dll_imports.ilt(image).enumerate() {
+        let res = resolve_dll(machine, dll_name);
+        let module = {
+            match load_dll(machine, &res) {
+                Ok(hmodule) => machine.state.kernel32.modules.get_mut(&hmodule),
+                Err(err) => {
+                    log::warn!("failed to load import {dll_name:?}: {err}");
+                    None
+                }
+            }
+        };
+        // Use DLL name from module if available.
+        let dll_name = module
+            .as_ref()
+            .map(|m| m.name.as_str())
+            .unwrap_or(res.name());
+        for (i, entry) in imports.ilt(image).enumerate() {
             let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
-            let iat_addr = base + dll_imports.iat_offset() + (i as u32 * 4);
+            let iat_addr = base + imports.iat_offset() + (i as u32 * 4);
             machine.labels.insert(iat_addr, format!("{}@IAT", name));
 
-            let resolved_addr = if let Some(module) = module.as_deref_mut() {
+            let resolved_addr = if let Some(module) = module.as_deref() {
                 if let Some(sym) = module.exports.resolve(&sym) {
                     Some(sym)
                 } else {
@@ -181,6 +190,8 @@ fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_
                     None
                 }
             } else {
+                // No need to log anything here, because we already logged that the module itself
+                // failed to load.
                 None
             };
 
@@ -195,8 +206,8 @@ fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE_DATA_
 }
 
 /// TODO: any direct user of this misses out on the aliasing performed in resolve_dll.
-pub fn normalize_module_name(mut name: String) -> String {
-    name.make_ascii_lowercase();
+pub fn normalize_module_name(name: &str) -> String {
+    let mut name = name.to_ascii_lowercase();
     if !name.ends_with(".dll") && !name.ends_with(".exe") && !name.ends_with(".") {
         name.push_str(".dll");
     }
@@ -312,7 +323,7 @@ pub fn load_exe(
     let file = pe::parse(buf)?;
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
-    let module_name = normalize_module_name(filename.into_owned());
+    let module_name = normalize_module_name(&filename);
     let hmodule = load_module(machine, module_name, buf, &file, relocate)?;
     let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
@@ -355,7 +366,7 @@ pub struct Exports {
 }
 
 impl Exports {
-    pub fn resolve(&mut self, sym: &pe::ImportSymbol) -> Option<u32> {
+    pub fn resolve(&self, sym: &pe::ImportSymbol) -> Option<u32> {
         match *sym {
             pe::ImportSymbol::Name(name) => self.names.get(name).copied(),
             pe::ImportSymbol::Ordinal(ord) => {
@@ -365,19 +376,29 @@ impl Exports {
     }
 }
 
-enum DLLResolution {
+/// The result of resolving a DLL name, after string normalization and aliasing.
+pub enum DLLResolution {
     Builtin(&'static BuiltinDLL),
     External(String),
 }
 
+impl DLLResolution {
+    pub fn name(&self) -> &str {
+        match self {
+            DLLResolution::Builtin(builtin) => builtin.file_name,
+            DLLResolution::External(name) => name,
+        }
+    }
+}
+
 /// Given an imported DLL name, find the name of the DLL file we'll load for it.
 /// Handles normalizing the name, aliases, and builtins.
-fn resolve_dll(machine: &mut Machine, filename: String) -> anyhow::Result<DLLResolution> {
+pub fn resolve_dll(machine: &mut Machine, filename: &str) -> DLLResolution {
     let mut filename = normalize_module_name(filename);
     if filename.starts_with("api-") {
         match winapi::builtin::apiset(&filename) {
             Some(name) => filename = name.to_string(),
-            None => anyhow::bail!("unknown apiset {filename}"),
+            None => return DLLResolution::External(filename),
         }
     }
 
@@ -390,19 +411,15 @@ fn resolve_dll(machine: &mut Machine, filename: String) -> anyhow::Result<DLLRes
             .iter()
             .find(|&dll| dll.file_name == filename)
         {
-            return Ok(DLLResolution::Builtin(builtin));
+            return DLLResolution::Builtin(builtin);
         }
     }
 
-    Ok(DLLResolution::External(filename))
+    DLLResolution::External(filename)
 }
 
-pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE> {
-    let res = resolve_dll(machine, filename.to_owned())?;
-    let module_name = match &res {
-        DLLResolution::Builtin(builtin) => builtin.file_name,
-        DLLResolution::External(name) => name,
-    };
+pub fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Result<HMODULE> {
+    let module_name = res.name();
 
     // See if already loaded.
     if let Some((&hmodule, _)) = machine
@@ -458,7 +475,7 @@ pub fn load_dll(machine: &mut Machine, filename: &str) -> anyhow::Result<HMODULE
                 anyhow::bail!("{filename:?} not found");
             }
             let file = pe::parse(&buf)?;
-            load_module(machine, filename, &buf, &file, Some(None))
+            load_module(machine, filename.to_owned(), &buf, &file, Some(None))
         }
     }
 }

@@ -38,7 +38,7 @@ impl<Emu> MachineX<Emu> {
     pub fn set_external_dlls(&mut self, dlls: Vec<String>) {
         self.external_dlls = dlls
             .into_iter()
-            .map(|dll| loader::normalize_module_name(dll))
+            .map(|dll| loader::normalize_module_name(&dll))
             .collect();
     }
 }

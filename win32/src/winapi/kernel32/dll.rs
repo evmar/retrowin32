@@ -25,7 +25,7 @@ pub fn GetModuleHandleA(machine: &mut Machine, lpModuleName: Option<&str>) -> HM
         Some(name) => name,
     };
 
-    let name = loader::normalize_module_name(name.to_owned());
+    let name = loader::normalize_module_name(name);
 
     if let Some((hmodule, _)) = machine
         .state
@@ -107,8 +107,9 @@ pub fn GetModuleFileNameW(
     get_module_file_name(machine, hModule, &mut filename)
 }
 
-pub fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
-    match loader::load_dll(machine, filename) {
+fn load_library(machine: &mut Machine, filename: &str) -> HMODULE {
+    let res = loader::resolve_dll(machine, filename);
+    match loader::load_dll(machine, &res) {
         Ok(hmodule) => hmodule,
         Err(e) => {
             // TODO: set_last_error fails here if this happens before TEB setup
