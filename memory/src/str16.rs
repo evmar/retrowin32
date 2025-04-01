@@ -38,11 +38,6 @@ impl Str16 {
         Some(Self::from_bytes(mem.sub32(addr, end as u32 * 2)))
     }
 
-    /// TODO: remove this, it gets alignment wrong.
-    pub fn buf(&self) -> &[u16] {
-        unsafe { std::slice::from_raw_parts(self.0.as_ptr() as *const u16, self.0.len() / 2) }
-    }
-
     pub fn as_bytes(&self) -> &[u8] {
         &self.0
     }

@@ -2,7 +2,11 @@
 
 use super::teb_mut;
 use crate::{
-    winapi::{kernel32::CURRENT_PROCESS_HANDLE, ERROR, *},
+    winapi::{
+        kernel32::CURRENT_PROCESS_HANDLE,
+        string::{BufWrite, BufWriteWide},
+        ERROR, *,
+    },
     Machine,
 };
 use ::memory::Pod;
@@ -247,16 +251,12 @@ pub fn FormatMessageW(
         todo!();
     };
 
-    let buf: &mut [u16] = unsafe {
-        let mem = machine.mem().sub32_mut(lpBuffer, nSize);
-        std::slice::from_raw_parts_mut(mem.as_mut_ptr() as *mut _, mem.len() / 2)
-    };
-    let msgw = String16::from(msg);
+    let buf = machine.mem().sub32_mut(lpBuffer, nSize);
+    let len = BufWriteWide::from_mem(machine.mem(), lpBuffer, nSize)
+        .write(msg)
+        .unwrap();
 
-    buf[..msgw.len()].copy_from_slice(msgw.buf());
-    buf[msgw.len()] = 0;
-
-    msgw.len() as u32
+    len as u32 - 1
 }
 
 #[win32_derive::dllexport]

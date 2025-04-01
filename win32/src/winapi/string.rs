@@ -7,8 +7,8 @@
 
 use memory::{ExtensionsMut, Mem};
 
-/// Write a nul-terminated string to a buffer as ANSI.
-/// Returns number of chars if it fits, or Err(n) if it doesn't.
+/// Write a string to a buffer as ANSI, with nul termination.
+/// Returns number of chars including nul if it fits, or Err(n) if it doesn't.
 fn write_ansi(buf: &mut [u8], str: &str) -> Result<u32, u32> {
     let cap = buf.len();
     let mut ofs = 0;
@@ -32,8 +32,8 @@ fn write_ansi(buf: &mut [u8], str: &str) -> Result<u32, u32> {
     Ok(ofs as u32)
 }
 
-/// Write a nul-terminated string to a buffer as wide.
-/// Returns number of chars if it fits, or Err(n) if it doesn't.
+/// Write a string to a buffer as a wide string, with nul termination.
+/// Returns number of chars including nul if it fits, or Err(n) if it doesn't.
 fn write_wide(buf: &mut [u8], str: &str) -> Result<u32, u32> {
     let cap = buf.len();
     let mut ofs = 0;
@@ -61,7 +61,7 @@ fn write_wide(buf: &mut [u8], str: &str) -> Result<u32, u32> {
 pub trait BufWrite<'a> {
     /// Get the size of the buffer, in characters (not the number of bytes written).
     fn capacity(&self) -> u32;
-    /// Return the number of characters written.
+    /// Return the number of characters written, including trailing nul.
     /// Err(n) is the number of characters needed when buffer is too small.
     fn write(&mut self, str: &str) -> Result<u32, u32>;
 }

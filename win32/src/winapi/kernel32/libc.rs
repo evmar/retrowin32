@@ -34,11 +34,11 @@ pub fn lstrcpyA(machine: &mut Machine, lpString1: u32, lpString2: Option<&str>) 
 pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>) -> u32 {
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
-    let copy_len = (lpString2.len() + 1) * 2; // include nul
+    let copy_len = lpString2.len();
     let dst = machine.mem().sub32_mut(lpString1, copy_len as u32);
-    let src =
-        unsafe { std::slice::from_raw_parts(lpString2.buf().as_ptr() as *const u8, copy_len) };
+    let src = lpString2.as_bytes();
     dst.copy_from_slice(src);
+    dst[copy_len..copy_len + 2].copy_from_slice(&[0, 0]);
     lpString1
 }
 
