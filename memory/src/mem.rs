@@ -19,7 +19,7 @@ pub trait Extensions<'m>: Sized {
     fn as_slice(self) -> &'m [u8];
 
     fn get_ptr<T: Pod>(self, ofs: u32) -> *const T;
-    fn get_pod<T: Clone + Pod>(self, ofs: u32) -> T {
+    fn get_pod<T: Pod>(self, ofs: u32) -> T {
         unsafe { std::ptr::read_unaligned(self.get_ptr::<T>(ofs)) }
     }
     fn get_aligned_ref<T: Pod>(self, ofs: u32) -> &'m T {
@@ -47,14 +47,14 @@ pub trait Extensions<'m>: Sized {
     }
 
     /// Create an iterator over a contiguous array of Pod types.
-    fn into_iter_pod<T: Clone + Pod>(self) -> Iterator<'m, T> {
+    fn into_iter_pod<T: Pod>(self) -> Iterator<'m, T> {
         Iterator {
             buf: self.as_slice(),
             _marker: Default::default(),
         }
     }
 
-    fn iter_pod<T: Clone + Pod>(self, ofs: u32, count: u32) -> Iterator<'m, T> {
+    fn iter_pod<T: Pod>(self, ofs: u32, count: u32) -> Iterator<'m, T> {
         self.sub32(ofs, count * size_of::<T>() as u32)
             .into_iter_pod()
     }
@@ -75,7 +75,7 @@ pub struct Iterator<'m, T> {
     buf: &'m [u8],
     _marker: std::marker::PhantomData<&'m T>,
 }
-impl<'m, T: Pod + Clone> std::iter::Iterator for Iterator<'m, T> {
+impl<'m, T: Pod> std::iter::Iterator for Iterator<'m, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {

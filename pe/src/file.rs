@@ -15,7 +15,7 @@ fn dos_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<u32> {
     Ok(r.read::<u32>())
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug)]
 #[repr(C)]
 pub struct IMAGE_FILE_HEADER {
     pub Machine: u16,
@@ -45,7 +45,7 @@ bitflags! {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct IMAGE_OPTIONAL_HEADER32 {
     pub Magic: u16,
     pub MajorLinkerVersion: u8,
@@ -126,7 +126,7 @@ fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<IMAGE_FILE_HEADER> {
 }
 
 #[repr(C)]
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 pub struct IMAGE_SECTION_HEADER {
     pub Name: [u8; 8],
     pub VirtualSize: u32,
