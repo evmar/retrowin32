@@ -173,10 +173,10 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             .as_ref()
             .map(|m| m.name.as_str())
             .unwrap_or(res.name());
-        for (i, entry) in imports.ilt(image).enumerate() {
+        for (iat_addr, entry) in imports.iat_iter(image) {
+            let iat_addr = iat_addr + base;
             let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
-            let iat_addr = base + imports.iat_offset() + (i as u32 * 4);
             machine
                 .memory
                 .labels

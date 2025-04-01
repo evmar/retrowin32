@@ -34,6 +34,7 @@ impl IMAGE_IMPORT_DESCRIPTOR {
         image.slicez(self.Name)
     }
 
+    /// Return an iterator over entries in the ILT, which describe imported functions.
     pub fn ilt<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = ILTEntry> + 'm {
         // Officially OriginalFirstThunk (ILT) should have all the data, but in one
         // executable they're all 0, possibly a Borland compiler thing.
@@ -50,8 +51,13 @@ impl IMAGE_IMPORT_DESCRIPTOR {
             .take_while(|entry| entry.0 != 0)
     }
 
-    pub fn iat_offset(&self) -> u32 {
-        self.FirstThunk
+    /// Return an iterator over (IAT entry address, ILT entry) pairs.
+    /// IAT addresses are relative to the image base.
+    /// Caller should update IAT address with the address of the function referred to in the entry.
+    pub fn iat_iter<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = (u32, ILTEntry)> + 'm {
+        let iat_addr = self.FirstThunk;
+        let iat_iter = (0..).map(move |i| iat_addr + (i * 4));
+        iat_iter.zip(self.ilt(image))
     }
 }
 
