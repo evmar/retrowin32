@@ -3,7 +3,7 @@
 
 use memory::Extensions;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 #[repr(C)]
 pub struct IMAGE_EXPORT_DIRECTORY {
     Characteristics: u32,

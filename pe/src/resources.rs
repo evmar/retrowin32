@@ -14,7 +14,7 @@ use memory::{str16::Str16, Extensions};
 use std::{mem::size_of, ops::Range};
 
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct IMAGE_RESOURCE_DIRECTORY {
     Characteristics: u32,
     TimeDateStamp: u32,
@@ -38,7 +38,7 @@ impl IMAGE_RESOURCE_DIRECTORY {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
     Name: u32,
     OffsetToData: u32,
@@ -46,7 +46,6 @@ struct IMAGE_RESOURCE_DIRECTORY_ENTRY {
 unsafe impl memory::Pod for IMAGE_RESOURCE_DIRECTORY_ENTRY {}
 
 /// Top-level dir entry.
-#[derive(Clone, Copy)]
 #[repr(u32)]
 pub enum RT {
     CURSOR = 1,
@@ -104,7 +103,7 @@ impl IMAGE_RESOURCE_DIRECTORY_ENTRY {
 }
 
 #[repr(C)]
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 struct IMAGE_RESOURCE_DATA_ENTRY {
     OffsetToData: u32,
     Size: u32,

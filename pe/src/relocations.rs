@@ -4,7 +4,6 @@
 use memory::Extensions;
 
 #[repr(C)]
-#[derive(Clone)]
 struct IMAGE_BASE_RELOCATION {
     VirtualAddress: u32,
     SizeOfBlock: u32,

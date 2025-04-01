@@ -39,13 +39,13 @@ impl<'m> Reader<'m> {
         Ok(())
     }
 
-    pub fn read<T: memory::Pod + Clone>(&mut self) -> T {
+    pub fn read<T: memory::Pod>(&mut self) -> T {
         let t = self.buf.get_pod::<T>(self.pos as u32);
         self.pos += size_of::<T>();
         t
     }
 
-    pub fn read_n<T: memory::Pod + Clone>(&mut self, count: u32) -> anyhow::Result<Box<[T]>> {
+    pub fn read_n<T: memory::Pod>(&mut self, count: u32) -> anyhow::Result<Box<[T]>> {
         let len = size_of::<T>() * count as usize;
         if self.pos + len > self.buf.len() {
             bail!("EOF");

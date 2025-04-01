@@ -16,7 +16,7 @@ use memory::Extensions;
 // The loader overwrites the IAT with the addresses to the loaded DLL.
 
 /// Import Directory Table (section 6.4.1)
-#[derive(Clone, Debug, Default)]
+#[derive(Debug, Default)]
 #[repr(C)]
 pub struct IMAGE_IMPORT_DESCRIPTOR {
     /// ILT
@@ -61,7 +61,6 @@ pub fn read_imports<'m>(buf: &'m [u8]) -> impl Iterator<Item = IMAGE_IMPORT_DESC
 }
 
 #[repr(transparent)]
-#[derive(Clone)]
 pub struct ILTEntry(u32);
 unsafe impl memory::Pod for ILTEntry {}
 
