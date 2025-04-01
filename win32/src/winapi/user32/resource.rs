@@ -4,6 +4,7 @@ use crate::{
         bitmap::{Bitmap, BITMAPFILEHEADER},
         gdi32::HGDIOBJ,
         kernel32::ResourceKey,
+        string::{BufWrite, BufWriteAnsi},
         *,
     },
     FileOptions, Machine,
@@ -266,18 +267,16 @@ pub fn LoadStringA(
     cchBufferMax: u32,
 ) -> u32 {
     let str = match find_string(machine, hInstance, uID) {
-        Some(str) => Str16::from_bytes(machine.mem().slice(str)),
+        Some(str) => Str16::from_bytes(machine.mem().slice(str)).to_string(),
         None => return 0,
-    };
+    }
+    .to_string();
     assert!(cchBufferMax != 0); // MSDN claims this is invalid
 
-    let dst = machine.mem().sub32_mut(lpBuffer, cchBufferMax);
-    let copy_len = std::cmp::min(dst.len() as usize - 1, str.len());
-    for i in 0..copy_len {
-        dst[i] = str.buf()[i] as u8;
-    }
-    dst[copy_len] = 0;
-    copy_len as u32
+    let len = BufWriteAnsi::from_mem(machine.mem(), lpBuffer, cchBufferMax)
+        .write(str.as_str())
+        .unwrap();
+    len as u32 - 1
 }
 
 #[win32_derive::dllexport]
