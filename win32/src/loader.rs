@@ -7,7 +7,7 @@
 use crate::{
     host,
     machine::Machine,
-    memory::Mapping,
+    memory::{Mapping, Memory},
     winapi::{self, builtin::BuiltinDLL, kernel32::HMODULE},
 };
 use memory::{Extensions, ExtensionsMut};
@@ -15,16 +15,16 @@ use std::{collections::HashMap, path::Path};
 use typed_path::WindowsPath;
 
 /// Create a memory mapping, optionally copying some data to it.
-fn map_memory(machine: &mut Machine, mapping: Mapping, buf: Option<&[u8]>) {
-    let Mapping { addr, size, .. } = *machine.memory.mappings.add(mapping);
+fn map_memory(memory: &mut Memory, mapping: Mapping, buf: Option<&[u8]>) {
+    let Mapping { addr, size, .. } = *memory.mappings.add(mapping);
 
     let memory_end = addr + size;
-    if memory_end > machine.memory.len() {
+    if memory_end > memory.len() {
         panic!("not enough memory reserved");
     }
 
     if let Some(buf) = buf {
-        machine
+        memory
             .mem()
             .sub32_mut(addr, buf.len() as u32)
             .copy_from_slice(buf);
@@ -33,7 +33,7 @@ fn map_memory(machine: &mut Machine, mapping: Mapping, buf: Option<&[u8]>) {
 
 /// Copy the file header itself into memory, choosing a base address.
 fn load_image(
-    machine: &mut Machine,
+    memory: &mut Memory,
     module_name: &str,
     file: &pe::File,
     buf: &[u8],
@@ -41,16 +41,13 @@ fn load_image(
 ) -> u32 {
     let addr = match relocate {
         Some(Some(addr)) => addr,
-        Some(None) => machine
-            .memory
-            .mappings
-            .find_space(file.opt_header.SizeOfImage),
+        Some(None) => memory.mappings.find_space(file.opt_header.SizeOfImage),
         None => file.opt_header.ImageBase,
     };
 
     let first_page_size = std::cmp::min(buf.len(), 0x1000);
     map_memory(
-        machine,
+        memory,
         Mapping {
             addr,
             size: first_page_size as u32,
@@ -65,7 +62,7 @@ fn load_image(
 
 /// Load a PE section into memory.
 fn load_section(
-    machine: &mut Machine,
+    memory: &mut Memory,
     module_name: &str,
     base: u32,
     buf: &[u8],
@@ -109,7 +106,7 @@ fn load_section(
     };
 
     map_memory(
-        machine,
+        memory,
         mapping,
         if load_data && data_size > 0 {
             Some(&buf[src..][..data_size as usize])
@@ -180,7 +177,10 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             let sym = entry.as_import_symbol(image);
             let name = format!("{}!{}", dll_name, sym.to_string());
             let iat_addr = base + imports.iat_offset() + (i as u32 * 4);
-            machine.labels.insert(iat_addr, format!("{}@IAT", name));
+            machine
+                .memory
+                .labels
+                .insert(iat_addr, format!("{}@IAT", name));
 
             let resolved_addr = if let Some(module) = module.as_deref() {
                 if let Some(sym) = module.exports.resolve(&sym) {
@@ -216,21 +216,21 @@ pub fn normalize_module_name(name: &str) -> String {
 
 /// Load an exe or dll without resolving its imports.
 fn load_one_module(
-    machine: &mut Machine,
+    memory: &mut Memory,
     module_name: String,
     buf: &[u8],
     file: &pe::File,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<Module> {
-    let base = load_image(machine, &module_name, file, buf, relocate);
+    let base = load_image(memory, &module_name, file, buf, relocate);
 
     for sec in file.sections.iter() {
-        load_section(machine, &module_name, base, buf, sec);
+        load_section(memory, &module_name, base, buf, sec);
     }
 
     if base != file.opt_header.ImageBase {
         if let Some(relocs) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::BASERELOC) {
-            let image = machine.mem().slice(base..);
+            let image = memory.mem().slice(base..);
             if let Some(sec) = relocs.as_slice(image) {
                 // Warning: apply_relocs wants to mutate arbitrary memory, which violates Rust aliasing rules.
                 // It has started silently failing in release builds in the past...
@@ -240,18 +240,18 @@ fn load_one_module(
                     sec,
                     |addr| {
                         let addr = base + addr;
-                        machine.mem().get_pod::<u32>(addr)
+                        memory.mem().get_pod::<u32>(addr)
                     },
                     |addr, val| {
                         let addr = base + addr;
-                        machine.mem().put_pod::<u32>(addr, val);
+                        memory.mem().put_pod::<u32>(addr, val);
                     },
                 );
             }
         }
     }
 
-    let image = machine.memory.mem().slice(base..);
+    let image = memory.mem().slice(base..);
     let exports = if let Some(dir) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::EXPORT) {
         let section = dir
             .as_slice(image)
@@ -259,7 +259,7 @@ fn load_one_module(
         let exports = load_exports(base, image, section);
         for (name, &addr) in exports.names.iter() {
             if let Some(name) = name.try_ascii() {
-                machine.labels.insert(addr, format!("{module_name}!{name}"));
+                memory.labels.insert(addr, format!("{module_name}!{name}"));
             }
         }
         exports
@@ -295,7 +295,7 @@ async fn load_module(
     file: &pe::File,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<HMODULE> {
-    let module = load_one_module(machine, module_name, buf, file, relocate)?;
+    let module = load_one_module(&mut machine.memory, module_name, buf, file, relocate)?;
     let image_base = module.image_base;
 
     // Register module before loading imports, because imports may refer back to this module.

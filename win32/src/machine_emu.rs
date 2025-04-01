@@ -71,7 +71,6 @@ impl MachineX<Emulator> {
             memory,
             host,
             state,
-            labels: HashMap::new(),
             external_dlls: Default::default(),
             status: Default::default(),
         }
@@ -276,7 +275,7 @@ impl MachineX<Emulator> {
 
     pub fn dump_state(&self, eip_offset: usize) {
         let cpu = self.emu.x86.cpu();
-        x86::debug::dump_state(cpu, self.mem(), &self.labels, eip_offset);
+        x86::debug::dump_state(cpu, self.mem(), &self.memory.labels, eip_offset);
         println!("stack:");
         self.dump_stack();
         x86::debug::dump_fpu_state(cpu);

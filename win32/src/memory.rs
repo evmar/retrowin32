@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::machine::MemImpl;
 use memory::{Extensions, Mem};
 
@@ -160,6 +162,7 @@ impl Mappings {
 pub struct Memory {
     pub imp: MemImpl,
     pub mappings: Mappings,
+    pub labels: HashMap<u32, String>,
 }
 
 impl Memory {
@@ -167,6 +170,7 @@ impl Memory {
         Memory {
             imp,
             mappings: Mappings::new(),
+            labels: Default::default(),
         }
     }
 
