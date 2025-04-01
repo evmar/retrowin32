@@ -72,7 +72,7 @@ pub enum IMAGE {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Copy, Clone, Debug, win32_derive::TryFromBitflags)]
     pub struct LR: u32 {
         // const DEFAULTCOLOR = 0x00000000;
         const MONOCHROME       = 0x00000001;

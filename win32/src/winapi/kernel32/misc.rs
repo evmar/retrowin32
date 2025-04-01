@@ -209,7 +209,7 @@ pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: 
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct FormatMessageFlags: u32 {
         const FROM_STRING    = 0x00000400;
         const IGNORE_INSERTS = 0x00000200;

@@ -4,7 +4,7 @@ use iced_x86::Register::{
 };
 
 bitflags! {
-    #[derive(Default)]
+    #[derive(Debug, Default)]
     pub struct Flags: u32 {
         /// carry
         const CF = 1 << 0;

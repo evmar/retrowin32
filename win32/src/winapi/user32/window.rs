@@ -64,7 +64,7 @@ SetCooperativeLevel {
 
 bitflags! {
     /// Window styles.
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Copy, Clone, Debug, win32_derive::TryFromBitflags)]
     pub struct WS: u32 {
         const POPUP           = 0x80000000;
         const CHILD           = 0x40000000;
@@ -89,7 +89,7 @@ bitflags! {
 
 bitflags! {
     /// Extended window styles.
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct WS_EX: u32 {
         // todo
     }
@@ -537,7 +537,7 @@ pub async fn UpdateWindow(machine: &mut Machine, hWnd: HWND) -> bool {
 
 bitflags! {
     /// RedrawWindow behavior flags.
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct RDW: u32 {
         const INVALIDATE      = 0x0001;
         const INTERNALPAINT   = 0x0002;
@@ -855,7 +855,7 @@ pub fn AdjustWindowRectEx(
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Copy, Clone, Debug, win32_derive::TryFromBitflags)]
     pub struct SWP: u32 {
         const ASYNCWINDOWPOS = 0x4000;
         const DEFERERASE = 0x2000;

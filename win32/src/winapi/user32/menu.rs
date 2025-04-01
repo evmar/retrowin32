@@ -17,7 +17,7 @@ pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uC
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct MF: u32 {
         const BYCOMMAND = 0x00000000;
         const BYPOSITION = 0x00000400;

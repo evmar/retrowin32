@@ -14,7 +14,7 @@ use super::HFILE;
 
 // https://learn.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Copy, Clone, Debug, win32_derive::TryFromBitflags)]
     pub struct FileAttribute: u32 {
         const READONLY = 0x1;
         const HIDDEN = 0x2;
@@ -43,7 +43,7 @@ bitflags! {
 impl FileAttribute {
     pub fn invalid() -> FileAttribute {
         // INVALID_FILE_ATTRIBUTES is not part of the enum
-        unsafe { FileAttribute::from_bits_unchecked(u32::MAX) }
+        FileAttribute::from_bits_retain(u32::MAX)
     }
 }
 

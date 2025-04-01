@@ -26,7 +26,7 @@ pub const IID_IDirectDraw7: GUID = GUID((
 ));
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDSCL: u32 {
         const FULLSCREEN = 0x0001;
         const ALLOWREBOOT = 0x0002;
@@ -44,7 +44,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDFLIP: u32 {
         const DDFLIP_WAIT = 0x00000001;
         const DDFLIP_EVEN = 0x00000002;
@@ -59,7 +59,7 @@ bitflags! {
 }
 
 bitflags! {
-    #[derive(win32_derive::TryFromBitflags)]
+    #[derive(Debug, win32_derive::TryFromBitflags)]
     pub struct DDCKEY: u32 {
         const COLORSPACE  = 0x00000001;
         const DESTBLT     = 0x00000002;
