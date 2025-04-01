@@ -287,19 +287,20 @@ fn load_one_module(
     })
 }
 
-/// Load an exe or dll, inserting it into the module map and resolving its imports.
-async fn load_module(
+/// Load a module's imports and invoke its DllMain().
+async fn init_module(
     machine: &mut Machine,
-    module_name: String,
-    buf: &[u8],
     file: &pe::File,
-    relocate: Option<Option<u32>>,
+    module: Module,
 ) -> anyhow::Result<HMODULE> {
-    let module = load_one_module(&mut machine.memory, module_name, buf, file, relocate)?;
-    let image_base = module.image_base;
+    let Module {
+        image_base,
+        entry_point,
+        ..
+    } = module;
 
-    // Register module before loading imports, because imports may refer back to this module.
-    let hmodule = HMODULE::from_raw(module.image_base);
+    // Register module before loading imports, because loaded imports may refer back to this module.
+    let hmodule = HMODULE::from_raw(image_base);
     machine.state.kernel32.modules.insert(hmodule, module);
 
     if let Some(imports) = file.get_data_directory(pe::IMAGE_DIRECTORY_ENTRY::IMPORT) {
@@ -307,11 +308,10 @@ async fn load_module(
     }
 
     // Invoke DllMain() if present.
-    let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     #[allow(non_snake_case)]
-    if file.header.Characteristics.contains(pe::IMAGE_FILE::DLL) && module.entry_point.is_some() {
-        let entry_point = module.entry_point.unwrap();
-        let hInstance = module.image_base;
+    if file.header.Characteristics.contains(pe::IMAGE_FILE::DLL) && entry_point.is_some() {
+        let entry_point = entry_point.unwrap();
+        let hInstance = image_base;
         let fdwReason = 1u32; // DLL_PROCESS_ATTACH
         let lpvReserved = 0u32;
         machine
@@ -320,6 +320,18 @@ async fn load_module(
     }
 
     Ok(hmodule)
+}
+
+/// Load an exe or dll, recursively initializing its imports.
+async fn load_module(
+    machine: &mut Machine,
+    module_name: String,
+    buf: &[u8],
+    file: &pe::File,
+    relocate: Option<Option<u32>>,
+) -> anyhow::Result<HMODULE> {
+    let module = load_one_module(&mut machine.memory, module_name, buf, file, relocate)?;
+    init_module(machine, file, module).await
 }
 
 pub struct EXEFields {
