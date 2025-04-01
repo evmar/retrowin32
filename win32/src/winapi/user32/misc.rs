@@ -426,5 +426,5 @@ pub fn GetUserObjectInformationW(
 
 #[win32_derive::dllexport]
 pub fn GetProcessWindowStation(_machine: &mut Machine) -> u32 {
-    todo!()
+    0 // null
 }
