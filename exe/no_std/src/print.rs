@@ -20,3 +20,36 @@ pub fn print(buf: &[u8]) {
         );
     }
 }
+
+pub struct Stdout;
+
+impl core::fmt::Write for Stdout {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        super::print::print(s.as_bytes());
+        Ok(())
+    }
+}
+
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            let mut stdout = $crate::print::Stdout;
+            stdout.write_fmt(format_args!($($arg)*)).ok();
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! println {
+    () => { $crate::println!("") };
+    ($($arg:tt)*) => {
+        {
+            use core::fmt::Write;
+            let mut stdout = $crate::print::Stdout;
+            stdout.write_fmt(format_args!($($arg)*)).ok();
+            stdout.write_char('\n').ok();
+        }
+    };
+}

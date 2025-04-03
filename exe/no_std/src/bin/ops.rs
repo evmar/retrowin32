@@ -2,10 +2,10 @@
 #![no_std]
 #![windows_subsystem = "console"]
 
-use no_std::{fmt::Fmt, print::print};
+use no_std::{print, println};
 
 #[inline(never)]
-fn fmt_flags(buf: &mut Fmt, reg: u32) {
+fn print_flags(reg: u32) {
     for (bit, name) in [
         (0, "CF"),
         (2, "PF"),
@@ -15,8 +15,7 @@ fn fmt_flags(buf: &mut Fmt, reg: u32) {
         (11, "OF"),
     ] {
         if (reg >> bit) & 1 == 1 {
-            buf.char(b' ');
-            buf.str(name);
+            print!(" {}", name);
         }
     }
 }
@@ -41,16 +40,14 @@ fn flags_test() {
         );
     }
 
-    let mut fmt = Fmt::new();
-    fmt.str("flags:");
-    fmt_flags(&mut fmt, flags);
-    fmt.char(b'\n');
-    print(fmt.buf());
+    print!("flags:");
+    print_flags(flags);
+    println!();
 
     if val != 0 {
-        print(b"setle: true\n");
+        println!("setle: true");
     } else {
-        print(b"setle: false\n");
+        println!("setle: false");
     }
 }
 
