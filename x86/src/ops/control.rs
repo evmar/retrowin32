@@ -78,6 +78,12 @@ pub fn jne(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+pub fn jno(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    if !cpu.flags.contains(Flags::OF) {
+        cpu.jmp(mem, instr.near_branch32());
+    }
+}
+
 pub fn jns(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     if !cpu.flags.contains(Flags::SF) {
         cpu.jmp(mem, instr.near_branch32());
