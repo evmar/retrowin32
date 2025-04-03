@@ -1,7 +1,10 @@
 //! Draw some bitmaps in different ways.
 
+#![no_std]
+#![no_main]
 #![windows_subsystem = "windows"]
 
+use exe as _; // panic handler
 use windows_sys::Win32::{
     Foundation::{HWND, LRESULT},
     Graphics::Gdi::*,
@@ -29,9 +32,9 @@ const ARROW: [u8; 16 * 2] = [
     0b0000_0000, 0b0000_0000,
 ];
 
-fn arrow_rgba() -> Vec<u32> {
-    let mut pixels = Vec::new();
-    for &b in ARROW.iter() {
+fn arrow_rgba() -> [u32; ARROW.len() * 8] {
+    let mut pixels = [0; ARROW.len() * 8];
+    for (row, &b) in ARROW.iter().enumerate() {
         for i in 0..8 {
             let bit = (b >> (7 - i)) & 1;
             let color: [u8; 4] = if bit == 0 {
@@ -39,7 +42,7 @@ fn arrow_rgba() -> Vec<u32> {
             } else {
                 [0xff, 0xff, 0xff, 0xff]
             };
-            pixels.push(u32::from_le_bytes(color));
+            pixels[row * 8 + i] = u32::from_le_bytes(color);
         }
     }
     pixels
@@ -64,9 +67,9 @@ impl State {
     }
 
     unsafe fn create_dib(hdc: HDC) -> (HBITMAP, &'static mut [u32; 16 * 16]) {
-        let mut bits: *mut [u32; 16 * 16] = std::ptr::null_mut();
+        let mut bits: *mut [u32; 16 * 16] = core::ptr::null_mut();
         let info = BITMAPINFOHEADER {
-            biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+            biSize: core::mem::size_of::<BITMAPINFOHEADER>() as u32,
             biWidth: 16,
             biHeight: 16,
             biPlanes: 1,
@@ -109,23 +112,23 @@ unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
             startScan: 0,
             invertY: false,
         },
-        Cfg {
-            startScan: 6,
-            invertY: false,
-        },
+        // Cfg {
+        //     startScan: 6,
+        //     invertY: false,
+        // },
         Cfg {
             startScan: 0,
             invertY: true,
         },
-        Cfg {
-            startScan: 6,
-            invertY: true,
-        },
+        // Cfg {
+        //     startScan: 6,
+        //     invertY: true,
+        // },
     ];
 
     for (i, cfg) in cfgs.iter().enumerate() {
         let info = BITMAPINFOHEADER {
-            biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+            biSize: core::mem::size_of::<BITMAPINFOHEADER>() as u32,
             biWidth: 16,
             biHeight: if cfg.invertY { -16 } else { 16 },
             biPlanes: 1,
@@ -159,7 +162,7 @@ unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
 #[allow(non_snake_case)]
 unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
     let info = BITMAPINFOHEADER {
-        biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
+        biSize: core::mem::size_of::<BITMAPINFOHEADER>() as u32,
         biWidth: 16,
         biHeight: 16,
         biPlanes: 1,
@@ -231,11 +234,11 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
             for i in 0..32 * 2 {
                 s.dib_pixels[i] = 0xff00_00ff;
             }
-            InvalidateRect(hwnd, std::ptr::null(), 0);
+            InvalidateRect(hwnd, core::ptr::null(), 0);
             0
         }
         WM_PAINT => {
-            let mut ps: PAINTSTRUCT = std::mem::zeroed();
+            let mut ps: PAINTSTRUCT = core::mem::zeroed();
             let hdc = BeginPaint(hwnd, &mut ps);
             paint(hdc);
             EndPaint(hwnd, &ps);
@@ -256,7 +259,7 @@ unsafe fn create_window() -> HWND {
         hIcon: 0,
         hCursor: 0,
         hbrBackground: (COLOR_WINDOW + 1) as HBRUSH,
-        lpszMenuName: std::ptr::null(),
+        lpszMenuName: core::ptr::null(),
         lpszClassName: class_name.as_ptr(),
     };
     RegisterClassA(&wc);
@@ -273,7 +276,7 @@ unsafe fn create_window() -> HWND {
         0,
         0,
         0,
-        std::ptr::null(),
+        core::ptr::null(),
     );
     if hwnd == 0 {
         panic!("create failed");
@@ -283,13 +286,12 @@ unsafe fn create_window() -> HWND {
     hwnd
 }
 
-fn main() {
-    unsafe {
-        create_window();
-        let mut msg: MSG = std::mem::zeroed();
-        while GetMessageA(&mut msg, 0, 0, 0) > 0 {
-            TranslateMessage(&msg);
-            DispatchMessageA(&msg);
-        }
+#[no_mangle]
+pub unsafe extern "C" fn mainCRTStartup() {
+    create_window();
+    let mut msg: MSG = core::mem::zeroed();
+    while GetMessageA(&mut msg, 0, 0, 0) > 0 {
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
     }
 }

@@ -4,7 +4,7 @@
 #![no_std]
 #![windows_subsystem = "console"]
 
-use no_std::print::print;
+use exe::print::print;
 use windows_sys::Win32::System::{Environment::GetCommandLineA, Threading::ExitProcess};
 
 unsafe fn c_str(ptr: *const u8) -> &'static [u8] {

@@ -1,8 +1,11 @@
+//! Exercise CPU operations at a low level, dumping CPU state.
+
 #![no_main]
 #![no_std]
 #![windows_subsystem = "console"]
 
-use no_std::{print, println};
+use exe::{print, println};
+mod fpu;
 
 #[inline(never)]
 fn print_flags(reg: u32) {
@@ -54,5 +57,5 @@ fn flags_test() {
 #[no_mangle]
 pub unsafe extern "C" fn mainCRTStartup() {
     flags_test();
-    no_std::fpu::test();
+    fpu::test();
 }

@@ -7,3 +7,6 @@ unsafe fn handle_panic(info: &core::panic::PanicInfo) -> ! {
     println!("{}", info);
     windows_sys::Win32::System::Threading::ExitProcess(1);
 }
+
+#[no_mangle]
+pub extern "C" fn __CxxFrameHandler3() {}
