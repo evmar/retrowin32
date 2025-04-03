@@ -1,5 +1,23 @@
-use crate::{fmt::Fmt, print::print};
+use crate::{print, println};
 use core::arch::asm;
+
+/// Convert a flaot to f*1000 as an integer.
+/// `val as u32` generates a ton of code.
+/// This dumb impl is simpler.
+fn f64_to_i32(f: f64) -> i32 {
+    let mut val: i32 = 1000;
+    unsafe {
+        // val = (valf * 1000.0) as i32
+        core::arch::asm!(
+            "fld qword ptr [{f}]",
+            "fimul dword ptr [{val}]",
+            "fistp dword ptr [{val}]",
+            f = in(reg) &f,
+            val = in(reg) &mut val,
+        );
+    }
+    val
+}
 
 macro_rules! ft {
     ($name:literal, $asm:tt) => {
@@ -7,19 +25,14 @@ macro_rules! ft {
     };
     ($name:literal, $depth:expr, $asm:tt) => {
         $asm;
-        let mut fmt = Fmt::new();
-        fmt.str($name).str(": ");
+        print!("{}:", $name);
 
-        for i in 0..$depth {
+        for _ in 0..$depth {
             let mut val = 0f64;
             asm!("fstp qword ptr [{val}]", val = in(reg) &mut val);
-            if i > 0 {
-                fmt.char(b' ');
-            }
-            fmt.f64(val);
+            print!(" {}", f64_to_i32(val));
         }
-
-        print(fmt.char(b'\n').buf());
+        println!();
     };
 }
 
