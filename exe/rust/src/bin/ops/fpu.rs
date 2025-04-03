@@ -1,3 +1,5 @@
+//! FPU tests used in bin/ops.
+
 use crate::{print, println};
 use core::arch::asm;
 

@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
   "cli",
-  "exe/no_std",
   "exe/rust",
   "exe/rust/ddraw-sys",
   "exe/zip",

@@ -1,8 +1,11 @@
 //! Create a window and paint on it.
 //! Purpose: exercise some GDI basics like CreateWindow and message loop.
 
+#![no_std]
+#![no_main]
 #![windows_subsystem = "windows"]
 
+use exe as _; // panic handler
 use windows_sys::Win32::{
     Foundation::{HWND, LRESULT},
     Graphics::Gdi::{BeginPaint, EndPaint, FillRect, COLOR_WINDOW, HBRUSH, PAINTSTRUCT},
@@ -20,7 +23,7 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
             0
         }
         WM_PAINT => {
-            let mut ps: PAINTSTRUCT = std::mem::zeroed();
+            let mut ps: PAINTSTRUCT = core::mem::zeroed();
             let hdc = BeginPaint(hwnd, &mut ps);
             FillRect(hdc, &ps.rcPaint, (COLOR_WINDOW + 1) as HBRUSH);
             EndPaint(hwnd, &ps);
@@ -41,7 +44,7 @@ unsafe fn create_window() -> HWND {
         hIcon: 0,
         hCursor: 0,
         hbrBackground: 0,
-        lpszMenuName: std::ptr::null(),
+        lpszMenuName: core::ptr::null(),
         lpszClassName: class_name.as_ptr(),
     };
     RegisterClassA(&wc);
@@ -58,7 +61,7 @@ unsafe fn create_window() -> HWND {
         0,
         0,
         0,
-        std::ptr::null(),
+        core::ptr::null(),
     );
     if hwnd == 0 {
         panic!("create failed");
@@ -67,13 +70,12 @@ unsafe fn create_window() -> HWND {
     hwnd
 }
 
-fn main() {
-    unsafe {
-        create_window();
-        let mut msg: MSG = std::mem::zeroed();
-        while GetMessageA(&mut msg, 0, 0, 0) > 0 {
-            TranslateMessage(&msg);
-            DispatchMessageA(&msg);
-        }
+#[no_mangle]
+pub unsafe extern "C" fn mainCRTStartup() {
+    create_window();
+    let mut msg: MSG = core::mem::zeroed();
+    while GetMessageA(&mut msg, 0, 0, 0) > 0 {
+        TranslateMessage(&msg);
+        DispatchMessageA(&msg);
     }
 }

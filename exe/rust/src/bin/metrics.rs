@@ -1,8 +1,10 @@
+//! Dump GetSystemMetrics() values.
+
 #![no_main]
 #![no_std]
 #![windows_subsystem = "console"]
 
-use no_std::{print::print, println};
+use exe::{print::print, println};
 use windows_sys::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
 
 #[no_mangle]

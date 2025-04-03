@@ -128,7 +128,7 @@ pub enum SM {
 #[win32_derive::dllexport]
 pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SM, u32>) -> u32 {
     // These were dumped from a win2k VM running at 640x480.
-    // See exe/no_std/bin/metrics.rs.
+    // See exe/rust/bin/metrics.rs.
     const METRICS: [u32; 100] = [
         640, 480, 16, 16, 19, 1, 1, 3, 3, 16, 16, 32, 32, 32, 32, 19, 640, 433, 0, 1, 16, 16, 0, 0,
         0, 0, 0, 0, 112, 27, 18, 18, 4, 4, 112, 27, 4, 4, 75, 75, 0, 0, 0, 5, 0, 2, 2, 160, 24, 16,

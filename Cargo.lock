@@ -284,13 +284,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "no_std"
-version = "0.1.0"
-dependencies = [
- "windows-sys",
-]
-
-[[package]]
 name = "num-derive"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
