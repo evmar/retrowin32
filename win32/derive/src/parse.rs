@@ -29,11 +29,7 @@ pub struct DllExport<'a> {
 impl<'a> DllExport<'a> {
     pub fn stack_consumed(&self) -> u32 {
         match self.meta.callconv {
-            CallConv::Stdcall => self
-                .args
-                .iter()
-                .map(|arg| arg.stack.consumed())
-                .sum::<u32>(),
+            CallConv::Stdcall => self.args.iter().map(|arg| arg.stack_consumed).sum(),
             CallConv::Cdecl => 0, // caller cleaned
         }
     }
@@ -99,26 +95,11 @@ fn find_dllexport(attrs: &[syn::Attribute]) -> syn::Result<Option<DllExportMeta>
 pub struct Argument<'a> {
     pub name: &'a syn::Ident,
     pub ty: &'a syn::Type,
-    pub stack: ArgumentStack,
+    pub stack_consumed: u32,
 }
 
-pub enum ArgumentStack {
-    /// Value is amount of stack the argument uses in stdcall.
-    Ordinary(u32),
-    VarArgs,
-}
-
-impl ArgumentStack {
-    pub fn consumed(&self) -> u32 {
-        match self {
-            ArgumentStack::Ordinary(ofs) => *ofs,
-            ArgumentStack::VarArgs => 0,
-        }
-    }
-}
-
-/// Parse a function argument type into the metadata we care about.
-pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
+/// Parse a function argument type, returning how much stack it uses.
+pub fn parse_argument_stack(ty: &syn::Type) -> u32 {
     let ty = match ty {
         syn::Type::Path(ty) => ty,
         _ => panic!("unhandled type {ty:?}"),
@@ -136,11 +117,11 @@ pub fn parse_argument_stack(ty: &syn::Type) -> ArgumentStack {
         || name == "POINT"
         || name == "f64"
     {
-        ArgumentStack::Ordinary(8)
+        8
     } else if name == "VarArgs" {
-        ArgumentStack::VarArgs
+        0
     } else {
-        ArgumentStack::Ordinary(4)
+        4
     }
 }
 
@@ -167,20 +148,20 @@ fn parse_fn<'a>(
             _ => unimplemented!(),
         };
         let ty = &*arg.ty;
-        let stack = parse_argument_stack(ty);
-        args.push(Argument { name, ty, stack });
-    }
-
-    if args
-        .iter()
-        .any(|arg| matches!(arg.stack, ArgumentStack::VarArgs))
-    {
-        if !matches!(meta.callconv, CallConv::Cdecl) {
-            return Err(syn::Error::new_spanned(
-                func,
-                "VarArgs only works for cdecl functions",
-            ));
+        let stack_consumed = parse_argument_stack(ty);
+        if stack_consumed == 0 {
+            if !matches!(meta.callconv, CallConv::Cdecl) {
+                return Err(syn::Error::new_spanned(
+                    func,
+                    "VarArgs only works for cdecl functions",
+                ));
+            }
         }
+        args.push(Argument {
+            name,
+            ty,
+            stack_consumed,
+        });
     }
 
     Ok(Some(DllExport {
