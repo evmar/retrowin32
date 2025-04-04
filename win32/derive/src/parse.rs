@@ -99,24 +99,33 @@ pub struct Argument<'a> {
 }
 
 /// Parse a function argument type, returning how much stack it uses.
+/// (We cannot rely on some const fn on the type because we need this info at compile time
+/// when generating the wrapper function that pops the stack.)
 pub fn parse_argument_stack(ty: &syn::Type) -> u32 {
     let ty = match ty {
         syn::Type::Path(ty) => ty,
+        syn::Type::Reference(_) => return 4,
         _ => panic!("unhandled type {ty:?}"),
     };
     if ty.path.segments.len() != 1 {
         panic!("unhandled type {ty:?}");
     }
+    let seg = &ty.path.segments[0];
 
-    let name = &ty.path.segments[0].ident;
+    let name = &seg.ident;
     // cannot use "match" here because we rely on == impl on Ident :(
-    if name == "Array"
-        || name == "ArrayOut"
-        || name == "ArrayWithSize"
-        || name == "ArrayOut"
-        || name == "POINT"
-        || name == "f64"
-    {
+    if name == "Option" {
+        let syn::PathArguments::AngleBracketed(syn::AngleBracketedGenericArguments {
+            args, ..
+        }) = &seg.arguments
+        else {
+            panic!("unhandled type {ty:?}");
+        };
+        let syn::GenericArgument::Type(ty) = &args[0] else {
+            panic!("unhandled type {ty:?}");
+        };
+        parse_argument_stack(&ty)
+    } else if name == "Array" || name == "ArrayOut" || name == "POINT" || name == "f64" {
         8
     } else if name == "VarArgs" {
         0
