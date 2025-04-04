@@ -26,14 +26,19 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     let mut fetch_args = quote! {
         let mem = machine.mem().detach();
     };
-    let mut stack_offset = 0u32;
-    for parse::Argument { name, ty, stack } in dllexport.args.iter() {
+    let mut stack_offset = 0;
+    for parse::Argument {
+        name,
+        ty,
+        stack_consumed,
+    } in dllexport.args.iter()
+    {
         // We expect all the stack_offset math to be inlined by the compiler into plain constants.
         // TODO: reading the args in reverse would produce fewer bounds checks...
         fetch_args.extend(quote! {
             let #name = <#ty>::from_stack(mem, stack_args + #stack_offset);
         });
-        stack_offset += stack.consumed();
+        stack_offset += stack_consumed;
     }
 
     let args = dllexport
