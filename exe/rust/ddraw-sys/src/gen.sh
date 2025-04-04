@@ -9,4 +9,4 @@ allowlist="$allowlist --allowlist-type IDirectDraw"
 allowlist="$allowlist --allowlist-type DDSURFACEDESC"
 
 # disable layout tests because it makes rust-analyzer angry
-exec bindgen --no-layout-tests $allowlist $ddraw -- -target i686-pc-windows-msvc $inc > bindgen.rs
+exec bindgen --use-core --no-layout-tests $allowlist $ddraw -- -target i686-pc-windows-msvc $inc > bindgen.rs
