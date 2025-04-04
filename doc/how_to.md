@@ -23,3 +23,8 @@ Whenever you add a function or modify a function's parameters, you must run
 `cargo minibuild` again to regenerate the related code.
 
 See commit 9f436905e650eb7c4e996fd799eb260f1238356d for an example.
+
+The generated function will contain a `todo!()`, which means retrowin32 will
+panic once it's called. You can run with the flag `--win32-trace "^*"` (note the
+`^`) to log function parameters as they are called to see what parameters your
+new function is getting called with.
