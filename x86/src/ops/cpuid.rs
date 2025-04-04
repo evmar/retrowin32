@@ -9,6 +9,7 @@ bitflags! {
     }
 }
 
+/// cpuid: CPU Identification
 pub fn cpuid(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     match cpu.regs.get32(Register::EAX) {
         0 => {

@@ -118,27 +118,32 @@ impl Pack for [u8; 4] {
     }
 }
 
+/// pxor: Logical Exclusive OR
 pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| x ^ y);
 }
 
+/// movq: Move Doubleword/Move Quadword
 pub fn movq_mmm64_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, _x| y);
 }
 
+/// movd: Move Doubleword/Move Quadword
 pub fn movd_mm_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr) as u64; // zero extend
     rm64_x(cpu, mem, instr, |_cpu, _x| y);
 }
 
+/// movd: Move Doubleword/Move Quadword
 pub fn movd_rm32_mm(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = cpu.regs.get64(instr.op1_register()) as u32;
     let x = rm32(cpu, mem, instr);
     x.set(y);
 }
 
+/// punpcklwd: Unpack Low Data
 pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm32(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -148,6 +153,7 @@ pub fn punpcklwd_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// punpcklbw: Unpack Low Data
 pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm32(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -157,6 +163,7 @@ pub fn punpcklbw_mm_mmm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// pmullw: Multiply Packed Signed Integers and Store Low Result
 pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -171,6 +178,7 @@ pub fn pmullw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// pmulhw: Multiply Packed Signed Integers and Store High Result
 pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -185,6 +193,7 @@ pub fn pmulhw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psraw: Shift Packed Data Right Arithmetic
 pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -194,6 +203,7 @@ pub fn psraw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psrad: Shift Packed Data Right Arithmetic
 pub fn psrad_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -203,6 +213,7 @@ pub fn psrad_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psrlw: Shift Packed Data Right Logical
 pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -212,11 +223,13 @@ pub fn psrlw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psrlq: Shift Packed Data Right Logical
 pub fn psrlq_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| x >> y);
 }
 
+/// packuswb: Pack With Unsigned Saturation
 pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     fn saturate(x: i16) -> u8 {
         if x < 0 {
@@ -237,11 +250,13 @@ pub fn packuswb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// emms: Empty MMX Technology State
 pub fn emms(_cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     // This is supposed to reset the FPU tag word, but I don't have one of those
     // because I'm not yet clear on what it's actually used for...
 }
 
+/// psubusb: Subtract Packed Unsigned Integers With Unsigned Saturation
 pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -252,6 +267,7 @@ pub fn psubusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// paddusb: Add Packed Unsigned Integers With Unsigned Saturation
 pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -262,6 +278,7 @@ pub fn paddusb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psllw: Shift Packed Data Left Logical
 pub fn psllw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = instr.immediate8();
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -271,6 +288,7 @@ pub fn psllw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// paddsb: Add Packed Signed Integers with Signed Saturation
 pub fn paddsb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -281,6 +299,7 @@ pub fn paddsb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// paddw: Add Packed Integers
 pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -291,6 +310,7 @@ pub fn paddw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// paddd: Add Packed Integers
 pub fn paddd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -301,6 +321,7 @@ pub fn paddd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// paddsw: Add Packed Signed Integers with Signed Saturation
 pub fn paddsw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -311,6 +332,7 @@ pub fn paddsw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// pmaddwd: Multiply and Add Packed Integers
 pub fn pmaddwd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -322,6 +344,7 @@ pub fn pmaddwd_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// psubw: Subtract Packed Integers
 pub fn psubw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {
@@ -332,6 +355,7 @@ pub fn psubw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     });
 }
 
+/// pcmpeqb: Compare Packed Data for Equal
 pub fn pcmpeqb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
     rm64_x(cpu, mem, instr, |_cpu, x| {

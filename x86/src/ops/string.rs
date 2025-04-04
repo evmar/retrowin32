@@ -87,6 +87,7 @@ fn cmps_single(cpu: &mut CPU, mem: Mem, size: Size) {
     };
 }
 
+/// cmps: Compare String Operands
 fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     if let Some(r) = Rep::from_instr(instr) {
         rep(cpu, mem, r, size, cmps_single);
@@ -95,18 +96,22 @@ fn cmps(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     }
 }
 
+/// cmpsd: Compare String Operands
 pub fn cmpsd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cmps(cpu, mem, instr, Size::Dword);
 }
 
+/// cmpsw: Compare String Operands
 pub fn cmpsw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cmps(cpu, mem, instr, Size::Word);
 }
 
+/// cmpsb: Compare String Operands
 pub fn cmpsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     cmps(cpu, mem, instr, Size::Byte);
 }
 
+/// movs: Move Data From String to String
 fn movs_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
@@ -131,6 +136,7 @@ fn movs_single(cpu: &mut CPU, mem: Mem, size: Size) {
     };
 }
 
+/// movs: Move Data From String to String
 fn movs(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, movs_single);
@@ -139,18 +145,22 @@ fn movs(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     }
 }
 
+/// movsd: Move Data From String to String
 pub fn movsd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, Size::Dword)
 }
 
+/// movsw: Move Data From String to String
 pub fn movsw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, Size::Word)
 }
 
+/// movsb: Move Data From String to String
 pub fn movsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     movs(cpu, mem, instr, Size::Byte)
 }
 
+/// scas: Scan String
 fn scas_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Dword => {
@@ -173,6 +183,7 @@ fn scas_single(cpu: &mut CPU, mem: Mem, size: Size) {
     };
 }
 
+/// scas: Scan String
 fn scas(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     if let Some(r) = Rep::from_instr(instr) {
         rep(cpu, mem, r, size, scas_single);
@@ -181,18 +192,22 @@ fn scas(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     }
 }
 
+/// scasd: Scan String
 pub fn scasd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, Size::Dword)
 }
 
+/// scasw: Scan String
 pub fn scasw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, Size::Word)
 }
 
+/// scasb: Scan String
 pub fn scasb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     scas(cpu, mem, instr, Size::Byte)
 }
 
+/// stos: Store String
 fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Byte => mem.put_pod::<u8>(
@@ -214,6 +229,7 @@ fn stos_single(cpu: &mut CPU, mem: Mem, size: Size) {
     };
 }
 
+/// stos: Store String
 fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, stos_single);
@@ -222,18 +238,22 @@ fn stos(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     }
 }
 
+/// stosd: Store String
 pub fn stosd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, Size::Dword)
 }
 
+/// stosw: Store String
 pub fn stosw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, Size::Word)
 }
 
+/// stosb: Store String
 pub fn stosb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     stos(cpu, mem, instr, Size::Byte)
 }
 
+/// lods: Load String
 fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
     match size {
         Size::Byte => {
@@ -258,6 +278,7 @@ fn lods_single(cpu: &mut CPU, mem: Mem, size: Size) {
     };
 }
 
+/// lods: Load String
 fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     if Rep::is_rep(instr) {
         rep(cpu, mem, Rep::REP, size, lods_single);
@@ -266,14 +287,17 @@ fn lods(cpu: &mut CPU, mem: Mem, instr: &Instruction, size: Size) {
     }
 }
 
+/// lodsd: Load String
 pub fn lodsd(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, Size::Dword)
 }
 
+/// lodsw: Load String
 pub fn lodsw(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, Size::Word)
 }
 
+/// lodsb: Load String
 pub fn lodsb(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     lods(cpu, mem, instr, Size::Byte)
 }
