@@ -749,5 +749,7 @@ dependencies = [
 name = "zip"
 version = "0.1.0"
 dependencies = [
+ "exe",
  "miniz_oxide",
+ "windows-sys",
 ]

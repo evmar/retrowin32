@@ -90,7 +90,7 @@ impl MachineX<Emulator> {
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
 
-        let stack_size = 0x4096; // TODO: read from exe
+        let stack_size = 0x100000; // TODO: read from exe
         let NewThread {
             thread,
             stack_pointer,
