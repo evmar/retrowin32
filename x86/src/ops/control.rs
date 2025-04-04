@@ -90,6 +90,12 @@ pub fn jns(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+pub fn jo(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    if cpu.flags.contains(Flags::OF) {
+        cpu.jmp(mem, instr.near_branch32());
+    }
+}
+
 pub fn jp(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     // Note: the decoder ensures we only see a jp directly after a sahf,
     // so we know the PF flag directly depends on ax.
