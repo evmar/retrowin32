@@ -1,6 +1,7 @@
 mod basic;
 mod control;
 mod cpuid;
+mod flags;
 mod fpu;
 mod helpers;
 mod math;
