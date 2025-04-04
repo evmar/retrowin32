@@ -124,6 +124,7 @@ impl win32::FileSystem for EnvRef {
         options: FileOptions,
     ) -> Result<Box<dyn win32::File>, ERROR> {
         let path = windows_to_host_path(path);
+        log::debug!("open({path:?}, {options:?})");
         let f = std::fs::File::options()
             .read(options.read)
             .write(options.write)

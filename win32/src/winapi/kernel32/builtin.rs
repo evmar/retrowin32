@@ -311,6 +311,47 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn CreateFileMappingA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let hFile = <HFILE>::from_stack(mem, stack_args + 0u32);
+        let lpFileMappingAttributes =
+            <Option<&mut SECURITY_ATTRIBUTES>>::from_stack(mem, stack_args + 4u32);
+        let flProtect = <u32>::from_stack(mem, stack_args + 8u32);
+        let dwMaximumSizeHigh = <u32>::from_stack(mem, stack_args + 12u32);
+        let dwMaximumSizeLow = <u32>::from_stack(mem, stack_args + 16u32);
+        let lpName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::CreateFileMappingA_pos,
+                "kernel32/file/misc",
+                "CreateFileMappingA",
+                &[
+                    ("hFile", &hFile),
+                    ("lpFileMappingAttributes", &lpFileMappingAttributes),
+                    ("flProtect", &flProtect),
+                    ("dwMaximumSizeHigh", &dwMaximumSizeHigh),
+                    ("dwMaximumSizeLow", &dwMaximumSizeLow),
+                    ("lpName", &lpName),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::CreateFileMappingA(
+            machine,
+            hFile,
+            lpFileMappingAttributes,
+            flProtect,
+            dwMaximumSizeHigh,
+            dwMaximumSizeLow,
+            lpName,
+        );
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn CreateFileW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let lpFileName = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
@@ -5803,7 +5844,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 235usize] = [
+const SHIMS: [Shim; 236usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -5847,6 +5888,10 @@ const SHIMS: [Shim; 235usize] = [
     Shim {
         name: "CreateFileA",
         func: Handler::Sync(wrappers::CreateFileA),
+    },
+    Shim {
+        name: "CreateFileMappingA",
+        func: Handler::Sync(wrappers::CreateFileMappingA),
     },
     Shim {
         name: "CreateFileW",
