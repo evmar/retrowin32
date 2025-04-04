@@ -3,8 +3,8 @@ pub fn windows_message_to_str(msg: u32) -> Option<&'static str> {
     TAB.get(msg as usize)?.clone()
 }
 
-const TAB: [Option<&str>; 0x8001] = {
-    let mut tab = [None; 0x8001];
+const TAB: [Option<&str>; 0x390] = {
+    let mut tab = [None; 0x390];
     tab[0x0000] = Some("WM_NULL");
     tab[0x0001] = Some("WM_CREATE");
     tab[0x0002] = Some("WM_DESTROY");
@@ -263,6 +263,5 @@ const TAB: [Option<&str>; 0x8001] = {
 
     tab[0x0380] = Some("WM_PENWINFIRST");
     tab[0x038F] = Some("WM_PENWINLAST");
-    tab[0x8000] = Some("WM_APP");
     tab
 };
