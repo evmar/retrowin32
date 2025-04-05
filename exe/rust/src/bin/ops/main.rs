@@ -54,8 +54,28 @@ fn flags_test() {
     }
 }
 
+fn bs_test() {
+    let values = [0u32, 0b1, 0b110, 0b100100];
+    for value in values {
+        let mut bsf: u32;
+        let mut bsr: u32;
+        unsafe {
+            core::arch::asm!(
+                "bsf {bsf}, {value}",
+                "bsr {bsr}, {value}",
+                value = in(reg) value,
+                bsf = out(reg) bsf,
+                bsr = out(reg) bsr,
+            );
+        }
+        println!("bsf {value:x}: {bsf:x}");
+        println!("bsr {value:x}: {bsr:x}");
+    }
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn mainCRTStartup() {
     flags_test();
     fpu::test();
+    bs_test();
 }

@@ -143,14 +143,28 @@ pub fn btr_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(x.get() & !(1 << y))
 }
 
+/// bsf — Bit Scan Forward
+pub fn bsf_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    cpu.flags.set(Flags::ZF, y == 0);
+    for i in 0..31 {
+        if y & (1 << i) != 0 {
+            x.set(i);
+            break;
+        }
+    }
+}
+
 /// bsr: Bit Scan Reverse
 pub fn bsr_r32_rm32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_rm32(cpu, mem, instr);
     let x = rm32(cpu, mem, instr);
     cpu.flags.set(Flags::ZF, y == 0);
-    for i in 31..0 {
+    for i in (0..31).rev() {
         if y & (1 << i) != 0 {
-            x.set(i)
+            x.set(i);
+            break;
         }
     }
 }

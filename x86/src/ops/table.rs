@@ -325,6 +325,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Bt_rm32_r32 as usize] = Some(bt_rm32_r32);
     tab[iced_x86::Code::Bt_rm32_imm8 as usize] = Some(bt_rm32_imm8);
     tab[iced_x86::Code::Btr_rm32_imm8 as usize] = Some(btr_rm32_imm8);
+    tab[iced_x86::Code::Bsf_r32_rm32 as usize] = Some(bsf_r32_rm32);
     tab[iced_x86::Code::Bsr_r32_rm32 as usize] = Some(bsr_r32_rm32);
 
     tab[iced_x86::Code::Cmove_r32_rm32 as usize] = Some(cmove_r32_rm32);
