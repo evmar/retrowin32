@@ -8,11 +8,12 @@ use crate::{
     shims::{Handler, Shims},
     winapi::{
         self,
-        kernel32::{create_thread, CommandLine, NewThread},
+        kernel32::{self, CommandLine},
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
+use x86::CPU;
 
 pub struct BoxMem(Box<[u8]>);
 
@@ -90,20 +91,11 @@ impl MachineX<Emulator> {
             .kernel32
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
 
-        let stack_size = 0x100000; // TODO: read from exe
-        let NewThread {
-            thread,
-            stack_pointer,
-        } = create_thread(self, stack_size);
-
         let machine = self as *mut Machine;
         let cpu = self.emu.x86.new_cpu();
-        cpu.regs.set32(x86::Register::ESP, stack_pointer);
-        cpu.regs.set32(x86::Register::EBP, stack_pointer);
-        cpu.regs.fs_addr = thread.teb;
         cpu.call_async(Box::pin(async move {
             let machine = unsafe { &mut *machine };
-            let exe = loader::load_exe(
+            let entry_point = loader::load_exe(
                 machine,
                 &buf,
                 &machine.state.kernel32.cmdline.exe_name(),
@@ -119,7 +111,7 @@ impl MachineX<Emulator> {
                 .kernel32
                 .init_process_heap(&mut machine.memory);
 
-            winapi::kernel32::retrowin32_main(machine, exe.entry_point).await;
+            winapi::kernel32::retrowin32_main(machine, entry_point).await;
             0
         }));
 
@@ -309,6 +301,13 @@ impl MachineX<Emulator> {
 
     pub fn teb_addr(&self) -> u32 {
         self.emu.x86.cpu().regs.fs_addr
+    }
+
+    /// Emulator-specific thread initialization.
+    pub fn init_thread(cpu: &mut CPU, thread: &kernel32::NewThread) {
+        cpu.regs.set32(x86::Register::ESP, thread.stack_pointer);
+        cpu.regs.set32(x86::Register::EBP, thread.stack_pointer);
+        cpu.regs.fs_addr = thread.thread.teb;
     }
 
     pub fn exit_thread(&mut self) {

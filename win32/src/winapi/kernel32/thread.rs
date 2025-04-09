@@ -216,21 +216,16 @@ pub async fn CreateThread(
     #[cfg(feature = "x86-emu")]
     {
         // TODO: should reuse a CPU from a previous thread that has exited
-        let NewThread {
-            thread,
-            stack_pointer,
-        } = create_thread(machine, stack_size);
+        let thread = create_thread(machine, stack_size);
         let cpu = machine.emu.x86.new_cpu();
-        cpu.regs.set32(x86::Register::ESP, stack_pointer);
-        cpu.regs.set32(x86::Register::EBP, stack_pointer);
-        cpu.regs.fs_addr = thread.teb;
+        Machine::init_thread(cpu, &thread);
         let mem = machine.memory.mem();
         x86::ops::push(cpu, mem, lpParameter);
         x86::ops::push(cpu, mem, lpStartAddress);
         x86::ops::push(cpu, mem, 0);
         cpu.regs.eip = retrowin32_thread_main;
 
-        thread.handle
+        thread.thread.handle
     }
 
     #[cfg(not(feature = "x86-emu"))]

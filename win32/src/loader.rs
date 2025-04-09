@@ -8,7 +8,11 @@ use crate::{
     host,
     machine::Machine,
     memory::{Mapping, Memory},
-    winapi::{self, builtin::BuiltinDLL, kernel32::HMODULE},
+    winapi::{
+        self,
+        builtin::BuiltinDLL,
+        kernel32::{self, HMODULE},
+    },
 };
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, path::Path};
@@ -334,18 +338,22 @@ async fn load_module(
     init_module(machine, file, module).await
 }
 
-pub struct EXEFields {
-    pub entry_point: u32,
-    pub stack_size: u32,
-}
-
 pub async fn load_exe(
     machine: &mut Machine,
     buf: &[u8],
     path: &str,
     relocate: Option<Option<u32>>,
-) -> anyhow::Result<EXEFields> {
+) -> anyhow::Result<u32> {
     let file = pe::parse(buf)?;
+
+    // We need a current thread to load the exe, because we may need to
+    // call DllMain()s on dependent DLLs.  But we only have the stack size
+    // for that thread once we've parsed the file, so here is the place to
+    // create it.  TODO: this feels wrong.  Perhaps caller should parse pe itself?
+    let stack_size = file.opt_header.SizeOfStackReserve;
+    let thread = kernel32::create_thread(machine, stack_size);
+    Machine::init_thread(machine.emu.x86.cpu_mut(), &thread);
+
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
     let module_name = normalize_module_name(&filename);
@@ -357,11 +365,8 @@ pub async fn load_exe(
         machine.state.kernel32.resources = res_data.clone();
     }
 
-    let addrs = EXEFields {
-        entry_point: module.entry_point.unwrap(),
-        stack_size: file.opt_header.SizeOfStackReserve,
-    };
-    Ok(addrs)
+    let entry_point = module.entry_point.unwrap();
+    Ok(entry_point)
 }
 
 /// The result of loading an exe or DLL.

@@ -66,14 +66,16 @@ impl MachineX<Emulator> {
             .init_process(self.memory.mem(), CommandLine::new(cmdline));
         let exe = loader::load_exe(self, buf, &self.state.kernel32.cmdline.exe_name(), relocate)?;
 
-        let stack =
-            self.memory
-                .mappings
-                .alloc(exe.stack_size, "stack".into(), &mut self.memory.imp);
-        let stack_pointer = stack.addr + stack.size - 4;
-        unsafe {
-            shims_raw::set_stack32(stack_pointer);
-        }
+        // TODO: stack init now lives in load_exe->create_thread call.
+        // let stack =
+        //     self.memory
+        //         .mappings
+        //         .alloc(exe.stack_size, "stack".into(), &mut self.memory.imp);
+        // let stack_pointer = stack.addr + stack.size - 4;
+        // unsafe {
+        //     shims_raw::set_stack32(stack_pointer);
+        // }
+        todo!();
 
         Ok(exe.entry_point)
     }
