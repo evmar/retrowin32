@@ -111,15 +111,14 @@ impl<'a> BitmapInfo<'a> {
 
     /// buf is the bytes following the header.
     fn parseBMPv2(header: &BITMAPCOREHEADER, buf: &'a [u8]) -> Self {
-        let palette_len = match header.bcBitCount {
-            8 => 256,
-            4 => 16,
-            1 => 2,
-            _ => unimplemented!(),
+        let palette_len = if header.bcBitCount <= 8 {
+            2usize.pow(header.bcBitCount as u32)
+        } else {
+            todo!();
         };
         let palette_entry_size = 3usize;
         let palette_size = palette_len * palette_entry_size;
-        let palette = buf.sub32(0, palette_size as u32);
+        let palette = &buf[..palette_size];
 
         BitmapInfo {
             width: header.bcWidth as usize,
@@ -136,18 +135,19 @@ impl<'a> BitmapInfo<'a> {
 
     /// buf is the bytes following the header.
     fn parseBMPv3(header: &BITMAPINFOHEADER, buf: &'a [u8]) -> Self {
-        let palette_len = match header.biBitCount {
-            32 => 0,
-            16 => 0,
-            8 => 256,
-            4 => 16,
-            1 => 2,
-            _ => unimplemented!(),
+        if header.biCompression != BI::RGB as u32 {
+            todo!("compression {:?}", header.biCompression);
+        }
+        let palette_len = if header.biClrUsed > 0 {
+            header.biClrUsed as usize
+        } else if header.biBitCount <= 8 {
+            2usize.pow(header.biBitCount as u32)
+        } else {
+            todo!()
         };
-        assert!(header.biClrUsed == 0 || header.biClrUsed == palette_len as u32);
         let palette_entry_size = 4usize;
         let palette_size = palette_len * palette_entry_size;
-        let palette = buf.sub32(0, palette_size as u32);
+        let palette = &buf[..palette_size];
 
         BitmapInfo {
             width: header.biWidth as usize,
