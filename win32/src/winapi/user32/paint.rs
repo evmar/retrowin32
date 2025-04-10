@@ -199,6 +199,7 @@ impl BrushOrColor {
                 let color = match c {
                     COLOR::WINDOW => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
                     COLOR::MENU => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
+                    COLOR::BTNFACE => Some(COLORREF::from_rgb(0xc0, 0xc0, 0xc0)),
                     COLOR::APPWORKSPACE => Some(COLORREF::from_rgb(0x80, 0x80, 0x80)),
                     _ => todo!("{c:?}"),
                 };

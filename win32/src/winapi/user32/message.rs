@@ -60,6 +60,7 @@ pub enum WM {
     CLOSE = 0x0010,
     QUIT = 0x0012,
     ACTIVATEAPP = 0x001C,
+    SETFONT = 0x0030,
     WINDOWPOSCHANGED = 0x0047,
     SETICON = 0x0080,
     KEYDOWN = 0x0100,
