@@ -3,8 +3,8 @@
 use super::teb_mut;
 use crate::{
     winapi::{
+        encoding::{Encoder, EncoderWide},
         kernel32::CURRENT_PROCESS_HANDLE,
-        string::{BufWrite, BufWriteWide},
         ERROR, *,
     },
     Machine,
@@ -250,9 +250,9 @@ pub fn FormatMessageW(
     };
 
     let buf = machine.mem().sub32_mut(lpBuffer, nSize);
-    let len = BufWriteWide::from_mem(machine.mem(), lpBuffer, nSize)
-        .write(msg)
-        .unwrap();
+    let mut enc = EncoderWide::from_mem(machine.mem(), lpBuffer, nSize);
+    enc.write_nul(msg);
+    let len = enc.status().unwrap();
 
     len as u32 - 1
 }

@@ -2,9 +2,9 @@ use super::{HINSTANCE, HMENU};
 use crate::{
     winapi::{
         bitmap::{Bitmap, BITMAPFILEHEADER},
+        encoding::{Encoder, EncoderAnsi},
         gdi32::HGDIOBJ,
         kernel32::ResourceKey,
-        string::{BufWrite, BufWriteAnsi},
         *,
     },
     FileOptions, Machine,
@@ -266,6 +266,7 @@ pub fn LoadStringA(
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
+    // TODO: merge with LoadStringW
     let str = match find_string(machine, hInstance, uID) {
         Some(str) => Str16::from_bytes(machine.mem().slice(str)).to_string(),
         None => return 0,
@@ -273,9 +274,9 @@ pub fn LoadStringA(
     .to_string();
     assert!(cchBufferMax != 0); // MSDN claims this is invalid
 
-    let len = BufWriteAnsi::from_mem(machine.mem(), lpBuffer, cchBufferMax)
-        .write(str.as_str())
-        .unwrap();
+    let mut enc = EncoderAnsi::from_mem(machine.mem(), lpBuffer, cchBufferMax);
+    enc.write_nul(str.as_str());
+    let len = enc.status().unwrap();
     len as u32 - 1
 }
 
@@ -287,6 +288,7 @@ pub fn LoadStringW(
     lpBuffer: u32,
     cchBufferMax: u32,
 ) -> u32 {
+    // TODO: merge with LoadStringA
     let Some(str) = find_string(machine, hInstance, uID) else {
         return 0;
     };

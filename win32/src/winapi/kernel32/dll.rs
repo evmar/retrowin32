@@ -4,8 +4,8 @@ use crate::{
     machine::Machine,
     winapi::{
         self,
+        encoding::{Encoder, EncoderAnsi, EncoderWide},
         kernel32::set_last_error,
-        string::{BufWrite, BufWriteAnsi, BufWriteWide},
         *,
     },
 };
@@ -67,12 +67,12 @@ pub fn GetModuleHandleExW(
 fn get_module_file_name(
     machine: &mut Machine,
     hModule: HMODULE,
-    filename: &mut dyn BufWrite,
+    filename: &mut dyn Encoder,
 ) -> u32 {
     if hModule.is_null() || hModule.to_raw() == machine.state.kernel32.image_base {
         let exe = machine.state.kernel32.cmdline.exe_name();
-        let n = filename.write(&exe);
-        match n {
+        filename.write_nul(&exe);
+        match filename.status() {
             Ok(n) => n - 1,
             Err(_) => {
                 set_last_error(machine, ERROR::INSUFFICIENT_BUFFER);
@@ -92,7 +92,7 @@ pub fn GetModuleFileNameA(
     hModule: HMODULE,
     mut filename: ArrayOut<u8>,
 ) -> u32 {
-    get_module_file_name(machine, hModule, &mut BufWriteAnsi::new(&mut filename))
+    get_module_file_name(machine, hModule, &mut EncoderAnsi::new(&mut filename))
 }
 
 #[win32_derive::dllexport]
@@ -103,7 +103,7 @@ pub fn GetModuleFileNameW(
     nSize: u32,
 ) -> u32 {
     // TODO: figure out what we should do with ArrayWithSize for u16.
-    let mut filename = BufWriteWide::from_mem(unsafe { machine.mem().detach() }, lpFilename, nSize);
+    let mut filename = EncoderWide::from_mem(unsafe { machine.mem().detach() }, lpFilename, nSize);
     get_module_file_name(machine, hModule, &mut filename)
 }
 
