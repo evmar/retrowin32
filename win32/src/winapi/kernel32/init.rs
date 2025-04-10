@@ -115,7 +115,7 @@ pub struct State {
 
     pub find_handles: Handles<HFIND, FindHandle>,
 
-    pub(super) env: u32,
+    pub env: Vec<(String, String)>,
 
     pub cmdline: CommandLine,
 }
@@ -150,12 +150,7 @@ impl State {
         };
         dlls.insert(HMODULE::from_raw(module.image_base), module);
 
-        let env = b"WINDIR=C:\\Windows\0\0";
-        let env_addr = arena.alloc(env.len() as u32, 1);
-        memory
-            .mem()
-            .sub32_mut(env_addr, env.len() as u32)
-            .copy_from_slice(env);
+        let env = vec![(String::from("WINDIR"), String::from("C:\\Windows"))];
 
         State {
             arena,
@@ -168,7 +163,7 @@ impl State {
             objects: Default::default(),
             files: Default::default(),
             find_handles: Default::default(),
-            env: env_addr,
+            env,
             cmdline: CommandLine::default(),
             resources: Default::default(),
             resource_handles: Default::default(),

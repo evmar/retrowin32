@@ -1228,19 +1228,19 @@ mod wrappers {
     }
     pub unsafe fn FreeEnvironmentStringsA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
-        let _penv = <u32>::from_stack(mem, stack_args + 0u32);
+        let penv = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::FreeEnvironmentStringsA_pos,
                 "kernel32/env",
                 "FreeEnvironmentStringsA",
-                &[("penv", &_penv)],
+                &[("penv", &penv)],
             )
             .enter()
         } else {
             None
         };
-        let result = winapi::kernel32::FreeEnvironmentStringsA(machine, _penv);
+        let result = winapi::kernel32::FreeEnvironmentStringsA(machine, penv);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -1248,18 +1248,19 @@ mod wrappers {
     }
     pub unsafe fn FreeEnvironmentStringsW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
+        let penv = <u32>::from_stack(mem, stack_args + 0u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/env") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::FreeEnvironmentStringsW_pos,
                 "kernel32/env",
                 "FreeEnvironmentStringsW",
-                &[],
+                &[("penv", &penv)],
             )
             .enter()
         } else {
             None
         };
-        let result = winapi::kernel32::FreeEnvironmentStringsW(machine);
+        let result = winapi::kernel32::FreeEnvironmentStringsW(machine, penv);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }

@@ -1,23 +1,81 @@
-use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
+use crate::{
+    calling_convention::ArrayOut,
+    winapi::{encoding::*, Str16},
+    Machine,
+};
 
-#[win32_derive::dllexport]
-pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.env
+/// Encode environment variables in the environment block format.
+fn encode_env(w: &mut dyn Encoder, env: &[(String, String)]) {
+    for (key, val) in env {
+        w.write(key);
+        w.write("=");
+        w.write(val);
+        w.write("\0");
+    }
+    if env.is_empty() {
+        w.write("\0");
+    }
+    w.write("\0");
 }
 
 #[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsA(_machine: &mut Machine, _penv: u32) -> bool {
+pub fn GetEnvironmentStrings(machine: &mut Machine) -> u32 {
+    // Yes, this function without "A" suffix exists:
+    // https://devblogs.microsoft.com/oldnewthing/20130117-00/?p=5533
+    let mut measure = EncoderAnsi::new(&mut []);
+    encode_env(&mut measure, &machine.state.kernel32.env);
+    let len = measure.status().unwrap_err();
+
+    let addr = machine
+        .state
+        .kernel32
+        .process_heap
+        .alloc(machine.memory.mem(), len as u32);
+
+    let mut env = EncoderAnsi::from_mem(machine.memory.mem(), addr, len as u32);
+    encode_env(&mut env, &machine.state.kernel32.env);
+    env.status().unwrap();
+
+    addr
+}
+
+#[win32_derive::dllexport]
+pub fn FreeEnvironmentStringsA(machine: &mut Machine, penv: u32) -> bool {
+    machine
+        .state
+        .kernel32
+        .process_heap
+        .free(machine.memory.mem(), penv);
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn GetEnvironmentStringsW(_machine: &mut Machine) -> u32 {
-    // CRT startup appears to fallback on non-W version of this if it returns null.
-    0
+pub fn GetEnvironmentStringsW(machine: &mut Machine) -> u32 {
+    // Yuck, this is copy of GetEnvironmentStringsA, because we need to create two Encoder types.
+    let mut measure = EncoderWide::new(&mut []);
+    encode_env(&mut measure, &machine.state.kernel32.env);
+    let len = measure.status().unwrap_err();
+
+    let addr = machine
+        .state
+        .kernel32
+        .process_heap
+        .alloc(machine.memory.mem(), len as u32);
+
+    let mut env = EncoderWide::from_mem(machine.memory.mem(), addr, len as u32);
+    encode_env(&mut env, &machine.state.kernel32.env);
+    env.status().unwrap();
+
+    addr
 }
 
 #[win32_derive::dllexport]
-pub fn FreeEnvironmentStringsW(_machine: &mut Machine) -> bool {
+pub fn FreeEnvironmentStringsW(machine: &mut Machine, penv: u32) -> bool {
+    machine
+        .state
+        .kernel32
+        .process_heap
+        .free(machine.memory.mem(), penv);
     true // success
 }
 
