@@ -130,8 +130,9 @@ pub struct MMTIME {
 }
 unsafe impl memory::Pod for MMTIME {}
 
+// These are TIME_* values, but that name conflicts with the TIME_* values in time.rs.
 #[derive(Debug, win32_derive::TryFromEnum)]
-pub enum TIME {
+pub enum MMTIME_TIME {
     MS = 0x0001,
     SAMPLES = 0x0002,
     BYTES = 0x0004,
@@ -142,27 +143,27 @@ pub enum TIME {
 
 impl std::fmt::Debug for MMTIME {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let time = TIME::try_from(self.wType);
+        let time = MMTIME_TIME::try_from(self.wType);
         let mut st = f.debug_struct("MMTIME");
         st.field("wType", &time);
         unsafe {
             match time {
-                Ok(TIME::MS) => {
+                Ok(MMTIME_TIME::MS) => {
                     st.field("ms", &self.u.ms);
                 }
-                Ok(TIME::SAMPLES) => {
+                Ok(MMTIME_TIME::SAMPLES) => {
                     st.field("sample", &self.u.sample);
                 }
-                Ok(TIME::BYTES) => {
+                Ok(MMTIME_TIME::BYTES) => {
                     st.field("cb", &self.u.cb);
                 }
-                Ok(TIME::SMPTE) => {
+                Ok(MMTIME_TIME::SMPTE) => {
                     st.field("smpte", &self.u.smpte);
                 }
-                Ok(TIME::MIDI) => {
+                Ok(MMTIME_TIME::MIDI) => {
                     st.field("midi", &self.u.midi);
                 }
-                Ok(TIME::TICKS) => {
+                Ok(MMTIME_TIME::TICKS) => {
                     st.field("ticks", &self.u.ticks);
                 }
                 Err(_) => {}
@@ -207,8 +208,8 @@ pub fn waveOutGetPosition(
 
     let pos = machine.state.winmm.audio.as_mut().unwrap().pos();
     let mmt = pmmt.unwrap();
-    match TIME::try_from(mmt.wType).unwrap() {
-        TIME::BYTES => mmt.u.cb = pos as u32 * 2,
+    match MMTIME_TIME::try_from(mmt.wType).unwrap() {
+        MMTIME_TIME::BYTES => mmt.u.cb = pos as u32 * 2,
         t => todo!("{:?}", t),
     }
     MMRESULT::MMSYSERR_NOERROR

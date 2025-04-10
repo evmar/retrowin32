@@ -494,6 +494,32 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn retrowin32_time_thread_main(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
+            crate::winapi::trace::Record::new(
+                winapi::winmm::retrowin32_time_thread_main_pos,
+                "winmm/time",
+                "retrowin32_time_thread_main",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let machine: *mut Machine = machine;
+        Box::pin(async move {
+            let machine = unsafe { &mut *machine };
+            let result = winapi::winmm::retrowin32_time_thread_main(machine).await;
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
+        })
+    }
     pub unsafe fn timeBeginPeriod(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let uPeriod = <u32>::from_stack(mem, stack_args + 0u32);
@@ -600,7 +626,7 @@ mod wrappers {
         let uResolution = <u32>::from_stack(mem, stack_args + 4u32);
         let lpTimeProc = <u32>::from_stack(mem, stack_args + 8u32);
         let dwUser = <u32>::from_stack(mem, stack_args + 12u32);
-        let fuEvent = <u32>::from_stack(mem, stack_args + 16u32);
+        let fuEvent = <Result<TIME, u32>>::from_stack(mem, stack_args + 16u32);
         let __trace_record = if crate::winapi::trace::enabled("winmm/time") {
             crate::winapi::trace::Record::new(
                 winapi::winmm::timeSetEvent_pos,
@@ -915,7 +941,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 40usize] = [
+const SHIMS: [Shim; 41usize] = [
     Shim {
         name: "PlaySoundW",
         func: Handler::Sync(wrappers::PlaySoundW),
@@ -999,6 +1025,10 @@ const SHIMS: [Shim; 40usize] = [
     Shim {
         name: "mixerSetControlDetails",
         func: Handler::Sync(wrappers::mixerSetControlDetails),
+    },
+    Shim {
+        name: "retrowin32_time_thread_main",
+        func: Handler::Async(wrappers::retrowin32_time_thread_main),
     },
     Shim {
         name: "timeBeginPeriod",

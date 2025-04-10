@@ -39,4 +39,5 @@ impl Into<crate::calling_convention::ABIReturn> for MMRESULT {
 pub struct State {
     pub audio_enabled: bool,
     pub audio: Option<Box<dyn host::Audio>>,
+    pub time_thread: Option<TimeThread>,
 }
