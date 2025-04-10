@@ -104,13 +104,6 @@ impl MachineX<Emulator> {
             .await
             .unwrap();
 
-            // Initialize process heap after exe has loaded, to ensure it doesn't occupy any addresses
-            // that the exe wants.
-            machine
-                .state
-                .kernel32
-                .init_process_heap(&mut machine.memory);
-
             winapi::kernel32::retrowin32_main(machine, entry_point).await;
             0
         }));

@@ -357,7 +357,18 @@ pub async fn load_exe(
     let path = Path::new(path);
     let filename = path.file_name().unwrap().to_string_lossy();
     let module_name = normalize_module_name(&filename);
-    let hmodule = load_module(machine, module_name, buf, &file, relocate).await?;
+
+    let module = load_one_module(&mut machine.memory, module_name, buf, &file, relocate)?;
+
+    // Another "feels wrong": initialize process heap after exe has loaded and picked an address,
+    // to ensure the process heap doesn't occupy any addresses that the exe wants.
+    machine
+        .state
+        .kernel32
+        .init_process_heap(&mut machine.memory);
+
+    let hmodule = init_module(machine, &file, module).await.unwrap();
+
     let module = machine.state.kernel32.modules.get(&hmodule).unwrap();
     machine.state.kernel32.image_base = module.image_base;
 
