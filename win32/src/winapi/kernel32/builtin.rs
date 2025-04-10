@@ -320,10 +320,10 @@ mod wrappers {
         let dwMaximumSizeHigh = <u32>::from_stack(mem, stack_args + 12u32);
         let dwMaximumSizeLow = <u32>::from_stack(mem, stack_args + 16u32);
         let lpName = <Option<&str>>::from_stack(mem, stack_args + 20u32);
-        let __trace_record = if crate::winapi::trace::enabled("kernel32/file/misc") {
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/file/mapping") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::CreateFileMappingA_pos,
-                "kernel32/file/misc",
+                "kernel32/file/mapping",
                 "CreateFileMappingA",
                 &[
                     ("hFile", &hFile),
