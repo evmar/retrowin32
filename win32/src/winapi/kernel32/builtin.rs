@@ -2699,6 +2699,25 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn GetUserDefaultUILanguage(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::GetUserDefaultUILanguage_pos,
+                "kernel32/misc",
+                "GetUserDefaultUILanguage",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::GetUserDefaultUILanguage(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn GetVersion(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/misc") {
@@ -5845,7 +5864,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 236usize] = [
+const SHIMS: [Shim; 237usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6273,6 +6292,10 @@ const SHIMS: [Shim; 236usize] = [
     Shim {
         name: "GetUserDefaultLCID",
         func: Handler::Sync(wrappers::GetUserDefaultLCID),
+    },
+    Shim {
+        name: "GetUserDefaultUILanguage",
+        func: Handler::Sync(wrappers::GetUserDefaultUILanguage),
     },
     Shim {
         name: "GetVersion",

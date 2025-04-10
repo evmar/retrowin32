@@ -435,3 +435,8 @@ pub fn EncodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
 pub fn DecodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
     ptr
 }
+
+#[win32_derive::dllexport]
+pub fn GetUserDefaultUILanguage(_machine: &mut Machine) -> u32 {
+    0 // neutral
+}
