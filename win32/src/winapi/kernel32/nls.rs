@@ -2,7 +2,7 @@
 
 use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
 use bitflags::bitflags;
-use memory::Extensions;
+use memory::{Extensions, ExtensionsMut, Mem};
 
 /// Code pages
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -109,6 +109,16 @@ bitflags! {
     }
 }
 
+fn strlen16(mem: Mem, addr: u32) -> usize {
+    for i in 0usize.. {
+        let c = mem.get_pod::<u16>(addr + i as u32 * 2);
+        if c == 0 {
+            return i;
+        }
+    }
+    unreachable!();
+}
+
 #[win32_derive::dllexport]
 pub fn WideCharToMultiByte(
     machine: &mut Machine,
@@ -126,7 +136,34 @@ pub fn WideCharToMultiByte(
     }
     dwFlags.unwrap();
 
-    0
+    let src = lpWideCharStr;
+    let src_len = match cchWideChar {
+        0 => todo!(),
+        -1 => strlen16(machine.mem(), src) + 1, // include nul
+        len => len as usize,
+    };
+
+    let dst = if cbMultiByte > 0 {
+        machine.mem().sub32_mut(lpMultiByteStr, cbMultiByte as u32)
+    } else {
+        &mut []
+    };
+
+    for i in 0..src_len {
+        let c = machine.mem().get_pod::<u16>(src + i as u32 * 2);
+        if c > 0x7f {
+            unimplemented!("unicode");
+        }
+        if i < dst.len() {
+            dst[i] = c as u8;
+        }
+    }
+
+    if let Some(used) = lpUsedDefaultChar {
+        *used = 0;
+    }
+
+    src_len as u32
 }
 
 #[win32_derive::dllexport]
