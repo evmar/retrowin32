@@ -35,14 +35,24 @@ pub struct WndClass {
     pub background: HBRUSH,
 }
 
-fn register_class(machine: &mut Machine, wndclass: WndClass) -> u32 {
-    let atom = machine.state.user32.wndclasses.len() as u32 + 1;
-    machine
-        .state
-        .user32
-        .wndclasses
-        .push(Rc::new(RefCell::new(wndclass)));
-    atom
+/// The collection of known window classes.
+// These generally don't change, but SetWindowLong lets you poke at most of their fields,
+// so RefCell it is.
+#[derive(Default)]
+pub struct WndClasses {
+    vec: Vec<Rc<RefCell<WndClass>>>,
+}
+
+impl WndClasses {
+    pub fn register(&mut self, class: WndClass) -> u32 {
+        let atom = self.vec.len() as u32 + 1;
+        self.vec.push(Rc::new(RefCell::new(class)));
+        atom
+    }
+
+    pub fn get(&self, name: &str) -> Option<&Rc<RefCell<WndClass>>> {
+        self.vec.iter().find(|class| class.borrow().name == name)
+    }
 }
 
 #[repr(C, packed)]
@@ -94,7 +104,7 @@ pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
         wndproc: lpWndClass.lpfnWndProc,
         background: background.to_brush(machine),
     };
-    register_class(machine, wndclass)
+    machine.state.user32.wndclasses.register(wndclass)
 }
 
 #[repr(C, packed)]
@@ -149,7 +159,7 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
     };
-    register_class(machine, wndclass)
+    machine.state.user32.wndclasses.register(wndclass)
 }
 
 #[win32_derive::dllexport]
@@ -165,7 +175,7 @@ pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW
         background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
             .to_brush(machine),
     };
-    register_class(machine, wndclass)
+    machine.state.user32.wndclasses.register(wndclass)
 }
 
 #[derive(Debug, win32_derive::TryFromEnum)]

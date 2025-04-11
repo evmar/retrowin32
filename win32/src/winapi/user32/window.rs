@@ -360,8 +360,7 @@ pub async fn CreateWindowExW(
         .state
         .user32
         .wndclasses
-        .iter()
-        .find(|c| c.borrow().name == class_name)
+        .get(&class_name)
         .unwrap()
         .clone();
 

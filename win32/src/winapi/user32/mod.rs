@@ -33,10 +33,7 @@ pub use wndclass::*;
 
 #[derive(Default)]
 pub struct State {
-    /// Window classes, kept in an array so we can look them up by name.
-    // These generally don't change, but SetWindowLong lets you poke at most of their fields,
-    // so RefCell it is.
-    wndclasses: Vec<Rc<RefCell<WndClass>>>,
+    wndclasses: WndClasses,
 
     /// Count of user-registered message ids, see RegisterWindowMessageA.
     pub user_window_message_count: u32,
