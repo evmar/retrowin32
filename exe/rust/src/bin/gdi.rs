@@ -39,7 +39,8 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: i
     DefWindowProcA(hwnd, msg, wparam, lparam)
 }
 
-unsafe fn get_default_font() -> HFONT {
+#[allow(unused)]
+unsafe fn get_default_font_from_sys() -> HFONT {
     let mut metrics: NONCLIENTMETRICSA = core::mem::zeroed();
     metrics.cbSize = core::mem::size_of::<NONCLIENTMETRICSA>() as u32;
     if SystemParametersInfoA(
@@ -58,6 +59,10 @@ unsafe fn get_default_font() -> HFONT {
     }
 
     hfont
+}
+
+unsafe fn get_default_font() -> HFONT {
+    GetStockObject(DEFAULT_GUI_FONT) as HFONT
 }
 
 unsafe fn create_window() -> HWND {
