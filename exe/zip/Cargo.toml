@@ -12,6 +12,3 @@ miniz_oxide = "0.7.2"
 
 [dependencies.windows-sys]
 version = "0.52.0"
-features = [
-  "Win32_System_Memory",
-]
