@@ -121,7 +121,9 @@ pub struct Window {
     /// Client area height (not total window height).
     pub height: u32,
     pub wndclass: Rc<RefCell<WndClass>>,
-    pub style: WS,
+    pub window_style: WS,
+    /// Low 16 bits of window style, window type specific.
+    pub other_style: u16,
     /// The current show state of the window.
     pub show_cmd: SW,
     /// User data set via SetWindowLong.
@@ -293,13 +295,26 @@ impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, St
     }
 }
 
+#[derive(Debug)]
+pub struct CreateWindowStyle {
+    ws: WS,
+    rest: u16,
+}
+impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowStyle {
+    unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
+        let ws = WS::from_bits(arg & 0xFFFF_0000).unwrap();
+        let rest = (arg & 0xFFFF) as u16;
+        CreateWindowStyle { ws, rest }
+    }
+}
+
 #[win32_derive::dllexport]
 pub async fn CreateWindowExA(
     machine: &mut Machine,
     dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, str>,
     lpWindowName: Option<&str>,
-    dwStyle: Result<WS, u32>,
+    dwStyle: CreateWindowStyle,
     X: u32,
     Y: u32,
     nWidth: u32,
@@ -342,7 +357,7 @@ pub async fn CreateWindowExW(
     dwExStyle: Result<WS_EX, u32>,
     lpClassName: CreateWindowClassName<'_, Str16>,
     lpWindowName: Option<&Str16>,
-    dwStyle: Result<WS, u32>,
+    dwStyle: CreateWindowStyle,
     X: u32,
     Y: u32,
     nWidth: u32,
@@ -356,15 +371,8 @@ pub async fn CreateWindowExW(
         CreateWindowClassName::Atom(_) => unimplemented!(),
         CreateWindowClassName::Name(name) => name.to_string(),
     };
-    let wndclass = machine
-        .state
-        .user32
-        .wndclasses
-        .get(&class_name)
-        .unwrap()
-        .clone();
+    let wndclass = machine.state.user32.wndclasses.get(&class_name).unwrap();
 
-    let style = dwStyle.unwrap();
     const CW_USEDEFAULT: u32 = 0x8000_0000;
 
     // hInstance is only relevant when multiple DLLs register classes:
@@ -378,11 +386,10 @@ pub async fn CreateWindowExW(
         nHeight
     };
 
-    let style = dwStyle.unwrap();
     let menu = false; // TODO
-    let (width, height) = client_size_from_window_size(style, menu, width, height);
+    let (width, height) = client_size_from_window_size(dwStyle.ws, menu, width, height);
 
-    let typ = if style.contains(WS::CHILD) {
+    let typ = if dwStyle.ws.contains(WS::CHILD) {
         WindowType::Child
     } else {
         WindowType::TopLevel(WindowTopLevel::new(
@@ -400,7 +407,8 @@ pub async fn CreateWindowExW(
         width,
         height,
         wndclass,
-        style,
+        window_style: dwStyle.ws,
+        other_style: dwStyle.rest,
         show_cmd: SW::HIDE,
         user_data: 0,
     };
@@ -931,7 +939,8 @@ pub async fn SetWindowPos(
 
     let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
-    let (width, height) = client_size_from_window_size(window.style, menu, cx as u32, cy as u32);
+    let (width, height) =
+        client_size_from_window_size(window.window_style, menu, cx as u32, cy as u32);
     window.set_client_size(&mut *machine.host, width, height);
 
     true
@@ -949,7 +958,7 @@ pub fn MoveWindow(
 ) -> bool {
     let mut window = machine.state.user32.windows.get(hWnd).unwrap().borrow_mut();
     let menu = true; // TODO
-    let (width, height) = client_size_from_window_size(window.style, menu, nWidth, nHeight);
+    let (width, height) = client_size_from_window_size(window.window_style, menu, nWidth, nHeight);
     window.set_client_size(&mut *machine.host, width, height);
     true // success
 }
@@ -979,7 +988,7 @@ pub fn GetWindowRect(machine: &mut Machine, hWnd: HWND, lpRect: Option<&mut RECT
     };
 
     let menu = true; // TODO
-    window_rect(&mut result, window.style, menu);
+    window_rect(&mut result, window.window_style, menu);
 
     // TODO: this pretends that the window is at 0,0
     let offset_x = -result.left;

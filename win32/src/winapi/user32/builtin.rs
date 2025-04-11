@@ -379,7 +379,7 @@ mod wrappers {
         let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
         let lpClassName = <CreateWindowClassName<'_, str>>::from_stack(mem, stack_args + 4u32);
         let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
-        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 12u32);
+        let dwStyle = <CreateWindowStyle>::from_stack(mem, stack_args + 12u32);
         let X = <u32>::from_stack(mem, stack_args + 16u32);
         let Y = <u32>::from_stack(mem, stack_args + 20u32);
         let nWidth = <u32>::from_stack(mem, stack_args + 24u32);
@@ -445,7 +445,7 @@ mod wrappers {
         let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
         let lpClassName = <CreateWindowClassName<'_, Str16>>::from_stack(mem, stack_args + 4u32);
         let lpWindowName = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
-        let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 12u32);
+        let dwStyle = <CreateWindowStyle>::from_stack(mem, stack_args + 12u32);
         let X = <u32>::from_stack(mem, stack_args + 16u32);
         let Y = <u32>::from_stack(mem, stack_args + 20u32);
         let nWidth = <u32>::from_stack(mem, stack_args + 24u32);

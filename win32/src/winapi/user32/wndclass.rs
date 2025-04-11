@@ -50,8 +50,33 @@ impl WndClasses {
         atom
     }
 
-    pub fn get(&self, name: &str) -> Option<&Rc<RefCell<WndClass>>> {
-        self.vec.iter().find(|class| class.borrow().name == name)
+    fn by_name(&self, name: &str) -> Option<Rc<RefCell<WndClass>>> {
+        self.vec
+            .iter()
+            .find(|class| class.borrow().name == name)
+            .cloned()
+    }
+
+    pub fn get(&mut self, name: &str) -> Option<Rc<RefCell<WndClass>>> {
+        if let Some(class) = self.by_name(name) {
+            return Some(class);
+        }
+        match name {
+            "BUTTON" => {
+                self.register(button_class());
+                return self.by_name(name);
+            }
+            _ => None,
+        }
+    }
+}
+
+fn button_class() -> WndClass {
+    WndClass {
+        name: "BUTTON".to_string(),
+        style: CS::VREDRAW | CS::HREDRAW,
+        wndproc: 0,
+        background: HBRUSH::null(),
     }
 }
 
