@@ -2,7 +2,7 @@
 
 use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
 use bitflags::bitflags;
-use memory::{Extensions, ExtensionsMut, Mem};
+use memory::{Extensions, ExtensionsMut};
 
 /// Code pages
 #[derive(Debug, win32_derive::TryFromEnum)]
@@ -109,14 +109,8 @@ bitflags! {
     }
 }
 
-fn strlen16(mem: Mem, addr: u32) -> usize {
-    for i in 0usize.. {
-        let c = mem.get_pod::<u16>(addr + i as u32 * 2);
-        if c == 0 {
-            return i;
-        }
-    }
-    unreachable!();
+fn strlen16(buf: &[u8]) -> usize {
+    buf.into_iter_pod::<u16>().position(|c| c == 0).unwrap()
 }
 
 #[win32_derive::dllexport]
@@ -137,11 +131,13 @@ pub fn WideCharToMultiByte(
     }
     dwFlags.unwrap();
 
-    let src = lpWideCharStr;
-    let src_len = match cchWideChar {
-        0 => todo!(),
-        -1 => strlen16(machine.mem(), src) + 1, // include nul
-        len => len as usize,
+    let src = {
+        let len = match cchWideChar {
+            0 => todo!(),
+            -1 => strlen16(machine.mem().slice(lpWideCharStr..)) + 1, // include nul
+            len => len as usize,
+        };
+        machine.mem().sub32(lpWideCharStr, len as u32 * 2)
     };
 
     let dst = if cbMultiByte > 0 {
@@ -150,8 +146,7 @@ pub fn WideCharToMultiByte(
         &mut []
     };
 
-    for i in 0..src_len {
-        let c = machine.mem().get_pod::<u16>(src + i as u32 * 2);
+    for (i, c) in src.into_iter_pod::<u16>().enumerate() {
         if c > 0x7f {
             unimplemented!("unicode");
         }
@@ -164,7 +159,7 @@ pub fn WideCharToMultiByte(
         *used = 0;
     }
 
-    src_len as u32
+    src.len() as u32 / 2
 }
 
 #[win32_derive::dllexport]
