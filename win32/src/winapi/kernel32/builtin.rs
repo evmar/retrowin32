@@ -5423,7 +5423,8 @@ mod wrappers {
         let cchWideChar = <i32>::from_stack(mem, stack_args + 12u32);
         let lpMultiByteStr = <u32>::from_stack(mem, stack_args + 16u32);
         let cbMultiByte = <i32>::from_stack(mem, stack_args + 20u32);
-        let lpUsedDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 24u32);
+        let lpDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 24u32);
+        let lpUsedDefaultChar = <Option<&mut u32>>::from_stack(mem, stack_args + 28u32);
         let __trace_record = if crate::winapi::trace::enabled("kernel32/nls") {
             crate::winapi::trace::Record::new(
                 winapi::kernel32::WideCharToMultiByte_pos,
@@ -5436,6 +5437,7 @@ mod wrappers {
                     ("cchWideChar", &cchWideChar),
                     ("lpMultiByteStr", &lpMultiByteStr),
                     ("cbMultiByte", &cbMultiByte),
+                    ("lpDefaultChar", &lpDefaultChar),
                     ("lpUsedDefaultChar", &lpUsedDefaultChar),
                 ],
             )
@@ -5451,6 +5453,7 @@ mod wrappers {
             cchWideChar,
             lpMultiByteStr,
             cbMultiByte,
+            lpDefaultChar,
             lpUsedDefaultChar,
         );
         if let Some(mut __trace_record) = __trace_record {

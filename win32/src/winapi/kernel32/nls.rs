@@ -128,6 +128,7 @@ pub fn WideCharToMultiByte(
     cchWideChar: i32,
     lpMultiByteStr: u32,
     cbMultiByte: i32,
+    lpDefaultChar: Option<&mut u32>,
     lpUsedDefaultChar: Option<&mut u32>,
 ) -> u32 {
     match CodePage {
