@@ -1,6 +1,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
+use crate::c_str;
 use memory::Extensions;
 
 // http://sandsprite.com/CodeStuff/Understanding_imports.html
@@ -31,7 +32,7 @@ unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 
 impl IMAGE_IMPORT_DESCRIPTOR {
     pub fn image_name<'m>(&self, image: &'m [u8]) -> &'m [u8] {
-        image.slicez(self.Name)
+        c_str(&image[self.Name as usize..])
     }
 
     /// Return an iterator over entries in the ILT, which describe imported functions.
@@ -96,7 +97,7 @@ impl ILTEntry {
         } else {
             // First two bytes at offset are hint/name table index, used to look up
             // the name faster in the DLL; we just skip them.
-            let sym_name = image.slicez(entry + 2);
+            let sym_name = c_str(&image[entry as usize + 2..]);
             ImportSymbol::Name(sym_name)
         }
     }
