@@ -51,6 +51,11 @@ pub fn fldl2e(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
     cpu.fpu.push(std::f64::consts::LOG2_E);
 }
 
+/// fldln2: Load Constant
+pub fn fldln2(cpu: &mut CPU, _mem: Mem, _instr: &Instruction) {
+    cpu.fpu.push(std::f64::consts::LN_2);
+}
+
 /// fld: Load Floating-Point Value
 pub fn fld_sti(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     let x = *cpu.fpu.get(instr.op0_register());

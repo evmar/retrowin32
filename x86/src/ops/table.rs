@@ -349,6 +349,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Fldz as usize] = Some(fldz);
     tab[iced_x86::Code::Fldpi as usize] = Some(fldpi);
     tab[iced_x86::Code::Fldl2e as usize] = Some(fldl2e);
+    tab[iced_x86::Code::Fldln2 as usize] = Some(fldln2);
 
     tab[iced_x86::Code::Fld_sti as usize] = Some(fld_sti);
     tab[iced_x86::Code::Fld_m80fp as usize] = Some(fld_m80fp);
@@ -388,6 +389,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Fsub_m64fp as usize] = Some(fsub_m64fp);
     tab[iced_x86::Code::Fsub_m32fp as usize] = Some(fsub_m32fp);
     tab[iced_x86::Code::Fsub_st0_sti as usize] = Some(fsub_sti_sti);
+    tab[iced_x86::Code::Fsub_sti_st0 as usize] = Some(fsub_sti_sti);
     tab[iced_x86::Code::Fsubp_sti_st0 as usize] = Some(fsubp_sti_sti);
     tab[iced_x86::Code::Fisub_m32int as usize] = Some(fisub_m32int);
 
