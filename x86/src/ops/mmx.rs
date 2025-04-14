@@ -118,6 +118,12 @@ impl Pack for [u8; 4] {
     }
 }
 
+/// por: Bitwise Logical OR
+pub fn por_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| x | y);
+}
+
 /// pxor: Logical Exclusive OR
 pub fn pxor_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let y = op1_mmm64(cpu, mem, instr);
@@ -286,6 +292,12 @@ pub fn psllw_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         let out: [u16; 4] = std::array::from_fn(|i| x[i] << y);
         out.pack()
     });
+}
+
+/// psllw: Shift Packed Data Left Logical
+pub fn psllq_mm_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    rm64_x(cpu, mem, instr, |_cpu, x| x << y);
 }
 
 /// paddsb: Add Packed Signed Integers with Signed Saturation

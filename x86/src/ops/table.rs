@@ -474,6 +474,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Cwde as usize] = Some(cwde);
     tab[iced_x86::Code::Cdq as usize] = Some(cdq);
 
+    tab[iced_x86::Code::Por_mm_mmm64 as usize] = Some(por_mm_mmm64);
     tab[iced_x86::Code::Pxor_mm_mmm64 as usize] = Some(pxor_mm_mmm64);
     tab[iced_x86::Code::Movq_mm_mmm64 as usize] = Some(movq_mmm64_mmm64);
     tab[iced_x86::Code::Movq_mmm64_mm as usize] = Some(movq_mmm64_mmm64);
@@ -492,6 +493,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Psubusb_mm_mmm64 as usize] = Some(psubusb_mm_mmm64);
     tab[iced_x86::Code::Paddusb_mm_mmm64 as usize] = Some(paddusb_mm_mmm64);
     tab[iced_x86::Code::Psllw_mm_imm8 as usize] = Some(psllw_mm_imm8);
+    tab[iced_x86::Code::Psllq_mm_imm8 as usize] = Some(psllq_mm_imm8);
     tab[iced_x86::Code::Paddsb_mm_mmm64 as usize] = Some(paddsb_mm_mmm64);
     tab[iced_x86::Code::Paddw_mm_mmm64 as usize] = Some(paddw_mm_mmm64);
     tab[iced_x86::Code::Paddd_mm_mmm64 as usize] = Some(paddd_mm_mmm64);
