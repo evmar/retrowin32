@@ -365,3 +365,14 @@ pub fn pcmpeqb_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
         out.pack()
     });
 }
+
+/// pcmpeqb: Compare Packed Data for Equal
+pub fn pcmpeqw_mm_mmm64(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_mmm64(cpu, mem, instr);
+    rm64_x(cpu, mem, instr, |_cpu, x| {
+        let x: [u16; 4] = x.unpack();
+        let y: [u16; 4] = y.unpack();
+        let out: [u16; 4] = std::array::from_fn(|i| if x[i] == y[i] { 0xFF } else { 0 });
+        out.pack()
+    });
+}

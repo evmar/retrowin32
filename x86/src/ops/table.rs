@@ -497,6 +497,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Pmaddwd_mm_mmm64 as usize] = Some(pmaddwd_mm_mmm64);
     tab[iced_x86::Code::Psubw_mm_mmm64 as usize] = Some(psubw_mm_mmm64);
     tab[iced_x86::Code::Pcmpeqb_mm_mmm64 as usize] = Some(pcmpeqb_mm_mmm64);
+    tab[iced_x86::Code::Pcmpeqw_mm_mmm64 as usize] = Some(pcmpeqw_mm_mmm64);
 
     tab[iced_x86::Code::Nopd as usize] = Some(nop);
     tab[iced_x86::Code::Nopw as usize] = Some(nop);
