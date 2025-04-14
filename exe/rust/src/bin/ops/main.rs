@@ -73,9 +73,25 @@ fn bs_test() {
     }
 }
 
+fn tzcnt_test() {
+    let values = [0u32, 0b1, 0b11000, 0b1000_0000_0000_0000];
+    for value in values {
+        let mut tzcnt: u32;
+        unsafe {
+            core::arch::asm!(
+                "tzcnt {tzcnt}, {value}",
+                value = in(reg) value,
+                tzcnt = out(reg) tzcnt,
+            );
+        }
+        println!("tzcnt {value:x}: {tzcnt:x}");
+    }
+}
+
 #[no_mangle]
 pub unsafe extern "C" fn mainCRTStartup() {
     flags_test();
     fpu::test();
     bs_test();
+    tzcnt_test();
 }
