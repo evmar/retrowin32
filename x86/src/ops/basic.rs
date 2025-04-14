@@ -310,6 +310,17 @@ pub fn cmpxchg_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     }
 }
 
+/// xadd: Exchange and Add
+pub fn xadd_rm32_r32(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm32(cpu, mem, instr);
+    let x = rm32(cpu, mem, instr);
+    let prev = x.get();
+
+    let sum = super::math::add(prev, y, &mut cpu.flags);
+    cpu.regs.set32(instr.op1_register(), prev);
+    x.set(sum);
+}
+
 /// lea: Load Effective Address
 pub fn lea_r32_m(cpu: &mut CPU, _mem: Mem, instr: &Instruction) {
     // lea eax,[esp+10h]

@@ -119,6 +119,8 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Cmpxchg_rm32_r32 as usize] = Some(cmpxchg_rm32_r32);
     tab[iced_x86::Code::Cmpxchg_rm8_r8 as usize] = Some(cmpxchg_rm8_r8);
 
+    tab[iced_x86::Code::Xadd_rm32_r32 as usize] = Some(xadd_rm32_r32);
+
     tab[iced_x86::Code::Cmpsd_m32_m32 as usize] = Some(cmpsd);
     tab[iced_x86::Code::Cmpsw_m16_m16 as usize] = Some(cmpsw);
     tab[iced_x86::Code::Cmpsb_m8_m8 as usize] = Some(cmpsb);

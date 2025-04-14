@@ -586,8 +586,7 @@ pub fn xor_rm8_r8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
-/// add: Add
-fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, flags: &mut Flags) -> I {
+pub fn add<I: Int + num_traits::ops::wrapping::WrappingAdd>(x: I, y: I, flags: &mut Flags) -> I {
     addc(x, y, I::zero(), flags)
 }
 
