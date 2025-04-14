@@ -49,6 +49,11 @@ pub fn __p___argc(_machine: &mut Machine) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
+pub fn __p__environ(_machine: &mut Machine) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
 pub fn __p__fmode(_machine: &mut Machine) -> u32 {
     0
 }
@@ -71,6 +76,11 @@ pub fn __set_app_type(_machine: &mut Machine, _app_type: u32) -> u32 {
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _set_fmode(_machine: &mut Machine, _mode: u32) -> u32 {
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn _setmode(_machine: &mut Machine, fd: u32, mode: u32) -> u32 {
     0
 }
 

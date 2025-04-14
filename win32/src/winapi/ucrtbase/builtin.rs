@@ -144,6 +144,25 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn __p__environ(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::__p__environ_pos,
+                "ucrtbase/init",
+                "__p__environ",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::__p__environ(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn __p__fmode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
@@ -198,6 +217,25 @@ mod wrappers {
             None
         };
         let result = winapi::ucrtbase::__setusermatherr(machine, pf);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn _cexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::_cexit_pos,
+                "ucrtbase/misc",
+                "_cexit",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::_cexit(machine);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -503,6 +541,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn _onexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let func = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::_onexit_pos,
+                "ucrtbase/misc",
+                "_onexit",
+                &[("func", &func)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::_onexit(machine, func);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn _set_app_type(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
@@ -563,6 +621,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn _setmode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let fd = <u32>::from_stack(mem, stack_args + 0u32);
+        let mode = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::_setmode_pos,
+                "ucrtbase/init",
+                "_setmode",
+                &[("fd", &fd), ("mode", &mode)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::_setmode(machine, fd, mode);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn _time64(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
@@ -598,6 +677,45 @@ mod wrappers {
             None
         };
         let result = winapi::ucrtbase::_unlock(machine, locknum);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn abort(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::abort_pos,
+                "ucrtbase/misc",
+                "abort",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::abort(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn atexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let func = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::atexit_pos,
+                "ucrtbase/misc",
+                "atexit",
+                &[("func", &func)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::atexit(machine, func);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -679,6 +797,27 @@ mod wrappers {
             None
         };
         let result = winapi::ucrtbase::free(machine, ptr);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn fwrite(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let mode = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::fwrite_pos,
+                "ucrtbase/misc",
+                "fwrite",
+                &[("filename", &filename), ("mode", &mode)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::fwrite(machine, filename, mode);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -766,6 +905,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn signal(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let sig = <u32>::from_stack(mem, stack_args + 0u32);
+        let func = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::signal_pos,
+                "ucrtbase/misc",
+                "signal",
+                &[("sig", &sig), ("func", &func)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::signal(machine, sig, func);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn sin(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let x = <f64>::from_stack(mem, stack_args + 0u32);
@@ -781,6 +941,28 @@ mod wrappers {
             None
         };
         let result = winapi::ucrtbase::sin(machine, x);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn sprintf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let buf = <u32>::from_stack(mem, stack_args + 0u32);
+        let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+        let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::sprintf_pos,
+                "ucrtbase/misc",
+                "sprintf",
+                &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::sprintf(machine, buf, fmt, args);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -866,8 +1048,30 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn vfprintf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let buf = <u32>::from_stack(mem, stack_args + 0u32);
+        let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+        let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::vfprintf_pos,
+                "ucrtbase/misc",
+                "vfprintf",
+                &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::vfprintf(machine, buf, fmt, args);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
 }
-const SHIMS: [Shim; 40usize] = [
+const SHIMS: [Shim; 50usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -893,6 +1097,10 @@ const SHIMS: [Shim; 40usize] = [
         func: Handler::Sync(wrappers::__p__commode),
     },
     Shim {
+        name: "__p__environ",
+        func: Handler::Sync(wrappers::__p__environ),
+    },
+    Shim {
         name: "__p__fmode",
         func: Handler::Sync(wrappers::__p__fmode),
     },
@@ -903,6 +1111,10 @@ const SHIMS: [Shim; 40usize] = [
     Shim {
         name: "__setusermatherr",
         func: Handler::Sync(wrappers::__setusermatherr),
+    },
+    Shim {
+        name: "_cexit",
+        func: Handler::Sync(wrappers::_cexit),
     },
     Shim {
         name: "_configthreadlocale",
@@ -957,6 +1169,10 @@ const SHIMS: [Shim; 40usize] = [
         func: Handler::Sync(wrappers::_lock),
     },
     Shim {
+        name: "_onexit",
+        func: Handler::Sync(wrappers::_onexit),
+    },
+    Shim {
         name: "_set_app_type",
         func: Handler::Sync(wrappers::_set_app_type),
     },
@@ -969,12 +1185,24 @@ const SHIMS: [Shim; 40usize] = [
         func: Handler::Sync(wrappers::_set_new_mode),
     },
     Shim {
+        name: "_setmode",
+        func: Handler::Sync(wrappers::_setmode),
+    },
+    Shim {
         name: "_time64",
         func: Handler::Sync(wrappers::_time64),
     },
     Shim {
         name: "_unlock",
         func: Handler::Sync(wrappers::_unlock),
+    },
+    Shim {
+        name: "abort",
+        func: Handler::Sync(wrappers::abort),
+    },
+    Shim {
+        name: "atexit",
+        func: Handler::Sync(wrappers::atexit),
     },
     Shim {
         name: "calloc",
@@ -993,6 +1221,10 @@ const SHIMS: [Shim; 40usize] = [
         func: Handler::Sync(wrappers::free),
     },
     Shim {
+        name: "fwrite",
+        func: Handler::Sync(wrappers::fwrite),
+    },
+    Shim {
         name: "malloc",
         func: Handler::Sync(wrappers::malloc),
     },
@@ -1009,8 +1241,16 @@ const SHIMS: [Shim; 40usize] = [
         func: Handler::Sync(wrappers::rand),
     },
     Shim {
+        name: "signal",
+        func: Handler::Sync(wrappers::signal),
+    },
+    Shim {
         name: "sin",
         func: Handler::Sync(wrappers::sin),
+    },
+    Shim {
+        name: "sprintf",
+        func: Handler::Sync(wrappers::sprintf),
     },
     Shim {
         name: "sqrt",
@@ -1027,6 +1267,10 @@ const SHIMS: [Shim; 40usize] = [
     Shim {
         name: "time",
         func: Handler::Sync(wrappers::time),
+    },
+    Shim {
+        name: "vfprintf",
+        func: Handler::Sync(wrappers::vfprintf),
     },
 ];
 pub const DLL: BuiltinDLL = BuiltinDLL {
