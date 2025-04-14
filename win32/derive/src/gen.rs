@@ -21,7 +21,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         Some(vtable) => quote!(#module::#vtable), // winapi::ddraw::IDirectDraw
         None => quote!(#module),                  // winapi::kernel32
     };
-    let sym_name = &dllexport.sym_name; // IDirectDraw_QueryInterface
+    let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
     let mut fetch_args = quote! {
         let mem = machine.mem().detach();
@@ -79,9 +79,9 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
 
     let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
         (
-            quote!(Handler::Async(wrappers::#sym_name)),
+            quote!(Handler::Async(wrappers::#flat_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+                pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
                     #fetch_args
                     let machine: *mut Machine = machine;
                     Box::pin(async move {
@@ -94,9 +94,9 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         )
     } else {
         (
-            quote!(Handler::Sync(wrappers::#sym_name)),
+            quote!(Handler::Sync(wrappers::#flat_name)),
             quote! {
-                pub unsafe fn #sym_name(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+                pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> ABIReturn {
                     #fetch_args
                     let result = #impls_mod::#base_name(machine, #(#args),*);
                     #return_result

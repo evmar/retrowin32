@@ -97,7 +97,7 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
 
     // Sort by name, then assign ordinals satisfying the ordinals that were specified,
     // then sort by ordinal to ensure the output is deterministic.
-    dllexports.fns.sort_by(|a, b| a.sym_name.cmp(&b.sym_name));
+    dllexports.fns.sort_by(|a, b| a.flat_name.cmp(&b.flat_name));
     assign_ordinals(&mut dllexports.fns).unwrap();
     dllexports.fns.sort_by_key(|e| e.meta.ordinal.unwrap());
 

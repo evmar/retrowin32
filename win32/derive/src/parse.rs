@@ -11,6 +11,8 @@ pub enum CallConv {
 pub struct DllExportMeta {
     pub ordinal: Option<usize>,
     pub callconv: CallConv,
+    /// Exported name, if specified.  Useful for C++-mangled names.
+    pub symbol: Option<String>,
 }
 
 /// A dllexport function.
@@ -21,8 +23,9 @@ pub struct DllExport<'a> {
     pub args: Vec<Argument<'a>>,
     /// If this function is part of a vtable, this is the name of the vtable.
     pub vtable: Option<&'a syn::Ident>,
-    // E.g. IDirectDraw_QueryInterface for symbols within a module.
-    pub sym_name: syn::Ident,
+    // The internal identifer to use for the function.
+    // Might get namespaced for symbols within a module, e.g. IDirectDraw_QueryInterface.
+    pub flat_name: syn::Ident,
     pub func: &'a syn::ItemFn,
 }
 
@@ -64,6 +67,7 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
 
     let mut ordinal = None;
     let mut callconv = CallConv::Stdcall;
+    let mut symbol = None;
 
     if matches!(attr.meta, syn::Meta::List(_)) {
         attr.parse_nested_meta(|meta| {
@@ -74,13 +78,22 @@ fn parse_dllexport(attr: &syn::Attribute) -> syn::Result<Option<DllExportMeta>> 
             } else if meta.path.is_ident("cdecl") {
                 callconv = CallConv::Cdecl;
                 Ok(())
+            } else if meta.path.is_ident("symbol") {
+                let value = meta.value()?;
+                let s: syn::LitStr = value.parse()?;
+                symbol = Some(s.value());
+                Ok(())
             } else {
-                Err(meta.error("bad path {path:?}"))
+                Err(meta.error("unknown attribute"))
             }
         })?;
     }
 
-    Ok(Some(DllExportMeta { ordinal, callconv }))
+    Ok(Some(DllExportMeta {
+        ordinal,
+        callconv,
+        symbol,
+    }))
 }
 
 fn find_dllexport(attrs: &[syn::Attribute]) -> syn::Result<Option<DllExportMeta>> {
@@ -178,7 +191,7 @@ fn parse_fn<'a>(
         meta,
         args,
         vtable: None,
-        sym_name: func.sig.ident.clone(),
+        flat_name: func.sig.ident.clone(), // might be renamed by caller
         func,
     }))
 }
@@ -197,7 +210,7 @@ fn parse_mod<'a>(
     gather_dllexports(trace_module, body, &mut dllexports)?;
     for dllexport in &mut dllexports.fns {
         dllexport.vtable = Some(name);
-        dllexport.sym_name = quote::format_ident!("{}_{}", name, dllexport.sym_name);
+        dllexport.flat_name = quote::format_ident!("{}_{}", name, dllexport.flat_name);
     }
 
     // Look for a call to the vtable! macro.

@@ -27,6 +27,11 @@ pub fn _cexit(machine: &mut Machine) {
     // call atexit handlers but don't exit
 }
 
+#[win32_derive::dllexport(cdecl, symbol = "?terminate@@YAXXZ")]
+pub fn terminate(_machine: &mut Machine) {
+    todo!()
+}
+
 #[win32_derive::dllexport(cdecl)]
 pub fn strlen(_machine: &mut Machine, lpString: Option<&CStr>) -> u32 {
     // The mapping to str already computes the string length.
