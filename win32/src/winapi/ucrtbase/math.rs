@@ -44,3 +44,8 @@ pub fn sin(machine: &mut Machine, x: f64) -> f64 {
 pub fn cos(machine: &mut Machine, x: f64) -> f64 {
     x.cos()
 }
+
+#[win32_derive::dllexport(cdecl)]
+pub fn floor(machine: &mut Machine, x: f64) -> f64 {
+    x.floor()
+}

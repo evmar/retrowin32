@@ -782,6 +782,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn floor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let x = <f64>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::floor_pos,
+                "ucrtbase/math",
+                "floor",
+                &[("x", &x)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::floor(machine, x);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn free(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let ptr = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1090,7 +1110,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 51usize] = [
+const SHIMS: [Shim; 52usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -1234,6 +1254,10 @@ const SHIMS: [Shim; 51usize] = [
     Shim {
         name: "exit",
         func: Handler::Sync(wrappers::exit),
+    },
+    Shim {
+        name: "floor",
+        func: Handler::Sync(wrappers::floor),
     },
     Shim {
         name: "free",
