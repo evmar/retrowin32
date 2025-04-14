@@ -885,6 +885,48 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let dst = <u32>::from_stack(mem, stack_args + 0u32);
+        let val = <u32>::from_stack(mem, stack_args + 4u32);
+        let len = <u32>::from_stack(mem, stack_args + 8u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::memset_pos,
+                "ucrtbase/memory",
+                "memset",
+                &[("dst", &dst), ("val", &val), ("len", &len)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::memset(machine, dst, val, len);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn operator_new(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let size = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::operator_new_pos,
+                "ucrtbase/memory",
+                "operator_new",
+                &[("size", &size)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::operator_new(machine, size);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn printf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let fmt = <Option<&str>>::from_stack(mem, stack_args + 0u32);
@@ -1110,7 +1152,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 52usize] = [
+const SHIMS: [Shim; 54usize] = [
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
@@ -1274,6 +1316,14 @@ const SHIMS: [Shim; 52usize] = [
     Shim {
         name: "memcpy",
         func: Handler::Sync(wrappers::memcpy),
+    },
+    Shim {
+        name: "memset",
+        func: Handler::Sync(wrappers::memset),
+    },
+    Shim {
+        name: "operator_new",
+        func: Handler::Sync(wrappers::operator_new),
     },
     Shim {
         name: "printf",

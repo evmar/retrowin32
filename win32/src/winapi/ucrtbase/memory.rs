@@ -1,3 +1,5 @@
+use memory::ExtensionsMut;
+
 use crate::Machine;
 
 #[win32_derive::dllexport(cdecl)]
@@ -25,5 +27,16 @@ pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
         .kernel32
         .process_heap
         .free(machine.memory.mem(), ptr);
+    0
+}
+
+#[win32_derive::dllexport(cdecl)]
+pub fn memset(machine: &mut Machine, dst: u32, val: u32, len: u32) -> u32 {
+    machine.mem().sub32_mut(dst, len).fill(val as u8);
+    dst
+}
+
+#[win32_derive::dllexport(cdecl, symbol = "??2@YAPAXI@Z")]
+pub fn operator_new(machine: &mut Machine, size: u32) -> u32 {
     0
 }
