@@ -50,6 +50,12 @@ pub fn apiset(name: &str) -> Option<&'static str> {
         "api-ms-win-crt-runtime-l1-1-0.dll" => "ucrtbase.dll",
         "api-ms-win-crt-stdio-l1-1-0.dll" => "ucrtbase.dll",
         "api-ms-win-crt-string-l1-1-0.dll" => "ucrtbase.dll",
+
+        "api-ms-win-core-processthreads-l1-1-2.dll" => "kernel32.dll",
+        "api-ms-win-core-profile-l1-1-0.dll" => "kernel32.dll",
+        "api-ms-win-core-sysinfo-l1-2-1.dll" => "kernel32.dll",
+        "api-ms-win-core-synch-l1-2-0.dll" => "kernel32.dll",
+
         _ => return None,
     })
 }
