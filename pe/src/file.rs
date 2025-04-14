@@ -121,6 +121,7 @@ impl IMAGE_DATA_DIRECTORY {
 }
 
 #[allow(dead_code)]
+#[derive(Clone, Copy, Debug)]
 pub enum IMAGE_DIRECTORY_ENTRY {
     EXPORT = 0,
     IMPORT = 1,

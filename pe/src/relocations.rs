@@ -4,6 +4,7 @@
 use memory::Extensions;
 
 #[repr(C)]
+#[derive(Debug)]
 struct IMAGE_BASE_RELOCATION {
     VirtualAddress: u32,
     SizeOfBlock: u32,
@@ -17,6 +18,10 @@ fn block_iter(mut buf: &[u8]) -> impl Iterator<Item = (u32, &[u8])> {
             return None;
         }
         let reloc = buf.get_pod::<IMAGE_BASE_RELOCATION>(0);
+        if reloc.VirtualAddress == 0 {
+            // fmod.dll has a block with addr=0, size=8 (header size), and then trailing garbage after that
+            return None;
+        }
         let body = &buf[std::mem::size_of::<IMAGE_BASE_RELOCATION>()..reloc.SizeOfBlock as usize];
         buf = &buf[reloc.SizeOfBlock as usize..];
         Some((reloc.VirtualAddress, body))
