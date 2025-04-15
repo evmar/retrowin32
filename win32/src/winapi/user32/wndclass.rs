@@ -249,3 +249,12 @@ pub fn SetClassLongA(
         f => todo!("SetClassLongA({f:?})"),
     }
 }
+
+#[win32_derive::dllexport]
+pub fn UnregisterClassA(
+    _machine: &mut Machine,
+    lpClassName: Option<&str>,
+    hInstance: HINSTANCE,
+) -> bool {
+    todo!()
+}

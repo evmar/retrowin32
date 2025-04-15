@@ -3591,6 +3591,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn UnregisterClassA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+        let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
+            crate::winapi::trace::Record::new(
+                winapi::user32::UnregisterClassA_pos,
+                "user32/wndclass",
+                "UnregisterClassA",
+                &[("lpClassName", &lpClassName), ("hInstance", &hInstance)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::user32::UnregisterClassA(machine, lpClassName, hInstance);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn UpdateWindow(
         machine: &mut Machine,
         stack_args: u32,
@@ -3766,7 +3787,7 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 149usize] = [
+const SHIMS: [Shim; 150usize] = [
     Shim {
         name: "AdjustWindowRect",
         func: Handler::Sync(wrappers::AdjustWindowRect),
@@ -4334,6 +4355,10 @@ const SHIMS: [Shim; 149usize] = [
     Shim {
         name: "TranslateMessage",
         func: Handler::Sync(wrappers::TranslateMessage),
+    },
+    Shim {
+        name: "UnregisterClassA",
+        func: Handler::Sync(wrappers::UnregisterClassA),
     },
     Shim {
         name: "UpdateWindow",

@@ -5072,6 +5072,27 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn TerminateThread(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let hThread = <HTHREAD>::from_stack(mem, stack_args + 0u32);
+        let dwExitCode = <u32>::from_stack(mem, stack_args + 4u32);
+        let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
+            crate::winapi::trace::Record::new(
+                winapi::kernel32::TerminateThread_pos,
+                "kernel32/thread",
+                "TerminateThread",
+                &[("hThread", &hThread), ("dwExitCode", &dwExitCode)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::kernel32::TerminateThread(machine, hThread, dwExitCode);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn TlsAlloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let __trace_record = if crate::winapi::trace::enabled("kernel32/thread") {
@@ -5867,7 +5888,7 @@ mod wrappers {
         })
     }
 }
-const SHIMS: [Shim; 237usize] = [
+const SHIMS: [Shim; 238usize] = [
     Shim {
         name: "AcquireSRWLockExclusive",
         func: Handler::Sync(wrappers::AcquireSRWLockExclusive),
@@ -6695,6 +6716,10 @@ const SHIMS: [Shim; 237usize] = [
     Shim {
         name: "TerminateProcess",
         func: Handler::Sync(wrappers::TerminateProcess),
+    },
+    Shim {
+        name: "TerminateThread",
+        func: Handler::Sync(wrappers::TerminateThread),
     },
     Shim {
         name: "TlsAlloc",

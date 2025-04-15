@@ -263,6 +263,11 @@ pub fn ResumeThread(_machine: &mut Machine, hThread: HTHREAD) -> u32 {
 }
 
 #[win32_derive::dllexport]
+pub fn TerminateThread(_machine: &mut Machine, hThread: HTHREAD, dwExitCode: u32) -> bool {
+    todo!()
+}
+
+#[win32_derive::dllexport]
 pub fn SetThreadDescription(
     _machine: &mut Machine,
     hThread: HTHREAD,
