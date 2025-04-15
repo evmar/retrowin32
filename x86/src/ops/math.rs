@@ -565,16 +565,23 @@ pub fn xor_rm32_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 /// xor: Logical Exclusive OR
-pub fn xor_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = instr.immediate8();
-    let x = rm8(cpu, mem, instr);
+pub fn xor_rm16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = op1_rm16(cpu, mem, instr);
+    let x = rm16(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
 /// xor: Logical Exclusive OR
-pub fn xor_rm16_rm16(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
-    let y = op1_rm16(cpu, mem, instr);
+pub fn xor_rm16_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8to16() as u16;
     let x = rm16(cpu, mem, instr);
+    x.set(xor(x.get(), y, &mut cpu.flags));
+}
+
+/// xor: Logical Exclusive OR
+pub fn xor_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let y = instr.immediate8();
+    let x = rm8(cpu, mem, instr);
     x.set(xor(x.get(), y, &mut cpu.flags));
 }
 
@@ -861,7 +868,7 @@ pub fn sbb_r8_rm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
 }
 
 /// sbb: Integer Subtraction With Borrow
-pub fn sbb_r8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+pub fn sbb_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     let carry = cpu.flags.contains(Flags::CF);
     let y = instr.immediate8();
     let x = rm8(cpu, mem, instr);
