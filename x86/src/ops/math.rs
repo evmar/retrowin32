@@ -262,6 +262,12 @@ pub fn shl_rm8_imm8(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
     x.set(shl(x.get(), y, &mut cpu.flags));
 }
 
+/// shl: Shift
+pub fn shl_rm8_1(cpu: &mut CPU, mem: Mem, instr: &Instruction) {
+    let x = rm8(cpu, mem, instr);
+    x.set(shl(x.get(), 1, &mut cpu.flags));
+}
+
 /// shld: Double Precision Shift Left
 fn shld(x: Arg<u32>, y: u32, count: u8, flags: &mut Flags) {
     let count = count % 32;

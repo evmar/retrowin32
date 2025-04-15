@@ -174,6 +174,7 @@ const OP_TAB: [Option<OpImp>; 2553] = {
     tab[iced_x86::Code::Shl_rm16_1 as usize] = Some(shl_rm16_imm8);
     tab[iced_x86::Code::Shl_rm8_CL as usize] = Some(shl_rm8_cl);
     tab[iced_x86::Code::Shl_rm8_imm8 as usize] = Some(shl_rm8_imm8);
+    tab[iced_x86::Code::Shl_rm8_1 as usize] = Some(shl_rm8_1);
 
     tab[iced_x86::Code::Shld_rm32_r32_imm8 as usize] = Some(shld_rm32_r32_imm8);
     tab[iced_x86::Code::Shld_rm32_r32_CL as usize] = Some(shld_rm32_r32_cl);
