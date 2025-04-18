@@ -13,6 +13,25 @@ mod wrappers {
     };
     use ::memory::Extensions;
     use winapi::ucrtbase::*;
+    pub unsafe fn _EH_prolog(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::_EH_prolog_pos,
+                "ucrtbase/memory",
+                "_EH_prolog",
+                &[],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::_EH_prolog(machine);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn _XcptFilter(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let xcptnum = <u32>::from_stack(mem, stack_args + 0u32);
@@ -29,6 +48,34 @@ mod wrappers {
             None
         };
         let result = winapi::ucrtbase::_XcptFilter(machine, xcptnum, pxcptinfoptrs);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
+    pub unsafe fn __CxxFrameHandler(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let pExcept = <u32>::from_stack(mem, stack_args + 0u32);
+        let pRN = <u32>::from_stack(mem, stack_args + 4u32);
+        let pContext = <u32>::from_stack(mem, stack_args + 8u32);
+        let pDC = <u32>::from_stack(mem, stack_args + 12u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::__CxxFrameHandler_pos,
+                "ucrtbase/memory",
+                "__CxxFrameHandler",
+                &[
+                    ("pExcept", &pExcept),
+                    ("pRN", &pRN),
+                    ("pContext", &pContext),
+                    ("pDC", &pDC),
+                ],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::__CxxFrameHandler(machine, pExcept, pRN, pContext, pDC);
         if let Some(mut __trace_record) = __trace_record {
             __trace_record.exit(&result);
         }
@@ -907,6 +954,26 @@ mod wrappers {
         }
         result.into()
     }
+    pub unsafe fn operator_delete(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        let mem = machine.mem().detach();
+        let size = <u32>::from_stack(mem, stack_args + 0u32);
+        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+            crate::winapi::trace::Record::new(
+                winapi::ucrtbase::operator_delete_pos,
+                "ucrtbase/memory",
+                "operator_delete",
+                &[("size", &size)],
+            )
+            .enter()
+        } else {
+            None
+        };
+        let result = winapi::ucrtbase::operator_delete(machine, size);
+        if let Some(mut __trace_record) = __trace_record {
+            __trace_record.exit(&result);
+        }
+        result.into()
+    }
     pub unsafe fn operator_new(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         let mem = machine.mem().detach();
         let size = <u32>::from_stack(mem, stack_args + 0u32);
@@ -1152,10 +1219,18 @@ mod wrappers {
         result.into()
     }
 }
-const SHIMS: [Shim; 54usize] = [
+const SHIMS: [Shim; 57usize] = [
+    Shim {
+        name: "_EH_prolog",
+        func: Handler::Sync(wrappers::_EH_prolog),
+    },
     Shim {
         name: "_XcptFilter",
         func: Handler::Sync(wrappers::_XcptFilter),
+    },
+    Shim {
+        name: "__CxxFrameHandler",
+        func: Handler::Sync(wrappers::__CxxFrameHandler),
     },
     Shim {
         name: "__dllonexit",
@@ -1320,6 +1395,10 @@ const SHIMS: [Shim; 54usize] = [
     Shim {
         name: "memset",
         func: Handler::Sync(wrappers::memset),
+    },
+    Shim {
+        name: "operator_delete",
+        func: Handler::Sync(wrappers::operator_delete),
     },
     Shim {
         name: "operator_new",
