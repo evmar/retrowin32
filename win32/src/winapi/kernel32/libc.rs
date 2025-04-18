@@ -35,9 +35,9 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
     let lpString2 = lpString2.unwrap();
     // lpString1 is a buffer of unspecified size!
     let copy_len = lpString2.len();
-    let dst = machine.mem().sub32_mut(lpString1, copy_len as u32);
+    let dst = machine.mem().sub32_mut(lpString1, copy_len as u32 + 2);
     let src = lpString2.as_bytes();
-    dst.copy_from_slice(src);
+    dst[..copy_len].copy_from_slice(src);
     dst[copy_len..copy_len + 2].copy_from_slice(&[0, 0]);
     lpString1
 }
