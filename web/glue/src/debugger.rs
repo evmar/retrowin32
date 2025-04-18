@@ -104,7 +104,7 @@ impl CPU {
 
     pub fn st(&self) -> Box<[f64]> {
         let cpu = unsafe { &mut *self.cpu };
-        cpu.fpu.st.iter().map(|&x| x as f64).collect()
+        cpu.fpu.st[cpu.fpu.st_top..].iter().copied().collect()
     }
 }
 
