@@ -15,7 +15,10 @@ use crate::{
     },
 };
 use memory::{Extensions, ExtensionsMut};
-use std::{collections::HashMap, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    path::Path,
+};
 use typed_path::WindowsPath;
 
 /// Create a memory mapping, optionally copying some data to it.
@@ -161,7 +164,7 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
             continue;
         };
         let res = resolve_dll(machine, dll_name);
-        let module = {
+        let mut module = {
             match load_dll(machine, &res).await {
                 Ok(hmodule) => machine.state.kernel32.modules.get_mut(&hmodule),
                 Err(err) => {
@@ -170,11 +173,14 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
                 }
             }
         };
+
+        // We traverse the IAT even if the module failed to load, because we still label the
+        // IAT entries and set them to zero in that case.
         // Use DLL name from module if available.
-        let dll_name = module
-            .as_ref()
-            .map(|m| m.name.as_str())
-            .unwrap_or(res.name());
+        let (dll_name, mut exports) = match &mut module {
+            Some(module) => (module.name.as_str(), Some(&mut module.exports)),
+            None => (res.name(), None),
+        };
         for (iat_addr, entry) in imports.iat_iter(image) {
             let iat_addr = iat_addr + base;
             let sym = entry.as_import_symbol(image);
@@ -184,9 +190,9 @@ async fn load_imports(machine: &mut Machine, base: u32, imports_addr: &pe::IMAGE
                 .labels
                 .insert(iat_addr, format!("{}@IAT", name));
 
-            let resolved_addr = if let Some(module) = module.as_deref() {
-                if let Some(sym) = module.exports.resolve(&sym) {
-                    Some(sym)
+            let resolved_addr = if let Some(exports) = &mut exports {
+                if let Some(addr) = exports.resolve(&sym) {
+                    Some(addr)
                 } else {
                     log::warn!("missing symbol {name}");
                     None
@@ -284,6 +290,7 @@ fn load_one_module(
         name: module_name,
         image_base: base,
         exports,
+        dynamic_imports: Default::default(),
         resources,
         entry_point,
     })
@@ -391,6 +398,10 @@ pub struct Module {
 
     pub exports: Exports,
 
+    /// Addresses of functions that were imported at runtime (vs load time).
+    /// This is used for reconstructing the IAT when dumping a packed exe.
+    pub dynamic_imports: HashSet<u32>,
+
     pub entry_point: Option<u32>,
 }
 
@@ -405,13 +416,21 @@ pub struct Exports {
 }
 
 impl Exports {
-    pub fn resolve(&self, sym: &pe::ImportSymbol) -> Option<u32> {
+    pub fn resolve(&mut self, sym: &pe::ImportSymbol) -> Option<u32> {
         match *sym {
             pe::ImportSymbol::Name(name) => self.names.get(name).copied(),
             pe::ImportSymbol::Ordinal(ord) => {
                 self.fns.get((ord - self.ordinal_base) as usize).copied()
             }
         }
+    }
+
+    /// Given a resolved address, find the name of the symbol that was used to resolve it.
+    pub fn name_from_addr(&self, addr: u32) -> Option<&[u8]> {
+        self.names
+            .iter()
+            .find(|&(_, &v)| v == addr)
+            .map(|(k, _)| k.as_slice())
     }
 }
 

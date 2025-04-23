@@ -114,6 +114,14 @@ pub struct IMAGE_DATA_DIRECTORY {
 }
 unsafe impl memory::Pod for IMAGE_DATA_DIRECTORY {}
 impl IMAGE_DATA_DIRECTORY {
+    pub fn is_empty(&self) -> bool {
+        self.Size == 0
+    }
+
+    pub fn as_range(&self) -> std::ops::Range<u32> {
+        self.VirtualAddress..self.VirtualAddress + self.Size
+    }
+
     pub fn as_slice<'m>(&self, image: &'m [u8]) -> Option<&'m [u8]> {
         if self.VirtualAddress + self.Size > image.len() as u32 {
             return None;

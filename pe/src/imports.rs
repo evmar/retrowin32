@@ -16,17 +16,26 @@ use memory::Extensions;
 // On load, each IAT entry points to the function name (as parsed below).
 // The loader overwrites the IAT with the addresses to the loaded DLL.
 
+// The IMAGE_DIRECTORY_ENTRY::IMPORT entry in the PE header points to the
+// Import Directory Table, which contains IMAGE_IMPORT_DESCRIPTOR entries.
+//
+// Each IMAGE_IMPORT_DESCRIPTOR entry corresponds to an imported module,
+// e.g. kernel32.dll.  It contains the address of a Import Lookup Table (ILT)
+// and a Import Address Table (IAT).
+// The ILT contains the names of the imported functions, and the IAT
+// contains the addresses of the imported functions.
+
 /// Import Directory Table (section 6.4.1)
 #[derive(Debug, Default)]
 #[repr(C)]
 pub struct IMAGE_IMPORT_DESCRIPTOR {
     /// ILT
-    OriginalFirstThunk: u32,
-    TimeDateStamp: u32,
-    ForwarderChain: u32,
-    Name: u32,
+    pub OriginalFirstThunk: u32,
+    pub TimeDateStamp: u32,
+    pub ForwarderChain: u32,
+    pub Name: u32,
     /// IAT
-    FirstThunk: u32,
+    pub FirstThunk: u32,
 }
 unsafe impl memory::Pod for IMAGE_IMPORT_DESCRIPTOR {}
 

@@ -74,6 +74,7 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
 #[allow(unused)]
 pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip_offset: usize) {
     use iced_x86::Register::*;
+    println!("cpu state: {:?}", cpu.state);
     println!(
         "\
         eax {eax:08x}    esi {esi:08x}     eip {eip:08x}\n\

@@ -1,5 +1,6 @@
 mod host;
 mod logging;
+mod unpack;
 
 #[cfg(not(feature = "sdl"))]
 mod headless;
@@ -41,6 +42,11 @@ struct Args {
     #[argh(option)]
     #[cfg(feature = "x86-emu")]
     exit_after: Option<usize>,
+
+    /// dump exe file at state when jumping from this instruction
+    #[argh(option, from_str_fn(parse_hex))]
+    #[cfg(feature = "x86-emu")]
+    unpack_at: Option<u32>,
 
     /// enable debug logging
     #[argh(switch)]
@@ -106,6 +112,10 @@ fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, St
         trace_points.push_back(addr);
     }
     Ok(trace_points)
+}
+
+fn parse_hex(param: &str) -> Result<u32, String> {
+    u32::from_str_radix(param, 16).map_err(|_| format!("bad hex {param:?}"))
 }
 
 fn main() -> anyhow::Result<ExitCode> {
@@ -199,6 +209,9 @@ fn main() -> anyhow::Result<ExitCode> {
 
                 print_trace(&machine);
             }
+        } else if let Some(unpack_at) = args.unpack_at {
+            unpack::unpack(&mut machine, unpack_at)?;
+            return Ok(ExitCode::from(0));
         } else {
             while machine.run() {
                 if let Some(exit_after) = args.exit_after {

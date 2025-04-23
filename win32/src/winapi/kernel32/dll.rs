@@ -178,10 +178,9 @@ pub fn get_symbol(machine: &mut Machine, dll: &str, name: &str) -> u32 {
         .state
         .kernel32
         .modules
-        .iter()
-        .find(|(_, m)| m.name == dll_name)
-        .unwrap()
-        .1;
+        .values_mut()
+        .find(|m| m.name == dll_name)
+        .unwrap();
     module
         .exports
         .resolve(&ImportSymbol::Name(name.as_bytes()))
@@ -203,6 +202,7 @@ pub fn GetProcAddress(
         log::warn!("GetProcAddress({:?}, {:?}) failed", module.name, lpProcName);
         return 0; // fail
     };
+    module.dynamic_imports.insert(addr);
     addr
 }
 

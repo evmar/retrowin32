@@ -80,6 +80,12 @@ impl KernelObjects {
     }
 }
 
+pub struct ImportedSymbol {
+    pub module: String,
+    pub name: Box<[u8]>,
+    pub addr: u32,
+}
+
 pub struct State {
     /// Memory for kernel32 data structures.
     pub arena: Arena,
@@ -118,6 +124,9 @@ pub struct State {
     pub env: Vec<(String, String)>,
 
     pub cmdline: CommandLine,
+
+    /// If true, debug break when entering the exe entry point.
+    pub break_on_startup: bool,
 }
 
 impl State {
@@ -167,6 +176,7 @@ impl State {
             cmdline: CommandLine::default(),
             resources: Default::default(),
             resource_handles: Default::default(),
+            break_on_startup: false,
         }
     }
 
@@ -338,6 +348,9 @@ unsafe impl ::memory::Pod for PEB {}
 /// It probably has some better name within ntdll.dll.
 #[win32_derive::dllexport]
 pub async fn retrowin32_main(machine: &mut Machine, entry_point: u32) {
+    if machine.state.kernel32.break_on_startup {
+        machine.emu.x86.cpu_mut().state = x86::CPUState::DebugBreak;
+    }
     machine.call_x86(entry_point, vec![]).await;
     // TODO: if the entry point returns, the Windows behavior is to wait for any
     // spawned threads before exiting.

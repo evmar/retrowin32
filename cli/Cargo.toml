@@ -5,6 +5,8 @@ edition = "2024"
 
 [dependencies]
 log = { workspace = true }
+memory = { workspace = true }
+pe = { workspace = true }
 win32 = { workspace = true }
 
 anyhow = "1.0"

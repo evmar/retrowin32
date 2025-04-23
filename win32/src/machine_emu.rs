@@ -248,6 +248,10 @@ impl MachineX<Emulator> {
 
     pub fn dump_stack(&self) {
         let esp = self.emu.x86.cpu().regs.get32(x86::Register::ESP);
+        if esp == 0 {
+            println!("  esp == 0");
+            return;
+        }
         for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
             let extra = if addr == esp { " <- esp" } else { "" };
             println!(
@@ -268,6 +272,7 @@ impl MachineX<Emulator> {
 
     /// Patch in an int3 over the instruction at that addr, backing up the current one.
     pub fn add_breakpoint(&mut self, addr: u32) -> bool {
+        assert!(addr != 0);
         match self.emu.breakpoints.entry(addr) {
             std::collections::hash_map::Entry::Occupied(_) => false,
             std::collections::hash_map::Entry::Vacant(entry) => {

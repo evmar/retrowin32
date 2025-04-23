@@ -18,6 +18,12 @@ pub unsafe trait Pod: 'static + Sized {
             std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
         }
     }
+
+    fn as_bytes(s: &Self) -> &[u8] {
+        unsafe {
+            std::slice::from_raw_parts(s as *const Self as *const u8, std::mem::size_of::<Self>())
+        }
+    }
 }
 
 // See discussion of endianness in doc/design_notes.md.

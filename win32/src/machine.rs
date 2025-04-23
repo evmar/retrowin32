@@ -43,7 +43,7 @@ impl<Emu> MachineX<Emu> {
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads
 /// can be in different states.
-#[derive(Default)]
+#[derive(PartialEq, Eq, Default)]
 pub enum Status {
     /// Running normally.
     #[default]

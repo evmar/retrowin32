@@ -353,6 +353,8 @@ dependencies = [
  "chrono",
  "libc",
  "log",
+ "memory",
+ "pe",
  "sdl2",
  "typed-path",
  "win32",

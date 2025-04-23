@@ -1,7 +1,7 @@
 mod exports;
 mod file;
 mod imports;
-mod parse;
+pub mod parse;
 mod relocations;
 mod resources;
 
