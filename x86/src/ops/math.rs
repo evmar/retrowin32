@@ -3,8 +3,8 @@ use crate::{registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
 use memory::Mem;
 use num_traits::{
-    ops::overflowing::{OverflowingMul, OverflowingSub},
     Signed,
+    ops::overflowing::{OverflowingMul, OverflowingSub},
 };
 
 /// This trait is implemented for u32/u16/u8 and lets us write operations generically

@@ -1,4 +1,4 @@
-use crate::{registers::Flags, x86::CPU, CPUState};
+use crate::{CPUState, registers::Flags, x86::CPU};
 use iced_x86::{Instruction, Register};
 use memory::{Extensions, ExtensionsMut, Mem};
 

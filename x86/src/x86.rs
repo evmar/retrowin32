@@ -1,11 +1,11 @@
 //! The central x86 machine object.
 
 use crate::{
+    Register,
     fpu::FPU,
     icache::{BasicBlock, InstrCache},
     ops,
     registers::{Flags, Registers},
-    Register,
 };
 use memory::Mem;
 use std::{

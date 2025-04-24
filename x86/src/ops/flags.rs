@@ -1,5 +1,5 @@
 use super::helpers::*;
-use crate::{registers::Flags, CPU};
+use crate::{CPU, registers::Flags};
 use iced_x86::{Instruction, Register};
 use memory::Mem;
 

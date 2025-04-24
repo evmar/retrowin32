@@ -11,4 +11,4 @@ mod table;
 mod test;
 
 pub use helpers::{pop, push, set_edx_eax};
-pub use table::{decode, Op};
+pub use table::{Op, decode};

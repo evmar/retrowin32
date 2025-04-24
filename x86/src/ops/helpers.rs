@@ -1,6 +1,6 @@
 //! Functions for common behaviors across all operations.
 
-use crate::{x86::CPU, Register};
+use crate::{Register, x86::CPU};
 use memory::{Extensions, ExtensionsMut, Mem};
 
 // TODO: maybe there are no 64-bit memory reads needed (?)
