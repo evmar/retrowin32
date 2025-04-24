@@ -55,7 +55,8 @@ fn load_image(
         Mapping {
             addr,
             size: first_page_size as u32,
-            desc: module_name.into(),
+            module: Some(module_name.into()),
+            desc: format!("file header"),
             flags: pe::IMAGE_SCN::MEM_READ,
         },
         Some(&buf[..first_page_size]),
@@ -101,11 +102,8 @@ fn load_section(
     let mapping = Mapping {
         addr: dst,
         size: mapping_size,
-        desc: format!(
-            "{module_name} {:?} ({:?})",
-            sec.name().unwrap_or("[invalid]"),
-            flags
-        ),
+        module: Some(module_name.into()),
+        desc: format!("{:?} ({:?})", sec.name().unwrap_or("[invalid]"), flags),
         flags,
     };
 

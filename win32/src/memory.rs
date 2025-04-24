@@ -25,6 +25,7 @@ pub fn round_up_to_page_granularity(size: u32) -> u32 {
 pub struct Mapping {
     pub addr: u32,
     pub size: u32,
+    pub module: Option<String>,
     pub desc: String,
     pub flags: pe::IMAGE_SCN,
 }
@@ -44,6 +45,7 @@ impl Mappings {
         Mappings(vec![Mapping {
             addr: 0,
             size: 0x1000,
+            module: None,
             desc: "avoid null pointers".into(),
             flags: pe::IMAGE_SCN::empty(),
         }])
@@ -99,6 +101,7 @@ impl Mappings {
         self.add(Mapping {
             addr,
             size,
+            module: None,
             desc,
             flags: pe::IMAGE_SCN::empty(),
         })

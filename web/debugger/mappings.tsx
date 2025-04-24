@@ -27,6 +27,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
           <td style={{ textAlign: 'right' }}>
             <code>{hex(mapping.size)}</code>
           </td>
+          <td>{mapping.module}</td>
           <td>{mapping.desc}</td>
         </tr>
       );
@@ -38,6 +39,7 @@ export class Mappings extends preact.Component<Mappings.Props> {
             <tr>
               <th>addr</th>
               <th>size</th>
+              <th>module</th>
               <th>desc</th>
             </tr>
           </thead>
