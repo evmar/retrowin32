@@ -10,7 +10,7 @@ use exe::println;
 use miniz_oxide::{deflate::compress_to_vec, inflate::decompress_to_vec};
 use windows_sys::Win32::{
     Foundation::{CloseHandle, GENERIC_READ},
-    Storage::FileSystem::{CreateFileA, ReadFile, FILE_ATTRIBUTE_NORMAL, OPEN_EXISTING},
+    Storage::FileSystem::{CreateFileA, FILE_ATTRIBUTE_NORMAL, OPEN_EXISTING, ReadFile},
     System::Environment::GetCommandLineA,
 };
 
@@ -67,9 +67,9 @@ fn read_file(path: &str) -> Box<[u8]> {
     contents.into_boxed_slice()
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn mainCRTStartup() {
-    let cmdline = CStr::from_ptr(GetCommandLineA() as *const _)
+#[unsafe(no_mangle)]
+pub extern "C" fn mainCRTStartup() {
+    let cmdline = unsafe { CStr::from_ptr(GetCommandLineA() as *const _) }
         .to_str()
         .unwrap();
     let args = cmdline.split(' ').collect::<Vec<_>>();

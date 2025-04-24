@@ -7,7 +7,7 @@
 
 use exe::println;
 
-#[no_mangle]
-pub unsafe extern "C" fn mainCRTStartup() {
+#[unsafe(no_mangle)]
+pub extern "C" fn mainCRTStartup() {
     println!("hello, world");
 }

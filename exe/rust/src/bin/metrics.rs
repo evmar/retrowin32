@@ -7,11 +7,11 @@
 use exe::{print::print, println};
 use windows_sys::Win32::UI::WindowsAndMessaging::GetSystemMetrics;
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn mainCRTStartup() {
     print(b"GetSystemMetrics():\r\n");
     for i in 0..100 {
-        let metric = GetSystemMetrics(i);
+        let metric = unsafe { GetSystemMetrics(i) };
         println!("{} => {}", i, metric);
     }
 }

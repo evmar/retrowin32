@@ -10,10 +10,12 @@ unsafe impl Sync for Alloc {}
 unsafe impl core::alloc::GlobalAlloc for Alloc {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
         assert!(layout.align() <= 8); // GlobalAlloc only supports 8-byte alignment
-        GlobalAlloc(0, layout.size()) as *mut u8
+        unsafe { GlobalAlloc(0, layout.size()) as *mut u8 }
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, _layout: core::alloc::Layout) {
-        GlobalFree(ptr as *mut _);
+        unsafe {
+            GlobalFree(ptr as *mut _);
+        }
     }
 }

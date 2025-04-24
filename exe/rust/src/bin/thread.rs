@@ -34,51 +34,55 @@ fn run_thread(params: &ThreadParams) {
     );
 }
 
-unsafe extern "system" fn thread_proc(param: *mut core::ffi::c_void) -> u32 {
-    let params = &*(param as *const ThreadParams);
-    TlsSetValue(params.tls_key, 2 as *const _);
-    run_thread(params);
-    0
+extern "system" fn thread_proc(param: *mut core::ffi::c_void) -> u32 {
+    unsafe {
+        let params = &*(param as *const ThreadParams);
+        TlsSetValue(params.tls_key, 2 as *const _);
+        run_thread(params);
+        0
+    }
 }
 
-unsafe extern "system" fn short_thread_proc(_param: *mut core::ffi::c_void) -> u32 {
-    let thread_id = GetCurrentThreadId();
+extern "system" fn short_thread_proc(_param: *mut core::ffi::c_void) -> u32 {
+    let thread_id = unsafe { GetCurrentThreadId() };
     println!("thread_id={thread_id} short_thread_proc exiting\n");
     0
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn mainCRTStartup() {
-    // Create a thread that starts and exits quickly, to exercise thread teardown.
-    CreateThread(
-        core::ptr::null(),
-        0x1000,
-        Some(short_thread_proc),
-        core::ptr::null(),
-        0,
-        core::ptr::null_mut(),
-    );
+#[unsafe(no_mangle)]
+pub extern "C" fn mainCRTStartup() {
+    unsafe {
+        // Create a thread that starts and exits quickly, to exercise thread teardown.
+        CreateThread(
+            core::ptr::null(),
+            0x1000,
+            Some(short_thread_proc),
+            core::ptr::null(),
+            0,
+            core::ptr::null_mut(),
+        );
 
-    let tls_key = TlsAlloc();
-    TlsSetValue(tls_key, 1 as *const _);
-    let thread_params = ThreadParams {
-        name: "i_am_thread",
-        steps: 5,
-        tls_key,
-    };
+        let tls_key = TlsAlloc();
+        TlsSetValue(tls_key, 1 as *const _);
+        let thread_params = ThreadParams {
+            name: "i_am_thread",
+            steps: 5,
+            tls_key,
+        };
 
-    CreateThread(
-        core::ptr::null(),
-        0x1000,
-        Some(thread_proc),
-        &thread_params as *const _ as *const _,
-        0,
-        core::ptr::null_mut(),
-    );
+        CreateThread(
+            core::ptr::null(),
+            0x1000,
+            Some(thread_proc),
+            &thread_params as *const _ as *const _,
+            0,
+            core::ptr::null_mut(),
+        );
 
-    run_thread(&ThreadParams {
-        name: "main",
-        steps: 10,
-        tls_key,
-    });
+        run_thread(&ThreadParams {
+            name: "main",
+            steps: 10,
+            tls_key,
+        });
+    }
 }

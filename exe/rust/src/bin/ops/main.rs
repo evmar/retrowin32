@@ -88,8 +88,8 @@ fn tzcnt_test() {
     }
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn mainCRTStartup() {
+#[unsafe(no_mangle)]
+pub extern "C" fn mainCRTStartup() {
     flags_test();
     fpu::test();
     bs_test();

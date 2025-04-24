@@ -2,11 +2,13 @@
 
 #[cfg(not(test))]
 #[panic_handler]
-unsafe fn handle_panic(info: &core::panic::PanicInfo) -> ! {
+fn handle_panic(info: &core::panic::PanicInfo) -> ! {
     use crate::println;
     println!("{}", info);
-    windows_sys::Win32::System::Threading::ExitProcess(1);
+    unsafe {
+        windows_sys::Win32::System::Threading::ExitProcess(1);
+    }
 }
 
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn __CxxFrameHandler3() {}

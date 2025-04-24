@@ -56,7 +56,7 @@ struct State {
 }
 
 impl State {
-    unsafe fn new(hdc: HDC) -> Self {
+    fn new(hdc: HDC) -> Self {
         let mono = Self::create_mono();
         let (dib, dib_pixels) = Self::create_dib(hdc);
         Self {
@@ -66,8 +66,7 @@ impl State {
         }
     }
 
-    unsafe fn create_dib(hdc: HDC) -> (HBITMAP, &'static mut [u32; 16 * 16]) {
-        let mut bits: *mut [u32; 16 * 16] = core::ptr::null_mut();
+    fn create_dib(hdc: HDC) -> (HBITMAP, &'static mut [u32; 16 * 16]) {
         let info = BITMAPINFOHEADER {
             biSize: core::mem::size_of::<BITMAPINFOHEADER>() as u32,
             biWidth: 16,
@@ -81,28 +80,31 @@ impl State {
             biClrUsed: 0,
             biClrImportant: 0,
         };
-        let bitmap = CreateDIBSection(
-            hdc,
-            &info as *const _ as *const _,
-            DIB_RGB_COLORS,
-            &mut bits as *mut *mut _ as *mut *mut _,
-            0,
-            0,
-        );
-        let pixels = &mut *bits;
-        pixels.copy_from_slice(&arrow_rgba());
-        (bitmap, pixels)
+        unsafe {
+            let mut bits: *mut [u32; 16 * 16] = core::ptr::null_mut();
+            let bitmap = CreateDIBSection(
+                hdc,
+                &info as *const _ as *const _,
+                DIB_RGB_COLORS,
+                &mut bits as *mut *mut _ as *mut *mut _,
+                0,
+                0,
+            );
+            let pixels = &mut *bits;
+            pixels.copy_from_slice(&arrow_rgba());
+            (bitmap, pixels)
+        }
     }
 
-    unsafe fn create_mono() -> HBITMAP {
-        CreateBitmap(16, 16, 1, 1, ARROW.as_ptr() as *const _)
+    fn create_mono() -> HBITMAP {
+        unsafe { CreateBitmap(16, 16, 1, 1, ARROW.as_ptr() as *const _) }
     }
 }
 
 static mut STATE: Option<State> = None;
 
 #[allow(non_snake_case)]
-unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
+fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
     struct Cfg {
         startScan: u32,
         invertY: bool,
@@ -141,26 +143,28 @@ unsafe fn paint_SetDIBitsToDevice(hdc: HDC, y: i32, rgba: &[u32]) {
             biClrImportant: 0,
         };
         let x = 32 + (i as i32 * 32);
-        SetDIBitsToDevice(
-            hdc,
-            x,
-            y,
-            16,
-            16,
-            0,
-            // TODO: we don't support ySrc != startScan yet
-            cfg.startScan as i32,
-            cfg.startScan,
-            16,
-            rgba.as_ptr() as *const _,
-            &info as *const _ as *const BITMAPINFO,
-            DIB_RGB_COLORS,
-        );
+        unsafe {
+            SetDIBitsToDevice(
+                hdc,
+                x,
+                y,
+                16,
+                16,
+                0,
+                // TODO: we don't support ySrc != startScan yet
+                cfg.startScan as i32,
+                cfg.startScan,
+                16,
+                rgba.as_ptr() as *const _,
+                &info as *const _ as *const BITMAPINFO,
+                DIB_RGB_COLORS,
+            );
+        }
     }
 }
 
 #[allow(non_snake_case)]
-unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
+fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
     let info = BITMAPINFOHEADER {
         biSize: core::mem::size_of::<BITMAPINFOHEADER>() as u32,
         biWidth: 16,
@@ -175,123 +179,133 @@ unsafe fn paint_StretchDIBits(hdc: HDC, y: i32, rgba: &[u32]) {
         biClrImportant: 0,
     };
 
-    StretchDIBits(
-        hdc,
-        32,
-        y,
-        32,
-        32,
-        0,
-        0,
-        16,
-        16,
-        rgba.as_ptr() as *const _,
-        &info as *const _ as *const BITMAPINFO,
-        DIB_RGB_COLORS,
-        SRCCOPY,
-    );
+    unsafe {
+        StretchDIBits(
+            hdc,
+            32,
+            y,
+            32,
+            32,
+            0,
+            0,
+            16,
+            16,
+            rgba.as_ptr() as *const _,
+            &info as *const _ as *const BITMAPINFO,
+            DIB_RGB_COLORS,
+            SRCCOPY,
+        );
+    }
 }
 
 #[allow(static_mut_refs)]
-unsafe fn paint(hdc: HDC) {
-    let state = match STATE {
-        Some(ref state) => state,
-        None => {
-            STATE = Some(State::new(hdc));
-            STATE.as_ref().unwrap()
-        }
-    };
-
-    let hdc_bitmap = CreateCompatibleDC(hdc);
-
-    let mut row = 1;
-    SelectObject(hdc_bitmap, state.mono);
-    BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
-    row += 1;
-
-    SelectObject(hdc_bitmap, state.dib);
-    BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
-    row += 1;
-
-    let rgba = arrow_rgba();
-    paint_SetDIBitsToDevice(hdc, row * 32, &rgba);
-    row += 1;
-
-    paint_StretchDIBits(hdc, row * 32, &rgba);
-
-    DeleteDC(hdc_bitmap);
-}
-
-#[allow(static_mut_refs)]
-unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: isize) -> LRESULT {
-    match msg {
-        WM_DESTROY => {
-            PostQuitMessage(0);
-            0
-        }
-        WM_LBUTTONDOWN => {
-            let s = STATE.as_mut().unwrap();
-            for i in 0..32 * 2 {
-                s.dib_pixels[i] = 0xff00_00ff;
+fn paint(hdc: HDC) {
+    unsafe {
+        let state = match STATE {
+            Some(ref state) => state,
+            None => {
+                STATE = Some(State::new(hdc));
+                STATE.as_ref().unwrap()
             }
-            InvalidateRect(hwnd, core::ptr::null(), 0);
-            0
-        }
-        WM_PAINT => {
-            let mut ps: PAINTSTRUCT = core::mem::zeroed();
-            let hdc = BeginPaint(hwnd, &mut ps);
-            paint(hdc);
-            EndPaint(hwnd, &ps);
-            0
-        }
-        _ => DefWindowProcA(hwnd, msg, wparam, lparam),
+        };
+
+        let hdc_bitmap = CreateCompatibleDC(hdc);
+
+        let mut row = 1;
+        SelectObject(hdc_bitmap, state.mono);
+        BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
+        row += 1;
+
+        SelectObject(hdc_bitmap, state.dib);
+        BitBlt(hdc, 32, row * 32, 16, 16, hdc_bitmap, 0, 0, SRCCOPY);
+        row += 1;
+
+        let rgba = arrow_rgba();
+        paint_SetDIBitsToDevice(hdc, row * 32, &rgba);
+        row += 1;
+
+        paint_StretchDIBits(hdc, row * 32, &rgba);
+
+        DeleteDC(hdc_bitmap);
     }
 }
 
-unsafe fn create_window() -> HWND {
-    let class_name = b"dibs\0";
-    let wc = WNDCLASSA {
-        style: 0,
-        lpfnWndProc: Some(wndproc),
-        cbClsExtra: 0,
-        cbWndExtra: 0,
-        hInstance: 0,
-        hIcon: 0,
-        hCursor: 0,
-        hbrBackground: (COLOR_WINDOW + 1) as HBRUSH,
-        lpszMenuName: core::ptr::null(),
-        lpszClassName: class_name.as_ptr(),
-    };
-    RegisterClassA(&wc);
-
-    let hwnd = CreateWindowExA(
-        0,
-        class_name.as_ptr(),
-        b"title\0".as_ptr(),
-        WS_OVERLAPPED,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        400,
-        300,
-        0,
-        0,
-        0,
-        core::ptr::null(),
-    );
-    if hwnd == 0 {
-        panic!("create failed");
+#[allow(static_mut_refs)]
+extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: usize, lparam: isize) -> LRESULT {
+    unsafe {
+        match msg {
+            WM_DESTROY => {
+                PostQuitMessage(0);
+                0
+            }
+            WM_LBUTTONDOWN => {
+                let s = STATE.as_mut().unwrap();
+                for i in 0..32 * 2 {
+                    s.dib_pixels[i] = 0xff00_00ff;
+                }
+                InvalidateRect(hwnd, core::ptr::null(), 0);
+                0
+            }
+            WM_PAINT => {
+                let mut ps: PAINTSTRUCT = core::mem::zeroed();
+                let hdc = BeginPaint(hwnd, &mut ps);
+                paint(hdc);
+                EndPaint(hwnd, &ps);
+                0
+            }
+            _ => DefWindowProcA(hwnd, msg, wparam, lparam),
+        }
     }
-    ShowWindow(hwnd, SW_NORMAL);
-
-    hwnd
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn mainCRTStartup() {
-    create_window();
-    let mut msg: MSG = core::mem::zeroed();
-    while GetMessageA(&mut msg, 0, 0, 0) > 0 {
-        TranslateMessage(&msg);
-        DispatchMessageA(&msg);
+fn create_window() -> HWND {
+    unsafe {
+        let class_name = b"dibs\0";
+        let wc = WNDCLASSA {
+            style: 0,
+            lpfnWndProc: Some(wndproc),
+            cbClsExtra: 0,
+            cbWndExtra: 0,
+            hInstance: 0,
+            hIcon: 0,
+            hCursor: 0,
+            hbrBackground: (COLOR_WINDOW + 1) as HBRUSH,
+            lpszMenuName: core::ptr::null(),
+            lpszClassName: class_name.as_ptr(),
+        };
+        RegisterClassA(&wc);
+
+        let hwnd = CreateWindowExA(
+            0,
+            class_name.as_ptr(),
+            b"title\0".as_ptr(),
+            WS_OVERLAPPED,
+            CW_USEDEFAULT,
+            CW_USEDEFAULT,
+            400,
+            300,
+            0,
+            0,
+            0,
+            core::ptr::null(),
+        );
+        if hwnd == 0 {
+            panic!("create failed");
+        }
+        ShowWindow(hwnd, SW_NORMAL);
+
+        hwnd
+    }
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn mainCRTStartup() {
+    unsafe {
+        create_window();
+        let mut msg: MSG = core::mem::zeroed();
+        while GetMessageA(&mut msg, 0, 0, 0) > 0 {
+            TranslateMessage(&msg);
+            DispatchMessageA(&msg);
+        }
     }
 }
