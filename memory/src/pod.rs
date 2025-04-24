@@ -14,7 +14,9 @@ pub unsafe trait Pod: 'static + Sized {
     /// This is for cases where there's a variable-length C struct, with a header
     /// and some runtime-determined quantity of bytes following.
     unsafe fn clear_memory(&mut self, count: u32) {
-        std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
+        unsafe {
+            std::ptr::write_bytes(self as *mut Self as *mut u8, 0, count as usize);
+        }
     }
 }
 

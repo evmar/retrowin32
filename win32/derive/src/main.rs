@@ -2,7 +2,7 @@
 //! Generates builtin.rs and win32/dll/*.
 
 mod dll;
-mod gen;
+mod generate;
 mod parse;
 
 use std::path::Path;
@@ -105,7 +105,7 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
         write_if_changed(&dll_dir.join(name), &content)
     })?;
 
-    let builtins_module = gen::shims_module(&module_name, dllexports);
+    let builtins_module = generate::shims_module(&module_name, dllexports);
     let text = rustfmt(&builtins_module.to_string())?;
     write_if_changed(&path.join("builtin.rs"), text.as_bytes())?;
 
@@ -128,10 +128,8 @@ fn main() -> anyhow::Result<()> {
     let args: Args = argh::from_env();
 
     for path in &args.inputs {
-        match process_builtin_dll(path.as_ref(), args.dll_dir.as_ref()) {
-            Ok(gen) => gen,
-            Err(err) => anyhow::bail!("processing module: {}", err),
-        };
+        process_builtin_dll(path.as_ref(), args.dll_dir.as_ref())
+            .map_err(|err| anyhow::anyhow!("processing module: {}", err))?;
     }
 
     Ok(())
