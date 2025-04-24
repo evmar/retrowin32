@@ -10,7 +10,7 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use memory::{str16::Str16, Extensions};
+use memory::{Extensions, str16::Str16};
 use std::{mem::size_of, ops::Range};
 
 #[repr(C)]

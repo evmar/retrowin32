@@ -55,14 +55,14 @@ impl IMAGE_IMPORT_DESCRIPTOR {
     /// Return an iterator over (IAT entry address, ILT entry) pairs.
     /// IAT addresses are relative to the image base.
     /// Caller should update IAT address with the address of the function referred to in the entry.
-    pub fn iat_iter<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = (u32, ILTEntry)> + 'm {
+    pub fn iat_iter<'m>(&self, image: &'m [u8]) -> impl Iterator<Item = (u32, ILTEntry)> {
         let iat_addr = self.FirstThunk;
         let iat_iter = (0..).map(move |i| iat_addr + (i * 4));
         iat_iter.zip(self.ilt(image))
     }
 }
 
-pub fn read_imports<'m>(buf: &'m [u8]) -> impl Iterator<Item = IMAGE_IMPORT_DESCRIPTOR> + 'm {
+pub fn read_imports<'m>(buf: &'m [u8]) -> impl Iterator<Item = IMAGE_IMPORT_DESCRIPTOR> {
     buf.into_iter_pod::<IMAGE_IMPORT_DESCRIPTOR>()
         .take_while(|desc| desc.Name != 0)
 }
