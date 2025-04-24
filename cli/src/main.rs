@@ -11,7 +11,7 @@ mod resv32;
 
 use anyhow::anyhow;
 use std::{borrow::Cow, process::ExitCode};
-use win32::{x86, FileSystem};
+use win32::{FileSystem, x86};
 
 #[derive(argh::FromArgs)]
 /// win32 emulator.
@@ -91,7 +91,9 @@ fn print_trace(machine: &win32::Machine) {
         )
     };
 
-    println!("@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x} st_top:{st_top}");
+    println!(
+        "@{eip:x}\n  eax:{eax:x} ebx:{ebx:x} ecx:{ecx:x} edx:{edx:x} esi:{esi:x} edi:{edi:x} esp:{esp:x} ebp:{ebp:x} st_top:{st_top}"
+    );
 }
 
 fn parse_trace_points(param: &str) -> Result<std::collections::VecDeque<u32>, String> {

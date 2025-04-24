@@ -10,7 +10,7 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
-use win32::{FileOptions, ReadDir, Stat, ERROR};
+use win32::{ERROR, FileOptions, ReadDir, Stat};
 
 struct File {
     f: std::fs::File,
