@@ -13,8 +13,6 @@ iced-x86 = "1.17.0"
 num-traits = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 
-tsify = { workspace = true, optional = true }
-wasm-bindgen = { workspace = true, optional = true }
-
-[features]
-wasm = ["dep:tsify", "dep:wasm-bindgen"]
+[target.'cfg(target_family = "wasm")'.dependencies]
+tsify = { workspace = true }
+wasm-bindgen = { workspace = true }

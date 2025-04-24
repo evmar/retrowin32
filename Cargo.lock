@@ -351,14 +351,11 @@ dependencies = [
  "anyhow",
  "argh",
  "chrono",
- "iced-x86",
  "libc",
  "log",
  "sdl2",
  "typed-path",
- "unicorn-engine",
  "win32",
- "x86",
 ]
 
 [[package]]

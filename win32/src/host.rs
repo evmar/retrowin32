@@ -18,7 +18,7 @@ pub trait Surface {
     fn bit_blt(&self, dst_rect: &RECT, src: &dyn Surface, src_rect: &RECT);
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Clone, Debug, Default)]
 pub struct SurfaceOptions {
     pub width: u32,
@@ -34,7 +34,7 @@ pub trait Window {
     fn fullscreen(&self);
 }
 
-#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(target_family = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[derive(Debug, Clone, Default)]
 pub struct FileOptions {
     /// Permit read access.

@@ -298,7 +298,7 @@ pub mod IDirectDraw7 {
     #[win32_derive::dllexport]
     pub fn WaitForVerticalBlank(_machine: &mut Machine, this: u32, flags: u32, _unused: u32) -> DD {
         // TODO: effect.exe uses this to pace itself; actually sync to a clock here?
-        #[cfg(not(feature = "wasm"))]
+        #[cfg(not(target_family = "wasm"))]
         std::thread::sleep(std::time::Duration::from_millis(10));
         DD::OK
     }

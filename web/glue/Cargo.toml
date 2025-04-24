@@ -8,8 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = { workspace = true }
-win32 = { workspace = true, features = ["wasm"] }
-x86 = { workspace = true, features = ["wasm"] }
+win32 = { workspace = true, features = ["x86-emu"] }
+x86 = { workspace = true }
 
 anyhow = "1.0"
 chrono = "0.4.38"
@@ -32,7 +32,3 @@ features = [
   "MouseEvent",
   "Performance",
 ]
-
-[features]
-default = ["x86-emu"]
-x86-emu = ["win32/x86-emu"]

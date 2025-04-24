@@ -17,7 +17,7 @@ See [build setup docs](doc/build_setup.md) for initial build requirements.
 Build the app:
 
 ```
-$ cargo build -p retrowin32 -F x86-emu,sdl --profile=lto
+$ cargo build -p retrowin32 --profile=lto
 ```
 
 Run it by passing the path of the executable. Arguments after the exe are passed
@@ -77,12 +77,13 @@ Optionally, `make profile=lto` for a longer compile but faster binary.
 The above commands cover the main things you'd build. The full configuration is
 specified via Rust "features" in the `-F` flag when building.
 
-To choose the x86 emulation strategy, you must pick one of:
+To choose the x86 emulation strategy, you must disable the default features (by
+passing `--no-default-features`) and then pick one of:
 
 - `x86-emu`: retrowin32's own x86 emulator
 - `x86-64`: generate x86-64 code, requires x86 CPU or Rosetta
 - `x86-unicorn`: use [Unicorn](https://www.unicorn-engine.org/) (effectively
-  QEMU) for x86 emulation (note: probably broken at this point)
+  QEMU) for x86 emulation (note: this has bitrotted and is broken now)
 
 To choose the rendering strategy, there is one further toggle:
 
@@ -112,13 +113,13 @@ To iterate while developing I often use a command like this, which builds and
 runs in one invocation.
 
 ```
-$ cargo run -p retrowin32 -F x86-emu -- --win32-trace '*' path/to/my/exe
+$ cargo run -p retrowin32 -- --win32-trace '*' path/to/my/exe
 ```
 
 And sometimes I add:
 
 - `--release` when the debug build runs too slowly, and
-- `-F x86-emu,sdl` for GUI support
+- `--no-default-features -F x86-emu` to build without SDL support
 
 If you make a change to functions exported in the `win32/src/winapi/` layer, you
 must re-run the code generator as documented in [`win32/`](win32/).

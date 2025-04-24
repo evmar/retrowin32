@@ -18,20 +18,9 @@ version = "0.35.2"
 features = ["unsafe_textures"]
 optional = true
 
-[dependencies.iced-x86]
-version = "1.17.0"
-optional = true
-
-[dependencies.unicorn-engine]
-version = "2.0.0"
-optional = true
-
-[dependencies.x86]
-workspace = true
-optional = true
-
 [features]
+default = ["x86-emu", "sdl"]
 sdl = ["dep:sdl2"]
-x86-emu = ["dep:x86", "dep:iced-x86", "win32/x86-emu"]
+x86-emu = ["win32/x86-emu"]
 x86-64 = ["win32/x86-64"]
-x86-unicorn = ["dep:unicorn-engine", "win32/x86-unicorn"]
+x86-unicorn = ["win32/x86-unicorn"]
