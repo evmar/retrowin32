@@ -1,4 +1,4 @@
-use crate::{winapi::HFILE, Machine};
+use crate::{Machine, winapi::HFILE};
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum STD {

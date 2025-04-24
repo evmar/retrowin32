@@ -1,6 +1,6 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{calling_convention::ArrayOut, winapi::Str16, Machine};
+use crate::{Machine, calling_convention::ArrayOut, winapi::Str16};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 

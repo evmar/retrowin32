@@ -1,7 +1,7 @@
-use super::{Brush, DCTarget, Pen, BITMAP, COLORREF, HDC};
+use super::{BITMAP, Brush, COLORREF, DCTarget, HDC, Pen};
 use crate::{
-    winapi::{bitmap::Bitmap, HANDLE},
     Machine,
+    winapi::{HANDLE, bitmap::Bitmap},
 };
 use memory::ExtensionsMut;
 use std::{cell::RefCell, rc::Rc};

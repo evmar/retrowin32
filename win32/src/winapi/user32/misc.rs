@@ -1,7 +1,7 @@
 use crate::{
-    calling_convention::VarArgs,
-    winapi::{Str16, HWND, POINT, RECT},
     Machine,
+    calling_convention::VarArgs,
+    winapi::{HWND, POINT, RECT, Str16},
 };
 use memory::ExtensionsMut;
 use std::io::{Cursor, Write};

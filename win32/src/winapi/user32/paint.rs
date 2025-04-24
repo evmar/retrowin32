@@ -1,13 +1,13 @@
-use super::{WindowType, HBRUSH, HDC};
+use super::{HBRUSH, HDC, WindowType};
 use crate::{
+    Machine,
     calling_convention::FromArg,
     winapi::{
+        HWND, RECT, Str16,
         gdi32::{
             COLORREF, HGDIOBJ, {self},
         },
-        Str16, HWND, RECT,
     },
-    Machine,
 };
 
 #[win32_derive::dllexport]

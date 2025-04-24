@@ -1,9 +1,9 @@
 use crate::{
+    ERROR, Machine,
     winapi::{
         encoding::{Encoder, EncoderAnsi, EncoderWide},
-        kernel32::{set_last_error, SECURITY_ATTRIBUTES},
+        kernel32::{SECURITY_ATTRIBUTES, set_last_error},
     },
-    Machine, ERROR,
 };
 use memory::str16::Str16;
 use typed_path::WindowsPath;

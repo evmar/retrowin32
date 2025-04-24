@@ -5,9 +5,9 @@
 //! See doc/x86-64.md for an overview.
 
 use crate::{
+    Machine,
     ldt::LDT,
     shims::{Handler, Shims},
-    Machine,
 };
 #[cfg(target_arch = "x86_64")]
 use memory::ExtensionsMut;

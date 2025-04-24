@@ -1,8 +1,8 @@
 use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE};
 use crate::{
-    calling_convention::FromArg,
-    winapi::{Str16, HWND},
     Machine,
+    calling_convention::FromArg,
+    winapi::{HWND, Str16},
 };
 use bitflags::bitflags;
 use memory::Extensions;

@@ -9,12 +9,12 @@ impl std::fmt::Debug for GUID {
         write!(
             f,
             "{:08x}-{:04x}-{:04x}-{:04x}-",
-            self.0 .0,
-            self.0 .1,
-            self.0 .2,
-            u16::from_le_bytes(self.0 .3[..2].try_into().unwrap())
+            self.0.0,
+            self.0.1,
+            self.0.2,
+            u16::from_le_bytes(self.0.3[..2].try_into().unwrap())
         )?;
-        for b in &self.0 .3[2..] {
+        for b in &self.0.3[2..] {
             write!(f, "{:02x}", b)?;
         }
         Ok(())

@@ -1,6 +1,6 @@
 use crate::{
-    winapi::{kernel32::SECURITY_ATTRIBUTES, HANDLE},
     Machine,
+    winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES},
 };
 
 #[win32_derive::dllexport]

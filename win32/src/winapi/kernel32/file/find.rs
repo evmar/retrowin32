@@ -2,14 +2,14 @@ use memory::str16::Str16;
 use typed_path::WindowsPath;
 
 use crate::{
+    ERROR, Machine, ReadDir, ReadDirEntry, StatKind,
     winapi::{
-        kernel32::{set_last_error, FileAttribute, FILETIME},
         DWORD, HANDLE,
+        kernel32::{FILETIME, FileAttribute, set_last_error},
     },
-    Machine, ReadDir, ReadDirEntry, StatKind, ERROR,
 };
 
-use super::{normalize_dos_path, HFILE, MAX_PATH};
+use super::{HFILE, MAX_PATH, normalize_dos_path};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HFINDT;

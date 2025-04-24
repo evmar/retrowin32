@@ -1,5 +1,6 @@
 use super::*;
 use crate::{
+    Host, Machine, SurfaceOptions,
     calling_convention::Array,
     host,
     winapi::{
@@ -7,7 +8,6 @@ use crate::{
         gdi32::HDC,
         *,
     },
-    Host, Machine, SurfaceOptions,
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Mem};

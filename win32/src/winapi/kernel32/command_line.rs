@@ -2,8 +2,8 @@
 
 use super::UNICODE_STRING;
 use crate::{
-    winapi::{arena::Arena, String16},
     Machine,
+    winapi::{String16, arena::Arena},
 };
 use memory::{ExtensionsMut, Mem};
 

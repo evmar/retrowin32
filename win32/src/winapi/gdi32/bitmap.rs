@@ -1,9 +1,10 @@
-use super::{DCTarget, Object, BITMAPINFOHEADER, COLORREF, HDC, HGDIOBJ};
+use super::{BITMAPINFOHEADER, COLORREF, DCTarget, HDC, HGDIOBJ, Object};
 use crate::{
     machine::Machine,
     winapi::{
-        bitmap::{Bitmap, PixelData, PixelFormat, BI},
-        kernel32, POINT, RECT,
+        POINT, RECT,
+        bitmap::{BI, Bitmap, PixelData, PixelFormat},
+        kernel32,
     },
 };
 use memory::{Extensions, Mem};

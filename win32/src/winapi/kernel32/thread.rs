@@ -1,9 +1,10 @@
-use super::{peb_mut, EventObject, KernelObject};
+use super::{EventObject, KernelObject, peb_mut};
 use crate::{
     machine::Machine,
     winapi::{
+        HANDLE, Str16,
         arena::Arena,
-        Str16, HANDLE, {self},
+        {self},
     },
 };
 use memory::{Extensions, Mem};

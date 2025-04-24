@@ -2,12 +2,13 @@
 
 use super::teb_mut;
 use crate::{
+    Machine,
     winapi::{
+        ERROR,
         encoding::{Encoder, EncoderWide},
         kernel32::CURRENT_PROCESS_HANDLE,
-        ERROR, *,
+        *,
     },
-    Machine,
 };
 use ::memory::Pod;
 use bitflags::bitflags;

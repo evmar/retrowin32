@@ -282,11 +282,7 @@ impl From<f64> for ABIReturn {
 
 impl From<bool> for ABIReturn {
     fn from(value: bool) -> Self {
-        if value {
-            1u32.into()
-        } else {
-            0u32.into()
-        }
+        if value { 1u32.into() } else { 0u32.into() }
     }
 }
 

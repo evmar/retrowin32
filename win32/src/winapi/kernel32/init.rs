@@ -1,15 +1,15 @@
 //! Process initialization and startup.
 
 use super::{
-    command_line::CommandLine, EventObject, FindHandle, ResourceHandle, Thread, HEVENT, HFIND,
-    HMODULE, STDERR_HFILE, STDOUT_HFILE,
+    EventObject, FindHandle, HEVENT, HFIND, HMODULE, ResourceHandle, STDERR_HFILE, STDOUT_HFILE,
+    Thread, command_line::CommandLine,
 };
 use crate::{
+    Machine,
     loader::{self, Module},
     memory::Memory,
     segments::SegmentDescriptor,
     winapi::{arena::Arena, handle::Handles, heap::Heap, *},
-    Machine,
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};

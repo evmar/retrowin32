@@ -1,11 +1,11 @@
 use crate::{
+    Stat, StatKind,
     calling_convention::ABIReturn,
     machine::Machine,
     winapi::{
-        kernel32::{set_last_error, FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE},
-        Str16, ERROR,
+        ERROR, Str16,
+        kernel32::{FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
     },
-    Stat, StatKind,
 };
 use bitflags::bitflags;
 use typed_path::WindowsPath;

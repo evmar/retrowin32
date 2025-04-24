@@ -1,13 +1,13 @@
 //! Implementation of DirectDraw2 interfaces.
 
 use super::{
+    GUID,
     ddraw7::{IDirectDraw7, IDirectDrawSurface7},
     types::*,
-    GUID,
 };
 use crate::{
-    winapi::{com::vtable, ddraw, kernel32::get_symbol, *},
     Machine,
+    winapi::{com::vtable, ddraw, kernel32::get_symbol, *},
 };
 use memory::{ExtensionsMut, Pod};
 

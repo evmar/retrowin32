@@ -1,6 +1,6 @@
 use crate::{
     machine::Machine,
-    winapi::{kernel32::set_last_error, Str16, ERROR},
+    winapi::{ERROR, Str16, kernel32::set_last_error},
 };
 use memory::ExtensionsMut;
 

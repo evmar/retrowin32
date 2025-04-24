@@ -1,8 +1,8 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    calling_convention::Array,
-    winapi::{gdi32::COLORREF, HANDLE, LPARAM},
     Machine,
+    calling_convention::Array,
+    winapi::{HANDLE, LPARAM, gdi32::COLORREF},
 };
 use memory::Pod;
 

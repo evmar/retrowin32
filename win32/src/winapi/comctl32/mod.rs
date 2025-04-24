@@ -4,8 +4,8 @@
 
 mod builtin;
 
-use crate::winapi;
 use crate::Machine;
+use crate::winapi;
 pub use builtin::DLL;
 
 pub use winapi::user32::TRACKMOUSEEVENT;

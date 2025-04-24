@@ -1,7 +1,6 @@
 use crate::{
-    calling_convention,
+    Machine, calling_convention,
     winapi::{com::vtable, kernel32},
-    Machine,
 };
 use memory::ExtensionsMut;
 

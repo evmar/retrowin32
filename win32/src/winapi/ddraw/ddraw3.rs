@@ -1,9 +1,9 @@
 use crate::{
+    Machine,
     winapi::{
-        com::{vtable, GUID},
+        com::{GUID, vtable},
         kernel32::get_symbol,
     },
-    Machine,
 };
 use memory::ExtensionsMut;
 

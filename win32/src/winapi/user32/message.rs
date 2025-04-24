@@ -1,6 +1,6 @@
 use super::{Timers, Window};
 use crate::{
-    host,
+    Host, Machine, MouseButton, host,
     winapi::{
         handle::Handles,
         kernel32::{
@@ -8,7 +8,6 @@ use crate::{
         },
         *,
     },
-    Host, Machine, MouseButton,
 };
 use bitflags::bitflags;
 use memory::Extensions;

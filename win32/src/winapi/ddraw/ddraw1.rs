@@ -7,13 +7,13 @@ use super::{
     types::*,
 };
 use crate::{
+    Machine,
     winapi::{
-        com::{vtable, GUID},
+        com::{GUID, vtable},
         ddraw,
         kernel32::get_symbol,
         *,
     },
-    Machine,
 };
 use memory::ExtensionsMut;
 

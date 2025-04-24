@@ -2,9 +2,9 @@ use super::{HGDIOBJ, R2};
 use crate::{
     machine::Machine,
     winapi::{
+        HANDLE, POINT,
         bitmap::{Bitmap, PixelData, PixelFormat},
         user32::Window,
-        HANDLE, POINT,
     },
 };
 use std::{cell::RefCell, rc::Rc};

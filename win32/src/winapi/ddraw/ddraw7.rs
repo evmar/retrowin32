@@ -1,18 +1,19 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use crate::{
+    Machine,
     winapi::{
-        com::{vtable, GUID},
+        com::{GUID, vtable},
         ddraw::{
+            IDirectDrawClipper,
             palette::{IDirectDrawPalette, Palette},
             types::*,
-            IDirectDrawClipper, {self},
+            {self},
         },
         gdi32::PALETTEENTRY,
         kernel32::get_symbol,
         *,
     },
-    Machine,
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Pod};

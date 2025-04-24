@@ -1,6 +1,6 @@
 //! Pens, brushes, color.
 
-use super::{DCTarget, Object, HDC, HGDIOBJ};
+use super::{DCTarget, HDC, HGDIOBJ, Object};
 use crate::{
     machine::Machine,
     winapi::{POINT, RECT},
@@ -124,11 +124,7 @@ pub fn LineTo(machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
     fn ascending(a: i32, b: i32) -> (u32, u32) {
         let a = a.max(0) as u32;
         let b = b.max(0) as u32;
-        if a > b {
-            (b, a)
-        } else {
-            (a, b)
-        }
+        if a > b { (b, a) } else { (a, b) }
     }
 
     let bitmap = window.bitmap().clone();

@@ -1,7 +1,7 @@
 use crate::{
-    calling_convention::ArrayOut,
-    winapi::{encoding::*, Str16},
     Machine,
+    calling_convention::ArrayOut,
+    winapi::{Str16, encoding::*},
 };
 
 /// Encode environment variables in the environment block format.

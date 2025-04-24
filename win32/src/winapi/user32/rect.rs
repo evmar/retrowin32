@@ -1,6 +1,6 @@
 use crate::{
-    winapi::{POINT, RECT},
     Machine,
+    winapi::{POINT, RECT},
 };
 
 #[win32_derive::dllexport]

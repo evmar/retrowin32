@@ -1,6 +1,6 @@
 use crate::{
-    winapi::{kernel32::KernelObject, HANDLE},
     Machine,
+    winapi::{HANDLE, kernel32::KernelObject},
 };
 use std::cell::Cell;
 

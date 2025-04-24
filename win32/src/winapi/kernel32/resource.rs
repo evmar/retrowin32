@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
 use crate::{
-    calling_convention::FromArg,
-    winapi::{kernel32, kernel32::HMODULE, user32::HINSTANCE, Str16, String16, HRSRC},
     Machine,
+    calling_convention::FromArg,
+    winapi::{HRSRC, Str16, String16, kernel32, kernel32::HMODULE, user32::HINSTANCE},
 };
 use memory::Mem;
 use std::ops::Range;

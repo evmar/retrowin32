@@ -1,4 +1,4 @@
-use super::{DCTarget, Object, DC, HDC, HGDIOBJ};
+use super::{DC, DCTarget, HDC, HGDIOBJ, Object};
 use crate::winapi::{bitmap::Bitmap, handle::Handles, user32::Window};
 use std::{cell::RefCell, rc::Rc};
 

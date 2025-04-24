@@ -1,5 +1,5 @@
 pub use crate::winapi::kernel32::HMODULE;
-use crate::{winapi::Str16, Machine};
+use crate::{Machine, winapi::Str16};
 
 #[win32_derive::dllexport]
 pub fn PlaySoundW(

@@ -1,7 +1,7 @@
 use crate::{
-    calling_convention::Array,
-    winapi::{self, handle::HANDLE, DWORD, HFILE, WORD},
     Machine,
+    calling_convention::Array,
+    winapi::{self, DWORD, HFILE, WORD, handle::HANDLE},
 };
 
 #[win32_derive::dllexport]

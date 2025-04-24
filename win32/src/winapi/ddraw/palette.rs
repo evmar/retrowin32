@@ -1,8 +1,8 @@
 use std::cell::RefCell;
 
 use crate::{
-    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
     Machine,
+    winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
 };
 use memory::{Extensions, ExtensionsMut};
 

@@ -4,7 +4,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::{Str16, ERROR};
+use super::{ERROR, Str16};
 use crate::machine::Machine;
 
 pub type HKEY = u32;

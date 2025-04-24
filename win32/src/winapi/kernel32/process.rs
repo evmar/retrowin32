@@ -1,7 +1,7 @@
 use super::{SECURITY_ATTRIBUTES, STARTUPINFOA};
 use crate::{
-    winapi::{Str16, HANDLE},
     Machine,
+    winapi::{HANDLE, Str16},
 };
 
 pub type HPROCESS = HANDLE<()>;

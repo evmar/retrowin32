@@ -1,13 +1,13 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
+    FileOptions, Machine,
     winapi::{
-        bitmap::{Bitmap, BITMAPFILEHEADER},
+        bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
         gdi32::HGDIOBJ,
         kernel32::ResourceKey,
         *,
     },
-    FileOptions, Machine,
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};

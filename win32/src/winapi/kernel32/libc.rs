@@ -1,6 +1,6 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
-use crate::{winapi::Str16, Machine};
+use crate::{Machine, winapi::Str16};
 use memory::ExtensionsMut;
 
 #[win32_derive::dllexport]

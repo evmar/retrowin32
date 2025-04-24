@@ -1,4 +1,4 @@
-use crate::{calling_convention::ArrayOut, winapi::*, Machine};
+use crate::{Machine, calling_convention::ArrayOut, winapi::*};
 
 /*
 pub mod MessageBoxFlags {
