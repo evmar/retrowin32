@@ -344,7 +344,7 @@ pub async fn load_exe(
     path: &str,
     relocate: Option<Option<u32>>,
 ) -> anyhow::Result<u32> {
-    let file = pe::parse(buf)?;
+    let file = pe::File::parse(buf)?;
 
     // We need a current thread to load the exe, because we may need to
     // call DllMain()s on dependent DLLs.  But we only have the stack size
@@ -474,7 +474,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
 
     match res {
         DLLResolution::Builtin(builtin) => {
-            let file = pe::parse(builtin.raw)?;
+            let file = pe::File::parse(builtin.raw)?;
             let hmodule = load_module(
                 machine,
                 builtin.file_name.to_owned(),
@@ -515,7 +515,7 @@ pub async fn load_dll(machine: &mut Machine, res: &DLLResolution) -> anyhow::Res
             if buf.is_empty() {
                 anyhow::bail!("{filename:?} not found");
             }
-            let file = pe::parse(&buf)?;
+            let file = pe::File::parse(&buf)?;
             load_module(machine, filename.to_owned(), &buf, &file, Some(None)).await
         }
     }

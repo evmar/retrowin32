@@ -1,19 +1,21 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-use super::reader::Reader;
-use anyhow::{anyhow, bail};
+use anyhow::anyhow;
 use bitflags::bitflags;
 use memory::Extensions;
 
 // https://docs.microsoft.com/en-us/previous-versions/ms809762(v=msdn.10)
 // https://learn.microsoft.com/en-us/windows/win32/debug/pe-format
 
-fn dos_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<u32> {
-    r.expect("MZ")?;
-    r.skip(0x3a)?;
-    Ok(r.read::<u32>())
+#[derive(Debug)]
+#[repr(C)]
+pub struct IMAGE_NT_HEADERS32 {
+    pub Signature: [u8; 4],
+    pub FileHeader: IMAGE_FILE_HEADER,
+    pub OptionalHeader: IMAGE_OPTIONAL_HEADER32,
 }
+unsafe impl memory::Pod for IMAGE_NT_HEADERS32 {}
 
 #[derive(Debug)]
 #[repr(C)]
@@ -140,16 +142,6 @@ pub enum IMAGE_DIRECTORY_ENTRY {
     COM_DESCRIPTOR = 14,
 }
 
-fn pe_header<'m>(r: &mut Reader<'m>) -> anyhow::Result<IMAGE_FILE_HEADER> {
-    r.expect("PE\0\0")?;
-
-    let header = r.read::<IMAGE_FILE_HEADER>();
-    if header.Machine != 0x14c {
-        bail!("bad machine {:?}", header.Machine);
-    }
-    Ok(header)
-}
-
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct IMAGE_SECTION_HEADER {
@@ -218,6 +210,24 @@ pub struct File {
 }
 
 impl File {
+    pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
+        use crate::parse;
+        let mut ofs =
+            parse::dos_header(buf).map_err(|err| anyhow!("reading DOS header: {}", err))?;
+        let header =
+            parse::pe_header(buf, &mut ofs).map_err(|err| anyhow!("reading PE header: {}", err))?;
+        let data_directory = parse::data_directory(&header, buf, &mut ofs)
+            .map_err(|err| anyhow!("reading data directory: {}", err))?;
+        let sections = parse::sections(&header, buf, &mut ofs)
+            .map_err(|err| anyhow!("reading sections: {}", err))?;
+        Ok(File {
+            header: header.FileHeader,
+            opt_header: header.OptionalHeader,
+            data_directory,
+            sections,
+        })
+    }
+
     pub fn get_data_directory(
         &self,
         entry: IMAGE_DIRECTORY_ENTRY,
@@ -230,36 +240,17 @@ impl File {
     }
 }
 
-pub fn parse(buf: &[u8]) -> anyhow::Result<File> {
-    let mut r = Reader::new(buf);
-
-    let pe_header_ofs = dos_header(&mut r).map_err(|err| anyhow!("reading DOS header: {}", err))?;
-    if pe_header_ofs as usize + std::mem::size_of::<IMAGE_FILE_HEADER>() >= buf.len() {
-        bail!("invalid PE offset in DOS header, might be a DOS executable?");
-    }
-    r.seek(pe_header_ofs)
-        .map_err(|err| anyhow!("seeking PE header {pe_header_ofs:x}: {}", err))?;
-
-    let header = pe_header(&mut r).map_err(|err| anyhow!("reading PE header: {}", err))?;
-    let opt_header = r.read::<IMAGE_OPTIONAL_HEADER32>();
-    let data_directory = r
-        .read_n::<IMAGE_DATA_DIRECTORY>(opt_header.NumberOfRvaAndSizes)
-        .unwrap();
-    let sections = r
-        .read_n::<IMAGE_SECTION_HEADER>(header.NumberOfSections as u32)
-        .unwrap();
-
-    Ok(File {
-        header,
-        opt_header,
-        data_directory,
-        sections,
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kkrunchy_header() {
+        let mut header = IMAGE_SECTION_HEADER::default();
+        header.Name = *b"kkrunchy";
+        assert_eq!(header.name().unwrap(), "kkrunchy");
+    }
+
     use std::io::Write;
 
     #[test]
@@ -268,13 +259,6 @@ mod tests {
         buf.write(b"MZ").unwrap();
         buf.write(&[0; 0x3a]).unwrap();
         buf.write(&0xFFFFFFFFu32.to_le_bytes()).unwrap();
-        assert!(parse(&buf).is_err()); // no crash
-    }
-
-    #[test]
-    fn kkrunchy_header() {
-        let mut header = IMAGE_SECTION_HEADER::default();
-        header.Name = *b"kkrunchy";
-        assert_eq!(header.name().unwrap(), "kkrunchy");
+        assert!(File::parse(&buf).is_err()); // no crash
     }
 }
