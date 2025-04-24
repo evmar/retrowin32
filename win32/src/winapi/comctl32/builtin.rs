@@ -14,43 +14,47 @@ mod wrappers {
     use ::memory::Extensions;
     use winapi::comctl32::*;
     pub unsafe fn _TrackMouseEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("comctl32") {
-            crate::winapi::trace::Record::new(
-                winapi::comctl32::_TrackMouseEvent_pos,
-                "comctl32",
-                "_TrackMouseEvent",
-                &[("lpEventTrack", &lpEventTrack)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::comctl32::_TrackMouseEvent(machine, lpEventTrack);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("comctl32") {
+                crate::winapi::trace::Record::new(
+                    winapi::comctl32::_TrackMouseEvent_pos,
+                    "comctl32",
+                    "_TrackMouseEvent",
+                    &[("lpEventTrack", &lpEventTrack)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::comctl32::_TrackMouseEvent(machine, lpEventTrack);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn InitCommonControls(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("comctl32") {
-            crate::winapi::trace::Record::new(
-                winapi::comctl32::InitCommonControls_pos,
-                "comctl32",
-                "InitCommonControls",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::comctl32::InitCommonControls(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("comctl32") {
+                crate::winapi::trace::Record::new(
+                    winapi::comctl32::InitCommonControls_pos,
+                    "comctl32",
+                    "InitCommonControls",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::comctl32::InitCommonControls(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
 }
 const SHIMS: [Shim; 2usize] = [

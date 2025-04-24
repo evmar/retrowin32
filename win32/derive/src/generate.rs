@@ -82,13 +82,15 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             quote!(Handler::Async(wrappers::#flat_name)),
             quote! {
                 pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
-                    #fetch_args
-                    let machine: *mut Machine = machine;
-                    Box::pin(async move {
-                        let machine = unsafe { &mut *machine };
-                        let result = #impls_mod::#base_name(machine, #(#args),*).await;
-                        #return_result
-                    })
+                    unsafe {
+                        #fetch_args
+                        let machine: *mut Machine = machine;
+                        Box::pin(async move {
+                            let machine = &mut *machine;
+                            let result = #impls_mod::#base_name(machine, #(#args),*).await;
+                            #return_result
+                        })
+                    }
                 }
             },
         )
@@ -97,9 +99,11 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             quote!(Handler::Sync(wrappers::#flat_name)),
             quote! {
                 pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-                    #fetch_args
-                    let result = #impls_mod::#base_name(machine, #(#args),*);
-                    #return_result
+                    unsafe {
+                        #fetch_args
+                        let result = #impls_mod::#base_name(machine, #(#args),*);
+                        #return_result
+                    }
                 }
             },
         )

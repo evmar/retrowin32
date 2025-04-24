@@ -17,30 +17,32 @@ mod wrappers {
         machine: &mut Machine,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
-        let mem = machine.mem().detach();
-        let func = <u32>::from_stack(mem, stack_args + 0u32);
-        let data = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("retrowin32_test") {
-            crate::winapi::trace::Record::new(
-                winapi::retrowin32_test::retrowin32_test_callback1_pos,
-                "retrowin32_test",
-                "retrowin32_test_callback1",
-                &[("func", &func), ("data", &data)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let machine: *mut Machine = machine;
-        Box::pin(async move {
-            let machine = unsafe { &mut *machine };
-            let result =
-                winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        })
+        unsafe {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, stack_args + 0u32);
+            let data = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("retrowin32_test") {
+                crate::winapi::trace::Record::new(
+                    winapi::retrowin32_test::retrowin32_test_callback1_pos,
+                    "retrowin32_test",
+                    "retrowin32_test_callback1",
+                    &[("func", &func), ("data", &data)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = &mut *machine;
+                let result =
+                    winapi::retrowin32_test::retrowin32_test_callback1(machine, func, data).await;
+                if let Some(mut __trace_record) = __trace_record {
+                    __trace_record.exit(&result);
+                }
+                result.into()
+            })
+        }
     }
 }
 const SHIMS: [Shim; 1usize] = [Shim {

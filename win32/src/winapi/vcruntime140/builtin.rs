@@ -14,95 +14,103 @@ mod wrappers {
     use ::memory::Extensions;
     use winapi::vcruntime140::*;
     pub unsafe fn _CxxThrowException(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
-        let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
-            crate::winapi::trace::Record::new(
-                winapi::vcruntime140::_CxxThrowException_pos,
-                "vcruntime140",
-                "_CxxThrowException",
-                &[
-                    ("pExceptionObject", &pExceptionObject),
-                    ("pThrowInfo", &pThrowInfo),
-                ],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result =
-            winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let pExceptionObject = <u32>::from_stack(mem, stack_args + 0u32);
+            let pThrowInfo = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+                crate::winapi::trace::Record::new(
+                    winapi::vcruntime140::_CxxThrowException_pos,
+                    "vcruntime140",
+                    "_CxxThrowException",
+                    &[
+                        ("pExceptionObject", &pExceptionObject),
+                        ("pThrowInfo", &pThrowInfo),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result =
+                winapi::vcruntime140::_CxxThrowException(machine, pExceptionObject, pThrowInfo);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn memcmp(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let lhs = <u32>::from_stack(mem, stack_args + 0u32);
-        let rhs = <u32>::from_stack(mem, stack_args + 4u32);
-        let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
-            crate::winapi::trace::Record::new(
-                winapi::vcruntime140::memcmp_pos,
-                "vcruntime140",
-                "memcmp",
-                &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::vcruntime140::memcmp(machine, lhs, rhs, len);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let lhs = <u32>::from_stack(mem, stack_args + 0u32);
+            let rhs = <u32>::from_stack(mem, stack_args + 4u32);
+            let len = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+                crate::winapi::trace::Record::new(
+                    winapi::vcruntime140::memcmp_pos,
+                    "vcruntime140",
+                    "memcmp",
+                    &[("lhs", &lhs), ("rhs", &rhs), ("len", &len)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::vcruntime140::memcmp(machine, lhs, rhs, len);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let dst = <u32>::from_stack(mem, stack_args + 0u32);
-        let src = <u32>::from_stack(mem, stack_args + 4u32);
-        let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
-            crate::winapi::trace::Record::new(
-                winapi::vcruntime140::memcpy_pos,
-                "vcruntime140",
-                "memcpy",
-                &[("dst", &dst), ("src", &src), ("len", &len)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::vcruntime140::memcpy(machine, dst, src, len);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let dst = <u32>::from_stack(mem, stack_args + 0u32);
+            let src = <u32>::from_stack(mem, stack_args + 4u32);
+            let len = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+                crate::winapi::trace::Record::new(
+                    winapi::vcruntime140::memcpy_pos,
+                    "vcruntime140",
+                    "memcpy",
+                    &[("dst", &dst), ("src", &src), ("len", &len)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::vcruntime140::memcpy(machine, dst, src, len);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let dst = <u32>::from_stack(mem, stack_args + 0u32);
-        let val = <u32>::from_stack(mem, stack_args + 4u32);
-        let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
-            crate::winapi::trace::Record::new(
-                winapi::vcruntime140::memset_pos,
-                "vcruntime140",
-                "memset",
-                &[("dst", &dst), ("val", &val), ("len", &len)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::vcruntime140::memset(machine, dst, val, len);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let dst = <u32>::from_stack(mem, stack_args + 0u32);
+            let val = <u32>::from_stack(mem, stack_args + 4u32);
+            let len = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("vcruntime140") {
+                crate::winapi::trace::Record::new(
+                    winapi::vcruntime140::memset_pos,
+                    "vcruntime140",
+                    "memset",
+                    &[("dst", &dst), ("val", &val), ("len", &len)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::vcruntime140::memset(machine, dst, val, len);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
 }
 const SHIMS: [Shim; 4usize] = [

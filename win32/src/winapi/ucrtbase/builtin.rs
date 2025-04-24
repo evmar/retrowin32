@@ -14,1209 +14,1324 @@ mod wrappers {
     use ::memory::Extensions;
     use winapi::ucrtbase::*;
     pub unsafe fn _EH_prolog(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_EH_prolog_pos,
-                "ucrtbase/memory",
-                "_EH_prolog",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_EH_prolog(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_EH_prolog_pos,
+                    "ucrtbase/memory",
+                    "_EH_prolog",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_EH_prolog(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _XcptFilter(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let xcptnum = <u32>::from_stack(mem, stack_args + 0u32);
-        let pxcptinfoptrs = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_XcptFilter_pos,
-                "ucrtbase/init",
-                "_XcptFilter",
-                &[("xcptnum", &xcptnum), ("pxcptinfoptrs", &pxcptinfoptrs)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_XcptFilter(machine, xcptnum, pxcptinfoptrs);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let xcptnum = <u32>::from_stack(mem, stack_args + 0u32);
+            let pxcptinfoptrs = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_XcptFilter_pos,
+                    "ucrtbase/init",
+                    "_XcptFilter",
+                    &[("xcptnum", &xcptnum), ("pxcptinfoptrs", &pxcptinfoptrs)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_XcptFilter(machine, xcptnum, pxcptinfoptrs);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __CxxFrameHandler(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let pExcept = <u32>::from_stack(mem, stack_args + 0u32);
-        let pRN = <u32>::from_stack(mem, stack_args + 4u32);
-        let pContext = <u32>::from_stack(mem, stack_args + 8u32);
-        let pDC = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__CxxFrameHandler_pos,
-                "ucrtbase/memory",
-                "__CxxFrameHandler",
-                &[
-                    ("pExcept", &pExcept),
-                    ("pRN", &pRN),
-                    ("pContext", &pContext),
-                    ("pDC", &pDC),
-                ],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__CxxFrameHandler(machine, pExcept, pRN, pContext, pDC);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let pExcept = <u32>::from_stack(mem, stack_args + 0u32);
+            let pRN = <u32>::from_stack(mem, stack_args + 4u32);
+            let pContext = <u32>::from_stack(mem, stack_args + 8u32);
+            let pDC = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__CxxFrameHandler_pos,
+                    "ucrtbase/memory",
+                    "__CxxFrameHandler",
+                    &[
+                        ("pExcept", &pExcept),
+                        ("pRN", &pRN),
+                        ("pContext", &pContext),
+                        ("pDC", &pDC),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__CxxFrameHandler(machine, pExcept, pRN, pContext, pDC);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __dllonexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let func = <u32>::from_stack(mem, stack_args + 0u32);
-        let d = <u32>::from_stack(mem, stack_args + 4u32);
-        let f = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__dllonexit_pos,
-                "ucrtbase/init",
-                "__dllonexit",
-                &[("func", &func), ("d", &d), ("f", &f)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__dllonexit(machine, func, d, f);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, stack_args + 0u32);
+            let d = <u32>::from_stack(mem, stack_args + 4u32);
+            let f = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__dllonexit_pos,
+                    "ucrtbase/init",
+                    "__dllonexit",
+                    &[("func", &func), ("d", &d), ("f", &f)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__dllonexit(machine, func, d, f);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __getmainargs(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let argc = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-        let argv = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
-        let env = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
-        let doWildCard = <u32>::from_stack(mem, stack_args + 12u32);
-        let startInfo = <u32>::from_stack(mem, stack_args + 16u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__getmainargs_pos,
-                "ucrtbase/init",
-                "__getmainargs",
-                &[
-                    ("argc", &argc),
-                    ("argv", &argv),
-                    ("env", &env),
-                    ("doWildCard", &doWildCard),
-                    ("startInfo", &startInfo),
-                ],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result =
-            winapi::ucrtbase::__getmainargs(machine, argc, argv, env, doWildCard, startInfo);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let argc = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
+            let argv = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
+            let env = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
+            let doWildCard = <u32>::from_stack(mem, stack_args + 12u32);
+            let startInfo = <u32>::from_stack(mem, stack_args + 16u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__getmainargs_pos,
+                    "ucrtbase/init",
+                    "__getmainargs",
+                    &[
+                        ("argc", &argc),
+                        ("argv", &argv),
+                        ("env", &env),
+                        ("doWildCard", &doWildCard),
+                        ("startInfo", &startInfo),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result =
+                winapi::ucrtbase::__getmainargs(machine, argc, argv, env, doWildCard, startInfo);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __p___argc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__p___argc_pos,
-                "ucrtbase/init",
-                "__p___argc",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__p___argc(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__p___argc_pos,
+                    "ucrtbase/init",
+                    "__p___argc",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__p___argc(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __p___argv(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__p___argv_pos,
-                "ucrtbase/init",
-                "__p___argv",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__p___argv(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__p___argv_pos,
+                    "ucrtbase/init",
+                    "__p___argv",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__p___argv(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __p__commode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__p__commode_pos,
-                "ucrtbase/init",
-                "__p__commode",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__p__commode(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__p__commode_pos,
+                    "ucrtbase/init",
+                    "__p__commode",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__p__commode(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __p__environ(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__p__environ_pos,
-                "ucrtbase/init",
-                "__p__environ",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__p__environ(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__p__environ_pos,
+                    "ucrtbase/init",
+                    "__p__environ",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__p__environ(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __p__fmode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__p__fmode_pos,
-                "ucrtbase/init",
-                "__p__fmode",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__p__fmode(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__p__fmode_pos,
+                    "ucrtbase/init",
+                    "__p__fmode",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__p__fmode(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __set_app_type(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__set_app_type_pos,
-                "ucrtbase/init",
-                "__set_app_type",
-                &[("app_type", &_app_type)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__set_app_type(machine, _app_type);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__set_app_type_pos,
+                    "ucrtbase/init",
+                    "__set_app_type",
+                    &[("app_type", &_app_type)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__set_app_type(machine, _app_type);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn __setusermatherr(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let pf = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::__setusermatherr_pos,
-                "ucrtbase/math",
-                "__setusermatherr",
-                &[("pf", &pf)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::__setusermatherr(machine, pf);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let pf = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::__setusermatherr_pos,
+                    "ucrtbase/math",
+                    "__setusermatherr",
+                    &[("pf", &pf)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::__setusermatherr(machine, pf);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _cexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_cexit_pos,
-                "ucrtbase/misc",
-                "_cexit",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_cexit(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_cexit_pos,
+                    "ucrtbase/misc",
+                    "_cexit",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_cexit(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _configthreadlocale(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let per_thread_locale_type = <i32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_configthreadlocale_pos,
-                "ucrtbase/init",
-                "_configthreadlocale",
-                &[("per_thread_locale_type", &per_thread_locale_type)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_configthreadlocale(machine, per_thread_locale_type);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let per_thread_locale_type = <i32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_configthreadlocale_pos,
+                    "ucrtbase/init",
+                    "_configthreadlocale",
+                    &[("per_thread_locale_type", &per_thread_locale_type)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_configthreadlocale(machine, per_thread_locale_type);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _configure_narrow_argv(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _mode = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_configure_narrow_argv_pos,
-                "ucrtbase/init",
-                "_configure_narrow_argv",
-                &[("mode", &_mode)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_configure_narrow_argv(machine, _mode);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _mode = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_configure_narrow_argv_pos,
+                    "ucrtbase/init",
+                    "_configure_narrow_argv",
+                    &[("mode", &_mode)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_configure_narrow_argv(machine, _mode);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _controlfp(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _new = <u32>::from_stack(mem, stack_args + 0u32);
-        let _mask = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_controlfp_pos,
-                "ucrtbase/init",
-                "_controlfp",
-                &[("new", &_new), ("mask", &_mask)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_controlfp(machine, _new, _mask);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _new = <u32>::from_stack(mem, stack_args + 0u32);
+            let _mask = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_controlfp_pos,
+                    "ucrtbase/init",
+                    "_controlfp",
+                    &[("new", &_new), ("mask", &_mask)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_controlfp(machine, _new, _mask);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _controlfp_s(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _currentControl = <u32>::from_stack(mem, stack_args + 0u32);
-        let _newControl = <u32>::from_stack(mem, stack_args + 4u32);
-        let _mask = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_controlfp_s_pos,
-                "ucrtbase/init",
-                "_controlfp_s",
-                &[
-                    ("currentControl", &_currentControl),
-                    ("newControl", &_newControl),
-                    ("mask", &_mask),
-                ],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_controlfp_s(machine, _currentControl, _newControl, _mask);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _currentControl = <u32>::from_stack(mem, stack_args + 0u32);
+            let _newControl = <u32>::from_stack(mem, stack_args + 4u32);
+            let _mask = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_controlfp_s_pos,
+                    "ucrtbase/init",
+                    "_controlfp_s",
+                    &[
+                        ("currentControl", &_currentControl),
+                        ("newControl", &_newControl),
+                        ("mask", &_mask),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result =
+                winapi::ucrtbase::_controlfp_s(machine, _currentControl, _newControl, _mask);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _crt_atexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _function = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_crt_atexit_pos,
-                "ucrtbase/init",
-                "_crt_atexit",
-                &[("function", &_function)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_crt_atexit(machine, _function);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _function = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_crt_atexit_pos,
+                    "ucrtbase/init",
+                    "_crt_atexit",
+                    &[("function", &_function)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_crt_atexit(machine, _function);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _except_handler3(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let exception_record = <u32>::from_stack(mem, stack_args + 0u32);
-        let registration = <u32>::from_stack(mem, stack_args + 4u32);
-        let context = <u32>::from_stack(mem, stack_args + 8u32);
-        let dispatcher = <u32>::from_stack(mem, stack_args + 12u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_except_handler3_pos,
-                "ucrtbase/init",
-                "_except_handler3",
-                &[
-                    ("exception_record", &exception_record),
-                    ("registration", &registration),
-                    ("context", &context),
-                    ("dispatcher", &dispatcher),
-                ],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_except_handler3(
-            machine,
-            exception_record,
-            registration,
-            context,
-            dispatcher,
-        );
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let exception_record = <u32>::from_stack(mem, stack_args + 0u32);
+            let registration = <u32>::from_stack(mem, stack_args + 4u32);
+            let context = <u32>::from_stack(mem, stack_args + 8u32);
+            let dispatcher = <u32>::from_stack(mem, stack_args + 12u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_except_handler3_pos,
+                    "ucrtbase/init",
+                    "_except_handler3",
+                    &[
+                        ("exception_record", &exception_record),
+                        ("registration", &registration),
+                        ("context", &context),
+                        ("dispatcher", &dispatcher),
+                    ],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_except_handler3(
+                machine,
+                exception_record,
+                registration,
+                context,
+                dispatcher,
+            );
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _exit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let status = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_exit_pos,
-                "ucrtbase/misc",
-                "_exit",
-                &[("status", &status)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_exit(machine, status);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let status = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_exit_pos,
+                    "ucrtbase/misc",
+                    "_exit",
+                    &[("status", &status)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_exit(machine, status);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _ftol(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_ftol_pos,
-                "ucrtbase/math",
-                "_ftol",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_ftol(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_ftol_pos,
+                    "ucrtbase/math",
+                    "_ftol",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_ftol(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _get_initial_narrow_environment(
         machine: &mut Machine,
         stack_args: u32,
     ) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_get_initial_narrow_environment_pos,
-                "ucrtbase/init",
-                "_get_initial_narrow_environment",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_get_initial_narrow_environment(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_get_initial_narrow_environment_pos,
+                    "ucrtbase/init",
+                    "_get_initial_narrow_environment",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_get_initial_narrow_environment(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _initialize_narrow_environment(
         machine: &mut Machine,
         stack_args: u32,
     ) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_initialize_narrow_environment_pos,
-                "ucrtbase/init",
-                "_initialize_narrow_environment",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_initialize_narrow_environment(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_initialize_narrow_environment_pos,
+                    "ucrtbase/init",
+                    "_initialize_narrow_environment",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_initialize_narrow_environment(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _initterm(
         machine: &mut Machine,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
-        let mem = machine.mem().detach();
-        let start = <u32>::from_stack(mem, stack_args + 0u32);
-        let end = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_initterm_pos,
-                "ucrtbase/init",
-                "_initterm",
-                &[("start", &start), ("end", &end)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let machine: *mut Machine = machine;
-        Box::pin(async move {
-            let machine = unsafe { &mut *machine };
-            let result = winapi::ucrtbase::_initterm(machine, start, end).await;
-            if let Some(mut __trace_record) = __trace_record {
-                __trace_record.exit(&result);
-            }
-            result.into()
-        })
+        unsafe {
+            let mem = machine.mem().detach();
+            let start = <u32>::from_stack(mem, stack_args + 0u32);
+            let end = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_initterm_pos,
+                    "ucrtbase/init",
+                    "_initterm",
+                    &[("start", &start), ("end", &end)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = &mut *machine;
+                let result = winapi::ucrtbase::_initterm(machine, start, end).await;
+                if let Some(mut __trace_record) = __trace_record {
+                    __trace_record.exit(&result);
+                }
+                result.into()
+            })
+        }
     }
     pub unsafe fn _initterm_e(
         machine: &mut Machine,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
-        let mem = machine.mem().detach();
-        let start = <u32>::from_stack(mem, stack_args + 0u32);
-        let end = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_initterm_e_pos,
-                "ucrtbase/init",
-                "_initterm_e",
-                &[("start", &start), ("end", &end)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let machine: *mut Machine = machine;
-        Box::pin(async move {
-            let machine = unsafe { &mut *machine };
-            let result = winapi::ucrtbase::_initterm_e(machine, start, end).await;
+        unsafe {
+            let mem = machine.mem().detach();
+            let start = <u32>::from_stack(mem, stack_args + 0u32);
+            let end = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_initterm_e_pos,
+                    "ucrtbase/init",
+                    "_initterm_e",
+                    &[("start", &start), ("end", &end)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = &mut *machine;
+                let result = winapi::ucrtbase::_initterm_e(machine, start, end).await;
+                if let Some(mut __trace_record) = __trace_record {
+                    __trace_record.exit(&result);
+                }
+                result.into()
+            })
+        }
+    }
+    pub unsafe fn _lock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+        unsafe {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_lock_pos,
+                    "ucrtbase/init",
+                    "_lock",
+                    &[("locknum", &locknum)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_lock(machine, locknum);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
-        })
-    }
-    pub unsafe fn _lock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let locknum = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_lock_pos,
-                "ucrtbase/init",
-                "_lock",
-                &[("locknum", &locknum)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_lock(machine, locknum);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
         }
-        result.into()
     }
     pub unsafe fn _onexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let func = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_onexit_pos,
-                "ucrtbase/misc",
-                "_onexit",
-                &[("func", &func)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_onexit(machine, func);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_onexit_pos,
+                    "ucrtbase/misc",
+                    "_onexit",
+                    &[("func", &func)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_onexit(machine, func);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _set_app_type(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_set_app_type_pos,
-                "ucrtbase/init",
-                "_set_app_type",
-                &[("app_type", &_app_type)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_set_app_type(machine, _app_type);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _app_type = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_set_app_type_pos,
+                    "ucrtbase/init",
+                    "_set_app_type",
+                    &[("app_type", &_app_type)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_set_app_type(machine, _app_type);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _set_fmode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let _mode = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_set_fmode_pos,
-                "ucrtbase/init",
-                "_set_fmode",
-                &[("mode", &_mode)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_set_fmode(machine, _mode);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let _mode = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_set_fmode_pos,
+                    "ucrtbase/init",
+                    "_set_fmode",
+                    &[("mode", &_mode)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_set_fmode(machine, _mode);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _set_new_mode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let newhandlermode = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_set_new_mode_pos,
-                "ucrtbase/init",
-                "_set_new_mode",
-                &[("newhandlermode", &newhandlermode)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_set_new_mode(machine, newhandlermode);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let newhandlermode = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_set_new_mode_pos,
+                    "ucrtbase/init",
+                    "_set_new_mode",
+                    &[("newhandlermode", &newhandlermode)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_set_new_mode(machine, newhandlermode);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _setmode(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let fd = <u32>::from_stack(mem, stack_args + 0u32);
-        let mode = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_setmode_pos,
-                "ucrtbase/init",
-                "_setmode",
-                &[("fd", &fd), ("mode", &mode)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_setmode(machine, fd, mode);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let fd = <u32>::from_stack(mem, stack_args + 0u32);
+            let mode = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_setmode_pos,
+                    "ucrtbase/init",
+                    "_setmode",
+                    &[("fd", &fd), ("mode", &mode)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_setmode(machine, fd, mode);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _time64(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/time") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_time64_pos,
-                "ucrtbase/time",
-                "_time64",
-                &[("destTime", &destTime)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_time64(machine, destTime);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let destTime = <Option<&mut u64>>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/time") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_time64_pos,
+                    "ucrtbase/time",
+                    "_time64",
+                    &[("destTime", &destTime)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_time64(machine, destTime);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn _unlock(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let locknum = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::_unlock_pos,
-                "ucrtbase/init",
-                "_unlock",
-                &[("locknum", &locknum)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::_unlock(machine, locknum);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let locknum = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/init") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::_unlock_pos,
+                    "ucrtbase/init",
+                    "_unlock",
+                    &[("locknum", &locknum)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::_unlock(machine, locknum);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn abort(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::abort_pos,
-                "ucrtbase/misc",
-                "abort",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::abort(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::abort_pos,
+                    "ucrtbase/misc",
+                    "abort",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::abort(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn atexit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let func = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::atexit_pos,
-                "ucrtbase/misc",
-                "atexit",
-                &[("func", &func)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::atexit(machine, func);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let func = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::atexit_pos,
+                    "ucrtbase/misc",
+                    "atexit",
+                    &[("func", &func)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::atexit(machine, func);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn calloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let count = <u32>::from_stack(mem, stack_args + 0u32);
-        let size = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::calloc_pos,
-                "ucrtbase/memory",
-                "calloc",
-                &[("count", &count), ("size", &size)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::calloc(machine, count, size);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let count = <u32>::from_stack(mem, stack_args + 0u32);
+            let size = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::calloc_pos,
+                    "ucrtbase/memory",
+                    "calloc",
+                    &[("count", &count), ("size", &size)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::calloc(machine, count, size);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn cos(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let x = <f64>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::cos_pos,
-                "ucrtbase/math",
-                "cos",
-                &[("x", &x)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::cos(machine, x);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let x = <f64>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::cos_pos,
+                    "ucrtbase/math",
+                    "cos",
+                    &[("x", &x)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::cos(machine, x);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn exit(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let status = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::exit_pos,
-                "ucrtbase/misc",
-                "exit",
-                &[("status", &status)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::exit(machine, status);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let status = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::exit_pos,
+                    "ucrtbase/misc",
+                    "exit",
+                    &[("status", &status)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::exit(machine, status);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn floor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let x = <f64>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::floor_pos,
-                "ucrtbase/math",
-                "floor",
-                &[("x", &x)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::floor(machine, x);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let x = <f64>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::floor_pos,
+                    "ucrtbase/math",
+                    "floor",
+                    &[("x", &x)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::floor(machine, x);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn free(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let ptr = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::free_pos,
-                "ucrtbase/memory",
-                "free",
-                &[("ptr", &ptr)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::free(machine, ptr);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let ptr = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::free_pos,
+                    "ucrtbase/memory",
+                    "free",
+                    &[("ptr", &ptr)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::free(machine, ptr);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn fwrite(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let mode = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::fwrite_pos,
-                "ucrtbase/misc",
-                "fwrite",
-                &[("filename", &filename), ("mode", &mode)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::fwrite(machine, filename, mode);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let filename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let mode = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::fwrite_pos,
+                    "ucrtbase/misc",
+                    "fwrite",
+                    &[("filename", &filename), ("mode", &mode)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::fwrite(machine, filename, mode);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn malloc(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let size = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::malloc_pos,
-                "ucrtbase/memory",
-                "malloc",
-                &[("size", &size)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::malloc(machine, size);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let size = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::malloc_pos,
+                    "ucrtbase/memory",
+                    "malloc",
+                    &[("size", &size)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::malloc(machine, size);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn memcpy(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let dest = <u32>::from_stack(mem, stack_args + 0u32);
-        let src = <u32>::from_stack(mem, stack_args + 4u32);
-        let count = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::memcpy_pos,
-                "ucrtbase/misc",
-                "memcpy",
-                &[("dest", &dest), ("src", &src), ("count", &count)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::memcpy(machine, dest, src, count);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let dest = <u32>::from_stack(mem, stack_args + 0u32);
+            let src = <u32>::from_stack(mem, stack_args + 4u32);
+            let count = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::memcpy_pos,
+                    "ucrtbase/misc",
+                    "memcpy",
+                    &[("dest", &dest), ("src", &src), ("count", &count)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::memcpy(machine, dest, src, count);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn memset(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let dst = <u32>::from_stack(mem, stack_args + 0u32);
-        let val = <u32>::from_stack(mem, stack_args + 4u32);
-        let len = <u32>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::memset_pos,
-                "ucrtbase/memory",
-                "memset",
-                &[("dst", &dst), ("val", &val), ("len", &len)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::memset(machine, dst, val, len);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let dst = <u32>::from_stack(mem, stack_args + 0u32);
+            let val = <u32>::from_stack(mem, stack_args + 4u32);
+            let len = <u32>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::memset_pos,
+                    "ucrtbase/memory",
+                    "memset",
+                    &[("dst", &dst), ("val", &val), ("len", &len)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::memset(machine, dst, val, len);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn operator_delete(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let size = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::operator_delete_pos,
-                "ucrtbase/memory",
-                "operator_delete",
-                &[("size", &size)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::operator_delete(machine, size);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let size = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::operator_delete_pos,
+                    "ucrtbase/memory",
+                    "operator_delete",
+                    &[("size", &size)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::operator_delete(machine, size);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn operator_new(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let size = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::operator_new_pos,
-                "ucrtbase/memory",
-                "operator_new",
-                &[("size", &size)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::operator_new(machine, size);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let size = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/memory") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::operator_new_pos,
+                    "ucrtbase/memory",
+                    "operator_new",
+                    &[("size", &size)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::operator_new(machine, size);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn printf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let fmt = <Option<&str>>::from_stack(mem, stack_args + 0u32);
-        let args = <VarArgs>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::printf_pos,
-                "ucrtbase/misc",
-                "printf",
-                &[("fmt", &fmt), ("args", &args)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::printf(machine, fmt, args);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let fmt = <Option<&str>>::from_stack(mem, stack_args + 0u32);
+            let args = <VarArgs>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::printf_pos,
+                    "ucrtbase/misc",
+                    "printf",
+                    &[("fmt", &fmt), ("args", &args)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::printf(machine, fmt, args);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn rand(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/rand") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::rand_pos,
-                "ucrtbase/rand",
-                "rand",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::rand(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/rand") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::rand_pos,
+                    "ucrtbase/rand",
+                    "rand",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::rand(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn signal(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let sig = <u32>::from_stack(mem, stack_args + 0u32);
-        let func = <u32>::from_stack(mem, stack_args + 4u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::signal_pos,
-                "ucrtbase/misc",
-                "signal",
-                &[("sig", &sig), ("func", &func)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::signal(machine, sig, func);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let sig = <u32>::from_stack(mem, stack_args + 0u32);
+            let func = <u32>::from_stack(mem, stack_args + 4u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::signal_pos,
+                    "ucrtbase/misc",
+                    "signal",
+                    &[("sig", &sig), ("func", &func)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::signal(machine, sig, func);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn sin(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let x = <f64>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::sin_pos,
-                "ucrtbase/math",
-                "sin",
-                &[("x", &x)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::sin(machine, x);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let x = <f64>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::sin_pos,
+                    "ucrtbase/math",
+                    "sin",
+                    &[("x", &x)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::sin(machine, x);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn sprintf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let buf = <u32>::from_stack(mem, stack_args + 0u32);
-        let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::sprintf_pos,
-                "ucrtbase/misc",
-                "sprintf",
-                &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::sprintf(machine, buf, fmt, args);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let buf = <u32>::from_stack(mem, stack_args + 0u32);
+            let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::sprintf_pos,
+                    "ucrtbase/misc",
+                    "sprintf",
+                    &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::sprintf(machine, buf, fmt, args);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn sqrt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let x = <f64>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::sqrt_pos,
-                "ucrtbase/math",
-                "sqrt",
-                &[("x", &x)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::sqrt(machine, x);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let x = <f64>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/math") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::sqrt_pos,
+                    "ucrtbase/math",
+                    "sqrt",
+                    &[("x", &x)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::sqrt(machine, x);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn srand(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let seed = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/rand") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::srand_pos,
-                "ucrtbase/rand",
-                "srand",
-                &[("seed", &seed)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::srand(machine, seed);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let seed = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/rand") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::srand_pos,
+                    "ucrtbase/rand",
+                    "srand",
+                    &[("seed", &seed)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::srand(machine, seed);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn strlen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::strlen_pos,
-                "ucrtbase/misc",
-                "strlen",
-                &[("lpString", &lpString)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::strlen(machine, lpString);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let lpString = <Option<&CStr>>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::strlen_pos,
+                    "ucrtbase/misc",
+                    "strlen",
+                    &[("lpString", &lpString)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::strlen(machine, lpString);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn terminate(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::terminate_pos,
-                "ucrtbase/misc",
-                "terminate",
-                &[],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::terminate(machine);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::terminate_pos,
+                    "ucrtbase/misc",
+                    "terminate",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::terminate(machine);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn time(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let destTime = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/time") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::time_pos,
-                "ucrtbase/time",
-                "time",
-                &[("destTime", &destTime)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::time(machine, destTime);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let destTime = <Option<&mut u32>>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/time") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::time_pos,
+                    "ucrtbase/time",
+                    "time",
+                    &[("destTime", &destTime)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::time(machine, destTime);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
     pub unsafe fn vfprintf(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let buf = <u32>::from_stack(mem, stack_args + 0u32);
-        let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
-        let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
-        let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
-            crate::winapi::trace::Record::new(
-                winapi::ucrtbase::vfprintf_pos,
-                "ucrtbase/misc",
-                "vfprintf",
-                &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::ucrtbase::vfprintf(machine, buf, fmt, args);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let buf = <u32>::from_stack(mem, stack_args + 0u32);
+            let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
+            let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
+            let __trace_record = if crate::winapi::trace::enabled("ucrtbase/misc") {
+                crate::winapi::trace::Record::new(
+                    winapi::ucrtbase::vfprintf_pos,
+                    "ucrtbase/misc",
+                    "vfprintf",
+                    &[("buf", &buf), ("fmt", &fmt), ("args", &args)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::ucrtbase::vfprintf(machine, buf, fmt, args);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
 }
 const SHIMS: [Shim; 57usize] = [

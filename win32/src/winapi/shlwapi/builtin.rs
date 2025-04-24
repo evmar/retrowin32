@@ -14,24 +14,26 @@ mod wrappers {
     use ::memory::Extensions;
     use winapi::shlwapi::*;
     pub unsafe fn PathRemoveFileSpecA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-        let mem = machine.mem().detach();
-        let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
-        let __trace_record = if crate::winapi::trace::enabled("shlwapi") {
-            crate::winapi::trace::Record::new(
-                winapi::shlwapi::PathRemoveFileSpecA_pos,
-                "shlwapi",
-                "PathRemoveFileSpecA",
-                &[("pszPath", &pszPath)],
-            )
-            .enter()
-        } else {
-            None
-        };
-        let result = winapi::shlwapi::PathRemoveFileSpecA(machine, pszPath);
-        if let Some(mut __trace_record) = __trace_record {
-            __trace_record.exit(&result);
+        unsafe {
+            let mem = machine.mem().detach();
+            let pszPath = <u32>::from_stack(mem, stack_args + 0u32);
+            let __trace_record = if crate::winapi::trace::enabled("shlwapi") {
+                crate::winapi::trace::Record::new(
+                    winapi::shlwapi::PathRemoveFileSpecA_pos,
+                    "shlwapi",
+                    "PathRemoveFileSpecA",
+                    &[("pszPath", &pszPath)],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let result = winapi::shlwapi::PathRemoveFileSpecA(machine, pszPath);
+            if let Some(mut __trace_record) = __trace_record {
+                __trace_record.exit(&result);
+            }
+            result.into()
         }
-        result.into()
     }
 }
 const SHIMS: [Shim; 1usize] = [Shim {
