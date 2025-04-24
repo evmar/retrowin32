@@ -277,7 +277,7 @@ pub enum CreateWindowClassName<'a, Str: ?Sized> {
     Name(&'a Str),
 }
 impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, str> {
-    unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
         } else {
@@ -286,7 +286,7 @@ impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, st
     }
 }
 impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowClassName<'a, Str16> {
-    unsafe fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg <= 0xFFFF {
             CreateWindowClassName::Atom(arg as u16)
         } else {
@@ -301,7 +301,7 @@ pub struct CreateWindowStyle {
     rest: u16,
 }
 impl<'a> crate::calling_convention::FromArg<'a> for CreateWindowStyle {
-    unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         let ws = WS::from_bits(arg & 0xFFFF_0000).unwrap();
         let rest = (arg & 0xFFFF) as u16;
         CreateWindowStyle { ws, rest }

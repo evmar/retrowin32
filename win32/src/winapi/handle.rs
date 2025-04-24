@@ -97,7 +97,7 @@ impl<T> std::fmt::LowerHex for HANDLE<T> {
 }
 
 impl<'a, T> crate::calling_convention::FromArg<'a> for HANDLE<T> {
-    unsafe fn from_arg(_mem: memory::Mem, arg: u32) -> Self {
+    fn from_arg(_mem: memory::Mem, arg: u32) -> Self {
         Self::from_raw(arg)
     }
 }

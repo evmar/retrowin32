@@ -182,7 +182,7 @@ pub enum BrushOrColor {
 }
 
 impl<'a> FromArg<'a> for BrushOrColor {
-    unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         if arg > 0 && arg < HGDIOBJ::lowest_value() {
             BrushOrColor::Color(COLOR::try_from(arg - 1).unwrap())
         } else {

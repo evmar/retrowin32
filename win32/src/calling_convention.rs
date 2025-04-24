@@ -27,7 +27,7 @@ impl<T> Deref for Array<'_, T> {
 }
 
 impl<'a, T: memory::Pod> FromStack<'a> for Array<'a, T> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let buf = ArrayOut::<'a, T>::from_stack(mem, sp);
         Array {
             bytes: buf.bytes,
@@ -55,7 +55,7 @@ impl<'a, T: memory::Pod> ArrayOut<'a, T> {
 }
 
 impl<'a, T: memory::Pod> FromStack<'a> for ArrayOut<'a, T> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get_pod::<u32>(sp);
         assert!(addr != 0);
         let count = mem.get_pod::<u32>(sp + 4);
@@ -96,7 +96,7 @@ impl<T> DerefMut for ArrayOut<'_, T> {
 }
 
 impl<'a, T: memory::Pod> FromStack<'a> for Option<ArrayOut<'a, T>> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get_pod::<u32>(sp);
         if addr == 0 {
             return None;
@@ -108,76 +108,76 @@ impl<'a, T: memory::Pod> FromStack<'a> for Option<ArrayOut<'a, T>> {
 /// Lowest level trait: given a stack pointer, extract the argument.
 /// Implemented by argument types that read multiple things off the stack.
 pub trait FromStack<'a> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self;
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self;
 }
 
 /// Higher level trait: given a value read from the stack, convert.
 pub trait FromArg<'a> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self;
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self;
 }
 
 impl<'a, T: FromArg<'a>> FromStack<'a> for T {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         T::from_arg(mem, mem.get_pod::<u32>(sp))
     }
 }
 
 impl<'a> FromArg<'a> for u8 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg as u8
     }
 }
 
 impl<'a> FromArg<'a> for i8 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg as i8
     }
 }
 
 impl<'a> FromArg<'a> for u16 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg as u16
     }
 }
 
 impl<'a> FromArg<'a> for i16 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg as i16
     }
 }
 
 impl<'a> FromArg<'a> for u32 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg
     }
 }
 
 impl<'a> FromArg<'a> for i32 {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg as i32
     }
 }
 
 impl<'a> FromArg<'a> for bool {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         arg != 0
     }
 }
 
 impl<'a> FromStack<'a> for f64 {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         mem.get_pod::<f64>(sp)
     }
 }
 
 impl<'a, T: TryFrom<u32>> FromArg<'a> for Result<T, T::Error> {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         T::try_from(arg)
     }
 }
 
 impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a T> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if arg == 0 {
             return None;
         }
@@ -187,7 +187,7 @@ impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a T> {
 }
 
 impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if arg == 0 {
             return None;
         }
@@ -197,22 +197,22 @@ impl<'a, T: memory::Pod> FromArg<'a> for Option<&'a mut T> {
 }
 
 impl<'a, T: memory::Pod> FromStack<'a> for Option<&'a [T]> {
-    unsafe fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: Mem<'a>, sp: u32) -> Self {
         let addr = mem.get_pod::<u32>(sp);
         let count = mem.get_pod::<u32>(sp + 4);
         if addr == 0 {
             return None;
         }
         let slice = mem.sub32(addr, count);
-        Some(std::slice::from_raw_parts(
-            slice.as_ptr() as *const _,
-            count as usize,
-        ))
+        let ptr = slice.as_ptr() as *const T;
+        memory::check_aligned(ptr);
+        // Safety: Pod allows coercion from bytes.
+        Some(unsafe { std::slice::from_raw_parts(slice.as_ptr() as *const _, count as usize) })
     }
 }
 
 impl<'a> FromArg<'a> for Option<&'a str> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if arg == 0 {
             return None;
         }
@@ -224,16 +224,17 @@ impl<'a> FromArg<'a> for Option<&'a str> {
 }
 
 impl<'a> FromArg<'a> for Option<&'a CStr> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if arg == 0 {
             return None;
         }
-        Some(CStr::from_ptr(mem.get_ptr::<u8>(arg) as *const _))
+        let buf = mem.slice(arg..);
+        Some(CStr::from_bytes_until_nul(buf).unwrap())
     }
 }
 
 impl<'a> FromArg<'a> for Option<&'a Str16> {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         Str16::from_nul_term_ptr(mem, arg)
     }
 }
@@ -243,13 +244,13 @@ impl<'a> FromArg<'a> for Option<&'a Str16> {
 pub struct VarArgs(u32);
 impl VarArgs {
     pub fn pop<'a, T: FromArg<'a>>(&mut self, mem: Mem<'a>) -> T {
-        let value = unsafe { T::from_stack(mem, self.0) };
+        let value = T::from_stack(mem, self.0);
         self.0 += 4; // TODO: should expose stack_consumed for use here and switch to FromStack
         value
     }
 }
 impl<'a> FromStack<'a> for VarArgs {
-    unsafe fn from_stack(_mem: Mem<'a>, sp: u32) -> Self {
+    fn from_stack(_mem: Mem<'a>, sp: u32) -> Self {
         VarArgs(sp)
     }
 }

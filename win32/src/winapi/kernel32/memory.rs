@@ -287,7 +287,7 @@ bitflags! {
     }
 }
 impl<'a> calling_convention::FromArg<'a> for GMEM {
-    unsafe fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: Mem<'a>, arg: u32) -> Self {
         // GlobalAlloc accepted many flags, but most are obsolete, so ignore
         // anything other than the flags we have named.
         GMEM::from_bits_truncate(arg)

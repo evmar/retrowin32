@@ -120,9 +120,8 @@ pub fn RegisterClassA(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> 
 pub fn RegisterClassW(machine: &mut Machine, lpWndClass: Option<&WNDCLASSA>) -> u32 {
     // TODO: calling the *W variants tags the windows as expecting wide messages(!).
     let lpWndClass = lpWndClass.unwrap();
-    let name =
-        unsafe { Str16::from_nul_term_ptr(machine.mem(), lpWndClass.lpszClassName) }.unwrap();
-    let background = unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground) };
+    let name = Str16::from_nul_term_ptr(machine.mem(), lpWndClass.lpszClassName).unwrap();
+    let background = BrushOrColor::from_arg(machine.mem(), lpWndClass.hbrBackground);
     let wndclass = WndClass {
         name: name.to_string(),
         style: CS::from_bits(lpWndClass.style).unwrap(),
@@ -181,7 +180,7 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
-        background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
+        background: BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground)
             .to_brush(machine),
     };
     machine.state.user32.wndclasses.register(wndclass)
@@ -190,14 +189,14 @@ pub fn RegisterClassExA(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXA
 #[win32_derive::dllexport]
 pub fn RegisterClassExW(machine: &mut Machine, lpWndClassEx: Option<&WNDCLASSEXW>) -> u32 {
     let lpWndClassEx = lpWndClassEx.unwrap();
-    let name = unsafe { Str16::from_nul_term_ptr(machine.mem(), lpWndClassEx.lpszClassName) }
+    let name = Str16::from_nul_term_ptr(machine.mem(), lpWndClassEx.lpszClassName)
         .unwrap()
         .to_string();
     let wndclass = WndClass {
         name,
         style: CS::from_bits(lpWndClassEx.style).unwrap(),
         wndproc: lpWndClassEx.lpfnWndProc,
-        background: unsafe { BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground) }
+        background: BrushOrColor::from_arg(machine.mem(), lpWndClassEx.hbrBackground)
             .to_brush(machine),
     };
     machine.state.user32.wndclasses.register(wndclass)

@@ -8,7 +8,7 @@ fn aligned_panic(ptr: usize, align: usize) {
     log::warn!("pointer {ptr:x} should be aligned to {align}",);
 }
 
-fn check_aligned<T: Pod>(ptr: *const T) {
+pub fn check_aligned<T: Pod>(ptr: *const T) {
     let align = std::mem::align_of::<T>();
     if ptr as usize % align != 0 {
         aligned_panic(ptr as usize, align);

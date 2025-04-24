@@ -159,7 +159,7 @@ impl<'a> std::fmt::Debug for GetProcAddressArg<'a> {
 }
 
 impl<'a> calling_convention::FromStack<'a> for GetProcAddressArg<'a> {
-    unsafe fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
+    fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
         let lpProcName = <u32>::from_stack(mem, sp);
         if lpProcName & 0xFFFF_0000 == 0 {
             GetProcAddressArg(ImportSymbol::Ordinal(lpProcName))

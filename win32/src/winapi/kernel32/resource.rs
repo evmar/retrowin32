@@ -57,7 +57,7 @@ impl<'a, T> FromArg<'a> for ResourceKey<T>
 where
     Option<T>: FromArg<'a>,
 {
-    unsafe fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
+    fn from_arg(mem: Mem<'a>, arg: u32) -> Self {
         if IS_INTRESOURCE(arg) {
             ResourceKey::Id(arg)
         } else {

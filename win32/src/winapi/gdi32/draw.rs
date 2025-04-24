@@ -41,7 +41,7 @@ impl std::fmt::Debug for COLORREF {
 }
 
 impl<'a> crate::calling_convention::FromArg<'a> for COLORREF {
-    unsafe fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
+    fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
         COLORREF(arg)
     }
 }
