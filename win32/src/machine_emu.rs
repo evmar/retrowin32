@@ -246,27 +246,11 @@ impl MachineX<Emulator> {
             .await
     }
 
-    pub fn dump_stack(&self) {
-        let esp = self.emu.x86.cpu().regs.get32(x86::Register::ESP);
-        if esp == 0 {
-            println!("  esp == 0");
-            return;
-        }
-        for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
-            let extra = if addr == esp { " <- esp" } else { "" };
-            println!(
-                "{:08x} {:08x}{extra}",
-                addr,
-                self.mem().get_pod::<u32>(addr)
-            );
-        }
-    }
-
     pub fn dump_state(&self, eip_offset: usize) {
         let cpu = self.emu.x86.cpu();
         x86::debug::dump_state(cpu, self.mem(), &self.memory.labels, eip_offset);
         println!("stack:");
-        self.dump_stack();
+        x86::debug::dump_stack(cpu, self.mem());
         x86::debug::dump_fpu_state(cpu);
     }
 

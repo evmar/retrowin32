@@ -73,24 +73,8 @@ pub fn disassemble(mem: Mem, addr: u32, limit: usize) -> Vec<Instruction> {
 /// instruction.  Call like `dump_state(..., instr.len())` to include the current instruction.
 #[allow(unused)]
 pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip_offset: usize) {
-    use iced_x86::Register::*;
     println!("cpu state: {:?}", cpu.state);
-    println!(
-        "\
-        eax {eax:08x}    esi {esi:08x}     eip {eip:08x}\n\
-        ecx {ecx:08x}    edi {edi:08x}\n\
-        edx {edx:08x}    esp {esp:08x}\n\
-        ebx {ebx:08x}    ebp {ebp:08x}",
-        eax = cpu.regs.get32(EAX),
-        ecx = cpu.regs.get32(ECX),
-        edx = cpu.regs.get32(EDX),
-        ebx = cpu.regs.get32(EBX),
-        esi = cpu.regs.get32(ESI),
-        edi = cpu.regs.get32(EDI),
-        esp = cpu.regs.get32(ESP),
-        ebp = cpu.regs.get32(EBP),
-        eip = cpu.regs.eip,
-    );
+    dump_regs(cpu, mem);
     println!("nearby instructions:");
     let instrs = disassemble(mem, cpu.regs.eip - eip_offset as u32, 5);
     for instr in instrs {
@@ -113,6 +97,27 @@ pub fn dump_state(cpu: &crate::CPU, mem: Mem, labels: &HashMap<u32, String>, eip
 }
 
 #[allow(unused)]
+pub fn dump_regs(cpu: &crate::CPU, mem: Mem) {
+    use iced_x86::Register::*;
+    println!(
+        "\
+        eax {eax:08x}    esi {esi:08x}     eip {eip:08x}\n\
+        ecx {ecx:08x}    edi {edi:08x}\n\
+        edx {edx:08x}    esp {esp:08x}\n\
+        ebx {ebx:08x}    ebp {ebp:08x}",
+        eax = cpu.regs.get32(EAX),
+        ecx = cpu.regs.get32(ECX),
+        edx = cpu.regs.get32(EDX),
+        ebx = cpu.regs.get32(EBX),
+        esi = cpu.regs.get32(ESI),
+        edi = cpu.regs.get32(EDI),
+        esp = cpu.regs.get32(ESP),
+        ebp = cpu.regs.get32(EBP),
+        eip = cpu.regs.eip,
+    );
+}
+
+#[allow(unused)]
 pub fn dump_fpu_state(cpu: &crate::CPU) {
     if cpu.fpu.st_top == 8 {
         return;
@@ -121,5 +126,18 @@ pub fn dump_fpu_state(cpu: &crate::CPU) {
     for i in cpu.fpu.st_top..8 {
         let value = cpu.fpu.st[i];
         println!("st{}: {:20.16}", i - cpu.fpu.st_top, value);
+    }
+}
+
+#[allow(unused)]
+pub fn dump_stack(cpu: &crate::CPU, mem: Mem) {
+    let esp = cpu.regs.get32(iced_x86::Register::ESP);
+    if esp == 0 {
+        println!("esp == 0");
+        return;
+    }
+    for addr in ((esp - 0x10)..(esp + 0x10)).step_by(4) {
+        let extra = if addr == esp { " <- esp" } else { "" };
+        println!("{:08x} {:08x}{extra}", addr, mem.get_pod::<u32>(addr));
     }
 }
