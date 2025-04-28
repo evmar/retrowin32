@@ -1,7 +1,77 @@
 use super::MMRESULT;
-use crate::machine::Machine;
+use crate::{machine::Machine, winapi};
 use bitflags::bitflags;
 use memory::Extensions;
+use std::collections::VecDeque;
+
+pub type HWAVEOUT = winapi::HANDLE<()>;
+
+// TODO: support multiple HWAVEOUTs
+const HWAVEOUT_SINGLETON: HWAVEOUT = HWAVEOUT::from_raw(0x00000001);
+
+enum Notify {
+    Function(u32, u32),
+}
+
+enum MM_WOM {
+    // OPEN = 0x3BB,
+    // CLOSE = 0x3BC,
+    DONE = 0x3BD,
+}
+
+pub struct WaveThread {
+    /// Queue of WAVEHDR addresses to process.
+    blocks: VecDeque<u32>,
+    /// How to notify the exe when a WAVEHDR is done.
+    notify: Option<Notify>,
+}
+
+#[win32_derive::dllexport]
+pub async fn retrowin32_wave_thread_main(machine: &mut Machine) {
+    // TODO: send the OPEN message here.
+    loop {
+        log::debug!("wave thread main");
+        let Some(state) = &mut machine.state.winmm.wave_thread else {
+            todo!();
+        };
+        let Some(wave_hdr_addr) = state.blocks.pop_front() else {
+            // TODO: wait on a condition variable
+            machine.emu.x86.cpu_mut().block(None).await;
+            continue;
+        };
+        let mem = machine.memory.mem();
+        let wave_hdr = mem.get_pod::<WAVEHDR>(wave_hdr_addr);
+        let samples = mem.sub32(wave_hdr.lpData, wave_hdr.dwBufferLength);
+        machine.state.winmm.audio.as_mut().unwrap().write(samples);
+
+        log::debug!("notifying callback");
+        match state.notify {
+            Some(Notify::Function(callback, instance)) => {
+                let cpu = machine.emu.x86.cpu_mut();
+                // void CALLBACK waveOutProc(
+                //     HWAVEOUT  hwo,
+                //     UINT      uMsg,
+                //     DWORD_PTR dwInstance,
+                //     DWORD_PTR dwParam1,
+                //     DWORD_PTR dwParam2
+                // );
+                cpu.call_x86(
+                    mem,
+                    callback,
+                    vec![
+                        HWAVEOUT_SINGLETON.to_raw(),
+                        MM_WOM::DONE as u32,
+                        instance,
+                        wave_hdr_addr,
+                        0,
+                    ],
+                )
+                .await;
+            }
+            None => {}
+        }
+    }
+}
 
 #[win32_derive::dllexport]
 pub fn waveOutGetNumDevs(machine: &mut Machine) -> u32 {
@@ -53,8 +123,6 @@ pub fn waveOutGetDevCapsA(
     MMRESULT::MMSYSERR_NOERROR
 }
 
-pub type HWAVEOUT = u32;
-
 #[repr(C)]
 #[derive(Debug)]
 pub struct WAVEFORMATEX {
@@ -68,10 +136,31 @@ pub struct WAVEFORMATEX {
 }
 unsafe impl memory::Pod for WAVEFORMATEX {}
 
-bitflags! {
-    #[derive(Debug, win32_derive::TryFromBitflags)]
-    pub struct WaveOutOpenFlags: u32 {
-        const CALLBACK_FUNCTION = 0x0003_0000;
+/// The types of callbacks that can be used with waveOutOpen.
+#[derive(Debug, win32_derive::TryFromEnum)]
+pub enum CALLBACK {
+    NULL = 0x00000000,
+    WINDOW = 0x00010000,
+    TASK = 0x00020000,
+    FUNCTION = 0x00030000,
+    EVENT = 0x00050000,
+}
+
+#[derive(Debug)]
+pub struct WaveOutOpenFlags {
+    callback: CALLBACK,
+    // todo: there are other possible flags
+}
+
+impl<'a> crate::calling_convention::FromStack<'a> for WaveOutOpenFlags {
+    fn from_stack(mem: memory::Mem<'a>, sp: u32) -> Self {
+        let flags = mem.get_pod::<u32>(sp);
+        let callback = CALLBACK::try_from(flags & 0x00070000).unwrap();
+        let flags = flags & !0x00070000;
+        if flags != 0 {
+            todo!();
+        }
+        WaveOutOpenFlags { callback }
     }
 }
 
@@ -83,7 +172,7 @@ pub fn waveOutOpen(
     pwfx: Option<&WAVEFORMATEX>,
     dwCallback: u32,
     dwInstance: u32,
-    fdwOpen: Result<WaveOutOpenFlags, u32>,
+    fdwOpen: WaveOutOpenFlags,
 ) -> MMRESULT {
     if !machine.state.winmm.audio_enabled {
         // Note that pocoman doesn't call waveOutGetNumDevs, but just directly calls
@@ -91,14 +180,37 @@ pub fn waveOutOpen(
         return MMRESULT::MMSYSERR_NOTENABLED;
     }
 
-    let flags = fdwOpen.unwrap();
-    if flags.contains(WaveOutOpenFlags::CALLBACK_FUNCTION) {
-        log::error!("todo");
+    let mut wave_thread = WaveThread {
+        blocks: VecDeque::new(),
+        notify: None,
+    };
+
+    match fdwOpen.callback {
+        CALLBACK::NULL => {}
+        CALLBACK::WINDOW => {
+            let hwnd = winapi::HWND::from_raw(dwCallback);
+            log::warn!("TODO: waveOutOpen callback with window={hwnd:?}");
+        }
+        CALLBACK::FUNCTION => {
+            wave_thread.notify = Some(Notify::Function(dwCallback, dwInstance));
+        }
+        _ => todo!("callback {:?}", fdwOpen.callback),
     }
-    *phwo.unwrap() = 1;
+    *phwo.unwrap() = HWAVEOUT_SINGLETON;
 
     let fmt = pwfx.unwrap();
     machine.state.winmm.audio = Some(machine.host.init_audio(fmt.nSamplesPerSec));
+
+    assert!(machine.state.winmm.wave_thread.is_none());
+
+    let retrowin32_wave_thread_main =
+        winapi::kernel32::get_symbol(machine, "winmm.dll", "retrowin32_wave_thread_main");
+    machine.state.winmm.wave_thread = Some(wave_thread);
+
+    let thread = winapi::kernel32::create_thread(machine, 0x1000);
+    let cpu = machine.emu.x86.new_cpu();
+    Machine::init_thread(cpu, &thread);
+    cpu.regs.eip = retrowin32_wave_thread_main;
 
     MMRESULT::MMSYSERR_NOERROR
 }
@@ -109,7 +221,11 @@ pub fn waveOutReset(_machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutClose(_machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
+pub fn waveOutClose(machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
+    assert!(machine.state.winmm.wave_thread.is_some());
+    assert_eq!(hwo, HWAVEOUT_SINGLETON);
+    machine.state.winmm.wave_thread = None;
+
     MMRESULT::MMSYSERR_NOERROR
 }
 
@@ -277,16 +393,18 @@ pub fn waveOutUnprepareHeader(
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutWrite(
-    machine: &mut Machine,
-    hwo: HWAVEOUT,
-    pwh: Option<&WAVEHDR>,
-    cbwh: u32,
-) -> MMRESULT {
+pub fn waveOutWrite(machine: &mut Machine, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -> MMRESULT {
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
-    let hdr = pwh.unwrap();
-    let buf = machine.memory.mem().sub32(hdr.lpData, hdr.dwBufferLength);
-    machine.state.winmm.audio.as_mut().unwrap().write(buf);
+    machine
+        .state
+        .winmm
+        .wave_thread
+        .as_mut()
+        .unwrap()
+        .blocks
+        .push_back(pwh);
+    // TODO: use condition variable to notify the thread
+    machine.unblock_all();
     MMRESULT::MMSYSERR_NOERROR
 }
 

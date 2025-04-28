@@ -569,6 +569,34 @@ mod wrappers {
             })
         }
     }
+    pub unsafe fn retrowin32_wave_thread_main(
+        machine: &mut Machine,
+        stack_args: u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+        unsafe {
+            let mem = machine.mem().detach();
+            let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
+                crate::winapi::trace::Record::new(
+                    winapi::winmm::retrowin32_wave_thread_main_pos,
+                    "winmm/wave",
+                    "retrowin32_wave_thread_main",
+                    &[],
+                )
+                .enter()
+            } else {
+                None
+            };
+            let machine: *mut Machine = machine;
+            Box::pin(async move {
+                let machine = &mut *machine;
+                let result = winapi::winmm::retrowin32_wave_thread_main(machine).await;
+                if let Some(mut __trace_record) = __trace_record {
+                    __trace_record.exit(&result);
+                }
+                result.into()
+            })
+        }
+    }
     pub unsafe fn timeBeginPeriod(machine: &mut Machine, stack_args: u32) -> ABIReturn {
         unsafe {
             let mem = machine.mem().detach();
@@ -844,7 +872,7 @@ mod wrappers {
             let pwfx = <Option<&WAVEFORMATEX>>::from_stack(mem, stack_args + 8u32);
             let dwCallback = <u32>::from_stack(mem, stack_args + 12u32);
             let dwInstance = <u32>::from_stack(mem, stack_args + 16u32);
-            let fdwOpen = <Result<WaveOutOpenFlags, u32>>::from_stack(mem, stack_args + 20u32);
+            let fdwOpen = <WaveOutOpenFlags>::from_stack(mem, stack_args + 20u32);
             let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
                 crate::winapi::trace::Record::new(
                     winapi::winmm::waveOutOpen_pos,
@@ -1013,7 +1041,7 @@ mod wrappers {
         unsafe {
             let mem = machine.mem().detach();
             let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
-            let pwh = <Option<&WAVEHDR>>::from_stack(mem, stack_args + 4u32);
+            let pwh = <u32>::from_stack(mem, stack_args + 4u32);
             let cbwh = <u32>::from_stack(mem, stack_args + 8u32);
             let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
                 crate::winapi::trace::Record::new(
@@ -1034,7 +1062,7 @@ mod wrappers {
         }
     }
 }
-const SHIMS: [Shim; 41usize] = [
+const SHIMS: [Shim; 42usize] = [
     Shim {
         name: "PlaySoundW",
         func: Handler::Sync(wrappers::PlaySoundW),
@@ -1122,6 +1150,10 @@ const SHIMS: [Shim; 41usize] = [
     Shim {
         name: "retrowin32_time_thread_main",
         func: Handler::Async(wrappers::retrowin32_time_thread_main),
+    },
+    Shim {
+        name: "retrowin32_wave_thread_main",
+        func: Handler::Async(wrappers::retrowin32_wave_thread_main),
     },
     Shim {
         name: "timeBeginPeriod",

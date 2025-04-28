@@ -40,4 +40,5 @@ pub struct State {
     pub audio_enabled: bool,
     pub audio: Option<Box<dyn host::Audio>>,
     pub time_thread: Option<TimeThread>,
+    pub wave_thread: Option<WaveThread>,
 }

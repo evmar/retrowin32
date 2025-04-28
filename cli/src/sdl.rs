@@ -291,82 +291,13 @@ fn copy_from_bytes<T>(out: &mut [T], bytes: &[u8]) {
     out_bytes.copy_from_slice(bytes);
 }
 
-/// A ring buffer for accumulating a [T].  A bit strange in that it takes unaligned [u8] input.
-struct RingBuffer<T> {
-    buf: Box<[T]>,
-    start: usize,
-    end: usize,
-}
-
-impl<T: Copy + Clone + Default> RingBuffer<T> {
-    fn new(size: usize) -> Self {
-        RingBuffer {
-            buf: vec![Default::default(); size].into_boxed_slice(),
-            start: 0,
-            end: 0,
-        }
-    }
-
-    /// Write bytes to the buffer.  bytes must represent (possibly-unaligned) slice of T.
-    fn write(&mut self, mut bytes: &[u8]) {
-        // Note that this accepts [u8] and not [T] because the input data isn't necessarily
-        // aligned!  We preserve the invariant that the output is aligned.
-        let element_size = size_of::<T>();
-        if self.end >= self.start {
-            // fill self.end..len
-            let len = self.buf.len();
-            let space = &mut self.buf[self.end..len];
-            let n = (space.len() * element_size).min(bytes.len());
-            let n_elem = n / element_size;
-            copy_from_bytes(&mut space[..n_elem], &bytes[..n]);
-            bytes = &bytes[n..];
-            self.end = (self.end + n_elem) % len;
-        }
-
-        if bytes.len() > 0 {
-            // fill self.end..self.start, we know self.end < self.start
-            let space = &mut self.buf[self.end..self.start];
-            let n = (space.len() * element_size).min(bytes.len());
-            let n_elem = n / element_size;
-            copy_from_bytes(&mut space[..n_elem], &bytes[..n]);
-            bytes = &bytes[n..];
-            self.end += n_elem;
-        }
-
-        if bytes.len() > 0 || self.start == self.end {
-            panic!("ringbuffer overflow, {} bytes remaining", bytes.len());
-        }
-    }
-
-    // Read Ts from the buffer, returning how many were read.
-    fn read(&mut self, mut buf: &mut [T]) -> usize {
-        let mut n_read = 0;
-
-        if self.start > self.end {
-            // read self.start..len
-            let len = self.buf.len();
-            let avail = &mut self.buf[self.start..len];
-            let n = avail.len().min(buf.len());
-            buf[..n].copy_from_slice(&avail[..n]);
-            n_read += n;
-            buf = &mut buf[n..];
-            self.start = (self.start + n) % len;
-        }
-
-        // read self.start..self.end, we know self.start < self.end
-        let avail = &mut self.buf[self.start..self.end];
-        let n = avail.len().min(buf.len());
-        buf[..n].copy_from_slice(&avail[..n]);
-        n_read += n;
-        // buf = &mut buf[n..];
-        self.start = (self.start + n) % self.buf.len();
-
-        n_read
-    }
+struct Chunk {
+    buf: Box<[i16]>,
+    ofs: usize,
 }
 
 struct AudioBuffer {
-    buf: RingBuffer<i16>,
+    next: Option<Chunk>,
     /// The count of i16s that have been read in total,
     /// for use in querying current audio position.
     pos: usize,
@@ -374,29 +305,47 @@ struct AudioBuffer {
 
 impl Default for AudioBuffer {
     fn default() -> Self {
-        // "kill the clone" writes 353kb in a single write.
-        AudioBuffer {
-            buf: RingBuffer::new(512 << 10),
-            pos: 0,
-        }
+        AudioBuffer { next: None, pos: 0 }
     }
 }
 
 impl AudioBuffer {
     fn write(&mut self, buf: &[u8]) {
+        assert!(self.next.is_none());
         assert!(buf.len() % 2 == 0); // must contain i16s
-        self.buf.write(buf);
+        let mut next = Box::<[i16]>::new_uninit_slice(buf.len() / 2);
+        copy_from_bytes(&mut next, buf);
+        log::debug!("host audio write: {} samples", next.len());
+        self.next = Some(Chunk {
+            buf: unsafe { std::mem::transmute(next) },
+            ofs: 0,
+        });
     }
 }
 
 impl sdl2::audio::AudioCallback for AudioBuffer {
     type Channel = i16;
     fn callback(&mut self, buf: &mut [i16]) {
-        let n = self.buf.read(buf);
-        if n < buf.len() {
-            // Audio underflow; use 0 to at least not play static.
-            buf[n..].fill(0);
+        let mut buf = buf;
+        if let Some(next) = self.next.as_mut() {
+            let avail = &next.buf[next.ofs..];
+            let n = std::cmp::min(avail.len(), buf.len());
+            buf[..n].copy_from_slice(&avail[..n]);
+            buf = &mut buf[n..];
+
+            next.ofs += n;
+            if next.ofs >= next.buf.len() {
+                self.next = None;
+                // TODO: request more data
+            }
         }
+
+        // Fill any remaining space with silence.
+        if !buf.is_empty() {
+            buf.fill(0);
+            return;
+        };
+
         self.pos += buf.len();
     }
 }
