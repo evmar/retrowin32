@@ -21,8 +21,6 @@ pub use mixer::*;
 pub use time::*;
 pub use wave::*;
 
-use crate::host;
-
 #[derive(Copy, Clone, Debug)]
 pub enum MMRESULT {
     MMSYSERR_NOERROR = 0,
@@ -38,7 +36,6 @@ impl Into<crate::calling_convention::ABIReturn> for MMRESULT {
 #[derive(Default)]
 pub struct State {
     pub audio_enabled: bool,
-    pub audio: Option<Box<dyn host::Audio>>,
     pub time_thread: Option<TimeThread>,
-    pub wave_thread: Option<WaveThread>,
+    pub wave: WaveState,
 }

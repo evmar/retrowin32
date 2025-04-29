@@ -1,13 +1,19 @@
 use super::MMRESULT;
-use crate::{machine::Machine, winapi};
+use crate::{
+    host,
+    machine::Machine,
+    winapi::{self, handle::Handles},
+};
 use bitflags::bitflags;
 use memory::Extensions;
 use std::collections::VecDeque;
 
-pub type HWAVEOUT = winapi::HANDLE<()>;
+pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 
-// TODO: support multiple HWAVEOUTs
-const HWAVEOUT_SINGLETON: HWAVEOUT = HWAVEOUT::from_raw(0x00000001);
+#[derive(Default)]
+pub struct WaveState {
+    pub wave_outs: Handles<HWAVEOUT, WaveOut>,
+}
 
 enum Notify {
     Function(u32, u32),
@@ -19,7 +25,9 @@ enum MM_WOM {
     DONE = 0x3BD,
 }
 
-pub struct WaveThread {
+pub struct WaveOut {
+    audio: Box<dyn host::Audio>,
+
     /// Queue of WAVEHDR addresses to process.
     blocks: VecDeque<u32>,
     /// How to notify the exe when a WAVEHDR is done.
@@ -27,14 +35,13 @@ pub struct WaveThread {
 }
 
 #[win32_derive::dllexport]
-pub async fn retrowin32_wave_thread_main(machine: &mut Machine) {
+pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
+    let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+
     // TODO: send the OPEN message here.
     loop {
         log::debug!("wave thread main");
-        let Some(state) = &mut machine.state.winmm.wave_thread else {
-            todo!();
-        };
-        let Some(wave_hdr_addr) = state.blocks.pop_front() else {
+        let Some(wave_hdr_addr) = wave_out.blocks.pop_front() else {
             // TODO: wait on a condition variable
             machine.emu.x86.cpu_mut().block(None).await;
             continue;
@@ -42,12 +49,12 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine) {
         let mem = machine.memory.mem();
         let wave_hdr = mem.get_pod::<WAVEHDR>(wave_hdr_addr);
         let samples = mem.sub32(wave_hdr.lpData, wave_hdr.dwBufferLength);
-        machine.state.winmm.audio.as_mut().unwrap().write(samples);
+        wave_out.audio.write(samples);
 
         // TODO: adjust block's dwFlags to indicate DONE
 
         log::debug!("notifying callback");
-        match state.notify {
+        match wave_out.notify {
             Some(Notify::Function(callback, instance)) => {
                 let cpu = machine.emu.x86.cpu_mut();
                 // void CALLBACK waveOutProc(
@@ -61,7 +68,7 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine) {
                     mem,
                     callback,
                     vec![
-                        HWAVEOUT_SINGLETON.to_raw(),
+                        hwo.to_raw(),
                         MM_WOM::DONE as u32,
                         instance,
                         wave_hdr_addr,
@@ -182,41 +189,41 @@ pub fn waveOutOpen(
         return MMRESULT::MMSYSERR_NOTENABLED;
     }
 
-    let mut wave_thread = WaveThread {
-        blocks: VecDeque::new(),
-        notify: None,
-    };
+    let fmt = pwfx.unwrap();
+    let audio = machine
+        .host
+        .init_audio(fmt.nSamplesPerSec, Box::new(|| log::info!("cb")));
 
-    match fdwOpen.callback {
-        CALLBACK::NULL => {}
+    let notify = match fdwOpen.callback {
+        CALLBACK::NULL => None,
         CALLBACK::WINDOW => {
             let hwnd = winapi::HWND::from_raw(dwCallback);
             log::warn!("TODO: waveOutOpen callback with window={hwnd:?}");
+            None
         }
-        CALLBACK::FUNCTION => {
-            wave_thread.notify = Some(Notify::Function(dwCallback, dwInstance));
-        }
+        CALLBACK::FUNCTION => Some(Notify::Function(dwCallback, dwInstance)),
         _ => todo!("callback {:?}", fdwOpen.callback),
-    }
-    *phwo.unwrap() = HWAVEOUT_SINGLETON;
+    };
 
-    let fmt = pwfx.unwrap();
-    machine.state.winmm.audio = Some(
-        machine
-            .host
-            .init_audio(fmt.nSamplesPerSec, Box::new(|| log::info!("cb"))),
-    );
-
-    assert!(machine.state.winmm.wave_thread.is_none());
+    let wave_out = WaveOut {
+        audio,
+        blocks: VecDeque::new(),
+        notify: notify,
+    };
+    let hwo = machine.state.winmm.wave.wave_outs.add(wave_out);
+    *phwo.unwrap() = hwo;
 
     let retrowin32_wave_thread_main =
         winapi::kernel32::get_symbol(machine, "winmm.dll", "retrowin32_wave_thread_main");
-    machine.state.winmm.wave_thread = Some(wave_thread);
 
     let thread = winapi::kernel32::create_thread(machine, 0x1000);
     let cpu = machine.emu.x86.new_cpu();
     Machine::init_thread(cpu, &thread);
-    cpu.regs.eip = retrowin32_wave_thread_main;
+    cpu.call_x86(
+        machine.memory.mem(),
+        retrowin32_wave_thread_main,
+        vec![hwo.to_raw()],
+    );
 
     MMRESULT::MMSYSERR_NOERROR
 }
@@ -228,9 +235,8 @@ pub fn waveOutReset(_machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
 
 #[win32_derive::dllexport]
 pub fn waveOutClose(machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
-    assert!(machine.state.winmm.wave_thread.is_some());
-    assert_eq!(hwo, HWAVEOUT_SINGLETON);
-    machine.state.winmm.wave_thread = None;
+    let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+    machine.state.winmm.wave.wave_outs.remove(hwo);
 
     MMRESULT::MMSYSERR_NOERROR
 }
@@ -328,7 +334,9 @@ pub fn waveOutGetPosition(
 ) -> MMRESULT {
     assert_eq!(cbmmt, std::mem::size_of::<MMTIME>() as u32);
 
-    let pos = machine.state.winmm.audio.as_mut().unwrap().pos();
+    let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+
+    let pos = wave_out.audio.pos();
     let mmt = pmmt.unwrap();
     match MMTIME_TIME::try_from(mmt.wType).unwrap() {
         MMTIME_TIME::BYTES => mmt.u.cb = pos as u32 * 2,
@@ -401,14 +409,9 @@ pub fn waveOutUnprepareHeader(
 #[win32_derive::dllexport]
 pub fn waveOutWrite(machine: &mut Machine, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -> MMRESULT {
     assert_eq!(cbwh, std::mem::size_of::<WAVEHDR>() as u32);
-    machine
-        .state
-        .winmm
-        .wave_thread
-        .as_mut()
-        .unwrap()
-        .blocks
-        .push_back(pwh);
+
+    let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+    wave_out.blocks.push_back(pwh);
     // TODO: use condition variable to notify the thread
     machine.unblock_all();
     MMRESULT::MMSYSERR_NOERROR

@@ -575,12 +575,13 @@ mod wrappers {
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
             let mem = machine.mem().detach();
+            let hwo = <HWAVEOUT>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("winmm/wave") {
                 crate::winapi::trace::Record::new(
                     winapi::winmm::retrowin32_wave_thread_main_pos,
                     "winmm/wave",
                     "retrowin32_wave_thread_main",
-                    &[],
+                    &[("hwo", &hwo)],
                 )
                 .enter()
             } else {
@@ -589,7 +590,7 @@ mod wrappers {
             let machine: *mut Machine = machine;
             Box::pin(async move {
                 let machine = &mut *machine;
-                let result = winapi::winmm::retrowin32_wave_thread_main(machine).await;
+                let result = winapi::winmm::retrowin32_wave_thread_main(machine, hwo).await;
                 if let Some(mut __trace_record) = __trace_record {
                     __trace_record.exit(&result);
                 }
