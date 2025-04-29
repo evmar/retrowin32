@@ -119,7 +119,7 @@ pub struct Message {
     pub time: u32, // in units of Host::time()
 }
 
-pub type AudioCallback = Box<dyn FnMut() + Send>;
+pub type AudioCallback = Box<dyn Fn() + Send + Sync>;
 
 pub trait Audio {
     fn write(&mut self, buf: &[u8]);

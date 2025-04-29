@@ -342,6 +342,7 @@ impl sdl2::audio::AudioCallback for AudioBuffer {
             buf[..n].copy_from_slice(&avail[..n]);
             buf = &mut buf[n..];
 
+            self.pos += n;
             next.ofs += n;
             if next.ofs >= next.buf.len() {
                 self.next = None;
@@ -352,10 +353,7 @@ impl sdl2::audio::AudioCallback for AudioBuffer {
         // Fill any remaining space with silence.
         if !buf.is_empty() {
             buf.fill(0);
-            return;
-        };
-
-        self.pos += buf.len();
+        }
     }
 }
 
@@ -371,6 +369,7 @@ impl Audio {
             channels: Some(1),
             samples: None,
         };
+
         let dev = audio
             .open_playback(None, &spec, |_spec| AudioBuffer::new(callback))
             .unwrap();

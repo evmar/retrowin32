@@ -5,8 +5,8 @@ use crate::{
     winapi::{self, handle::Handles},
 };
 use bitflags::bitflags;
-use memory::Extensions;
-use std::collections::VecDeque;
+use memory::{Extensions, ExtensionsMut};
+use std::{collections::VecDeque, sync::Arc};
 
 pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 
@@ -30,30 +30,50 @@ pub struct WaveOut {
 
     /// Queue of WAVEHDR addresses to process.
     blocks: VecDeque<u32>,
+    host_ready: Arc<winapi::kernel32::EventObject>,
+    block_ready: Arc<winapi::kernel32::EventObject>,
     /// How to notify the exe when a WAVEHDR is done.
     notify: Option<Notify>,
 }
 
 #[win32_derive::dllexport]
 pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
-    let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
-
     // TODO: send the OPEN message here.
     loop {
-        log::debug!("wave thread main");
-        let Some(wave_hdr_addr) = wave_out.blocks.pop_front() else {
+        let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+        let host_ready = wave_out.host_ready.clone();
+        let ready = winapi::kernel32::wait_for_objects(
+            machine,
+            &[winapi::kernel32::KernelObject::Event(host_ready)],
+            false,
+            winapi::kernel32::Wait::Forever,
+        )
+        .await;
+
+        let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+        if wave_out.blocks.is_empty() {
             // TODO: wait on a condition variable
-            machine.emu.x86.cpu_mut().block(None).await;
-            continue;
-        };
+            let block_ready = wave_out.block_ready.clone();
+
+            let ready = winapi::kernel32::wait_for_objects(
+                machine,
+                &[winapi::kernel32::KernelObject::Event(block_ready)],
+                false,
+                winapi::kernel32::Wait::Forever,
+            )
+            .await;
+        }
+
+        let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
+        let wave_hdr_addr = wave_out.blocks.pop_front().unwrap();
         let mem = machine.memory.mem();
-        let wave_hdr = mem.get_pod::<WAVEHDR>(wave_hdr_addr);
+        let mut wave_hdr = mem.get_pod::<WAVEHDR>(wave_hdr_addr);
         let samples = mem.sub32(wave_hdr.lpData, wave_hdr.dwBufferLength);
         wave_out.audio.write(samples);
 
-        // TODO: adjust block's dwFlags to indicate DONE
+        wave_hdr.dwFlags = WHDR::DONE.bits();
+        mem.put_pod(wave_hdr_addr, wave_hdr); // ick, rewrites the whole block
 
-        log::debug!("notifying callback");
         match wave_out.notify {
             Some(Notify::Function(callback, instance)) => {
                 let cpu = machine.emu.x86.cpu_mut();
@@ -189,10 +209,20 @@ pub fn waveOutOpen(
         return MMRESULT::MMSYSERR_NOTENABLED;
     }
 
+    let host_ready =
+        winapi::kernel32::EventObject::new(Some("winmm host ready".into()), false, true);
+
     let fmt = pwfx.unwrap();
-    let audio = machine
-        .host
-        .init_audio(fmt.nSamplesPerSec, Box::new(|| log::info!("cb")));
+    let audio = machine.host.init_audio(
+        fmt.nSamplesPerSec,
+        Box::new({
+            let host_ready = host_ready.clone();
+            move || {
+                host_ready.signal();
+                // TODO: need to unblock the thread: machine.unblock_all();
+            }
+        }),
+    );
 
     let notify = match fdwOpen.callback {
         CALLBACK::NULL => None,
@@ -208,12 +238,18 @@ pub fn waveOutOpen(
     let wave_out = WaveOut {
         audio,
         blocks: VecDeque::new(),
-        notify: notify,
+        host_ready,
+        block_ready: winapi::kernel32::EventObject::new(
+            Some("winmm block ready".into()),
+            false,
+            false,
+        ),
+        notify,
     };
     let hwo = machine.state.winmm.wave.wave_outs.add(wave_out);
     *phwo.unwrap() = hwo;
 
-    let retrowin32_wave_thread_main =
+    let retrowin32_wave_thread_main: u32 =
         winapi::kernel32::get_symbol(machine, "winmm.dll", "retrowin32_wave_thread_main");
 
     let thread = winapi::kernel32::create_thread(machine, 0x1000);
@@ -412,8 +448,10 @@ pub fn waveOutWrite(machine: &mut Machine, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -
 
     let wave_out = machine.state.winmm.wave.wave_outs.get_mut(hwo).unwrap();
     wave_out.blocks.push_back(pwh);
+    wave_out.block_ready.signal();
     // TODO: use condition variable to notify the thread
     machine.unblock_all();
+
     MMRESULT::MMSYSERR_NOERROR
 }
 
