@@ -550,9 +550,10 @@ pub async fn MsgWaitForMultipleObjects(
     dwMilliseconds: u32,
     dwWakeMask: Result<QS, u32>,
 ) -> u32 {
-    let handles = machine
+    let objects = machine
         .mem()
         .iter_pod::<HANDLE<()>>(pHandles, nCount)
+        .map(|handle| machine.state.kernel32.objects.get(handle).unwrap().clone())
         .collect::<Vec<_>>();
     let mask = dwWakeMask.unwrap();
     if !mask.is_empty() {
@@ -562,7 +563,7 @@ pub async fn MsgWaitForMultipleObjects(
 
     kernel32::wait_for_objects(
         machine,
-        &handles,
+        &objects,
         fWaitAll,
         kernel32::Wait::from_millis(dwMilliseconds),
     )

@@ -53,28 +53,23 @@ impl KernelObject {
 /// The primitive beneath WaitForMultipleObjects etc.
 pub async fn wait_for_objects(
     machine: &mut Machine,
-    handles: &[HANDLE<()>],
-    bWaitAll: bool,
+    objects: &[KernelObject],
+    wait_all: bool,
     wait: Wait,
 ) -> u32 {
-    if bWaitAll {
+    if wait_all {
         todo!("WaitForMultipleObjects: bWaitAll");
     }
 
     let wait = wait.to_absolute(machine);
     loop {
-        for (i, &handle) in handles.iter().enumerate() {
-            let event = machine
-                .state
-                .kernel32
-                .objects
-                .get(handle)
-                .unwrap()
-                .get_event();
-            if event.signaled.get() {
+        for (i, object) in objects.iter().enumerate() {
+            let event = object.get_event();
+            let mut signaled = event.signaled.lock().unwrap();
+            if *signaled {
                 if !event.manual_reset {
                     // TODO: this should wake up exactly one waiting thread
-                    event.signaled.set(false);
+                    *signaled = false;
                 }
                 return WAIT_OBJECT_0 + i as u32;
             }
@@ -112,7 +107,14 @@ pub async fn WaitForSingleObject(
     handle: HANDLE<()>,
     dwMilliseconds: u32,
 ) -> u32 {
-    wait_for_objects(machine, &[handle], false, Wait::from_millis(dwMilliseconds)).await
+    let object = machine.state.kernel32.objects.get(handle).unwrap();
+    wait_for_objects(
+        machine,
+        &[object.clone()],
+        false,
+        Wait::from_millis(dwMilliseconds),
+    )
+    .await
 }
 
 #[win32_derive::dllexport]
@@ -123,9 +125,10 @@ pub async fn WaitForMultipleObjects(
     bWaitAll: bool,
     dwMilliseconds: u32,
 ) -> u32 /* WAIT_EVENT */ {
-    let handles = machine
+    let objects = machine
         .mem()
         .iter_pod::<HANDLE<()>>(lpHandles, nCount)
+        .map(|handle| machine.state.kernel32.objects.get(handle).unwrap().clone())
         .collect::<Vec<_>>();
-    wait_for_objects(machine, &handles, false, Wait::from_millis(dwMilliseconds)).await
+    wait_for_objects(machine, &objects, false, Wait::from_millis(dwMilliseconds)).await
 }

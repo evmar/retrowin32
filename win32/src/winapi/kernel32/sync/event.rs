@@ -2,7 +2,7 @@ use crate::{
     Machine,
     winapi::{HANDLE, kernel32::KernelObject},
 };
-use std::cell::Cell;
+use std::sync::{Arc, Mutex};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HEVENTT;
@@ -11,16 +11,20 @@ pub type HEVENT = HANDLE<HEVENTT>;
 pub struct EventObject {
     name: Option<String>,
     pub manual_reset: bool,
-    pub signaled: Cell<bool>,
+    pub signaled: Mutex<bool>,
 }
 
 impl EventObject {
-    pub fn new(name: Option<String>, manual_reset: bool, signaled: bool) -> Self {
-        Self {
+    pub fn new(name: Option<String>, manual_reset: bool, signaled: bool) -> Arc<Self> {
+        Arc::new(Self {
             name,
             manual_reset,
-            signaled: Cell::new(signaled),
-        }
+            signaled: Mutex::new(signaled),
+        })
+    }
+
+    pub fn signal(&self) {
+        *self.signaled.lock().unwrap() = true;
     }
 }
 
@@ -34,9 +38,11 @@ pub fn CreateEventA(
 ) -> HEVENT {
     let name = if let Some(name) = lpName {
         if let Some(ev) = machine.state.kernel32.objects.iter().find(|(_, ev)| {
-            if let KernelObject::Event(EventObject { name: Some(n), .. }) = ev {
-                if *n == name {
-                    return true;
+            if let KernelObject::Event(ev) = ev {
+                if let EventObject { name: Some(n), .. } = &**ev {
+                    if *n == name {
+                        return true;
+                    }
                 }
             }
             false
@@ -70,8 +76,7 @@ pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
         .objects
         .get_event(hEvent)
         .unwrap()
-        .signaled
-        .set(true);
+        .signal();
     true
 }
 

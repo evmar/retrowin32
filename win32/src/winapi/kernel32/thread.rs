@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use memory::{Extensions, Mem};
-use std::rc::Rc;
+use std::{rc::Rc, sync::Arc};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HTHREADT;
@@ -65,7 +65,7 @@ pub struct Thread {
     /// address of TEB
     pub teb: u32,
 
-    pub terminated: EventObject,
+    pub terminated: Arc<EventObject>,
 }
 
 /// Set up TEB, PEB, and other process info.
