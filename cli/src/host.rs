@@ -227,10 +227,14 @@ impl win32::Host for EnvRef {
         gui.create_surface(opts)
     }
 
-    fn init_audio(&mut self, sample_rate: u32) -> Box<dyn win32::Audio> {
+    fn init_audio(
+        &mut self,
+        sample_rate: u32,
+        callback: win32::AudioCallback,
+    ) -> Box<dyn win32::Audio> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
-        gui.init_audio(sample_rate)
+        gui.init_audio(sample_rate, callback)
     }
 }
 

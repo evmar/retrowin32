@@ -44,6 +44,8 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine) {
         let samples = mem.sub32(wave_hdr.lpData, wave_hdr.dwBufferLength);
         machine.state.winmm.audio.as_mut().unwrap().write(samples);
 
+        // TODO: adjust block's dwFlags to indicate DONE
+
         log::debug!("notifying callback");
         match state.notify {
             Some(Notify::Function(callback, instance)) => {
@@ -199,7 +201,11 @@ pub fn waveOutOpen(
     *phwo.unwrap() = HWAVEOUT_SINGLETON;
 
     let fmt = pwfx.unwrap();
-    machine.state.winmm.audio = Some(machine.host.init_audio(fmt.nSamplesPerSec));
+    machine.state.winmm.audio = Some(
+        machine
+            .host
+            .init_audio(fmt.nSamplesPerSec, Box::new(|| log::info!("cb"))),
+    );
 
     assert!(machine.state.winmm.wave_thread.is_none());
 

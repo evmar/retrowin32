@@ -119,6 +119,8 @@ pub struct Message {
     pub time: u32, // in units of Host::time()
 }
 
+pub type AudioCallback = Box<dyn FnMut() + Send>;
+
 pub trait Audio {
     fn write(&mut self, buf: &[u8]);
     fn pos(&mut self) -> usize;
@@ -160,5 +162,5 @@ pub trait Host: FileSystem {
     fn create_window(&mut self, hwnd: u32) -> Box<dyn Window>;
     fn create_surface(&mut self, hwnd: u32, opts: &SurfaceOptions) -> Box<dyn Surface>;
 
-    fn init_audio(&mut self, sample_rate: u32) -> Box<dyn Audio>;
+    fn init_audio(&mut self, sample_rate: u32, callback: AudioCallback) -> Box<dyn Audio>;
 }

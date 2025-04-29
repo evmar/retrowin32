@@ -160,8 +160,12 @@ impl GUI {
         Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
 
-    pub fn init_audio(&mut self, sample_rate: u32) -> Box<dyn win32::Audio> {
-        Box::new(Audio::new(&self.sdl, sample_rate))
+    pub fn init_audio(
+        &mut self,
+        sample_rate: u32,
+        callback: win32::AudioCallback,
+    ) -> Box<dyn win32::Audio> {
+        Box::new(Audio::new(&self.sdl, sample_rate, callback))
     }
 }
 
@@ -301,11 +305,16 @@ struct AudioBuffer {
     /// The count of i16s that have been read in total,
     /// for use in querying current audio position.
     pos: usize,
+    callback: win32::AudioCallback,
 }
 
-impl Default for AudioBuffer {
-    fn default() -> Self {
-        AudioBuffer { next: None, pos: 0 }
+impl AudioBuffer {
+    fn new(callback: win32::AudioCallback) -> Self {
+        AudioBuffer {
+            next: None,
+            pos: 0,
+            callback,
+        }
     }
 }
 
@@ -336,7 +345,7 @@ impl sdl2::audio::AudioCallback for AudioBuffer {
             next.ofs += n;
             if next.ofs >= next.buf.len() {
                 self.next = None;
-                // TODO: request more data
+                (self.callback)();
             }
         }
 
@@ -355,7 +364,7 @@ struct Audio {
 }
 
 impl Audio {
-    fn new(sdl: &sdl2::Sdl, sample_rate: u32) -> Self {
+    fn new(sdl: &sdl2::Sdl, sample_rate: u32, callback: win32::AudioCallback) -> Self {
         let audio = sdl.audio().unwrap();
         let spec = sdl2::audio::AudioSpecDesired {
             freq: Some(sample_rate as i32),
@@ -363,7 +372,7 @@ impl Audio {
             samples: None,
         };
         let dev = audio
-            .open_playback(None, &spec, |_spec| AudioBuffer::default())
+            .open_playback(None, &spec, |_spec| AudioBuffer::new(callback))
             .unwrap();
         dev.resume();
         Audio { dev }
