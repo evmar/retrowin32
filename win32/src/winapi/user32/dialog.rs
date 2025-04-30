@@ -1,4 +1,4 @@
-use crate::{Machine, System, calling_convention::ArrayOut, winapi::*};
+use crate::{System, calling_convention::ArrayOut, winapi::*};
 
 /*
 pub mod MessageBoxFlags {
@@ -39,7 +39,7 @@ pub mod MessageBoxFlags {
 
 #[win32_derive::dllexport]
 pub fn MessageBoxA(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lpText: Option<&CStr>,
     lpCaption: Option<&CStr>,
@@ -55,7 +55,7 @@ pub fn MessageBoxA(
 
 #[win32_derive::dllexport]
 pub fn MessageBoxW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hWnd: HWND,
     lpText: Option<&Str16>,
     lpCaption: Option<&Str16>,
@@ -143,13 +143,13 @@ pub fn SetDlgItemInt(
 }
 
 #[win32_derive::dllexport]
-pub fn GetDlgItem(machine: &mut Machine, hDlg: HWND, nIDDlgItem: i32) -> HWND {
+pub fn GetDlgItem(sys: &mut dyn System, hDlg: HWND, nIDDlgItem: i32) -> HWND {
     todo!();
 }
 
 #[win32_derive::dllexport]
 pub fn GetDlgItemTextW(
-    machine: &mut Machine,
+    sys: &mut dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     lpString: ArrayOut<u16>,

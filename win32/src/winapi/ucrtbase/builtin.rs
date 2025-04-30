@@ -768,7 +768,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_time64(sys.machine(), destTime);
+            let result = winapi::ucrtbase::_time64(sys, destTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1125,7 +1125,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::rand(sys.machine());
+            let result = winapi::ucrtbase::rand(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1238,7 +1238,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::srand(sys.machine(), seed);
+            let result = winapi::ucrtbase::srand(sys, seed);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1303,7 +1303,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::time(sys.machine(), destTime);
+            let result = winapi::ucrtbase::time(sys, destTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

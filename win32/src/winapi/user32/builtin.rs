@@ -1232,7 +1232,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItem(sys.machine(), hDlg, nIDDlgItem);
+            let result = winapi::user32::GetDlgItem(sys, hDlg, nIDDlgItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1291,7 +1291,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItemTextW(sys.machine(), hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::GetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2536,7 +2536,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxA(sys.machine(), hWnd, lpText, lpCaption, uType);
+            let result = winapi::user32::MessageBoxA(sys, hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2566,7 +2566,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxW(sys.machine(), hWnd, lpText, lpCaption, uType);
+            let result = winapi::user32::MessageBoxW(sys, hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
