@@ -1,4 +1,5 @@
-use crate::memory::Memory;
+use crate::{heap::Heap, memory::Memory};
+use std::{cell::RefCell, rc::Rc};
 
 mod advapi32;
 mod arena;
@@ -35,7 +36,7 @@ pub use memory::str16::{Str16, String16};
 pub use types::*;
 
 pub struct State {
-    scratch: crate::heap::Heap,
+    scratch: Rc<RefCell<Heap>>,
 
     pub ddraw: ddraw::State,
     pub dsound: dsound::State,
@@ -46,8 +47,8 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(memory: &mut Memory, mut kernel32: kernel32::State) -> Self {
-        let scratch = kernel32.new_private_heap(memory, 0x1000, "winapi scratch".into());
+    pub fn new(memory: &mut Memory, kernel32: kernel32::State) -> Self {
+        let scratch = memory.new_heap(0x1000, "winapi scratch".into());
 
         State {
             scratch,

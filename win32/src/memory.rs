@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::machine::MemImpl;
+use crate::{heap::Heap, machine::MemImpl};
 use memory::{Extensions, Mem};
 
 pub fn align_to(n: u32, align: usize) -> u32 {
@@ -166,6 +166,8 @@ pub struct Memory {
     pub imp: MemImpl,
     pub mappings: Mappings,
     pub labels: HashMap<u32, String>,
+
+    pub heaps: HashMap<u32, Rc<RefCell<Heap>>>,
 }
 
 impl Memory {
@@ -174,6 +176,7 @@ impl Memory {
             imp,
             mappings: Mappings::new(),
             labels: Default::default(),
+            heaps: Default::default(),
         }
     }
 
@@ -183,5 +186,12 @@ impl Memory {
 
     pub fn mem(&self) -> Mem {
         self.imp.mem()
+    }
+
+    pub fn new_heap(&mut self, size: usize, desc: String) -> Rc<RefCell<Heap>> {
+        let mapping = self.mappings.alloc(size as u32, desc, &mut self.imp);
+        let heap = Rc::new(RefCell::new(Heap::new(mapping.addr, mapping.size)));
+        self.heaps.insert(mapping.addr, heap.clone());
+        heap
     }
 }

@@ -25,14 +25,14 @@ pub fn HeapAlloc(
     });
     flags.remove(HeapAllocFlags::HEAP_GENERATE_EXCEPTIONS); // todo: OOM
     flags.remove(HeapAllocFlags::HEAP_NO_SERIALIZE); // todo: threads
-    let heap = match machine.state.kernel32.get_heap(hHeap) {
+    let heap = match machine.memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapAlloc({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    let addr = heap.alloc(machine.memory.mem(), dwBytes);
+    let addr = heap.borrow_mut().alloc(machine.memory.mem(), dwBytes);
     if addr == 0 {
         log::warn!("HeapAlloc({hHeap:x}) failed");
     }
@@ -52,10 +52,11 @@ pub fn HeapFree(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
         log::warn!("HeapFree flags {dwFlags:x}");
     }
     machine
-        .state
-        .kernel32
-        .get_heap(hHeap)
+        .memory
+        .heaps
+        .get(&hHeap)
         .unwrap()
+        .borrow_mut()
         .free(machine.memory.mem(), lpMem);
     true
 }
@@ -65,14 +66,14 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
     if dwFlags != 0 {
         log::warn!("HeapSize flags {dwFlags:x}");
     }
-    let heap = match machine.state.kernel32.get_heap(hHeap) {
+    let heap = match machine.memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
-    heap.size(machine.memory.mem(), lpMem)
+    heap.borrow().size(machine.memory.mem(), lpMem)
 }
 
 #[win32_derive::dllexport]
@@ -97,13 +98,14 @@ pub fn HeapReAlloc(
     if dwFlags != 0 {
         log::warn!("HeapReAlloc flags: {:x}", dwFlags);
     }
-    let heap = match machine.state.kernel32.get_heap(hHeap) {
+    let heap = match machine.memory.heaps.get(&hHeap) {
         None => {
             log::error!("HeapSize({hHeap:x}): no such heap");
             return 0;
         }
         Some(heap) => heap,
     };
+    let mut heap = heap.borrow_mut();
     let old_size = heap.size(machine.memory.mem(), lpMem);
     let new_addr = heap.alloc(machine.memory.mem(), dwBytes);
     assert!(dwBytes >= old_size);
@@ -133,9 +135,10 @@ pub fn HeapCreate(
     // with exceptions or threads support...
     let size = max(dwInitialSize as usize, 20 << 20);
     machine
-        .state
-        .kernel32
-        .new_heap(&mut machine.memory, size, "HeapCreate".into())
+        .memory
+        .new_heap(size, "HeapCreate".into())
+        .borrow()
+        .addr
 }
 
 #[win32_derive::dllexport]
@@ -298,6 +301,7 @@ fn alloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .alloc(machine.memory.mem(), dwBytes);
     if uFlags.contains(GMEM::ZEROINIT) {
         machine.mem().sub32_mut(addr, dwBytes).fill(0);
@@ -327,7 +331,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
     if uFlags.contains(GMEM::MODIFY) {
         todo!("GMEM_MODIFY");
     }
-    let heap = &mut machine.state.kernel32.process_heap;
+    let heap = &mut machine.state.kernel32.process_heap.borrow_mut();
     let mem = machine.memory.mem();
     let old_size = heap.size(mem, hMem);
     if dwBytes <= old_size {
@@ -352,6 +356,7 @@ fn free(machine: &mut Machine, hMem: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .free(machine.memory.mem(), hMem);
     return 0; // success
 }
@@ -390,5 +395,5 @@ pub fn VirtualProtect(
 
 #[win32_derive::dllexport]
 pub fn GetProcessHeap(machine: &mut Machine) -> u32 {
-    machine.state.kernel32.process_heap_addr
+    machine.state.kernel32.process_heap.borrow().addr
 }

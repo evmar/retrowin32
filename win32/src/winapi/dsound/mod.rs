@@ -12,7 +12,7 @@ use crate::{
     winapi::{com::vtable, kernel32::get_symbol},
 };
 use memory::ExtensionsMut;
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 /// Set to true to make DirectSoundCreate report no sound device available.
 /// Doing this from the beginning would have been a better idea than trying to implement stubs here...
@@ -32,15 +32,14 @@ const fn make_dhsresult(code: u32) -> u32 {
 
 #[derive(Default)]
 pub struct State {
-    heap: Heap,
+    heap: Rc<RefCell<Heap>>,
     buffers: HashMap<u32, Buffer>,
 }
 
 impl State {
     pub fn new_init(machine: &mut Machine) -> Self {
         let mut dsound = State::default();
-        dsound.heap = machine.state.kernel32.new_private_heap(
-            &mut machine.memory,
+        dsound.heap = machine.memory.new_heap(
             128 << 10, // chillin needs a 64kb buffer
             "dsound.dll heap".into(),
         );
@@ -120,7 +119,7 @@ pub mod IDirectSound {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSound = dsound.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectSound = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "dsound.dll", "IDirectSound");
         machine.mem().put_pod::<u32>(lpDirectSound, vtable);
         lpDirectSound
@@ -151,6 +150,7 @@ pub mod IDirectSound {
                 .state
                 .dsound
                 .heap
+                .borrow_mut()
                 .alloc(machine.memory.mem(), desc.dwBufferBytes);
             buffer.size = desc.dwBufferBytes;
         }
@@ -185,7 +185,7 @@ pub mod IDirectSoundBuffer {
 
     pub fn new(machine: &mut Machine) -> u32 {
         let dsound = &mut machine.state.dsound;
-        let lpDirectSoundBuffer = dsound.heap.alloc(machine.memory.mem(), 4);
+        let lpDirectSoundBuffer = dsound.heap.borrow_mut().alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "dsound.dll", "IDirectSoundBuffer");
         machine.mem().put_pod::<u32>(lpDirectSoundBuffer, vtable);
         lpDirectSoundBuffer
@@ -338,7 +338,7 @@ pub fn DirectSoundCreate(
     if DISABLE {
         return DSERR_NODRIVER;
     }
-    if machine.state.dsound.heap.addr == 0 {
+    if machine.state.dsound.heap.borrow().size == 0 {
         machine.state.dsound = State::new_init(machine);
     }
     let lpDirectSound = IDirectSound::new(machine);

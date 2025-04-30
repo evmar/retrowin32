@@ -8,6 +8,7 @@ pub fn malloc(machine: &mut Machine, size: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .alloc(machine.memory.mem(), size)
 }
 
@@ -17,6 +18,7 @@ pub fn calloc(machine: &mut Machine, count: u32, size: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .alloc(machine.memory.mem(), count * size)
 }
 
@@ -26,6 +28,7 @@ pub fn free(machine: &mut Machine, ptr: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .free(machine.memory.mem(), ptr);
     0
 }
@@ -42,6 +45,7 @@ pub fn operator_new(machine: &mut Machine, size: u32) -> u32 {
         .state
         .kernel32
         .process_heap
+        .borrow_mut()
         .alloc(machine.memory.mem(), size)
 }
 

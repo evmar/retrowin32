@@ -30,6 +30,7 @@ pub mod IDirectDrawPalette {
             .state
             .kernel32
             .process_heap
+            .borrow_mut()
             .alloc(machine.memory.mem(), 4);
         let vtable = get_symbol(machine, "ddraw.dll", "IDirectDrawPalette");
         machine.mem().put_pod::<u32>(lpDirectDrawPalette, vtable);
