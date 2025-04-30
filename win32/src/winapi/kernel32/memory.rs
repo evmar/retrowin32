@@ -230,7 +230,7 @@ pub fn VirtualAlloc(
         machine
             .memory
             .mappings
-            .alloc(dwSize, "VirtualAlloc".into(), &mut machine.memory.imp);
+            .alloc(machine.memory.imp.mem(), dwSize, "VirtualAlloc".into());
     mapping.addr
 }
 

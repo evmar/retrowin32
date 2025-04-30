@@ -103,9 +103,9 @@ pub fn create_thread(machine: &mut Machine, stack_size: u32) -> NewThread {
     let handle = machine.state.kernel32.objects.reserve();
 
     let stack = machine.memory.mappings.alloc(
+        machine.memory.imp.mem(),
         stack_size,
         format!("thread {handle:x} stack", handle = handle.to_raw()),
-        &mut machine.memory.imp,
     );
     let stack_pointer = stack.addr + stack.size - 4;
 

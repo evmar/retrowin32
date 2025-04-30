@@ -86,7 +86,7 @@ impl Mappings {
         prev_end
     }
 
-    pub fn alloc(&mut self, size: u32, desc: String, mem: &mut MemImpl) -> &Mapping {
+    pub fn alloc(&mut self, mem: Mem, size: u32, desc: String) -> &Mapping {
         let size = round_up_to_page_granularity(size);
         if size > 32 << 20 {
             panic!("new mapping {:?} too large: {size:x} bytes", desc);
@@ -189,7 +189,7 @@ impl Memory {
     }
 
     pub fn new_heap(&mut self, size: usize, desc: String) -> Rc<RefCell<Heap>> {
-        let mapping = self.mappings.alloc(size as u32, desc, &mut self.imp);
+        let mapping = self.mappings.alloc(self.imp.mem(), size as u32, desc);
         let heap = Rc::new(RefCell::new(Heap::new(mapping.addr, mapping.size)));
         self.heaps.insert(mapping.addr, heap.clone());
         heap

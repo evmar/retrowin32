@@ -139,7 +139,7 @@ impl State {
     pub fn new(memory: &mut Memory, retrowin32_syscall: &[u8]) -> Self {
         let mapping = memory
             .mappings
-            .alloc(0x1000, "kernel32 data".into(), &mut memory.imp);
+            .alloc(memory.imp.mem(), 0x1000, "kernel32 data".into());
         let mut arena = Arena::new(mapping.addr, mapping.size);
 
         let mut dlls = HashMap::new();
