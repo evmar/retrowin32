@@ -29,7 +29,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::shlwapi::PathRemoveFileSpecA(sys.machine(), pszPath);
+            let result = winapi::shlwapi::PathRemoveFileSpecA(sys, pszPath);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

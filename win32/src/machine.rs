@@ -50,6 +50,10 @@ impl System for Machine {
     fn machine(&mut self) -> &mut Machine {
         self
     }
+
+    fn host(&mut self) -> &mut dyn host::Host {
+        self.host.as_mut()
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads

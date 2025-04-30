@@ -58,7 +58,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memcmp(sys.machine(), lhs, rhs, len);
+            let result = winapi::vcruntime140::memcmp(sys, lhs, rhs, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -82,7 +82,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memcpy(sys.machine(), dst, src, len);
+            let result = winapi::vcruntime140::memcpy(sys, dst, src, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -106,7 +106,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::memset(sys.machine(), dst, val, len);
+            let result = winapi::vcruntime140::memset(sys, dst, val, len);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

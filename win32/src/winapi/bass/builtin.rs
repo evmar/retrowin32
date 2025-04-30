@@ -29,7 +29,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_ChannelGetPosition(sys.machine(), mode);
+            let result = winapi::bass::BASS_ChannelGetPosition(sys, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -135,7 +135,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicPlay(sys.machine(), arg1);
+            let result = winapi::bass::BASS_MusicPlay(sys, arg1);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -179,7 +179,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Start(sys.machine());
+            let result = winapi::bass::BASS_Start(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

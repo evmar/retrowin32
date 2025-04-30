@@ -10,8 +10,7 @@
 mod builtin;
 pub use builtin::DLL;
 
-use super::kernel32;
-use crate::{Machine, System};
+use crate::System;
 
 /// Hack: time since BASS_Start etc. was called.
 static mut T: u32 = 0;
@@ -34,24 +33,24 @@ pub fn BASS_MusicLoad(
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_Start(machine: &mut Machine) -> u32 {
+pub fn BASS_Start(sys: &mut dyn System) -> u32 {
     unsafe {
-        T = kernel32::GetTickCount(machine);
+        T = sys.host().ticks();
     }
     1
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_MusicPlay(machine: &mut Machine, arg1: u32) -> u32 {
+pub fn BASS_MusicPlay(sys: &mut dyn System, arg1: u32) -> u32 {
     unsafe {
-        T = kernel32::GetTickCount(machine);
+        T = sys.host().ticks();
     }
     1
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_ChannelGetPosition(machine: &mut Machine, mode: u32) -> u32 {
-    let dur = kernel32::GetTickCount(machine) - unsafe { T };
+pub fn BASS_ChannelGetPosition(sys: &mut dyn System, mode: u32) -> u32 {
+    let dur = sys.host().ticks() - unsafe { T };
     match mode {
         0 => {
             // BASS_POS_BYTE
