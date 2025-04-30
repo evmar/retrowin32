@@ -1,17 +1,9 @@
 use super::{Timers, Window};
-use crate::{
-    Machine, System, host,
-    winapi::{
-        Handles,
-        kernel32::{
-            GetCurrentThreadId, {self},
-        },
-        *,
-    },
-};
+use crate::{Machine, System, host, winapi};
 use bitflags::bitflags;
 use memory::Extensions;
 use std::{cell::RefCell, ops::RangeInclusive, rc::Rc};
+use win32_winapi::*;
 
 #[repr(C)]
 #[derive(Clone)]
@@ -561,11 +553,11 @@ pub async fn MsgWaitForMultipleObjects(
         // TODO: e.g. handles.push(msgqueueevent)
     }
 
-    kernel32::wait_for_objects(
+    winapi::kernel32::wait_for_objects(
         machine,
         &objects,
         fWaitAll,
-        kernel32::Wait::from_millis(dwMilliseconds),
+        winapi::kernel32::Wait::from_millis(dwMilliseconds),
     )
     .await
 }
@@ -585,7 +577,7 @@ pub fn CallWindowProcA(
 #[win32_derive::dllexport]
 pub fn PostMessageA(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lParam: u32) -> bool {
     if hWnd.is_null() {
-        let thread_id = GetCurrentThreadId(machine);
+        let thread_id = winapi::kernel32::GetCurrentThreadId(machine);
         return PostThreadMessageA(machine, thread_id, Msg, wParam, lParam);
     }
     todo!()
@@ -599,7 +591,7 @@ pub fn PostThreadMessageA(
     wParam: u32,
     lParam: u32,
 ) -> bool {
-    let thread_id = GetCurrentThreadId(machine);
+    let thread_id = winapi::kernel32::GetCurrentThreadId(machine);
     if idThread != thread_id {
         // TODO: per-thread queues
         todo!();
