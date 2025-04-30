@@ -8,6 +8,7 @@ log = { workspace = true }
 memory = { workspace = true }
 pe = { workspace = true }
 win32-derive = { path = "derive" }
+win32-winapi = { path = "winapi" }
 x86 = { workspace = true, optional = true }
 
 anyhow = "1.0"

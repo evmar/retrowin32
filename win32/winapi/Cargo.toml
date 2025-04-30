@@ -1,0 +1,11 @@
+[package]
+name = "win32-winapi"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = { workspace = true }
+memory = { workspace = true }
+
+win32-derive = { path = "../derive" }
+typed-path = { version = "0.9.1", default-features = false }

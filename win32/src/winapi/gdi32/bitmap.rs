@@ -4,6 +4,7 @@ use crate::{
     winapi::{
         POINT, RECT,
         bitmap::{BI, Bitmap, PixelData, PixelFormat},
+        gdi32::GDIHandles,
         kernel32,
     },
 };

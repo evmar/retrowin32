@@ -4,9 +4,7 @@ use crate::{
     calling_convention::FromArg,
     winapi::{
         HWND, RECT, Str16,
-        gdi32::{
-            COLORREF, HGDIOBJ, {self},
-        },
+        gdi32::{self, COLORREF, HGDIOBJ, LOWEST_HGDIOBJ},
     },
 };
 
@@ -183,7 +181,7 @@ pub enum BrushOrColor {
 
 impl<'a> FromArg<'a> for BrushOrColor {
     fn from_arg(_mem: memory::Mem<'a>, arg: u32) -> Self {
-        if arg > 0 && arg < HGDIOBJ::lowest_value() {
+        if arg > 0 && arg < LOWEST_HGDIOBJ {
             BrushOrColor::Color(COLOR::try_from(arg - 1).unwrap())
         } else {
             BrushOrColor::Brush(HBRUSH::from_raw(arg))

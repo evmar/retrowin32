@@ -1,5 +1,5 @@
-use super::SECURITY_ATTRIBUTES;
-use crate::{System, winapi::HFILE};
+use super::{HFILE, SECURITY_ATTRIBUTES};
+use crate::System;
 
 #[win32_derive::dllexport]
 pub fn CreatePipe(

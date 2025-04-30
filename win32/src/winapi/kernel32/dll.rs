@@ -12,6 +12,8 @@ use crate::{
 use memory::{Extensions, Pod};
 use pe::ImportSymbol;
 
+use super::HFILE;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HMODULET;
 /// HMODULE is the address of the loaded PE image.

@@ -1,8 +1,10 @@
 use crate::{
     Machine, System,
     calling_convention::Array,
-    winapi::{self, DWORD, HFILE, WORD, handle::HANDLE},
+    winapi::{self, DWORD, HANDLE, WORD},
 };
+
+use super::HFILE;
 
 #[win32_derive::dllexport]
 pub fn SetConsoleCtrlHandler(sys: &dyn System, _handlerRoutine: DWORD, _add: u32) -> bool {

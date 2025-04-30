@@ -1,8 +1,8 @@
 //! Process initialization and startup.
 
 use super::{
-    EventObject, FindHandle, HEVENT, HFIND, HMODULE, ResourceHandle, STDERR_HFILE, STDOUT_HFILE,
-    Thread, command_line::CommandLine,
+    EventObject, FindHandle, HEVENT, HFILE, HFIND, HMODULE, ResourceHandle, STDERR_HFILE,
+    STDOUT_HFILE, Thread, command_line::CommandLine,
 };
 use crate::{
     Machine,
@@ -10,7 +10,7 @@ use crate::{
     loader::{self, Module},
     memory::Memory,
     segments::SegmentDescriptor,
-    winapi::{arena::Arena, handle::Handles, *},
+    winapi::{arena::Arena, *},
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
@@ -81,8 +81,11 @@ impl Clone for KernelObject {
 }
 
 type KernelObjects = Handles<HANDLE<()>, KernelObject>;
-impl KernelObjects {
-    pub fn get_event(&self, handle: HEVENT) -> Option<&EventObject> {
+pub trait KernelObjectsMethods {
+    fn get_event(&self, handle: HEVENT) -> Option<&EventObject>;
+}
+impl KernelObjectsMethods for KernelObjects {
+    fn get_event(&self, handle: HEVENT) -> Option<&EventObject> {
         match self.get_raw(handle.to_raw()) {
             Some(KernelObject::Event(ev)) => Some(ev),
             _ => None,

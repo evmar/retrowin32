@@ -5,7 +5,9 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::{Machine, calling_convention::ArrayOut, winapi::HFILE};
+use crate::{Machine, calling_convention::ArrayOut};
+
+use super::kernel32::HFILE;
 
 const STATUS_SUCCESS: u32 = 0;
 

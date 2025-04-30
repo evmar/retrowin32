@@ -12,9 +12,7 @@ pub mod ddraw;
 mod dinput;
 pub mod dsound;
 mod encoding;
-mod error;
 pub mod gdi32;
-mod handle;
 pub mod kernel32;
 mod ntdll;
 mod ole32;
@@ -23,7 +21,6 @@ mod printf;
 mod retrowin32_test;
 mod shlwapi;
 pub mod trace;
-mod types;
 mod ucrtbase;
 pub mod user32;
 mod vcruntime140;
@@ -31,9 +28,8 @@ mod version;
 mod wininet;
 mod winmm;
 
-pub use error::ERROR;
 pub use memory::str16::{Str16, String16};
-pub use types::*;
+pub use win32_winapi::*;
 
 pub struct State {
     scratch: Rc<RefCell<Heap>>,

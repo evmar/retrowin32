@@ -4,7 +4,7 @@ use crate::{
     winapi::{
         bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
-        gdi32::HGDIOBJ,
+        gdi32::{GDIHandles, HGDIOBJ},
         kernel32::ResourceKey,
         *,
     },

@@ -15,13 +15,10 @@ pub enum Object {
 }
 
 pub type HGDIOBJ = HANDLE<Object>;
-impl HGDIOBJ {
-    /// Some Windows APIs use low values of GDI objects as known system constants,
-    /// so start the handles higher.
-    pub fn lowest_value() -> u32 {
-        0x100
-    }
-}
+
+/// Some Windows APIs use low values of GDI objects as known system constants,
+/// so start the handles higher.
+pub const LOWEST_HGDIOBJ: u32 = 0x100;
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum GetStockObjectArg {

@@ -1,10 +1,11 @@
 //! Types exposed by the Windows API.
 
+use crate::handle::HANDLE;
 use memory::Extensions;
 use std::borrow::Cow;
 
-pub use super::handle::HANDLE;
 pub use std::ffi::CStr;
+pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 pub trait StrExt<'a> {
     fn to_str_or_warn(&'a self) -> Cow<'a, str>;
@@ -27,8 +28,6 @@ pub type DWORD = u32;
 pub type LPARAM = u32;
 
 pub type HRESULT = u32;
-
-pub use super::kernel32::HFILE;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub struct HRSRCT;

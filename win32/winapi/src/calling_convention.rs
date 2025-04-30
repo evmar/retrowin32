@@ -6,7 +6,7 @@
 //! plain values (for output) so that different machine implementations can do their
 //! own control over the stack and moving return values into registers.
 
-use crate::winapi::{CStr, Str16};
+use crate::{CStr, Str16};
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::ops::{Deref, DerefMut};
 

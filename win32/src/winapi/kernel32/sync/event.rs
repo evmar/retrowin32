@@ -1,6 +1,9 @@
 use crate::{
     Machine, System,
-    winapi::{HANDLE, kernel32::KernelObject},
+    winapi::{
+        HANDLE,
+        kernel32::{KernelObject, KernelObjectsMethods},
+    },
 };
 use std::sync::{Arc, Mutex};
 

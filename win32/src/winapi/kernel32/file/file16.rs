@@ -1,4 +1,5 @@
-use crate::{System, calling_convention::ArrayOut, winapi::HFILE};
+use super::HFILE;
+use crate::{System, calling_convention::ArrayOut};
 
 #[win32_derive::dllexport]
 pub fn _lopen(sys: &dyn System, lpPathName: Option<&str>, iReadWrite: i32) -> HFILE {

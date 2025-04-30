@@ -1,5 +1,5 @@
-use super::{DC, DCTarget, HDC, HGDIOBJ, Object};
-use crate::winapi::{bitmap::Bitmap, handle::Handles, user32::Window};
+use super::{DC, DCTarget, HDC, HGDIOBJ, LOWEST_HGDIOBJ, Object};
+use crate::winapi::{Handles, bitmap::Bitmap, user32::Window};
 use std::{cell::RefCell, rc::Rc};
 
 pub struct State {
@@ -8,18 +8,25 @@ pub struct State {
     pub objects: Handles<HGDIOBJ, Object>,
 }
 
-impl Handles<HDC, Rc<RefCell<DC>>> {
-    pub fn add_dc(&mut self, dc: DC) -> HDC {
+pub trait DCHandles {
+    fn add_dc(&mut self, dc: DC) -> HDC;
+}
+impl DCHandles for Handles<HDC, Rc<RefCell<DC>>> {
+    fn add_dc(&mut self, dc: DC) -> HDC {
         self.add(Rc::new(RefCell::new(dc)))
     }
 }
 
-impl Handles<HGDIOBJ, Object> {
-    pub fn add_bitmap(&mut self, bmp: Bitmap) -> HGDIOBJ {
+pub trait GDIHandles {
+    fn add_bitmap(&mut self, bmp: Bitmap) -> HGDIOBJ;
+    fn get_bitmap(&self, handle: HGDIOBJ) -> Option<&Rc<RefCell<Bitmap>>>;
+}
+impl GDIHandles for Handles<HGDIOBJ, Object> {
+    fn add_bitmap(&mut self, bmp: Bitmap) -> HGDIOBJ {
         self.add(Object::Bitmap(Rc::new(RefCell::new(bmp))))
     }
 
-    pub fn get_bitmap(&self, handle: HGDIOBJ) -> Option<&Rc<RefCell<Bitmap>>> {
+    fn get_bitmap(&self, handle: HGDIOBJ) -> Option<&Rc<RefCell<Bitmap>>> {
         let object = self.get(handle)?;
         let Object::Bitmap(bmp) = object else {
             return None;
@@ -35,7 +42,7 @@ impl Default for State {
         State {
             dcs,
             screen_dc,
-            objects: Handles::new(HGDIOBJ::lowest_value()),
+            objects: Handles::new(LOWEST_HGDIOBJ),
         }
     }
 }

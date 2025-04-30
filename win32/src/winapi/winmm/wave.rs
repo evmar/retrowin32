@@ -1,7 +1,7 @@
 use super::MMRESULT;
 use crate::{
     Machine, System, host,
-    winapi::{self, handle::Handles},
+    winapi::{self, Handles},
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};

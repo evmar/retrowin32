@@ -1,4 +1,4 @@
-use super::{HGDIOBJ, R2};
+use super::{DCHandles, GDIHandles, HGDIOBJ, R2};
 use crate::{
     Machine, System,
     winapi::{

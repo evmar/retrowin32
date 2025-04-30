@@ -1,6 +1,6 @@
 //! kernel32 API without a better home.
 
-use super::teb_mut;
+use super::{HFILE, teb_mut};
 use crate::{
     Machine, System,
     winapi::{

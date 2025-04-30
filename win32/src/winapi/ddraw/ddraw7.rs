@@ -10,7 +10,7 @@ use crate::{
             types::*,
             {self},
         },
-        gdi32::PALETTEENTRY,
+        gdi32::{DCHandles, PALETTEENTRY},
         kernel32::get_symbol,
         *,
     },
@@ -310,6 +310,7 @@ pub mod IDirectDraw7 {
 
 #[win32_derive::dllexport]
 pub mod IDirectDrawSurface7 {
+
     use super::*;
 
     vtable![

@@ -1,4 +1,3 @@
-pub mod calling_convention;
 mod heap;
 mod host;
 pub mod loader;
@@ -28,3 +27,4 @@ mod machine_unicorn;
 pub use host::*;
 pub use machine::{Machine, Status};
 pub use system::System;
+pub use win32_winapi::calling_convention;
