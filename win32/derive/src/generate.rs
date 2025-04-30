@@ -43,7 +43,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     let self_arg = if dllexport.sys_arg {
         quote!(sys)
     } else {
-        quote!(sys.machine())
+        quote!(&mut *(sys.machine() as *mut Machine))
     };
 
     let args = dllexport
@@ -93,7 +93,7 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
             pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
                 unsafe {
                     #fetch_args
-                    let machine: *mut Machine = sys.machine();
+                    let machine: *mut Machine = sys.machine() as *mut _;
                     Box::pin(async move {
                         let machine = &mut *machine;
                         let result = #impls_mod::#base_name(machine, #(#args),*).await;

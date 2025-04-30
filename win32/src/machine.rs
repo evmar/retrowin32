@@ -47,8 +47,8 @@ impl System for Machine {
         self.mem()
     }
 
-    fn machine(&mut self) -> &mut Machine {
-        self
+    fn machine(&mut self) -> *mut () {
+        self as *mut _ as *mut _
     }
 
     fn host(&mut self) -> &mut dyn host::Host {

@@ -37,8 +37,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dinput::DirectInputCreateA(sys.machine(), hinst, version, ppDI, pUnkOuter);
+            let result = winapi::dinput::DirectInputCreateA(
+                &mut *(sys.machine() as *mut Machine),
+                hinst,
+                version,
+                ppDI,
+                pUnkOuter,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -60,7 +65,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dinput::IDirectInputDevice::Acquire(sys.machine(), this);
+            let result = winapi::dinput::IDirectInputDevice::Acquire(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -94,7 +102,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInputDevice::EnumObjects(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpCallback,
                 pvRef,
@@ -135,7 +143,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInputDevice::GetDeviceData(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 cbObjectData,
                 rgdod,
@@ -169,7 +177,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInputDevice::SetCooperativeLevel(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 hwnd,
                 dwFlags,
@@ -199,8 +207,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dinput::IDirectInputDevice::SetDataFormat(sys.machine(), this, lpdf);
+            let result = winapi::dinput::IDirectInputDevice::SetDataFormat(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                lpdf,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -227,7 +238,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInputDevice::SetEventNotification(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 hEvent,
             );
@@ -262,7 +273,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInputDevice::SetProperty(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 rguidProp,
                 pdiph,
@@ -288,7 +299,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dinput::IDirectInput::AddRef(sys.machine(), this);
+            let result =
+                winapi::dinput::IDirectInput::AddRef(&mut *(sys.machine() as *mut Machine), this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -319,7 +331,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInput::CreateDevice(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpGUID,
                 lplpDirectInputDevice,
@@ -357,7 +369,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dinput::IDirectInput::EnumDevices(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 dwDevType,
                 callback,
@@ -385,7 +397,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dinput::IDirectInput::Release(sys.machine(), this);
+            let result =
+                winapi::dinput::IDirectInput::Release(&mut *(sys.machine() as *mut Machine), this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

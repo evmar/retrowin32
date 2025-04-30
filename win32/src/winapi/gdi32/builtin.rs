@@ -48,7 +48,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::BitBlt(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hdcDst,
                 xDst,
                 yDst,
@@ -91,7 +91,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::CreateBitmap(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 nWidth,
                 nHeight,
                 nPlanes,
@@ -121,7 +121,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateCompatibleBitmap(sys.machine(), hdc, cx, cy);
+            let result = winapi::gdi32::CreateCompatibleBitmap(
+                &mut *(sys.machine() as *mut Machine),
+                hdc,
+                cx,
+                cy,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -143,7 +148,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateCompatibleDC(sys.machine(), hdc);
+            let result =
+                winapi::gdi32::CreateCompatibleDC(&mut *(sys.machine() as *mut Machine), hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -178,7 +184,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::CreateDIBSection(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hdc,
                 pbmi,
                 usage,
@@ -308,7 +314,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreatePalette(sys.machine(), plpal);
+            let result = winapi::gdi32::CreatePalette(&mut *(sys.machine() as *mut Machine), plpal);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -332,7 +338,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreatePen(sys.machine(), iStyle, cWidth, color);
+            let result = winapi::gdi32::CreatePen(
+                &mut *(sys.machine() as *mut Machine),
+                iStyle,
+                cWidth,
+                color,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -354,7 +365,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateSolidBrush(sys.machine(), color);
+            let result =
+                winapi::gdi32::CreateSolidBrush(&mut *(sys.machine() as *mut Machine), color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -454,7 +466,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetDCOrgEx(sys.machine(), hdc, lpPoint);
+            let result =
+                winapi::gdi32::GetDCOrgEx(&mut *(sys.machine() as *mut Machine), hdc, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -560,7 +573,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetObjectA(sys.machine(), handle, bytes, out);
+            let result = winapi::gdi32::GetObjectA(
+                &mut *(sys.machine() as *mut Machine),
+                handle,
+                bytes,
+                out,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -614,7 +632,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetPixel(sys.machine(), hdc, x, y);
+            let result = winapi::gdi32::GetPixel(&mut *(sys.machine() as *mut Machine), hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -636,7 +654,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetStockObject(sys.machine(), i);
+            let result = winapi::gdi32::GetStockObject(&mut *(sys.machine() as *mut Machine), i);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -831,7 +849,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::LineTo(sys.machine(), hdc, x, y);
+            let result = winapi::gdi32::LineTo(&mut *(sys.machine() as *mut Machine), hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -856,7 +874,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::MoveToEx(sys.machine(), hdc, x, y, lppt);
+            let result =
+                winapi::gdi32::MoveToEx(&mut *(sys.machine() as *mut Machine), hdc, x, y, lppt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -890,7 +909,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::PatBlt(sys.machine(), hdc, x, y, w, h, rop);
+            let result =
+                winapi::gdi32::PatBlt(&mut *(sys.machine() as *mut Machine), hdc, x, y, w, h, rop);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -959,7 +979,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SelectObject(sys.machine(), hdc, hGdiObj);
+            let result =
+                winapi::gdi32::SelectObject(&mut *(sys.machine() as *mut Machine), hdc, hGdiObj);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1054,7 +1075,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBrushOrgEx(sys.machine(), hdc, x, y, lppt);
+            let result = winapi::gdi32::SetBrushOrgEx(
+                &mut *(sys.machine() as *mut Machine),
+                hdc,
+                x,
+                y,
+                lppt,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1101,7 +1128,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::SetDIBitsToDevice(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hdc,
                 xDst,
                 yDst,
@@ -1192,7 +1219,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetPixel(sys.machine(), hdc, x, y, color);
+            let result =
+                winapi::gdi32::SetPixel(&mut *(sys.machine() as *mut Machine), hdc, x, y, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1215,7 +1243,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetROP2(sys.machine(), hdc, rop2);
+            let result = winapi::gdi32::SetROP2(&mut *(sys.machine() as *mut Machine), hdc, rop2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1306,7 +1334,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::StretchBlt(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hdcDst,
                 xDst,
                 yDst,
@@ -1367,7 +1395,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::StretchDIBits(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hdc,
                 xDst,
                 yDst,

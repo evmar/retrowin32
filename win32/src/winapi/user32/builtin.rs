@@ -35,7 +35,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AdjustWindowRect(sys.machine(), lpRect, dwStyle, bMenu);
+            let result = winapi::user32::AdjustWindowRect(
+                &mut *(sys.machine() as *mut Machine),
+                lpRect,
+                dwStyle,
+                bMenu,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -118,7 +123,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::BeginPaint(sys.machine(), hWnd, lpPaint);
+            let result =
+                winapi::user32::BeginPaint(&mut *(sys.machine() as *mut Machine), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -173,7 +179,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerA(sys.machine(), lpsz);
+            let result = winapi::user32::CharLowerA(&mut *(sys.machine() as *mut Machine), lpsz);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -196,7 +202,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerBuffA(sys.machine(), lpsz, cchLength);
+            let result = winapi::user32::CharLowerBuffA(
+                &mut *(sys.machine() as *mut Machine),
+                lpsz,
+                cchLength,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -442,7 +452,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::CreateWindowExA(
@@ -511,7 +521,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::CreateWindowExW(
@@ -563,7 +573,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -601,7 +611,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -798,7 +808,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
@@ -827,7 +837,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
@@ -982,7 +992,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EndPaint(sys.machine(), hWnd, lpPaint);
+            let result =
+                winapi::user32::EndPaint(&mut *(sys.machine() as *mut Machine), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1006,7 +1017,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FillRect(sys.machine(), hDC, lprc, hbr);
+            let result =
+                winapi::user32::FillRect(&mut *(sys.machine() as *mut Machine), hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1032,7 +1044,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FindWindowA(sys.machine(), lpClassName, lpWindowName);
+            let result = winapi::user32::FindWindowA(
+                &mut *(sys.machine() as *mut Machine),
+                lpClassName,
+                lpWindowName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1077,7 +1093,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetActiveWindow(sys.machine());
+            let result = winapi::user32::GetActiveWindow(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1098,7 +1114,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetCapture(sys.machine());
+            let result = winapi::user32::GetCapture(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1121,7 +1137,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetClassLongA(sys.machine(), hWnd, nIndex);
+            let result =
+                winapi::user32::GetClassLongA(&mut *(sys.machine() as *mut Machine), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1144,7 +1161,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetClientRect(sys.machine(), hWnd, lpRect);
+            let result =
+                winapi::user32::GetClientRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1188,7 +1206,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDC(sys.machine(), hWnd);
+            let result = winapi::user32::GetDC(&mut *(sys.machine() as *mut Machine), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1312,7 +1330,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetFocus(sys.machine());
+            let result = winapi::user32::GetFocus(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1333,7 +1351,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetForegroundWindow(sys.machine());
+            let result = winapi::user32::GetForegroundWindow(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1465,7 +1483,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetLastActivePopup(sys.machine());
+            let result = winapi::user32::GetLastActivePopup(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1550,7 +1568,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -1589,7 +1607,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -1775,7 +1793,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetUpdateRect(sys.machine(), hWnd, lpRect, bErase);
+            let result = winapi::user32::GetUpdateRect(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                lpRect,
+                bErase,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1859,7 +1882,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowLongA(sys.machine(), hWnd, nIndex);
+            let result =
+                winapi::user32::GetWindowLongA(&mut *(sys.machine() as *mut Machine), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1882,7 +1906,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowPlacement(sys.machine(), hWnd, lpwndpl);
+            let result = winapi::user32::GetWindowPlacement(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                lpwndpl,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1905,7 +1933,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowRect(sys.machine(), hWnd, lpRect);
+            let result =
+                winapi::user32::GetWindowRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1981,7 +2010,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRect(sys.machine(), hWnd, lpRect, bErase);
+            let result = winapi::user32::InvalidateRect(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                lpRect,
+                bErase,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2005,7 +2039,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRgn(sys.machine(), hWnd, hRgn, bErase);
+            let result = winapi::user32::InvalidateRgn(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                hRgn,
+                bErase,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2162,7 +2201,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::KillTimer(sys.machine(), hWnd, uIDEvent);
+            let result =
+                winapi::user32::KillTimer(&mut *(sys.machine() as *mut Machine), hWnd, uIDEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2208,7 +2248,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadBitmapA(sys.machine(), hInstance, lpBitmapName);
+            let result = winapi::user32::LoadBitmapA(
+                &mut *(sys.machine() as *mut Machine),
+                hInstance,
+                lpBitmapName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2334,8 +2378,15 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::LoadImageA(sys.machine(), hInstance, name, typ, cx, cy, fuLoad);
+            let result = winapi::user32::LoadImageA(
+                &mut *(sys.machine() as *mut Machine),
+                hInstance,
+                name,
+                typ,
+                cx,
+                cy,
+                fuLoad,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2369,8 +2420,15 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::LoadImageW(sys.machine(), hInstance, name, typ, cx, cy, fuLoad);
+            let result = winapi::user32::LoadImageW(
+                &mut *(sys.machine() as *mut Machine),
+                hInstance,
+                name,
+                typ,
+                cx,
+                cy,
+                fuLoad,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2446,8 +2504,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::LoadStringA(sys.machine(), hInstance, uID, lpBuffer, cchBufferMax);
+            let result = winapi::user32::LoadStringA(
+                &mut *(sys.machine() as *mut Machine),
+                hInstance,
+                uID,
+                lpBuffer,
+                cchBufferMax,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2477,8 +2540,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::LoadStringW(sys.machine(), hInstance, uID, lpBuffer, cchBufferMax);
+            let result = winapi::user32::LoadStringW(
+                &mut *(sys.machine() as *mut Machine),
+                hInstance,
+                uID,
+                lpBuffer,
+                cchBufferMax,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2600,8 +2668,15 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::MoveWindow(sys.machine(), hWnd, X, Y, nWidth, nHeight, bRepaint);
+            let result = winapi::user32::MoveWindow(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                X,
+                Y,
+                nWidth,
+                nHeight,
+                bRepaint,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2636,7 +2711,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::MsgWaitForMultipleObjects(
@@ -2704,7 +2779,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::PeekMessageA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2743,7 +2818,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::PeekMessageW(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2779,7 +2854,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageA(sys.machine(), hWnd, Msg, wParam, lParam);
+            let result = winapi::user32::PostMessageA(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                Msg,
+                wParam,
+                lParam,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2809,7 +2890,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageW(sys.machine(), hWnd, Msg, wParam, lParam);
+            let result = winapi::user32::PostMessageW(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                Msg,
+                wParam,
+                lParam,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2831,7 +2918,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostQuitMessage(sys.machine(), nExitCode);
+            let result =
+                winapi::user32::PostQuitMessage(&mut *(sys.machine() as *mut Machine), nExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2861,8 +2949,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::PostThreadMessageA(sys.machine(), idThread, Msg, wParam, lParam);
+            let result = winapi::user32::PostThreadMessageA(
+                &mut *(sys.machine() as *mut Machine),
+                idThread,
+                Msg,
+                wParam,
+                lParam,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2918,7 +3011,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -2946,7 +3039,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassA(sys.machine(), lpWndClass);
+            let result =
+                winapi::user32::RegisterClassA(&mut *(sys.machine() as *mut Machine), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2968,7 +3062,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExA(sys.machine(), lpWndClassEx);
+            let result = winapi::user32::RegisterClassExA(
+                &mut *(sys.machine() as *mut Machine),
+                lpWndClassEx,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2990,7 +3087,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExW(sys.machine(), lpWndClassEx);
+            let result = winapi::user32::RegisterClassExW(
+                &mut *(sys.machine() as *mut Machine),
+                lpWndClassEx,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3012,7 +3112,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassW(sys.machine(), lpWndClass);
+            let result =
+                winapi::user32::RegisterClassW(&mut *(sys.machine() as *mut Machine), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3056,7 +3157,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageA(sys.machine(), lpString);
+            let result = winapi::user32::RegisterWindowMessageA(
+                &mut *(sys.machine() as *mut Machine),
+                lpString,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3078,7 +3182,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageW(sys.machine(), lpString);
+            let result = winapi::user32::RegisterWindowMessageW(
+                &mut *(sys.machine() as *mut Machine),
+                lpString,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3122,7 +3229,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ReleaseDC(sys.machine(), hwnd, hdc);
+            let result =
+                winapi::user32::ReleaseDC(&mut *(sys.machine() as *mut Machine), hwnd, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3188,7 +3296,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
@@ -3225,7 +3333,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SendMessageW(machine, hWnd, Msg, wParam, lParam).await;
@@ -3279,7 +3387,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetClassLongA(sys.machine(), hWnd, nIndex, dwNewLong);
+            let result = winapi::user32::SetClassLongA(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                nIndex,
+                dwNewLong,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3435,7 +3548,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SetFocus(machine, hWnd).await;
@@ -3598,8 +3711,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SetTimer(sys.machine(), hWnd, nIDEvent, uElapse, lpTimerFunc);
+            let result = winapi::user32::SetTimer(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                nIDEvent,
+                uElapse,
+                lpTimerFunc,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3627,7 +3745,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowLongA(sys.machine(), hWnd, nIndex, dwNewLong);
+            let result = winapi::user32::SetWindowLongA(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                nIndex,
+                dwNewLong,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3666,7 +3789,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SetWindowPos(
@@ -3703,7 +3826,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowTextA(sys.machine(), hWnd, lpString);
+            let result = winapi::user32::SetWindowTextA(
+                &mut *(sys.machine() as *mut Machine),
+                hWnd,
+                lpString,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3781,7 +3908,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
@@ -3936,7 +4063,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::UpdateWindow(machine, hWnd).await;
@@ -3963,7 +4090,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ValidateRect(sys.machine(), hWnd, lpRect);
+            let result =
+                winapi::user32::ValidateRect(&mut *(sys.machine() as *mut Machine), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3987,7 +4115,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::WaitMessage(machine).await;
@@ -4075,7 +4203,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::wsprintfA(sys.machine(), buf, fmt, args);
+            let result =
+                winapi::user32::wsprintfA(&mut *(sys.machine() as *mut Machine), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4099,7 +4228,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::wsprintfW(sys.machine(), buf, fmt, args);
+            let result =
+                winapi::user32::wsprintfW(&mut *(sys.machine() as *mut Machine), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

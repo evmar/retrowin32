@@ -119,7 +119,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::CloseHandle(sys.machine(), hObject);
+            let result =
+                winapi::kernel32::CloseHandle(&mut *(sys.machine() as *mut Machine), hObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -217,8 +218,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::CreateDirectoryA(sys.machine(), lpPathName, lpSecurityAttributes);
+            let result = winapi::kernel32::CreateDirectoryA(
+                &mut *(sys.machine() as *mut Machine),
+                lpPathName,
+                lpSecurityAttributes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -276,7 +280,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::CreateEventA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpEventAttributes,
                 bManualReset,
                 bInitialState,
@@ -320,7 +324,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::CreateFileA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpFileName,
                 dwDesiredAccess,
                 dwShareMode,
@@ -410,7 +414,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::CreateFileW(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpFileName,
                 dwDesiredAccess,
                 dwShareMode,
@@ -631,7 +635,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::CreateThread(
@@ -732,7 +736,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::DeleteFileA(sys.machine(), lpFileName);
+            let result =
+                winapi::kernel32::DeleteFileA(&mut *(sys.machine() as *mut Machine), lpFileName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -914,7 +919,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::ExitProcess(sys.machine(), uExitCode);
+            let result =
+                winapi::kernel32::ExitProcess(&mut *(sys.machine() as *mut Machine), uExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -936,7 +942,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::ExitThread(sys.machine(), dwExitCode);
+            let result =
+                winapi::kernel32::ExitThread(&mut *(sys.machine() as *mut Machine), dwExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1015,8 +1022,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::FileTimeToSystemTime(sys.machine(), lpFileTime, lpSystemTime);
+            let result = winapi::kernel32::FileTimeToSystemTime(
+                &mut *(sys.machine() as *mut Machine),
+                lpFileTime,
+                lpSystemTime,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1038,7 +1048,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FindClose(sys.machine(), hFindFile);
+            let result =
+                winapi::kernel32::FindClose(&mut *(sys.machine() as *mut Machine), hFindFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1065,8 +1076,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::FindFirstFileA(sys.machine(), lpFileName, lpFindFileData);
+            let result = winapi::kernel32::FindFirstFileA(
+                &mut *(sys.machine() as *mut Machine),
+                lpFileName,
+                lpFindFileData,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1120,7 +1134,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FindNextFileA(sys.machine(), hFindFile, lpFindFileData);
+            let result = winapi::kernel32::FindNextFileA(
+                &mut *(sys.machine() as *mut Machine),
+                hFindFile,
+                lpFindFileData,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1175,7 +1193,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FindResourceA(sys.machine(), hModule, lpName, lpType);
+            let result = winapi::kernel32::FindResourceA(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                lpName,
+                lpType,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1203,7 +1226,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FindResourceW(sys.machine(), hModule, lpName, lpType);
+            let result = winapi::kernel32::FindResourceW(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                lpName,
+                lpType,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1225,7 +1253,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FlushFileBuffers(sys.machine(), hFile);
+            let result =
+                winapi::kernel32::FlushFileBuffers(&mut *(sys.machine() as *mut Machine), hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1262,7 +1291,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::FormatMessageA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 dwFlags,
                 lpSource,
                 dwMessageId,
@@ -1307,7 +1336,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::FormatMessageW(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 dwFlags,
                 lpSource,
                 dwMessageId,
@@ -1337,7 +1366,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FreeEnvironmentStringsA(sys.machine(), penv);
+            let result = winapi::kernel32::FreeEnvironmentStringsA(
+                &mut *(sys.machine() as *mut Machine),
+                penv,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1359,7 +1391,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::FreeEnvironmentStringsW(sys.machine(), penv);
+            let result = winapi::kernel32::FreeEnvironmentStringsW(
+                &mut *(sys.machine() as *mut Machine),
+                penv,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1446,7 +1481,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetCommandLineA(sys.machine());
+            let result = winapi::kernel32::GetCommandLineA(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1467,7 +1502,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetCommandLineW(sys.machine());
+            let result = winapi::kernel32::GetCommandLineW(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1565,8 +1600,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::GetCurrentDirectoryA(sys.machine(), nBufferLength, lpBuffer);
+            let result = winapi::kernel32::GetCurrentDirectoryA(
+                &mut *(sys.machine() as *mut Machine),
+                nBufferLength,
+                lpBuffer,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1589,8 +1627,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::GetCurrentDirectoryW(sys.machine(), nBufferLength, lpBuffer);
+            let result = winapi::kernel32::GetCurrentDirectoryW(
+                &mut *(sys.machine() as *mut Machine),
+                nBufferLength,
+                lpBuffer,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1653,7 +1694,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetCurrentThread(sys.machine());
+            let result = winapi::kernel32::GetCurrentThread(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1674,7 +1715,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetCurrentThreadId(sys.machine());
+            let result =
+                winapi::kernel32::GetCurrentThreadId(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1707,7 +1749,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::GetDiskFreeSpaceA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpRootPathName,
                 lpSectorsPerCluster,
                 lpBytesPerSector,
@@ -1778,7 +1820,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetEnvironmentStrings(sys.machine());
+            let result =
+                winapi::kernel32::GetEnvironmentStrings(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1799,7 +1842,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetEnvironmentStringsW(sys.machine());
+            let result =
+                winapi::kernel32::GetEnvironmentStringsW(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1890,7 +1934,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetFileAttributesA(sys.machine(), lpFileName);
+            let result = winapi::kernel32::GetFileAttributesA(
+                &mut *(sys.machine() as *mut Machine),
+                lpFileName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1937,7 +1984,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::GetFileInformationByHandle(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lpFileInformation,
             );
@@ -1963,7 +2010,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetFileSize(sys.machine(), hFile, lpFileSizeHigh);
+            let result = winapi::kernel32::GetFileSize(
+                &mut *(sys.machine() as *mut Machine),
+                hFile,
+                lpFileSizeHigh,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1994,7 +2045,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::GetFileTime(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lpCreationTime,
                 lpLastAccessTime,
@@ -2021,7 +2072,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetFileType(sys.machine(), hFile);
+            let result =
+                winapi::kernel32::GetFileType(&mut *(sys.machine() as *mut Machine), hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2052,7 +2104,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::GetFullPathNameA(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpFileName,
                 nBufferLength,
                 lpBuffer,
@@ -2088,7 +2140,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::GetFullPathNameW(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpFileName,
                 nBufferLength,
                 lpBuffer,
@@ -2114,7 +2166,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetLastError(sys.machine());
+            let result = winapi::kernel32::GetLastError(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2136,7 +2188,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetLocalTime(sys.machine(), lpSystemTime);
+            let result =
+                winapi::kernel32::GetLocalTime(&mut *(sys.machine() as *mut Machine), lpSystemTime);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2240,7 +2293,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetModuleFileNameA(sys.machine(), hModule, filename);
+            let result = winapi::kernel32::GetModuleFileNameA(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                filename,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2268,8 +2325,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::GetModuleFileNameW(sys.machine(), hModule, lpFilename, nSize);
+            let result = winapi::kernel32::GetModuleFileNameW(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                lpFilename,
+                nSize,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2291,7 +2352,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetModuleHandleA(sys.machine(), lpModuleName);
+            let result = winapi::kernel32::GetModuleHandleA(
+                &mut *(sys.machine() as *mut Machine),
+                lpModuleName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2319,8 +2383,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::GetModuleHandleExW(sys.machine(), dwFlags, lpModuleName, hModule);
+            let result = winapi::kernel32::GetModuleHandleExW(
+                &mut *(sys.machine() as *mut Machine),
+                dwFlags,
+                lpModuleName,
+                hModule,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2342,7 +2410,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetModuleHandleW(sys.machine(), lpModuleName);
+            let result = winapi::kernel32::GetModuleHandleW(
+                &mut *(sys.machine() as *mut Machine),
+                lpModuleName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2532,7 +2603,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetProcAddress(sys.machine(), hModule, lpProcName);
+            let result = winapi::kernel32::GetProcAddress(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                lpProcName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2553,7 +2628,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetProcessHeap(sys.machine());
+            let result = winapi::kernel32::GetProcessHeap(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2661,7 +2736,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetStartupInfoW(sys.machine(), lpStartupInfo);
+            let result = winapi::kernel32::GetStartupInfoW(
+                &mut *(sys.machine() as *mut Machine),
+                lpStartupInfo,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2771,7 +2849,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetSystemDirectoryA(sys.machine(), lpBuffer, uSize);
+            let result = winapi::kernel32::GetSystemDirectoryA(
+                &mut *(sys.machine() as *mut Machine),
+                lpBuffer,
+                uSize,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2793,7 +2875,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetSystemTime(sys.machine(), lpSystemTime);
+            let result = winapi::kernel32::GetSystemTime(
+                &mut *(sys.machine() as *mut Machine),
+                lpSystemTime,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2816,8 +2901,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::GetSystemTimeAsFileTime(sys.machine(), lpSystemTimeAsFileTime);
+            let result = winapi::kernel32::GetSystemTimeAsFileTime(
+                &mut *(sys.machine() as *mut Machine),
+                lpSystemTimeAsFileTime,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2881,7 +2968,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetTickCount(sys.machine());
+            let result = winapi::kernel32::GetTickCount(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3013,7 +3100,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GetWindowsDirectoryA(sys.machine(), lpBuffer, uSize);
+            let result = winapi::kernel32::GetWindowsDirectoryA(
+                &mut *(sys.machine() as *mut Machine),
+                lpBuffer,
+                uSize,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3058,7 +3149,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GlobalAlloc(sys.machine(), uFlags, dwBytes);
+            let result = winapi::kernel32::GlobalAlloc(
+                &mut *(sys.machine() as *mut Machine),
+                uFlags,
+                dwBytes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3102,7 +3197,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GlobalFree(sys.machine(), hMem);
+            let result = winapi::kernel32::GlobalFree(&mut *(sys.machine() as *mut Machine), hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3170,7 +3265,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::GlobalReAlloc(sys.machine(), hMem, dwBytes, uFlags);
+            let result = winapi::kernel32::GlobalReAlloc(
+                &mut *(sys.machine() as *mut Machine),
+                hMem,
+                dwBytes,
+                uFlags,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3220,7 +3320,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::HeapAlloc(sys.machine(), hHeap, dwFlags, dwBytes);
+            let result = winapi::kernel32::HeapAlloc(
+                &mut *(sys.machine() as *mut Machine),
+                hHeap,
+                dwFlags,
+                dwBytes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3272,7 +3377,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::HeapCreate(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 flOptions,
                 dwInitialSize,
                 dwMaximumSize,
@@ -3322,7 +3427,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::HeapFree(sys.machine(), hHeap, dwFlags, lpMem);
+            let result = winapi::kernel32::HeapFree(
+                &mut *(sys.machine() as *mut Machine),
+                hHeap,
+                dwFlags,
+                lpMem,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3352,8 +3462,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::HeapReAlloc(sys.machine(), hHeap, dwFlags, lpMem, dwBytes);
+            let result = winapi::kernel32::HeapReAlloc(
+                &mut *(sys.machine() as *mut Machine),
+                hHeap,
+                dwFlags,
+                lpMem,
+                dwBytes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3413,7 +3528,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::HeapSize(sys.machine(), hHeap, dwFlags, lpMem);
+            let result = winapi::kernel32::HeapSize(
+                &mut *(sys.machine() as *mut Machine),
+                hHeap,
+                dwFlags,
+                lpMem,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3994,7 +4114,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::LoadLibraryA(machine, filename).await;
@@ -4029,7 +4149,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -4059,7 +4179,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::LoadLibraryW(machine, filename).await;
@@ -4086,7 +4206,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::LoadResource(sys.machine(), hModule, hResInfo);
+            let result = winapi::kernel32::LoadResource(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                hResInfo,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4109,7 +4233,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::LocalAlloc(sys.machine(), uFlags, dwBytes);
+            let result = winapi::kernel32::LocalAlloc(
+                &mut *(sys.machine() as *mut Machine),
+                uFlags,
+                dwBytes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4158,7 +4286,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::LocalFree(sys.machine(), hMem);
+            let result = winapi::kernel32::LocalFree(&mut *(sys.machine() as *mut Machine), hMem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4219,7 +4347,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::LockResource(sys.machine(), hResData);
+            let result =
+                winapi::kernel32::LockResource(&mut *(sys.machine() as *mut Machine), hResData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4332,7 +4461,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::MultiByteToWideChar(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 CodePage,
                 dwFlags,
                 lpMultiByteStr,
@@ -4511,8 +4640,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::QueryPerformanceCounter(sys.machine(), lpPerformanceCount);
+            let result = winapi::kernel32::QueryPerformanceCounter(
+                &mut *(sys.machine() as *mut Machine),
+                lpPerformanceCount,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4534,7 +4665,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::QueryPerformanceFrequency(sys.machine(), lpFrequency);
+            let result = winapi::kernel32::QueryPerformanceFrequency(
+                &mut *(sys.machine() as *mut Machine),
+                lpFrequency,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4677,7 +4811,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::ReadFile(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lpBuffer,
                 lpNumberOfBytesRead,
@@ -4748,7 +4882,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::RemoveDirectoryA(sys.machine(), lpPathName);
+            let result = winapi::kernel32::RemoveDirectoryA(
+                &mut *(sys.machine() as *mut Machine),
+                lpPathName,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4962,7 +5099,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::SetEndOfFile(sys.machine(), hFile);
+            let result =
+                winapi::kernel32::SetEndOfFile(&mut *(sys.machine() as *mut Machine), hFile);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5052,7 +5190,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::SetEvent(sys.machine(), hEvent);
+            let result = winapi::kernel32::SetEvent(&mut *(sys.machine() as *mut Machine), hEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5078,8 +5216,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::SetFileAttributesA(sys.machine(), lpFileName, dwFileAttributes);
+            let result = winapi::kernel32::SetFileAttributesA(
+                &mut *(sys.machine() as *mut Machine),
+                lpFileName,
+                dwFileAttributes,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5136,7 +5277,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::SetFilePointer(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lDistanceToMove,
                 lpDistanceToMoveHigh,
@@ -5172,7 +5313,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::SetFileTime(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lpCreationTime,
                 lpLastAccessTime,
@@ -5221,7 +5362,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::SetLastError(sys.machine(), dwErrCode);
+            let result =
+                winapi::kernel32::SetLastError(&mut *(sys.machine() as *mut Machine), dwErrCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5409,7 +5551,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::SizeofResource(sys.machine(), hModule, hResInfo);
+            let result = winapi::kernel32::SizeofResource(
+                &mut *(sys.machine() as *mut Machine),
+                hModule,
+                hResInfo,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5434,7 +5580,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::Sleep(machine, dwMilliseconds).await;
@@ -5467,7 +5613,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::SleepEx(machine, dwMilliseconds, bAlertable).await;
@@ -5494,8 +5640,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::kernel32::SystemTimeToFileTime(sys.machine(), lpSystemTime, lpFileTime);
+            let result = winapi::kernel32::SystemTimeToFileTime(
+                &mut *(sys.machine() as *mut Machine),
+                lpSystemTime,
+                lpFileTime,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5562,7 +5711,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::TlsAlloc(sys.machine());
+            let result = winapi::kernel32::TlsAlloc(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5584,7 +5733,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::TlsFree(sys.machine(), dwTlsIndex);
+            let result =
+                winapi::kernel32::TlsFree(&mut *(sys.machine() as *mut Machine), dwTlsIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5606,7 +5756,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::TlsGetValue(sys.machine(), dwTlsIndex);
+            let result =
+                winapi::kernel32::TlsGetValue(&mut *(sys.machine() as *mut Machine), dwTlsIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5629,7 +5780,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::TlsSetValue(sys.machine(), dwTlsIndex, lpTlsValue);
+            let result = winapi::kernel32::TlsSetValue(
+                &mut *(sys.machine() as *mut Machine),
+                dwTlsIndex,
+                lpTlsValue,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -5743,7 +5898,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::VirtualAlloc(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 lpAddress,
                 dwSize,
                 flAllocationType,
@@ -5874,7 +6029,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::WaitForMultipleObjects(
@@ -5911,7 +6066,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -5955,7 +6110,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::WideCharToMultiByte(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 CodePage,
                 dwFlags,
                 lpWideCharStr,
@@ -6031,7 +6186,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::WriteConsoleW(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hConsoleOutput,
                 lpBuffer,
                 lpNumberOfCharsWritten,
@@ -6067,7 +6222,7 @@ mod wrappers {
                 None
             };
             let result = winapi::kernel32::WriteFile(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 hFile,
                 lpBuffer,
                 lpNumberOfBytesWritten,
@@ -6274,7 +6429,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::lstrcpyA(sys.machine(), lpString1, lpString2);
+            let result = winapi::kernel32::lstrcpyA(
+                &mut *(sys.machine() as *mut Machine),
+                lpString1,
+                lpString2,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6297,7 +6456,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::kernel32::lstrcpyW(sys.machine(), lpString1, lpString2);
+            let result = winapi::kernel32::lstrcpyW(
+                &mut *(sys.machine() as *mut Machine),
+                lpString1,
+                lpString2,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -6366,7 +6529,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::kernel32::retrowin32_main(machine, entry_point).await;
@@ -6396,7 +6559,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =

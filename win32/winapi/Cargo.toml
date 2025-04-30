@@ -7,5 +7,5 @@ edition = "2024"
 log = { workspace = true }
 memory = { workspace = true }
 
-win32-derive = { path = "../derive" }
 typed-path = { version = "0.9.1" }
+win32-derive = { path = "../derive" }

@@ -28,7 +28,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ntdll::NtCurrentTeb(sys.machine());
+            let result = winapi::ntdll::NtCurrentTeb(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -67,7 +67,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ntdll::NtReadFile(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 FileHandle,
                 Event,
                 ApcRoutine,
@@ -98,7 +98,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ntdll::RtlExitUserProcess(sys.machine(), exit_code);
+            let result =
+                winapi::ntdll::RtlExitUserProcess(&mut *(sys.machine() as *mut Machine), exit_code);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

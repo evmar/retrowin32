@@ -35,7 +35,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::DirectSoundCreate(sys.machine(), lpGuid, ppDS, pUnkOuter);
+            let result = winapi::dsound::DirectSoundCreate(
+                &mut *(sys.machine() as *mut Machine),
+                lpGuid,
+                ppDS,
+                pUnkOuter,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -159,7 +164,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dsound::IDirectSoundBuffer::Lock(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 dwWriteCursor,
                 dwWriteBytes,
@@ -282,7 +287,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dsound::IDirectSoundBuffer::Unlock(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpvAudioPtr1,
                 dwAudioBytes1,
@@ -322,7 +327,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dsound::IDirectSound::CreateSoundBuffer(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpcDSBufferDesc,
                 lplpDirectSoundBuffer,

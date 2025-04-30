@@ -554,7 +554,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::winmm::retrowin32_time_thread_main(machine).await;
@@ -583,7 +583,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::winmm::retrowin32_wave_thread_main(machine, hwo).await;
@@ -675,7 +675,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeGetTime(sys.machine());
+            let result = winapi::winmm::timeGetTime(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -730,7 +730,7 @@ mod wrappers {
                 None
             };
             let result = winapi::winmm::timeSetEvent(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 uDelay,
                 uResolution,
                 lpTimeProc,
@@ -758,7 +758,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutClose(sys.machine(), hwo);
+            let result = winapi::winmm::waveOutClose(&mut *(sys.machine() as *mut Machine), hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -807,7 +807,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetNumDevs(sys.machine());
+            let result = winapi::winmm::waveOutGetNumDevs(&mut *(sys.machine() as *mut Machine));
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -831,7 +831,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetPosition(sys.machine(), hwo, pmmt, cbmmt);
+            let result = winapi::winmm::waveOutGetPosition(
+                &mut *(sys.machine() as *mut Machine),
+                hwo,
+                pmmt,
+                cbmmt,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -889,7 +894,7 @@ mod wrappers {
                 None
             };
             let result = winapi::winmm::waveOutOpen(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 phwo,
                 uDeviceID,
                 pwfx,
@@ -1057,7 +1062,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutWrite(sys.machine(), hwo, pwh, cbwh);
+            let result =
+                winapi::winmm::waveOutWrite(&mut *(sys.machine() as *mut Machine), hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

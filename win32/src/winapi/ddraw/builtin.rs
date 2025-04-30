@@ -35,7 +35,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::DirectDrawCreate(sys.machine(), lpGuid, lplpDD, pUnkOuter);
+            let result = winapi::ddraw::DirectDrawCreate(
+                &mut *(sys.machine() as *mut Machine),
+                lpGuid,
+                lplpDD,
+                pUnkOuter,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -64,7 +69,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::DirectDrawCreateClipper(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 dwFlags,
                 lplpDDClipper,
                 pUnkOuter,
@@ -98,8 +103,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::DirectDrawCreateEx(sys.machine(), lpGuid, lplpDD, iid, pUnkOuter);
+            let result = winapi::ddraw::DirectDrawCreateEx(
+                &mut *(sys.machine() as *mut Machine),
+                lpGuid,
+                lplpDD,
+                iid,
+                pUnkOuter,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -130,7 +140,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw2::CreateSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 desc,
                 lplpDDSurface,
@@ -170,7 +180,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::ddraw::IDirectDraw2::EnumDisplayModes(
@@ -282,7 +292,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw2::SetDisplayMode(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 width,
                 height,
@@ -318,7 +328,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw7::CreateClipper(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 unused,
                 lplpClipper,
@@ -356,7 +366,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw7::CreatePalette(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 flags,
                 entries,
@@ -393,7 +403,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw7::CreateSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 desc,
                 lpDirectDrawSurface7,
@@ -433,7 +443,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::ddraw::IDirectDraw7::EnumDisplayModes(
@@ -542,7 +552,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = sys.machine();
+            let machine: *mut Machine = sys.machine() as *mut _;
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -583,7 +593,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw7::SetDisplayMode(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 width,
                 height,
@@ -722,7 +732,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawPalette::SetEntries(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 unused,
                 start,
@@ -760,7 +770,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface2::GetAttachedSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpDDSCaps,
                 lpDirectDrawSurface,
@@ -813,8 +823,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface2::GetSurfaceDesc(sys.machine(), this, desc);
+            let result = winapi::ddraw::IDirectDrawSurface2::GetSurfaceDesc(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                desc,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -847,7 +860,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface2::Lock(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 rect,
                 desc,
@@ -898,7 +911,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface2::Unlock(sys.machine(), this, ptr);
+            let result = winapi::ddraw::IDirectDrawSurface2::Unlock(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                ptr,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -955,7 +972,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface7::Blt(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpDstRect,
                 lpSrc,
@@ -997,7 +1014,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface7::BltFast(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 x,
                 y,
@@ -1028,8 +1045,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::Flip(sys.machine(), this, lpSurf, flags);
+            let result = winapi::ddraw::IDirectDrawSurface7::Flip(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                lpSurf,
+                flags,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1061,7 +1082,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface7::GetAttachedSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpDDSCaps2,
                 lpDirectDrawSurface7,
@@ -1111,7 +1132,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::GetDC(sys.machine(), this, lpHDC);
+            let result = winapi::ddraw::IDirectDrawSurface7::GetDC(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                lpHDC,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1163,8 +1188,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::GetSurfaceDesc(sys.machine(), this, lpDesc);
+            let result = winapi::ddraw::IDirectDrawSurface7::GetSurfaceDesc(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                lpDesc,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1186,7 +1214,10 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::IsLost(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawSurface7::IsLost(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1219,7 +1250,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface7::Lock(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 rect,
                 desc,
@@ -1374,8 +1405,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::SetPalette(sys.machine(), this, palette);
+            let result = winapi::ddraw::IDirectDrawSurface7::SetPalette(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                palette,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1398,7 +1432,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::Unlock(sys.machine(), this, rect);
+            let result = winapi::ddraw::IDirectDrawSurface7::Unlock(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                rect,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1430,7 +1468,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface::GetAttachedSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 lpDDSCaps,
                 lpDirectDrawSurface,
@@ -1490,7 +1528,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface::Lock(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 rect,
                 desc,
@@ -1524,7 +1562,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDrawSurface::QueryInterface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 riid,
                 ppvObject,
@@ -1573,7 +1611,11 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface::Unlock(sys.machine(), this, ptr);
+            let result = winapi::ddraw::IDirectDrawSurface::Unlock(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                ptr,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1604,7 +1646,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ddraw::IDirectDraw::CreateSurface(
-                sys.machine(),
+                &mut *(sys.machine() as *mut Machine),
                 this,
                 desc,
                 lplpDDSurface,
@@ -1633,8 +1675,12 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDraw::QueryInterface(sys.machine(), this, riid, ppvObject);
+            let result = winapi::ddraw::IDirectDraw::QueryInterface(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                riid,
+                ppvObject,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1686,8 +1732,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDraw::SetDisplayMode(sys.machine(), this, width, height, bpp);
+            let result = winapi::ddraw::IDirectDraw::SetDisplayMode(
+                &mut *(sys.machine() as *mut Machine),
+                this,
+                width,
+                height,
+                bpp,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
