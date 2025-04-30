@@ -4,14 +4,14 @@
 
 mod builtin;
 
-use crate::Machine;
 use crate::winapi;
+use crate::{Machine, System};
 pub use builtin::DLL;
 
 pub use winapi::user32::TRACKMOUSEEVENT;
 
 #[win32_derive::dllexport(ordinal = 17)]
-pub fn InitCommonControls(_machine: &mut Machine) {}
+pub fn InitCommonControls(sys: &dyn System) {}
 
 #[win32_derive::dllexport]
 pub fn _TrackMouseEvent(machine: &mut Machine, lpEventTrack: Option<&mut TRACKMOUSEEVENT>) -> bool {

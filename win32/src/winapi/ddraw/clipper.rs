@@ -1,5 +1,5 @@
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{HWND, com::vtable, ddraw::DD, kernel32::get_symbol},
 };
 use memory::ExtensionsMut;
@@ -45,12 +45,12 @@ pub mod IDirectDrawClipper {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0 // TODO: return refcount?
     }
 
     #[win32_derive::dllexport]
-    pub fn SetHWnd(_machine: &mut Machine, this: u32, unused: u32, hwnd: HWND) -> DD {
+    pub fn SetHWnd(sys: &dyn System, this: u32, unused: u32, hwnd: HWND) -> DD {
         DD::OK
     }
 }

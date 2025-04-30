@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -37,13 +37,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::version::GetFileVersionInfoA(
-                sys.machine(),
-                lptstrFilename,
-                dwHandle,
-                dwLen,
-                lpData,
-            );
+            let result =
+                winapi::version::GetFileVersionInfoA(sys, lptstrFilename, dwHandle, dwLen, lpData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -69,8 +64,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::version::GetFileVersionInfoSizeA(sys.machine(), lptstrFilename, lpdwHandle);
+            let result = winapi::version::GetFileVersionInfoSizeA(sys, lptstrFilename, lpdwHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -100,13 +94,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::version::VerQueryValueA(
-                sys.machine(),
-                pBlock,
-                lpSubBlock,
-                lplpBuffer,
-                puLen,
-            );
+            let result =
+                winapi::version::VerQueryValueA(sys, pBlock, lpSubBlock, lplpBuffer, puLen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

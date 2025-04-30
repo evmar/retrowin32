@@ -1,4 +1,4 @@
-use crate::{Machine, calling_convention::VarArgs, winapi::CStr};
+use crate::{Machine, System, calling_convention::VarArgs, winapi::CStr};
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _exit(machine: &mut Machine, status: u32) {
@@ -28,12 +28,12 @@ pub fn _cexit(machine: &mut Machine) {
 }
 
 #[win32_derive::dllexport(cdecl, symbol = "?terminate@@YAXXZ")]
-pub fn terminate(_machine: &mut Machine) {
+pub fn terminate(sys: &dyn System) {
     todo!()
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn strlen(_machine: &mut Machine, lpString: Option<&CStr>) -> u32 {
+pub fn strlen(sys: &dyn System, lpString: Option<&CStr>) -> u32 {
     // The mapping to str already computes the string length.
     lpString.unwrap().count_bytes() as u32
 }

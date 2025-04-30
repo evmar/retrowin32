@@ -1,11 +1,11 @@
-use crate::Machine;
+use crate::System;
 
 #[win32_derive::dllexport]
-pub fn InitializeCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
+pub fn InitializeCriticalSection(sys: &dyn System, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
 pub fn InitializeCriticalSectionEx(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpCriticalSection: u32,
     dwSpinCount: u32,
     flags: u32,
@@ -15,7 +15,7 @@ pub fn InitializeCriticalSectionEx(
 
 #[win32_derive::dllexport]
 pub fn InitializeCriticalSectionAndSpinCount(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpCriticalSection: u32,
     dwSpinCount: u32,
 ) -> bool {
@@ -25,10 +25,10 @@ pub fn InitializeCriticalSectionAndSpinCount(
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
+pub fn DeleteCriticalSection(sys: &dyn System, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
-pub fn EnterCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
+pub fn EnterCriticalSection(sys: &dyn System, lpCriticalSection: u32) {}
 
 #[win32_derive::dllexport]
-pub fn LeaveCriticalSection(_machine: &mut Machine, lpCriticalSection: u32) {}
+pub fn LeaveCriticalSection(sys: &dyn System, lpCriticalSection: u32) {}

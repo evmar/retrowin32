@@ -8,7 +8,7 @@ pub use builtin::DLL;
 use super::heap::Heap;
 pub use crate::winapi::com::GUID;
 use crate::{
-    machine::Machine,
+    Machine, System,
     winapi::{com::vtable, kernel32::get_symbol},
 };
 use memory::ExtensionsMut;
@@ -127,7 +127,7 @@ pub mod IDirectSound {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0
     }
 
@@ -160,7 +160,7 @@ pub mod IDirectSound {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetCooperativeLevel(_machine: &mut Machine, this: u32, hwnd: u32, dwLevel: u32) -> u32 {
+    pub fn SetCooperativeLevel(sys: &dyn System, this: u32, hwnd: u32, dwLevel: u32) -> u32 {
         DS_OK
     }
 
@@ -192,13 +192,13 @@ pub mod IDirectSoundBuffer {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0
     }
 
     #[win32_derive::dllexport]
     pub fn GetCurrentPosition(
-        _machine: &mut Machine,
+        sys: &dyn System,
         this: u32,
         lpdwCurrentPlayCursor: Option<&mut u32>,
         lpdwCurrentWriteCursor: Option<&mut u32>,
@@ -215,7 +215,7 @@ pub mod IDirectSoundBuffer {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetStatus(_machine: &mut Machine, this: u32, lpdwStatus: Option<&mut u32>) -> u32 {
+    pub fn GetStatus(sys: &dyn System, this: u32, lpdwStatus: Option<&mut u32>) -> u32 {
         let status = lpdwStatus.unwrap();
         *status = 0;
         DS_OK
@@ -251,7 +251,7 @@ pub mod IDirectSoundBuffer {
 
     #[win32_derive::dllexport]
     pub fn Play(
-        _machine: &mut Machine,
+        sys: &dyn System,
         this: u32,
         dwReserved1: u32,
         dwReserved2: u32,
@@ -262,7 +262,7 @@ pub mod IDirectSoundBuffer {
     }
 
     #[win32_derive::dllexport]
-    pub fn SetFormat(_machine: &mut Machine, this: u32, lpcfxFormat: Option<&WAVEFORMATEX>) -> u32 {
+    pub fn SetFormat(sys: &dyn System, this: u32, lpcfxFormat: Option<&WAVEFORMATEX>) -> u32 {
         let fmt = lpcfxFormat.unwrap();
         // Just check fmt is the one we support..
         assert!(matches!(
@@ -347,7 +347,7 @@ pub fn DirectSoundCreate(
 }
 
 #[win32_derive::dllexport(ordinal = 2)]
-pub fn DirectSoundEnumerateA(_machine: &mut Machine, lpDSEnumCallback: u32, lpContext: u32) -> u32 {
+pub fn DirectSoundEnumerateA(sys: &dyn System, lpDSEnumCallback: u32, lpContext: u32) -> u32 {
     // No sound devices => no calling the callback.
     DS_OK
 }

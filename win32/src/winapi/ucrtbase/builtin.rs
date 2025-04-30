@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -106,7 +106,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__dllonexit(sys.machine(), func, d, f);
+            let result = winapi::ucrtbase::__dllonexit(sys, func, d, f);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -138,14 +138,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__getmainargs(
-                sys.machine(),
-                argc,
-                argv,
-                env,
-                doWildCard,
-                startInfo,
-            );
+            let result =
+                winapi::ucrtbase::__getmainargs(sys, argc, argv, env, doWildCard, startInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -166,7 +160,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__p___argc(sys.machine());
+            let result = winapi::ucrtbase::__p___argc(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -187,7 +181,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__p___argv(sys.machine());
+            let result = winapi::ucrtbase::__p___argv(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -208,7 +202,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__p__commode(sys.machine());
+            let result = winapi::ucrtbase::__p__commode(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -229,7 +223,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__p__environ(sys.machine());
+            let result = winapi::ucrtbase::__p__environ(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -250,7 +244,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__p__fmode(sys.machine());
+            let result = winapi::ucrtbase::__p__fmode(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -272,7 +266,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::__set_app_type(sys.machine(), _app_type);
+            let result = winapi::ucrtbase::__set_app_type(sys, _app_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -337,8 +331,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ucrtbase::_configthreadlocale(sys.machine(), per_thread_locale_type);
+            let result = winapi::ucrtbase::_configthreadlocale(sys, per_thread_locale_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -360,7 +353,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_configure_narrow_argv(sys.machine(), _mode);
+            let result = winapi::ucrtbase::_configure_narrow_argv(sys, _mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -383,7 +376,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_controlfp(sys.machine(), _new, _mask);
+            let result = winapi::ucrtbase::_controlfp(sys, _new, _mask);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -411,8 +404,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ucrtbase::_controlfp_s(sys.machine(), _currentControl, _newControl, _mask);
+            let result = winapi::ucrtbase::_controlfp_s(sys, _currentControl, _newControl, _mask);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -434,7 +426,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_crt_atexit(sys.machine(), _function);
+            let result = winapi::ucrtbase::_crt_atexit(sys, _function);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -465,7 +457,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ucrtbase::_except_handler3(
-                sys.machine(),
+                sys,
                 exception_record,
                 registration,
                 context,
@@ -537,7 +529,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_get_initial_narrow_environment(sys.machine());
+            let result = winapi::ucrtbase::_get_initial_narrow_environment(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -561,7 +553,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_initialize_narrow_environment(sys.machine());
+            let result = winapi::ucrtbase::_initialize_narrow_environment(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -643,7 +635,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_lock(sys.machine(), locknum);
+            let result = winapi::ucrtbase::_lock(sys, locknum);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -687,7 +679,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_set_app_type(sys.machine(), _app_type);
+            let result = winapi::ucrtbase::_set_app_type(sys, _app_type);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -709,7 +701,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_set_fmode(sys.machine(), _mode);
+            let result = winapi::ucrtbase::_set_fmode(sys, _mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -731,7 +723,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_set_new_mode(sys.machine(), newhandlermode);
+            let result = winapi::ucrtbase::_set_new_mode(sys, newhandlermode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -754,7 +746,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_setmode(sys.machine(), fd, mode);
+            let result = winapi::ucrtbase::_setmode(sys, fd, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -798,7 +790,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::_unlock(sys.machine(), locknum);
+            let result = winapi::ucrtbase::_unlock(sys, locknum);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1268,7 +1260,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::strlen(sys.machine(), lpString);
+            let result = winapi::ucrtbase::strlen(sys, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1289,7 +1281,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ucrtbase::terminate(sys.machine());
+            let result = winapi::ucrtbase::terminate(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

@@ -1,4 +1,4 @@
-use crate::{calling_convention, machine::Machine};
+use crate::{Machine, System, calling_convention};
 use bitflags::bitflags;
 use memory::{ExtensionsMut, Mem};
 use std::cmp::max;
@@ -77,7 +77,7 @@ pub fn HeapSize(machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> 
 
 #[win32_derive::dllexport]
 pub fn HeapSetInformation(
-    _machine: &mut Machine,
+    sys: &dyn System,
     HeapHandle: u32,
     HeapInformationClass: u32,
     HeapInformation: u32,
@@ -139,29 +139,25 @@ pub fn HeapCreate(
 }
 
 #[win32_derive::dllexport]
-pub fn HeapDestroy(_machine: &mut Machine, hHeap: u32) -> u32 {
+pub fn HeapDestroy(sys: &dyn System, hHeap: u32) -> u32 {
     log::warn!("HeapDestroy({hHeap:x})");
     1 // success
 }
 
 #[win32_derive::dllexport]
-pub fn HeapValidate(_machine: &mut Machine, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
+pub fn HeapValidate(sys: &dyn System, hHeap: u32, dwFlags: u32, lpMem: u32) -> bool {
     todo!();
 }
 
 #[win32_derive::dllexport]
-pub fn HeapCompact(_machine: &mut Machine, hHeap: u32, dwFlags: u32 /* HEAP_FLAGS */) -> u32 {
+pub fn HeapCompact(sys: &dyn System, hHeap: u32, dwFlags: u32 /* HEAP_FLAGS */) -> u32 {
     todo!()
 }
 
 pub type PROCESS_HEAP_ENTRY = u32; // TODO
 
 #[win32_derive::dllexport]
-pub fn HeapWalk(
-    _machine: &mut Machine,
-    hHeap: u32,
-    lpEntry: Option<&mut PROCESS_HEAP_ENTRY>,
-) -> bool {
+pub fn HeapWalk(sys: &dyn System, hHeap: u32, lpEntry: Option<&mut PROCESS_HEAP_ENTRY>) -> bool {
     todo!()
 }
 
@@ -250,7 +246,7 @@ unsafe impl memory::Pod for MEMORY_BASIC_INFORMATION {}
 
 #[win32_derive::dllexport]
 pub fn VirtualQuery(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAddress: u32,
     lpBuffer: Option<&mut MEMORY_BASIC_INFORMATION>,
     dwLength: u32,
@@ -259,22 +255,22 @@ pub fn VirtualQuery(
 }
 
 #[win32_derive::dllexport]
-pub fn VirtualFree(_machine: &mut Machine, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
+pub fn VirtualFree(sys: &dyn System, lpAddress: u32, dwSize: u32, dwFreeType: u32) -> u32 {
     1 // success
 }
 
 #[win32_derive::dllexport]
-pub fn IsBadReadPtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
+pub fn IsBadReadPtr(sys: &dyn System, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
 }
 
 #[win32_derive::dllexport]
-pub fn IsBadWritePtr(_machine: &mut Machine, lp: u32, ucb: u32) -> bool {
+pub fn IsBadWritePtr(sys: &dyn System, lp: u32, ucb: u32) -> bool {
     false // all pointers are valid
 }
 
 #[win32_derive::dllexport]
-pub fn IsBadCodePtr(_machine: &mut Machine, lpfn: u32) -> bool {
+pub fn IsBadCodePtr(sys: &dyn System, lpfn: u32) -> bool {
     false // all pointers are valid
 }
 
@@ -317,12 +313,12 @@ pub fn GlobalAlloc(machine: &mut Machine, uFlags: GMEM, dwBytes: u32) -> u32 {
 pub type HGLOBAL = u32;
 
 #[win32_derive::dllexport]
-pub fn GlobalHandle(_machine: &mut Machine, pMem: u32) -> HGLOBAL {
+pub fn GlobalHandle(sys: &dyn System, pMem: u32) -> HGLOBAL {
     pMem
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalLock(_machine: &mut Machine, hMem: HGLOBAL) -> u32 {
+pub fn GlobalLock(sys: &dyn System, hMem: HGLOBAL) -> u32 {
     hMem
 }
 
@@ -347,7 +343,7 @@ pub fn GlobalReAlloc(machine: &mut Machine, hMem: u32, dwBytes: u32, uFlags: GME
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalUnlock(_machine: &mut Machine, hMem: HGLOBAL) -> bool {
+pub fn GlobalUnlock(sys: &dyn System, hMem: HGLOBAL) -> bool {
     true // success
 }
 
@@ -366,7 +362,7 @@ pub fn GlobalFree(machine: &mut Machine, hMem: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn GlobalFlags(_machine: &mut Machine, hMem: u32) -> u32 {
+pub fn GlobalFlags(sys: &dyn System, hMem: u32) -> u32 {
     0 // stub
 }
 
@@ -383,7 +379,7 @@ pub fn LocalFree(machine: &mut Machine, hMem: u32) -> u32 {
 
 #[win32_derive::dllexport]
 pub fn VirtualProtect(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAddress: u32,
     dwSize: u32,
     flNewProtect: u32,

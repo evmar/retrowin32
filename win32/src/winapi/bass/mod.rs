@@ -11,19 +11,19 @@ mod builtin;
 pub use builtin::DLL;
 
 use super::kernel32;
-use crate::machine::Machine;
+use crate::{Machine, System};
 
 /// Hack: time since BASS_Start etc. was called.
 static mut T: u32 = 0;
 
 #[win32_derive::dllexport]
-pub fn BASS_Init(_machine: &mut Machine, arg1: u32, arg2: u32, arg3: u32, arg4: u32) -> u32 {
+pub fn BASS_Init(sys: &dyn System, arg1: u32, arg2: u32, arg3: u32, arg4: u32) -> u32 {
     1
 }
 
 #[win32_derive::dllexport]
 pub fn BASS_MusicLoad(
-    _machine: &mut Machine,
+    sys: &dyn System,
     arg1: u32,
     arg2: u32,
     arg3: u32,
@@ -66,11 +66,11 @@ pub fn BASS_ChannelGetPosition(machine: &mut Machine, mode: u32) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_MusicSetPositionScaler(_machine: &mut Machine, arg1: u32, arg2: u32) -> u32 {
+pub fn BASS_MusicSetPositionScaler(sys: &dyn System, arg1: u32, arg2: u32) -> u32 {
     1
 }
 
 #[win32_derive::dllexport]
-pub fn BASS_Free(_machine: &mut Machine, arg1: u32) -> u32 {
+pub fn BASS_Free(sys: &dyn System, arg1: u32) -> u32 {
     1
 }

@@ -1,5 +1,5 @@
 use crate::{
-    Machine,
+    System,
     winapi::{HWND, RECT},
 };
 use bitflags::bitflags;
@@ -7,12 +7,12 @@ use bitflags::bitflags;
 pub type HMENU = u32;
 
 #[win32_derive::dllexport]
-pub fn CreatePopupMenu(_machine: &mut Machine) -> HMENU {
+pub fn CreatePopupMenu(sys: &dyn System) -> HMENU {
     0 // null
 }
 
 #[win32_derive::dllexport]
-pub fn CheckMenuItem(_machine: &mut Machine, hMenu: HMENU, uIDCheckItem: u32, uCheck: u32) -> u32 {
+pub fn CheckMenuItem(sys: &dyn System, hMenu: HMENU, uIDCheckItem: u32, uCheck: u32) -> u32 {
     0 // previous state: unchecked
 }
 
@@ -29,7 +29,7 @@ bitflags! {
 
 #[win32_derive::dllexport]
 pub fn EnableMenuItem(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hMenu: HMENU,
     uIDEnableItem: u32,
     uEnable: Result<MF, u32>,
@@ -39,28 +39,28 @@ pub fn EnableMenuItem(
 }
 
 #[win32_derive::dllexport]
-pub fn GetMenu(_machine: &mut Machine, hWnd: HWND) -> HMENU {
+pub fn GetMenu(sys: &dyn System, hWnd: HWND) -> HMENU {
     0 // null
 }
 
 #[win32_derive::dllexport]
-pub fn GetSubMenu(_machine: &mut Machine, hMenu: HMENU, nPos: i32) -> HMENU {
+pub fn GetSubMenu(sys: &dyn System, hMenu: HMENU, nPos: i32) -> HMENU {
     0 // null
 }
 
 #[win32_derive::dllexport]
-pub fn LoadMenuA(_machine: &mut Machine, hInstance: u32, lpMenuName: u32) -> HMENU {
+pub fn LoadMenuA(sys: &dyn System, hInstance: u32, lpMenuName: u32) -> HMENU {
     0 // null
 }
 
 #[win32_derive::dllexport]
-pub fn SetMenu(_machine: &mut Machine, hWnd: HWND, hMenu: HMENU) -> bool {
+pub fn SetMenu(sys: &dyn System, hWnd: HWND, hMenu: HMENU) -> bool {
     true // success
 }
 
 #[win32_derive::dllexport]
 pub fn SetMenuItemInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hMenu: HMENU,
     item: u32,
     fByPosition: bool,
@@ -70,13 +70,13 @@ pub fn SetMenuItemInfoA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemMenu(_machine: &mut Machine, hWnd: HWND, bRevert: bool) -> HMENU {
+pub fn GetSystemMenu(sys: &dyn System, hWnd: HWND, bRevert: bool) -> HMENU {
     0 // null
 }
 
 #[win32_derive::dllexport]
 pub fn AppendMenuA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hMenu: HMENU,
     uFlags: u32,
     uIDNewItem: u32,
@@ -87,7 +87,7 @@ pub fn AppendMenuA(
 
 #[win32_derive::dllexport]
 pub fn GetMenuItemRect(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hWnd: HWND,
     hMenu: HMENU,
     uItem: u32,
@@ -98,7 +98,7 @@ pub fn GetMenuItemRect(
 
 #[win32_derive::dllexport]
 pub fn DeleteMenu(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hMenu: HMENU,
     uPosition: u32,
     uFlags: u32, /* MENU_ITEM_FLAGS */
@@ -107,6 +107,6 @@ pub fn DeleteMenu(
 }
 
 #[win32_derive::dllexport]
-pub fn DrawMenuBar(_machine: &mut Machine, hWnd: HWND) -> bool {
+pub fn DrawMenuBar(sys: &dyn System, hWnd: HWND) -> bool {
     false // fail
 }

@@ -1,10 +1,10 @@
 //! Functions that work with .ini files.
 
-use crate::{Machine, calling_convention::ArrayOut, winapi::Str16};
+use crate::{System, calling_convention::ArrayOut, winapi::Str16};
 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileIntW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     nDefault: u32,
@@ -15,7 +15,7 @@ pub fn GetPrivateProfileIntW(
 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&str>,
     lpKeyName: Option<&str>,
     lpDefault: Option<&str>,
@@ -28,7 +28,7 @@ pub fn GetPrivateProfileStringA(
 
 #[win32_derive::dllexport]
 pub fn GetPrivateProfileStringW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     lpDefault: Option<&Str16>,
@@ -45,7 +45,7 @@ pub fn GetPrivateProfileStringW(
 
 #[win32_derive::dllexport]
 pub fn GetProfileIntW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     nDefault: i32,
@@ -55,7 +55,7 @@ pub fn GetProfileIntW(
 
 #[win32_derive::dllexport]
 pub fn GetProfileStringW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     lpDefault: Option<&Str16>,
@@ -71,7 +71,7 @@ pub fn GetProfileStringW(
 
 #[win32_derive::dllexport]
 pub fn WriteProfileStringW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&Str16>,
     lpKeyName: Option<&Str16>,
     lpString: Option<&Str16>,
@@ -81,7 +81,7 @@ pub fn WriteProfileStringW(
 
 #[win32_derive::dllexport]
 pub fn WritePrivateProfileStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpAppName: Option<&str>,
     lpKeyName: Option<&str>,
     lpString: Option<&str>,

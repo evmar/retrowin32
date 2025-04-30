@@ -1,6 +1,6 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
-    FileOptions, Machine,
+    FileOptions, Machine, System,
     winapi::{
         bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
@@ -20,28 +20,28 @@ pub type HICON = u32;
 pub type HBRUSH = HGDIOBJ;
 
 #[win32_derive::dllexport]
-pub fn LoadIconA(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {
+pub fn LoadIconA(sys: &dyn System, hInstance: u32, lpIconName: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn LoadIconW(_machine: &mut Machine, hInstance: u32, lpIconName: u32) -> u32 {
+pub fn LoadIconW(sys: &dyn System, hInstance: u32, lpIconName: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn LoadCursorA(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
+pub fn LoadCursorA(sys: &dyn System, hInstance: u32, lpCursorName: u32) -> HCURSOR {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn LoadCursorW(_machine: &mut Machine, hInstance: u32, lpCursorName: u32) -> HCURSOR {
+pub fn LoadCursorW(sys: &dyn System, hInstance: u32, lpCursorName: u32) -> HCURSOR {
     0
 }
 
 #[win32_derive::dllexport]
 pub fn CreateCursor(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hInst: u32,
     xHotSpot: u32,
     yHotSpot: u32,
@@ -54,13 +54,13 @@ pub fn CreateCursor(
 }
 
 #[win32_derive::dllexport]
-pub fn ShowCursor(_machine: &mut Machine, bShow: bool) -> u32 {
+pub fn ShowCursor(sys: &dyn System, bShow: bool) -> u32 {
     // TODO: increment/decrement refcount
     1 // ref=1
 }
 
 #[win32_derive::dllexport]
-pub fn SetCursor(_machine: &mut Machine, hCursor: u32) -> u32 {
+pub fn SetCursor(sys: &dyn System, hCursor: u32) -> u32 {
     0 // previous: null
 }
 
@@ -306,11 +306,11 @@ pub fn LoadStringW(
 }
 
 #[win32_derive::dllexport]
-pub fn LoadMenuW(_machine: &mut Machine, hInstance: u32, lpMenuName: u32) -> HMENU {
+pub fn LoadMenuW(sys: &dyn System, hInstance: u32, lpMenuName: u32) -> HMENU {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn LoadAcceleratorsW(_machine: &mut Machine, hInstance: u32, lpTableName: u32) -> HMENU {
+pub fn LoadAcceleratorsW(sys: &dyn System, hInstance: u32, lpTableName: u32) -> HMENU {
     0
 }

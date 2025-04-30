@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -29,7 +29,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCloseKey(sys.machine(), hKey);
+            let result = winapi::advapi32::RegCloseKey(sys, hKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -98,7 +98,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegCreateKeyExW(
-                sys.machine(),
+                sys,
                 hKey,
                 lpSubKey,
                 Reserved,
@@ -141,12 +141,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegOpenKeyExA(
-                sys.machine(),
-                hKey,
-                lpSubKey,
-                ulOptions,
-                samDesired,
-                phkResult,
+                sys, hKey, lpSubKey, ulOptions, samDesired, phkResult,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -182,7 +177,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegQueryValueExA(
-                sys.machine(),
+                sys,
                 hKey,
                 lpValueName,
                 lpReserved,
@@ -224,7 +219,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegQueryValueExW(
-                sys.machine(),
+                sys,
                 hKey,
                 lpValueName,
                 lpReserved,
@@ -266,7 +261,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegSetValueExA(
-                sys.machine(),
+                sys,
                 hKey,
                 lpValueName,
                 Reserved,
@@ -308,7 +303,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegSetValueExW(
-                sys.machine(),
+                sys,
                 hKey,
                 lpValueName,
                 Reserved,

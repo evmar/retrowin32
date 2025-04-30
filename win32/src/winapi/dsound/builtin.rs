@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -61,8 +61,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dsound::DirectSoundEnumerateA(sys.machine(), lpDSEnumCallback, lpContext);
+            let result = winapi::dsound::DirectSoundEnumerateA(sys, lpDSEnumCallback, lpContext);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -94,7 +93,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dsound::IDirectSoundBuffer::GetCurrentPosition(
-                sys.machine(),
+                sys,
                 this,
                 lpdwCurrentPlayCursor,
                 lpdwCurrentWriteCursor,
@@ -121,8 +120,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dsound::IDirectSoundBuffer::GetStatus(sys.machine(), this, lpdwStatus);
+            let result = winapi::dsound::IDirectSoundBuffer::GetStatus(sys, this, lpdwStatus);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -201,7 +199,7 @@ mod wrappers {
                 None
             };
             let result = winapi::dsound::IDirectSoundBuffer::Play(
-                sys.machine(),
+                sys,
                 this,
                 dwReserved1,
                 dwReserved2,
@@ -228,7 +226,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSoundBuffer::Release(sys.machine(), this);
+            let result = winapi::dsound::IDirectSoundBuffer::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -251,8 +249,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::dsound::IDirectSoundBuffer::SetFormat(sys.machine(), this, lpcfxFormat);
+            let result = winapi::dsound::IDirectSoundBuffer::SetFormat(sys, this, lpcfxFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -352,7 +349,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSound::Release(sys.machine(), this);
+            let result = winapi::dsound::IDirectSound::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -379,12 +376,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::dsound::IDirectSound::SetCooperativeLevel(
-                sys.machine(),
-                this,
-                hwnd,
-                dwLevel,
-            );
+            let result =
+                winapi::dsound::IDirectSound::SetCooperativeLevel(sys, this, hwnd, dwLevel);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

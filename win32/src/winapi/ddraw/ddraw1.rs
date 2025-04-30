@@ -7,7 +7,7 @@ use super::{
     types::*,
 };
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{
         com::{GUID, vtable},
         ddraw,
@@ -112,7 +112,7 @@ pub mod IDirectDraw {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
@@ -203,7 +203,7 @@ pub mod IDirectDrawSurface {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0
     }
 
@@ -221,7 +221,7 @@ pub mod IDirectDrawSurface {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
+    pub fn GetCaps(sys: &dyn System, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
         DD::OK
     }
 

@@ -1,6 +1,6 @@
 use super::{EventObject, KernelObject, peb_mut};
 use crate::{
-    machine::Machine,
+    Machine, System,
     winapi::{
         HANDLE, Str16,
         arena::Arena,
@@ -259,18 +259,18 @@ pub fn ExitThread(machine: &mut Machine, dwExitCode: u32) {
 }
 
 #[win32_derive::dllexport]
-pub fn ResumeThread(_machine: &mut Machine, hThread: HTHREAD) -> u32 {
+pub fn ResumeThread(sys: &dyn System, hThread: HTHREAD) -> u32 {
     1
 }
 
 #[win32_derive::dllexport]
-pub fn TerminateThread(_machine: &mut Machine, hThread: HTHREAD, dwExitCode: u32) -> bool {
+pub fn TerminateThread(sys: &dyn System, hThread: HTHREAD, dwExitCode: u32) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn SetThreadDescription(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hThread: HTHREAD,
     lpThreadDescription: Option<&Str16>,
 ) -> bool {
@@ -278,17 +278,17 @@ pub fn SetThreadDescription(
 }
 
 #[win32_derive::dllexport]
-pub fn SetThreadPriority(_machine: &mut Machine, hThread: HTHREAD, nPriority: u32) -> bool {
+pub fn SetThreadPriority(sys: &dyn System, hThread: HTHREAD, nPriority: u32) -> bool {
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn GetThreadPriority(_machine: &mut Machine, hThread: HTHREAD) -> i32 {
+pub fn GetThreadPriority(sys: &dyn System, hThread: HTHREAD) -> i32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn SetThreadStackGuarantee(_machine: &mut Machine, StackSizeInBytes: Option<&mut u32>) -> bool {
+pub fn SetThreadStackGuarantee(sys: &dyn System, StackSizeInBytes: Option<&mut u32>) -> bool {
     // ignore
     true // success
 }

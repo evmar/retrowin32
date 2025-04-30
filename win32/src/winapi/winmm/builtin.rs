@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -35,7 +35,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::PlaySoundW(sys.machine(), pszSound, hmod, fdwSound);
+            let result = winapi::winmm::PlaySoundW(sys, pszSound, hmod, fdwSound);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -59,7 +59,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetDevCapsA(sys.machine(), uJoyID, pjc, cbjc);
+            let result = winapi::winmm::joyGetDevCapsA(sys, uJoyID, pjc, cbjc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -80,7 +80,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetNumDevs(sys.machine());
+            let result = winapi::winmm::joyGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -103,7 +103,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::joyGetPosEx(sys.machine(), uJoyID, pji);
+            let result = winapi::winmm::joyGetPosEx(sys, uJoyID, pji);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -131,7 +131,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mciGetErrorStringA(sys.machine(), mcierr, pszText, cchText);
+            let result = winapi::winmm::mciGetErrorStringA(sys, mcierr, pszText, cchText);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -152,7 +152,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mciSendCommandA(sys.machine());
+            let result = winapi::winmm::mciSendCommandA(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -180,12 +180,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mciSendStringA(
-                sys.machine(),
-                lpstrCommand,
-                lpstrReturnString,
-                hwndCallback,
-            );
+            let result =
+                winapi::winmm::mciSendStringA(sys, lpstrCommand, lpstrReturnString, hwndCallback);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -206,7 +202,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiInGetNumDevs(sys.machine());
+            let result = winapi::winmm::midiInGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -228,7 +224,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutClose(sys.machine(), hmo);
+            let result = winapi::winmm::midiOutClose(sys, hmo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -256,7 +252,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutGetDevCapsA(sys.machine(), uDeviceID, pmoc, cbmoc);
+            let result = winapi::winmm::midiOutGetDevCapsA(sys, uDeviceID, pmoc, cbmoc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -277,7 +273,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutGetNumDevs(sys.machine());
+            let result = winapi::winmm::midiOutGetNumDevs(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -309,14 +305,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutOpen(
-                sys.machine(),
-                phmo,
-                uDeviceID,
-                dwCallback,
-                dwInstance,
-                fdwOpen,
-            );
+            let result =
+                winapi::winmm::midiOutOpen(sys, phmo, uDeviceID, dwCallback, dwInstance, fdwOpen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -338,7 +328,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutReset(sys.machine(), hmo);
+            let result = winapi::winmm::midiOutReset(sys, hmo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -361,7 +351,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutSetVolume(sys.machine(), hmo, dwVolume);
+            let result = winapi::winmm::midiOutSetVolume(sys, hmo, dwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -384,7 +374,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::midiOutShortMsg(sys.machine(), hmo, dwMsg);
+            let result = winapi::winmm::midiOutShortMsg(sys, hmo, dwMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -406,7 +396,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerClose(sys.machine(), hmx);
+            let result = winapi::winmm::mixerClose(sys, hmx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -427,7 +417,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerGetControlDetailsA(sys.machine());
+            let result = winapi::winmm::mixerGetControlDetailsA(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -455,8 +445,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::winmm::mixerGetLineControlsA(sys.machine(), hmxobj, pmxlc, fdwControls);
+            let result = winapi::winmm::mixerGetLineControlsA(sys, hmxobj, pmxlc, fdwControls);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -480,7 +469,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerGetLineInfoA(sys.machine(), hmxobj, pmxl, fdwInfo);
+            let result = winapi::winmm::mixerGetLineInfoA(sys, hmxobj, pmxl, fdwInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -512,14 +501,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::mixerOpen(
-                sys.machine(),
-                phmx,
-                uMxId,
-                dwCallback,
-                dwInstance,
-                fdwOpen,
-            );
+            let result =
+                winapi::winmm::mixerOpen(sys, phmx, uMxId, dwCallback, dwInstance, fdwOpen);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -547,8 +530,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::winmm::mixerSetControlDetails(sys.machine(), hmxobj, pmxcd, fdwDetails);
+            let result = winapi::winmm::mixerSetControlDetails(sys, hmxobj, pmxcd, fdwDetails);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -627,7 +609,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeBeginPeriod(sys.machine(), uPeriod);
+            let result = winapi::winmm::timeBeginPeriod(sys, uPeriod);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -649,7 +631,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeEndPeriod(sys.machine(), uPeriod);
+            let result = winapi::winmm::timeEndPeriod(sys, uPeriod);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -672,7 +654,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeGetDevCaps(sys.machine(), ptc, cbtc);
+            let result = winapi::winmm::timeGetDevCaps(sys, ptc, cbtc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -715,7 +697,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::timeKillEvent(sys.machine(), uTimerID);
+            let result = winapi::winmm::timeKillEvent(sys, uTimerID);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -804,7 +786,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetDevCapsA(sys.machine(), uDeviceID, pwoc, cbwoc);
+            let result = winapi::winmm::waveOutGetDevCapsA(sys, uDeviceID, pwoc, cbwoc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -872,7 +854,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutGetVolume(sys.machine(), hwo, pdwVolume);
+            let result = winapi::winmm::waveOutGetVolume(sys, hwo, pdwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -936,7 +918,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutPause(sys.machine(), hwo);
+            let result = winapi::winmm::waveOutPause(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -960,7 +942,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutPrepareHeader(sys.machine(), hwo, pwh, cbwh);
+            let result = winapi::winmm::waveOutPrepareHeader(sys, hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -982,7 +964,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutReset(sys.machine(), hwo);
+            let result = winapi::winmm::waveOutReset(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1004,7 +986,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutRestart(sys.machine(), hwo);
+            let result = winapi::winmm::waveOutRestart(sys, hwo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1027,7 +1009,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutSetVolume(sys.machine(), hwo, dwVolume);
+            let result = winapi::winmm::waveOutSetVolume(sys, hwo, dwVolume);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1051,7 +1033,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::winmm::waveOutUnprepareHeader(sys.machine(), hwo, pwh, cbwh);
+            let result = winapi::winmm::waveOutUnprepareHeader(sys, hwo, pwh, cbwh);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

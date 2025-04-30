@@ -1,7 +1,6 @@
 use crate::{
-    Stat, StatKind,
+    Machine, Stat, StatKind, System,
     calling_convention::ABIReturn,
-    machine::Machine,
     winapi::{
         ERROR, Str16,
         kernel32::{FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
@@ -200,7 +199,7 @@ pub fn SetFilePointer(
 }
 
 #[win32_derive::dllexport]
-pub fn GetFileAttributesW(_machine: &mut Machine, lpFileName: Option<&Str16>) -> u32 {
+pub fn GetFileAttributesW(sys: &dyn System, lpFileName: Option<&Str16>) -> u32 {
     todo!()
 }
 
@@ -304,7 +303,7 @@ pub fn GetFileTime(
 
 #[win32_derive::dllexport]
 pub fn SetFileAttributesW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&Str16>,
     dwFileAttributes: Result<FileAttribute, u32>,
 ) -> bool {

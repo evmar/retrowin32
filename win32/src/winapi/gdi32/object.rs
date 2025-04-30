@@ -1,6 +1,6 @@
 use super::{BITMAP, Brush, COLORREF, DCTarget, HDC, Pen};
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{HANDLE, bitmap::Bitmap},
 };
 use memory::ExtensionsMut;
@@ -150,7 +150,7 @@ pub fn GetObjectA(machine: &mut Machine, handle: HGDIOBJ, bytes: u32, out: u32) 
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteObject(_machine: &mut Machine, handle: HGDIOBJ) -> bool {
+pub fn DeleteObject(sys: &dyn System, handle: HGDIOBJ) -> bool {
     // TODO: leak
     true
 }

@@ -5,8 +5,7 @@ use super::palette::Palette;
 pub use super::types::*;
 pub use crate::winapi::com::GUID;
 use crate::{
-    SurfaceOptions, host,
-    machine::Machine,
+    Machine, SurfaceOptions, host,
     winapi::{
         HWND, RECT,
         bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut},

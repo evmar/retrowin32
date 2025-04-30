@@ -1,9 +1,9 @@
 use super::SECURITY_ATTRIBUTES;
-use crate::{Machine, winapi::HFILE};
+use crate::{System, winapi::HFILE};
 
 #[win32_derive::dllexport]
 pub fn CreatePipe(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hReadPipe: Option<&mut HFILE>,
     hWritePipe: Option<&mut HFILE>,
     lpPipeAttributes: Option<&mut SECURITY_ATTRIBUTES>,
@@ -14,7 +14,7 @@ pub fn CreatePipe(
 
 #[win32_derive::dllexport]
 pub fn PeekNamedPipe(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hNamedPipe: HFILE,
     lpBuffer: Option<&mut u32>, // TODO
     nBufferSize: u32,

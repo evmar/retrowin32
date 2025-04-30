@@ -1,4 +1,4 @@
-use crate::Machine;
+use crate::{Machine, System};
 use chrono::{Datelike, Timelike, Utc};
 use memory::{ExtensionsMut, Pod};
 
@@ -118,7 +118,7 @@ pub fn GetLocalTime(machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>
 }
 
 #[win32_derive::dllexport]
-pub fn SetLocalTime(_machine: &mut Machine, lpSystemTime: Option<&mut SYSTEMTIME>) -> bool {
+pub fn SetLocalTime(sys: &dyn System, lpSystemTime: Option<&mut SYSTEMTIME>) -> bool {
     todo!()
 }
 
@@ -229,7 +229,7 @@ unsafe impl memory::Pod for TIME_ZONE_INFORMATION {}
 
 #[win32_derive::dllexport]
 pub fn GetTimeZoneInformation(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpTimeZoneInformation: Option<&mut TIME_ZONE_INFORMATION>,
 ) -> u32 {
     const TIME_ZONE_ID_UNKNOWN: u32 = 0;
@@ -241,7 +241,7 @@ pub fn GetTimeZoneInformation(
 
 #[win32_derive::dllexport]
 pub fn FileTimeToLocalFileTime(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpFileTime: Option<&FILETIME>,
     lpLocalFileTime: Option<&mut FILETIME>,
 ) -> bool {
@@ -261,7 +261,7 @@ pub fn FileTimeToLocalFileTime(
 
 #[win32_derive::dllexport]
 pub fn LocalFileTimeToFileTime(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpLocalFileTime: Option<&mut FILETIME>,
     lpFileTime: Option<&mut FILETIME>,
 ) -> bool {
@@ -270,7 +270,7 @@ pub fn LocalFileTimeToFileTime(
 
 #[win32_derive::dllexport]
 pub fn FileTimeToDosDateTime(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpFileTime: Option<&FILETIME>,
     lpFatDate: Option<&mut u16>,
     lpFatTime: Option<&mut u16>,

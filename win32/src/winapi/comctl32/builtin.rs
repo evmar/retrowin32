@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -50,7 +50,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::comctl32::InitCommonControls(sys.machine());
+            let result = winapi::comctl32::InitCommonControls(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

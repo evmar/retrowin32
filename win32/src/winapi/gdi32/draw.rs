@@ -2,7 +2,7 @@
 
 use super::{DCTarget, HDC, HGDIOBJ, Object};
 use crate::{
-    machine::Machine,
+    Machine, System,
     winapi::{POINT, RECT},
 };
 
@@ -65,12 +65,12 @@ pub struct Brush {
 }
 
 #[win32_derive::dllexport]
-pub fn SetBkMode(_machine: &mut Machine, hdc: HDC, mode: i32) -> i32 {
+pub fn SetBkMode(sys: &dyn System, hdc: HDC, mode: i32) -> i32 {
     0 // fail
 }
 
 #[win32_derive::dllexport]
-pub fn SetBkColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORREF {
+pub fn SetBkColor(sys: &dyn System, hdc: HDC, color: COLORREF) -> COLORREF {
     CLR_INVALID // fail
 }
 
@@ -247,13 +247,13 @@ pub fn SetBrushOrgEx(
 }
 
 #[win32_derive::dllexport]
-pub fn PtVisible(_machine: &mut Machine, hdc: HDC, x: i32, y: i32) -> bool {
+pub fn PtVisible(sys: &dyn System, hdc: HDC, x: i32, y: i32) -> bool {
     true // stub
 }
 
 #[win32_derive::dllexport]
 pub fn LineDDA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     xStart: i32,
     yStart: i32,
     xEnd: i32,

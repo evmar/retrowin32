@@ -1,7 +1,6 @@
 use crate::{
-    FileOptions,
+    FileOptions, Machine, System,
     calling_convention::{Array, ArrayOut},
-    machine::Machine,
     winapi::{
         ERROR, HANDLE, Str16,
         kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
@@ -300,7 +299,7 @@ pub fn FlushFileBuffers(machine: &mut Machine, hFile: HFILE) -> bool {
 
 #[win32_derive::dllexport]
 pub fn LockFile(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hFile: HFILE,
     dwFileOffsetLow: u32,
     dwFileOffsetHigh: u32,
@@ -312,7 +311,7 @@ pub fn LockFile(
 
 #[win32_derive::dllexport]
 pub fn UnlockFile(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hFile: HFILE,
     dwFileOffsetLow: u32,
     dwFileOffsetHigh: u32,

@@ -1,6 +1,6 @@
 use super::{BITMAPINFOHEADER, COLORREF, DCTarget, HDC, HGDIOBJ, Object};
 use crate::{
-    machine::Machine,
+    Machine, System,
     winapi::{
         POINT, RECT,
         bitmap::{BI, Bitmap, PixelData, PixelFormat},
@@ -479,7 +479,7 @@ pub type BITMAPINFO = u32; // TODO
 
 #[win32_derive::dllexport]
 pub fn GetDIBits(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     hbm: HBITMAP,
     start: u32,
@@ -493,7 +493,7 @@ pub fn GetDIBits(
 
 #[win32_derive::dllexport]
 pub fn CreateDIBitmap(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     pbmih: Option<&mut BITMAPINFOHEADER>,
     flInit: u32,

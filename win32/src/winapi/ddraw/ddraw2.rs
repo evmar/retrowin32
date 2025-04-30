@@ -6,7 +6,7 @@ use super::{
     types::*,
 };
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{com::vtable, ddraw, kernel32::get_symbol, *},
 };
 use memory::{ExtensionsMut, Pod};
@@ -62,12 +62,7 @@ pub mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    pub fn QueryInterface(
-        _machine: &mut Machine,
-        this: u32,
-        riid: Option<&GUID>,
-        ppvObject: u32,
-    ) -> DD {
+    pub fn QueryInterface(sys: &dyn System, this: u32, riid: Option<&GUID>, ppvObject: u32) -> DD {
         DD::E_NOINTERFACE
     }
 
@@ -153,7 +148,7 @@ pub mod IDirectDraw2 {
 
     #[win32_derive::dllexport]
     pub fn GetDisplayMode(
-        _machine: &mut Machine,
+        sys: &dyn System,
         this: u32,
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC>,
     ) -> DD {
@@ -173,7 +168,7 @@ pub mod IDirectDraw2 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
@@ -249,7 +244,7 @@ pub mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0
     }
 
@@ -267,7 +262,7 @@ pub mod IDirectDrawSurface2 {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
+    pub fn GetCaps(sys: &dyn System, this: u32, lpDDSCAPS: Option<&mut DDSCAPS>) -> DD {
         DD::OK
     }
 

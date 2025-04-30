@@ -1,10 +1,10 @@
-use crate::Machine;
+use crate::System;
 
 pub type HMIDIOUT = u32;
 
 #[win32_derive::dllexport]
 pub fn midiOutOpen(
-    _machine: &mut Machine,
+    sys: &dyn System,
     phmo: Option<&mut HMIDIOUT>,
     uDeviceID: u32,
     dwCallback: u32,
@@ -18,7 +18,7 @@ pub type MIDIOUTCAPSA = u32; // TODO
 
 #[win32_derive::dllexport]
 pub fn midiOutGetDevCapsA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     uDeviceID: u32,
     pmoc: Option<&mut MIDIOUTCAPSA>,
     cbmoc: u32,
@@ -27,31 +27,31 @@ pub fn midiOutGetDevCapsA(
 }
 
 #[win32_derive::dllexport]
-pub fn midiOutGetNumDevs(_machine: &mut Machine) -> u32 {
+pub fn midiOutGetNumDevs(sys: &dyn System) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn midiOutReset(_machine: &mut Machine, hmo: HMIDIOUT) -> u32 {
+pub fn midiOutReset(sys: &dyn System, hmo: HMIDIOUT) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn midiOutClose(_machine: &mut Machine, hmo: HMIDIOUT) -> u32 {
+pub fn midiOutClose(sys: &dyn System, hmo: HMIDIOUT) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn midiOutSetVolume(_machine: &mut Machine, hmo: HMIDIOUT, dwVolume: u32) -> u32 {
+pub fn midiOutSetVolume(sys: &dyn System, hmo: HMIDIOUT, dwVolume: u32) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn midiOutShortMsg(_machine: &mut Machine, hmo: HMIDIOUT, dwMsg: u32) -> u32 {
+pub fn midiOutShortMsg(sys: &dyn System, hmo: HMIDIOUT, dwMsg: u32) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn midiInGetNumDevs(_machine: &mut Machine) -> u32 {
+pub fn midiInGetNumDevs(sys: &dyn System) -> u32 {
     0
 }

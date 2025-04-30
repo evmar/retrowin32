@@ -1,7 +1,6 @@
 use super::MMRESULT;
 use crate::{
-    host,
-    machine::Machine,
+    Machine, System, host,
     winapi::{self, handle::Handles},
 };
 use bitflags::bitflags;
@@ -132,7 +131,7 @@ enum WAVE_FORMAT {
 
 #[win32_derive::dllexport]
 pub fn waveOutGetDevCapsA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     uDeviceID: u32,
     pwoc: Option<&mut WAVEOUTCAPS>,
     cbwoc: u32,
@@ -265,7 +264,7 @@ pub fn waveOutOpen(
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutReset(_machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
+pub fn waveOutReset(sys: &dyn System, hwo: HWAVEOUT) -> MMRESULT {
     MMRESULT::MMSYSERR_NOERROR
 }
 
@@ -278,12 +277,12 @@ pub fn waveOutClose(machine: &mut Machine, hwo: HWAVEOUT) -> MMRESULT {
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutSetVolume(_machine: &mut Machine, hwo: HWAVEOUT, dwVolume: u32) -> MMRESULT {
+pub fn waveOutSetVolume(sys: &dyn System, hwo: HWAVEOUT, dwVolume: u32) -> MMRESULT {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutGetVolume(_machine: &mut Machine, hwo: HWAVEOUT, pdwVolume: u32) -> MMRESULT {
+pub fn waveOutGetVolume(sys: &dyn System, hwo: HWAVEOUT, pdwVolume: u32) -> MMRESULT {
     todo!()
 }
 
@@ -421,7 +420,7 @@ impl std::fmt::Debug for WAVEHDR {
 
 #[win32_derive::dllexport]
 pub fn waveOutPrepareHeader(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hwo: HWAVEOUT,
     pwh: Option<&WAVEHDR>,
     cbwh: u32,
@@ -434,7 +433,7 @@ pub fn waveOutPrepareHeader(
 
 #[win32_derive::dllexport]
 pub fn waveOutUnprepareHeader(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hwo: HWAVEOUT,
     pwh: Option<&mut WAVEHDR>,
     cbwh: u32,
@@ -456,11 +455,11 @@ pub fn waveOutWrite(machine: &mut Machine, hwo: HWAVEOUT, pwh: u32, cbwh: u32) -
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutPause(_machine: &mut Machine, hwo: HWAVEOUT) -> u32 {
+pub fn waveOutPause(sys: &dyn System, hwo: HWAVEOUT) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn waveOutRestart(_machine: &mut Machine, hwo: HWAVEOUT) -> u32 {
+pub fn waveOutRestart(sys: &dyn System, hwo: HWAVEOUT) -> u32 {
     todo!()
 }

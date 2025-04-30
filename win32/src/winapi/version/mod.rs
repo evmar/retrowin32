@@ -4,11 +4,11 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::machine::Machine;
+use crate::System;
 
 #[win32_derive::dllexport]
 pub fn GetFileVersionInfoSizeA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lptstrFilename: Option<&str>,
     lpdwHandle: Option<&mut u32>,
 ) -> u32 {
@@ -17,7 +17,7 @@ pub fn GetFileVersionInfoSizeA(
 
 #[win32_derive::dllexport]
 pub fn GetFileVersionInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lptstrFilename: Option<&str>,
     dwHandle: u32,
     dwLen: u32,
@@ -28,7 +28,7 @@ pub fn GetFileVersionInfoA(
 
 #[win32_derive::dllexport]
 pub fn VerQueryValueA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     pBlock: u32,
     lpSubBlock: Option<&str>,
     lplpBuffer: u32,

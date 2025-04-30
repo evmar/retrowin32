@@ -148,7 +148,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
 
         mod wrappers {
             use ::memory::Extensions;
-            use crate::{calling_convention::*, system::System, machine::Machine, winapi::{self, *}};
+            use crate::{calling_convention::*, System, machine::Machine, winapi::{self, *}};
             use winapi::#module::*;  // for types
             #(#wrappers)*
         }

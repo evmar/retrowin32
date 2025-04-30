@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    Host, Machine, SurfaceOptions,
+    Host, Machine, SurfaceOptions, System,
     calling_convention::Array,
     host,
     winapi::{
@@ -461,12 +461,12 @@ pub async fn CreateWindowExW(
 }
 
 #[win32_derive::dllexport]
-pub fn DestroyWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+pub fn DestroyWindow(sys: &dyn System, hWnd: HWND) -> bool {
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn GetDesktopWindow(_machine: &mut Machine) -> HWND {
+pub fn GetDesktopWindow(sys: &dyn System) -> HWND {
     HWND::null()
 }
 
@@ -479,7 +479,7 @@ pub fn GetForegroundWindow(machine: &mut Machine) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn SetForegroundWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+pub fn SetForegroundWindow(sys: &dyn System, hWnd: HWND) -> bool {
     true // success
 }
 
@@ -849,7 +849,7 @@ pub fn AdjustWindowRect(
 
 #[win32_derive::dllexport]
 pub fn AdjustWindowRectEx(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpRect: Option<&mut RECT>,
     dwStyle: Result<WS, u32>,
     bMenu: bool,
@@ -1044,12 +1044,12 @@ pub fn GetWindowPlacement(
 }
 
 #[win32_derive::dllexport]
-pub fn ClientToScreen(_machine: &mut Machine, hWnd: HWND, lpPoint: Option<&mut POINT>) -> bool {
+pub fn ClientToScreen(sys: &dyn System, hWnd: HWND, lpPoint: Option<&mut POINT>) -> bool {
     true
 }
 
 #[win32_derive::dllexport]
-pub fn GetWindowDC(_machine: &mut Machine, hWnd: HWND) -> HDC {
+pub fn GetWindowDC(sys: &dyn System, hWnd: HWND) -> HDC {
     HDC::null()
 }
 
@@ -1119,7 +1119,7 @@ pub fn GetDC(machine: &mut Machine, hWnd: HWND) -> HDC {
 
 #[win32_derive::dllexport]
 pub fn MapWindowPoints(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hWndFrom: HWND,
     hWndTo: HWND,
     lpPoints: Array<POINT>,
@@ -1134,12 +1134,12 @@ pub fn MapWindowPoints(
 }
 
 #[win32_derive::dllexport]
-pub fn SetCapture(_machine: &mut Machine, hwnd: HWND) -> HWND {
+pub fn SetCapture(sys: &dyn System, hwnd: HWND) -> HWND {
     HWND::null()
 }
 
 #[win32_derive::dllexport]
-pub fn ReleaseCapture(_machine: &mut Machine) -> bool {
+pub fn ReleaseCapture(sys: &dyn System) -> bool {
     true
 }
 
@@ -1184,17 +1184,17 @@ pub fn GetCapture(machine: &mut Machine) -> HWND {
 }
 
 #[win32_derive::dllexport]
-pub fn EnableWindow(_machine: &mut Machine, hWnd: HWND, bEnable: bool) -> bool {
+pub fn EnableWindow(sys: &dyn System, hWnd: HWND, bEnable: bool) -> bool {
     todo!();
 }
 
 #[win32_derive::dllexport]
-pub fn IsWindowVisible(_machine: &mut Machine, hWnd: HWND) -> bool {
+pub fn IsWindowVisible(sys: &dyn System, hWnd: HWND) -> bool {
     true
 }
 
 #[win32_derive::dllexport]
-pub fn IsWindow(_machine: &mut Machine, hWnd: HWND) -> bool {
+pub fn IsWindow(sys: &dyn System, hWnd: HWND) -> bool {
     if hWnd.is_null_or_invalid() {
         return false;
     }

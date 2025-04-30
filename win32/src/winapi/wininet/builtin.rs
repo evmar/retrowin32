@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -40,7 +40,7 @@ mod wrappers {
                 None
             };
             let result = winapi::wininet::InternetOpenA(
-                sys.machine(),
+                sys,
                 lpszAgent,
                 dwAccessType,
                 lpszProxy,

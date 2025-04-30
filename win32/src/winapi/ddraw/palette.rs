@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{com::vtable, ddraw::DD, gdi32::PALETTEENTRY, kernel32::get_symbol},
 };
 use memory::{Extensions, ExtensionsMut};
@@ -37,7 +37,7 @@ pub mod IDirectDrawPalette {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }

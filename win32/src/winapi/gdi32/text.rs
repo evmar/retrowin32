@@ -1,6 +1,6 @@
 use super::{CLR_INVALID, HDC};
 use crate::{
-    Machine,
+    System,
     calling_convention::Array,
     winapi::{HANDLE, LPARAM, gdi32::COLORREF},
 };
@@ -11,7 +11,7 @@ pub type HFONT = HANDLE<FONT>;
 
 #[win32_derive::dllexport]
 pub fn CreateFontA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     cHeight: i32,
     cWidth: i32,
     cEscapement: i32,
@@ -53,7 +53,7 @@ unsafe impl memory::Pod for LOGFONTA {}
 
 #[win32_derive::dllexport]
 pub fn EnumFontFamiliesExA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     lpLogfont: Option<&mut LOGFONTA>,
     lpProc: u32, /* FONTENUMPROCA */
@@ -65,22 +65,22 @@ pub fn EnumFontFamiliesExA(
 }
 
 #[win32_derive::dllexport]
-pub fn SetTextAlign(_machine: &mut Machine, hdc: HDC, fMode: u32) -> u32 {
+pub fn SetTextAlign(sys: &dyn System, hdc: HDC, fMode: u32) -> u32 {
     0 // TA_LEFT | TA_TOP | TA_NOUPDATECP
 }
 
 #[win32_derive::dllexport]
-pub fn SetTextColor(_machine: &mut Machine, hdc: HDC, color: COLORREF) -> COLORREF {
+pub fn SetTextColor(sys: &dyn System, hdc: HDC, color: COLORREF) -> COLORREF {
     CLR_INVALID // fail
 }
 
 #[win32_derive::dllexport]
-pub fn TextOutA(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, lpString: Array<u8>) -> bool {
+pub fn TextOutA(sys: &dyn System, hdc: HDC, x: u32, y: u32, lpString: Array<u8>) -> bool {
     true
 }
 
 #[win32_derive::dllexport]
-pub fn TextOutW(_machine: &mut Machine, hdc: HDC, x: u32, y: u32, lpString: Array<u16>) -> bool {
+pub fn TextOutW(sys: &dyn System, hdc: HDC, x: u32, y: u32, lpString: Array<u16>) -> bool {
     true
 }
 
@@ -137,7 +137,7 @@ pub struct TEXTMETRICW {
 unsafe impl memory::Pod for TEXTMETRICW {}
 
 #[win32_derive::dllexport]
-pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
+pub fn GetTextMetricsA(sys: &dyn System, hdc: HDC, lptm: Option<&mut TEXTMETRICA>) -> bool {
     let tm = lptm.unwrap();
     *tm = TEXTMETRICA::zeroed();
 
@@ -147,7 +147,7 @@ pub fn GetTextMetricsA(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTM
 }
 
 #[win32_derive::dllexport]
-pub fn GetTextMetricsW(_machine: &mut Machine, hdc: HDC, lptm: Option<&mut TEXTMETRICW>) -> bool {
+pub fn GetTextMetricsW(sys: &dyn System, hdc: HDC, lptm: Option<&mut TEXTMETRICW>) -> bool {
     let tm = lptm.unwrap();
     *tm = TEXTMETRICW::zeroed();
 
@@ -166,7 +166,7 @@ unsafe impl memory::Pod for SIZE {}
 
 #[win32_derive::dllexport]
 pub fn GetTextExtentPoint32A(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     lpString: Option<&str>,
     c: i32,
@@ -181,7 +181,7 @@ pub fn GetTextExtentPoint32A(
 
 #[win32_derive::dllexport]
 pub fn GetTextExtentPoint32W(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     lpString: Option<&str>,
     c: i32,

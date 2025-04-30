@@ -1,6 +1,6 @@
 use memory::Extensions;
 
-use crate::Machine;
+use crate::{Machine, System};
 
 #[win32_derive::dllexport(cdecl)]
 pub async fn _initterm(machine: &mut Machine, start: u32, end: u32) -> u32 {
@@ -34,98 +34,93 @@ pub async fn _initterm_e(machine: &mut Machine, start: u32, end: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _get_initial_narrow_environment(_machine: &mut Machine) -> u32 {
+pub fn _get_initial_narrow_environment(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __p___argv(_machine: &mut Machine) -> u32 {
+pub fn __p___argv(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __p___argc(_machine: &mut Machine) -> u32 {
+pub fn __p___argc(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __p__environ(_machine: &mut Machine) -> u32 {
+pub fn __p__environ(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __p__fmode(_machine: &mut Machine) -> u32 {
+pub fn __p__fmode(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __p__commode(_machine: &mut Machine) -> u32 {
+pub fn __p__commode(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _set_app_type(_machine: &mut Machine, _app_type: u32) -> u32 {
+pub fn _set_app_type(sys: &dyn System, _app_type: u32) -> u32 {
     0
 }
 
 // Not a typo!  Both __set_app_type and _set_app_type are defined and even have different documentation.
 #[win32_derive::dllexport(cdecl)]
-pub fn __set_app_type(_machine: &mut Machine, _app_type: u32) -> u32 {
+pub fn __set_app_type(sys: &dyn System, _app_type: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _set_fmode(_machine: &mut Machine, _mode: u32) -> u32 {
+pub fn _set_fmode(sys: &dyn System, _mode: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _setmode(_machine: &mut Machine, fd: u32, mode: u32) -> u32 {
+pub fn _setmode(sys: &dyn System, fd: u32, mode: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _crt_atexit(_machine: &mut Machine, _function: u32) -> u32 {
+pub fn _crt_atexit(sys: &dyn System, _function: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _configure_narrow_argv(_machine: &mut Machine, _mode: u32) -> u32 {
+pub fn _configure_narrow_argv(sys: &dyn System, _mode: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _lock(_machine: &mut Machine, locknum: u32) -> u32 {
+pub fn _lock(sys: &dyn System, locknum: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _unlock(_machine: &mut Machine, locknum: u32) -> u32 {
+pub fn _unlock(sys: &dyn System, locknum: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn __dllonexit(_machine: &mut Machine, func: u32, d: u32, f: u32) -> u32 {
+pub fn __dllonexit(sys: &dyn System, func: u32, d: u32, f: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _controlfp(_machine: &mut Machine, _new: u32, _mask: u32) -> u32 {
+pub fn _controlfp(sys: &dyn System, _new: u32, _mask: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _controlfp_s(
-    _machine: &mut Machine,
-    _currentControl: u32,
-    _newControl: u32,
-    _mask: u32,
-) -> u32 {
+pub fn _controlfp_s(sys: &dyn System, _currentControl: u32, _newControl: u32, _mask: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _configthreadlocale(_machine: &mut Machine, per_thread_locale_type: i32) -> i32 {
+pub fn _configthreadlocale(sys: &dyn System, per_thread_locale_type: i32) -> i32 {
     const _ENABLE_PER_THREAD_LOCALE: i32 = 1;
     const _DISABLE_PER_THREAD_LOCALE: i32 = 2;
 
@@ -140,18 +135,18 @@ pub fn _configthreadlocale(_machine: &mut Machine, per_thread_locale_type: i32) 
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _initialize_narrow_environment(_machine: &mut Machine) -> u32 {
+pub fn _initialize_narrow_environment(sys: &dyn System) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _set_new_mode(_machine: &mut Machine, newhandlermode: u32) -> u32 {
+pub fn _set_new_mode(sys: &dyn System, newhandlermode: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
 pub fn __getmainargs(
-    _machine: &mut Machine,
+    sys: &dyn System,
     argc: Option<&mut u32>,
     argv: Option<&mut u32>,
     env: Option<&mut u32>,
@@ -168,7 +163,7 @@ pub fn _XcptFilter(machine: &mut Machine, xcptnum: u32, pxcptinfoptrs: u32) -> u
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _except_handler3(
-    _machine: &mut Machine,
+    sys: &dyn System,
     exception_record: u32,
     registration: u32,
     context: u32,

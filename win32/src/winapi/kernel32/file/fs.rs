@@ -1,5 +1,5 @@
 use crate::{
-    ERROR, Machine,
+    ERROR, Machine, System,
     winapi::{
         encoding::{Encoder, EncoderAnsi, EncoderWide},
         kernel32::{SECURITY_ATTRIBUTES, set_last_error},
@@ -9,7 +9,7 @@ use memory::str16::Str16;
 use typed_path::WindowsPath;
 
 #[win32_derive::dllexport]
-pub fn DeleteFileW(_machine: &mut Machine, lpFileName: Option<&Str16>) -> bool {
+pub fn DeleteFileW(sys: &dyn System, lpFileName: Option<&Str16>) -> bool {
     todo!()
 }
 
@@ -36,7 +36,7 @@ pub fn DeleteFileA(machine: &mut Machine, lpFileName: Option<&str>) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn RemoveDirectoryW(_machine: &mut Machine, lpPathName: Option<&Str16>) -> bool {
+pub fn RemoveDirectoryW(sys: &dyn System, lpPathName: Option<&Str16>) -> bool {
     todo!()
 }
 
@@ -98,19 +98,19 @@ pub fn GetCurrentDirectoryA(machine: &mut Machine, nBufferLength: u32, lpBuffer:
 }
 
 #[win32_derive::dllexport]
-pub fn SetCurrentDirectoryW(_machine: &mut Machine, lpPathName: Option<&Str16>) -> bool {
+pub fn SetCurrentDirectoryW(sys: &dyn System, lpPathName: Option<&Str16>) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn SetCurrentDirectoryA(_machine: &mut Machine, lpPathName: Option<&str>) -> bool {
+pub fn SetCurrentDirectoryA(sys: &dyn System, lpPathName: Option<&str>) -> bool {
     log::warn!("SetCurrentDirectoryA not implemented");
     true
 }
 
 #[win32_derive::dllexport]
 pub fn CreateDirectoryW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpPathName: Option<&Str16>,
     lpSecurityAttributes: Option<&mut SECURITY_ATTRIBUTES>,
 ) -> bool {
@@ -145,7 +145,7 @@ pub fn CreateDirectoryA(
 
 #[win32_derive::dllexport]
 pub fn MoveFileW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpExistingFileName: Option<&Str16>,
     lpNewFileName: Option<&Str16>,
 ) -> bool {
@@ -154,7 +154,7 @@ pub fn MoveFileW(
 
 #[win32_derive::dllexport]
 pub fn MoveFileA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpExistingFileName: Option<&str>,
     lpNewFileName: Option<&str>,
 ) -> bool {

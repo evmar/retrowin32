@@ -1,6 +1,6 @@
 use memory::str16::Str16;
 
-use crate::Machine;
+use crate::{Machine, System};
 
 #[win32_derive::dllexport]
 pub fn GetDiskFreeSpaceA(
@@ -32,18 +32,18 @@ pub fn GetDiskFreeSpaceA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetDriveTypeW(_machine: &mut Machine, lpRootPathName: Option<&Str16>) -> u32 {
+pub fn GetDriveTypeW(sys: &dyn System, lpRootPathName: Option<&Str16>) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn GetDriveTypeA(_machine: &mut Machine, lpRootPathName: Option<&str>) -> u32 {
+pub fn GetDriveTypeA(sys: &dyn System, lpRootPathName: Option<&str>) -> u32 {
     const DRIVE_FIXED: u32 = 3; // hard drive
     DRIVE_FIXED
 }
 
 #[win32_derive::dllexport]
-pub fn GetLogicalDrives(_machine: &mut Machine) -> u32 {
+pub fn GetLogicalDrives(sys: &dyn System) -> u32 {
     let mut drives = 0;
     drives |= 1 << 2; // C:
     drives

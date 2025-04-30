@@ -1,5 +1,5 @@
 use super::{HDC, HGDIOBJ};
-use crate::Machine;
+use crate::{Machine, System};
 
 pub type HPALETTE = u32; // TODO
 
@@ -19,23 +19,18 @@ pub fn CreatePalette(machine: &mut Machine, plpal: u32) -> HGDIOBJ {
 }
 
 #[win32_derive::dllexport]
-pub fn RealizePalette(_machine: &mut Machine, hdc: HDC) -> u32 {
+pub fn RealizePalette(sys: &dyn System, hdc: HDC) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn SelectPalette(
-    _machine: &mut Machine,
-    hdc: HDC,
-    hPal: HPALETTE,
-    bForceBkgd: bool,
-) -> HPALETTE {
+pub fn SelectPalette(sys: &dyn System, hdc: HDC, hPal: HPALETTE, bForceBkgd: bool) -> HPALETTE {
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn SetPaletteEntries(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hpal: HPALETTE,
     iStart: u32,
     cEntries: u32,
@@ -46,7 +41,7 @@ pub fn SetPaletteEntries(
 
 #[win32_derive::dllexport]
 pub fn GetPaletteEntries(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hpal: HPALETTE,
     iStart: u32,
     cEntries: u32,
@@ -57,7 +52,7 @@ pub fn GetPaletteEntries(
 
 #[win32_derive::dllexport]
 pub fn GetSystemPaletteEntries(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hdc: HDC,
     iStart: u32,
     cEntries: u32,

@@ -1,5 +1,5 @@
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{
         com::{GUID, vtable},
         kernel32::get_symbol,
@@ -75,7 +75,7 @@ pub mod IDirectDrawSurface3 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         0 // TODO: return refcount?
     }
 }

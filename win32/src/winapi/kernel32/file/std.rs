@@ -1,4 +1,4 @@
-use crate::{Machine, winapi::HFILE};
+use crate::{System, winapi::HFILE};
 
 #[derive(Debug, win32_derive::TryFromEnum)]
 pub enum STD {
@@ -13,7 +13,7 @@ pub const STDOUT_HFILE: HFILE = HFILE::from_raw(0xF11E_0101);
 pub const STDERR_HFILE: HFILE = HFILE::from_raw(0xF11E_0102);
 
 #[win32_derive::dllexport]
-pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFILE {
+pub fn GetStdHandle(sys: &dyn System, nStdHandle: Result<STD, u32>) -> HFILE {
     match nStdHandle {
         Ok(STD::INPUT_HANDLE) => STDIN_HFILE,
         Ok(STD::OUTPUT_HANDLE) => STDOUT_HFILE,
@@ -23,6 +23,6 @@ pub fn GetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>) -> HFI
 }
 
 #[win32_derive::dllexport]
-pub fn SetStdHandle(_machine: &mut Machine, nStdHandle: Result<STD, u32>, hHandle: u32) -> bool {
+pub fn SetStdHandle(sys: &dyn System, nStdHandle: Result<STD, u32>, hHandle: u32) -> bool {
     true // succees
 }

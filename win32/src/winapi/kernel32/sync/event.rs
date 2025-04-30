@@ -1,5 +1,5 @@
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{HANDLE, kernel32::KernelObject},
 };
 use std::sync::{Arc, Mutex};
@@ -81,11 +81,11 @@ pub fn SetEvent(machine: &mut Machine, hEvent: HEVENT) -> bool {
 }
 
 #[win32_derive::dllexport]
-pub fn ResetEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
+pub fn ResetEvent(sys: &dyn System, hEvent: HEVENT) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn PulseEvent(_machine: &mut Machine, hEvent: HEVENT) -> bool {
+pub fn PulseEvent(sys: &dyn System, hEvent: HEVENT) -> bool {
     todo!()
 }

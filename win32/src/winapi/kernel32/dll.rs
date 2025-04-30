@@ -1,7 +1,7 @@
 use crate::{
+    Machine, System,
     calling_convention::{self, ArrayOut},
     loader,
-    machine::Machine,
     winapi::{
         self,
         encoding::{Encoder, EncoderAnsi, EncoderWide},
@@ -142,7 +142,7 @@ pub async fn LoadLibraryExW(
 }
 
 #[win32_derive::dllexport]
-pub fn FreeLibrary(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
+pub fn FreeLibrary(sys: &dyn System, hLibModule: HMODULE) -> bool {
     true // success
 }
 
@@ -231,7 +231,7 @@ pub struct STARTUPINFOA {
 unsafe impl ::memory::Pod for STARTUPINFOA {}
 
 #[win32_derive::dllexport]
-pub fn GetStartupInfoA(_machine: &mut Machine, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
+pub fn GetStartupInfoA(sys: &dyn System, lpStartupInfo: Option<&mut STARTUPINFOA>) -> u32 {
     // MSVC runtime library passes in uninitialized memory for lpStartupInfo, so don't trust info.cb.
     let info = lpStartupInfo.unwrap();
     let len = std::mem::size_of::<STARTUPINFOA>() as u32;
@@ -249,6 +249,6 @@ pub fn GetStartupInfoW(machine: &mut Machine, lpStartupInfo: Option<&mut STARTUP
 }
 
 #[win32_derive::dllexport]
-pub fn DisableThreadLibraryCalls(_machine: &mut Machine, hLibModule: HMODULE) -> bool {
+pub fn DisableThreadLibraryCalls(sys: &dyn System, hLibModule: HMODULE) -> bool {
     true // succeed
 }

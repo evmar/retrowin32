@@ -1,11 +1,11 @@
 use super::MMRESULT;
-use crate::Machine;
+use crate::System;
 
 pub type HMIXEROBJ = u32;
 
 #[win32_derive::dllexport]
 pub fn mixerOpen(
-    _machine: &mut Machine,
+    sys: &dyn System,
     phmx: u32, //Option<&mut HMIXER>,
     uMxId: u32,
     dwCallback: u32,
@@ -17,7 +17,7 @@ pub fn mixerOpen(
 
 #[win32_derive::dllexport]
 pub fn mixerGetLineControlsA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hmxobj: u32,
     pmxlc: u32,
     fdwControls: u32,
@@ -26,13 +26,13 @@ pub fn mixerGetLineControlsA(
 }
 
 #[win32_derive::dllexport]
-pub fn mixerClose(_machine: &mut Machine, hmx: u32) -> MMRESULT {
+pub fn mixerClose(sys: &dyn System, hmx: u32) -> MMRESULT {
     todo!();
 }
 
 #[win32_derive::dllexport]
 pub fn mixerSetControlDetails(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hmxobj: u32, //HMIXEROBJ,
     pmxcd: u32,  //&MIXERCONTROLDETAILS,
     fdwDetails: u32,
@@ -41,13 +41,13 @@ pub fn mixerSetControlDetails(
 }
 
 #[win32_derive::dllexport]
-pub fn mixerGetControlDetailsA(_machine: &mut Machine) -> MMRESULT {
+pub fn mixerGetControlDetailsA(sys: &dyn System) -> MMRESULT {
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn mixerGetLineInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hmxobj: HMIXEROBJ,
     pmxl: u32, //Option<&mut MIXERLINEA>,
     fdwInfo: u32,

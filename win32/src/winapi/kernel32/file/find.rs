@@ -2,7 +2,7 @@ use memory::str16::Str16;
 use typed_path::WindowsPath;
 
 use crate::{
-    ERROR, Machine, ReadDir, ReadDirEntry, StatKind,
+    ERROR, Machine, ReadDir, ReadDirEntry, StatKind, System,
     winapi::{
         DWORD, HANDLE,
         kernel32::{FILETIME, FileAttribute, set_last_error},
@@ -70,7 +70,7 @@ pub type WIN32_FIND_DATAW = WIN32_FIND_DATAA; // TODO
 
 #[win32_derive::dllexport]
 pub fn FindFirstFileW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpFileName: Option<&Str16>,
     lpFindFileData: Option<&mut WIN32_FIND_DATAW>,
 ) -> HFIND {
@@ -158,7 +158,7 @@ pub fn FindFirstFileA(
 
 #[win32_derive::dllexport]
 pub fn FindNextFileW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hFindFile: HFILE,
     lpFindFileData: Option<&mut WIN32_FIND_DATAW>,
 ) -> bool {

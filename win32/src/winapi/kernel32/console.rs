@@ -1,11 +1,11 @@
 use crate::{
-    Machine,
+    Machine, System,
     calling_convention::Array,
     winapi::{self, DWORD, HFILE, WORD, handle::HANDLE},
 };
 
 #[win32_derive::dllexport]
-pub fn SetConsoleCtrlHandler(_machine: &mut Machine, _handlerRoutine: DWORD, _add: u32) -> bool {
+pub fn SetConsoleCtrlHandler(sys: &dyn System, _handlerRoutine: DWORD, _add: u32) -> bool {
     true // succeed
 }
 
@@ -40,7 +40,7 @@ unsafe impl ::memory::Pod for CONSOLE_SCREEN_BUFFER_INFO {}
 
 #[win32_derive::dllexport]
 pub fn GetConsoleScreenBufferInfo(
-    _machine: &mut Machine,
+    sys: &dyn System,
     _hConsoleOutput: HANDLE<()>,
     lpConsoleScreenBufferInfo: Option<&mut CONSOLE_SCREEN_BUFFER_INFO>,
 ) -> bool {
@@ -61,7 +61,7 @@ pub fn GetConsoleScreenBufferInfo(
 
 #[win32_derive::dllexport]
 pub fn WriteConsoleA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleOutput: HANDLE<()>,
     lpBuffer: Array<u8>,
     lpNumberOfCharsWritten: Option<&mut u32>,
@@ -101,7 +101,7 @@ pub type CONSOLE_READCONSOLE_CONTROL = u32; // TODO
 
 #[win32_derive::dllexport]
 pub fn ReadConsoleA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleInput: HANDLE<()>,
     lpBuffer: Option<&mut u8>,
     nNumberOfCharsToRead: u32,
@@ -113,7 +113,7 @@ pub fn ReadConsoleA(
 
 #[win32_derive::dllexport]
 pub fn SetConsoleMode(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleHandle: HANDLE<()>,
     dwMode: u32, /* CONSOLE_MODE */
 ) -> bool {
@@ -122,7 +122,7 @@ pub fn SetConsoleMode(
 
 #[win32_derive::dllexport]
 pub fn ReadConsoleInputA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleInput: HANDLE<()>,
     lpBuffer: u32, // [INPUT_RECORD]
     nLength: u32,
@@ -133,7 +133,7 @@ pub fn ReadConsoleInputA(
 
 #[win32_derive::dllexport]
 pub fn PeekConsoleInputA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleInput: HANDLE<()>,
     lpBuffer: u32, // [INPUT_RECORD]
     nLength: u32,
@@ -144,7 +144,7 @@ pub fn PeekConsoleInputA(
 
 #[win32_derive::dllexport]
 pub fn GetNumberOfConsoleInputEvents(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hConsoleInput: HANDLE<()>,
     lpNumberOfEvents: Option<&mut u32>,
 ) -> bool {
@@ -152,11 +152,7 @@ pub fn GetNumberOfConsoleInputEvents(
 }
 
 #[win32_derive::dllexport]
-pub fn GetConsoleMode(
-    _machine: &mut Machine,
-    hConsoleHandle: HFILE,
-    lpMode: Option<&mut u32>,
-) -> bool {
+pub fn GetConsoleMode(sys: &dyn System, hConsoleHandle: HFILE, lpMode: Option<&mut u32>) -> bool {
     *lpMode.unwrap() = 0;
     true
 }

@@ -1,5 +1,5 @@
 use crate::{
-    Machine,
+    Machine, System,
     calling_convention::VarArgs,
     winapi::{HWND, POINT, RECT, Str16},
 };
@@ -126,7 +126,7 @@ pub enum SM {
 }
 
 #[win32_derive::dllexport]
-pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SM, u32>) -> u32 {
+pub fn GetSystemMetrics(sys: &dyn System, nIndex: Result<SM, u32>) -> u32 {
     // These were dumped from a win2k VM running at 640x480.
     // See exe/rust/bin/metrics.rs.
     const METRICS: [u32; 100] = [
@@ -139,7 +139,7 @@ pub fn GetSystemMetrics(_machine: &mut Machine, nIndex: Result<SM, u32>) -> u32 
 }
 
 #[win32_derive::dllexport]
-pub fn GetSysColor(_machine: &mut Machine, nIndex: i32) -> u32 {
+pub fn GetSysColor(sys: &dyn System, nIndex: i32) -> u32 {
     todo!();
 }
 
@@ -167,18 +167,18 @@ pub fn wsprintfW(machine: &mut Machine, buf: u32, fmt: Option<&Str16>, args: Var
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyState(_machine: &mut Machine, nVirtKey: u32) -> u32 {
+pub fn GetKeyState(sys: &dyn System, nVirtKey: u32) -> u32 {
     0
 }
 
 #[win32_derive::dllexport]
-pub fn IsIconic(_machine: &mut Machine, hwnd: HWND) -> bool {
+pub fn IsIconic(sys: &dyn System, hwnd: HWND) -> bool {
     false
 }
 
 #[win32_derive::dllexport]
 pub fn WinHelpW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hWndMain: HWND,
     lpszHelp: Option<&Str16>,
     uCommand: u32,
@@ -188,23 +188,23 @@ pub fn WinHelpW(
 }
 
 #[win32_derive::dllexport]
-pub fn GetCursorPos(_machine: &mut Machine, lpPoint: Option<&mut POINT>) -> bool {
+pub fn GetCursorPos(sys: &dyn System, lpPoint: Option<&mut POINT>) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn SetCursorPos(_machine: &mut Machine, x: i32, y: i32) -> bool {
+pub fn SetCursorPos(sys: &dyn System, x: i32, y: i32) -> bool {
     todo!();
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyboardState(_machine: &mut Machine, lpKeyState: Option<&mut u8>) -> bool {
+pub fn GetKeyboardState(sys: &dyn System, lpKeyState: Option<&mut u8>) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
 pub fn keybd_event(
-    _machine: &mut Machine,
+    sys: &dyn System,
     bVk: u8,
     bScan: u8,
     dwFlags: u32, /* KEYBD_EVENT_FLAGS */
@@ -321,7 +321,7 @@ pub enum SPI {
 
 #[win32_derive::dllexport]
 pub fn SystemParametersInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     uiAction: Result<SPI, u32>,
     uiParam: u32,
     pvParam: u32,
@@ -340,25 +340,25 @@ pub fn SystemParametersInfoA(
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyboardType(_machine: &mut Machine, nTypeFlag: i32) -> i32 {
+pub fn GetKeyboardType(sys: &dyn System, nTypeFlag: i32) -> i32 {
     0 // fail
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyboardLayout(_machine: &mut Machine, idThread: u32) -> u32 {
+pub fn GetKeyboardLayout(sys: &dyn System, idThread: u32) -> u32 {
     log::warn!("GetKeyboardLayout: stub");
     0 // garbage value, unclear if callers care
 }
 
 #[win32_derive::dllexport]
-pub fn GetKeyboardLayoutList(_machine: &mut Machine, nBuff: i32, lpList: Option<&mut HKL>) -> i32 {
+pub fn GetKeyboardLayoutList(sys: &dyn System, nBuff: i32, lpList: Option<&mut HKL>) -> i32 {
     log::warn!("GetKeyboardLayoutList: stub");
     0 // no layouts
 }
 
 #[win32_derive::dllexport]
 pub fn SetWindowsHookExA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     idHook: u32, /* WINDOWS_HOOK_ID */
     lpfn: u32,   /* HOOKPROC */
     hmod: HINSTANCE,
@@ -379,7 +379,7 @@ unsafe impl memory::Pod for MONITORINFO {}
 
 #[win32_derive::dllexport]
 pub fn GetMonitorInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hMonitor: HMONITOR,
     lpmi: Option<&mut MONITORINFO>,
 ) -> bool {
@@ -387,12 +387,12 @@ pub fn GetMonitorInfoA(
 }
 
 #[win32_derive::dllexport]
-pub fn OemToCharA(_machine: &mut Machine, pSrc: Option<&str>, pDst: Option<&str>) -> bool {
+pub fn OemToCharA(sys: &dyn System, pSrc: Option<&str>, pDst: Option<&str>) -> bool {
     true
 }
 
 #[win32_derive::dllexport]
-pub fn RegisterClipboardFormatA(_machine: &mut Machine, lpszFormat: Option<&str>) -> bool {
+pub fn RegisterClipboardFormatA(sys: &dyn System, lpszFormat: Option<&str>) -> bool {
     log::warn!("RegisterClipboardFormatA: stub");
     false
 }
@@ -408,13 +408,13 @@ pub struct TRACKMOUSEEVENT {
 unsafe impl ::memory::Pod for TRACKMOUSEEVENT {}
 
 #[win32_derive::dllexport]
-pub fn TrackMouseEvent(_machine: &mut Machine, lpEventTrack: Option<&mut TRACKMOUSEEVENT>) -> bool {
+pub fn TrackMouseEvent(sys: &dyn System, lpEventTrack: Option<&mut TRACKMOUSEEVENT>) -> bool {
     false // fail
 }
 
 #[win32_derive::dllexport]
 pub fn GetUserObjectInformationW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hObj: u32,
     nIndex: u32, /* USER_OBJECT_INFORMATION_INDEX */
     pvInfo: u32,
@@ -425,6 +425,6 @@ pub fn GetUserObjectInformationW(
 }
 
 #[win32_derive::dllexport]
-pub fn GetProcessWindowStation(_machine: &mut Machine) -> u32 {
+pub fn GetProcessWindowStation(sys: &dyn System) -> u32 {
     0 // null
 }

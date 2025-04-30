@@ -4,7 +4,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::machine::Machine;
+use crate::{Machine, System};
 use memory::{Extensions, ExtensionsMut};
 
 #[win32_derive::dllexport(cdecl)]
@@ -35,6 +35,6 @@ pub fn memcmp(machine: &mut Machine, lhs: u32, rhs: u32, len: u32) -> u32 {
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _CxxThrowException(_machine: &mut Machine, pExceptionObject: u32, pThrowInfo: u32) -> u32 {
+pub fn _CxxThrowException(sys: &dyn System, pExceptionObject: u32, pThrowInfo: u32) -> u32 {
     panic!("exception");
 }

@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -39,14 +39,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoCreateInstance(
-                sys.machine(),
-                rclsid,
-                pUnkOuter,
-                dwClsContext,
-                riid,
-                ppv,
-            );
+            let result =
+                winapi::ole32::CoCreateInstance(sys, rclsid, pUnkOuter, dwClsContext, riid, ppv);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -68,7 +62,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoInitialize(sys.machine(), pvReserved);
+            let result = winapi::ole32::CoInitialize(sys, pvReserved);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -91,7 +85,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoInitializeEx(sys.machine(), pvReserved, dwCoInit);
+            let result = winapi::ole32::CoInitializeEx(sys, pvReserved, dwCoInit);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -112,7 +106,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::CoUninitialize(sys.machine());
+            let result = winapi::ole32::CoUninitialize(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -134,7 +128,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ole32::OleInitialize(sys.machine(), _pvReserved);
+            let result = winapi::ole32::OleInitialize(sys, _pvReserved);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

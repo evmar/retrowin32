@@ -5,11 +5,11 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use crate::Machine;
+use crate::System;
 
 #[win32_derive::dllexport]
 pub fn InternetOpenA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpszAgent: Option<&str>,
     dwAccessType: u32,
     lpszProxy: Option<&str>,

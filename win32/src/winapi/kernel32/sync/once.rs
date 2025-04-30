@@ -1,4 +1,4 @@
-use crate::Machine;
+use crate::System;
 use memory::Pod;
 
 #[repr(C)]
@@ -10,7 +10,7 @@ unsafe impl Pod for INIT_ONCE {}
 
 #[win32_derive::dllexport]
 pub fn InitOnceBeginInitialize(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpInitOnce: Option<&mut INIT_ONCE>,
     dwFlags: u32,
     fPending: Option<&mut u32>,
@@ -25,7 +25,7 @@ pub fn InitOnceBeginInitialize(
 
 #[win32_derive::dllexport]
 pub fn InitOnceComplete(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpInitOnce: Option<&mut INIT_ONCE>,
     dwFlags: u32,
     lpContext: u32,

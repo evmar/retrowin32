@@ -1,6 +1,6 @@
 use memory::Pod;
 
-use crate::{machine::Machine, winapi::kernel32};
+use crate::{Machine, System, winapi::kernel32};
 
 pub struct TimeThread {
     timer_id: u32,
@@ -68,7 +68,7 @@ pub fn timeSetEvent(
 }
 
 #[win32_derive::dllexport]
-pub fn timeKillEvent(_machine: &mut Machine, uTimerID: u32) -> u32 {
+pub fn timeKillEvent(sys: &dyn System, uTimerID: u32) -> u32 {
     0
 }
 
@@ -80,13 +80,13 @@ pub fn timeGetTime(machine: &mut Machine) -> u32 {
 const TIMERR_NOERROR: u32 = 0;
 
 #[win32_derive::dllexport]
-pub fn timeBeginPeriod(_machine: &mut Machine, uPeriod: u32) -> u32 {
+pub fn timeBeginPeriod(sys: &dyn System, uPeriod: u32) -> u32 {
     // ignore
     TIMERR_NOERROR
 }
 
 #[win32_derive::dllexport]
-pub fn timeEndPeriod(_machine: &mut Machine, uPeriod: u32) -> u32 {
+pub fn timeEndPeriod(sys: &dyn System, uPeriod: u32) -> u32 {
     // ignore
     TIMERR_NOERROR
 }
@@ -100,7 +100,7 @@ pub struct TIMECAPS {
 unsafe impl Pod for TIMECAPS {}
 
 #[win32_derive::dllexport]
-pub fn timeGetDevCaps(_machine: &mut Machine, ptc: Option<&mut TIMECAPS>, cbtc: u32) -> u32 {
+pub fn timeGetDevCaps(sys: &dyn System, ptc: Option<&mut TIMECAPS>, cbtc: u32) -> u32 {
     assert!(cbtc >= std::mem::size_of::<TIMECAPS>() as u32);
     *ptc.unwrap() = TIMECAPS {
         uPeriodMin: 1,

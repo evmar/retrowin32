@@ -1,6 +1,6 @@
 use super::{Timers, Window};
 use crate::{
-    Host, Machine, MouseButton, host,
+    Host, Machine, MouseButton, System, host,
     winapi::{
         handle::Handles,
         kernel32::{
@@ -409,12 +409,12 @@ bitflags::bitflags! {
 }
 
 #[win32_derive::dllexport]
-pub fn GetQueueStatus(_machine: &mut Machine, flags: Result<QS, u32>) -> u32 {
+pub fn GetQueueStatus(sys: &dyn System, flags: Result<QS, u32>) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn TranslateMessage(_machine: &mut Machine, lpMsg: Option<&MSG>) -> bool {
+pub fn TranslateMessage(sys: &dyn System, lpMsg: Option<&MSG>) -> bool {
     // TODO: translate key-related messages into enqueuing a WM_CHAR.
     false // no message translated
 }
@@ -502,7 +502,7 @@ pub fn PostMessageW(machine: &mut Machine, hWnd: HWND, Msg: u32, wParam: u32, lP
 
 #[win32_derive::dllexport]
 pub fn TranslateAcceleratorW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hWnd: HWND,
     hAccTable: u32,
     lpMsg: Option<&MSG>,
@@ -572,7 +572,7 @@ pub async fn MsgWaitForMultipleObjects(
 
 #[win32_derive::dllexport]
 pub fn CallWindowProcA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpPrevWndFunc: u32, /* WNDPROC */
     hWnd: HWND,
     Msg: u32,
@@ -619,7 +619,7 @@ pub fn PostThreadMessageA(
 
 #[win32_derive::dllexport]
 pub fn SendDlgItemMessageA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     Msg: u32,

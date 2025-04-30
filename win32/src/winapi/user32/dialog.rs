@@ -1,4 +1,4 @@
-use crate::{Machine, calling_convention::ArrayOut, winapi::*};
+use crate::{Machine, System, calling_convention::ArrayOut, winapi::*};
 
 /*
 pub mod MessageBoxFlags {
@@ -71,7 +71,7 @@ pub fn MessageBoxW(
 
 #[win32_derive::dllexport]
 pub fn DialogBoxParamA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hInstance: u32,
     lpTemplateName: u32,
     hWndParent: HWND,
@@ -88,7 +88,7 @@ pub fn DialogBoxParamA(
 
 #[win32_derive::dllexport]
 pub fn DialogBoxParamW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hInstance: u32,
     lpTemplateName: u32,
     hWndParent: HWND,
@@ -100,7 +100,7 @@ pub fn DialogBoxParamW(
 
 #[win32_derive::dllexport]
 pub fn DialogBoxIndirectParamA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hInstance: u32,
     hDialogTemplate: u32,
     hWndParent: HWND,
@@ -113,7 +113,7 @@ pub fn DialogBoxIndirectParamA(
 
 #[win32_derive::dllexport]
 pub fn SetDlgItemTextA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     lpString: Option<&str>,
@@ -123,7 +123,7 @@ pub fn SetDlgItemTextA(
 
 #[win32_derive::dllexport]
 pub fn SetDlgItemTextW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     lpString: Option<&Str16>,
@@ -133,7 +133,7 @@ pub fn SetDlgItemTextW(
 
 #[win32_derive::dllexport]
 pub fn SetDlgItemInt(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     uValue: u32,
@@ -159,7 +159,7 @@ pub fn GetDlgItemTextW(
 
 #[win32_derive::dllexport]
 pub fn GetDlgItemInt(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDDlgItem: i32,
     lpTranslated: Option<&mut u32>,
@@ -170,7 +170,7 @@ pub fn GetDlgItemInt(
 
 #[win32_derive::dllexport]
 pub fn CheckRadioButton(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDlg: HWND,
     nIDFirstButton: i32,
     nIDLastButton: i32,
@@ -180,16 +180,16 @@ pub fn CheckRadioButton(
 }
 
 #[win32_derive::dllexport]
-pub fn CheckDlgButton(_machine: &mut Machine, hDlg: HWND, nIDButton: i32, uCheck: u32) -> bool {
+pub fn CheckDlgButton(sys: &dyn System, hDlg: HWND, nIDButton: i32, uCheck: u32) -> bool {
     todo!();
 }
 
 #[win32_derive::dllexport]
-pub fn IsDlgButtonChecked(_machine: &mut Machine, hDlg: HWND, nIDButton: i32) -> u32 {
+pub fn IsDlgButtonChecked(sys: &dyn System, hDlg: HWND, nIDButton: i32) -> u32 {
     todo!();
 }
 
 #[win32_derive::dllexport]
-pub fn EndDialog(_machine: &mut Machine, hDlg: HWND, nResult: Option<&mut u32>) -> bool {
+pub fn EndDialog(sys: &dyn System, hDlg: HWND, nResult: Option<&mut u32>) -> bool {
     todo!();
 }

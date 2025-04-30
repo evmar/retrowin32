@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -33,11 +33,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::vcruntime140::_CxxThrowException(
-                sys.machine(),
-                pExceptionObject,
-                pThrowInfo,
-            );
+            let result =
+                winapi::vcruntime140::_CxxThrowException(sys, pExceptionObject, pThrowInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -65,13 +65,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AdjustWindowRectEx(
-                sys.machine(),
-                lpRect,
-                dwStyle,
-                bMenu,
-                dwExStyle,
-            );
+            let result = winapi::user32::AdjustWindowRectEx(sys, lpRect, dwStyle, bMenu, dwExStyle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -101,8 +95,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::AppendMenuA(sys.machine(), hMenu, uFlags, uIDNewItem, lpNewItem);
+            let result = winapi::user32::AppendMenuA(sys, hMenu, uFlags, uIDNewItem, lpNewItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -157,14 +150,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CallWindowProcA(
-                sys.machine(),
-                lpPrevWndFunc,
-                hWnd,
-                Msg,
-                wParam,
-                lParam,
-            );
+            let result =
+                winapi::user32::CallWindowProcA(sys, lpPrevWndFunc, hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -237,7 +224,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckDlgButton(sys.machine(), hDlg, nIDButton, uCheck);
+            let result = winapi::user32::CheckDlgButton(sys, hDlg, nIDButton, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -265,7 +252,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckMenuItem(sys.machine(), hMenu, uIDCheckItem, uCheck);
+            let result = winapi::user32::CheckMenuItem(sys, hMenu, uIDCheckItem, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -296,7 +283,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::CheckRadioButton(
-                sys.machine(),
+                sys,
                 hDlg,
                 nIDFirstButton,
                 nIDLastButton,
@@ -324,7 +311,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ClientToScreen(sys.machine(), hWnd, lpPoint);
+            let result = winapi::user32::ClientToScreen(sys, hWnd, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -347,7 +334,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CopyRect(sys.machine(), lprcDst, lprcSrc);
+            let result = winapi::user32::CopyRect(sys, lprcDst, lprcSrc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -384,14 +371,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::CreateCursor(
-                sys.machine(),
-                hInst,
-                xHotSpot,
-                yHotSpot,
-                nWidth,
-                nHeight,
-                pvANDPlane,
-                pvXORPlane,
+                sys, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -413,7 +393,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CreatePopupMenu(sys.machine());
+            let result = winapi::user32::CreatePopupMenu(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -654,7 +634,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DeleteMenu(sys.machine(), hMenu, uPosition, uFlags);
+            let result = winapi::user32::DeleteMenu(sys, hMenu, uPosition, uFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -676,7 +656,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DestroyWindow(sys.machine(), hWnd);
+            let result = winapi::user32::DestroyWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -709,7 +689,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxIndirectParamA(
-                sys.machine(),
+                sys,
                 hInstance,
                 hDialogTemplate,
                 hWndParent,
@@ -748,7 +728,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxParamA(
-                sys.machine(),
+                sys,
                 hInstance,
                 lpTemplateName,
                 hWndParent,
@@ -787,7 +767,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxParamW(
-                sys.machine(),
+                sys,
                 hInstance,
                 lpTemplateName,
                 hWndParent,
@@ -873,7 +853,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DrawMenuBar(sys.machine(), hWnd);
+            let result = winapi::user32::DrawMenuBar(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -905,8 +885,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::DrawTextW(sys.machine(), hDC, lpString, nCount, lpRect, uFormat);
+            let result = winapi::user32::DrawTextW(sys, hDC, lpString, nCount, lpRect, uFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -934,8 +913,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::EnableMenuItem(sys.machine(), hMenu, uIDEnableItem, uEnable);
+            let result = winapi::user32::EnableMenuItem(sys, hMenu, uIDEnableItem, uEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -958,7 +936,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EnableWindow(sys.machine(), hWnd, bEnable);
+            let result = winapi::user32::EnableWindow(sys, hWnd, bEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -981,7 +959,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EndDialog(sys.machine(), hDlg, nResult);
+            let result = winapi::user32::EndDialog(sys, hDlg, nResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1078,7 +1056,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FrameRect(sys.machine(), hDC, lprc, hbr);
+            let result = winapi::user32::FrameRect(sys, hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1188,7 +1166,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetCursorPos(sys.machine(), lpPoint);
+            let result = winapi::user32::GetCursorPos(sys, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1231,7 +1209,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDesktopWindow(sys.machine());
+            let result = winapi::user32::GetDesktopWindow(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1284,13 +1262,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItemInt(
-                sys.machine(),
-                hDlg,
-                nIDDlgItem,
-                lpTranslated,
-                bSigned,
-            );
+            let result =
+                winapi::user32::GetDlgItemInt(sys, hDlg, nIDDlgItem, lpTranslated, bSigned);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1382,7 +1355,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyState(sys.machine(), nVirtKey);
+            let result = winapi::user32::GetKeyState(sys, nVirtKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1404,7 +1377,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayout(sys.machine(), idThread);
+            let result = winapi::user32::GetKeyboardLayout(sys, idThread);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1427,7 +1400,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayoutList(sys.machine(), nBuff, lpList);
+            let result = winapi::user32::GetKeyboardLayoutList(sys, nBuff, lpList);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1449,7 +1422,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardState(sys.machine(), lpKeyState);
+            let result = winapi::user32::GetKeyboardState(sys, lpKeyState);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1471,7 +1444,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardType(sys.machine(), nTypeFlag);
+            let result = winapi::user32::GetKeyboardType(sys, nTypeFlag);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1514,7 +1487,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMenu(sys.machine(), hWnd);
+            let result = winapi::user32::GetMenu(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1544,8 +1517,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::GetMenuItemRect(sys.machine(), hWnd, hMenu, uItem, lprcItem);
+            let result = winapi::user32::GetMenuItemRect(sys, hWnd, hMenu, uItem, lprcItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1646,7 +1618,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMonitorInfoA(sys.machine(), hMonitor, lpmi);
+            let result = winapi::user32::GetMonitorInfoA(sys, hMonitor, lpmi);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1667,7 +1639,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetProcessWindowStation(sys.machine());
+            let result = winapi::user32::GetProcessWindowStation(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1689,7 +1661,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetQueueStatus(sys.machine(), flags);
+            let result = winapi::user32::GetQueueStatus(sys, flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1712,7 +1684,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSubMenu(sys.machine(), hMenu, nPos);
+            let result = winapi::user32::GetSubMenu(sys, hMenu, nPos);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1734,7 +1706,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSysColor(sys.machine(), nIndex);
+            let result = winapi::user32::GetSysColor(sys, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1757,7 +1729,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMenu(sys.machine(), hWnd, bRevert);
+            let result = winapi::user32::GetSystemMenu(sys, hWnd, bRevert);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1779,7 +1751,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMetrics(sys.machine(), nIndex);
+            let result = winapi::user32::GetSystemMetrics(sys, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1836,7 +1808,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::GetUserObjectInformationW(
-                sys.machine(),
+                sys,
                 hObj,
                 nIndex,
                 pvInfo,
@@ -1864,7 +1836,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowDC(sys.machine(), hWnd);
+            let result = winapi::user32::GetWindowDC(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1957,7 +1929,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InflateRect(sys.machine(), lprc, dx, dy);
+            let result = winapi::user32::InflateRect(sys, lprc, dx, dy);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1985,7 +1957,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IntersectRect(sys.machine(), lprcDst, lprcSrc1, lprcSrc2);
+            let result = winapi::user32::IntersectRect(sys, lprcDst, lprcSrc1, lprcSrc2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2056,7 +2028,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvertRect(sys.machine(), hDC, lpr);
+            let result = winapi::user32::InvertRect(sys, hDC, lpr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2079,7 +2051,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsDlgButtonChecked(sys.machine(), hDlg, nIDButton);
+            let result = winapi::user32::IsDlgButtonChecked(sys, hDlg, nIDButton);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2101,7 +2073,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsIconic(sys.machine(), hwnd);
+            let result = winapi::user32::IsIconic(sys, hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2123,7 +2095,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsRectEmpty(sys.machine(), lprc);
+            let result = winapi::user32::IsRectEmpty(sys, lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2145,7 +2117,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindow(sys.machine(), hWnd);
+            let result = winapi::user32::IsWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2167,7 +2139,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindowVisible(sys.machine(), hWnd);
+            let result = winapi::user32::IsWindowVisible(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2213,7 +2185,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadAcceleratorsW(sys.machine(), hInstance, lpTableName);
+            let result = winapi::user32::LoadAcceleratorsW(sys, hInstance, lpTableName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2259,7 +2231,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorA(sys.machine(), hInstance, lpCursorName);
+            let result = winapi::user32::LoadCursorA(sys, hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2282,7 +2254,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorW(sys.machine(), hInstance, lpCursorName);
+            let result = winapi::user32::LoadCursorW(sys, hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2305,7 +2277,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconA(sys.machine(), hInstance, lpIconName);
+            let result = winapi::user32::LoadIconA(sys, hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2328,7 +2300,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconW(sys.machine(), hInstance, lpIconName);
+            let result = winapi::user32::LoadIconW(sys, hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2421,7 +2393,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuA(sys.machine(), hInstance, lpMenuName);
+            let result = winapi::user32::LoadMenuA(sys, hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2444,7 +2416,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuW(sys.machine(), hInstance, lpMenuName);
+            let result = winapi::user32::LoadMenuW(sys, hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2534,7 +2506,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MapWindowPoints(sys.machine(), hWndFrom, hWndTo, lpPoints);
+            let result = winapi::user32::MapWindowPoints(sys, hWndFrom, hWndTo, lpPoints);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2699,7 +2671,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::OemToCharA(sys.machine(), pSrc, pDst);
+            let result = winapi::user32::OemToCharA(sys, pSrc, pDst);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2913,7 +2885,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PtInRect(sys.machine(), lprc, pt);
+            let result = winapi::user32::PtInRect(sys, lprc, pt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3062,7 +3034,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClipboardFormatA(sys.machine(), lpszFormat);
+            let result = winapi::user32::RegisterClipboardFormatA(sys, lpszFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3127,7 +3099,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ReleaseCapture(sys.machine());
+            let result = winapi::user32::ReleaseCapture(sys);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3182,14 +3154,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SendDlgItemMessageA(
-                sys.machine(),
-                hDlg,
-                nIDDlgItem,
-                Msg,
-                wParam,
-                lParam,
-            );
+            let result =
+                winapi::user32::SendDlgItemMessageA(sys, hDlg, nIDDlgItem, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3285,7 +3251,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCapture(sys.machine(), hwnd);
+            let result = winapi::user32::SetCapture(sys, hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3335,7 +3301,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursor(sys.machine(), hCursor);
+            let result = winapi::user32::SetCursor(sys, hCursor);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3358,7 +3324,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursorPos(sys.machine(), x, y);
+            let result = winapi::user32::SetCursorPos(sys, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3388,8 +3354,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SetDlgItemInt(sys.machine(), hDlg, nIDDlgItem, uValue, _bSigned);
+            let result = winapi::user32::SetDlgItemInt(sys, hDlg, nIDDlgItem, uValue, _bSigned);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3417,7 +3382,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextA(sys.machine(), hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::SetDlgItemTextA(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3445,7 +3410,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextW(sys.machine(), hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::SetDlgItemTextW(sys, hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3496,7 +3461,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetForegroundWindow(sys.machine(), hWnd);
+            let result = winapi::user32::SetForegroundWindow(sys, hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3519,7 +3484,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetMenu(sys.machine(), hWnd, hMenu);
+            let result = winapi::user32::SetMenu(sys, hWnd, hMenu);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3549,8 +3514,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SetMenuItemInfoA(sys.machine(), hMenu, item, fByPosition, lpmii);
+            let result = winapi::user32::SetMenuItemInfoA(sys, hMenu, item, fByPosition, lpmii);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3582,7 +3546,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRect(sys.machine(), lprc, xLeft, yTop, xRight, yBottom);
+            let result = winapi::user32::SetRect(sys, lprc, xLeft, yTop, xRight, yBottom);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3604,7 +3568,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRectEmpty(sys.machine(), lprc);
+            let result = winapi::user32::SetRectEmpty(sys, lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3769,8 +3733,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SetWindowsHookExA(sys.machine(), idHook, lpfn, hmod, dwThreadId);
+            let result = winapi::user32::SetWindowsHookExA(sys, idHook, lpfn, hmod, dwThreadId);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3792,7 +3755,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ShowCursor(sys.machine(), bShow);
+            let result = winapi::user32::ShowCursor(sys, bShow);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3852,13 +3815,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SystemParametersInfoA(
-                sys.machine(),
-                uiAction,
-                uiParam,
-                pvParam,
-                fWinIni,
-            );
+            let result =
+                winapi::user32::SystemParametersInfoA(sys, uiAction, uiParam, pvParam, fWinIni);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3880,7 +3838,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TrackMouseEvent(sys.machine(), lpEventTrack);
+            let result = winapi::user32::TrackMouseEvent(sys, lpEventTrack);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3908,8 +3866,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::TranslateAcceleratorW(sys.machine(), hWnd, hAccTable, lpMsg);
+            let result = winapi::user32::TranslateAcceleratorW(sys, hWnd, hAccTable, lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3931,7 +3888,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TranslateMessage(sys.machine(), lpMsg);
+            let result = winapi::user32::TranslateMessage(sys, lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3954,7 +3911,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::UnregisterClassA(sys.machine(), lpClassName, hInstance);
+            let result = winapi::user32::UnregisterClassA(sys, lpClassName, hInstance);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4064,8 +4021,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::WinHelpW(sys.machine(), hWndMain, lpszHelp, uCommand, dwData);
+            let result = winapi::user32::WinHelpW(sys, hWndMain, lpszHelp, uCommand, dwData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -4095,8 +4051,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::keybd_event(sys.machine(), bVk, bScan, dwFlags, dwExtraInfo);
+            let result = winapi::user32::keybd_event(sys, bVk, bScan, dwFlags, dwExtraInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

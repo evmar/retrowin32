@@ -1,6 +1,6 @@
 use super::{BrushOrColor, HBRUSH, HCURSOR, HICON, HINSTANCE};
 use crate::{
-    Machine,
+    Machine, System,
     calling_convention::FromArg,
     winapi::{HWND, Str16},
 };
@@ -250,10 +250,6 @@ pub fn SetClassLongA(
 }
 
 #[win32_derive::dllexport]
-pub fn UnregisterClassA(
-    _machine: &mut Machine,
-    lpClassName: Option<&str>,
-    hInstance: HINSTANCE,
-) -> bool {
+pub fn UnregisterClassA(sys: &dyn System, lpClassName: Option<&str>, hInstance: HINSTANCE) -> bool {
     todo!()
 }

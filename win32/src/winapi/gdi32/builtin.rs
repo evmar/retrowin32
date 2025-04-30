@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -219,15 +219,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::CreateDIBitmap(
-                sys.machine(),
-                hdc,
-                pbmih,
-                flInit,
-                pjBits,
-                pbmi,
-                iUsage,
-            );
+            let result =
+                winapi::gdi32::CreateDIBitmap(sys, hdc, pbmih, flInit, pjBits, pbmi, iUsage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -278,7 +271,7 @@ mod wrappers {
                 None
             };
             let result = winapi::gdi32::CreateFontA(
-                sys.machine(),
+                sys,
                 cHeight,
                 cWidth,
                 cEscapement,
@@ -383,7 +376,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::DeleteDC(sys.machine(), hdc);
+            let result = winapi::gdi32::DeleteDC(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -405,7 +398,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::DeleteObject(sys.machine(), handle);
+            let result = winapi::gdi32::DeleteObject(sys, handle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -437,14 +430,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::EnumFontFamiliesExA(
-                sys.machine(),
-                hdc,
-                lpLogfont,
-                lpProc,
-                lParam,
-                dwFlags,
-            );
+            let result =
+                winapi::gdi32::EnumFontFamiliesExA(sys, hdc, lpLogfont, lpProc, lParam, dwFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -503,16 +490,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetDIBits(
-                sys.machine(),
-                hdc,
-                hbm,
-                start,
-                cLines,
-                lpvBits,
-                lpbmi,
-                usage,
-            );
+            let result =
+                winapi::gdi32::GetDIBits(sys, hdc, hbm, start, cLines, lpvBits, lpbmi, usage);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -535,7 +514,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetDeviceCaps(sys.machine(), hdc, index);
+            let result = winapi::gdi32::GetDeviceCaps(sys, hdc, index);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -557,7 +536,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetLayout(sys.machine(), hdc);
+            let result = winapi::gdi32::GetLayout(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -611,13 +590,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetPaletteEntries(
-                sys.machine(),
-                hpal,
-                iStart,
-                cEntries,
-                pPalEntries,
-            );
+            let result = winapi::gdi32::GetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -693,13 +666,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetSystemPaletteEntries(
-                sys.machine(),
-                hdc,
-                iStart,
-                cEntries,
-                pPalEntries,
-            );
+            let result =
+                winapi::gdi32::GetSystemPaletteEntries(sys, hdc, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -729,8 +697,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::GetTextExtentPoint32A(sys.machine(), hdc, lpString, c, psizl);
+            let result = winapi::gdi32::GetTextExtentPoint32A(sys, hdc, lpString, c, psizl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -760,8 +727,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::GetTextExtentPoint32W(sys.machine(), hdc, lpString, c, psizl);
+            let result = winapi::gdi32::GetTextExtentPoint32W(sys, hdc, lpString, c, psizl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -784,7 +750,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextMetricsA(sys.machine(), hdc, lptm);
+            let result = winapi::gdi32::GetTextMetricsA(sys, hdc, lptm);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -807,7 +773,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::GetTextMetricsW(sys.machine(), hdc, lptm);
+            let result = winapi::gdi32::GetTextMetricsW(sys, hdc, lptm);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -841,8 +807,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::gdi32::LineDDA(sys.machine(), xStart, yStart, xEnd, yEnd, lpProc, data);
+            let result = winapi::gdi32::LineDDA(sys, xStart, yStart, xEnd, yEnd, lpProc, data);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -949,7 +914,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::PtVisible(sys.machine(), hdc, x, y);
+            let result = winapi::gdi32::PtVisible(sys, hdc, x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -971,7 +936,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::RealizePalette(sys.machine(), hdc);
+            let result = winapi::gdi32::RealizePalette(sys, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1018,7 +983,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SelectPalette(sys.machine(), hdc, hPal, bForceBkgd);
+            let result = winapi::gdi32::SelectPalette(sys, hdc, hPal, bForceBkgd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1041,7 +1006,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBkColor(sys.machine(), hdc, color);
+            let result = winapi::gdi32::SetBkColor(sys, hdc, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1064,7 +1029,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetBkMode(sys.machine(), hdc, mode);
+            let result = winapi::gdi32::SetBkMode(sys, hdc, mode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1172,7 +1137,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetLayout(sys.machine(), hdc, l);
+            let result = winapi::gdi32::SetLayout(sys, hdc, l);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1202,13 +1167,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetPaletteEntries(
-                sys.machine(),
-                hpal,
-                iStart,
-                cEntries,
-                pPalEntries,
-            );
+            let result = winapi::gdi32::SetPaletteEntries(sys, hpal, iStart, cEntries, pPalEntries);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1279,7 +1238,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetTextAlign(sys.machine(), hdc, fMode);
+            let result = winapi::gdi32::SetTextAlign(sys, hdc, fMode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1302,7 +1261,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::SetTextColor(sys.machine(), hdc, color);
+            let result = winapi::gdi32::SetTextColor(sys, hdc, color);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1447,7 +1406,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::TextOutA(sys.machine(), hdc, x, y, lpString);
+            let result = winapi::gdi32::TextOutA(sys, hdc, x, y, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1472,7 +1431,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::gdi32::TextOutW(sys.machine(), hdc, x, y, lpString);
+            let result = winapi::gdi32::TextOutW(sys, hdc, x, y, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

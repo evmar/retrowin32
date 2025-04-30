@@ -1,12 +1,12 @@
 use super::HFILE;
 use crate::{
-    Machine,
+    System,
     winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES},
 };
 
 #[win32_derive::dllexport]
 pub fn CreateFileMappingA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hFile: HFILE,
     lpFileMappingAttributes: Option<&mut SECURITY_ATTRIBUTES>,
     flProtect: u32, /* PAGE_PROTECTION_FLAGS */

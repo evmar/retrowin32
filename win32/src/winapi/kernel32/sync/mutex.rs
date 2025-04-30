@@ -1,11 +1,11 @@
 use crate::{
-    Machine,
+    System,
     winapi::{HANDLE, kernel32::SECURITY_ATTRIBUTES},
 };
 
 #[win32_derive::dllexport]
 pub fn CreateMutexA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpMutexAttributes: Option<&mut SECURITY_ATTRIBUTES>,
     bInitialOwner: bool,
     lpName: Option<&str>,
@@ -15,7 +15,7 @@ pub fn CreateMutexA(
 
 #[win32_derive::dllexport]
 pub fn OpenMutexA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     dwDesiredAccess: u32,
     bInheritHandle: bool,
     lpName: Option<&str>,

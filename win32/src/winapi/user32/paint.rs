@@ -1,6 +1,6 @@
 use super::{HBRUSH, HDC, WindowType};
 use crate::{
-    Machine,
+    Machine, System,
     calling_convention::FromArg,
     winapi::{
         HWND, RECT, Str16,
@@ -229,14 +229,14 @@ pub fn FillRect(machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: Brush
 }
 
 #[win32_derive::dllexport]
-pub fn FrameRect(_machine: &mut Machine, hDC: HDC, lprc: Option<&RECT>, hbr: HBRUSH) -> bool {
+pub fn FrameRect(sys: &dyn System, hDC: HDC, lprc: Option<&RECT>, hbr: HBRUSH) -> bool {
     // TODO
     true
 }
 
 #[win32_derive::dllexport]
 pub fn DrawTextW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hDC: HDC,
     lpString: Option<&Str16>,
     nCount: i32,
@@ -248,6 +248,6 @@ pub fn DrawTextW(
 }
 
 #[win32_derive::dllexport]
-pub fn InvertRect(_machine: &mut Machine, hDC: HDC, lpr: Option<&RECT>) -> bool {
+pub fn InvertRect(sys: &dyn System, hDC: HDC, lpr: Option<&RECT>) -> bool {
     todo!()
 }

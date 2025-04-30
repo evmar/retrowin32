@@ -1,6 +1,6 @@
 //! "National Language Support", e.g. code page conversions.
 
-use crate::{Machine, calling_convention::ArrayOut, winapi::Str16};
+use crate::{Machine, System, calling_convention::ArrayOut, winapi::Str16};
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 
@@ -15,27 +15,27 @@ pub enum CP {
 }
 
 #[win32_derive::dllexport]
-pub fn GetACP(_machine: &mut Machine) -> u32 {
+pub fn GetACP(sys: &dyn System) -> u32 {
     1252 // windows-1252
 }
 
 #[win32_derive::dllexport]
-pub fn GetOEMCP(_machine: &mut Machine) -> u32 {
+pub fn GetOEMCP(sys: &dyn System) -> u32 {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn GetConsoleOutputCP(_machine: &mut Machine) -> u32 {
+pub fn GetConsoleOutputCP(sys: &dyn System) -> u32 {
     CP::ACP as u32
 }
 
 #[win32_derive::dllexport]
-pub fn IsValidCodePage(_machine: &mut Machine, CodePage: u32) -> bool {
+pub fn IsValidCodePage(sys: &dyn System, CodePage: u32) -> bool {
     CodePage == 1252
 }
 
 #[win32_derive::dllexport]
-pub fn GetCPInfo(_machine: &mut Machine, _CodePage: u32, _lpCPInfo: u32) -> u32 {
+pub fn GetCPInfo(sys: &dyn System, _CodePage: u32, _lpCPInfo: u32) -> u32 {
     0 // fail
 }
 
@@ -163,13 +163,13 @@ pub fn WideCharToMultiByte(
 }
 
 #[win32_derive::dllexport]
-pub fn IsDBCSLeadByteEx(_machine: &mut Machine, _TestChar: u8, _CodePage: u32) -> bool {
+pub fn IsDBCSLeadByteEx(sys: &dyn System, _TestChar: u8, _CodePage: u32) -> bool {
     // TODO
     false
 }
 
 #[win32_derive::dllexport]
-pub fn IsDBCSLeadByte(_machine: &mut Machine, _TestChar: u8) -> bool {
+pub fn IsDBCSLeadByte(sys: &dyn System, _TestChar: u8) -> bool {
     false
 }
 
@@ -179,13 +179,13 @@ pub type LCID = u32;
 pub const LCID_EN_US: u32 = 0x409;
 
 #[win32_derive::dllexport]
-pub fn GetThreadLocale(_machine: &mut Machine) -> LCID {
+pub fn GetThreadLocale(sys: &dyn System) -> LCID {
     LCID_EN_US
 }
 
 #[win32_derive::dllexport]
 pub fn GetLocaleInfoW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: u32,
     LCType: u32,
     lpLCData: Option<&Str16>,
@@ -196,7 +196,7 @@ pub fn GetLocaleInfoW(
 
 #[win32_derive::dllexport]
 pub fn GetLocaleInfoA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: u32,
     LCType: u32,
     lpLCData: Option<&str>,
@@ -207,7 +207,7 @@ pub fn GetLocaleInfoA(
 
 #[win32_derive::dllexport]
 pub fn LCMapStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     locale: LCID,
     dwMapFlags: u32,
     lpSrcStr: u32,
@@ -219,7 +219,7 @@ pub fn LCMapStringA(
 
 #[win32_derive::dllexport]
 pub fn LCMapStringW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     locale: LCID,
     dwMapFlags: u32,
     lpSrcStr: u32,
@@ -231,7 +231,7 @@ pub fn LCMapStringW(
 
 #[win32_derive::dllexport]
 pub fn GetStringTypeA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: LCID,
     dwInfoType: u32,
     lpSrcStr: u32,
@@ -243,7 +243,7 @@ pub fn GetStringTypeA(
 
 #[win32_derive::dllexport]
 pub fn GetStringTypeW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     dwInfoType: u32,
     lpSrcStr: u32,
     cchSrc: i32,
@@ -254,7 +254,7 @@ pub fn GetStringTypeW(
 
 #[win32_derive::dllexport]
 pub fn EnumSystemLocalesA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpLocaleEnumProc: u32, /* LOCALE_ENUMPROCA */
     dwFlags: u32,
 ) -> bool {
@@ -263,7 +263,7 @@ pub fn EnumSystemLocalesA(
 
 #[win32_derive::dllexport]
 pub fn IsValidLocale(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: u32,
     dwFlags: u32, /* IS_VALID_LOCALE_FLAGS */
 ) -> bool {
@@ -271,6 +271,6 @@ pub fn IsValidLocale(
 }
 
 #[win32_derive::dllexport]
-pub fn GetUserDefaultLCID(_machine: &mut Machine) -> u32 {
+pub fn GetUserDefaultLCID(sys: &dyn System) -> u32 {
     todo!()
 }

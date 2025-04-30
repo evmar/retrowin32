@@ -1,8 +1,8 @@
-use crate::{Machine, calling_convention::ArrayOut, winapi::HWND};
+use crate::{System, calling_convention::ArrayOut, winapi::HWND};
 
 #[win32_derive::dllexport]
 pub fn mciGetErrorStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     mcierr: u32,
     pszText: Option<&str>,
     cchText: u32,
@@ -12,7 +12,7 @@ pub fn mciGetErrorStringA(
 
 #[win32_derive::dllexport]
 pub fn mciSendStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpstrCommand: Option<&str>,
     lpstrReturnString: ArrayOut<u8>,
     hwndCallback: HWND,

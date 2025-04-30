@@ -1,11 +1,11 @@
 use crate::{
-    Machine,
+    System,
     winapi::{POINT, RECT},
 };
 
 #[win32_derive::dllexport]
 pub fn SetRect(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lprc: Option<&mut RECT>,
     xLeft: i32,
     yTop: i32,
@@ -23,19 +23,19 @@ pub fn SetRect(
 }
 
 #[win32_derive::dllexport]
-pub fn PtInRect(_machine: &mut Machine, lprc: Option<&RECT>, pt: POINT) -> bool {
+pub fn PtInRect(sys: &dyn System, lprc: Option<&RECT>, pt: POINT) -> bool {
     let rect = lprc.unwrap();
     pt.x >= rect.left && pt.x < rect.right && pt.y >= rect.top && pt.y < rect.bottom
 }
 
 #[win32_derive::dllexport]
-pub fn IsRectEmpty(_machine: &mut Machine, lprc: Option<&RECT>) -> bool {
+pub fn IsRectEmpty(sys: &dyn System, lprc: Option<&RECT>) -> bool {
     let rect = lprc.unwrap();
     rect.left >= rect.right || rect.top >= rect.bottom
 }
 
 #[win32_derive::dllexport]
-pub fn SetRectEmpty(_machine: &mut Machine, lprc: Option<&mut RECT>) -> bool {
+pub fn SetRectEmpty(sys: &dyn System, lprc: Option<&mut RECT>) -> bool {
     if lprc.is_none() {
         return false;
     }
@@ -49,7 +49,7 @@ pub fn SetRectEmpty(_machine: &mut Machine, lprc: Option<&mut RECT>) -> bool {
 
 #[win32_derive::dllexport]
 pub fn IntersectRect(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lprcDst: Option<&mut RECT>,
     lprcSrc1: Option<&RECT>,
     lprcSrc2: Option<&RECT>,
@@ -60,8 +60,8 @@ pub fn IntersectRect(
     let dst = lprcDst.unwrap();
     let src1 = lprcSrc1.unwrap();
     let src2 = lprcSrc2.unwrap();
-    if IsRectEmpty(_machine, lprcSrc1)
-        || IsRectEmpty(_machine, lprcSrc2)
+    if IsRectEmpty(sys, lprcSrc1)
+        || IsRectEmpty(sys, lprcSrc2)
         || src1.left >= src2.right
         || src1.right <= src2.left
         || src1.top >= src2.bottom
@@ -77,15 +77,11 @@ pub fn IntersectRect(
 }
 
 #[win32_derive::dllexport]
-pub fn CopyRect(
-    _machine: &mut Machine,
-    lprcDst: Option<&mut RECT>,
-    lprcSrc: Option<&RECT>,
-) -> bool {
+pub fn CopyRect(sys: &dyn System, lprcDst: Option<&mut RECT>, lprcSrc: Option<&RECT>) -> bool {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn InflateRect(_machine: &mut Machine, lprc: Option<&mut RECT>, dx: i32, dy: i32) -> bool {
+pub fn InflateRect(sys: &dyn System, lprc: Option<&mut RECT>, dx: i32, dy: i32) -> bool {
     todo!()
 }

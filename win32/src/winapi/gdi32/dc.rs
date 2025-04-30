@@ -1,6 +1,6 @@
 use super::{HGDIOBJ, R2};
 use crate::{
-    machine::Machine,
+    Machine, System,
     winapi::{
         HANDLE, POINT,
         bitmap::{Bitmap, PixelData, PixelFormat},
@@ -127,7 +127,7 @@ pub fn CreateCompatibleDC(machine: &mut Machine, hdc: HDC) -> HDC {
 }
 
 #[win32_derive::dllexport]
-pub fn DeleteDC(_machine: &mut Machine, hdc: u32) -> u32 {
+pub fn DeleteDC(sys: &dyn System, hdc: u32) -> u32 {
     log::warn!("todo: DeleteDC({hdc:x})");
     0 // fail
 }
@@ -176,11 +176,7 @@ pub enum GetDeviceCapsArg {
 }
 
 #[win32_derive::dllexport]
-pub fn GetDeviceCaps(
-    _machine: &mut Machine,
-    hdc: HDC,
-    index: Result<GetDeviceCapsArg, u32>,
-) -> u32 {
+pub fn GetDeviceCaps(sys: &dyn System, hdc: HDC, index: Result<GetDeviceCapsArg, u32>) -> u32 {
     use GetDeviceCapsArg::*;
     match index.unwrap() {
         HORZRES => 640,
@@ -195,12 +191,12 @@ pub fn GetDeviceCaps(
 }
 
 #[win32_derive::dllexport]
-pub fn GetLayout(_machine: &mut Machine, hdc: HDC) -> u32 {
+pub fn GetLayout(sys: &dyn System, hdc: HDC) -> u32 {
     0 // LTR
 }
 
 #[win32_derive::dllexport]
-pub fn SetLayout(_machine: &mut Machine, hdc: HDC, l: u32) -> u32 {
+pub fn SetLayout(sys: &dyn System, hdc: HDC, l: u32) -> u32 {
     todo!();
 }
 

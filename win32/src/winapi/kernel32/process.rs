@@ -1,6 +1,6 @@
 use super::{SECURITY_ATTRIBUTES, STARTUPINFOA};
 use crate::{
-    Machine,
+    System,
     winapi::{HANDLE, Str16},
 };
 
@@ -10,13 +10,13 @@ pub type HPROCESS = HANDLE<()>;
 pub const CURRENT_PROCESS_HANDLE: HPROCESS = HPROCESS::from_raw(-1i32 as u32);
 
 #[win32_derive::dllexport]
-pub fn GetCurrentProcess(_machine: &mut Machine) -> HPROCESS {
+pub fn GetCurrentProcess(sys: &dyn System) -> HPROCESS {
     CURRENT_PROCESS_HANDLE
 }
 
 #[win32_derive::dllexport]
 pub fn GetExitCodeProcess(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hProcess: HPROCESS,
     lpExitCode: Option<&mut u32>,
 ) -> bool {
@@ -29,7 +29,7 @@ pub type STARTUPINFOW = STARTUPINFOA; // TODO: same layout, different strings
 
 #[win32_derive::dllexport]
 pub fn CreateProcessW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpApplicationName: Option<&Str16>,
     lpCommandLine: Option<&Str16>,
     lpProcessAttributes: Option<&mut SECURITY_ATTRIBUTES>,
@@ -46,7 +46,7 @@ pub fn CreateProcessW(
 
 #[win32_derive::dllexport]
 pub fn CreateProcessA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     lpApplicationName: Option<&str>,
     lpCommandLine: Option<&str>,
     lpProcessAttributes: Option<&mut SECURITY_ATTRIBUTES>,

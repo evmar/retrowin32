@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -51,7 +51,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Free(sys.machine(), arg1);
+            let result = winapi::bass::BASS_Free(sys, arg1);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -81,7 +81,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_Init(sys.machine(), arg1, arg2, arg3, arg4);
+            let result = winapi::bass::BASS_Init(sys, arg1, arg2, arg3, arg4);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -113,7 +113,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicLoad(sys.machine(), arg1, arg2, arg3, arg4, arg5);
+            let result = winapi::bass::BASS_MusicLoad(sys, arg1, arg2, arg3, arg4, arg5);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -158,7 +158,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::bass::BASS_MusicSetPositionScaler(sys.machine(), arg1, arg2);
+            let result = winapi::bass::BASS_MusicSetPositionScaler(sys, arg1, arg2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

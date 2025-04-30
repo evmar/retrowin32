@@ -5,7 +5,7 @@ mod builtin;
 pub use builtin::DLL;
 
 use super::{ERROR, Str16};
-use crate::{machine::Machine, system::System};
+use crate::System;
 
 pub type HKEY = u32;
 
@@ -21,7 +21,7 @@ pub fn RegCreateKeyA(
 
 #[win32_derive::dllexport]
 pub fn RegCreateKeyExW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpSubKey: Option<&Str16>,
     Reserved: u32,
@@ -37,7 +37,7 @@ pub fn RegCreateKeyExW(
 
 #[win32_derive::dllexport]
 pub fn RegOpenKeyExA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpSubKey: Option<&str>,
     ulOptions: u32,
@@ -48,13 +48,13 @@ pub fn RegOpenKeyExA(
 }
 
 #[win32_derive::dllexport]
-pub fn RegCloseKey(_machine: &mut Machine, hKey: HKEY) -> u32 {
+pub fn RegCloseKey(sys: &dyn System, hKey: HKEY) -> u32 {
     0 // success
 }
 
 #[win32_derive::dllexport]
 pub fn RegQueryValueExA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpValueName: Option<&str>,
     lpReserved: u32,
@@ -67,7 +67,7 @@ pub fn RegQueryValueExA(
 
 #[win32_derive::dllexport]
 pub fn RegQueryValueExW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpValueName: Option<&Str16>,
     lpReserved: u32,
@@ -80,7 +80,7 @@ pub fn RegQueryValueExW(
 
 #[win32_derive::dllexport]
 pub fn RegSetValueExA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpValueName: Option<&str>,
     Reserved: u32,
@@ -93,7 +93,7 @@ pub fn RegSetValueExA(
 
 #[win32_derive::dllexport]
 pub fn RegSetValueExW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpValueName: Option<&Str16>,
     Reserved: u32,

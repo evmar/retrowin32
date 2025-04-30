@@ -2,7 +2,7 @@
 
 use super::teb_mut;
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{
         ERROR,
         encoding::{Encoder, EncoderWide},
@@ -36,7 +36,7 @@ pub fn ExitProcess(machine: &mut Machine, uExitCode: u32) {
 }
 
 #[win32_derive::dllexport]
-pub fn TerminateProcess(_machine: &mut Machine, hProcess: u32, uExitCode: u32) -> bool {
+pub fn TerminateProcess(sys: &dyn System, hProcess: u32, uExitCode: u32) -> bool {
     todo!();
 }
 
@@ -78,10 +78,7 @@ pub enum ProcessorFeature {
 }
 
 #[win32_derive::dllexport]
-pub fn IsProcessorFeaturePresent(
-    _machine: &mut Machine,
-    feature: Result<ProcessorFeature, u32>,
-) -> bool {
+pub fn IsProcessorFeaturePresent(sys: &dyn System, feature: Result<ProcessorFeature, u32>) -> bool {
     match feature.unwrap() {
         ProcessorFeature::FLOATING_POINT_PRECISION_ERRATA => {
             // We don't emulate floating point errors.
@@ -95,22 +92,22 @@ pub fn IsProcessorFeaturePresent(
 }
 
 #[win32_derive::dllexport]
-pub fn IsDebuggerPresent(_machine: &mut Machine) -> bool {
+pub fn IsDebuggerPresent(sys: &dyn System) -> bool {
     true // Might cause a binary to log info via the debug API? Not sure.
 }
 
 #[win32_derive::dllexport]
-pub fn DebugBreak(_machine: &mut Machine) {
+pub fn DebugBreak(sys: &dyn System) {
     todo!()
 }
 
 #[win32_derive::dllexport]
-pub fn GetCurrentProcessId(_machine: &mut Machine) -> u32 {
+pub fn GetCurrentProcessId(sys: &dyn System) -> u32 {
     1
 }
 
 #[win32_derive::dllexport]
-pub fn GetVersion(_machine: &mut Machine) -> u32 {
+pub fn GetVersion(sys: &dyn System) -> u32 {
     // Win95, version 4.0.
     (1 << 31) | 0x4
 }
@@ -128,10 +125,7 @@ pub struct OSVERSIONINFO {
 unsafe impl Pod for OSVERSIONINFO {}
 
 #[win32_derive::dllexport]
-pub fn GetVersionExA(
-    _machine: &mut Machine,
-    lpVersionInformation: Option<&mut OSVERSIONINFO>,
-) -> u32 {
+pub fn GetVersionExA(sys: &dyn System, lpVersionInformation: Option<&mut OSVERSIONINFO>) -> u32 {
     let info = lpVersionInformation.unwrap();
     if info.dwOSVersionInfoSize < std::mem::size_of::<OSVERSIONINFO>() as u32 {
         log::error!("GetVersionExA undersized buffer");
@@ -146,31 +140,31 @@ pub fn GetVersionExA(
 }
 
 #[win32_derive::dllexport]
-pub fn SetHandleCount(_machine: &mut Machine, uNumber: u32) -> u32 {
+pub fn SetHandleCount(sys: &dyn System, uNumber: u32) -> u32 {
     // "For Windows Win32 systems, this API has no effect."
     uNumber
 }
 
 #[win32_derive::dllexport]
-pub fn OutputDebugStringA(_machine: &mut Machine, msg: Option<&str>) -> u32 {
+pub fn OutputDebugStringA(sys: &dyn System, msg: Option<&str>) -> u32 {
     log::warn!("OutputDebugStringA: {:?}", msg);
     0
 }
 
 #[win32_derive::dllexport]
-pub fn SetUnhandledExceptionFilter(_machine: &mut Machine, _lpTopLevelExceptionFilter: u32) -> u32 {
+pub fn SetUnhandledExceptionFilter(sys: &dyn System, _lpTopLevelExceptionFilter: u32) -> u32 {
     0 // No current handler.
 }
 
 #[win32_derive::dllexport]
-pub fn UnhandledExceptionFilter(_machine: &mut Machine, _exceptionInfo: u32) -> u32 {
+pub fn UnhandledExceptionFilter(sys: &dyn System, _exceptionInfo: u32) -> u32 {
     // "The process is being debugged, so the exception should be passed (as second chance) to the application's debugger."
     0 // EXCEPTION_CONTINUE_SEARCH
 }
 
 #[win32_derive::dllexport]
 pub fn RaiseException(
-    _machine: &mut Machine,
+    sys: &dyn System,
     dwExceptionCode: u32,
     dwExceptionFlags: u32,
     nNumberOfArguments: u32,
@@ -190,22 +184,18 @@ pub struct SLIST_HEADER {
 unsafe impl ::memory::Pod for SLIST_HEADER {}
 
 #[win32_derive::dllexport]
-pub fn InitializeSListHead(_machine: &mut Machine, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
+pub fn InitializeSListHead(sys: &dyn System, ListHead: Option<&mut SLIST_HEADER>) -> u32 {
     ListHead.unwrap().Next = 0;
     0
 }
 
 #[win32_derive::dllexport]
-pub fn SetPriorityClass(
-    _machine: &mut Machine,
-    hProcess: HANDLE<()>,
-    dwPriorityClass: u32,
-) -> bool {
+pub fn SetPriorityClass(sys: &dyn System, hProcess: HANDLE<()>, dwPriorityClass: u32) -> bool {
     true // success
 }
 
 #[win32_derive::dllexport]
-pub fn AddVectoredExceptionHandler(_machine: &mut Machine, first: u32, handler: u32) -> u32 {
+pub fn AddVectoredExceptionHandler(sys: &dyn System, first: u32, handler: u32) -> u32 {
     handler // success
 }
 
@@ -322,7 +312,7 @@ pub fn FormatMessageA(
 }
 
 #[win32_derive::dllexport]
-pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominator: i32) -> i32 {
+pub fn MulDiv(sys: &dyn System, nNumber: i32, nNumerator: i32, nDenominator: i32) -> i32 {
     if nDenominator == 0 {
         return -1;
     }
@@ -353,7 +343,7 @@ pub fn MulDiv(_machine: &mut Machine, nNumber: i32, nNumerator: i32, nDenominato
 
 #[win32_derive::dllexport]
 pub fn RtlUnwind(
-    _machine: &mut Machine,
+    sys: &dyn System,
     TargetFrame: u32,
     TargetIp: u32,
     ExceptionRecord: u32,
@@ -364,7 +354,7 @@ pub fn RtlUnwind(
 
 #[win32_derive::dllexport]
 pub fn CompareStringA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: u32,
     dwCmpFlags: u32,
     lpString1: u32,
@@ -377,7 +367,7 @@ pub fn CompareStringA(
 
 #[win32_derive::dllexport]
 pub fn CompareStringW(
-    _machine: &mut Machine,
+    sys: &dyn System,
     Locale: u32,
     dwCmpFlags: u32,
     lpString1: u32,
@@ -390,7 +380,7 @@ pub fn CompareStringW(
 
 #[win32_derive::dllexport]
 pub fn DuplicateHandle(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hSourceProcessHandle: HANDLE<()>,
     hSourceHandle: HANDLE<()>,
     hTargetProcessHandle: HANDLE<()>,
@@ -409,35 +399,35 @@ pub fn DuplicateHandle(
 type ATOM = u32;
 
 #[win32_derive::dllexport]
-pub fn GlobalAddAtomA(_machine: &mut Machine, lpString: Option<&str>) -> ATOM {
+pub fn GlobalAddAtomA(sys: &dyn System, lpString: Option<&str>) -> ATOM {
     log::warn!("GlobalAddAtomA: stub");
     0
 }
 
 #[win32_derive::dllexport]
-pub fn Beep(_machine: &mut Machine, dwFreq: u32, dwDuration: u32) -> bool {
+pub fn Beep(sys: &dyn System, dwFreq: u32, dwDuration: u32) -> bool {
     todo!()
 }
 
 pub type SEM = u32; // TODO: SEM_*
 
 #[win32_derive::dllexport]
-pub fn SetErrorMode(_machine: &mut Machine, uMode: SEM) -> SEM {
+pub fn SetErrorMode(sys: &dyn System, uMode: SEM) -> SEM {
     log::warn!("ignoring SetErrorMode({uMode:x?})");
     uMode
 }
 
 #[win32_derive::dllexport]
-pub fn EncodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
+pub fn EncodePointer(sys: &dyn System, ptr: u32) -> u32 {
     ptr
 }
 
 #[win32_derive::dllexport]
-pub fn DecodePointer(_machine: &mut Machine, ptr: u32) -> u32 {
+pub fn DecodePointer(sys: &dyn System, ptr: u32) -> u32 {
     ptr
 }
 
 #[win32_derive::dllexport]
-pub fn GetUserDefaultUILanguage(_machine: &mut Machine) -> u32 {
+pub fn GetUserDefaultUILanguage(sys: &dyn System) -> u32 {
     0 // neutral
 }

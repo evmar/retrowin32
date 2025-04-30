@@ -1,10 +1,10 @@
 //! For some reason kernel32 exports functions that I would've expected to find in the libc...
 
-use crate::{Machine, winapi::Str16};
+use crate::{Machine, System, winapi::Str16};
 use memory::ExtensionsMut;
 
 #[win32_derive::dllexport]
-pub fn lstrlenA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
+pub fn lstrlenA(sys: &dyn System, lpString: Option<&str>) -> u32 {
     match lpString {
         None => 0,
         // The mapping to str already computes the string length.
@@ -13,7 +13,7 @@ pub fn lstrlenA(_machine: &mut Machine, lpString: Option<&str>) -> u32 {
 }
 
 #[win32_derive::dllexport]
-pub fn lstrlenW(_machine: &mut Machine, lpString: Option<&Str16>) -> u32 {
+pub fn lstrlenW(sys: &dyn System, lpString: Option<&Str16>) -> u32 {
     match lpString {
         None => 0,
         // The mapping to Str16 already computes the string length.
@@ -43,7 +43,7 @@ pub fn lstrcpyW(machine: &mut Machine, lpString1: u32, lpString2: Option<&Str16>
 }
 
 #[win32_derive::dllexport]
-pub fn lstrcmpiA(_machine: &mut Machine, lpString1: Option<&str>, lpString2: Option<&str>) -> i32 {
+pub fn lstrcmpiA(sys: &dyn System, lpString1: Option<&str>, lpString2: Option<&str>) -> i32 {
     let lpString1 = lpString1.unwrap();
     let lpString2 = lpString2.unwrap();
 

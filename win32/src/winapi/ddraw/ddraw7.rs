@@ -1,7 +1,7 @@
 //! Implementation of DirectDraw7 interfaces.
 
 use crate::{
-    Machine,
+    Machine, System,
     winapi::{
         com::{GUID, vtable},
         ddraw::{
@@ -119,7 +119,7 @@ pub mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
@@ -245,7 +245,7 @@ pub mod IDirectDraw7 {
 
     #[win32_derive::dllexport]
     pub fn GetDisplayMode(
-        _machine: &mut Machine,
+        sys: &dyn System,
         this: u32,
         lpDDSurfaceDesc: Option<&mut DDSURFACEDESC2>,
     ) -> DD {
@@ -256,7 +256,7 @@ pub mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn RestoreDisplayMode(_machine: &mut Machine, this: u32) -> DD {
+    pub fn RestoreDisplayMode(sys: &dyn System, this: u32) -> DD {
         DD::OK
     }
 
@@ -297,7 +297,7 @@ pub mod IDirectDraw7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn WaitForVerticalBlank(_machine: &mut Machine, this: u32, flags: u32, _unused: u32) -> DD {
+    pub fn WaitForVerticalBlank(sys: &dyn System, this: u32, flags: u32, _unused: u32) -> DD {
         // TODO: effect.exe uses this to pace itself; actually sync to a clock here?
         #[cfg(not(target_family = "wasm"))]
         std::thread::sleep(std::time::Duration::from_millis(10));
@@ -373,7 +373,7 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn Release(_machine: &mut Machine, this: u32) -> u32 {
+    pub fn Release(sys: &dyn System, this: u32) -> u32 {
         log::warn!("{this:x}->Release()");
         0 // TODO: return refcount?
     }
@@ -508,7 +508,7 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetCaps(_machine: &mut Machine, this: u32, lpDDSCAPS2: Option<&mut DDSCAPS2>) -> DD {
+    pub fn GetCaps(sys: &dyn System, this: u32, lpDDSCAPS2: Option<&mut DDSCAPS2>) -> DD {
         DD::OK
     }
 
@@ -528,11 +528,7 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn GetPixelFormat(
-        _machine: &mut Machine,
-        this: u32,
-        fmt: Option<&mut DDPIXELFORMAT>,
-    ) -> DD {
+    pub fn GetPixelFormat(sys: &dyn System, this: u32, fmt: Option<&mut DDPIXELFORMAT>) -> DD {
         let fmt = fmt.unwrap();
         assert!(fmt.dwSize == std::mem::size_of::<DDPIXELFORMAT>() as u32);
         // The "RGBA32" we use has the R as the first byte, so due to little
@@ -608,18 +604,18 @@ pub mod IDirectDrawSurface7 {
     }
 
     #[win32_derive::dllexport]
-    pub fn ReleaseDC(_machine: &mut Machine, _this: u32, _hDC: u32) -> DD {
+    pub fn ReleaseDC(sys: &dyn System, _this: u32, _hDC: u32) -> DD {
         // leak
         DD::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn Restore(_machine: &mut Machine, _this: u32) -> DD {
+    pub fn Restore(sys: &dyn System, _this: u32) -> DD {
         DD::OK
     }
 
     #[win32_derive::dllexport]
-    pub fn SetClipper(_machine: &mut Machine, this: u32, clipper: u32) -> DD {
+    pub fn SetClipper(sys: &dyn System, this: u32, clipper: u32) -> DD {
         // e.g. machine.state.ddraw.surfaces.get_mut(&this).unwrap().palette = palette;
         log::warn!("TODO: SetClipper: stub");
         DD::OK
@@ -627,7 +623,7 @@ pub mod IDirectDrawSurface7 {
 
     #[win32_derive::dllexport]
     pub fn SetColorKey(
-        _machine: &mut Machine,
+        sys: &dyn System,
         this: u32,
         flags: Result<DDCKEY, u32>,
         key: Option<&DDCOLORKEY>,

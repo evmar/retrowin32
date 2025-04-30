@@ -7,9 +7,9 @@ use crate::{
 };
 mod wrappers {
     use crate::{
+        System,
         calling_convention::*,
         machine::Machine,
-        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
@@ -205,8 +205,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDraw2::GetDisplayMode(sys.machine(), this, lpDDSurfaceDesc);
+            let result = winapi::ddraw::IDirectDraw2::GetDisplayMode(sys, this, lpDDSurfaceDesc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -230,8 +229,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDraw2::QueryInterface(sys.machine(), this, riid, ppvObject);
+            let result = winapi::ddraw::IDirectDraw2::QueryInterface(sys, this, riid, ppvObject);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -253,7 +251,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDraw2::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDraw2::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -470,8 +468,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDraw7::GetDisplayMode(sys.machine(), this, lpDDSurfaceDesc);
+            let result = winapi::ddraw::IDirectDraw7::GetDisplayMode(sys, this, lpDDSurfaceDesc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -493,7 +490,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDraw7::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDraw7::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -518,7 +515,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDraw7::RestoreDisplayMode(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDraw7::RestoreDisplayMode(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -620,12 +617,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDraw7::WaitForVerticalBlank(
-                sys.machine(),
-                this,
-                flags,
-                _unused,
-            );
+            let result =
+                winapi::ddraw::IDirectDraw7::WaitForVerticalBlank(sys, this, flags, _unused);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -647,7 +640,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawClipper::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawClipper::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -671,8 +664,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawClipper::SetHWnd(sys.machine(), this, unused, hwnd);
+            let result = winapi::ddraw::IDirectDrawClipper::SetHWnd(sys, this, unused, hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -694,7 +686,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawPalette::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawPalette::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -795,8 +787,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface2::GetCaps(sys.machine(), this, lpDDSCAPS);
+            let result = winapi::ddraw::IDirectDrawSurface2::GetCaps(sys, this, lpDDSCAPS);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -884,7 +875,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface2::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawSurface2::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -929,7 +920,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface3::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawSurface3::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1097,8 +1088,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::GetCaps(sys.machine(), this, lpDDSCAPS2);
+            let result = winapi::ddraw::IDirectDrawSurface7::GetCaps(sys, this, lpDDSCAPS2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1147,8 +1137,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::GetPixelFormat(sys.machine(), this, fmt);
+            let result = winapi::ddraw::IDirectDrawSurface7::GetPixelFormat(sys, this, fmt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1258,7 +1247,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawSurface7::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1284,7 +1273,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::ReleaseDC(sys.machine(), _this, _hDC);
+            let result = winapi::ddraw::IDirectDrawSurface7::ReleaseDC(sys, _this, _hDC);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1306,7 +1295,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface7::Restore(sys.machine(), _this);
+            let result = winapi::ddraw::IDirectDrawSurface7::Restore(sys, _this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1332,8 +1321,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::SetClipper(sys.machine(), this, clipper);
+            let result = winapi::ddraw::IDirectDrawSurface7::SetClipper(sys, this, clipper);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1360,8 +1348,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::ddraw::IDirectDrawSurface7::SetColorKey(sys.machine(), this, flags, key);
+            let result = winapi::ddraw::IDirectDrawSurface7::SetColorKey(sys, this, flags, key);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1470,7 +1457,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface::GetCaps(sys.machine(), this, lpDDSCAPS);
+            let result = winapi::ddraw::IDirectDrawSurface::GetCaps(sys, this, lpDDSCAPS);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1563,7 +1550,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDrawSurface::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDrawSurface::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1669,7 +1656,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ddraw::IDirectDraw::Release(sys.machine(), this);
+            let result = winapi::ddraw::IDirectDraw::Release(sys, this);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
