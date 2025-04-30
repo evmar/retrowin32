@@ -23,9 +23,8 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
     };
     let flat_name = &dllexport.flat_name; // IDirectDraw_QueryInterface
 
-    let mut fetch_args = quote! {
-        let mem = machine.mem().detach();
-    };
+    let mut fetch_args = quote!(let mem = sys.mem().detach(););
+
     let mut stack_offset = 0;
     for parse::Argument {
         name,
@@ -40,6 +39,12 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         });
         stack_offset += stack_consumed;
     }
+
+    let self_arg = if dllexport.sys_arg {
+        quote!(sys)
+    } else {
+        quote!(sys.machine())
+    };
 
     let args = dllexport
         .args
@@ -77,36 +82,36 @@ fn fn_wrapper(module: TokenStream, dllexport: &parse::DllExport) -> (TokenStream
         result.into()
     };
 
-    let (func, defn) = if dllexport.func.sig.asyncness.is_some() {
-        (
-            quote!(Handler::Async(wrappers::#flat_name)),
-            quote! {
-                pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
-                    unsafe {
-                        #fetch_args
-                        let machine: *mut Machine = machine;
-                        Box::pin(async move {
-                            let machine = &mut *machine;
-                            let result = #impls_mod::#base_name(machine, #(#args),*).await;
-                            #return_result
-                        })
-                    }
-                }
-            },
-        )
+    let func = if dllexport.func.sig.asyncness.is_some() {
+        quote!(Handler::Async(wrappers::#flat_name))
     } else {
-        (
-            quote!(Handler::Sync(wrappers::#flat_name)),
-            quote! {
-                pub unsafe fn #flat_name(machine: &mut Machine, stack_args: u32) -> ABIReturn {
-                    unsafe {
-                        #fetch_args
-                        let result = #impls_mod::#base_name(machine, #(#args),*);
+        quote!(Handler::Sync(wrappers::#flat_name))
+    };
+
+    let defn = if dllexport.func.sig.asyncness.is_some() {
+        quote! {
+            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
+                unsafe {
+                    #fetch_args
+                    let machine: *mut Machine = sys.machine();
+                    Box::pin(async move {
+                        let machine = &mut *machine;
+                        let result = #impls_mod::#base_name(machine, #(#args),*).await;
                         #return_result
-                    }
+                    })
                 }
-            },
-        )
+            }
+        }
+    } else {
+        quote! {
+            pub unsafe fn #flat_name(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
+                unsafe {
+                    #fetch_args
+                    let result = #impls_mod::#base_name(#self_arg, #(#args),*);
+                    #return_result
+                }
+            }
+        }
     };
 
     (
@@ -143,7 +148,7 @@ pub fn shims_module(module_name: &str, dllexports: parse::DllExports) -> TokenSt
 
         mod wrappers {
             use ::memory::Extensions;
-            use crate::{calling_convention::*, machine::Machine, winapi::{self, *}};
+            use crate::{calling_convention::*, system::System, machine::Machine, winapi::{self, *}};
             use winapi::#module::*;  // for types
             #(#wrappers)*
         }

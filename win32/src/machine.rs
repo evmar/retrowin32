@@ -1,3 +1,4 @@
+use crate::System;
 use crate::{host, loader, memory::Memory, winapi};
 
 #[cfg(feature = "x86-emu")]
@@ -38,6 +39,16 @@ impl<Emu> MachineX<Emu> {
             .into_iter()
             .map(|dll| loader::normalize_module_name(&dll))
             .collect();
+    }
+}
+
+impl System for Machine {
+    fn mem(&self) -> memory::Mem {
+        self.mem()
+    }
+
+    fn machine(&mut self) -> &mut Machine {
+        self
     }
 }
 

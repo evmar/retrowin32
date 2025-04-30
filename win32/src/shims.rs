@@ -10,12 +10,15 @@
 //! 2. shims_raw.rs, which is used when executing x86 natively
 //! 3. shims_unicorn.rs, which is used with the Unicorn CPU emulator
 
-use crate::{Machine, calling_convention::ABIReturn};
+use crate::{System, calling_convention::ABIReturn};
 use std::collections::HashMap;
 
-pub type SyncHandler = unsafe fn(&mut Machine, u32) -> ABIReturn;
+pub type SyncHandler = unsafe fn(&mut dyn System, u32) -> ABIReturn;
 pub type AsyncHandler =
-    unsafe fn(&mut Machine, u32) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>>;
+    unsafe fn(
+        &mut dyn System,
+        u32,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>>;
 #[derive(Debug, Clone, Copy)]
 pub enum Handler {
     Sync(SyncHandler),

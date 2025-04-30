@@ -5,6 +5,7 @@ mod machine;
 mod memory;
 mod segments;
 pub mod shims;
+pub mod system;
 pub mod winapi;
 
 #[cfg(feature = "x86-emu")]
@@ -25,3 +26,4 @@ mod machine_unicorn;
 
 pub use host::*;
 pub use machine::{Machine, Status};
+pub use system::System;

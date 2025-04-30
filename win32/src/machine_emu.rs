@@ -226,7 +226,7 @@ impl MachineX<Emulator> {
 
             Handler::Async(func) => {
                 let return_address = regs.eip;
-                let machine = self as *mut _;
+                let machine: *mut Machine = self as *mut _;
                 let future = Box::pin(async move {
                     let machine = unsafe { &mut *machine };
                     let ret = unsafe { func(machine, stack_args) }.await;

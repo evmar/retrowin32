@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::wininet::*;
-    pub unsafe fn InternetOpenA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InternetOpenA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpszAgent = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let dwAccessType = <u32>::from_stack(mem, stack_args + 4u32);
             let lpszProxy = <Option<&str>>::from_stack(mem, stack_args + 8u32);
@@ -39,7 +40,7 @@ mod wrappers {
                 None
             };
             let result = winapi::wininet::InternetOpenA(
-                machine,
+                sys.machine(),
                 lpszAgent,
                 dwAccessType,
                 lpszProxy,

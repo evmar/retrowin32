@@ -9,16 +9,17 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::retrowin32_test::*;
     pub unsafe fn retrowin32_test_callback1(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let func = <u32>::from_stack(mem, stack_args + 0u32);
             let data = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("retrowin32_test") {
@@ -32,7 +33,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =

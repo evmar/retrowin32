@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::comctl32::*;
-    pub unsafe fn _TrackMouseEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn _TrackMouseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("comctl32") {
                 crate::winapi::trace::Record::new(
@@ -28,16 +29,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::comctl32::_TrackMouseEvent(machine, lpEventTrack);
+            let result = winapi::comctl32::_TrackMouseEvent(sys.machine(), lpEventTrack);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn InitCommonControls(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InitCommonControls(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("comctl32") {
                 crate::winapi::trace::Record::new(
                     winapi::comctl32::InitCommonControls_pos,
@@ -49,7 +50,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::comctl32::InitCommonControls(machine);
+            let result = winapi::comctl32::InitCommonControls(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::version::*;
-    pub unsafe fn GetFileVersionInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetFileVersionInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let dwHandle = <u32>::from_stack(mem, stack_args + 4u32);
             let dwLen = <u32>::from_stack(mem, stack_args + 8u32);
@@ -37,7 +38,7 @@ mod wrappers {
                 None
             };
             let result = winapi::version::GetFileVersionInfoA(
-                machine,
+                sys.machine(),
                 lptstrFilename,
                 dwHandle,
                 dwLen,
@@ -49,9 +50,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn GetFileVersionInfoSizeA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetFileVersionInfoSizeA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lptstrFilename = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpdwHandle = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("version") {
@@ -69,16 +70,16 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::version::GetFileVersionInfoSizeA(machine, lptstrFilename, lpdwHandle);
+                winapi::version::GetFileVersionInfoSizeA(sys.machine(), lptstrFilename, lpdwHandle);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn VerQueryValueA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn VerQueryValueA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let pBlock = <u32>::from_stack(mem, stack_args + 0u32);
             let lpSubBlock = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lplpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
@@ -99,8 +100,13 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::version::VerQueryValueA(machine, pBlock, lpSubBlock, lplpBuffer, puLen);
+            let result = winapi::version::VerQueryValueA(
+                sys.machine(),
+                pBlock,
+                lpSubBlock,
+                lplpBuffer,
+                puLen,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

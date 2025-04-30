@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::user32::*;
-    pub unsafe fn AdjustWindowRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn AdjustWindowRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
             let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
@@ -34,16 +35,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AdjustWindowRect(machine, lpRect, dwStyle, bMenu);
+            let result = winapi::user32::AdjustWindowRect(sys.machine(), lpRect, dwStyle, bMenu);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn AdjustWindowRectEx(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn AdjustWindowRectEx(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let dwStyle = <Result<WS, u32>>::from_stack(mem, stack_args + 4u32);
             let bMenu = <bool>::from_stack(mem, stack_args + 8u32);
@@ -64,17 +65,22 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::AdjustWindowRectEx(machine, lpRect, dwStyle, bMenu, dwExStyle);
+            let result = winapi::user32::AdjustWindowRectEx(
+                sys.machine(),
+                lpRect,
+                dwStyle,
+                bMenu,
+                dwExStyle,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn AppendMenuA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn AppendMenuA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let uFlags = <u32>::from_stack(mem, stack_args + 4u32);
             let uIDNewItem = <u32>::from_stack(mem, stack_args + 8u32);
@@ -95,16 +101,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::AppendMenuA(machine, hMenu, uFlags, uIDNewItem, lpNewItem);
+            let result =
+                winapi::user32::AppendMenuA(sys.machine(), hMenu, uFlags, uIDNewItem, lpNewItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn BeginPaint(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn BeginPaint(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpPaint = <Option<&mut PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
@@ -118,16 +125,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::BeginPaint(machine, hWnd, lpPaint);
+            let result = winapi::user32::BeginPaint(sys.machine(), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CallWindowProcA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CallWindowProcA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpPrevWndFunc = <u32>::from_stack(mem, stack_args + 0u32);
             let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let Msg = <u32>::from_stack(mem, stack_args + 8u32);
@@ -150,17 +157,23 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::CallWindowProcA(machine, lpPrevWndFunc, hWnd, Msg, wParam, lParam);
+            let result = winapi::user32::CallWindowProcA(
+                sys.machine(),
+                lpPrevWndFunc,
+                hWnd,
+                Msg,
+                wParam,
+                lParam,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CharLowerA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CharLowerA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -173,16 +186,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerA(machine, lpsz);
+            let result = winapi::user32::CharLowerA(sys.machine(), lpsz);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CharLowerBuffA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CharLowerBuffA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpsz = <u32>::from_stack(mem, stack_args + 0u32);
             let cchLength = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
@@ -196,16 +209,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CharLowerBuffA(machine, lpsz, cchLength);
+            let result = winapi::user32::CharLowerBuffA(sys.machine(), lpsz, cchLength);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CheckDlgButton(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CheckDlgButton(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDButton = <i32>::from_stack(mem, stack_args + 4u32);
             let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
@@ -224,16 +237,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckDlgButton(machine, hDlg, nIDButton, uCheck);
+            let result = winapi::user32::CheckDlgButton(sys.machine(), hDlg, nIDButton, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CheckMenuItem(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CheckMenuItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let uIDCheckItem = <u32>::from_stack(mem, stack_args + 4u32);
             let uCheck = <u32>::from_stack(mem, stack_args + 8u32);
@@ -252,16 +265,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CheckMenuItem(machine, hMenu, uIDCheckItem, uCheck);
+            let result = winapi::user32::CheckMenuItem(sys.machine(), hMenu, uIDCheckItem, uCheck);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CheckRadioButton(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CheckRadioButton(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDFirstButton = <i32>::from_stack(mem, stack_args + 4u32);
             let nIDLastButton = <i32>::from_stack(mem, stack_args + 8u32);
@@ -283,7 +296,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::CheckRadioButton(
-                machine,
+                sys.machine(),
                 hDlg,
                 nIDFirstButton,
                 nIDLastButton,
@@ -295,9 +308,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn ClientToScreen(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn ClientToScreen(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -311,16 +324,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ClientToScreen(machine, hWnd, lpPoint);
+            let result = winapi::user32::ClientToScreen(sys.machine(), hWnd, lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CopyRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CopyRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let lprcSrc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
@@ -334,16 +347,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CopyRect(machine, lprcDst, lprcSrc);
+            let result = winapi::user32::CopyRect(sys.machine(), lprcDst, lprcSrc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn CreateCursor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CreateCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInst = <u32>::from_stack(mem, stack_args + 0u32);
             let xHotSpot = <u32>::from_stack(mem, stack_args + 4u32);
             let yHotSpot = <u32>::from_stack(mem, stack_args + 8u32);
@@ -371,7 +384,14 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::CreateCursor(
-                machine, hInst, xHotSpot, yHotSpot, nWidth, nHeight, pvANDPlane, pvXORPlane,
+                sys.machine(),
+                hInst,
+                xHotSpot,
+                yHotSpot,
+                nWidth,
+                nHeight,
+                pvANDPlane,
+                pvXORPlane,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -379,9 +399,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn CreatePopupMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn CreatePopupMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::CreatePopupMenu_pos,
@@ -393,7 +413,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::CreatePopupMenu(machine);
+            let result = winapi::user32::CreatePopupMenu(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -401,11 +421,11 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateWindowExA(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
             let lpClassName = <CreateWindowClassName<'_, str>>::from_stack(mem, stack_args + 4u32);
             let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 8u32);
@@ -442,7 +462,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::CreateWindowExA(
@@ -469,11 +489,11 @@ mod wrappers {
         }
     }
     pub unsafe fn CreateWindowExW(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let dwExStyle = <Result<WS_EX, u32>>::from_stack(mem, stack_args + 0u32);
             let lpClassName =
                 <CreateWindowClassName<'_, Str16>>::from_stack(mem, stack_args + 4u32);
@@ -511,7 +531,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::CreateWindowExW(
@@ -538,11 +558,11 @@ mod wrappers {
         }
     }
     pub unsafe fn DefWindowProcA(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -563,7 +583,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -576,11 +596,11 @@ mod wrappers {
         }
     }
     pub unsafe fn DefWindowProcW(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -601,7 +621,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -613,9 +633,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn DeleteMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DeleteMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let uPosition = <u32>::from_stack(mem, stack_args + 4u32);
             let uFlags = <u32>::from_stack(mem, stack_args + 8u32);
@@ -634,16 +654,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DeleteMenu(machine, hMenu, uPosition, uFlags);
+            let result = winapi::user32::DeleteMenu(sys.machine(), hMenu, uPosition, uFlags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn DestroyWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DestroyWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -656,16 +676,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DestroyWindow(machine, hWnd);
+            let result = winapi::user32::DestroyWindow(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn DialogBoxIndirectParamA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DialogBoxIndirectParamA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let hDialogTemplate = <u32>::from_stack(mem, stack_args + 4u32);
             let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
@@ -689,7 +709,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxIndirectParamA(
-                machine,
+                sys.machine(),
                 hInstance,
                 hDialogTemplate,
                 hWndParent,
@@ -702,9 +722,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn DialogBoxParamA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DialogBoxParamA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpTemplateName = <u32>::from_stack(mem, stack_args + 4u32);
             let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
@@ -728,7 +748,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxParamA(
-                machine,
+                sys.machine(),
                 hInstance,
                 lpTemplateName,
                 hWndParent,
@@ -741,9 +761,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn DialogBoxParamW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DialogBoxParamW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpTemplateName = <u32>::from_stack(mem, stack_args + 4u32);
             let hWndParent = <HWND>::from_stack(mem, stack_args + 8u32);
@@ -767,7 +787,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::DialogBoxParamW(
-                machine,
+                sys.machine(),
                 hInstance,
                 lpTemplateName,
                 hWndParent,
@@ -781,11 +801,11 @@ mod wrappers {
         }
     }
     pub unsafe fn DispatchMessageA(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
@@ -798,7 +818,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::DispatchMessageA(machine, lpMsg).await;
@@ -810,11 +830,11 @@ mod wrappers {
         }
     }
     pub unsafe fn DispatchMessageW(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
@@ -827,7 +847,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::DispatchMessageW(machine, lpMsg).await;
@@ -838,9 +858,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn DrawMenuBar(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DrawMenuBar(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
                 crate::winapi::trace::Record::new(
@@ -853,16 +873,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DrawMenuBar(machine, hWnd);
+            let result = winapi::user32::DrawMenuBar(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn DrawTextW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn DrawTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let nCount = <i32>::from_stack(mem, stack_args + 8u32);
@@ -885,16 +905,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::DrawTextW(machine, hDC, lpString, nCount, lpRect, uFormat);
+            let result =
+                winapi::user32::DrawTextW(sys.machine(), hDC, lpString, nCount, lpRect, uFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn EnableMenuItem(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn EnableMenuItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let uIDEnableItem = <u32>::from_stack(mem, stack_args + 4u32);
             let uEnable = <Result<MF, u32>>::from_stack(mem, stack_args + 8u32);
@@ -913,16 +934,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EnableMenuItem(machine, hMenu, uIDEnableItem, uEnable);
+            let result =
+                winapi::user32::EnableMenuItem(sys.machine(), hMenu, uIDEnableItem, uEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn EnableWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn EnableWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let bEnable = <bool>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -936,16 +958,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EnableWindow(machine, hWnd, bEnable);
+            let result = winapi::user32::EnableWindow(sys.machine(), hWnd, bEnable);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn EndDialog(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn EndDialog(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nResult = <Option<&mut u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
@@ -959,16 +981,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EndDialog(machine, hDlg, nResult);
+            let result = winapi::user32::EndDialog(sys.machine(), hDlg, nResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn EndPaint(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn EndPaint(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpPaint = <Option<&PAINTSTRUCT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
@@ -982,16 +1004,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::EndPaint(machine, hWnd, lpPaint);
+            let result = winapi::user32::EndPaint(sys.machine(), hWnd, lpPaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn FillRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn FillRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let hbr = <BrushOrColor>::from_stack(mem, stack_args + 8u32);
@@ -1006,16 +1028,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FillRect(machine, hDC, lprc, hbr);
+            let result = winapi::user32::FillRect(sys.machine(), hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn FindWindowA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn FindWindowA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let lpWindowName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -1032,16 +1054,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FindWindowA(machine, lpClassName, lpWindowName);
+            let result = winapi::user32::FindWindowA(sys.machine(), lpClassName, lpWindowName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn FrameRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn FrameRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let hbr = <HBRUSH>::from_stack(mem, stack_args + 8u32);
@@ -1056,16 +1078,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::FrameRect(machine, hDC, lprc, hbr);
+            let result = winapi::user32::FrameRect(sys.machine(), hDC, lprc, hbr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetActiveWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetActiveWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetActiveWindow_pos,
@@ -1077,16 +1099,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetActiveWindow(machine);
+            let result = winapi::user32::GetActiveWindow(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetCapture(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetCapture_pos,
@@ -1098,16 +1120,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetCapture(machine);
+            let result = winapi::user32::GetCapture(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetClassLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetClassLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
@@ -1121,16 +1143,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetClassLongA(machine, hWnd, nIndex);
+            let result = winapi::user32::GetClassLongA(sys.machine(), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetClientRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetClientRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -1144,16 +1166,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetClientRect(machine, hWnd, lpRect);
+            let result = winapi::user32::GetClientRect(sys.machine(), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetCursorPos(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetCursorPos(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpPoint = <Option<&mut POINT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1166,16 +1188,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetCursorPos(machine, lpPoint);
+            let result = winapi::user32::GetCursorPos(sys.machine(), lpPoint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetDC(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -1188,16 +1210,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDC(machine, hWnd);
+            let result = winapi::user32::GetDC(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetDesktopWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetDesktopWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetDesktopWindow_pos,
@@ -1209,16 +1231,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDesktopWindow(machine);
+            let result = winapi::user32::GetDesktopWindow(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetDlgItem(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetDlgItem(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
@@ -1232,16 +1254,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItem(machine, hDlg, nIDDlgItem);
+            let result = winapi::user32::GetDlgItem(sys.machine(), hDlg, nIDDlgItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetDlgItemInt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetDlgItemInt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let lpTranslated = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
@@ -1262,17 +1284,22 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::GetDlgItemInt(machine, hDlg, nIDDlgItem, lpTranslated, bSigned);
+            let result = winapi::user32::GetDlgItemInt(
+                sys.machine(),
+                hDlg,
+                nIDDlgItem,
+                lpTranslated,
+                bSigned,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetDlgItemTextW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetDlgItemTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let lpString = <ArrayOut<u16>>::from_stack(mem, stack_args + 8u32);
@@ -1291,16 +1318,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetDlgItemTextW(machine, hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::GetDlgItemTextW(sys.machine(), hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetFocus(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetFocus(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetFocus_pos,
@@ -1312,16 +1339,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetFocus(machine);
+            let result = winapi::user32::GetFocus(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetForegroundWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetForegroundWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetForegroundWindow_pos,
@@ -1333,16 +1360,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetForegroundWindow(machine);
+            let result = winapi::user32::GetForegroundWindow(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetKeyState(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetKeyState(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nVirtKey = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1355,16 +1382,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyState(machine, nVirtKey);
+            let result = winapi::user32::GetKeyState(sys.machine(), nVirtKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetKeyboardLayout(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetKeyboardLayout(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1377,16 +1404,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayout(machine, idThread);
+            let result = winapi::user32::GetKeyboardLayout(sys.machine(), idThread);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetKeyboardLayoutList(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetKeyboardLayoutList(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nBuff = <i32>::from_stack(mem, stack_args + 0u32);
             let lpList = <Option<&mut HKL>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
@@ -1400,16 +1427,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardLayoutList(machine, nBuff, lpList);
+            let result = winapi::user32::GetKeyboardLayoutList(sys.machine(), nBuff, lpList);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetKeyboardState(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetKeyboardState(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpKeyState = <Option<&mut u8>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1422,16 +1449,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardState(machine, lpKeyState);
+            let result = winapi::user32::GetKeyboardState(sys.machine(), lpKeyState);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetKeyboardType(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetKeyboardType(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nTypeFlag = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1444,16 +1471,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetKeyboardType(machine, nTypeFlag);
+            let result = winapi::user32::GetKeyboardType(sys.machine(), nTypeFlag);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetLastActivePopup(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetLastActivePopup(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetLastActivePopup_pos,
@@ -1465,16 +1492,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetLastActivePopup(machine);
+            let result = winapi::user32::GetLastActivePopup(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
                 crate::winapi::trace::Record::new(
@@ -1487,16 +1514,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMenu(machine, hWnd);
+            let result = winapi::user32::GetMenu(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetMenuItemRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetMenuItemRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hMenu = <HMENU>::from_stack(mem, stack_args + 4u32);
             let uItem = <u32>::from_stack(mem, stack_args + 8u32);
@@ -1517,7 +1544,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMenuItemRect(machine, hWnd, hMenu, uItem, lprcItem);
+            let result =
+                winapi::user32::GetMenuItemRect(sys.machine(), hWnd, hMenu, uItem, lprcItem);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -1525,11 +1553,11 @@ mod wrappers {
         }
     }
     pub unsafe fn GetMessageA(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
             let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
@@ -1550,7 +1578,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -1564,11 +1592,11 @@ mod wrappers {
         }
     }
     pub unsafe fn GetMessageW(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
             let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
@@ -1589,7 +1617,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -1602,9 +1630,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn GetMonitorInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetMonitorInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMonitor = <HMONITOR>::from_stack(mem, stack_args + 0u32);
             let lpmi = <Option<&mut MONITORINFO>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
@@ -1618,16 +1646,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetMonitorInfoA(machine, hMonitor, lpmi);
+            let result = winapi::user32::GetMonitorInfoA(sys.machine(), hMonitor, lpmi);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetProcessWindowStation(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetProcessWindowStation(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::GetProcessWindowStation_pos,
@@ -1639,16 +1667,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetProcessWindowStation(machine);
+            let result = winapi::user32::GetProcessWindowStation(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetQueueStatus(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetQueueStatus(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let flags = <Result<QS, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
@@ -1661,16 +1689,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetQueueStatus(machine, flags);
+            let result = winapi::user32::GetQueueStatus(sys.machine(), flags);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetSubMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetSubMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let nPos = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
@@ -1684,16 +1712,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSubMenu(machine, hMenu, nPos);
+            let result = winapi::user32::GetSubMenu(sys.machine(), hMenu, nPos);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetSysColor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetSysColor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nIndex = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1706,16 +1734,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSysColor(machine, nIndex);
+            let result = winapi::user32::GetSysColor(sys.machine(), nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetSystemMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetSystemMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let bRevert = <bool>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
@@ -1729,16 +1757,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMenu(machine, hWnd, bRevert);
+            let result = winapi::user32::GetSystemMenu(sys.machine(), hWnd, bRevert);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetSystemMetrics(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetSystemMetrics(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nIndex = <Result<SM, u32>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -1751,16 +1779,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetSystemMetrics(machine, nIndex);
+            let result = winapi::user32::GetSystemMetrics(sys.machine(), nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetUpdateRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetUpdateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
@@ -1775,16 +1803,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetUpdateRect(machine, hWnd, lpRect, bErase);
+            let result = winapi::user32::GetUpdateRect(sys.machine(), hWnd, lpRect, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetUserObjectInformationW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetUserObjectInformationW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hObj = <u32>::from_stack(mem, stack_args + 0u32);
             let nIndex = <u32>::from_stack(mem, stack_args + 4u32);
             let pvInfo = <u32>::from_stack(mem, stack_args + 8u32);
@@ -1808,7 +1836,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::GetUserObjectInformationW(
-                machine,
+                sys.machine(),
                 hObj,
                 nIndex,
                 pvInfo,
@@ -1821,9 +1849,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn GetWindowDC(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetWindowDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -1836,16 +1864,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowDC(machine, hWnd);
+            let result = winapi::user32::GetWindowDC(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetWindowLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetWindowLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -1859,16 +1887,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowLongA(machine, hWnd, nIndex);
+            let result = winapi::user32::GetWindowLongA(sys.machine(), hWnd, nIndex);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetWindowPlacement(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetWindowPlacement(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpwndpl = <Option<&mut WINDOWPLACEMENT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -1882,16 +1910,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowPlacement(machine, hWnd, lpwndpl);
+            let result = winapi::user32::GetWindowPlacement(sys.machine(), hWnd, lpwndpl);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn GetWindowRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn GetWindowRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpRect = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -1905,16 +1933,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::GetWindowRect(machine, hWnd, lpRect);
+            let result = winapi::user32::GetWindowRect(sys.machine(), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn InflateRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InflateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let dx = <i32>::from_stack(mem, stack_args + 4u32);
             let dy = <i32>::from_stack(mem, stack_args + 8u32);
@@ -1929,16 +1957,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InflateRect(machine, lprc, dx, dy);
+            let result = winapi::user32::InflateRect(sys.machine(), lprc, dx, dy);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IntersectRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IntersectRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprcDst = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let lprcSrc1 = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let lprcSrc2 = <Option<&RECT>>::from_stack(mem, stack_args + 8u32);
@@ -1957,16 +1985,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IntersectRect(machine, lprcDst, lprcSrc1, lprcSrc2);
+            let result = winapi::user32::IntersectRect(sys.machine(), lprcDst, lprcSrc1, lprcSrc2);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn InvalidateRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InvalidateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
@@ -1981,16 +2009,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRect(machine, hWnd, lpRect, bErase);
+            let result = winapi::user32::InvalidateRect(sys.machine(), hWnd, lpRect, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn InvalidateRgn(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InvalidateRgn(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hRgn = <HRGN>::from_stack(mem, stack_args + 4u32);
             let bErase = <bool>::from_stack(mem, stack_args + 8u32);
@@ -2005,16 +2033,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvalidateRgn(machine, hWnd, hRgn, bErase);
+            let result = winapi::user32::InvalidateRgn(sys.machine(), hWnd, hRgn, bErase);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn InvertRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn InvertRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDC = <HDC>::from_stack(mem, stack_args + 0u32);
             let lpr = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
@@ -2028,16 +2056,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::InvertRect(machine, hDC, lpr);
+            let result = winapi::user32::InvertRect(sys.machine(), hDC, lpr);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IsDlgButtonChecked(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IsDlgButtonChecked(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDButton = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/dialog") {
@@ -2051,16 +2079,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsDlgButtonChecked(machine, hDlg, nIDButton);
+            let result = winapi::user32::IsDlgButtonChecked(sys.machine(), hDlg, nIDButton);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IsIconic(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IsIconic(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -2073,16 +2101,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsIconic(machine, hwnd);
+            let result = winapi::user32::IsIconic(sys.machine(), hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IsRectEmpty(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IsRectEmpty(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
                 crate::winapi::trace::Record::new(
@@ -2095,16 +2123,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsRectEmpty(machine, lprc);
+            let result = winapi::user32::IsRectEmpty(sys.machine(), lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IsWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IsWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -2117,16 +2145,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindow(machine, hWnd);
+            let result = winapi::user32::IsWindow(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn IsWindowVisible(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn IsWindowVisible(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -2139,16 +2167,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::IsWindowVisible(machine, hWnd);
+            let result = winapi::user32::IsWindowVisible(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn KillTimer(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn KillTimer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let uIDEvent = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/timer") {
@@ -2162,16 +2190,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::KillTimer(machine, hWnd, uIDEvent);
+            let result = winapi::user32::KillTimer(sys.machine(), hWnd, uIDEvent);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadAcceleratorsW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadAcceleratorsW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpTableName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2185,16 +2213,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadAcceleratorsW(machine, hInstance, lpTableName);
+            let result = winapi::user32::LoadAcceleratorsW(sys.machine(), hInstance, lpTableName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadBitmapA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadBitmapA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 0u32);
             let lpBitmapName = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2208,16 +2236,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadBitmapA(machine, hInstance, lpBitmapName);
+            let result = winapi::user32::LoadBitmapA(sys.machine(), hInstance, lpBitmapName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadCursorA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadCursorA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2231,16 +2259,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorA(machine, hInstance, lpCursorName);
+            let result = winapi::user32::LoadCursorA(sys.machine(), hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadCursorW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadCursorW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpCursorName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2254,16 +2282,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadCursorW(machine, hInstance, lpCursorName);
+            let result = winapi::user32::LoadCursorW(sys.machine(), hInstance, lpCursorName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadIconA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadIconA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2277,16 +2305,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconA(machine, hInstance, lpIconName);
+            let result = winapi::user32::LoadIconA(sys.machine(), hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadIconW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadIconW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpIconName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2300,16 +2328,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadIconW(machine, hInstance, lpIconName);
+            let result = winapi::user32::LoadIconW(sys.machine(), hInstance, lpIconName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadImageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadImageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let name = <ResourceKey<&str>>::from_stack(mem, stack_args + 4u32);
             let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
@@ -2334,16 +2362,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadImageA(machine, hInstance, name, typ, cx, cy, fuLoad);
+            let result =
+                winapi::user32::LoadImageA(sys.machine(), hInstance, name, typ, cx, cy, fuLoad);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadImageW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadImageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let name = <ResourceKey<&Str16>>::from_stack(mem, stack_args + 4u32);
             let typ = <Result<IMAGE, u32>>::from_stack(mem, stack_args + 8u32);
@@ -2368,16 +2397,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadImageW(machine, hInstance, name, typ, cx, cy, fuLoad);
+            let result =
+                winapi::user32::LoadImageW(sys.machine(), hInstance, name, typ, cx, cy, fuLoad);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadMenuA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadMenuA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
@@ -2391,16 +2421,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuA(machine, hInstance, lpMenuName);
+            let result = winapi::user32::LoadMenuA(sys.machine(), hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadMenuW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadMenuW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let lpMenuName = <u32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
@@ -2414,16 +2444,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::LoadMenuW(machine, hInstance, lpMenuName);
+            let result = winapi::user32::LoadMenuW(sys.machine(), hInstance, lpMenuName);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadStringA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadStringA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let uID = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2445,16 +2475,16 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::LoadStringA(machine, hInstance, uID, lpBuffer, cchBufferMax);
+                winapi::user32::LoadStringA(sys.machine(), hInstance, uID, lpBuffer, cchBufferMax);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn LoadStringW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn LoadStringW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hInstance = <u32>::from_stack(mem, stack_args + 0u32);
             let uID = <u32>::from_stack(mem, stack_args + 4u32);
             let lpBuffer = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2476,16 +2506,16 @@ mod wrappers {
                 None
             };
             let result =
-                winapi::user32::LoadStringW(machine, hInstance, uID, lpBuffer, cchBufferMax);
+                winapi::user32::LoadStringW(sys.machine(), hInstance, uID, lpBuffer, cchBufferMax);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn MapWindowPoints(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn MapWindowPoints(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWndFrom = <HWND>::from_stack(mem, stack_args + 0u32);
             let hWndTo = <HWND>::from_stack(mem, stack_args + 4u32);
             let lpPoints = <Array<POINT>>::from_stack(mem, stack_args + 8u32);
@@ -2504,16 +2534,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MapWindowPoints(machine, hWndFrom, hWndTo, lpPoints);
+            let result = winapi::user32::MapWindowPoints(sys.machine(), hWndFrom, hWndTo, lpPoints);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn MessageBoxA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn MessageBoxA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpText = <Option<&CStr>>::from_stack(mem, stack_args + 4u32);
             let lpCaption = <Option<&CStr>>::from_stack(mem, stack_args + 8u32);
@@ -2534,16 +2564,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxA(machine, hWnd, lpText, lpCaption, uType);
+            let result = winapi::user32::MessageBoxA(sys.machine(), hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn MessageBoxW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn MessageBoxW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpText = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let lpCaption = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
@@ -2564,16 +2594,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MessageBoxW(machine, hWnd, lpText, lpCaption, uType);
+            let result = winapi::user32::MessageBoxW(sys.machine(), hWnd, lpText, lpCaption, uType);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn MoveWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn MoveWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let X = <u32>::from_stack(mem, stack_args + 4u32);
             let Y = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2598,7 +2628,8 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::MoveWindow(machine, hWnd, X, Y, nWidth, nHeight, bRepaint);
+            let result =
+                winapi::user32::MoveWindow(sys.machine(), hWnd, X, Y, nWidth, nHeight, bRepaint);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2606,11 +2637,11 @@ mod wrappers {
         }
     }
     pub unsafe fn MsgWaitForMultipleObjects(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nCount = <u32>::from_stack(mem, stack_args + 0u32);
             let pHandles = <u32>::from_stack(mem, stack_args + 4u32);
             let fWaitAll = <bool>::from_stack(mem, stack_args + 8u32);
@@ -2633,7 +2664,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::MsgWaitForMultipleObjects(
@@ -2652,9 +2683,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn OemToCharA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn OemToCharA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let pSrc = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let pDst = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
@@ -2668,16 +2699,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::OemToCharA(machine, pSrc, pDst);
+            let result = winapi::user32::OemToCharA(sys.machine(), pSrc, pDst);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn PeekMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PeekMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
             let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2701,7 +2732,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::PeekMessageA(
-                machine,
+                sys.machine(),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2714,9 +2745,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn PeekMessageW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PeekMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&mut MSG>>::from_stack(mem, stack_args + 0u32);
             let hWnd = <HWND>::from_stack(mem, stack_args + 4u32);
             let wMsgFilterMin = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2740,7 +2771,7 @@ mod wrappers {
                 None
             };
             let result = winapi::user32::PeekMessageW(
-                machine,
+                sys.machine(),
                 lpMsg,
                 hWnd,
                 wMsgFilterMin,
@@ -2753,9 +2784,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn PostMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PostMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let Msg = <u32>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2776,16 +2807,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageA(machine, hWnd, Msg, wParam, lParam);
+            let result = winapi::user32::PostMessageA(sys.machine(), hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn PostMessageW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PostMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let Msg = <u32>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2806,16 +2837,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostMessageW(machine, hWnd, Msg, wParam, lParam);
+            let result = winapi::user32::PostMessageW(sys.machine(), hWnd, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn PostQuitMessage(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PostQuitMessage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let nExitCode = <i32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
@@ -2828,16 +2859,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostQuitMessage(machine, nExitCode);
+            let result = winapi::user32::PostQuitMessage(sys.machine(), nExitCode);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn PostThreadMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PostThreadMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let idThread = <u32>::from_stack(mem, stack_args + 0u32);
             let Msg = <u32>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -2858,16 +2889,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PostThreadMessageA(machine, idThread, Msg, wParam, lParam);
+            let result =
+                winapi::user32::PostThreadMessageA(sys.machine(), idThread, Msg, wParam, lParam);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn PtInRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn PtInRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprc = <Option<&RECT>>::from_stack(mem, stack_args + 0u32);
             let pt = <POINT>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
@@ -2881,7 +2913,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::PtInRect(machine, lprc, pt);
+            let result = winapi::user32::PtInRect(sys.machine(), lprc, pt);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -2889,11 +2921,11 @@ mod wrappers {
         }
     }
     pub unsafe fn RedrawWindow(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lprcUpdate = <Option<&mut RECT>>::from_stack(mem, stack_args + 4u32);
             let hrgnUpdate = <HRGN>::from_stack(mem, stack_args + 8u32);
@@ -2914,7 +2946,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result =
@@ -2927,9 +2959,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn RegisterClassA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterClassA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
                 crate::winapi::trace::Record::new(
@@ -2942,16 +2974,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassA(machine, lpWndClass);
+            let result = winapi::user32::RegisterClassA(sys.machine(), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterClassExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterClassExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpWndClassEx = <Option<&WNDCLASSEXA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
                 crate::winapi::trace::Record::new(
@@ -2964,16 +2996,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExA(machine, lpWndClassEx);
+            let result = winapi::user32::RegisterClassExA(sys.machine(), lpWndClassEx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterClassExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterClassExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpWndClassEx = <Option<&WNDCLASSEXW>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
                 crate::winapi::trace::Record::new(
@@ -2986,16 +3018,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassExW(machine, lpWndClassEx);
+            let result = winapi::user32::RegisterClassExW(sys.machine(), lpWndClassEx);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterClassW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterClassW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpWndClass = <Option<&WNDCLASSA>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
                 crate::winapi::trace::Record::new(
@@ -3008,16 +3040,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClassW(machine, lpWndClass);
+            let result = winapi::user32::RegisterClassW(sys.machine(), lpWndClass);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterClipboardFormatA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterClipboardFormatA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpszFormat = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -3030,16 +3062,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterClipboardFormatA(machine, lpszFormat);
+            let result = winapi::user32::RegisterClipboardFormatA(sys.machine(), lpszFormat);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterWindowMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterWindowMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3052,16 +3084,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageA(machine, lpString);
+            let result = winapi::user32::RegisterWindowMessageA(sys.machine(), lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegisterWindowMessageW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegisterWindowMessageW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3074,16 +3106,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::RegisterWindowMessageW(machine, lpString);
+            let result = winapi::user32::RegisterWindowMessageW(sys.machine(), lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn ReleaseCapture(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn ReleaseCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::ReleaseCapture_pos,
@@ -3095,16 +3127,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ReleaseCapture(machine);
+            let result = winapi::user32::ReleaseCapture(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn ReleaseDC(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn ReleaseDC(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hdc = <HDC>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -3118,16 +3150,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ReleaseDC(machine, hwnd, hdc);
+            let result = winapi::user32::ReleaseDC(sys.machine(), hwnd, hdc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SendDlgItemMessageA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SendDlgItemMessageA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let Msg = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3150,8 +3182,14 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SendDlgItemMessageA(machine, hDlg, nIDDlgItem, Msg, wParam, lParam);
+            let result = winapi::user32::SendDlgItemMessageA(
+                sys.machine(),
+                hDlg,
+                nIDDlgItem,
+                Msg,
+                wParam,
+                lParam,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3159,11 +3197,11 @@ mod wrappers {
         }
     }
     pub unsafe fn SendMessageA(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let Msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3184,7 +3222,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SendMessageA(machine, hWnd, Msg, wParam, lParam).await;
@@ -3196,11 +3234,11 @@ mod wrappers {
         }
     }
     pub unsafe fn SendMessageW(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let Msg = <Result<WM, u32>>::from_stack(mem, stack_args + 4u32);
             let wParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3221,7 +3259,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SendMessageW(machine, hWnd, Msg, wParam, lParam).await;
@@ -3232,9 +3270,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn SetCapture(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetCapture(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hwnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3247,16 +3285,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCapture(machine, hwnd);
+            let result = winapi::user32::SetCapture(sys.machine(), hwnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetClassLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetClassLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIndex = <Result<GCL, u32>>::from_stack(mem, stack_args + 4u32);
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
@@ -3275,16 +3313,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetClassLongA(machine, hWnd, nIndex, dwNewLong);
+            let result = winapi::user32::SetClassLongA(sys.machine(), hWnd, nIndex, dwNewLong);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetCursor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hCursor = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
                 crate::winapi::trace::Record::new(
@@ -3297,16 +3335,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursor(machine, hCursor);
+            let result = winapi::user32::SetCursor(sys.machine(), hCursor);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetCursorPos(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetCursorPos(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let x = <i32>::from_stack(mem, stack_args + 0u32);
             let y = <i32>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
@@ -3320,16 +3358,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetCursorPos(machine, x, y);
+            let result = winapi::user32::SetCursorPos(sys.machine(), x, y);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetDlgItemInt(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetDlgItemInt(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let uValue = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3350,16 +3388,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemInt(machine, hDlg, nIDDlgItem, uValue, _bSigned);
+            let result =
+                winapi::user32::SetDlgItemInt(sys.machine(), hDlg, nIDDlgItem, uValue, _bSigned);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetDlgItemTextA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetDlgItemTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 8u32);
@@ -3378,16 +3417,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextA(machine, hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::SetDlgItemTextA(sys.machine(), hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetDlgItemTextW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetDlgItemTextW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hDlg = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDDlgItem = <i32>::from_stack(mem, stack_args + 4u32);
             let lpString = <Option<&Str16>>::from_stack(mem, stack_args + 8u32);
@@ -3406,7 +3445,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetDlgItemTextW(machine, hDlg, nIDDlgItem, lpString);
+            let result = winapi::user32::SetDlgItemTextW(sys.machine(), hDlg, nIDDlgItem, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3414,11 +3453,11 @@ mod wrappers {
         }
     }
     pub unsafe fn SetFocus(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3431,7 +3470,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SetFocus(machine, hWnd).await;
@@ -3442,9 +3481,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn SetForegroundWindow(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetForegroundWindow(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3457,16 +3496,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetForegroundWindow(machine, hWnd);
+            let result = winapi::user32::SetForegroundWindow(sys.machine(), hWnd);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetMenu(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetMenu(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hMenu = <HMENU>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/menu") {
@@ -3480,16 +3519,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetMenu(machine, hWnd, hMenu);
+            let result = winapi::user32::SetMenu(sys.machine(), hWnd, hMenu);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetMenuItemInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetMenuItemInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hMenu = <HMENU>::from_stack(mem, stack_args + 0u32);
             let item = <u32>::from_stack(mem, stack_args + 4u32);
             let fByPosition = <bool>::from_stack(mem, stack_args + 8u32);
@@ -3510,16 +3549,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetMenuItemInfoA(machine, hMenu, item, fByPosition, lpmii);
+            let result =
+                winapi::user32::SetMenuItemInfoA(sys.machine(), hMenu, item, fByPosition, lpmii);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let xLeft = <i32>::from_stack(mem, stack_args + 4u32);
             let yTop = <i32>::from_stack(mem, stack_args + 8u32);
@@ -3542,16 +3582,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRect(machine, lprc, xLeft, yTop, xRight, yBottom);
+            let result = winapi::user32::SetRect(sys.machine(), lprc, xLeft, yTop, xRight, yBottom);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetRectEmpty(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetRectEmpty(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lprc = <Option<&mut RECT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/rect") {
                 crate::winapi::trace::Record::new(
@@ -3564,16 +3604,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetRectEmpty(machine, lprc);
+            let result = winapi::user32::SetRectEmpty(sys.machine(), lprc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetTimer(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetTimer(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIDEvent = <u32>::from_stack(mem, stack_args + 4u32);
             let uElapse = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3594,16 +3634,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetTimer(machine, hWnd, nIDEvent, uElapse, lpTimerFunc);
+            let result =
+                winapi::user32::SetTimer(sys.machine(), hWnd, nIDEvent, uElapse, lpTimerFunc);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetWindowLongA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetWindowLongA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nIndex = <Result<GWL, u32>>::from_stack(mem, stack_args + 4u32);
             let dwNewLong = <i32>::from_stack(mem, stack_args + 8u32);
@@ -3622,7 +3663,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowLongA(machine, hWnd, nIndex, dwNewLong);
+            let result = winapi::user32::SetWindowLongA(sys.machine(), hWnd, nIndex, dwNewLong);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3630,11 +3671,11 @@ mod wrappers {
         }
     }
     pub unsafe fn SetWindowPos(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hWndInsertAfter = <HWND>::from_stack(mem, stack_args + 4u32);
             let X = <i32>::from_stack(mem, stack_args + 8u32);
@@ -3661,7 +3702,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::SetWindowPos(
@@ -3682,9 +3723,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn SetWindowTextA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetWindowTextA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpString = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -3698,16 +3739,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowTextA(machine, hWnd, lpString);
+            let result = winapi::user32::SetWindowTextA(sys.machine(), hWnd, lpString);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn SetWindowsHookExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SetWindowsHookExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let idHook = <u32>::from_stack(mem, stack_args + 0u32);
             let lpfn = <u32>::from_stack(mem, stack_args + 4u32);
             let hmod = <HINSTANCE>::from_stack(mem, stack_args + 8u32);
@@ -3728,16 +3769,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::SetWindowsHookExA(machine, idHook, lpfn, hmod, dwThreadId);
+            let result =
+                winapi::user32::SetWindowsHookExA(sys.machine(), idHook, lpfn, hmod, dwThreadId);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn ShowCursor(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn ShowCursor(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let bShow = <bool>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/resource") {
                 crate::winapi::trace::Record::new(
@@ -3750,7 +3792,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ShowCursor(machine, bShow);
+            let result = winapi::user32::ShowCursor(sys.machine(), bShow);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3758,11 +3800,11 @@ mod wrappers {
         }
     }
     pub unsafe fn ShowWindow(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let nCmdShow = <Result<SW, u32>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
@@ -3776,7 +3818,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::ShowWindow(machine, hWnd, nCmdShow).await;
@@ -3787,9 +3829,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn SystemParametersInfoA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn SystemParametersInfoA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let uiAction = <Result<SPI, u32>>::from_stack(mem, stack_args + 0u32);
             let uiParam = <u32>::from_stack(mem, stack_args + 4u32);
             let pvParam = <u32>::from_stack(mem, stack_args + 8u32);
@@ -3810,17 +3852,22 @@ mod wrappers {
             } else {
                 None
             };
-            let result =
-                winapi::user32::SystemParametersInfoA(machine, uiAction, uiParam, pvParam, fWinIni);
+            let result = winapi::user32::SystemParametersInfoA(
+                sys.machine(),
+                uiAction,
+                uiParam,
+                pvParam,
+                fWinIni,
+            );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn TrackMouseEvent(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn TrackMouseEvent(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpEventTrack = <Option<&mut TRACKMOUSEEVENT>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/misc") {
                 crate::winapi::trace::Record::new(
@@ -3833,16 +3880,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TrackMouseEvent(machine, lpEventTrack);
+            let result = winapi::user32::TrackMouseEvent(sys.machine(), lpEventTrack);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn TranslateAcceleratorW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn TranslateAcceleratorW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let hAccTable = <u32>::from_stack(mem, stack_args + 4u32);
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 8u32);
@@ -3861,16 +3908,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TranslateAcceleratorW(machine, hWnd, hAccTable, lpMsg);
+            let result =
+                winapi::user32::TranslateAcceleratorW(sys.machine(), hWnd, hAccTable, lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn TranslateMessage(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn TranslateMessage(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpMsg = <Option<&MSG>>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
@@ -3883,16 +3931,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::TranslateMessage(machine, lpMsg);
+            let result = winapi::user32::TranslateMessage(sys.machine(), lpMsg);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn UnregisterClassA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn UnregisterClassA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let lpClassName = <Option<&str>>::from_stack(mem, stack_args + 0u32);
             let hInstance = <HINSTANCE>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/wndclass") {
@@ -3906,7 +3954,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::UnregisterClassA(machine, lpClassName, hInstance);
+            let result = winapi::user32::UnregisterClassA(sys.machine(), lpClassName, hInstance);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3914,11 +3962,11 @@ mod wrappers {
         }
     }
     pub unsafe fn UpdateWindow(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/window") {
                 crate::winapi::trace::Record::new(
@@ -3931,7 +3979,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::UpdateWindow(machine, hWnd).await;
@@ -3942,9 +3990,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn ValidateRect(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn ValidateRect(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWnd = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpRect = <Option<&RECT>>::from_stack(mem, stack_args + 4u32);
             let __trace_record = if crate::winapi::trace::enabled("user32/paint") {
@@ -3958,7 +4006,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::ValidateRect(machine, hWnd, lpRect);
+            let result = winapi::user32::ValidateRect(sys.machine(), hWnd, lpRect);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
@@ -3966,11 +4014,11 @@ mod wrappers {
         }
     }
     pub unsafe fn WaitMessage(
-        machine: &mut Machine,
+        sys: &mut dyn System,
         stack_args: u32,
     ) -> std::pin::Pin<Box<dyn std::future::Future<Output = ABIReturn>>> {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("user32/message") {
                 crate::winapi::trace::Record::new(
                     winapi::user32::WaitMessage_pos,
@@ -3982,7 +4030,7 @@ mod wrappers {
             } else {
                 None
             };
-            let machine: *mut Machine = machine;
+            let machine: *mut Machine = sys.machine();
             Box::pin(async move {
                 let machine = &mut *machine;
                 let result = winapi::user32::WaitMessage(machine).await;
@@ -3993,9 +4041,9 @@ mod wrappers {
             })
         }
     }
-    pub unsafe fn WinHelpW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn WinHelpW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hWndMain = <HWND>::from_stack(mem, stack_args + 0u32);
             let lpszHelp = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let uCommand = <u32>::from_stack(mem, stack_args + 8u32);
@@ -4016,16 +4064,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::WinHelpW(machine, hWndMain, lpszHelp, uCommand, dwData);
+            let result =
+                winapi::user32::WinHelpW(sys.machine(), hWndMain, lpszHelp, uCommand, dwData);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn keybd_event(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn keybd_event(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let bVk = <u8>::from_stack(mem, stack_args + 0u32);
             let bScan = <u8>::from_stack(mem, stack_args + 4u32);
             let dwFlags = <u32>::from_stack(mem, stack_args + 8u32);
@@ -4046,16 +4095,17 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::keybd_event(machine, bVk, bScan, dwFlags, dwExtraInfo);
+            let result =
+                winapi::user32::keybd_event(sys.machine(), bVk, bScan, dwFlags, dwExtraInfo);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn wsprintfA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn wsprintfA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);
             let fmt = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
@@ -4070,16 +4120,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::wsprintfA(machine, buf, fmt, args);
+            let result = winapi::user32::wsprintfA(sys.machine(), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn wsprintfW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn wsprintfW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let buf = <u32>::from_stack(mem, stack_args + 0u32);
             let fmt = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let args = <VarArgs>::from_stack(mem, stack_args + 8u32);
@@ -4094,7 +4144,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::user32::wsprintfW(machine, buf, fmt, args);
+            let result = winapi::user32::wsprintfW(sys.machine(), buf, fmt, args);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

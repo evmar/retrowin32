@@ -5,13 +5,13 @@ mod builtin;
 pub use builtin::DLL;
 
 use super::{ERROR, Str16};
-use crate::machine::Machine;
+use crate::{machine::Machine, system::System};
 
 pub type HKEY = u32;
 
 #[win32_derive::dllexport]
 pub fn RegCreateKeyA(
-    _machine: &mut Machine,
+    sys: &dyn System,
     hKey: HKEY,
     lpSubKey: Option<&str>,
     phkResult: Option<&mut u32>,

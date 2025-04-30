@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::ntdll::*;
-    pub unsafe fn NtCurrentTeb(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn NtCurrentTeb(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let __trace_record = if crate::winapi::trace::enabled("ntdll") {
                 crate::winapi::trace::Record::new(
                     winapi::ntdll::NtCurrentTeb_pos,
@@ -27,16 +28,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ntdll::NtCurrentTeb(machine);
+            let result = winapi::ntdll::NtCurrentTeb(sys.machine());
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn NtReadFile(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn NtReadFile(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let FileHandle = <HFILE>::from_stack(mem, stack_args + 0u32);
             let Event = <u32>::from_stack(mem, stack_args + 4u32);
             let ApcRoutine = <u32>::from_stack(mem, stack_args + 8u32);
@@ -66,7 +67,7 @@ mod wrappers {
                 None
             };
             let result = winapi::ntdll::NtReadFile(
-                machine,
+                sys.machine(),
                 FileHandle,
                 Event,
                 ApcRoutine,
@@ -82,9 +83,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RtlExitUserProcess(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RtlExitUserProcess(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let exit_code = <u32>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("ntdll") {
                 crate::winapi::trace::Record::new(
@@ -97,7 +98,7 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::ntdll::RtlExitUserProcess(machine, exit_code);
+            let result = winapi::ntdll::RtlExitUserProcess(sys.machine(), exit_code);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }

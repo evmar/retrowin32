@@ -20,6 +20,8 @@ pub struct DllExport<'a> {
     /// Module name as used in tracing, e.g. "kernel32/file".
     pub trace_module: &'a str,
     pub meta: DllExportMeta,
+    /// Whether the first arg is Machine (old API) or System (new API).
+    pub sys_arg: bool,
     pub args: Vec<Argument<'a>>,
     /// If this function is part of a vtable, this is the name of the vtable.
     pub vtable: Option<&'a syn::Ident>,
@@ -158,8 +160,9 @@ fn parse_fn<'a>(
 
     let mut args = Vec::new();
 
-    // Skip first arg, the &Machine.
-    let iter = func.sig.inputs.iter().skip(1);
+    let mut iter = func.sig.inputs.iter();
+    let sys_arg = parse_self_type(iter.next().unwrap())?;
+
     for arg in iter {
         let arg = match arg {
             syn::FnArg::Typed(arg) => arg,
@@ -189,11 +192,29 @@ fn parse_fn<'a>(
     Ok(Some(DllExport {
         trace_module,
         meta,
+        sys_arg,
         args,
         vtable: None,
         flat_name: func.sig.ident.clone(), // might be renamed by caller
         func,
     }))
+}
+
+/// Parse the first argument of a dllexport, which is expected to be either
+///    m: &mut Machine
+///    s: &mut dyn System
+fn parse_self_type(arg: &syn::FnArg) -> syn::Result<bool> {
+    let syn::FnArg::Typed(ty) = arg else {
+        return Err(syn::Error::new_spanned(arg, "expected argument"));
+    };
+    let syn::Type::Reference(ty) = ty.ty.as_ref() else {
+        return Err(syn::Error::new_spanned(arg, "expected ref"));
+    };
+    match ty.elem.as_ref() {
+        syn::Type::Path(_) => Ok(false),
+        syn::Type::TraitObject(_) => Ok(true),
+        _ => Err(syn::Error::new_spanned(arg, "expected Machine or System")),
+    }
 }
 
 fn parse_mod<'a>(

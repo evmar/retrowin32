@@ -9,13 +9,14 @@ mod wrappers {
     use crate::{
         calling_convention::*,
         machine::Machine,
+        system::System,
         winapi::{self, *},
     };
     use ::memory::Extensions;
     use winapi::advapi32::*;
-    pub unsafe fn RegCloseKey(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegCloseKey(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let __trace_record = if crate::winapi::trace::enabled("advapi32") {
                 crate::winapi::trace::Record::new(
@@ -28,16 +29,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCloseKey(machine, hKey);
+            let result = winapi::advapi32::RegCloseKey(sys.machine(), hKey);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegCreateKeyA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegCreateKeyA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let phkResult = <Option<&mut u32>>::from_stack(mem, stack_args + 8u32);
@@ -56,16 +57,16 @@ mod wrappers {
             } else {
                 None
             };
-            let result = winapi::advapi32::RegCreateKeyA(machine, hKey, lpSubKey, phkResult);
+            let result = winapi::advapi32::RegCreateKeyA(sys, hKey, lpSubKey, phkResult);
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
             }
             result.into()
         }
     }
-    pub unsafe fn RegCreateKeyExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegCreateKeyExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpSubKey = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let Reserved = <u32>::from_stack(mem, stack_args + 8u32);
@@ -97,7 +98,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegCreateKeyExW(
-                machine,
+                sys.machine(),
                 hKey,
                 lpSubKey,
                 Reserved,
@@ -114,9 +115,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RegOpenKeyExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegOpenKeyExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpSubKey = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let ulOptions = <u32>::from_stack(mem, stack_args + 8u32);
@@ -140,7 +141,12 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegOpenKeyExA(
-                machine, hKey, lpSubKey, ulOptions, samDesired, phkResult,
+                sys.machine(),
+                hKey,
+                lpSubKey,
+                ulOptions,
+                samDesired,
+                phkResult,
             );
             if let Some(mut __trace_record) = __trace_record {
                 __trace_record.exit(&result);
@@ -148,9 +154,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RegQueryValueExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegQueryValueExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpValueName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let lpReserved = <u32>::from_stack(mem, stack_args + 8u32);
@@ -176,7 +182,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegQueryValueExA(
-                machine,
+                sys.machine(),
                 hKey,
                 lpValueName,
                 lpReserved,
@@ -190,9 +196,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RegQueryValueExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegQueryValueExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpValueName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let lpReserved = <u32>::from_stack(mem, stack_args + 8u32);
@@ -218,7 +224,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegQueryValueExW(
-                machine,
+                sys.machine(),
                 hKey,
                 lpValueName,
                 lpReserved,
@@ -232,9 +238,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RegSetValueExA(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegSetValueExA(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpValueName = <Option<&str>>::from_stack(mem, stack_args + 4u32);
             let Reserved = <u32>::from_stack(mem, stack_args + 8u32);
@@ -260,7 +266,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegSetValueExA(
-                machine,
+                sys.machine(),
                 hKey,
                 lpValueName,
                 Reserved,
@@ -274,9 +280,9 @@ mod wrappers {
             result.into()
         }
     }
-    pub unsafe fn RegSetValueExW(machine: &mut Machine, stack_args: u32) -> ABIReturn {
+    pub unsafe fn RegSetValueExW(sys: &mut dyn System, stack_args: u32) -> ABIReturn {
         unsafe {
-            let mem = machine.mem().detach();
+            let mem = sys.mem().detach();
             let hKey = <HKEY>::from_stack(mem, stack_args + 0u32);
             let lpValueName = <Option<&Str16>>::from_stack(mem, stack_args + 4u32);
             let Reserved = <u32>::from_stack(mem, stack_args + 8u32);
@@ -302,7 +308,7 @@ mod wrappers {
                 None
             };
             let result = winapi::advapi32::RegSetValueExW(
-                machine,
+                sys.machine(),
                 hKey,
                 lpValueName,
                 Reserved,
