@@ -19,7 +19,7 @@ use std::{
     collections::{HashMap, HashSet},
     path::Path,
 };
-use typed_path::WindowsPath;
+use win32_winapi::WindowsPath;
 
 /// Create a memory mapping, optionally copying some data to it.
 fn map_memory(memory: &mut Memory, mapping: Mapping, buf: Option<&[u8]>) {

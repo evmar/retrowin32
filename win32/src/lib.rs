@@ -26,4 +26,4 @@ mod machine_unicorn;
 
 pub use machine::{Machine, Status};
 pub use system::System;
-pub use win32_winapi::{RECT, calling_convention};
+pub use win32_winapi::{RECT, UnixPath, WindowsPath, WindowsPathBuf, calling_convention};

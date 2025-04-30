@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use memory::str16::Str16;
-use typed_path::WindowsPath;
+use win32_winapi::WindowsPath;
 
 #[win32_derive::dllexport]
 pub fn DeleteFileW(sys: &dyn System, lpFileName: Option<&Str16>) -> bool {

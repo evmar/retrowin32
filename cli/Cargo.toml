@@ -13,7 +13,6 @@ anyhow = "1.0"
 argh = "0.1.10"
 chrono = "0.4.38"
 libc = "0.2"
-typed-path = "0.9.1"
 
 [dependencies.sdl2]
 version = "0.35.2"

@@ -5,7 +5,6 @@ use memory::Extensions;
 use std::borrow::Cow;
 
 pub use std::ffi::CStr;
-pub use typed_path::{WindowsPath, WindowsPathBuf};
 
 pub trait StrExt<'a> {
     fn to_str_or_warn(&'a self) -> Cow<'a, str>;

@@ -8,7 +8,7 @@ use crate::{
     },
 };
 use bitflags::bitflags;
-use typed_path::WindowsPath;
+use win32_winapi::WindowsPath;
 
 use super::FileAttribute;
 

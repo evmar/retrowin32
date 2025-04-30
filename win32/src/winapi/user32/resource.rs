@@ -12,7 +12,6 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
-use typed_path::WindowsPath;
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;

@@ -8,4 +8,4 @@ log = { workspace = true }
 memory = { workspace = true }
 
 win32-derive = { path = "../derive" }
-typed-path = { version = "0.9.1", default-features = false }
+typed-path = { version = "0.9.1" }

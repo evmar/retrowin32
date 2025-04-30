@@ -9,8 +9,8 @@ use std::{
     rc::Rc,
     time::{SystemTime, UNIX_EPOCH},
 };
-use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
 use win32::host::ERROR;
+use win32::{UnixPath, WindowsPath, WindowsPathBuf};
 
 struct File {
     f: std::fs::File,

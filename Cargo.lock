@@ -356,7 +356,6 @@ dependencies = [
  "memory",
  "pe",
  "sdl2",
- "typed-path",
  "win32",
 ]
 
@@ -606,7 +605,6 @@ dependencies = [
  "pe",
  "serde",
  "tsify",
- "typed-path",
  "unicorn-engine",
  "wasm-bindgen",
  "win32-derive",

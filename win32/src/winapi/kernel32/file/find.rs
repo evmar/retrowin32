@@ -1,5 +1,5 @@
 use memory::str16::Str16;
-use typed_path::WindowsPath;
+use win32_winapi::WindowsPath;
 
 use crate::{
     Machine, System, host,
