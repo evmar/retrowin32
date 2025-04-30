@@ -45,7 +45,6 @@ realistically, either native (found in `../cli`) or web (found in
   annotations on functions, see README
 - `dll/` -- win32 dlls used for builtin APIs; generated, mostly empty, mostly
   hooks that map to retrowin32 internal implementations
-- `src/pe` -- PE file parsing/loading, in theory independent of any winapi or
-  emulation concerns
 - `src/winapi` -- the win32 API, see above `winapi` docs
 - [`lib/`](lib/) -- support machinery to generate a DLL used in test, see README
+- [`extract/`](extract/) -- tool to generate win32 API definitions, see README
