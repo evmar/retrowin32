@@ -1,6 +1,7 @@
 use crate::{
-    ERROR, Machine, System,
+    Machine, System,
     winapi::{
+        ERROR,
         encoding::{Encoder, EncoderAnsi, EncoderWide},
         kernel32::{SECURITY_ATTRIBUTES, set_last_error},
     },

@@ -1,6 +1,6 @@
 use super::*;
 use crate::{
-    Host, Machine, SurfaceOptions, System,
+    Machine, System,
     calling_convention::Array,
     host,
     winapi::{
@@ -164,7 +164,7 @@ impl Window {
         }
     }
 
-    pub fn set_client_size(&mut self, host: &mut dyn Host, width: u32, height: u32) {
+    pub fn set_client_size(&mut self, host: &mut dyn host::Host, width: u32, height: u32) {
         self.width = width;
         self.height = height;
         match &mut self.typ {
@@ -215,14 +215,14 @@ pub struct Dirty {
 }
 
 impl WindowTopLevel {
-    fn new(host: &mut dyn Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
+    fn new(host: &mut dyn host::Host, hwnd: HWND, title: &str, width: u32, height: u32) -> Self {
         let host_win = host.create_window(hwnd.to_raw());
         host_win.set_title(title);
         host_win.set_size(width, height);
 
         let surface = host.create_surface(
             hwnd.to_raw(),
-            &SurfaceOptions {
+            &host::SurfaceOptions {
                 width,
                 height,
                 bytes_per_pixel: 4,
@@ -239,7 +239,7 @@ impl WindowTopLevel {
         }
     }
 
-    fn set_size(&mut self, host: &mut dyn Host, id: u32, width: u32, height: u32) {
+    fn set_size(&mut self, host: &mut dyn host::Host, id: u32, width: u32, height: u32) {
         self.host.set_size(width, height);
         self.surface = host.create_surface(
             id,

@@ -1,20 +1,25 @@
 pub struct Window {}
-impl win32::Window for Window {
+impl win32::host::Window for Window {
     fn set_title(&self, _title: &str) {}
     fn set_size(&self, _width: u32, _height: u32) {}
     fn fullscreen(&self) {}
 }
 
 pub struct Surface {}
-impl win32::Surface for Surface {
+impl win32::host::Surface for Surface {
     fn write_pixels(&self, _pixels: &[u8]) {}
     fn show(&self) {}
-    fn bit_blt(&self, _dst_rect: &win32::RECT, _src: &dyn win32::Surface, _src_rect: &win32::RECT) {
+    fn bit_blt(
+        &self,
+        _dst_rect: &win32::RECT,
+        _src: &dyn win32::host::Surface,
+        _src_rect: &win32::RECT,
+    ) {
     }
 }
 
 pub struct Audio {}
-impl win32::Audio for Audio {
+impl win32::host::Audio for Audio {
     fn write(&mut self, _buf: &[u8]) {}
     fn pos(&mut self) -> usize {
         todo!()
@@ -38,7 +43,7 @@ impl GUI {
             .as_millis() as u32
     }
 
-    pub fn get_message(&mut self) -> Option<win32::Message> {
+    pub fn get_message(&mut self) -> Option<win32::host::Message> {
         None
     }
 
@@ -54,15 +59,22 @@ impl GUI {
         }
     }
 
-    pub fn create_window(&mut self, _hwnd: u32) -> Box<dyn win32::Window> {
+    pub fn create_window(&mut self, _hwnd: u32) -> Box<dyn win32::host::Window> {
         Box::new(Window {})
     }
 
-    pub fn create_surface(&mut self, _opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+    pub fn create_surface(
+        &mut self,
+        _opts: &win32::host::SurfaceOptions,
+    ) -> Box<dyn win32::host::Surface> {
         Box::new(Surface {})
     }
 
-    pub fn init_audio(&mut self, _sample_rate: u32) -> Box<dyn win32::Audio> {
+    pub fn init_audio(
+        &mut self,
+        _sample_rate: u32,
+        _callback: win32::host::AudioCallback,
+    ) -> Box<dyn win32::host::Audio> {
         Box::new(Audio {})
     }
 }

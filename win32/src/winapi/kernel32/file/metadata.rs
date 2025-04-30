@@ -1,6 +1,7 @@
 use crate::{
-    Machine, Stat, StatKind, System,
+    Machine, System,
     calling_convention::ABIReturn,
+    host,
     winapi::{
         ERROR, Str16,
         kernel32::{FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
@@ -46,17 +47,17 @@ impl FileAttribute {
     }
 }
 
-impl From<&Stat> for FileAttribute {
-    fn from(stat: &Stat) -> Self {
+impl From<&host::Stat> for FileAttribute {
+    fn from(stat: &host::Stat) -> Self {
         let mut attr = FileAttribute::empty();
         match stat.kind {
-            StatKind::File => {
+            host::StatKind::File => {
                 attr |= FileAttribute::NORMAL;
             }
-            StatKind::Directory => {
+            host::StatKind::Directory => {
                 attr |= FileAttribute::DIRECTORY;
             }
-            StatKind::Symlink => {
+            host::StatKind::Symlink => {
                 attr |= FileAttribute::REPARSE_POINT;
             }
         }
@@ -100,8 +101,8 @@ pub struct BY_HANDLE_FILE_INFORMATION {
     pub nFileIndexHigh: u32,
     pub nFileIndexLow: u32,
 }
-impl From<&Stat> for BY_HANDLE_FILE_INFORMATION {
-    fn from(stat: &Stat) -> Self {
+impl From<&host::Stat> for BY_HANDLE_FILE_INFORMATION {
+    fn from(stat: &host::Stat) -> Self {
         Self {
             dwFileAttributes: FileAttribute::from(stat).bits(),
             ftCreationTime: FILETIME::from_unix_nanos(stat.ctime),
@@ -224,9 +225,9 @@ pub fn GetFileAttributesA(machine: &mut Machine, lpFileName: Option<&str>) -> Fi
     set_last_error(machine, ERROR::SUCCESS);
 
     match stat.kind {
-        StatKind::File => FileAttribute::NORMAL,
-        StatKind::Directory => FileAttribute::DIRECTORY,
-        StatKind::Symlink => FileAttribute::REPARSE_POINT,
+        host::StatKind::File => FileAttribute::NORMAL,
+        host::StatKind::Directory => FileAttribute::DIRECTORY,
+        host::StatKind::Symlink => FileAttribute::REPARSE_POINT,
     }
 }
 

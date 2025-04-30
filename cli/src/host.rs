@@ -10,14 +10,14 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 use typed_path::{UnixPath, WindowsPath, WindowsPathBuf};
-use win32::{ERROR, FileOptions, ReadDir, Stat};
+use win32::host::ERROR;
 
 struct File {
     f: std::fs::File,
 }
 
-impl win32::File for File {
-    fn stat(&self) -> Result<Stat, ERROR> {
+impl win32::host::File for File {
+    fn stat(&self) -> Result<win32::host::Stat, ERROR> {
         let meta = self.f.metadata()?;
         Ok(metadata_to_stat(&meta))
     }
@@ -54,8 +54,8 @@ struct ReadDirIter {
     iter: std::fs::ReadDir,
 }
 
-impl ReadDir for ReadDirIter {
-    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, ERROR> {
+impl win32::host::ReadDir for ReadDirIter {
+    fn next(&mut self) -> Result<Option<win32::host::ReadDirEntry>, ERROR> {
         match self.iter.next() {
             Some(entry) => {
                 let entry = entry?;
@@ -66,7 +66,7 @@ impl ReadDir for ReadDirIter {
                     .to_string_lossy()
                     .into_owned();
                 let meta = entry.metadata().unwrap();
-                Ok(Some(win32::ReadDirEntry {
+                Ok(Some(win32::host::ReadDirEntry {
                     name,
                     stat: metadata_to_stat(&meta),
                 }))
@@ -77,12 +77,12 @@ impl ReadDir for ReadDirIter {
 }
 
 struct ReadDirFile {
-    file: win32::ReadDirEntry,
+    file: win32::host::ReadDirEntry,
     consumed: bool,
 }
 
-impl ReadDir for ReadDirFile {
-    fn next(&mut self) -> Result<Option<win32::ReadDirEntry>, ERROR> {
+impl win32::host::ReadDir for ReadDirFile {
+    fn next(&mut self) -> Result<Option<win32::host::ReadDirEntry>, ERROR> {
         if self.consumed {
             Ok(None)
         } else {
@@ -112,7 +112,7 @@ impl Env {
 #[derive(Clone)]
 pub struct EnvRef(pub Rc<RefCell<Env>>);
 
-impl win32::FileSystem for EnvRef {
+impl win32::host::FileSystem for EnvRef {
     fn current_dir(&self) -> Result<WindowsPathBuf, ERROR> {
         let path = std::env::current_dir()?;
         Ok(host_to_windows_path(&path))
@@ -121,8 +121,8 @@ impl win32::FileSystem for EnvRef {
     fn open(
         &self,
         path: &WindowsPath,
-        options: FileOptions,
-    ) -> Result<Box<dyn win32::File>, ERROR> {
+        options: win32::host::FileOptions,
+    ) -> Result<Box<dyn win32::host::File>, ERROR> {
         let path = windows_to_host_path(path);
         log::debug!("open({path:?}, {options:?})");
         let f = std::fs::File::options()
@@ -135,13 +135,13 @@ impl win32::FileSystem for EnvRef {
         Ok(Box::new(File { f }))
     }
 
-    fn stat(&self, path: &WindowsPath) -> Result<Stat, ERROR> {
+    fn stat(&self, path: &WindowsPath) -> Result<win32::host::Stat, ERROR> {
         let path = windows_to_host_path(path);
         let meta = std::fs::metadata(path)?;
         Ok(metadata_to_stat(&meta))
     }
 
-    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn ReadDir>, ERROR> {
+    fn read_dir(&self, path: &WindowsPath) -> Result<Box<dyn win32::host::ReadDir>, ERROR> {
         let path = windows_to_host_path(path);
         let full_path = std::fs::canonicalize(path)?;
         let meta = std::fs::metadata(&full_path)?;
@@ -154,7 +154,7 @@ impl win32::FileSystem for EnvRef {
                 .unwrap()
                 .to_string_lossy()
                 .into_owned();
-            let file = win32::ReadDirEntry {
+            let file = win32::host::ReadDirEntry {
                 name: filename,
                 stat: metadata_to_stat(&meta),
             };
@@ -184,7 +184,7 @@ impl win32::FileSystem for EnvRef {
     }
 }
 
-impl win32::Host for EnvRef {
+impl win32::host::Host for EnvRef {
     fn ticks(&self) -> u32 {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
@@ -195,7 +195,7 @@ impl win32::Host for EnvRef {
         chrono::Local::now()
     }
 
-    fn get_message(&self) -> Option<win32::Message> {
+    fn get_message(&self) -> Option<win32::host::Message> {
         let mut env = self.0.borrow_mut();
         let gui = env.gui.as_mut().unwrap();
         gui.get_message()
@@ -211,7 +211,7 @@ impl win32::Host for EnvRef {
         std::io::stdout().lock().write_all(buf).unwrap();
     }
 
-    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
+    fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::host::Window> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.create_window(hwnd)
@@ -220,8 +220,8 @@ impl win32::Host for EnvRef {
     fn create_surface(
         &mut self,
         _hwnd: u32,
-        opts: &win32::SurfaceOptions,
-    ) -> Box<dyn win32::Surface> {
+        opts: &win32::host::SurfaceOptions,
+    ) -> Box<dyn win32::host::Surface> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.create_surface(opts)
@@ -230,8 +230,8 @@ impl win32::Host for EnvRef {
     fn init_audio(
         &mut self,
         sample_rate: u32,
-        callback: win32::AudioCallback,
-    ) -> Box<dyn win32::Audio> {
+        callback: win32::host::AudioCallback,
+    ) -> Box<dyn win32::host::Audio> {
         let mut env = self.0.borrow_mut();
         let gui = env.ensure_gui().unwrap();
         gui.init_audio(sample_rate, callback)
@@ -250,15 +250,15 @@ fn system_time_to_nanos(t: SystemTime) -> i64 {
     }
 }
 
-fn metadata_to_stat(meta: &std::fs::Metadata) -> Stat {
+fn metadata_to_stat(meta: &std::fs::Metadata) -> win32::host::Stat {
     let kind = if meta.is_dir() {
-        win32::StatKind::Directory
+        win32::host::StatKind::Directory
     } else if meta.is_file() {
-        win32::StatKind::File
+        win32::host::StatKind::File
     } else {
-        win32::StatKind::Symlink
+        win32::host::StatKind::Symlink
     };
-    Stat {
+    win32::host::Stat {
         kind,
         size: meta.len(),
         atime: meta.accessed().map_or(0, system_time_to_nanos),

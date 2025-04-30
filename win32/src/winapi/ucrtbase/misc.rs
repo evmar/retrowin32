@@ -1,4 +1,4 @@
-use crate::{Machine, System, calling_convention::VarArgs, winapi::CStr};
+use crate::{Machine, System, calling_convention::VarArgs, host, winapi::CStr};
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _exit(machine: &mut Machine, status: u32) {
@@ -44,7 +44,7 @@ pub fn memcpy(machine: &mut Machine, dest: u32, src: u32, count: u32) -> u32 {
     dest
 }
 
-struct HostStdout<'a>(&'a dyn crate::host::Host);
+struct HostStdout<'a>(&'a dyn host::Host);
 
 impl<'a> std::io::Write for HostStdout<'a> {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {

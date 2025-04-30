@@ -3,18 +3,18 @@ use std::{cell::RefCell, rc::Rc};
 #[cfg(feature = "sdl")]
 extern crate sdl2;
 
-fn map_button(b: sdl2::mouse::MouseButton) -> Option<win32::MouseButton> {
+fn map_button(b: sdl2::mouse::MouseButton) -> Option<win32::host::MouseButton> {
     Some(match b {
-        sdl2::mouse::MouseButton::Left => win32::MouseButton::Left,
-        sdl2::mouse::MouseButton::Right => win32::MouseButton::Right,
-        sdl2::mouse::MouseButton::Middle => win32::MouseButton::Middle,
+        sdl2::mouse::MouseButton::Left => win32::host::MouseButton::Left,
+        sdl2::mouse::MouseButton::Right => win32::host::MouseButton::Right,
+        sdl2::mouse::MouseButton::Middle => win32::host::MouseButton::Middle,
         _ => return None,
     })
 }
 
-fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Message> {
+fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::host::Message> {
     let (time, detail) = match event {
-        sdl2::event::Event::Quit { timestamp } => (timestamp, win32::MessageDetail::Quit),
+        sdl2::event::Event::Quit { timestamp } => (timestamp, win32::host::MessageDetail::Quit),
         sdl2::event::Event::MouseButtonDown {
             timestamp,
             mouse_btn,
@@ -23,7 +23,7 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
             ..
         } => (
             timestamp,
-            win32::MessageDetail::Mouse(win32::MouseMessage {
+            win32::host::MessageDetail::Mouse(win32::host::MouseMessage {
                 down: true,
                 button: map_button(mouse_btn)?,
                 x: x as u32,
@@ -38,7 +38,7 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
             ..
         } => (
             timestamp,
-            win32::MessageDetail::Mouse(win32::MouseMessage {
+            win32::host::MessageDetail::Mouse(win32::host::MouseMessage {
                 down: false,
                 button: map_button(mouse_btn)?,
                 x: x as u32,
@@ -49,9 +49,9 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
             timestamp, x, y, ..
         } => (
             timestamp,
-            win32::MessageDetail::Mouse(win32::MouseMessage {
+            win32::host::MessageDetail::Mouse(win32::host::MouseMessage {
                 down: false,
-                button: win32::MouseButton::None,
+                button: win32::host::MouseButton::None,
                 x: x as u32,
                 y: y as u32,
             }),
@@ -61,13 +61,13 @@ fn message_from_event(hwnd: u32, event: sdl2::event::Event) -> Option<win32::Mes
             return None;
         }
     };
-    Some(win32::Message { hwnd, detail, time })
+    Some(win32::host::Message { hwnd, detail, time })
 }
 
 fn message_from_events(
     hwnd: u32,
     mut f: impl FnMut() -> Option<sdl2::event::Event>,
-) -> Option<win32::Message> {
+) -> Option<win32::host::Message> {
     loop {
         let event = f()?;
         let msg = message_from_event(hwnd, event);
@@ -83,7 +83,7 @@ pub struct GUI {
     pump: sdl2::EventPump,
     timer: sdl2::TimerSubsystem,
     win: Option<WindowRef>,
-    msg_queue: Option<win32::Message>,
+    msg_queue: Option<win32::host::Message>,
 }
 
 impl GUI {
@@ -108,7 +108,7 @@ impl GUI {
         self.timer.ticks()
     }
 
-    pub fn get_message(&mut self) -> Option<win32::Message> {
+    pub fn get_message(&mut self) -> Option<win32::host::Message> {
         if let Some(msg) = self.msg_queue.take() {
             return Some(msg);
         }
@@ -145,7 +145,7 @@ impl GUI {
         true
     }
 
-    pub fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::Window> {
+    pub fn create_window(&mut self, hwnd: u32) -> Box<dyn win32::host::Window> {
         let win = Window::new(&self.video, hwnd);
         let win_ref = WindowRef(Rc::new(RefCell::new(win)));
         if self.win.is_some() {
@@ -156,15 +156,18 @@ impl GUI {
         Box::new(win_ref)
     }
 
-    pub fn create_surface(&mut self, opts: &win32::SurfaceOptions) -> Box<dyn win32::Surface> {
+    pub fn create_surface(
+        &mut self,
+        opts: &win32::host::SurfaceOptions,
+    ) -> Box<dyn win32::host::Surface> {
         Box::new(Texture::new(self.win.as_ref().unwrap(), opts))
     }
 
     pub fn init_audio(
         &mut self,
         sample_rate: u32,
-        callback: win32::AudioCallback,
-    ) -> Box<dyn win32::Audio> {
+        callback: win32::host::AudioCallback,
+    ) -> Box<dyn win32::host::Audio> {
         Box::new(Audio::new(&self.sdl, sample_rate, callback))
     }
 }
@@ -183,7 +186,7 @@ impl Window {
 
 #[derive(Clone)]
 struct WindowRef(Rc<RefCell<Window>>);
-impl win32::Window for WindowRef {
+impl win32::host::Window for WindowRef {
     fn set_title(&self, title: &str) {
         self.0
             .borrow_mut()
@@ -221,7 +224,7 @@ struct Texture {
 }
 
 impl Texture {
-    fn new(win: &WindowRef, opts: &win32::SurfaceOptions) -> Self {
+    fn new(win: &WindowRef, opts: &win32::host::SurfaceOptions) -> Self {
         let texture = win
             .0
             .borrow()
@@ -251,7 +254,7 @@ fn sdl_rect_from_win32(rect: &win32::RECT) -> sdl2::rect::Rect {
     )
 }
 
-impl win32::Surface for Texture {
+impl win32::host::Surface for Texture {
     fn write_pixels(&self, pixels: &[u8]) {
         let rect = sdl2::rect::Rect::new(0, 0, self.width, self.height);
         self.texture
@@ -268,9 +271,14 @@ impl win32::Surface for Texture {
         canvas.present();
     }
 
-    fn bit_blt(&self, dst_rect: &win32::RECT, src: &dyn win32::Surface, src_rect: &win32::RECT) {
+    fn bit_blt(
+        &self,
+        dst_rect: &win32::RECT,
+        src: &dyn win32::host::Surface,
+        src_rect: &win32::RECT,
+    ) {
         let src_rect = sdl_rect_from_win32(src_rect);
-        let src = &unsafe { &*(src as *const dyn win32::Surface as *const Texture) }
+        let src = &unsafe { &*(src as *const dyn win32::host::Surface as *const Texture) }
             .texture
             .borrow();
         let dst_rect = sdl_rect_from_win32(dst_rect);
@@ -305,11 +313,11 @@ struct AudioBuffer {
     /// The count of i16s that have been read in total,
     /// for use in querying current audio position.
     pos: usize,
-    callback: win32::AudioCallback,
+    callback: win32::host::AudioCallback,
 }
 
 impl AudioBuffer {
-    fn new(callback: win32::AudioCallback) -> Self {
+    fn new(callback: win32::host::AudioCallback) -> Self {
         AudioBuffer {
             next: None,
             pos: 0,
@@ -362,7 +370,7 @@ struct Audio {
 }
 
 impl Audio {
-    fn new(sdl: &sdl2::Sdl, sample_rate: u32, callback: win32::AudioCallback) -> Self {
+    fn new(sdl: &sdl2::Sdl, sample_rate: u32, callback: win32::host::AudioCallback) -> Self {
         let audio = sdl.audio().unwrap();
         let spec = sdl2::audio::AudioSpecDesired {
             freq: Some(sample_rate as i32),
@@ -378,7 +386,7 @@ impl Audio {
     }
 }
 
-impl win32::Audio for Audio {
+impl win32::host::Audio for Audio {
     fn write(&mut self, buf: &[u8]) {
         self.dev.lock().write(buf);
     }

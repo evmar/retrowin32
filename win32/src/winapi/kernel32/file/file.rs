@@ -1,6 +1,7 @@
 use crate::{
-    FileOptions, Machine, System,
+    Machine, System,
     calling_convention::{Array, ArrayOut},
+    host,
     winapi::{
         ERROR, HANDLE, Str16,
         kernel32::{STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
@@ -88,7 +89,7 @@ pub fn CreateFileA(
     }
 
     // https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea
-    let file_options = FileOptions {
+    let file_options = host::FileOptions {
         read: generic_access.contains(GENERIC::READ),
         write: generic_access.contains(GENERIC::WRITE),
         truncate: matches!(

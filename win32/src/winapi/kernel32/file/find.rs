@@ -2,9 +2,9 @@ use memory::str16::Str16;
 use typed_path::WindowsPath;
 
 use crate::{
-    ERROR, Machine, ReadDir, ReadDirEntry, StatKind, System,
+    Machine, System, host,
     winapi::{
-        DWORD, HANDLE,
+        DWORD, ERROR, HANDLE,
         kernel32::{FILETIME, FileAttribute, set_last_error},
     },
 };
@@ -30,8 +30,8 @@ pub struct WIN32_FIND_DATAA {
     pub cAlternateFileName: [u8; 14],
 }
 
-impl From<&ReadDirEntry> for WIN32_FIND_DATAA {
-    fn from(file: &ReadDirEntry) -> Self {
+impl From<&host::ReadDirEntry> for WIN32_FIND_DATAA {
+    fn from(file: &host::ReadDirEntry) -> Self {
         let stat = &file.stat;
         let mut data = Self {
             dwFileAttributes: FileAttribute::from(stat).bits(),
@@ -40,7 +40,7 @@ impl From<&ReadDirEntry> for WIN32_FIND_DATAA {
             ftLastWriteTime: FILETIME::from_unix_nanos(stat.mtime),
             nFileSizeHigh: (stat.size >> 32) as DWORD,
             nFileSizeLow: stat.size as DWORD,
-            dwReserved0: if stat.kind == StatKind::Symlink {
+            dwReserved0: if stat.kind == host::StatKind::Symlink {
                 0xA000000C // IO_REPARSE_TAG_SYMLINK
             } else {
                 0
@@ -63,7 +63,7 @@ unsafe impl memory::Pod for WIN32_FIND_DATAA {}
 
 pub struct FindHandle {
     pub pattern: String,
-    pub read_dir: Box<dyn ReadDir>,
+    pub read_dir: Box<dyn host::ReadDir>,
 }
 
 pub type WIN32_FIND_DATAW = WIN32_FIND_DATAA; // TODO

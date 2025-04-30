@@ -1,5 +1,5 @@
 mod heap;
-mod host;
+pub mod host;
 pub mod loader;
 mod machine;
 mod memory;
@@ -24,7 +24,6 @@ mod shims_raw;
 #[cfg(feature = "x86-unicorn")]
 mod machine_unicorn;
 
-pub use host::*;
 pub use machine::{Machine, Status};
 pub use system::System;
-pub use win32_winapi::calling_convention;
+pub use win32_winapi::{RECT, calling_convention};

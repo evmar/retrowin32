@@ -1,6 +1,6 @@
 use super::{Timers, Window};
 use crate::{
-    Host, Machine, MouseButton, System, host,
+    Machine, System, host,
     winapi::{
         Handles,
         kernel32::{
@@ -96,13 +96,13 @@ fn msg_from_message(message: host::Message) -> MSG {
         }
         host::MessageDetail::Mouse(mouse) => {
             msg.message = match (mouse.button, mouse.down) {
-                (MouseButton::None, _) => WM::MOUSEMOVE,
-                (MouseButton::Left, true) => WM::LBUTTONDOWN,
-                (MouseButton::Left, false) => WM::LBUTTONUP,
-                (MouseButton::Right, true) => WM::RBUTTONDOWN,
-                (MouseButton::Right, false) => WM::RBUTTONUP,
-                (MouseButton::Middle, true) => WM::MBUTTONDOWN,
-                (MouseButton::Middle, false) => WM::MBUTTONUP,
+                (host::MouseButton::None, _) => WM::MOUSEMOVE,
+                (host::MouseButton::Left, true) => WM::LBUTTONDOWN,
+                (host::MouseButton::Left, false) => WM::LBUTTONUP,
+                (host::MouseButton::Right, true) => WM::RBUTTONDOWN,
+                (host::MouseButton::Right, false) => WM::RBUTTONUP,
+                (host::MouseButton::Middle, true) => WM::MBUTTONDOWN,
+                (host::MouseButton::Middle, false) => WM::MBUTTONUP,
             } as u32;
             msg.wParam = 0; // TODO:  modifiers
             msg.lParam = (mouse.y << 16) | mouse.x;
@@ -186,7 +186,7 @@ impl MessageQueue {
     /// Err(wait) returns indicate how long to block until the next timer.
     fn get_timer(
         &mut self,
-        host: &dyn Host,
+        host: &dyn host::Host,
         timers: &mut Timers,
         remove: bool,
     ) -> Result<MSG, Option<u32>> {

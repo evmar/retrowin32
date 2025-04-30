@@ -1,6 +1,6 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
-    FileOptions, Machine, System,
+    Machine, System, host,
     winapi::{
         bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
@@ -116,7 +116,7 @@ fn load_image(
         let path = name.to_string();
         let mut file = machine
             .host
-            .open(WindowsPath::new(&path), FileOptions::read())
+            .open(WindowsPath::new(&path), host::FileOptions::read())
             .unwrap();
         let mut buf = Vec::new();
         file.read_to_end(&mut buf).unwrap();

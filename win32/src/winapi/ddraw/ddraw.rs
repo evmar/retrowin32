@@ -5,7 +5,7 @@ use super::palette::Palette;
 pub use super::types::*;
 pub use crate::winapi::com::GUID;
 use crate::{
-    Machine, SurfaceOptions,
+    Machine,
     heap::Heap,
     host,
     winapi::{
@@ -31,7 +31,7 @@ pub struct Surface {
 }
 
 impl Surface {
-    fn new(machine: &mut Machine, hwnd: HWND, opts: &SurfaceOptions) -> Self {
+    fn new(machine: &mut Machine, hwnd: HWND, opts: &host::SurfaceOptions) -> Self {
         if opts.width == 0 || opts.height == 0 {
             panic!("cannot create 0-sized surface");
         }
@@ -52,7 +52,7 @@ impl Surface {
 
         let mut surfaces = Vec::new();
 
-        let mut opts = crate::host::SurfaceOptions::default();
+        let mut opts = host::SurfaceOptions::default();
         if desc.dwFlags.contains(DDSD::WIDTH) {
             opts.width = desc.dwWidth;
         }

@@ -7,6 +7,7 @@ use super::{
 use crate::{
     Machine,
     heap::Heap,
+    host,
     loader::{self, Module},
     memory::Memory,
     segments::SegmentDescriptor,
@@ -122,7 +123,7 @@ pub struct State {
     // because they can be passed to the various Wait functions.
     pub objects: Handles<HANDLE<()>, KernelObject>,
 
-    pub files: Handles<HFILE, Box<dyn crate::host::File>>,
+    pub files: Handles<HFILE, Box<dyn host::File>>,
 
     pub find_handles: Handles<HFIND, FindHandle>,
 

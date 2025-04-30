@@ -3,8 +3,6 @@
 use tsify::{JsValueSerdeExt, Tsify};
 use wasm_bindgen::prelude::*;
 
-use crate::host::WebSurface;
-
 #[wasm_bindgen]
 pub enum Register {
     EAX,

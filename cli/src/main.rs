@@ -12,7 +12,7 @@ mod resv32;
 
 use anyhow::anyhow;
 use std::{borrow::Cow, process::ExitCode};
-use win32::{FileSystem, x86};
+use win32::{host::FileSystem as _, x86};
 
 #[derive(argh::FromArgs)]
 /// win32 emulator.
