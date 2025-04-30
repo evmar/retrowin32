@@ -92,7 +92,11 @@ fn process_builtin_dll(path: &Path, dll_dir: &Path) -> anyhow::Result<()> {
     let files = parse_files(path)?;
     let mut dllexports = parse::DllExports::default();
     for (name, file) in &files {
-        parse::gather_dllexports(name, &file.items, &mut dllexports)?;
+        if let Err(err) = parse::gather_dllexports(name, &file.items, &mut dllexports) {
+            let loc = err.span().start();
+            // TODO: get file name from span, needs later syn version.
+            anyhow::bail!("{}:{}:{}: {}", name, loc.line, loc.column, err);
+        }
     }
 
     // Sort by name, then assign ordinals satisfying the ordinals that were specified,
