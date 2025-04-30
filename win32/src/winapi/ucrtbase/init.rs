@@ -1,30 +1,30 @@
 use memory::Extensions;
 
-use crate::{Machine, System};
+use crate::System;
 
 #[win32_derive::dllexport(cdecl)]
-pub async fn _initterm(machine: &mut Machine, start: u32, end: u32) -> u32 {
+pub async fn _initterm(sys: &mut dyn System, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm");
     }
-    let slice = machine.mem().sub32(start, end - start).to_vec();
+    let slice = sys.mem().sub32(start, end - start).to_vec();
     for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
-            machine.call_x86(addr, vec![]).await;
+            sys.call_x86(addr, vec![]).await;
         }
     }
     0
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub async fn _initterm_e(machine: &mut Machine, start: u32, end: u32) -> u32 {
+pub async fn _initterm_e(sys: &mut dyn System, start: u32, end: u32) -> u32 {
     if (end - start) % 4 != 0 {
         panic!("unaligned _initterm_e");
     }
-    let slice = machine.mem().sub32(start, end - start).to_vec();
+    let slice = sys.mem().sub32(start, end - start).to_vec();
     for addr in slice.into_iter_pod::<u32>() {
         if addr != 0 {
-            let err = machine.call_x86(addr, vec![]).await;
+            let err = sys.call_x86(addr, vec![]).await;
             if err != 0 {
                 return err;
             }
@@ -157,7 +157,7 @@ pub fn __getmainargs(
 }
 
 #[win32_derive::dllexport(cdecl)]
-pub fn _XcptFilter(machine: &mut Machine, xcptnum: u32, pxcptinfoptrs: u32) -> u32 {
+pub fn _XcptFilter(machine: &mut dyn System, xcptnum: u32, pxcptinfoptrs: u32) -> u32 {
     todo!();
 }
 

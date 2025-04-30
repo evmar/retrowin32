@@ -75,7 +75,6 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
 
         match wave_out.notify {
             Some(Notify::Function(callback, instance)) => {
-                let cpu = machine.emu.x86.cpu_mut();
                 // void CALLBACK waveOutProc(
                 //     HWAVEOUT  hwo,
                 //     UINT      uMsg,
@@ -83,18 +82,18 @@ pub async fn retrowin32_wave_thread_main(machine: &mut Machine, hwo: HWAVEOUT) {
                 //     DWORD_PTR dwParam1,
                 //     DWORD_PTR dwParam2
                 // );
-                cpu.call_x86(
-                    mem,
-                    callback,
-                    vec![
-                        hwo.to_raw(),
-                        MM_WOM::DONE as u32,
-                        instance,
-                        wave_hdr_addr,
-                        0,
-                    ],
-                )
-                .await;
+                machine
+                    .call_x86(
+                        callback,
+                        vec![
+                            hwo.to_raw(),
+                            MM_WOM::DONE as u32,
+                            instance,
+                            wave_hdr_addr,
+                            0,
+                        ],
+                    )
+                    .await;
             }
             None => {}
         }

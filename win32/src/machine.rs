@@ -54,6 +54,14 @@ impl System for Machine {
     fn host(&mut self) -> &mut dyn host::Host {
         self.host.as_mut()
     }
+
+    fn call_x86(
+        &mut self,
+        func: u32,
+        args: Vec<u32>,
+    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = u32> + '_>> {
+        Box::pin(self.call_x86(func, args))
+    }
 }
 
 /// Status of the machine/process.  Separate from CPU state because multiple threads

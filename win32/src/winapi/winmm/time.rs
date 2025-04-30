@@ -25,13 +25,9 @@ pub async fn retrowin32_time_thread_main(machine: &mut Machine) {
     } = machine.state.winmm.time_thread.as_ref().unwrap();
     loop {
         kernel32::Sleep(machine, delay).await;
-        let cpu = machine.emu.x86.cpu_mut();
-        cpu.call_x86(
-            machine.memory.mem(),
-            callback,
-            vec![timer_id, 0, user_data, 0, 0],
-        )
-        .await;
+        machine
+            .call_x86(callback, vec![timer_id, 0, user_data, 0, 0])
+            .await;
     }
 }
 
