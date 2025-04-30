@@ -1,11 +1,12 @@
 use super::MMRESULT;
 use crate::{
-    Machine, System, host,
+    Machine, System,
     winapi::{self, Handles},
 };
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::VecDeque, sync::Arc};
+use win32_system::host;
 
 pub type HWAVEOUT = winapi::HANDLE<WaveOut>;
 

@@ -5,9 +5,7 @@
 //! as well as recursively resolving imported modules.
 
 use crate::{
-    host,
     machine::Machine,
-    memory::{Mapping, Memory},
     winapi::{
         self,
         builtin::BuiltinDLL,
@@ -18,6 +16,10 @@ use memory::{Extensions, ExtensionsMut};
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
+};
+use win32_system::{
+    host,
+    memory::{Mapping, Memory},
 };
 use win32_winapi::WindowsPath;
 

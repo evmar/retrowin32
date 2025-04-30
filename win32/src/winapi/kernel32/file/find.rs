@@ -1,8 +1,8 @@
-use memory::str16::Str16;
-use win32_winapi::WindowsPath;
+use win32_system::host;
+use win32_winapi::{Str16, WindowsPath};
 
 use crate::{
-    Machine, System, host,
+    Machine, System,
     winapi::{
         DWORD, ERROR, HANDLE,
         kernel32::{FILETIME, FileAttribute, set_last_error},

@@ -1,4 +1,5 @@
-use crate::{Machine, System, calling_convention::VarArgs, host, winapi::CStr};
+use crate::{Machine, System, calling_convention::VarArgs, winapi::CStr};
+use win32_system::host;
 
 #[win32_derive::dllexport(cdecl)]
 pub fn _exit(machine: &mut Machine, status: u32) {

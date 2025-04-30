@@ -1,10 +1,8 @@
 //! Implements Machine using retrowin32's x86 emulator as found in the x86/ directory.
 
 use crate::{
-    calling_convention::ABIReturn,
-    host, loader,
+    loader,
     machine::{MachineX, Status},
-    memory::Memory,
     shims::{Handler, Shims},
     winapi::{
         self,
@@ -13,35 +11,9 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::collections::HashMap;
+use win32_system::{host, memory::Memory};
+use win32_winapi::calling_convention::ABIReturn;
 use x86::CPU;
-
-pub struct BoxMem(Box<[u8]>);
-
-impl BoxMem {
-    fn new(size: usize) -> Self {
-        let mut buf = Vec::<u8>::with_capacity(size);
-        unsafe {
-            buf.set_len(size);
-        }
-        Self(buf.into_boxed_slice())
-    }
-
-    // TODO: we can support growing under wasm by using a custom allocator that
-    // ensures this is the last thing in the heap.
-    // pub fn grow();
-
-    pub fn len(&self) -> u32 {
-        self.0.len() as u32
-    }
-
-    pub fn mem(&self) -> Mem {
-        Mem::from_slice(&self.0)
-    }
-
-    pub fn as_ptr(&self) -> *const u8 {
-        self.0.as_ptr()
-    }
-}
 
 pub struct Emulator {
     pub x86: x86::X86,
@@ -52,12 +24,12 @@ pub struct Emulator {
     breakpoints: HashMap<u32, u8>,
 }
 
-pub type MemImpl = BoxMem;
+pub type MemImpl = win32_system::MemImpl;
 pub type Machine = MachineX<Emulator>;
 
 impl MachineX<Emulator> {
     pub fn new(host: Box<dyn host::Host>) -> Self {
-        let mut memory = Memory::new(BoxMem::new(256 << 20));
+        let mut memory = Memory::new(MemImpl::new(256 << 20));
         let retrowin32_syscall = b"\x0f\x34\xc3".as_slice(); // sysenter; ret
         let kernel32 = winapi::kernel32::State::new(&mut memory, retrowin32_syscall);
         let shims = Shims::default();

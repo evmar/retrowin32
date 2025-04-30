@@ -6,16 +6,14 @@ use super::{
 };
 use crate::{
     Machine,
-    heap::Heap,
-    host,
     loader::{self, Module},
-    memory::Memory,
     segments::SegmentDescriptor,
     winapi::{arena::Arena, *},
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};
 use std::{collections::HashMap, rc::Rc, sync::Arc};
+use win32_system::{Heap, host, memory::Memory};
 
 #[repr(C)]
 pub struct UNICODE_STRING {

@@ -2,7 +2,6 @@ use super::*;
 use crate::{
     Machine, System,
     calling_convention::Array,
-    host,
     winapi::{
         bitmap::{Bitmap, PixelData, PixelFormat},
         gdi32::HDC,
@@ -12,6 +11,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{cell::RefCell, rc::Rc};
+use win32_system::host;
 
 /*
 

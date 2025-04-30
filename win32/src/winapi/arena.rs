@@ -1,4 +1,4 @@
-use crate::memory::align_to;
+use win32_system::memory::align_to;
 
 pub struct Arena {
     pub addr: u32,

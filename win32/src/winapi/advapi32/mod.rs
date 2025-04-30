@@ -4,8 +4,9 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::{ERROR, Str16};
+use super::Str16;
 use crate::System;
+use win32_winapi::ERROR;
 
 pub type HKEY = u32;
 

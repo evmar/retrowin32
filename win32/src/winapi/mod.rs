@@ -1,4 +1,3 @@
-use crate::{heap::Heap, memory::Memory};
 use std::{cell::RefCell, rc::Rc};
 
 mod advapi32;
@@ -28,7 +27,9 @@ mod version;
 mod wininet;
 mod winmm;
 
+pub use kernel32::HFILE;
 pub use memory::str16::{Str16, String16};
+use win32_system::{Heap, memory::Memory};
 pub use win32_winapi::*;
 
 pub struct State {

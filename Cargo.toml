@@ -10,6 +10,7 @@ members = [
   "web/glue",
   "win32/derive",
   "win32/extract",
+  "win32/system",
   "win32/winapi",
 ]
 

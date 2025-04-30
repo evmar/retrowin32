@@ -1,6 +1,6 @@
 use super::{HINSTANCE, HMENU};
 use crate::{
-    Machine, System, host,
+    Machine, System,
     winapi::{
         bitmap::{BITMAPFILEHEADER, Bitmap},
         encoding::{Encoder, EncoderAnsi},
@@ -12,6 +12,7 @@ use crate::{
 use bitflags::bitflags;
 use memory::{Extensions, ExtensionsMut};
 use std::{borrow::Cow, ops::Range};
+use win32_system::host;
 
 // TODO: switch to the HANDLE<T> type?
 pub type HCURSOR = u32;

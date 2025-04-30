@@ -10,8 +10,9 @@
 //! 2. shims_raw.rs, which is used when executing x86 natively
 //! 3. shims_unicorn.rs, which is used with the Unicorn CPU emulator
 
-use crate::{System, calling_convention::ABIReturn};
+use crate::System;
 use std::collections::HashMap;
+use win32_winapi::calling_convention::ABIReturn;
 
 pub type SyncHandler = unsafe fn(&mut dyn System, u32) -> ABIReturn;
 pub type AsyncHandler =

@@ -608,6 +608,7 @@ dependencies = [
  "unicorn-engine",
  "wasm-bindgen",
  "win32-derive",
+ "win32-system",
  "win32-winapi",
  "x86",
 ]
@@ -629,6 +630,19 @@ name = "win32-extract"
 version = "0.1.0"
 dependencies = [
  "windows-metadata",
+]
+
+[[package]]
+name = "win32-system"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "log",
+ "memory",
+ "pe",
+ "serde",
+ "win32-derive",
+ "win32-winapi",
 ]
 
 [[package]]

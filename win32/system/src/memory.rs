@@ -1,6 +1,6 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use crate::{heap::Heap, machine::MemImpl};
+use crate::{MemImpl, heap::Heap};
 use memory::{Extensions, Mem};
 
 pub fn align_to(n: u32, align: usize) -> u32 {

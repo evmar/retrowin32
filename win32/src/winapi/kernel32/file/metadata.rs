@@ -1,13 +1,13 @@
 use crate::{
     Machine, System,
     calling_convention::ABIReturn,
-    host,
     winapi::{
         ERROR, Str16,
         kernel32::{FILETIME, STDERR_HFILE, STDIN_HFILE, STDOUT_HFILE, set_last_error},
     },
 };
 use bitflags::bitflags;
+use win32_system::host;
 use win32_winapi::WindowsPath;
 
 use super::HFILE;

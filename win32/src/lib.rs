@@ -1,11 +1,7 @@
-mod heap;
-pub mod host;
 pub mod loader;
 mod machine;
-mod memory;
 mod segments;
 pub mod shims;
-pub mod system;
 pub mod winapi;
 
 #[cfg(feature = "x86-emu")]
@@ -25,5 +21,5 @@ mod shims_raw;
 mod machine_unicorn;
 
 pub use machine::{Machine, Status};
-pub use system::System;
-pub use win32_winapi::{RECT, UnixPath, WindowsPath, WindowsPathBuf, calling_convention};
+pub use win32_system::{System, host};
+pub use win32_winapi::{ERROR, RECT, UnixPath, WindowsPath, WindowsPathBuf, calling_convention};

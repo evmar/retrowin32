@@ -1,7 +1,6 @@
 //! Interfaces expected of the x86 host.
 
-pub use win32_winapi::{ERROR, RECT};
-use win32_winapi::{WindowsPath, WindowsPathBuf};
+pub use win32_winapi::{ERROR, RECT, WindowsPath, WindowsPathBuf};
 
 /// Drawing surface, corresponding to window contents or DirectDraw surfaces.
 pub trait Surface {

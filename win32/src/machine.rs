@@ -1,18 +1,15 @@
+use win32_system::host;
+use win32_system::memory::Memory;
+
 use crate::System;
-use crate::{host, loader, memory::Memory, winapi};
+use crate::{loader, winapi};
 
 #[cfg(feature = "x86-emu")]
 pub use crate::machine_emu::Machine;
-#[cfg(feature = "x86-emu")]
-pub use crate::machine_emu::MemImpl;
 #[cfg(feature = "x86-64")]
 pub use crate::machine_raw::Machine;
-#[cfg(feature = "x86-64")]
-pub use crate::machine_raw::MemImpl;
 #[cfg(feature = "x86-unicorn")]
 pub use crate::machine_unicorn::Machine;
-#[cfg(feature = "x86-unicorn")]
-pub use crate::machine_unicorn::MemImpl;
 
 /// Integrates the X86 CPU emulator with the Windows OS support.
 pub struct MachineX<Emu> {

@@ -6,8 +6,6 @@ pub use super::types::*;
 pub use crate::winapi::com::GUID;
 use crate::{
     Machine,
-    heap::Heap,
-    host,
     winapi::{
         HWND, RECT,
         bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut},
@@ -16,6 +14,7 @@ use crate::{
 };
 use memory::{Extensions, ExtensionsMut, Mem};
 use std::{collections::HashMap, rc::Rc};
+use win32_system::{Heap, host};
 
 pub struct Surface {
     pub host: Box<dyn host::Surface>,
