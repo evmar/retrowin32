@@ -5,7 +5,7 @@ mod builtin;
 
 pub use builtin::DLL;
 
-use super::heap::Heap;
+use crate::heap::Heap;
 pub use crate::winapi::com::GUID;
 use crate::{
     Machine, System,

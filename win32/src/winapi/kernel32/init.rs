@@ -6,10 +6,11 @@ use super::{
 };
 use crate::{
     Machine,
+    heap::Heap,
     loader::{self, Module},
     memory::Memory,
     segments::SegmentDescriptor,
-    winapi::{arena::Arena, handle::Handles, heap::Heap, *},
+    winapi::{arena::Arena, handle::Handles, *},
 };
 use ::memory::Mem;
 use memory::{Extensions, ExtensionsMut};

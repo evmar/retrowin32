@@ -14,7 +14,6 @@ mod encoding;
 mod error;
 pub mod gdi32;
 mod handle;
-mod heap;
 pub mod kernel32;
 mod ntdll;
 mod ole32;
@@ -36,7 +35,7 @@ pub use memory::str16::{Str16, String16};
 pub use types::*;
 
 pub struct State {
-    scratch: heap::Heap,
+    scratch: crate::heap::Heap,
 
     pub ddraw: ddraw::State,
     pub dsound: dsound::State,

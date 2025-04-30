@@ -5,12 +5,13 @@ use super::palette::Palette;
 pub use super::types::*;
 pub use crate::winapi::com::GUID;
 use crate::{
-    Machine, SurfaceOptions, host,
+    Machine, SurfaceOptions,
+    heap::Heap,
+    host,
     winapi::{
         HWND, RECT,
         bitmap::{Bitmap, PixelData, PixelFormat, transmute_pixels_mut},
         ddraw::{ddraw1, ddraw7},
-        heap::Heap,
     },
 };
 use memory::{Extensions, ExtensionsMut, Mem};
